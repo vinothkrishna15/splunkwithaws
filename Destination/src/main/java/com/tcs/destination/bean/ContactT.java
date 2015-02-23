@@ -1,0 +1,221 @@
+package com.tcs.destination.bean;
+
+import java.io.Serializable;
+import javax.persistence.*;
+import java.sql.Timestamp;
+import java.util.List;
+
+
+/**
+ * The persistent class for the contact_t database table.
+ * 
+ */
+@Entity
+@Table(name="contact_t")
+@NamedQuery(name="ContactT.findAll", query="SELECT c FROM ContactT c")
+public class ContactT implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="contact_id")
+	private String contactId;
+
+	@Column(name="contact_category")
+	private String contactCategory;
+
+	@Column(name="contact_email_id")
+	private String contactEmailId;
+
+	@Column(name="contact_linkedin_profile")
+	private String contactLinkedinProfile;
+
+	@Column(name="contact_name")
+	private String contactName;
+
+	@Column(name="contact_photo")
+	private byte[] contactPhoto;
+
+	@Column(name="contact_telephone")
+	private String contactTelephone;
+
+	@Column(name="contact_type")
+	private String contactType;
+
+	@Column(name="created_modified_by")
+	private String createdModifiedBy;
+
+	@Column(name="created_modified_datetime")
+	private Timestamp createdModifiedDatetime;
+
+	@Column(name="employee_number")
+	private Integer employeeNumber;
+
+	@Column(name="other_role")
+	private String otherRole;
+
+	//bi-directional many-to-one association to ContactRoleMappingT
+	@ManyToOne
+	@JoinColumn(name="contact_role")
+	private ContactRoleMappingT contactRoleMappingT;
+
+	//bi-directional many-to-one association to CustomerMasterT
+	@ManyToOne
+	@JoinColumn(name="customer_id")
+	private CustomerMasterT customerMasterT;
+
+	//bi-directional many-to-one association to PartnerMasterT
+	@ManyToOne
+	@JoinColumn(name="partner_id")
+	private PartnerMasterT partnerMasterT;
+
+	//bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy="contactT")
+	private List<UserFavoritesT> userFavoritesTs;
+
+	public ContactT() {
+	}
+
+	public String getContactId() {
+		return this.contactId;
+	}
+
+	public void setContactId(String contactId) {
+		this.contactId = contactId;
+	}
+
+	public String getContactCategory() {
+		return this.contactCategory;
+	}
+
+	public void setContactCategory(String contactCategory) {
+		this.contactCategory = contactCategory;
+	}
+
+	public String getContactEmailId() {
+		return this.contactEmailId;
+	}
+
+	public void setContactEmailId(String contactEmailId) {
+		this.contactEmailId = contactEmailId;
+	}
+
+	public String getContactLinkedinProfile() {
+		return this.contactLinkedinProfile;
+	}
+
+	public void setContactLinkedinProfile(String contactLinkedinProfile) {
+		this.contactLinkedinProfile = contactLinkedinProfile;
+	}
+
+	public String getContactName() {
+		return this.contactName;
+	}
+
+	public void setContactName(String contactName) {
+		this.contactName = contactName;
+	}
+
+	public byte[] getContactPhoto() {
+		return this.contactPhoto;
+	}
+
+	public void setContactPhoto(byte[] contactPhoto) {
+		this.contactPhoto = contactPhoto;
+	}
+
+	public String getContactTelephone() {
+		return this.contactTelephone;
+	}
+
+	public void setContactTelephone(String contactTelephone) {
+		this.contactTelephone = contactTelephone;
+	}
+
+	public String getContactType() {
+		return this.contactType;
+	}
+
+	public void setContactType(String contactType) {
+		this.contactType = contactType;
+	}
+
+	public String getCreatedModifiedBy() {
+		return this.createdModifiedBy;
+	}
+
+	public void setCreatedModifiedBy(String createdModifiedBy) {
+		this.createdModifiedBy = createdModifiedBy;
+	}
+
+	public Timestamp getCreatedModifiedDatetime() {
+		return this.createdModifiedDatetime;
+	}
+
+	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
+		this.createdModifiedDatetime = createdModifiedDatetime;
+	}
+
+	public Integer getEmployeeNumber() {
+		return this.employeeNumber;
+	}
+
+	public void setEmployeeNumber(Integer employeeNumber) {
+		this.employeeNumber = employeeNumber;
+	}
+
+	public String getOtherRole() {
+		return this.otherRole;
+	}
+
+	public void setOtherRole(String otherRole) {
+		this.otherRole = otherRole;
+	}
+
+	public ContactRoleMappingT getContactRoleMappingT() {
+		return this.contactRoleMappingT;
+	}
+
+	public void setContactRoleMappingT(ContactRoleMappingT contactRoleMappingT) {
+		this.contactRoleMappingT = contactRoleMappingT;
+	}
+
+	public CustomerMasterT getCustomerMasterT() {
+		return this.customerMasterT;
+	}
+
+	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
+		this.customerMasterT = customerMasterT;
+	}
+
+	public PartnerMasterT getPartnerMasterT() {
+		return this.partnerMasterT;
+	}
+
+	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
+		this.partnerMasterT = partnerMasterT;
+	}
+
+	public List<UserFavoritesT> getUserFavoritesTs() {
+		return this.userFavoritesTs;
+	}
+
+	public void setUserFavoritesTs(List<UserFavoritesT> userFavoritesTs) {
+		this.userFavoritesTs = userFavoritesTs;
+	}
+
+	public UserFavoritesT addUserFavoritesT(UserFavoritesT userFavoritesT) {
+		getUserFavoritesTs().add(userFavoritesT);
+		userFavoritesT.setContactT(this);
+
+		return userFavoritesT;
+	}
+
+	public UserFavoritesT removeUserFavoritesT(UserFavoritesT userFavoritesT) {
+		getUserFavoritesTs().remove(userFavoritesT);
+		userFavoritesT.setContactT(null);
+
+		return userFavoritesT;
+	}
+
+}
