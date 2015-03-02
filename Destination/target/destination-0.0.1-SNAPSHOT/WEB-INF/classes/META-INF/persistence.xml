@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
+	version="1.0">
+
+	<persistence-unit name="application" transaction-type="RESOURCE_LOCAL">
+		<class>com.tcs.destination.bean.UserT</class>
+		<class>com.tcs.destination.bean.CustomerMasterT</class>
+		<class>com.tcs.destination.bean.IouCustomerMappingT</class>
+		<class>com.tcs.destination.bean.GeographyCountryMappingT</class>
+		<class>com.tcs.destination.bean.GeographyMappingT</class>
+		<class>com.tcs.destination.bean.SearchCusPartAjax</class>
+		<class>com.tcs.destination.bean.PartnerMasterT</class>
+		<class>com.tcs.destination.bean.ConnectT</class>
+
+		<class>com.tcs.destination.bean.ConnectOpportunityLinkIdT</class>
+		<class>com.tcs.destination.bean.DocumentRepositoryT</class>
+		<class>com.tcs.destination.bean.OfferingMappingT</class>
+		<class>com.tcs.destination.bean.TaskT</class>
+		<class>com.tcs.destination.bean.UserGroupMappingT</class>
+		<class>com.tcs.destination.bean.UserRoleMappingT</class>
+		<properties>
+			<property name="eclipselink.jdbc.batch-writing" value="None" />
+			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/destination" />
+			<property name="javax.persistence.jdbc.user" value="postgres" />
+			<property name="javax.persistence.jdbc.password" value="admin" />
+			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+			<!-- <property name="hibernate.show.sql" value="true" /> <property name="hibernate.format_sql" 
+				value="true" /> <property name="eclipselink.logging.level" value="FINE" /> 
+				<property name="eclipselink.logging.parameters" value="true" /> <property 
+				name="openjpa.Log" value="DefaultLevel=WARN, Runtime=INFO, Tool=INFO, SQL=TRACE" 
+				/> -->
+		</properties>
+	</persistence-unit>
+
+
+</persistence>
