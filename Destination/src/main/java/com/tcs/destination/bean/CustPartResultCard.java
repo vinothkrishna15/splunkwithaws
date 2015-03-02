@@ -23,6 +23,8 @@ public class CustPartResultCard implements Serializable,
 	private int connects;
 
 	private int opportunities;
+	
+	private String entityType;
 
 	public Timestamp getCreatedModifiedDatetime() {
 		return createdModifiedDatetime;
@@ -99,5 +101,15 @@ public class CustPartResultCard implements Serializable,
 		} else
 			return 0;
 	}
+
+	public String getEntityType() {
+		return entityType;
+	}
+
+	public void setEntityType(String entityType) {
+		this.entityType = entityType;
+	}
+	
+	
 
 }

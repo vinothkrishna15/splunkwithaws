@@ -47,6 +47,7 @@ public class Constants {
 		card.setCreatedModifiedDatetime(partner.getCreatedModifiedDatetime());
 		card.setOpportunities(partner.getOpportunityPartnerLinkTs().size());
 		card.setConnects(partner.getConnectTs().size());
+		card.setEntityType(Constants.EntityType.PARTNER.toString());
 		return card;
 	}
 
@@ -60,6 +61,7 @@ public class Constants {
 		card.setCreatedModifiedDatetime(customer.getCreatedModifiedDatetime());
 		card.setOpportunities(customer.getOpportunityTs().size());
 		card.setConnects(customer.getConnectTs().size());
+		card.setEntityType(Constants.EntityType.CUSTOMER.toString());
 		return card;
 	}
 }

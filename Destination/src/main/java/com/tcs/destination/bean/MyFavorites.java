@@ -14,6 +14,8 @@ public class MyFavorites implements Serializable {
 	private String name;
 
 	private GeographyMappingT geography;
+	
+	private String entityType;
 
 	private byte[] logo;
 
@@ -48,5 +50,15 @@ public class MyFavorites implements Serializable {
 	public void setLogo(byte[] logo) {
 		this.logo = logo;
 	}
+
+	public String getEntityType() {
+		return entityType;
+	}
+
+	public void setEntityType(String entityType) {
+		this.entityType = entityType;
+	}
+	
+	
 
 }

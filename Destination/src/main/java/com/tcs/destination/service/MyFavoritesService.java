@@ -12,6 +12,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
+import com.tcs.destination.utils.Constants;
 
 @Component
 public class MyFavoritesService {
@@ -34,6 +35,7 @@ public class MyFavoritesService {
 				favorite.setName(customer.getCustomerName());
 				favorite.setLogo(customer.getLogo());
 				favorite.setGeography(customer.getGeographyMappingT());
+				favorite.setEntityType(Constants.EntityType.CUSTOMER.toString());
 				favorites.add(favorite);
 			} else if (userFav.getPartnerMasterT() != null) {
 				PartnerMasterT partner = new PartnerMasterT();
@@ -41,6 +43,7 @@ public class MyFavoritesService {
 				favorite.setName(partner.getPartnerName());
 				favorite.setLogo(partner.getLogo());
 				favorite.setGeography(partner.getGeographyMappingT());
+				favorite.setEntityType(Constants.EntityType.PARTNER.toString());
 				favorites.add(favorite);
 			}
 		}
