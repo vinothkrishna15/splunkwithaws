@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.exception.UnAuthorizedException;
 
 @Service
 public class UserRepositoryUserDetailsService implements UserDetailsService {
@@ -27,7 +28,6 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String userName)
 			throws UsernameNotFoundException {
 		// TODO Auto-generated method stub
-		System.out.println("userName : " + userName);
 		UserT user = null;
 
 		try {
@@ -37,13 +37,15 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
-			System.out.println("Getting Exception : " + e.getMessage());
+			System.out.println("No Such User");
+			throw new UnAuthorizedException();
 		}
 
 		if (user == null) {
 			System.out.println("user is null...");
-			throw new UsernameNotFoundException("Could not find user "
-					+ userName);
+			throw new UnAuthorizedException();
+//			throw new UsernameNotFoundException("Could not find user "
+//					+ userName);
 		}
 		System.out.println("Returning value...");
 		return new UserRepositoryUserDetails(user);
