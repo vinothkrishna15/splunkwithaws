@@ -12,6 +12,8 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.RevenuesResponse;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.exception.CustomerNotFoundException;
+import com.tcs.destination.exception.NoDataFoundException;
 
 @Component
 public class CustomerService {
@@ -20,7 +22,10 @@ public class CustomerService {
 	CustomerRepository customerRepository;
 
 	public CustomerMasterT findById(String customerid) {
-		return customerRepository.findOne(customerid);
+		CustomerMasterT customer=customerRepository.findOne(customerid);
+		if(customer==null)
+			throw new CustomerNotFoundException();
+		return customer;
 	}
 
 	public List<RevenuesResponse> findTop10Customers() {
@@ -34,6 +39,8 @@ public class CustomerService {
 			revenue.setLogo(customer.getLogo());
 			revenueList.add(revenue);
 		}
+		if(revenueList.isEmpty())
+			throw new NoDataFoundException();
 		return revenueList;
 	}
 
@@ -53,6 +60,8 @@ public class CustomerService {
 			}
 			tarActResponseList.add(response);
 		}
+		if(tarActResponseList.isEmpty())
+			throw new NoDataFoundException();
 		return tarActResponseList;
 	}
 

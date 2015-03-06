@@ -12,6 +12,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
+import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.utils.Constants;
 
 @Component
@@ -47,6 +48,8 @@ public class MyFavoritesService {
 				favorites.add(favorite);
 			}
 		}
+		if(favorites.isEmpty())
+			throw new NoDataFoundException();
 		return favorites;
 	}
 

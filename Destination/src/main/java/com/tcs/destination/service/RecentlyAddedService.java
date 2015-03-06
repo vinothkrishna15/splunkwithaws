@@ -12,6 +12,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.utils.Constants;
 
 @Component
@@ -39,6 +40,8 @@ public class RecentlyAddedService {
 			frequentList.add(recent);
 		}
 		Collections.sort(frequentList);
+		if (frequentList.isEmpty())
+			throw new NoDataFoundException();
 		return frequentList;
 	}
 

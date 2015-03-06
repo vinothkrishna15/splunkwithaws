@@ -13,6 +13,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.FrequentlySearchedRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.utils.Constants;
 
 @Component
@@ -50,7 +51,8 @@ public class FrequentlySearchedCustPartService {
 				sortedList.add(card);
 			}
 		}
-
+		if(sortedList.isEmpty())
+			throw new NoDataFoundException();
 		return sortedList;
 	}
 

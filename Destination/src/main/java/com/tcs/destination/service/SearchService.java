@@ -16,6 +16,7 @@ import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.utils.Constants;
 
 @Component
@@ -61,6 +62,8 @@ public class SearchService {
 			CustPartResultCard card = Constants.convertToCard(partner);
 			searchResults.add(card);
 		}
+		if (searchResults.isEmpty())
+			throw new NoDataFoundException();
 
 		return searchResults;
 	}
@@ -74,6 +77,8 @@ public class SearchService {
 	public List<SearchCusPartAjax> searchForCustPartContaining(String chars) {
 		List<SearchCusPartAjax> results = ajaxSearchForCustContaining(chars);
 		ajaxSearchForPartnerContaining(chars, results);
+		if (results.isEmpty())
+			throw new NoDataFoundException();
 		return results;
 	}
 
