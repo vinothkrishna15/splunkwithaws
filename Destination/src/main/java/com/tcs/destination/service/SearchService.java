@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchCusPartAjax;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -37,6 +39,9 @@ public class SearchService {
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
+	@Autowired
+	ConnectRepository connectRepository;
+	
 	// @Autowired
 	// PartnerRepository partnerRepository;
 
@@ -144,6 +149,15 @@ public class SearchService {
 	public OpportunityT save(OpportunityT op) {
 		OpportunityT opp1 = opportunityRepository.save(op);
 		return opp1;
+	}
+	
+	@SuppressWarnings("unused")
+	public List<ConnectT> searchforConnectPartDetail(String typed)
+	{
+//		ConnectRepository connectRepository = appContext
+//				.getBean(ConnectRepository.class);
+	    List<ConnectT> ct= connectRepository.findByConnectNameIgnoreCaseLike("%" + typed + "%");
+		return ct;
 	}
 
 }
