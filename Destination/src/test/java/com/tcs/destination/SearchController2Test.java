@@ -119,13 +119,10 @@ public class SearchController2Test {
 		public void testSearchCustPart1() throws Exception {
 			
 			this.mockMvc.perform(get("/search/CustPart/CHANDRA").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(status().isNotFound())
 			.andDo(print())
 			.andReturn();
-			List<CustPartResultCard> clist=searchService.searchforCustPartDetail("CHANDRA");
-			assertTrue(clist.isEmpty());	 	
-			System.out.println("Test Success2");
+			
 		}
 }
 	

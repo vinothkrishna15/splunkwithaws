@@ -66,6 +66,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @ContextConfiguration({"classpath:app-context.xml" })
 @WebAppConfiguration
 public class CustomerSearchWithIdTest {
+	public static final String VIEW_NOT_FOUND = "error/404";
 
 	 @Autowired 
 	 WebApplicationContext ctx;
@@ -95,19 +96,19 @@ public class CustomerSearchWithIdTest {
 			.andExpect(jsonPath("$.documentsAttached").value("YES"))
 			.andExpect(jsonPath("$.groupCustomerName").value("1-800-FLOWERS.COM"))
 			
-			//.andExpect(jsonPath("$.corporateHqAddress").value(""))
-			//.andExpect(jsonPath("$.createdModifiedDatetime").value("1424837452182"))
-			//.andExpect(jsonPath("$.facebook").value(""))
-			//.andExpect(jsonPath("$.logo").value(""))
-			//.andExpect(jsonPath("$.website").value(""))
+//			.andExpect(jsonPath("$.corporateHqAddress").value(""))
+//			.andExpect(jsonPath("$.createdModifiedDatetime").value("1424837452182"))
+//			.andExpect(jsonPath("$.facebook").value(""))
+//			.andExpect(jsonPath("$.logo").value(""))
+//			.andExpect(jsonPath("$.website").value(""))
 			
 //			.andExpect(jsonPath("$.connectTs.connectId").value("CNN3"))
 //			.andExpect(jsonPath("$.connectTs.connectCategory").value("CUSTOMER"))
 //			.andExpect(jsonPath("$.connectTs.connectName").value("Cloud Connect"))
 //			.andExpect(jsonPath("$.connectTs.connectOpportunityLinkId").value("CN04"))
 //			.andExpect(jsonPath("$.connectTs.createdModifiedBy").value("734628"))
-//			//.andExpect(jsonPath("$.connectTs.createdModifiedDatetime").value("1422764112000"))
-//			//.andExpect(jsonPath("$.connectTs.dateOfConnect").value("1422763542000"))
+//			.andExpect(jsonPath("$.connectTs.createdModifiedDatetime").value("1422764112000"))
+//			.andExpect(jsonPath("$.connectTs.dateOfConnect").value("1422763542000"))
 //			.andExpect(jsonPath("$.connectTs.documentsAttached").value("N"))
 			.andDo(print())
 			.andReturn();
@@ -132,10 +133,14 @@ public class CustomerSearchWithIdTest {
 		}
 		
 
-		
-
-}
+		@Test
+		public void TestCustomerController1() throws Exception
+		{
+			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound());
+             }
 	
+}
 	
 	
 	

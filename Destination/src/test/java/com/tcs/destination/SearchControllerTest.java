@@ -98,14 +98,9 @@ public class SearchControllerTest {
 		@Test
 		public void TestSearchCustPartAjax1() throws Exception
 		{
-			mockMvc.perform(get("/search/ajax/j").accept(MediaType.APPLICATION_JSON))
-				
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8));
-				List<SearchCusPartAjax> wlist=searchService.searchForCustPartContaining("j");
-				System.out.println("wrong Input");
-				assertTrue(wlist.isEmpty());
-				System.out.println(wlist);
+			mockMvc.perform(get("/search/ajax/j")
+					.accept(MediaType.APPLICATION_JSON))
+					.andExpect(status().isNotFound());
 			
 		}
 		

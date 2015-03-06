@@ -87,17 +87,17 @@ public class TargetvsActualTest {
 		@Test
 		public void TestCustomerController1() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/comp?name=ALCATEL-LUCENT INTERNATIONAL").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/comp?name=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-		//	.andExpect(jsonPath("$[0].target").value(null))
-			.andExpect(jsonPath("$[0].actual").value(70000.0))
+			.andExpect(jsonPath("$[0].target").value(2871718.8))
+			.andExpect(jsonPath("$[0].actual").value(979.53))
 			.andExpect(jsonPath("$[0].quarter").value("q1"))
 			.andDo(print())
 			.andReturn();
 			
-			List<TargetVsActualResponse> TAList=customerService.findTargetVsActual("ALCATEL-LUCENT INTERNATIONAL");
-			 assertNotNull(TAList);
-			 assertEquals(null, TAList.get(0).getTarget());
+//			List<TargetVsActualResponse> TAList=customerService.findTargetVsActual("ALCATEL-LUCENT INTERNATIONAL");
+//			 assertNotNull(TAList);
+//			 assertEquals(null, TAList.get(0).getTarget());
 
 		
 		}
