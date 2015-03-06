@@ -1,9 +1,11 @@
 package com.tcs.destination.controller;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,6 +25,8 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		System.out.println("Inside Constructor...");
 		this.userRepository = userRepository;
 	}
+	
+	
 
 	@Override
 	public UserDetails loadUserByUsername(String userName)
@@ -53,17 +57,20 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 
 	private final static class UserRepositoryUserDetails extends UserT
 			implements UserDetails {
-		private UserT tempUserT = null;
+		//private UserT tempUserT = null;
 
 		private UserRepositoryUserDetails(UserT user) {
-			super();
-			tempUserT = user;
+			super(user);
+			//tempUserT = user;
 		}
+		
+		
 
 		@Override
 		public Collection<? extends GrantedAuthority> getAuthorities() {
 			// TODO Auto-generated method stub
-			return null;
+		    return null;
+			//authlist.add(new GrantedAuthorityImpl("ROLE_AUTHORIZED_USER"));
 		}
 
 		
@@ -71,57 +78,57 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		@Override
 		public String getPassword() {
 			// TODO Auto-generated method stub
-			return tempUserT.getTempPassword();
+			return getTempPassword();
 		}
 		
-		
-
-		@Override
-		public String getUserId() {
-			return tempUserT.getUserId();
-		}
-
 		@Override
 		public String getUsername() {
 			// TODO Auto-generated method stub
-			return tempUserT.getUserName();
+			return getUserName();
 		}
 
-		@Override
-		public String getSupervisorUserId() {
-			// TODO Auto-generated method stub
-			return tempUserT.getSupervisorUserId();
-		}
-
-		@Override
-		public String getSupervisorUserName() {
-			// TODO Auto-generated method stub
-			return tempUserT.getSupervisorUserName();
-		}
-
-		@Override
-		public String getTempPassword() {
-			// TODO Auto-generated method stub
-			return tempUserT.getTempPassword();
-		}
-
-		@Override
-		public String getUserEmailId() {
-			// TODO Auto-generated method stub
-			return tempUserT.getUserEmailId();
-		}
-
-		@Override
-		public String getUserGeography() {
-			// TODO Auto-generated method stub
-			return tempUserT.getUserGeography();
-		}
-
-		@Override
-		public String getUserTelephone() {
-			// TODO Auto-generated method stub
-			return tempUserT.getUserTelephone();
-		}
+//		@Override
+//		public String getUserId() {
+//			return tempUserT.getUserId();
+//		}
+//
+//		
+//
+//		@Override
+//		public String getSupervisorUserId() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getSupervisorUserId();
+//		}
+//
+//		@Override
+//		public String getSupervisorUserName() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getSupervisorUserName();
+//		}
+//
+//		@Override
+//		public String getTempPassword() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getTempPassword();
+//		}
+//
+//		@Override
+//		public String getUserEmailId() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getUserEmailId();
+//		}
+//
+//		@Override
+//		public String getUserGeography() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getUserGeography();
+//		}
+//
+//		@Override
+//		public String getUserTelephone() {
+//			// TODO Auto-generated method stub
+//			return tempUserT.getUserTelephone();
+//		}
 
 		@Override
 		public boolean isAccountNonExpired() {
@@ -146,5 +153,6 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 			// TODO Auto-generated method stub
 			return true;
 		}
+		
 	}
 }

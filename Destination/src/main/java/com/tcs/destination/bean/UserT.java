@@ -1,7 +1,11 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 /**
@@ -44,40 +48,69 @@ public class UserT implements Serializable {
 	private String userTelephone;
 
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to LoginHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<LoginHistoryT> loginHistoryTs;
 
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional many-to-one association to UserGroupMappingT
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "user_group")
 	private UserGroupMappingT userGroupMappingT;
 
 	// bi-directional many-to-one association to UserRoleMappingT
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "user_role")
 	private UserRoleMappingT userRoleMappingT;
 
 	public UserT() {
+		
+	}
+	
+	public UserT(UserT u){
+		this.userId = u.userId;
+		this.supervisorUserId=u.supervisorUserId;
+		this.supervisorUserName=u.supervisorUserName;
+		this.tempPassword=u.tempPassword;
+		this.userEmailId=u.userEmailId;
+		this.userGeography=u.userGeography;
+		this.userName=u.userName;
+		this.userPhoto=u.userPhoto;
+		this.userTelephone=u.userTelephone;
+		this.bidOfficeGroupOwnerLinkTs=u.bidOfficeGroupOwnerLinkTs;
+		this.connectSecondaryOwnerLinkTs=u.connectSecondaryOwnerLinkTs;
+		this.connectTs=u.connectTs;
+		this.loginHistoryTs=u.loginHistoryTs;
+		this.opportunitySalesSupportLinkTs=u.opportunitySalesSupportLinkTs;
+		this.userFavoritesTs=u.userFavoritesTs;
+		this.userGroupMappingT=u.userGroupMappingT;
+		this.userRoleMappingT=u.userRoleMappingT;
 	}
 
 	public String getUserId() {
