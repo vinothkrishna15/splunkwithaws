@@ -15,6 +15,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -23,12 +24,16 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
  * The persistent class for the customer_master_t database table.
  * 
  */
+@JsonFilter(CustomerMasterT.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="customerId")
 @Entity
 @Table(name = "customer_master_t")
 @NamedQuery(name = "CustomerMasterT.findAll", query = "SELECT c FROM CustomerMasterT c")
 public class CustomerMasterT implements Serializable {
 	private static final long serialVersionUID = 1L;
+
+	@JsonIgnore
+	public static final String FILTER = "CustomerMasterTFilter";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
