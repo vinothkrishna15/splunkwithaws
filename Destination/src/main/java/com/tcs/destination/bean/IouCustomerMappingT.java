@@ -27,7 +27,7 @@ public class IouCustomerMappingT implements Serializable {
 	private String displayIou;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 

@@ -38,8 +38,6 @@ public class ConnectService {
 	}
 
 	public List<ConnectT> searchforConnectsBetween(Date fromDate, Date toDate) {
-		System.out.println("From date :" + new Timestamp(fromDate.getTime())
-				+ " To date : " + new Timestamp(toDate.getTime()));
 		return connectRepository.findByDateOfConnectBetween(new Timestamp(
 				fromDate.getTime()), new Timestamp(toDate.getTime()));
 	}

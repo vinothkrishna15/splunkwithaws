@@ -27,7 +27,6 @@ public class BeaconCustomerMappingT implements Serializable {
 	private String customerGeography;
 
 	// bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
 	private CustomerMasterT customerMasterT;

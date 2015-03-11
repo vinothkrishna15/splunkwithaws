@@ -31,13 +31,11 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 	private Timestamp createdModifiedDatetime;
 
 	//bi-directional many-to-one association to BidDetailsT
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name="bid_id")
 	private BidDetailsT bidDetailsT;
 
 	//bi-directional many-to-one association to UserT
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name="bid_office_group_owner")
 	private UserT userT;

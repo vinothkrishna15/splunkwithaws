@@ -113,63 +113,63 @@ public class OpportunityT implements Serializable {
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
 
 	//bi-directional many-to-one association to OpportunityPartnerLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="opportunityT")
 	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
 
 	//bi-directional many-to-one association to OpportunitySalesSupportLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="opportunityT")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to DealTypeMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="deal_type")
 	private DealTypeMappingT dealTypeMappingT;
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="country")
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	//bi-directional many-to-one association to OfferingMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="offering", referencedColumnName="offering")
 	private OfferingMappingT offeringMappingT;
 
 	//bi-directional many-to-one association to SalesStageMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="sales_stage_code")
 	private SalesStageMappingT salesStageMappingT;
 
 	//bi-directional many-to-one association to SubSpMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="sub_sp")
 	private SubSpMappingT subSpMappingT;
 
 	//bi-directional many-to-one association to OpportunityTcsAccountContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="opportunityT")
 	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
 
 	//bi-directional many-to-one association to TaskT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="opportunityT")
 	private List<TaskT> taskTs;
 
 	//bi-directional many-to-one association to UserFavoritesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="opportunityT")
 	private List<UserFavoritesT> userFavoritesTs;
 

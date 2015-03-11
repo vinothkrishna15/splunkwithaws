@@ -54,43 +54,43 @@ public class DocumentRepositoryT implements Serializable {
 
 	//bi-directional many-to-one association to CollabrationCommentT
 	
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="comment_id")
 	private CollabrationCommentT collabrationCommentT;
 
 	//bi-directional many-to-one association to ConnectT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
 	//bi-directional many-to-one association to TaskT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="task_id")
 	private TaskT taskT;
 
 	//bi-directional many-to-one association to UserFavoritesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="documentRepositoryT")
 	private List<UserFavoritesT> userFavoritesTs;
 

@@ -47,88 +47,88 @@ public class ConnectT implements Serializable {
 	private String documentsAttached;
 
 	//bi-directional many-to-one association to CollabrationCommentT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<CollabrationCommentT> collabrationCommentTs;
 
 	//bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
 	//bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
 	//bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="country")
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	//bi-directional many-to-one association to OfferingMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="offering", referencedColumnName="offering")
 	private OfferingMappingT offeringMappingT;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
 	//bi-directional many-to-one association to SubSpMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="sub_sp")
 	private SubSpMappingT subSpMappingT;
 
 	//bi-directional many-to-one association to UserT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="primary_owner")
 	private UserT userT;
 
 	//bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	//bi-directional many-to-one association to DocumentRepositoryT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	//bi-directional many-to-one association to NotesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<NotesT> notesTs;
 
 	//bi-directional many-to-one association to OpportunityConnectLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<OpportunityConnectLinkT> opportunityConnectLinkTs;
 
 	//bi-directional many-to-one association to TaskT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<TaskT> taskTs;
 
 	//bi-directional many-to-one association to UserFavoritesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="connectT")
 	private List<UserFavoritesT> userFavoritesTs;
 

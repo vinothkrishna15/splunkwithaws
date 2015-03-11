@@ -31,13 +31,13 @@ public class OpportunityCustomerContactLinkT implements Serializable {
 	private Timestamp createdModifiedDatetime;
 
 	//bi-directional many-to-one association to ContactT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="contact_id")
 	private ContactT contactT;
 
 	//bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;

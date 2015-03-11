@@ -31,13 +31,13 @@ public class OpportunityCompetitorLinkT implements Serializable {
 	private Timestamp createdModifiedDatetime;
 
 	//bi-directional many-to-one association to CompetitorMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="competitor_name")
 	private CompetitorMappingT competitorMappingT;
 
 	//bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;

@@ -59,45 +59,45 @@ public class ContactT implements Serializable {
 	private String otherRole;
 
 	//bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="contactT")
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
 	//bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="contactT")
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	//bi-directional many-to-one association to ContactRoleMappingT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="contact_role")
 	private ContactRoleMappingT contactRoleMappingT;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
 	//bi-directional many-to-one association to OpportunityCustomerContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="contactT")
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
 
 	//bi-directional many-to-one association to OpportunityTcsAccountContactLinkT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="contactT")
 	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
 
 	//bi-directional many-to-one association to UserFavoritesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="contactT")
 	private List<UserFavoritesT> userFavoritesTs;
 

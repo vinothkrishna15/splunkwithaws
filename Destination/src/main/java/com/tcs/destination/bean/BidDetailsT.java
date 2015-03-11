@@ -55,7 +55,6 @@ public class BidDetailsT implements Serializable {
 	private BidRequestTypeMappingT bidRequestTypeMappingT;
 
 	// bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;

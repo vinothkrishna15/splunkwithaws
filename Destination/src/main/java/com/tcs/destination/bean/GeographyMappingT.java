@@ -29,12 +29,12 @@ public class GeographyMappingT implements Serializable {
 	private String displayGeography;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
 

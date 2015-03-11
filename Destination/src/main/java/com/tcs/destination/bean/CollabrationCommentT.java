@@ -43,25 +43,25 @@ public class CollabrationCommentT implements Serializable {
 	private String userId;
 
 	//bi-directional many-to-one association to ConnectT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to TaskT
-	@JsonIgnore
+	 
 	@ManyToOne
 	@JoinColumn(name="task_id")
 	private TaskT taskT;
 
 	//bi-directional many-to-one association to DocumentRepositoryT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy="collabrationCommentT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 

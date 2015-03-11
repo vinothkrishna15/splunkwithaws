@@ -80,7 +80,7 @@ public class ConnectControllerTest {
 								
 				.andDo(print())
 				.andReturn();
-			List<ConnectT> wlist=connectService.searchForConnects("A");
+			List<ConnectT> wlist=connectService.searchforConnectsByName("A");
 			assertNotNull(wlist);
 			 assertEquals("2015-01-20 15:40:35.0", wlist.get(0).getCreatedModifiedDatetime().toString());
 			 assertEquals("2015-01-20 15:30:45.0", wlist.get(0).getDateOfConnect().toString());
@@ -98,7 +98,7 @@ public class ConnectControllerTest {
 				
 				.andExpect(status().isOk())
 				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8));
-				List<ConnectT> wlist=connectService.searchForConnects("j");
+				List<ConnectT> wlist=connectService.searchforConnectsByName("j");
 				System.out.println("wrong Input");
 				assertTrue(wlist.isEmpty());
 				System.out.println(wlist);

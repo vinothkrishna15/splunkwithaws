@@ -87,17 +87,17 @@ public class CustomerMasterT implements Serializable {
 	private List<OpportunityT> opportunityTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional many-to-one association to RevenueCustomerMappingT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
-	@JsonIgnore
+	 
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
 
