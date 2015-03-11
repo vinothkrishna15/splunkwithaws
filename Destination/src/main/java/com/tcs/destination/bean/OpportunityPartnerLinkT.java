@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -9,6 +14,7 @@ import java.sql.Timestamp;
  * The persistent class for the opportunity_partner_link_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityPartnerLinkId")
 @Entity
 @Table(name="opportunity_partner_link_t")
 @NamedQuery(name="OpportunityPartnerLinkT.findAll", query="SELECT o FROM OpportunityPartnerLinkT o")

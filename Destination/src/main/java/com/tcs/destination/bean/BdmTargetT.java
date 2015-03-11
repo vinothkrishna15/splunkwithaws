@@ -1,13 +1,18 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 
 /**
  * The persistent class for the bdm_target_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bdmUserId")
 @Entity
 @Table(name="bdm_target_t")
 @NamedQuery(name="BdmTargetT.findAll", query="SELECT b FROM BdmTargetT b")

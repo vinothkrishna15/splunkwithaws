@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.List;
  * The persistent class for the contact_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="contactId")
 @Entity
 @Table(name="contact_t")
 @NamedQuery(name="ContactT.findAll", query="SELECT c FROM ContactT c")

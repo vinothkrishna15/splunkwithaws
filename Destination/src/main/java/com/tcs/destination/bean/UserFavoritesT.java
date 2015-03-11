@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -9,6 +14,7 @@ import java.sql.Timestamp;
  * The persistent class for the user_favorites_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="userFavoritesId")
 @Entity
 @Table(name="user_favorites_t")
 @NamedQuery(name="UserFavoritesT.findAll", query="SELECT u FROM UserFavoritesT u")

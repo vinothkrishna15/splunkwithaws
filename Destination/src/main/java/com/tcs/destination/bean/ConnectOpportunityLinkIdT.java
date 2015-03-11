@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 
@@ -13,6 +15,7 @@ import java.sql.Timestamp;
  * The persistent class for the connect_opportunity_link_id_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectOpportunityLinkId")
 @Entity
 @Table(name="connect_opportunity_link_id_t")
 @NamedQuery(name="ConnectOpportunityLinkIdT.findAll", query="SELECT c FROM ConnectOpportunityLinkIdT c")

@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -9,6 +14,7 @@ import java.sql.Timestamp;
  * The persistent class for the frequently_searched_customer_partner_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="frequentlySearchedId")
 @Entity
 @Table(name="frequently_searched_customer_partner_t")
 @NamedQuery(name="FrequentlySearchedCustomerPartnerT.findAll", query="SELECT f FROM FrequentlySearchedCustomerPartnerT f")

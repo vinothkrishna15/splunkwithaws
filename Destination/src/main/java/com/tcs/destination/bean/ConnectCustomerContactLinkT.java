@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -9,6 +14,7 @@ import java.sql.Timestamp;
  * The persistent class for the connect_customer_contact_link_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectCustomerContactLinkId")
 @Entity
 @Table(name="connect_customer_contact_link_t")
 @NamedQuery(name="ConnectCustomerContactLinkT.findAll", query="SELECT c FROM ConnectCustomerContactLinkT c")

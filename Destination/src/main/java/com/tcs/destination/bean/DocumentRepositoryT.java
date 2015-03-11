@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.List;
  * The persistent class for the document_repository_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="documentId")
 @Entity
 @Table(name="document_repository_t")
 @NamedQuery(name="DocumentRepositoryT.findAll", query="SELECT d FROM DocumentRepositoryT d")

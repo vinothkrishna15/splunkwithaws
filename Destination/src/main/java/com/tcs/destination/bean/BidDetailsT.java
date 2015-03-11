@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -14,6 +16,7 @@ import java.util.List;
  * The persistent class for the bid_details_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidId")
 @Entity
 @Table(name = "bid_details_t")
 @NamedQuery(name = "BidDetailsT.findAll", query = "SELECT b FROM BidDetailsT b")

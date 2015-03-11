@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.List;
 
 
@@ -9,6 +14,7 @@ import java.util.List;
  * The persistent class for the user_group_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="userGroup")
 @Entity
 @Table(name="user_group_mapping_t")
 @NamedQuery(name="UserGroupMappingT.findAll", query="SELECT u FROM UserGroupMappingT u")

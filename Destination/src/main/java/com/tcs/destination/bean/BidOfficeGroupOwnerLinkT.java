@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 
@@ -13,6 +15,7 @@ import java.sql.Timestamp;
  * The persistent class for the bid_office_group_owner_link_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidOfficeGroupOwnerLinkId")
 @Entity
 @Table(name="bid_office_group_owner_link_t")
 @NamedQuery(name="BidOfficeGroupOwnerLinkT.findAll", query="SELECT b FROM BidOfficeGroupOwnerLinkT b")

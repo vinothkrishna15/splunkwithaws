@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -15,6 +17,7 @@ import java.util.List;
  * The persistent class for the opportunity_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityId")
 @Entity
 @Table(name="opportunity_t")
 @NamedQuery(name="OpportunityT.findAll", query="SELECT o FROM OpportunityT o")

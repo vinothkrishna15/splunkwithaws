@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -10,6 +15,7 @@ import java.util.Date;
  * The persistent class for the beacon_convertor_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="currencyName")
 @Entity
 @Table(name="beacon_convertor_mapping_t")
 @NamedQuery(name="BeaconConvertorMappingT.findAll", query="SELECT b FROM BeaconConvertorMappingT b")

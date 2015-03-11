@@ -15,10 +15,14 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 /**
  * The persistent class for the partner_master_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="partnerId")
 @Entity
 @Table(name = "partner_master_t")
 @NamedQuery(name = "PartnerMasterT.findAll", query = "SELECT p FROM PartnerMasterT p")

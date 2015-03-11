@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
  * The persistent class for the iou_customer_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="iou")
 @Entity
 @Table(name="iou_customer_mapping_t")
 @NamedQuery(name="IouCustomerMappingT.findAll", query="SELECT i FROM IouCustomerMappingT i")

@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
  * The persistent class for the geography_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="geography")
 @Entity
 @Table(name="geography_mapping_t")
 @NamedQuery(name="GeographyMappingT.findAll", query="SELECT g FROM GeographyMappingT g")

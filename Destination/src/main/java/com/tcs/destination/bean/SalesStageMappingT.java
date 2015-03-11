@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.List;
 
 
@@ -9,6 +14,7 @@ import java.util.List;
  * The persistent class for the sales_stage_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="salesStageCode")
 @Entity
 @Table(name="sales_stage_mapping_t")
 @NamedQuery(name="SalesStageMappingT.findAll", query="SELECT s FROM SalesStageMappingT s")

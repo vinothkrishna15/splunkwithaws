@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.List;
 
 
@@ -11,6 +14,7 @@ import java.util.List;
  * The persistent class for the offering_mapping_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="offeringId")
 @Entity
 @Table(name="offering_mapping_t")
 @NamedQuery(name="OfferingMappingT.findAll", query="SELECT o FROM OfferingMappingT o")

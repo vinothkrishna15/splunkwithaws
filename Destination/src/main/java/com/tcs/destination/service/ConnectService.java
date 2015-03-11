@@ -10,7 +10,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.sun.jna.platform.win32.Sspi.TimeStamp;
-import com.tcs.destination.bean.ConnectCustPartAjax;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.exception.NoDataFoundException;

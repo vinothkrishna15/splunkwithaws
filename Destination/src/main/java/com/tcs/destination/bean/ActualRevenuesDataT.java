@@ -1,14 +1,27 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-import javax.persistence.*;
 import java.math.BigDecimal;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 
 /**
  * The persistent class for the actual_revenues_data_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="actualRevenuesDataId")
 @Entity
 @Table(name="actual_revenues_data_t")
 @NamedQuery(name="ActualRevenuesDataT.findAll", query="SELECT a FROM ActualRevenuesDataT a")

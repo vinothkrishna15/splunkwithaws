@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +16,7 @@ import java.util.List;
  * The persistent class for the task_t database table.
  * 
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskId")
 @Entity
 @Table(name="task_t")
 @NamedQuery(name="TaskT.findAll", query="SELECT t FROM TaskT t")
