@@ -1,9 +1,10 @@
 package com.tcs.destination.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.exception.CustomerNotFoundException;
 import com.tcs.destination.service.ConnectService;
 
 /**
@@ -46,5 +46,16 @@ public class ConnectController {
 			@RequestParam("typed") String typed) {
 		
 		return connectService.searchforConnectsByName(typed);
+	}
+	
+	/**
+	 * This Method is used to find connection details for the given connection name.
+	 * @param typed is the connection name.
+	 * @return connection details for the particular connection name.
+	 */
+	@RequestMapping(value ="/date", method = RequestMethod.GET)
+	public @ResponseBody List<ConnectT> search(
+			@RequestParam("from") @DateTimeFormat(pattern="ddMMyyyy") Date fromDate,@RequestParam("to") @DateTimeFormat(pattern="ddMMyyyy") Date toDate) {
+		return connectService.searchforConnectsBetween(fromDate,toDate);
 	}
 }

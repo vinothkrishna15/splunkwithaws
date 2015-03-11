@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+
+import java.sql.Timestamp;
+
 import com.tcs.destination.bean.ConnectT;
 
 /**
@@ -26,6 +29,8 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * @return connection details.
 	 */
 	List<ConnectT> findByConnectIdIgnoreCaseLike(String connectid);
+	
+	List<ConnectT> findByDateOfConnectBetween(Timestamp fromDate,Timestamp toDate);
 }
 
    
