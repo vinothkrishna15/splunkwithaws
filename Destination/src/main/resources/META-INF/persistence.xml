@@ -20,12 +20,15 @@
 		<class>com.tcs.destination.bean.TaskT</class>
 		<class>com.tcs.destination.bean.UserGroupMappingT</class>
 		<class>com.tcs.destination.bean.UserRoleMappingT</class>
+		
+		
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/destination" />
+			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/mydb" />
 			<property name="javax.persistence.jdbc.user" value="postgres" />
-			<property name="javax.persistence.jdbc.password" value="tcs#1234" />
+			<property name="javax.persistence.jdbc.password" value="postgres" />
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+			<property name="hibernate.enable_lazy_load_no_trans" value="true"/>
 			<!-- <property name="hibernate.show.sql" value="true" /> <property name="hibernate.format_sql" 
 				value="true" /> <property name="eclipselink.logging.level" value="FINE" /> 
 				<property name="eclipselink.logging.parameters" value="true" /> <property 
