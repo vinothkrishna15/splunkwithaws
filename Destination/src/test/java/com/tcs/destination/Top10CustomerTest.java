@@ -9,9 +9,6 @@ import org.apache.catalina.connector.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import sun.security.acl.PrincipalImpl;
-
 import org.springframework.http.MediaType;
 
 import static org.junit.Assert.assertTrue;
@@ -95,8 +92,8 @@ public class Top10CustomerTest {
 			.andExpect(jsonPath("$[0].groupCustomerName").value("1-800-FLOWERS.COM"))
 			
 //			.andExpect(jsonPath("$[1].logo").value(""))
-			.andExpect(jsonPath("$[1].customerName").value("ABN AMRO EU"))
-			.andExpect(jsonPath("$[1].groupCustomerName").value("ABN AMRO"))
+			.andExpect(jsonPath("$[1].customerName").value("AT&T Mobility"))
+			.andExpect(jsonPath("$[1].groupCustomerName").value("AT&T"))
 			
 			.andDo(print())
 			.andReturn();

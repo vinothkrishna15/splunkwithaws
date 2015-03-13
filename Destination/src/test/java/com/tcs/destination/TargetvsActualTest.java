@@ -1,21 +1,14 @@
 package com.tcs.destination;
 
 import static org.junit.Assert.*;
-
 import java.nio.charset.Charset;
 import java.util.List;
-
 import org.apache.catalina.connector.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import sun.security.acl.PrincipalImpl;
-
 import org.springframework.http.MediaType;
-
 import static org.junit.Assert.assertTrue;
-
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,7 +16,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -89,9 +81,9 @@ public class TargetvsActualTest {
 		{
 			this.mockMvc.perform(get("/customer/comp?name=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$[0].target").value(2871718.8))
-			.andExpect(jsonPath("$[0].actual").value(979.53))
-			.andExpect(jsonPath("$[0].quarter").value("q1"))
+			.andExpect(jsonPath("$[0].target").value(130000.0))
+			.andExpect(jsonPath("$[0].actual").value(3649.97))
+			.andExpect(jsonPath("$[0].quarter").value("Q2 - 2014-15"))
 			.andDo(print())
 			.andReturn();
 			

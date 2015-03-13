@@ -17,9 +17,9 @@ public class TestUtil {
 
 	/**
 	 * Serializes the given object.
-	 * @param object
-	 * @return
-	 * @throws IOException
+	 * @param object.
+	 * @return Json Bytes.
+	 * @throws IOException.
 	 */
 	public static byte[] convertObjectToJsonBytes(Object object) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();

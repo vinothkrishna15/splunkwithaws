@@ -4,18 +4,12 @@ import static org.junit.Assert.*;
 
 import java.nio.charset.Charset;
 import java.util.List;
-
 import org.apache.catalina.connector.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import sun.security.acl.PrincipalImpl;
-
 import org.springframework.http.MediaType;
-
 import static org.junit.Assert.assertTrue;
-
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,25 +17,18 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
 import com.tcs.destination.DestinationApplication;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.RevenuesResponse;
@@ -49,7 +36,6 @@ import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.controller.CustomerController;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.service.CustomerService;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @ContextConfiguration({"classpath:app-context.xml" })
 @WebAppConfiguration
 public class CustomerSearchWithIdTest {
-	public static final String VIEW_NOT_FOUND = "error/404";
+	
 
 	 @Autowired 
 	 WebApplicationContext ctx;
@@ -102,14 +88,14 @@ public class CustomerSearchWithIdTest {
 //			.andExpect(jsonPath("$.logo").value(""))
 //			.andExpect(jsonPath("$.website").value(""))
 			
-//			.andExpect(jsonPath("$.connectTs.connectId").value("CNN3"))
-//			.andExpect(jsonPath("$.connectTs.connectCategory").value("CUSTOMER"))
-//			.andExpect(jsonPath("$.connectTs.connectName").value("Cloud Connect"))
-//			.andExpect(jsonPath("$.connectTs.connectOpportunityLinkId").value("CN04"))
-//			.andExpect(jsonPath("$.connectTs.createdModifiedBy").value("734628"))
-//			.andExpect(jsonPath("$.connectTs.createdModifiedDatetime").value("1422764112000"))
-//			.andExpect(jsonPath("$.connectTs.dateOfConnect").value("1422763542000"))
-//			.andExpect(jsonPath("$.connectTs.documentsAttached").value("N"))
+			.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+			.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+			.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+			.andExpect(jsonPath("$.connectTs[0].connectOpportunityLinkId").value("CNO4"))
+			.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("734628"))
+//			.andExpect(jsonPath("$.connectTs[0].createdModifiedDatetime").value("2015-02-01 09:45:12.0"))
+//			.andExpect(jsonPath("$.connectTs[0].dateOfConnect").value("2015-02-01 09:35:42.0"))
+			.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("N"))
 			.andDo(print())
 			.andReturn();
 			
@@ -117,15 +103,9 @@ public class CustomerSearchWithIdTest {
 			assertNotNull(CustM);
 			 assertNotEquals("2015-02-25 16:57:31.91632",CustM.getCreatedModifiedDatetime());
 			 assertEquals(null,CustM.getLogo());
-			 assertNotEquals(CustM.getCorporateHqAddress(),"");
+			 assertEquals(null,CustM.getCorporateHqAddress());
 			 assertEquals(null,CustM.getFacebook());
 			 assertEquals(null,CustM.getWebsite());
-			 assertEquals("CNN3",CustM.getConnectTs().get(0).getConnectId());
-			 assertEquals("CUSTOMER",CustM.getConnectTs().get(0).getConnectCategory());
-			 assertEquals("Cloud Connect",CustM.getConnectTs().get(0).getConnectName());
-			 
-			 assertEquals("CNO4",CustM.getConnectTs().get(0).getConnectOpportunityLinkId());
-			 assertEquals("734628",CustM.getConnectTs().get(0).getCreatedModifiedBy());
 			 assertEquals("2015-02-01 09:45:12.0",CustM.getConnectTs().get(0).getCreatedModifiedDatetime().toString());
 			 assertEquals("2015-02-01 09:35:42.0",CustM.getConnectTs().get(0).getDateOfConnect().toString());
 			 assertEquals("N",CustM.getConnectTs().get(0).getDocumentsAttached());
@@ -137,7 +117,9 @@ public class CustomerSearchWithIdTest {
 		public void TestCustomerController1() throws Exception
 		{
 			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
+			.andExpect(status().isNotFound())
+			.andDo(print())
+			.andReturn();
              }
 	
 }

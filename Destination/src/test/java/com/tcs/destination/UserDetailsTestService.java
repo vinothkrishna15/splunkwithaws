@@ -61,9 +61,9 @@ public class UserDetailsTestService {
     public void testValidRole() throws Exception
     {
         //Get the user by username from configured user details service
-        UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-        Authentication authToken = new UsernamePasswordAuthenticationToken (userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+//        UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
+//        Authentication authToken = new UsernamePasswordAuthenticationToken (userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
+//        SecurityContextHolder.getContext().setAuthentication(authToken);
         mockMvcuser.perform(get("/user")
         		.header("Authorization","Basic YWFhOmJiYg==")
         		.accept(MediaType.APPLICATION_JSON))
@@ -71,6 +71,11 @@ public class UserDetailsTestService {
         		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
         		.andExpect(jsonPath("$.userId").value("541045"))
         		.andExpect(jsonPath("$.supervisorUserId").value("833389"))
+        		.andExpect(jsonPath("$.supervisorUserName").value("Parthiv Patel "))
+        		.andExpect(jsonPath("$.tempPassword").value("bbb"))
+        		.andExpect(jsonPath("$.userGeography").value("India"))
+        		.andExpect(jsonPath("$.userName").value("aaa"))
+        		.andExpect(jsonPath("$.userTelephone").value("9723383620"))
         		;
 //        DemoService service = (DemoService) applicationContext.getBean("demoService");
 //        service.method();

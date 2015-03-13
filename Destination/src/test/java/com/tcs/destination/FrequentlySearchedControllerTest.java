@@ -31,6 +31,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.tcs.destination.DestinationApplication;
 import com.tcs.destination.bean.CustPartResultCard;
+import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.controller.FrequentlySearchedController;
 import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.service.FrequentlySearchedCustPartService;
@@ -77,7 +78,7 @@ public class FrequentlySearchedControllerTest {
 		.andReturn();
 
 			
-		List<CustPartResultCard> cus= frequentService.frequentCustPart();
+	List<CustPartResultCard> cus= frequentService.frequentCustPart();
 		assertNotNull(cus);
 		assertEquals("CUS8",cus.get(0).getId());
 		assertNull(cus.get(0).getLogo());
@@ -90,5 +91,19 @@ public class FrequentlySearchedControllerTest {
 		  
 	}
 	
-
+	@Test
+	public void TestForInsertCustPart() throws Exception {
+				
+		FrequentlySearchedCustomerPartnerT frequent=new FrequentlySearchedCustomerPartnerT();
+		frequent.setEntityType("PARTNER");
+		frequent.setEntityId("PAT26");
+		frequent.setUserId("465897");
+	this.mockMvcuser.perform(post("/frequent")
+		.contentType(TestUtil.APPLICATION_JSON_UTF8)
+	    .content(TestUtil.convertObjectToJsonBytes(frequent))
+		.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andDo(print())
+		.andReturn();
+		}
 }
