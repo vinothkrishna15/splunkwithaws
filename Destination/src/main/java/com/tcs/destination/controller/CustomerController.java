@@ -15,26 +15,44 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.RevenuesResponse;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.service.CustomerService;
-
+/**
+ * 
+ * Controller to handle customer details search requests.
+ *
+ */
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
 
 	@Autowired
 	CustomerService customerService;
-
+	
+	/**
+	 * This Method is used to find customer details for the given customer id.
+	 * @param id is the customer id.
+	 * @return customer details for the particular customer id.
+	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody CustomerMasterT findOne(
 			@PathVariable("id") String customerid) {
 		return customerService.findById(customerid);
 	}
-
+	
+	/**
+	 * This Method is used to find target vs actual revenue for the given customer name.
+	 * @param name is customer name.
+	 * @return revenue details for the particular customer name.
+	 */
 	@RequestMapping(value = "/comp", method = RequestMethod.GET)
 	public @ResponseBody List<TargetVsActualResponse> findTargetVsActual(
 			@RequestParam("name") String name) {
 		return customerService.findTargetVsActual(name);
 	}
-
+	
+	/**
+	 * This Method is used to find the top 10 customer details based on revenue details.
+	 * @return Top 10 customer details.
+	 */
 	@RequestMapping(value = "/top10", method = RequestMethod.GET)
 	public @ResponseBody List<RevenuesResponse> findTop10Customers() {
 		return customerService.findTop10Customers();

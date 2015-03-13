@@ -35,8 +35,9 @@ public class CustomerService {
 	}
 
 	public List<RevenuesResponse> findTop10Customers() {
+		String financialYear = getCurrentFinancialYear();
 		List<CustomerMasterT> top10Customers = customerRepository
-				.findTop10RevenueCustomers();
+				.findTop10RevenueCustomers(financialYear);
 		List<RevenuesResponse> revenueList = new ArrayList<RevenuesResponse>();
 		for (CustomerMasterT customer : top10Customers) {
 			RevenuesResponse revenue = new RevenuesResponse();
@@ -54,17 +55,7 @@ public class CustomerService {
 		BeaconConvertorMappingT beacon = beaconRepository
 				.findByCurrencyName("USD");
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
-		String financialYear = "FY'";
-		Calendar cal = Calendar.getInstance();
-		if (cal.get(Calendar.MONTH) > 3) {
-			financialYear += cal.get(Calendar.YEAR)
-					+ "-"
-					+ String.valueOf(cal.get(Calendar.YEAR) + 1)
-							.substring(2, 4);
-		} else {
-			financialYear += (cal.get(Calendar.YEAR) - 1) + "-"
-					+ String.valueOf(cal.get(Calendar.YEAR)).subSequence(2, 4);
-		}
+		String financialYear = getCurrentFinancialYear();
 		System.out.println("Financial Year: " + financialYear);
 		List<Object[]> actualList = customerRepository.findActual(name,
 				financialYear);
@@ -86,6 +77,21 @@ public class CustomerService {
 		if (tarActResponseList.isEmpty())
 			throw new NoDataFoundException();
 		return tarActResponseList;
+	}
+
+	private String getCurrentFinancialYear() {
+		String financialYear = "FY'";
+		Calendar cal = Calendar.getInstance();
+		if (cal.get(Calendar.MONTH) > 3) {
+			financialYear += cal.get(Calendar.YEAR)
+					+ "-"
+					+ String.valueOf(cal.get(Calendar.YEAR) + 1)
+							.substring(2, 4);
+		} else {
+			financialYear += (cal.get(Calendar.YEAR) - 1) + "-"
+					+ String.valueOf(cal.get(Calendar.YEAR)).subSequence(2, 4);
+		}
+		return financialYear;
 	}
 
 }
