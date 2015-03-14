@@ -40,7 +40,7 @@ import com.tcs.destination.service.SearchService;
 
 @SuppressWarnings("unused")
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:META-INF/app-context.xml")
+@ContextConfiguration("classpath:app-context.xml")
 @SpringApplicationConfiguration(classes = DestinationApplication.class)
 @WebAppConfiguration
 public class ConnectSearchControllerTest {
@@ -68,7 +68,7 @@ public class ConnectSearchControllerTest {
 		.andExpect(jsonPath("$[0].connectCategory").value("CUSTOMER"))
 		.andExpect(jsonPath("$[0].connectName").value("Cloud Connect"))
 		.andExpect(jsonPath("$[0].connectOpportunityLinkId").value("CNO4"))
-		.andExpect(jsonPath("$[0].documentAttached").value("N"))
+		.andExpect(jsonPath("$[0].documentsAttached").value("N"))
 //		.andExpect(jsonPath("$[0].geographyMappingT.displayGeography").value("EU&UK"))
 //		.andExpect(jsonPath("$[1].id").value("PAT4"))
 //		.andExpect(jsonPath("$[1].name").value("Microsoft"))
