@@ -34,9 +34,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.tcs.destination.DestinationApplication;
 import com.tcs.destination.bean.MyFavorites;
-import com.tcs.destination.controller.MyFavoritesController;
+import com.tcs.destination.controller.FavoritesController;
 import com.tcs.destination.controller.UserDetailsController;
-import com.tcs.destination.service.MyFavoritesService;
+import com.tcs.destination.service.FavoritesService;
 
 
 @SuppressWarnings("unused")
@@ -48,12 +48,12 @@ public class MyFavoritesControllerTest {
 
 	
 	@Autowired
-	MyFavoritesService myFavService;
+	FavoritesService myFavService;
 	
 	@Autowired
 	WebApplicationContext wvc5;
 	
-	MockMvc mockMvcuser	=MockMvcBuilders.standaloneSetup(new MyFavoritesController()).build();
+	MockMvc mockMvcuser	=MockMvcBuilders.standaloneSetup(new FavoritesController()).build();
 	
 	@Before
 	public void setUp() throws Exception {

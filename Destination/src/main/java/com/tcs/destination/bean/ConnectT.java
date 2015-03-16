@@ -1,28 +1,38 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the connect_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectId")
 @Entity
 @Table(name="connect_t")
 @NamedQuery(name="ConnectT.findAll", query="SELECT c FROM ConnectT c")
 public class ConnectT implements Serializable {
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="connect_id")
@@ -34,104 +44,82 @@ public class ConnectT implements Serializable {
 	@Column(name="connect_name")
 	private String connectName;
 
-	@Column(name="connect_opportunity_link_id")
-	private String connectOpportunityLinkId;
-
 	@Column(name="created_modified_by")
 	private String createdModifiedBy;
 
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="date_of_connect")
-	private Timestamp dateOfConnect;
-
 	@Column(name="documents_attached")
 	private String documentsAttached;
 
-	//bi-directional many-to-one association to CollabrationCommentT
-	 
+	@Column(name="end_datetime_of_connect")
+	private Timestamp endDatetimeOfConnect;
+
+	@Column(name="start_datetime_of_connect")
+	private Timestamp startDatetimeOfConnect;
+
+	//bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy="connectT")
-	private List<CollabrationCommentT> collabrationCommentTs;
+	private List<CollaborationCommentT> collaborationCommentTs;
 
 	//bi-directional many-to-one association to ConnectCustomerContactLinkT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
+	//bi-directional many-to-one association to ConnectOfferingLinkT
+	@OneToMany(mappedBy="connectT")
+	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
+
 	//bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
 	//bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
+	//bi-directional many-to-one association to ConnectSubSpLinkT
+	@OneToMany(mappedBy="connectT")
+	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
+
 	//bi-directional many-to-one association to CustomerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
-	 
 	@ManyToOne
 	@JoinColumn(name="country")
 	private GeographyCountryMappingT geographyCountryMappingT;
 
-	//bi-directional many-to-one association to OfferingMappingT
-	 
-	@ManyToOne
-	@JoinColumn(name="offering", referencedColumnName="offering")
-	private OfferingMappingT offeringMappingT;
-
 	//bi-directional many-to-one association to PartnerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
-	//bi-directional many-to-one association to SubSpMappingT
-	 
-	@ManyToOne
-	@JoinColumn(name="sub_sp")
-	private SubSpMappingT subSpMappingT;
-
 	//bi-directional many-to-one association to UserT
-	 
 	@ManyToOne
 	@JoinColumn(name="primary_owner")
 	private UserT userT;
 
 	//bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	//bi-directional many-to-one association to DocumentRepositoryT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	//bi-directional many-to-one association to NotesT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<NotesT> notesTs;
 
-	//bi-directional many-to-one association to OpportunityConnectLinkT
-	 
-	@OneToMany(mappedBy="connectT")
-	private List<OpportunityConnectLinkT> opportunityConnectLinkTs;
-
 	//bi-directional many-to-one association to TaskT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<TaskT> taskTs;
 
 	//bi-directional many-to-one association to UserFavoritesT
-	 
 	@OneToMany(mappedBy="connectT")
 	private List<UserFavoritesT> userFavoritesTs;
 
@@ -162,14 +150,6 @@ public class ConnectT implements Serializable {
 		this.connectName = connectName;
 	}
 
-	public String getConnectOpportunityLinkId() {
-		return this.connectOpportunityLinkId;
-	}
-
-	public void setConnectOpportunityLinkId(String connectOpportunityLinkId) {
-		this.connectOpportunityLinkId = connectOpportunityLinkId;
-	}
-
 	public String getCreatedModifiedBy() {
 		return this.createdModifiedBy;
 	}
@@ -186,14 +166,6 @@ public class ConnectT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public Timestamp getDateOfConnect() {
-		return this.dateOfConnect;
-	}
-
-	public void setDateOfConnect(Timestamp dateOfConnect) {
-		this.dateOfConnect = dateOfConnect;
-	}
-
 	public String getDocumentsAttached() {
 		return this.documentsAttached;
 	}
@@ -202,26 +174,42 @@ public class ConnectT implements Serializable {
 		this.documentsAttached = documentsAttached;
 	}
 
-	public List<CollabrationCommentT> getCollabrationCommentTs() {
-		return this.collabrationCommentTs;
+	public Timestamp getEndDatetimeOfConnect() {
+		return this.endDatetimeOfConnect;
 	}
 
-	public void setCollabrationCommentTs(List<CollabrationCommentT> collabrationCommentTs) {
-		this.collabrationCommentTs = collabrationCommentTs;
+	public void setEndDatetimeOfConnect(Timestamp endDatetimeOfConnect) {
+		this.endDatetimeOfConnect = endDatetimeOfConnect;
 	}
 
-	public CollabrationCommentT addCollabrationCommentT(CollabrationCommentT collabrationCommentT) {
-		getCollabrationCommentTs().add(collabrationCommentT);
-		collabrationCommentT.setConnectT(this);
-
-		return collabrationCommentT;
+	public Timestamp getStartDatetimeOfConnect() {
+		return this.startDatetimeOfConnect;
 	}
 
-	public CollabrationCommentT removeCollabrationCommentT(CollabrationCommentT collabrationCommentT) {
-		getCollabrationCommentTs().remove(collabrationCommentT);
-		collabrationCommentT.setConnectT(null);
+	public void setStartDatetimeOfConnect(Timestamp startDatetimeOfConnect) {
+		this.startDatetimeOfConnect = startDatetimeOfConnect;
+	}
 
-		return collabrationCommentT;
+	public List<CollaborationCommentT> getCollaborationCommentTs() {
+		return this.collaborationCommentTs;
+	}
+
+	public void setCollaborationCommentTs(List<CollaborationCommentT> collaborationCommentTs) {
+		this.collaborationCommentTs = collaborationCommentTs;
+	}
+
+	public CollaborationCommentT addCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().add(collaborationCommentT);
+		collaborationCommentT.setConnectT(this);
+
+		return collaborationCommentT;
+	}
+
+	public CollaborationCommentT removeCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().remove(collaborationCommentT);
+		collaborationCommentT.setConnectT(null);
+
+		return collaborationCommentT;
 	}
 
 	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
@@ -244,6 +232,28 @@ public class ConnectT implements Serializable {
 		connectCustomerContactLinkT.setConnectT(null);
 
 		return connectCustomerContactLinkT;
+	}
+
+	public List<ConnectOfferingLinkT> getConnectOfferingLinkTs() {
+		return this.connectOfferingLinkTs;
+	}
+
+	public void setConnectOfferingLinkTs(List<ConnectOfferingLinkT> connectOfferingLinkTs) {
+		this.connectOfferingLinkTs = connectOfferingLinkTs;
+	}
+
+	public ConnectOfferingLinkT addConnectOfferingLinkT(ConnectOfferingLinkT connectOfferingLinkT) {
+		getConnectOfferingLinkTs().add(connectOfferingLinkT);
+		connectOfferingLinkT.setConnectT(this);
+
+		return connectOfferingLinkT;
+	}
+
+	public ConnectOfferingLinkT removeConnectOfferingLinkT(ConnectOfferingLinkT connectOfferingLinkT) {
+		getConnectOfferingLinkTs().remove(connectOfferingLinkT);
+		connectOfferingLinkT.setConnectT(null);
+
+		return connectOfferingLinkT;
 	}
 
 	public List<ConnectOpportunityLinkIdT> getConnectOpportunityLinkIdTs() {
@@ -290,6 +300,28 @@ public class ConnectT implements Serializable {
 		return connectSecondaryOwnerLinkT;
 	}
 
+	public List<ConnectSubSpLinkT> getConnectSubSpLinkTs() {
+		return this.connectSubSpLinkTs;
+	}
+
+	public void setConnectSubSpLinkTs(List<ConnectSubSpLinkT> connectSubSpLinkTs) {
+		this.connectSubSpLinkTs = connectSubSpLinkTs;
+	}
+
+	public ConnectSubSpLinkT addConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+		getConnectSubSpLinkTs().add(connectSubSpLinkT);
+		connectSubSpLinkT.setConnectT(this);
+
+		return connectSubSpLinkT;
+	}
+
+	public ConnectSubSpLinkT removeConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+		getConnectSubSpLinkTs().remove(connectSubSpLinkT);
+		connectSubSpLinkT.setConnectT(null);
+
+		return connectSubSpLinkT;
+	}
+
 	public CustomerMasterT getCustomerMasterT() {
 		return this.customerMasterT;
 	}
@@ -306,28 +338,12 @@ public class ConnectT implements Serializable {
 		this.geographyCountryMappingT = geographyCountryMappingT;
 	}
 
-	public OfferingMappingT getOfferingMappingT() {
-		return this.offeringMappingT;
-	}
-
-	public void setOfferingMappingT(OfferingMappingT offeringMappingT) {
-		this.offeringMappingT = offeringMappingT;
-	}
-
 	public PartnerMasterT getPartnerMasterT() {
 		return this.partnerMasterT;
 	}
 
 	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
 		this.partnerMasterT = partnerMasterT;
-	}
-
-	public SubSpMappingT getSubSpMappingT() {
-		return this.subSpMappingT;
-	}
-
-	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
-		this.subSpMappingT = subSpMappingT;
 	}
 
 	public UserT getUserT() {
@@ -402,28 +418,6 @@ public class ConnectT implements Serializable {
 		notesT.setConnectT(null);
 
 		return notesT;
-	}
-
-	public List<OpportunityConnectLinkT> getOpportunityConnectLinkTs() {
-		return this.opportunityConnectLinkTs;
-	}
-
-	public void setOpportunityConnectLinkTs(List<OpportunityConnectLinkT> opportunityConnectLinkTs) {
-		this.opportunityConnectLinkTs = opportunityConnectLinkTs;
-	}
-
-	public OpportunityConnectLinkT addOpportunityConnectLinkT(OpportunityConnectLinkT opportunityConnectLinkT) {
-		getOpportunityConnectLinkTs().add(opportunityConnectLinkT);
-		opportunityConnectLinkT.setConnectT(this);
-
-		return opportunityConnectLinkT;
-	}
-
-	public OpportunityConnectLinkT removeOpportunityConnectLinkT(OpportunityConnectLinkT opportunityConnectLinkT) {
-		getOpportunityConnectLinkTs().remove(opportunityConnectLinkT);
-		opportunityConnectLinkT.setConnectT(null);
-
-		return opportunityConnectLinkT;
 	}
 
 	public List<TaskT> getTaskTs() {

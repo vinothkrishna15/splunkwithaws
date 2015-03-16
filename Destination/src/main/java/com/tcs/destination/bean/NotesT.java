@@ -1,20 +1,29 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the notes_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="noteId")
 @Entity
 @Table(name="notes_t")
@@ -36,38 +45,33 @@ public class NotesT implements Serializable {
 	@Column(name="notes_updated")
 	private String notesUpdated;
 
-	@Column(name="user_updated")
-	private String userUpdated;
+	@Column(name="task_id")
+	private String taskId;
 
 	//bi-directional many-to-one association to ConnectT
-	 
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to OpportunityT
-	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
-	//bi-directional many-to-one association to TaskT
-	 
+	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="task_id")
-	private TaskT taskT;
+	@JoinColumn(name="user_updated")
+	private UserT userT;
 
 	public NotesT() {
 	}
@@ -104,12 +108,12 @@ public class NotesT implements Serializable {
 		this.notesUpdated = notesUpdated;
 	}
 
-	public String getUserUpdated() {
-		return this.userUpdated;
+	public String getTaskId() {
+		return this.taskId;
 	}
 
-	public void setUserUpdated(String userUpdated) {
-		this.userUpdated = userUpdated;
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
 	}
 
 	public ConnectT getConnectT() {
@@ -144,12 +148,12 @@ public class NotesT implements Serializable {
 		this.partnerMasterT = partnerMasterT;
 	}
 
-	public TaskT getTaskT() {
-		return this.taskT;
+	public UserT getUserT() {
+		return this.userT;
 	}
 
-	public void setTaskT(TaskT taskT) {
-		this.taskT = taskT;
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 
 }

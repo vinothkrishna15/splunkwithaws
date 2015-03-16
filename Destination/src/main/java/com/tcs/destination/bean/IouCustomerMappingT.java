@@ -1,36 +1,42 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the iou_customer_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="iou")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "iou")
 @Entity
-@Table(name="iou_customer_mapping_t")
-@NamedQuery(name="IouCustomerMappingT.findAll", query="SELECT i FROM IouCustomerMappingT i")
+@Table(name = "iou_customer_mapping_t")
+@NamedQuery(name = "IouCustomerMappingT.findAll", query = "SELECT i FROM IouCustomerMappingT i")
 public class IouCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private String iou;
 
-	@Column(name="display_iou")
+	@Column(name = "display_iou")
 	private String displayIou;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	 
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 

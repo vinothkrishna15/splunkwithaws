@@ -1,28 +1,33 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the sales_stage_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="salesStageCode")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "salesStageCode")
 @Entity
-@Table(name="sales_stage_mapping_t")
-@NamedQuery(name="SalesStageMappingT.findAll", query="SELECT s FROM SalesStageMappingT s")
+@Table(name = "sales_stage_mapping_t")
+@NamedQuery(name = "SalesStageMappingT.findAll", query = "SELECT s FROM SalesStageMappingT s")
 public class SalesStageMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="sales_stage_code")
 	private Integer salesStageCode;
 
@@ -32,6 +37,10 @@ public class SalesStageMappingT implements Serializable {
 	//bi-directional many-to-one association to OpportunityT
 	@OneToMany(mappedBy="salesStageMappingT")
 	private List<OpportunityT> opportunityTs;
+
+	//bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@OneToMany(mappedBy="salesStageMappingT")
+	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
 	public SalesStageMappingT() {
 	}
@@ -72,6 +81,28 @@ public class SalesStageMappingT implements Serializable {
 		opportunityT.setSalesStageMappingT(null);
 
 		return opportunityT;
+	}
+
+	public List<OpportunityTimelineHistoryT> getOpportunityTimelineHistoryTs() {
+		return this.opportunityTimelineHistoryTs;
+	}
+
+	public void setOpportunityTimelineHistoryTs(List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
+		this.opportunityTimelineHistoryTs = opportunityTimelineHistoryTs;
+	}
+
+	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().add(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setSalesStageMappingT(this);
+
+		return opportunityTimelineHistoryT;
+	}
+
+	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().remove(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setSalesStageMappingT(null);
+
+		return opportunityTimelineHistoryT;
 	}
 
 }

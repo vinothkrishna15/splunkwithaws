@@ -1,21 +1,33 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the bid_details_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidId")
 @Entity
 @Table(name = "bid_details_t")
@@ -29,12 +41,15 @@ public class BidDetailsT implements Serializable {
 	private String bidId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name = "bid_request_receive_date")
-	private Date bidRequestReceiveDate;
+	@Column(name="actual_bid_submission_date")
+	private Date actualBidSubmissionDate;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name = "bid_submission_date")
-	private Date bidSubmissionDate;
+	@Column(name="bid_request_receive_date")
+	private Date bidRequestReceiveDate;
+
+	@Column(name="core_attributes_used_for_winning")
+	private String coreAttributesUsedForWinning;
 
 	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
@@ -46,8 +61,9 @@ public class BidDetailsT implements Serializable {
 	@Column(name = "expected_date_of_outcome")
 	private Date expectedDateOfOutcome;
 
-	@Column(name = "core_attributes_used_for_winning")
-	private String coreAttributesUsedForWinning;
+	@Temporal(TemporalType.DATE)
+	@Column(name="target_bid_submission_date")
+	private Date targetBidSubmissionDate;
 
 	@Column(name = "win_probability")
 	private String winProbability;
@@ -66,6 +82,10 @@ public class BidDetailsT implements Serializable {
 	@OneToMany(mappedBy = "bidDetailsT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
+	//bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@OneToMany(mappedBy="bidDetailsT")
+	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
+
 	public BidDetailsT() {
 	}
 
@@ -77,6 +97,14 @@ public class BidDetailsT implements Serializable {
 		this.bidId = bidId;
 	}
 
+	public Date getActualBidSubmissionDate() {
+		return this.actualBidSubmissionDate;
+	}
+
+	public void setActualBidSubmissionDate(Date actualBidSubmissionDate) {
+		this.actualBidSubmissionDate = actualBidSubmissionDate;
+	}
+
 	public Date getBidRequestReceiveDate() {
 		return this.bidRequestReceiveDate;
 	}
@@ -85,12 +113,12 @@ public class BidDetailsT implements Serializable {
 		this.bidRequestReceiveDate = bidRequestReceiveDate;
 	}
 
-	public Date getBidSubmissionDate() {
-		return this.bidSubmissionDate;
+	public String getCoreAttributesUsedForWinning() {
+		return this.coreAttributesUsedForWinning;
 	}
 
-	public void setBidSubmissionDate(Date bidSubmissionDate) {
-		this.bidSubmissionDate = bidSubmissionDate;
+	public void setCoreAttributesUsedForWinning(String coreAttributesUsedForWinning) {
+		this.coreAttributesUsedForWinning = coreAttributesUsedForWinning;
 	}
 
 	public String getCreatedModifiedBy() {
@@ -117,13 +145,12 @@ public class BidDetailsT implements Serializable {
 		this.expectedDateOfOutcome = expectedDateOfOutcome;
 	}
 
-	public String getCoreAttributesUsedForWinning() {
-		return this.coreAttributesUsedForWinning;
+	public Date getTargetBidSubmissionDate() {
+		return this.targetBidSubmissionDate;
 	}
 
-	public void setCoreAttributesUsedForWinning(
-			String coreAttributesUsedForWinning) {
-		this.coreAttributesUsedForWinning = coreAttributesUsedForWinning;
+	public void setTargetBidSubmissionDate(Date targetBidSubmissionDate) {
+		this.targetBidSubmissionDate = targetBidSubmissionDate;
 	}
 
 	public String getWinProbability() {
@@ -174,6 +201,28 @@ public class BidDetailsT implements Serializable {
 		bidOfficeGroupOwnerLinkT.setBidDetailsT(null);
 
 		return bidOfficeGroupOwnerLinkT;
+	}
+
+	public List<OpportunityTimelineHistoryT> getOpportunityTimelineHistoryTs() {
+		return this.opportunityTimelineHistoryTs;
+	}
+
+	public void setOpportunityTimelineHistoryTs(List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
+		this.opportunityTimelineHistoryTs = opportunityTimelineHistoryTs;
+	}
+
+	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().add(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setBidDetailsT(this);
+
+		return opportunityTimelineHistoryT;
+	}
+
+	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().remove(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setBidDetailsT(null);
+
+		return opportunityTimelineHistoryT;
 	}
 
 }

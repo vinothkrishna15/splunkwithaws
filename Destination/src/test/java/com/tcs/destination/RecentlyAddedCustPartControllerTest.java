@@ -29,10 +29,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import com.tcs.destination.DestinationApplication;
 import com.tcs.destination.bean.MyFavorites;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.controller.MyFavoritesController;
-import com.tcs.destination.controller.RecentlyAddedCustPartController;
+import com.tcs.destination.controller.FavoritesController;
+import com.tcs.destination.controller.RecentlyAddedController;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.service.MyFavoritesService;
+import com.tcs.destination.service.FavoritesService;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -58,7 +58,7 @@ public class RecentlyAddedCustPartControllerTest {
 	 @Autowired 
 	 WebApplicationContext ctx;
 	 	 
-	 MockMvc mockMvc=MockMvcBuilders.standaloneSetup(new RecentlyAddedCustPartController()).build();
+	 MockMvc mockMvc=MockMvcBuilders.standaloneSetup(new RecentlyAddedController()).build();
 	 
 
 		@Before
@@ -69,7 +69,7 @@ public class RecentlyAddedCustPartControllerTest {
 		}
 
 	/**
-	 * Test method for {@link com.tcs.destination.controller.RecentlyAddedCustPartController#recentlyAdded()}.
+	 * Test method for {@link com.tcs.destination.controller.RecentlyAddedController#recentlyAdded()}.
 	 */
 	@Test
 	public final void testRecentlyAdded() throws Exception{

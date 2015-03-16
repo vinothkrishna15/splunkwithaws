@@ -1,19 +1,30 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
-import java.math.BigDecimal;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the beacon_data_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="beaconDataId")
 @Entity
 @Table(name="beacon_data_t")
@@ -44,8 +55,16 @@ public class BeaconDataT implements Serializable {
 
 	//bi-directional many-to-one association to BeaconCustomerMappingT
 	@ManyToOne
-	@JoinColumn(name="beacon_customer_name")
+	@JoinColumns({
+		@JoinColumn(name="beacon_customer_name", referencedColumnName="beacon_customer_name", insertable = false, updatable = false),
+		@JoinColumn(name="beacon_geography", referencedColumnName="customer_geography", insertable = false, updatable = false)
+		})
 	private BeaconCustomerMappingT beaconCustomerMappingT;
+
+	//bi-directional many-to-one association to IouBeaconMappingT
+	@ManyToOne
+	@JoinColumn(name="beacon_iou", insertable = false, updatable = false)
+	private IouBeaconMappingT iouBeaconMappingT;
 
 	public BeaconDataT() {
 	}
@@ -72,14 +91,6 @@ public class BeaconDataT implements Serializable {
 
 	public void setBeaconGroupClient(String beaconGroupClient) {
 		this.beaconGroupClient = beaconGroupClient;
-	}
-
-	public String getBeaconIou() {
-		return this.beaconIou;
-	}
-
-	public void setBeaconIou(String beaconIou) {
-		this.beaconIou = beaconIou;
 	}
 
 	public String getFinancialYear() {
@@ -112,6 +123,14 @@ public class BeaconDataT implements Serializable {
 
 	public void setBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
 		this.beaconCustomerMappingT = beaconCustomerMappingT;
+	}
+
+	public IouBeaconMappingT getIouBeaconMappingT() {
+		return this.iouBeaconMappingT;
+	}
+
+	public void setIouBeaconMappingT(IouBeaconMappingT iouBeaconMappingT) {
+		this.iouBeaconMappingT = iouBeaconMappingT;
 	}
 
 }

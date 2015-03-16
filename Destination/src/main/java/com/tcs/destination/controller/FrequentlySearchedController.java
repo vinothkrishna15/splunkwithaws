@@ -30,7 +30,7 @@ public class FrequentlySearchedController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody Status insertToFrequent(
+	public @ResponseBody String insertToFrequent(
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent) {
 		Status status = new Status();
 		status.setStatus(Status.FAILED);
@@ -44,6 +44,6 @@ public class FrequentlySearchedController {
 			}
 		}
 
-		return status;
+		return Constants.filterJsonForFieldAndViews("all", "", status);
 	}
 }

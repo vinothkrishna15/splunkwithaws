@@ -16,14 +16,15 @@ import com.tcs.destination.exception.UnAuthorizedException;
 @Service
 public class UserRepositoryUserDetailsService implements UserDetailsService {
 
-	private final UserRepository userRepository;
-
 	@Autowired
-	public UserRepositoryUserDetailsService(UserRepository userRepository) {
-		System.out.println("Inside Constructor...");
-		this.userRepository = userRepository;
-	}
-	
+	private UserRepository userRepository;
+
+//	
+//	public UserRepositoryUserDetailsService(UserRepository userRepository) {
+//		System.out.println("Inside Constructor...");
+//		this.userRepository = userRepository;
+//	}
+//	
 	
 
 	@Override
@@ -53,7 +54,7 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		return new UserRepositoryUserDetails(user);
 	}
 
-	private final static class UserRepositoryUserDetails extends UserT
+	public final static class UserRepositoryUserDetails extends UserT
 			implements UserDetails {
 		//private UserT tempUserT = null;
 

@@ -30,7 +30,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	List<ConnectT> findByConnectIdIgnoreCaseLike(String connectid);
 	
-	List<ConnectT> findByDateOfConnectBetween(Timestamp fromDate,Timestamp toDate);
+	List<ConnectT> findByStartDatetimeOfConnectBetween(Timestamp fromDate,Timestamp toDate);
 }
 
    

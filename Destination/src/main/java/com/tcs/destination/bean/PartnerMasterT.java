@@ -6,8 +6,6 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -15,14 +13,17 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the partner_master_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="partnerId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerId")
 @Entity
 @Table(name = "partner_master_t")
 @NamedQuery(name = "PartnerMasterT.findAll", query = "SELECT p FROM PartnerMasterT p")
@@ -30,58 +31,57 @@ public class PartnerMasterT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "partner_id")
+	@Column(name="partner_id")
 	private String partnerId;
 
-	@Column(name = "corporate_hq_address")
+	@Column(name="corporate_hq_address")
 	private String corporateHqAddress;
 
-	@Column(name = "created_modified_by")
+	@Column(name="created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name = "created_modified_datetime")
+	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name = "documents_attached")
+	@Column(name="documents_attached")
 	private String documentsAttached;
 
 	private String facebook;
 
 	private byte[] logo;
 
-	@Column(name = "partner_name")
+	@Column(name="partner_name")
 	private String partnerName;
 
 	private String website;
 
-	// bi-directional many-to-one association to ConnectT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to ConnectT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<ConnectT> connectTs;
 
-	// bi-directional many-to-one association to ContactT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to ContactT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<ContactT> contactTs;
 
-	// bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to DocumentRepositoryT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
-	// bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to NotesT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<NotesT> notesTs;
 
-	// bi-directional many-to-one association to OpportunityPartnerLinkT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to OpportunityPartnerLinkT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
 
-	// bi-directional many-to-one association to GeographyMappingT
+	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
-	@JoinColumn(name = "geography")
+	@JoinColumn(name="geography")
 	private GeographyMappingT geographyMappingT;
 
-	// bi-directional many-to-one association to UserFavoritesT
-	@OneToMany(mappedBy = "partnerMasterT")
+	//bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy="partnerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	public PartnerMasterT() {
@@ -207,21 +207,18 @@ public class PartnerMasterT implements Serializable {
 		return this.documentRepositoryTs;
 	}
 
-	public void setDocumentRepositoryTs(
-			List<DocumentRepositoryT> documentRepositoryTs) {
+	public void setDocumentRepositoryTs(List<DocumentRepositoryT> documentRepositoryTs) {
 		this.documentRepositoryTs = documentRepositoryTs;
 	}
 
-	public DocumentRepositoryT addDocumentRepositoryT(
-			DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT addDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().add(documentRepositoryT);
 		documentRepositoryT.setPartnerMasterT(this);
 
 		return documentRepositoryT;
 	}
 
-	public DocumentRepositoryT removeDocumentRepositoryT(
-			DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT removeDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().remove(documentRepositoryT);
 		documentRepositoryT.setPartnerMasterT(null);
 
@@ -254,21 +251,18 @@ public class PartnerMasterT implements Serializable {
 		return this.opportunityPartnerLinkTs;
 	}
 
-	public void setOpportunityPartnerLinkTs(
-			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
+	public void setOpportunityPartnerLinkTs(List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
 		this.opportunityPartnerLinkTs = opportunityPartnerLinkTs;
 	}
 
-	public OpportunityPartnerLinkT addOpportunityPartnerLinkT(
-			OpportunityPartnerLinkT opportunityPartnerLinkT) {
+	public OpportunityPartnerLinkT addOpportunityPartnerLinkT(OpportunityPartnerLinkT opportunityPartnerLinkT) {
 		getOpportunityPartnerLinkTs().add(opportunityPartnerLinkT);
 		opportunityPartnerLinkT.setPartnerMasterT(this);
 
 		return opportunityPartnerLinkT;
 	}
 
-	public OpportunityPartnerLinkT removeOpportunityPartnerLinkT(
-			OpportunityPartnerLinkT opportunityPartnerLinkT) {
+	public OpportunityPartnerLinkT removeOpportunityPartnerLinkT(OpportunityPartnerLinkT opportunityPartnerLinkT) {
 		getOpportunityPartnerLinkTs().remove(opportunityPartnerLinkT);
 		opportunityPartnerLinkT.setPartnerMasterT(null);
 
@@ -304,4 +298,5 @@ public class PartnerMasterT implements Serializable {
 
 		return userFavoritesT;
 	}
+
 }

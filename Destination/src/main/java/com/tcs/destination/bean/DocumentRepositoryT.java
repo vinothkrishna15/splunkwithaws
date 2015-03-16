@@ -1,21 +1,31 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the document_repository_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="documentId")
 @Entity
 @Table(name="document_repository_t")
@@ -28,11 +38,11 @@ public class DocumentRepositoryT implements Serializable {
 	@Column(name="document_id")
 	private String documentId;
 
-	@Column(name="document_description")
-	private String documentDescription;
-
 	@Column(name="document_name")
 	private String documentName;
+
+	@Column(name="document_search_keywords")
+	private String documentSearchKeywords;
 
 	@Column(name="document_type")
 	private String documentType;
@@ -49,53 +59,43 @@ public class DocumentRepositoryT implements Serializable {
 	@Column(name="parent_entity_id")
 	private String parentEntityId;
 
-	@Column(name="uploaded_by")
-	private String uploadedBy;
-
 	@Column(name="uploaded_datetime")
 	private Timestamp uploadedDatetime;
 
-	//bi-directional many-to-one association to CollabrationCommentT
-	
-	 
+	//bi-directional many-to-one association to CollaborationCommentT
 	@ManyToOne
 	@JoinColumn(name="comment_id")
-	private CollabrationCommentT collabrationCommentT;
+	private CollaborationCommentT collaborationCommentT;
 
 	//bi-directional many-to-one association to ConnectT
-	 
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to OpportunityT
-	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	 
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
 
 	//bi-directional many-to-one association to TaskT
-	 
 	@ManyToOne
 	@JoinColumn(name="task_id")
 	private TaskT taskT;
 
-	//bi-directional many-to-one association to UserFavoritesT
-	 
-	@OneToMany(mappedBy="documentRepositoryT")
-	private List<UserFavoritesT> userFavoritesTs;
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="uploaded_by")
+	private UserT userT;
 
 	public DocumentRepositoryT() {
 	}
@@ -108,20 +108,20 @@ public class DocumentRepositoryT implements Serializable {
 		this.documentId = documentId;
 	}
 
-	public String getDocumentDescription() {
-		return this.documentDescription;
-	}
-
-	public void setDocumentDescription(String documentDescription) {
-		this.documentDescription = documentDescription;
-	}
-
 	public String getDocumentName() {
 		return this.documentName;
 	}
 
 	public void setDocumentName(String documentName) {
 		this.documentName = documentName;
+	}
+
+	public String getDocumentSearchKeywords() {
+		return this.documentSearchKeywords;
+	}
+
+	public void setDocumentSearchKeywords(String documentSearchKeywords) {
+		this.documentSearchKeywords = documentSearchKeywords;
 	}
 
 	public String getDocumentType() {
@@ -164,14 +164,6 @@ public class DocumentRepositoryT implements Serializable {
 		this.parentEntityId = parentEntityId;
 	}
 
-	public String getUploadedBy() {
-		return this.uploadedBy;
-	}
-
-	public void setUploadedBy(String uploadedBy) {
-		this.uploadedBy = uploadedBy;
-	}
-
 	public Timestamp getUploadedDatetime() {
 		return this.uploadedDatetime;
 	}
@@ -180,12 +172,12 @@ public class DocumentRepositoryT implements Serializable {
 		this.uploadedDatetime = uploadedDatetime;
 	}
 
-	public CollabrationCommentT getCollabrationCommentT() {
-		return this.collabrationCommentT;
+	public CollaborationCommentT getCollaborationCommentT() {
+		return this.collaborationCommentT;
 	}
 
-	public void setCollabrationCommentT(CollabrationCommentT collabrationCommentT) {
-		this.collabrationCommentT = collabrationCommentT;
+	public void setCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		this.collaborationCommentT = collaborationCommentT;
 	}
 
 	public ConnectT getConnectT() {
@@ -228,26 +220,12 @@ public class DocumentRepositoryT implements Serializable {
 		this.taskT = taskT;
 	}
 
-	public List<UserFavoritesT> getUserFavoritesTs() {
-		return this.userFavoritesTs;
+	public UserT getUserT() {
+		return this.userT;
 	}
 
-	public void setUserFavoritesTs(List<UserFavoritesT> userFavoritesTs) {
-		this.userFavoritesTs = userFavoritesTs;
-	}
-
-	public UserFavoritesT addUserFavoritesT(UserFavoritesT userFavoritesT) {
-		getUserFavoritesTs().add(userFavoritesT);
-		userFavoritesT.setDocumentRepositoryT(this);
-
-		return userFavoritesT;
-	}
-
-	public UserFavoritesT removeUserFavoritesT(UserFavoritesT userFavoritesT) {
-		getUserFavoritesTs().remove(userFavoritesT);
-		userFavoritesT.setDocumentRepositoryT(null);
-
-		return userFavoritesT;
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 
 }

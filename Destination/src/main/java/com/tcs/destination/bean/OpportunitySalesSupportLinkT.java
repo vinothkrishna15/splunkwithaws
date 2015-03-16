@@ -1,19 +1,27 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
-import java.sql.Timestamp;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the opportunity_sales_support_link_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunitySalesSupportLinkId")
 @Entity
 @Table(name="opportunity_sales_support_link_t")
@@ -22,7 +30,6 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_sales_support_link_id")
 	private String opportunitySalesSupportLinkId;
 

@@ -17,23 +17,20 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the customer_master_t database table.
  * 
  */
-@JsonFilter(CustomerMasterT.FILTER)
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="customerId")
 @Entity
 @Table(name = "customer_master_t")
 @NamedQuery(name = "CustomerMasterT.findAll", query = "SELECT c FROM CustomerMasterT c")
 public class CustomerMasterT implements Serializable {
 	private static final long serialVersionUID = 1L;
-
-	@JsonIgnore
-	public static final String FILTER = "CustomerMasterTFilter";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,8 +61,12 @@ public class CustomerMasterT implements Serializable {
 
 	private String website;
 
-	// bi-directional many-to-one association to ConnectT
-	@OneToMany(mappedBy = "customerMasterT")
+	//bi-directional many-to-one association to BeaconCustomerMappingT
+	@OneToMany(mappedBy="customerMasterT")
+	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
+
+	//bi-directional many-to-one association to ConnectT
+	@OneToMany(mappedBy="customerMasterT")
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to ContactT
@@ -94,20 +95,13 @@ public class CustomerMasterT implements Serializable {
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<OpportunityT> opportunityTs;
 
-	// bi-directional many-to-one association to UserFavoritesT
-	 
-	@OneToMany(mappedBy = "customerMasterT")
-	private List<UserFavoritesT> userFavoritesTs;
-
-	// bi-directional many-to-one association to RevenueCustomerMappingT
-	 
-	@OneToMany(mappedBy = "customerMasterT")
+	//bi-directional many-to-one association to RevenueCustomerMappingT
+	@OneToMany(mappedBy="customerMasterT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
-	// bi-directional many-to-one association to BeaconCustomerMappingT
-	 
-	@OneToMany(mappedBy = "customerMasterT")
-	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
+	//bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy="customerMasterT")
+	private List<UserFavoritesT> userFavoritesTs;
 
 	public CustomerMasterT() {
 	}
@@ -192,6 +186,28 @@ public class CustomerMasterT implements Serializable {
 		this.website = website;
 	}
 
+	public List<BeaconCustomerMappingT> getBeaconCustomerMappingTs() {
+		return this.beaconCustomerMappingTs;
+	}
+
+	public void setBeaconCustomerMappingTs(List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
+	}
+
+	public BeaconCustomerMappingT addBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+		getBeaconCustomerMappingTs().add(beaconCustomerMappingT);
+		beaconCustomerMappingT.setCustomerMasterT(this);
+
+		return beaconCustomerMappingT;
+	}
+
+	public BeaconCustomerMappingT removeBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+		getBeaconCustomerMappingTs().remove(beaconCustomerMappingT);
+		beaconCustomerMappingT.setCustomerMasterT(null);
+
+		return beaconCustomerMappingT;
+	}
+
 	public List<ConnectT> getConnectTs() {
 		return this.connectTs;
 	}
@@ -256,21 +272,18 @@ public class CustomerMasterT implements Serializable {
 		return this.documentRepositoryTs;
 	}
 
-	public void setDocumentRepositoryTs(
-			List<DocumentRepositoryT> documentRepositoryTs) {
+	public void setDocumentRepositoryTs(List<DocumentRepositoryT> documentRepositoryTs) {
 		this.documentRepositoryTs = documentRepositoryTs;
 	}
 
-	public DocumentRepositoryT addDocumentRepositoryT(
-			DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT addDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().add(documentRepositoryT);
 		documentRepositoryT.setCustomerMasterT(this);
 
 		return documentRepositoryT;
 	}
 
-	public DocumentRepositoryT removeDocumentRepositoryT(
-			DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT removeDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().remove(documentRepositoryT);
 		documentRepositoryT.setCustomerMasterT(null);
 
@@ -321,6 +334,28 @@ public class CustomerMasterT implements Serializable {
 		return opportunityT;
 	}
 
+	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {
+		return this.revenueCustomerMappingTs;
+	}
+
+	public void setRevenueCustomerMappingTs(List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
+	}
+
+	public RevenueCustomerMappingT addRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().add(revenueCustomerMappingT);
+		revenueCustomerMappingT.setCustomerMasterT(this);
+
+		return revenueCustomerMappingT;
+	}
+
+	public RevenueCustomerMappingT removeRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().remove(revenueCustomerMappingT);
+		revenueCustomerMappingT.setCustomerMasterT(null);
+
+		return revenueCustomerMappingT;
+	}
+
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
 	}
@@ -341,56 +376,6 @@ public class CustomerMasterT implements Serializable {
 		userFavoritesT.setCustomerMasterT(null);
 
 		return userFavoritesT;
-	}
-
-	public List<BeaconCustomerMappingT> getBeaconCustomerMappingTs() {
-		return this.beaconCustomerMappingTs;
-	}
-
-	public void setBeaconCustomerMappingTs(
-			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
-		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
-	}
-
-	public BeaconCustomerMappingT addBeaconCustomerMappingT(
-			BeaconCustomerMappingT beaconCustomerMappingT) {
-		getBeaconCustomerMappingTs().add(beaconCustomerMappingT);
-		beaconCustomerMappingT.setCustomerMasterT(this);
-
-		return beaconCustomerMappingT;
-	}
-
-	public BeaconCustomerMappingT removeBeaconCustomerMappingT(
-			BeaconCustomerMappingT beaconCustomerMappingT) {
-		getBeaconCustomerMappingTs().remove(beaconCustomerMappingT);
-		beaconCustomerMappingT.setCustomerMasterT(null);
-
-		return beaconCustomerMappingT;
-	}
-
-	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {
-		return this.revenueCustomerMappingTs;
-	}
-
-	public void setRevenueCustomerMappingTs(
-			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
-		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
-	}
-
-	public RevenueCustomerMappingT addRevenueCustomerMappingT(
-			RevenueCustomerMappingT revenueCustomerMappingT) {
-		getRevenueCustomerMappingTs().add(revenueCustomerMappingT);
-		revenueCustomerMappingT.setCustomerMasterT(this);
-
-		return revenueCustomerMappingT;
-	}
-
-	public RevenueCustomerMappingT removeRevenueCustomerMappingT(
-			RevenueCustomerMappingT revenueCustomerMappingT) {
-		getRevenueCustomerMappingTs().remove(revenueCustomerMappingT);
-		revenueCustomerMappingT.setCustomerMasterT(null);
-
-		return revenueCustomerMappingT;
 	}
 
 }

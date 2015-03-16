@@ -1,28 +1,67 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the user_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="userId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userId")
 @Entity
 @Table(name = "user_t")
 @NamedQuery(name = "UserT.findAll", query = "SELECT u FROM UserT u")
 public class UserT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	public UserT(UserT user) {
+		this.bdmTargetTs = user.bdmTargetTs;
+		this.bidOfficeGroupOwnerLinkTs = user.bidOfficeGroupOwnerLinkTs;
+		this.collaborationCommentTs = user.collaborationCommentTs;
+		this.connectSecondaryOwnerLinkTs = user.connectSecondaryOwnerLinkTs;
+		this.connectTs = user.connectTs;
+		this.documentRepositoryTs = user.documentRepositoryTs;
+		this.frequentlySearchedCustomerPartnerTs = user.frequentlySearchedCustomerPartnerTs;
+		this.loginHistoryTs = user.loginHistoryTs;
+		this.notesTs = user.notesTs;
+		this.opportunitySalesSupportLinkTs = user.opportunitySalesSupportLinkTs;
+		this.opportunityTimelineHistoryTs = user.opportunityTimelineHistoryTs;
+		this.opportunityTs = user.opportunityTs;
+		this.supervisorUserId = user.supervisorUserId;
+		this.supervisorUserId = user.supervisorUserId;
+		this.taskBdmsTaggedLinkTs = user.taskBdmsTaggedLinkTs;
+		this.taskTs = user.taskTs;
+		this.tempPassword = user.tempPassword;
+		this.userEmailId = user.userEmailId;
+		this.userFavoritesTs = user.userFavoritesTs;
+		this.userGeography = user.userGeography;
+		this.userGroupMappingT = user.userGroupMappingT;
+		this.userId = user.userId;
+		this.userName = user.userName;
+		this.userPhoto = user.userPhoto;
+		this.userRoleMappingT = user.userRoleMappingT;
+		this.userSettingsT = user.userSettingsT;
+		this.userTelephone = user.userTelephone;
+
+	}
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
 	private String userId;
 
@@ -50,70 +89,82 @@ public class UserT implements Serializable {
 	@Column(name = "user_telephone")
 	private String userTelephone;
 
+	// bi-directional many-to-one association to BdmTargetT
+	@OneToMany(mappedBy = "userT")
+	private List<BdmTargetT> bdmTargetTs;
+
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
+	// bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(mappedBy = "userT")
+	private List<CollaborationCommentT> collaborationCommentTs;
+
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectT> connectTs;
 
+	// bi-directional many-to-one association to DocumentRepositoryT
+	@OneToMany(mappedBy = "userT")
+	private List<DocumentRepositoryT> documentRepositoryTs;
+
+	// bi-directional many-to-one association to
+	// FrequentlySearchedCustomerPartnerT
+	@OneToMany(mappedBy = "userT")
+	private List<FrequentlySearchedCustomerPartnerT> frequentlySearchedCustomerPartnerTs;
+
 	// bi-directional many-to-one association to LoginHistoryT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<LoginHistoryT> loginHistoryTs;
 
+	// bi-directional many-to-one association to NotesT
+	@OneToMany(mappedBy = "userT")
+	private List<NotesT> notesTs;
+
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
+	// bi-directional many-to-one association to OpportunityT
+	@OneToMany(mappedBy = "userT")
+	private List<OpportunityT> opportunityTs;
+
+	// bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@OneToMany(mappedBy = "userT")
+	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
+
+	// bi-directional many-to-one association to TaskBdmsTaggedLinkT
+	@OneToMany(mappedBy = "userT")
+	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
+
+	// bi-directional many-to-one association to TaskT
+	@OneToMany(mappedBy = "userT")
+	private List<TaskT> taskTs;
+
 	// bi-directional many-to-one association to UserFavoritesT
-	 
 	@OneToMany(mappedBy = "userT")
 	private List<UserFavoritesT> userFavoritesTs;
 
+	// bi-directional one-to-one association to UserSettingsT
+	@OneToOne(mappedBy = "userT")
+	private UserSettingsT userSettingsT;
+
 	// bi-directional many-to-one association to UserGroupMappingT
-	 
 	@ManyToOne
 	@JoinColumn(name = "user_group")
 	private UserGroupMappingT userGroupMappingT;
 
 	// bi-directional many-to-one association to UserRoleMappingT
-	 
 	@ManyToOne
 	@JoinColumn(name = "user_role")
 	private UserRoleMappingT userRoleMappingT;
 
 	public UserT() {
-		
-	}
-	
-	public UserT(UserT u){
-		this.userId = u.userId;
-		this.supervisorUserId=u.supervisorUserId;
-		this.supervisorUserName=u.supervisorUserName;
-		this.tempPassword=u.tempPassword;
-		this.userEmailId=u.userEmailId;
-		this.userGeography=u.userGeography;
-		this.userName=u.userName;
-		this.userPhoto=u.userPhoto;
-		this.userTelephone=u.userTelephone;
-		this.bidOfficeGroupOwnerLinkTs=u.bidOfficeGroupOwnerLinkTs;
-		this.connectSecondaryOwnerLinkTs=u.connectSecondaryOwnerLinkTs;
-		this.connectTs=u.connectTs;
-		this.loginHistoryTs=u.loginHistoryTs;
-		this.opportunitySalesSupportLinkTs=u.opportunitySalesSupportLinkTs;
-		this.userFavoritesTs=u.userFavoritesTs;
-		this.userGroupMappingT=u.userGroupMappingT;
-		this.userRoleMappingT=u.userRoleMappingT;
 	}
 
 	public String getUserId() {
@@ -188,6 +239,28 @@ public class UserT implements Serializable {
 		this.userTelephone = userTelephone;
 	}
 
+	public List<BdmTargetT> getBdmTargetTs() {
+		return this.bdmTargetTs;
+	}
+
+	public void setBdmTargetTs(List<BdmTargetT> bdmTargetTs) {
+		this.bdmTargetTs = bdmTargetTs;
+	}
+
+	public BdmTargetT addBdmTargetT(BdmTargetT bdmTargetT) {
+		getBdmTargetTs().add(bdmTargetT);
+		bdmTargetT.setUserT(this);
+
+		return bdmTargetT;
+	}
+
+	public BdmTargetT removeBdmTargetT(BdmTargetT bdmTargetT) {
+		getBdmTargetTs().remove(bdmTargetT);
+		bdmTargetT.setUserT(null);
+
+		return bdmTargetT;
+	}
+
 	public List<BidOfficeGroupOwnerLinkT> getBidOfficeGroupOwnerLinkTs() {
 		return this.bidOfficeGroupOwnerLinkTs;
 	}
@@ -211,6 +284,31 @@ public class UserT implements Serializable {
 		bidOfficeGroupOwnerLinkT.setUserT(null);
 
 		return bidOfficeGroupOwnerLinkT;
+	}
+
+	public List<CollaborationCommentT> getCollaborationCommentTs() {
+		return this.collaborationCommentTs;
+	}
+
+	public void setCollaborationCommentTs(
+			List<CollaborationCommentT> collaborationCommentTs) {
+		this.collaborationCommentTs = collaborationCommentTs;
+	}
+
+	public CollaborationCommentT addCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().add(collaborationCommentT);
+		collaborationCommentT.setUserT(this);
+
+		return collaborationCommentT;
+	}
+
+	public CollaborationCommentT removeCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().remove(collaborationCommentT);
+		collaborationCommentT.setUserT(null);
+
+		return collaborationCommentT;
 	}
 
 	public List<ConnectSecondaryOwnerLinkT> getConnectSecondaryOwnerLinkTs() {
@@ -260,6 +358,58 @@ public class UserT implements Serializable {
 		return connectT;
 	}
 
+	public List<DocumentRepositoryT> getDocumentRepositoryTs() {
+		return this.documentRepositoryTs;
+	}
+
+	public void setDocumentRepositoryTs(
+			List<DocumentRepositoryT> documentRepositoryTs) {
+		this.documentRepositoryTs = documentRepositoryTs;
+	}
+
+	public DocumentRepositoryT addDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
+		getDocumentRepositoryTs().add(documentRepositoryT);
+		documentRepositoryT.setUserT(this);
+
+		return documentRepositoryT;
+	}
+
+	public DocumentRepositoryT removeDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
+		getDocumentRepositoryTs().remove(documentRepositoryT);
+		documentRepositoryT.setUserT(null);
+
+		return documentRepositoryT;
+	}
+
+	public List<FrequentlySearchedCustomerPartnerT> getFrequentlySearchedCustomerPartnerTs() {
+		return this.frequentlySearchedCustomerPartnerTs;
+	}
+
+	public void setFrequentlySearchedCustomerPartnerTs(
+			List<FrequentlySearchedCustomerPartnerT> frequentlySearchedCustomerPartnerTs) {
+		this.frequentlySearchedCustomerPartnerTs = frequentlySearchedCustomerPartnerTs;
+	}
+
+	public FrequentlySearchedCustomerPartnerT addFrequentlySearchedCustomerPartnerT(
+			FrequentlySearchedCustomerPartnerT frequentlySearchedCustomerPartnerT) {
+		getFrequentlySearchedCustomerPartnerTs().add(
+				frequentlySearchedCustomerPartnerT);
+		frequentlySearchedCustomerPartnerT.setUserT(this);
+
+		return frequentlySearchedCustomerPartnerT;
+	}
+
+	public FrequentlySearchedCustomerPartnerT removeFrequentlySearchedCustomerPartnerT(
+			FrequentlySearchedCustomerPartnerT frequentlySearchedCustomerPartnerT) {
+		getFrequentlySearchedCustomerPartnerTs().remove(
+				frequentlySearchedCustomerPartnerT);
+		frequentlySearchedCustomerPartnerT.setUserT(null);
+
+		return frequentlySearchedCustomerPartnerT;
+	}
+
 	public List<LoginHistoryT> getLoginHistoryTs() {
 		return this.loginHistoryTs;
 	}
@@ -280,6 +430,28 @@ public class UserT implements Serializable {
 		loginHistoryT.setUserT(null);
 
 		return loginHistoryT;
+	}
+
+	public List<NotesT> getNotesTs() {
+		return this.notesTs;
+	}
+
+	public void setNotesTs(List<NotesT> notesTs) {
+		this.notesTs = notesTs;
+	}
+
+	public NotesT addNotesT(NotesT notesT) {
+		getNotesTs().add(notesT);
+		notesT.setUserT(this);
+
+		return notesT;
+	}
+
+	public NotesT removeNotesT(NotesT notesT) {
+		getNotesTs().remove(notesT);
+		notesT.setUserT(null);
+
+		return notesT;
 	}
 
 	public List<OpportunitySalesSupportLinkT> getOpportunitySalesSupportLinkTs() {
@@ -307,6 +479,100 @@ public class UserT implements Serializable {
 		return opportunitySalesSupportLinkT;
 	}
 
+	public List<OpportunityT> getOpportunityTs() {
+		return this.opportunityTs;
+	}
+
+	public void setOpportunityTs(List<OpportunityT> opportunityTs) {
+		this.opportunityTs = opportunityTs;
+	}
+
+	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
+		getOpportunityTs().add(opportunityT);
+		opportunityT.setUserT(this);
+
+		return opportunityT;
+	}
+
+	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
+		getOpportunityTs().remove(opportunityT);
+		opportunityT.setUserT(null);
+
+		return opportunityT;
+	}
+
+	public List<OpportunityTimelineHistoryT> getOpportunityTimelineHistoryTs() {
+		return this.opportunityTimelineHistoryTs;
+	}
+
+	public void setOpportunityTimelineHistoryTs(
+			List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
+		this.opportunityTimelineHistoryTs = opportunityTimelineHistoryTs;
+	}
+
+	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().add(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setUserT(this);
+
+		return opportunityTimelineHistoryT;
+	}
+
+	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+		getOpportunityTimelineHistoryTs().remove(opportunityTimelineHistoryT);
+		opportunityTimelineHistoryT.setUserT(null);
+
+		return opportunityTimelineHistoryT;
+	}
+
+	public List<TaskBdmsTaggedLinkT> getTaskBdmsTaggedLinkTs() {
+		return this.taskBdmsTaggedLinkTs;
+	}
+
+	public void setTaskBdmsTaggedLinkTs(
+			List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs) {
+		this.taskBdmsTaggedLinkTs = taskBdmsTaggedLinkTs;
+	}
+
+	public TaskBdmsTaggedLinkT addTaskBdmsTaggedLinkT(
+			TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+		getTaskBdmsTaggedLinkTs().add(taskBdmsTaggedLinkT);
+		taskBdmsTaggedLinkT.setUserT(this);
+
+		return taskBdmsTaggedLinkT;
+	}
+
+	public TaskBdmsTaggedLinkT removeTaskBdmsTaggedLinkT(
+			TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+		getTaskBdmsTaggedLinkTs().remove(taskBdmsTaggedLinkT);
+		taskBdmsTaggedLinkT.setUserT(null);
+
+		return taskBdmsTaggedLinkT;
+	}
+
+	public List<TaskT> getTaskTs() {
+		return this.taskTs;
+	}
+
+	public void setTaskTs(List<TaskT> taskTs) {
+		this.taskTs = taskTs;
+	}
+
+	public TaskT addTaskT(TaskT taskT) {
+		getTaskTs().add(taskT);
+		taskT.setUserT(this);
+
+		return taskT;
+	}
+
+	public TaskT removeTaskT(TaskT taskT) {
+		getTaskTs().remove(taskT);
+		taskT.setUserT(null);
+
+		return taskT;
+	}
+
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
 	}
@@ -327,6 +593,14 @@ public class UserT implements Serializable {
 		userFavoritesT.setUserT(null);
 
 		return userFavoritesT;
+	}
+
+	public UserSettingsT getUserSettingsT() {
+		return this.userSettingsT;
+	}
+
+	public void setUserSettingsT(UserSettingsT userSettingsT) {
+		this.userSettingsT = userSettingsT;
 	}
 
 	public UserGroupMappingT getUserGroupMappingT() {

@@ -1,42 +1,57 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
- * The persistent class for the frequently_searched_customer_partner_t database table.
+ * The persistent class for the frequently_searched_customer_partner_t database
+ * table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="frequentlySearchedId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "frequentlySearchedId")
 @Entity
-@Table(name="frequently_searched_customer_partner_t")
-@NamedQuery(name="FrequentlySearchedCustomerPartnerT.findAll", query="SELECT f FROM FrequentlySearchedCustomerPartnerT f")
+@Table(name = "frequently_searched_customer_partner_t")
+@NamedQuery(name = "FrequentlySearchedCustomerPartnerT.findAll", query = "SELECT f FROM FrequentlySearchedCustomerPartnerT f")
 public class FrequentlySearchedCustomerPartnerT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="frequently_searched_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "frequently_searched_id")
 	private String frequentlySearchedId;
 
-	@Column(name="entity_id")
+	@Column(name = "entity_id")
 	private String entityId;
 
-	@Column(name="entity_type")
+	@Column(name = "entity_type")
 	private String entityType;
 
-	@Column(name="search_datetime")
+	@Column(name = "search_datetime")
 	private Timestamp searchDatetime;
 
-	@Column(name="user_id")
+	@Column(name = "user_id")
 	private String userId;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "user_id", insertable = false, updatable = false)
+	private UserT userT;
 
 	public FrequentlySearchedCustomerPartnerT() {
 	}
@@ -73,8 +88,16 @@ public class FrequentlySearchedCustomerPartnerT implements Serializable {
 		this.searchDatetime = searchDatetime;
 	}
 
+	public UserT getUserT() {
+		return this.userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
+	}
+
 	public String getUserId() {
-		return this.userId;
+		return userId;
 	}
 
 	public void setUserId(String userId) {

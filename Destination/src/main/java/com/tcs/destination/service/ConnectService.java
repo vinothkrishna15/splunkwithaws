@@ -37,7 +37,7 @@ public class ConnectService {
 	}
 
 	public List<ConnectT> searchforConnectsBetween(Date fromDate, Date toDate) {
-		return connectRepository.findByDateOfConnectBetween(new Timestamp(
+		return connectRepository.findByStartDatetimeOfConnectBetween(new Timestamp(
 				fromDate.getTime()), new Timestamp(toDate.getTime()));
 	}
 }

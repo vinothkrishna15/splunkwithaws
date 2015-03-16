@@ -1,21 +1,32 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 
 /**
  * The persistent class for the task_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskId")
 @Entity
 @Table(name="task_t")
@@ -24,9 +35,11 @@ public class TaskT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="task_id")
 	private String taskId;
+
+	@Column(name="collaboration_preference")
+	private String collaborationPreference;
 
 	@Column(name="created_modified_by")
 	private String createdModifiedBy;
@@ -47,23 +60,16 @@ public class TaskT implements Serializable {
 	@Column(name="task_description")
 	private String taskDescription;
 
-	@Column(name="task_owner")
-	private String taskOwner;
-
 	@Column(name="task_status")
 	private String taskStatus;
-
-	//bi-directional many-to-one association to CollabrationCommentT
-	@OneToMany(mappedBy="taskT")
-	private List<CollabrationCommentT> collabrationCommentTs;
 
 	//bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy="taskT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
-	//bi-directional many-to-one association to NotesT
+	//bi-directional many-to-one association to TaskBdmsTaggedLinkT
 	@OneToMany(mappedBy="taskT")
-	private List<NotesT> notesTs;
+	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
@@ -75,6 +81,11 @@ public class TaskT implements Serializable {
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="task_owner")
+	private UserT userT;
+
 	public TaskT() {
 	}
 
@@ -84,6 +95,14 @@ public class TaskT implements Serializable {
 
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
+	}
+
+	public String getCollaborationPreference() {
+		return this.collaborationPreference;
+	}
+
+	public void setCollaborationPreference(String collaborationPreference) {
+		this.collaborationPreference = collaborationPreference;
 	}
 
 	public String getCreatedModifiedBy() {
@@ -134,42 +153,12 @@ public class TaskT implements Serializable {
 		this.taskDescription = taskDescription;
 	}
 
-	public String getTaskOwner() {
-		return this.taskOwner;
-	}
-
-	public void setTaskOwner(String taskOwner) {
-		this.taskOwner = taskOwner;
-	}
-
 	public String getTaskStatus() {
 		return this.taskStatus;
 	}
 
 	public void setTaskStatus(String taskStatus) {
 		this.taskStatus = taskStatus;
-	}
-
-	public List<CollabrationCommentT> getCollabrationCommentTs() {
-		return this.collabrationCommentTs;
-	}
-
-	public void setCollabrationCommentTs(List<CollabrationCommentT> collabrationCommentTs) {
-		this.collabrationCommentTs = collabrationCommentTs;
-	}
-
-	public CollabrationCommentT addCollabrationCommentT(CollabrationCommentT collabrationCommentT) {
-		getCollabrationCommentTs().add(collabrationCommentT);
-		collabrationCommentT.setTaskT(this);
-
-		return collabrationCommentT;
-	}
-
-	public CollabrationCommentT removeCollabrationCommentT(CollabrationCommentT collabrationCommentT) {
-		getCollabrationCommentTs().remove(collabrationCommentT);
-		collabrationCommentT.setTaskT(null);
-
-		return collabrationCommentT;
 	}
 
 	public List<DocumentRepositoryT> getDocumentRepositoryTs() {
@@ -194,26 +183,26 @@ public class TaskT implements Serializable {
 		return documentRepositoryT;
 	}
 
-	public List<NotesT> getNotesTs() {
-		return this.notesTs;
+	public List<TaskBdmsTaggedLinkT> getTaskBdmsTaggedLinkTs() {
+		return this.taskBdmsTaggedLinkTs;
 	}
 
-	public void setNotesTs(List<NotesT> notesTs) {
-		this.notesTs = notesTs;
+	public void setTaskBdmsTaggedLinkTs(List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs) {
+		this.taskBdmsTaggedLinkTs = taskBdmsTaggedLinkTs;
 	}
 
-	public NotesT addNotesT(NotesT notesT) {
-		getNotesTs().add(notesT);
-		notesT.setTaskT(this);
+	public TaskBdmsTaggedLinkT addTaskBdmsTaggedLinkT(TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+		getTaskBdmsTaggedLinkTs().add(taskBdmsTaggedLinkT);
+		taskBdmsTaggedLinkT.setTaskT(this);
 
-		return notesT;
+		return taskBdmsTaggedLinkT;
 	}
 
-	public NotesT removeNotesT(NotesT notesT) {
-		getNotesTs().remove(notesT);
-		notesT.setTaskT(null);
+	public TaskBdmsTaggedLinkT removeTaskBdmsTaggedLinkT(TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+		getTaskBdmsTaggedLinkTs().remove(taskBdmsTaggedLinkT);
+		taskBdmsTaggedLinkT.setTaskT(null);
 
-		return notesT;
+		return taskBdmsTaggedLinkT;
 	}
 
 	public ConnectT getConnectT() {
@@ -230,6 +219,14 @@ public class TaskT implements Serializable {
 
 	public void setOpportunityT(OpportunityT opportunityT) {
 		this.opportunityT = opportunityT;
+	}
+
+	public UserT getUserT() {
+		return this.userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 
 }

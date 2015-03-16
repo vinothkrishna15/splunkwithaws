@@ -1,49 +1,48 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the sub_sp_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="subSp")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subSp")
 @Entity
-@Table(name="sub_sp_mapping_t")
-@NamedQuery(name="SubSpMappingT.findAll", query="SELECT s FROM SubSpMappingT s")
+@Table(name = "sub_sp_mapping_t")
+@NamedQuery(name = "SubSpMappingT.findAll", query = "SELECT s FROM SubSpMappingT s")
 public class SubSpMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="sub_sp")
 	private String subSp;
 
 	private String active;
 
-	@Column(name="service_line")
-	private String serviceLine;
+	@Column(name="display_sub_sp")
+	private String displaySubSp;
 
 	@Column(name="sp_code")
 	private Integer spCode;
 
 	@Column(name="sub_sp_id")
 	private Integer subSpId;
-
-	//bi-directional many-to-one association to ConnectT
-	@OneToMany(mappedBy="subSpMappingT")
-	private List<ConnectT> connectTs;
-
-	//bi-directional many-to-one association to OpportunityT
-	@OneToMany(mappedBy="subSpMappingT")
-	private List<OpportunityT> opportunityTs;
 
 	public SubSpMappingT() {
 	}
@@ -64,12 +63,12 @@ public class SubSpMappingT implements Serializable {
 		this.active = active;
 	}
 
-	public String getServiceLine() {
-		return this.serviceLine;
+	public String getDisplaySubSp() {
+		return this.displaySubSp;
 	}
 
-	public void setServiceLine(String serviceLine) {
-		this.serviceLine = serviceLine;
+	public void setDisplaySubSp(String displaySubSp) {
+		this.displaySubSp = displaySubSp;
 	}
 
 	public Integer getSpCode() {
@@ -86,50 +85,6 @@ public class SubSpMappingT implements Serializable {
 
 	public void setSubSpId(Integer subSpId) {
 		this.subSpId = subSpId;
-	}
-
-	public List<ConnectT> getConnectTs() {
-		return this.connectTs;
-	}
-
-	public void setConnectTs(List<ConnectT> connectTs) {
-		this.connectTs = connectTs;
-	}
-
-	public ConnectT addConnectT(ConnectT connectT) {
-		getConnectTs().add(connectT);
-		connectT.setSubSpMappingT(this);
-
-		return connectT;
-	}
-
-	public ConnectT removeConnectT(ConnectT connectT) {
-		getConnectTs().remove(connectT);
-		connectT.setSubSpMappingT(null);
-
-		return connectT;
-	}
-
-	public List<OpportunityT> getOpportunityTs() {
-		return this.opportunityTs;
-	}
-
-	public void setOpportunityTs(List<OpportunityT> opportunityTs) {
-		this.opportunityTs = opportunityTs;
-	}
-
-	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().add(opportunityT);
-		opportunityT.setSubSpMappingT(this);
-
-		return opportunityT;
-	}
-
-	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().remove(opportunityT);
-		opportunityT.setSubSpMappingT(null);
-
-		return opportunityT;
 	}
 
 }

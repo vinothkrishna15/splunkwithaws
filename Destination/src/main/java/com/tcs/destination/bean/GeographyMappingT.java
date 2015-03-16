@@ -1,43 +1,48 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the geography_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="geography")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "geography")
 @Entity
-@Table(name="geography_mapping_t")
-@NamedQuery(name="GeographyMappingT.findAll", query="SELECT g FROM GeographyMappingT g")
+@Table(name = "geography_mapping_t")
+@NamedQuery(name = "GeographyMappingT.findAll", query = "SELECT g FROM GeographyMappingT g")
 public class GeographyMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private String geography;
 
 	private String active;
 
-	@Column(name="display_geography")
+	@Column(name = "display_geography")
 	private String displayGeography;
 
 	//bi-directional many-to-one association to CustomerMasterT
-	 
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 
 	//bi-directional many-to-one association to PartnerMasterT
-	 
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
 

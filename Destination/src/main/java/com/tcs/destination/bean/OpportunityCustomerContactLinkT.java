@@ -1,48 +1,56 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
- * The persistent class for the opportunity_customer_contact_link_t database table.
+ * The persistent class for the opportunity_customer_contact_link_t database
+ * table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityCustomerContactLinkId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityCustomerContactLinkId")
 @Entity
-@Table(name="opportunity_customer_contact_link_t")
-@NamedQuery(name="OpportunityCustomerContactLinkT.findAll", query="SELECT o FROM OpportunityCustomerContactLinkT o")
+@Table(name = "opportunity_customer_contact_link_t")
+@NamedQuery(name = "OpportunityCustomerContactLinkT.findAll", query = "SELECT o FROM OpportunityCustomerContactLinkT o")
 public class OpportunityCustomerContactLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_customer_contact_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_customer_contact_link_id")
 	private String opportunityCustomerContactLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to ContactT
-	 
+	// bi-directional many-to-one association to ContactT
+
 	@ManyToOne
-	@JoinColumn(name="contact_id")
+	@JoinColumn(name = "contact_id")
 	private ContactT contactT;
 
 	//bi-directional many-to-one association to OpportunityT
-	 
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
 
 	public OpportunityCustomerContactLinkT() {

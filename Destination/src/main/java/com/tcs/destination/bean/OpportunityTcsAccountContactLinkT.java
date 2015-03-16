@@ -1,28 +1,35 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
- * The persistent class for the opportunity_tcs_account_contact_link_t database table.
+ * The persistent class for the opportunity_tcs_account_contact_link_t database
+ * table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityTcsAccountContactLinkId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityTcsAccountContactLinkId")
 @Entity
-@Table(name="opportunity_tcs_account_contact_link_t")
-@NamedQuery(name="OpportunityTcsAccountContactLinkT.findAll", query="SELECT o FROM OpportunityTcsAccountContactLinkT o")
+@Table(name = "opportunity_tcs_account_contact_link_t")
+@NamedQuery(name = "OpportunityTcsAccountContactLinkT.findAll", query = "SELECT o FROM OpportunityTcsAccountContactLinkT o")
 public class OpportunityTcsAccountContactLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_tcs_account_contact_link_id")
 	private String opportunityTcsAccountContactLinkId;
 

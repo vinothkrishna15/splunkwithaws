@@ -1,35 +1,37 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
+
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the beacon_customer_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="beaconCustomerName")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
 @Entity
 @Table(name = "beacon_customer_mapping_t")
 @NamedQuery(name = "BeaconCustomerMappingT.findAll", query = "SELECT b FROM BeaconCustomerMappingT b")
 public class BeaconCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "beacon_customer_name")
-	private String beaconCustomerName;
+	@EmbeddedId
+	private BeaconCustomerMappingTPK id;
 
-	@Column(name = "customer_geography")
-	private String customerGeography;
-
-	// bi-directional many-to-one association to CustomerMasterT
+	//bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
 	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
 	private CustomerMasterT customerMasterT;
@@ -41,20 +43,12 @@ public class BeaconCustomerMappingT implements Serializable {
 	public BeaconCustomerMappingT() {
 	}
 
-	public String getBeaconCustomerName() {
-		return this.beaconCustomerName;
+	public BeaconCustomerMappingTPK getId() {
+		return this.id;
 	}
 
-	public void setBeaconCustomerName(String beaconCustomerName) {
-		this.beaconCustomerName = beaconCustomerName;
-	}
-
-	public String getCustomerGeography() {
-		return this.customerGeography;
-	}
-
-	public void setCustomerGeography(String customerGeography) {
-		this.customerGeography = customerGeography;
+	public void setId(BeaconCustomerMappingTPK id) {
+		this.id = id;
 	}
 
 	public CustomerMasterT getCustomerMasterT() {

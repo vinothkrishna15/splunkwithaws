@@ -100,7 +100,7 @@ public class Top10CustomerTest {
 			
 			.andDo(print())
 			.andReturn();
-		List<RevenuesResponse> RList= customerService.findTop10Customers();
+		List<RevenuesResponse> RList= customerService.findTopRevenue();
 			 assertNotNull(RList);
 			 assertEquals(null, RList.get(0).getLogo());
 			 assertEquals(null, RList.get(1).getLogo());

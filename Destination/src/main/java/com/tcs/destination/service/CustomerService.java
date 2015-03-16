@@ -34,26 +34,46 @@ public class CustomerService {
 		return customer;
 	}
 
-	public List<RevenuesResponse> findTop10Customers() {
-		List<CustomerMasterT> top10Customers = customerRepository
-				.findTop10RevenueCustomers();
-		List<RevenuesResponse> revenueList = new ArrayList<RevenuesResponse>();
-		for (CustomerMasterT customer : top10Customers) {
-			RevenuesResponse revenue = new RevenuesResponse();
-			revenue.setCustomerName(customer.getCustomerName());
-			revenue.setGroupCustomerName(customer.getGroupCustomerName());
-			revenue.setLogo(customer.getLogo());
-			revenueList.add(revenue);
+	public List<CustomerMasterT> findTopRevenue(int count, String financialYear) {
+		if (financialYear.equals("")) {
+			financialYear = getCurrentFinancialYear();
 		}
-		if (revenueList.isEmpty())
+		List<CustomerMasterT> topRevenueList = customerRepository
+				.findTopRevenue(count,financialYear);
+		if (topRevenueList.isEmpty())
 			throw new NoDataFoundException();
-		return revenueList;
+		return topRevenueList;
 	}
 
 	public List<TargetVsActualResponse> findTargetVsActual(String name) {
 		BeaconConvertorMappingT beacon = beaconRepository
 				.findByCurrencyName("USD");
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
+		String financialYear = getCurrentFinancialYear();
+		List<Object[]> actualList = customerRepository.findActual(name,
+				financialYear);
+		List<Object[]> targetList = customerRepository.findTarget(name,
+				financialYear);
+		for (Object[] actual : actualList) {
+			TargetVsActualResponse response = new TargetVsActualResponse();
+			response.setQuarter(actual[0].toString());
+			response.setActual(new BigDecimal(actual[1].toString()).divide(
+					beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
+			for (Object[] target : targetList) {
+				if (target[0].toString().equals(response.getQuarter())) {
+					response.setTarget(new BigDecimal(target[1].toString())
+							.divide(beacon.getConversionRate(), 2,
+									RoundingMode.HALF_UP));
+				}
+			}
+			tarActResponseList.add(response);
+		}
+		if (tarActResponseList.isEmpty())
+			throw new NoDataFoundException();
+		return tarActResponseList;
+	}
+
+	private String getCurrentFinancialYear() {
 		String financialYear = "FY'";
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.MONTH) > 3) {
@@ -65,27 +85,12 @@ public class CustomerService {
 			financialYear += (cal.get(Calendar.YEAR) - 1) + "-"
 					+ String.valueOf(cal.get(Calendar.YEAR)).subSequence(2, 4);
 		}
-		System.out.println("Financial Year: " + financialYear);
-		List<Object[]> actualList = customerRepository.findActual(name,
-				financialYear);
-		List<Object[]> targetList = customerRepository.findTarget(name,
-				financialYear);
-		for (Object[] actual : actualList) {
-			TargetVsActualResponse response = new TargetVsActualResponse();
-			response.setQuarter(actual[0].toString());
-			response.setActual(new BigDecimal(actual[1].toString())
-					.divide(beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
-			for (Object[] target : targetList) {
-				if (target[0].toString().equals(response.getQuarter())) {
-					response.setTarget(new BigDecimal(target[1].toString())
-							.divide(beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
-				}
-			}
-			tarActResponseList.add(response);
-		}
-		if (tarActResponseList.isEmpty())
-			throw new NoDataFoundException();
-		return tarActResponseList;
+		return financialYear;
+	}
+
+	public List<CustomerMasterT> findByNameContaining(String chars) {
+		return customerRepository.findByCustomerNameIgnoreCaseLike("%" + chars
+				+ "%");
 	}
 
 }

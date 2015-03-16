@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.service.ConnectService;
+import com.tcs.destination.utils.Constants;
 
 /**
  * Controller to handle connection details search requests.
@@ -24,38 +25,54 @@ public class ConnectController {
 
 	@Autowired
 	ConnectService connectService;
+
 	/**
-	 * This Method is used to find connection details for the given connection id.
-	 * @param typed is the connect id.
+	 * This Method is used to find connection details for the given connection
+	 * id.
+	 * 
+	 * @param typed
+	 *            is the connect id.
 	 * @return connection details for the particular connection id.
 	 */
-	@RequestMapping(value ="/searchById", method = RequestMethod.GET)
+	@RequestMapping(value = "/searchById", method = RequestMethod.GET)
 	public @ResponseBody List<ConnectT> ajaxConnectSearchById(
-			@RequestParam("typed") String typed){
-				
+			@RequestParam("typed") String typed) {
+
 		return connectService.searchforConnectsById(typed);
 	}
-	
+
 	/**
-	 * This Method is used to find connection details for the given connection name.
-	 * @param typed is the connection name.
+	 * This Method is used to find connection details for the given connection
+	 * name.
+	 * 
+	 * @param typed
+	 *            is the connection name.
 	 * @return connection details for the particular connection name.
 	 */
-	@RequestMapping(value ="/searchByName", method = RequestMethod.GET)
+	@RequestMapping(value = "/searchByName", method = RequestMethod.GET)
 	public @ResponseBody List<ConnectT> search(
 			@RequestParam("typed") String typed) {
-		
+
 		return connectService.searchforConnectsByName(typed);
 	}
-	
+
 	/**
-	 * This Method is used to find connection details for the given connection name.
-	 * @param typed is the connection name.
+	 * This Method is used to find connection details for the given connection
+	 * name.
+	 * 
+	 * @param typed
+	 *            is the connection name.
 	 * @return connection details for the particular connection name.
 	 */
-	@RequestMapping(value ="/date", method = RequestMethod.GET)
-	public @ResponseBody List<ConnectT> search(
-			@RequestParam("from") @DateTimeFormat(pattern="ddMMyyyy") Date fromDate,@RequestParam("to") @DateTimeFormat(pattern="ddMMyyyy") Date toDate) {
-		return connectService.searchforConnectsBetween(fromDate,toDate);
+	@RequestMapping(value = "/date", method = RequestMethod.GET)
+	public @ResponseBody String search(
+			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) {
+
+		List<ConnectT> connects = connectService.searchforConnectsBetween(
+				fromDate, toDate);
+		return Constants.filterJsonForFieldAndViews(fields, view, connects);
 	}
 }

@@ -1,48 +1,62 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the offering_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="offeringId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "offeringId")
 @Entity
-@Table(name="offering_mapping_t")
-@NamedQuery(name="OfferingMappingT.findAll", query="SELECT o FROM OfferingMappingT o")
+@Table(name = "offering_mapping_t")
+@NamedQuery(name = "OfferingMappingT.findAll", query = "SELECT o FROM OfferingMappingT o")
 public class OfferingMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	@Id
+	private String offering;
+
 	private String active;
 
-	@Column(name="offering_id")
+	@Column(name = "offering_id")
 	private Integer offeringId;
-	
-	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="offering")
-	private String offering;
-	
+
 	@Column(name="sub_sp")
 	private String subSp;
 
-	//bi-directional many-to-one association to ConnectT
+	//bi-directional many-to-one association to ConnectOfferingLinkT
 	@OneToMany(mappedBy="offeringMappingT")
-	private List<ConnectT> connectTs;
+	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
 
-	//bi-directional many-to-one association to OpportunityT
+	//bi-directional many-to-one association to OpportunityOfferingLinkT
 	@OneToMany(mappedBy="offeringMappingT")
-	private List<OpportunityT> opportunityTs;
+	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
 
 	public OfferingMappingT() {
+	}
+
+	public String getOffering() {
+		return this.offering;
+	}
+
+	public void setOffering(String offering) {
+		this.offering = offering;
 	}
 
 	public String getActive() {
@@ -61,14 +75,6 @@ public class OfferingMappingT implements Serializable {
 		this.offeringId = offeringId;
 	}
 
-	public String getOffering() {
-		return offering;
-	}
-
-	public void setOffering(String offering) {
-		this.offering = offering;
-	}
-
 	public String getSubSp() {
 		return this.subSp;
 	}
@@ -77,48 +83,48 @@ public class OfferingMappingT implements Serializable {
 		this.subSp = subSp;
 	}
 
-	public List<ConnectT> getConnectTs() {
-		return this.connectTs;
+	public List<ConnectOfferingLinkT> getConnectOfferingLinkTs() {
+		return this.connectOfferingLinkTs;
 	}
 
-	public void setConnectTs(List<ConnectT> connectTs) {
-		this.connectTs = connectTs;
+	public void setConnectOfferingLinkTs(List<ConnectOfferingLinkT> connectOfferingLinkTs) {
+		this.connectOfferingLinkTs = connectOfferingLinkTs;
 	}
 
-	public ConnectT addConnectT(ConnectT connectT) {
-		getConnectTs().add(connectT);
-		connectT.setOfferingMappingT(this);
+	public ConnectOfferingLinkT addConnectOfferingLinkT(ConnectOfferingLinkT connectOfferingLinkT) {
+		getConnectOfferingLinkTs().add(connectOfferingLinkT);
+		connectOfferingLinkT.setOfferingMappingT(this);
 
-		return connectT;
+		return connectOfferingLinkT;
 	}
 
-	public ConnectT removeConnectT(ConnectT connectT) {
-		getConnectTs().remove(connectT);
-		connectT.setOfferingMappingT(null);
+	public ConnectOfferingLinkT removeConnectOfferingLinkT(ConnectOfferingLinkT connectOfferingLinkT) {
+		getConnectOfferingLinkTs().remove(connectOfferingLinkT);
+		connectOfferingLinkT.setOfferingMappingT(null);
 
-		return connectT;
+		return connectOfferingLinkT;
 	}
 
-	public List<OpportunityT> getOpportunityTs() {
-		return this.opportunityTs;
+	public List<OpportunityOfferingLinkT> getOpportunityOfferingLinkTs() {
+		return this.opportunityOfferingLinkTs;
 	}
 
-	public void setOpportunityTs(List<OpportunityT> opportunityTs) {
-		this.opportunityTs = opportunityTs;
+	public void setOpportunityOfferingLinkTs(List<OpportunityOfferingLinkT> opportunityOfferingLinkTs) {
+		this.opportunityOfferingLinkTs = opportunityOfferingLinkTs;
 	}
 
-	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().add(opportunityT);
-		opportunityT.setOfferingMappingT(this);
+	public OpportunityOfferingLinkT addOpportunityOfferingLinkT(OpportunityOfferingLinkT opportunityOfferingLinkT) {
+		getOpportunityOfferingLinkTs().add(opportunityOfferingLinkT);
+		opportunityOfferingLinkT.setOfferingMappingT(this);
 
-		return opportunityT;
+		return opportunityOfferingLinkT;
 	}
 
-	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
-		getOpportunityTs().remove(opportunityT);
-		opportunityT.setOfferingMappingT(null);
+	public OpportunityOfferingLinkT removeOpportunityOfferingLinkT(OpportunityOfferingLinkT opportunityOfferingLinkT) {
+		getOpportunityOfferingLinkTs().remove(opportunityOfferingLinkT);
+		opportunityOfferingLinkT.setOfferingMappingT(null);
 
-		return opportunityT;
+		return opportunityOfferingLinkT;
 	}
 
 }

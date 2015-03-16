@@ -24,7 +24,11 @@ public class RecentlyAddedService {
 	@Autowired
 	PartnerRepository partnerRepository;
 
-	public List<CustPartResultCard> recentlyAdded() {
+	public List<CustPartResultCard> recentlyAdded(String entityType, int count) {
+		if (Constants.EntityType.contains(entityType)) {
+			
+		}
+		
 		ArrayList<CustPartResultCard> frequentList = new ArrayList<CustPartResultCard>();
 		List<CustomerMasterT> customerList = customerRepository.findRecent5();
 

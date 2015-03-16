@@ -4,28 +4,29 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
 
 
 /**
- * The persistent class for the opportunity_connect_link_t database table.
+ * The persistent class for the opportunity_sub_sp_link_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityConnectLinkId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunitySubSpLinkId")
 @Entity
-@Table(name="opportunity_connect_link_t")
-@NamedQuery(name="OpportunityConnectLinkT.findAll", query="SELECT o FROM OpportunityConnectLinkT o")
-public class OpportunityConnectLinkT implements Serializable {
+@Table(name="opportunity_sub_sp_link_t")
+@NamedQuery(name="OpportunitySubSpLinkT.findAll", query="SELECT o FROM OpportunitySubSpLinkT o")
+public class OpportunitySubSpLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_connect_link_id")
-	private String opportunityConnectLinkId;
+	@Column(name="opportunity_sub_sp_link_id")
+	private String opportunitySubSpLinkId;
 
 	@Column(name="created_modified_by")
 	private String createdModifiedBy;
@@ -33,27 +34,23 @@ public class OpportunityConnectLinkT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to ConnectT
-	 
-	@ManyToOne
-	@JoinColumn(name="connect_id")
-	private ConnectT connectT;
+	@Column(name="sub_sp")
+	private String subSp;
 
 	//bi-directional many-to-one association to OpportunityT
-	 
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
-	public OpportunityConnectLinkT() {
+	public OpportunitySubSpLinkT() {
 	}
 
-	public String getOpportunityConnectLinkId() {
-		return this.opportunityConnectLinkId;
+	public String getOpportunitySubSpLinkId() {
+		return this.opportunitySubSpLinkId;
 	}
 
-	public void setOpportunityConnectLinkId(String opportunityConnectLinkId) {
-		this.opportunityConnectLinkId = opportunityConnectLinkId;
+	public void setOpportunitySubSpLinkId(String opportunitySubSpLinkId) {
+		this.opportunitySubSpLinkId = opportunitySubSpLinkId;
 	}
 
 	public String getCreatedModifiedBy() {
@@ -72,12 +69,12 @@ public class OpportunityConnectLinkT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public ConnectT getConnectT() {
-		return this.connectT;
+	public String getSubSp() {
+		return this.subSp;
 	}
 
-	public void setConnectT(ConnectT connectT) {
-		this.connectT = connectT;
+	public void setSubSp(String subSp) {
+		this.subSp = subSp;
 	}
 
 	public OpportunityT getOpportunityT() {

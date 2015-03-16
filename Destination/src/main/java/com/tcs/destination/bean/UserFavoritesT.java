@@ -1,39 +1,45 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the user_favorites_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="userFavoritesId")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userFavoritesId")
 @Entity
-@Table(name="user_favorites_t")
-@NamedQuery(name="UserFavoritesT.findAll", query="SELECT u FROM UserFavoritesT u")
+@Table(name = "user_favorites_t")
+@NamedQuery(name = "UserFavoritesT.findAll", query = "SELECT u FROM UserFavoritesT u")
 public class UserFavoritesT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="user_favorites_id")
 	private String userFavoritesId;
 
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
 
+	@Column(name="document_id")
+	private String documentId;
+
 	@Column(name="entity_type")
 	private String entityType;
-	
-	@Column(name="user_id")
-	private String userId;
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
@@ -50,11 +56,6 @@ public class UserFavoritesT implements Serializable {
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
-	//bi-directional many-to-one association to DocumentRepositoryT
-	@ManyToOne
-	@JoinColumn(name="document_id")
-	private DocumentRepositoryT documentRepositoryT;
-
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
@@ -67,7 +68,7 @@ public class UserFavoritesT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id", insertable=false , updatable=false)
+	@JoinColumn(name="user_id")
 	private UserT userT;
 
 	public UserFavoritesT() {
@@ -87,6 +88,14 @@ public class UserFavoritesT implements Serializable {
 
 	public void setCreatedDatetime(Timestamp createdDatetime) {
 		this.createdDatetime = createdDatetime;
+	}
+
+	public String getDocumentId() {
+		return this.documentId;
+	}
+
+	public void setDocumentId(String documentId) {
+		this.documentId = documentId;
 	}
 
 	public String getEntityType() {
@@ -119,14 +128,6 @@ public class UserFavoritesT implements Serializable {
 
 	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
 		this.customerMasterT = customerMasterT;
-	}
-
-	public DocumentRepositoryT getDocumentRepositoryT() {
-		return this.documentRepositoryT;
-	}
-
-	public void setDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
-		this.documentRepositoryT = documentRepositoryT;
 	}
 
 	public OpportunityT getOpportunityT() {

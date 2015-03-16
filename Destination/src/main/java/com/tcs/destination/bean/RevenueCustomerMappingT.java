@@ -1,41 +1,51 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the revenue_customer_mapping_t database table.
  * 
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="financeCustomerName")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "financeCustomerName")
 @Entity
-@Table(name="revenue_customer_mapping_t")
-@NamedQuery(name="RevenueCustomerMappingT.findAll", query="SELECT r FROM RevenueCustomerMappingT r")
+@Table(name = "revenue_customer_mapping_t")
+@NamedQuery(name = "RevenueCustomerMappingT.findAll", query = "SELECT r FROM RevenueCustomerMappingT r")
 public class RevenueCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="finance_customer_name")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "finance_customer_name")
 	private String financeCustomerName;
 
-	@Column(name="customer_geography")
+	@Column(name = "customer_geography")
 	private String customerGeography;
 
-	//bi-directional many-to-one association to ActualRevenuesDataT
-	@OneToMany(mappedBy="revenueCustomerMappingT")
+	// bi-directional many-to-one association to ActualRevenuesDataT
+	@OneToMany(mappedBy = "revenueCustomerMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
-	//bi-directional many-to-one association to CustomerMasterT
+	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_name", referencedColumnName="customer_name")
+	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
 	private CustomerMasterT customerMasterT;
 
 	public RevenueCustomerMappingT() {
@@ -61,18 +71,21 @@ public class RevenueCustomerMappingT implements Serializable {
 		return this.actualRevenuesDataTs;
 	}
 
-	public void setActualRevenuesDataTs(List<ActualRevenuesDataT> actualRevenuesDataTs) {
+	public void setActualRevenuesDataTs(
+			List<ActualRevenuesDataT> actualRevenuesDataTs) {
 		this.actualRevenuesDataTs = actualRevenuesDataTs;
 	}
 
-	public ActualRevenuesDataT addActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+	public ActualRevenuesDataT addActualRevenuesDataT(
+			ActualRevenuesDataT actualRevenuesDataT) {
 		getActualRevenuesDataTs().add(actualRevenuesDataT);
 		actualRevenuesDataT.setRevenueCustomerMappingT(this);
 
 		return actualRevenuesDataT;
 	}
 
-	public ActualRevenuesDataT removeActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+	public ActualRevenuesDataT removeActualRevenuesDataT(
+			ActualRevenuesDataT actualRevenuesDataT) {
 		getActualRevenuesDataTs().remove(actualRevenuesDataT);
 		actualRevenuesDataT.setRevenueCustomerMappingT(null);
 
