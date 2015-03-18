@@ -25,6 +25,7 @@ public class OpportunityTimelineHistoryT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_timeline_history_id")
 	private String opportunityTimelineHistoryId;
 

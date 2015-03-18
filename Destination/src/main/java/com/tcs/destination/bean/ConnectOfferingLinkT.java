@@ -25,6 +25,7 @@ public class ConnectOfferingLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="connect_offering_link_id")
 	private String connectOfferingLinkId;
 

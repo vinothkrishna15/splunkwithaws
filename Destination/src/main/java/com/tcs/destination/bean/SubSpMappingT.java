@@ -44,6 +44,14 @@ public class SubSpMappingT implements Serializable {
 	@Column(name="sub_sp_id")
 	private Integer subSpId;
 
+	//bi-directional many-to-one association to ConnectSubSpLinkT
+	@OneToMany(mappedBy="subSpMappingT")
+	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
+
+	//bi-directional many-to-one association to OpportunitySubSpLinkT
+	@OneToMany(mappedBy="subSpMappingT")
+	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
+
 	public SubSpMappingT() {
 	}
 
@@ -85,6 +93,50 @@ public class SubSpMappingT implements Serializable {
 
 	public void setSubSpId(Integer subSpId) {
 		this.subSpId = subSpId;
+	}
+
+	public List<ConnectSubSpLinkT> getConnectSubSpLinkTs() {
+		return this.connectSubSpLinkTs;
+	}
+
+	public void setConnectSubSpLinkTs(List<ConnectSubSpLinkT> connectSubSpLinkTs) {
+		this.connectSubSpLinkTs = connectSubSpLinkTs;
+	}
+
+	public ConnectSubSpLinkT addConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+		getConnectSubSpLinkTs().add(connectSubSpLinkT);
+		connectSubSpLinkT.setSubSpMappingT(this);
+
+		return connectSubSpLinkT;
+	}
+
+	public ConnectSubSpLinkT removeConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+		getConnectSubSpLinkTs().remove(connectSubSpLinkT);
+		connectSubSpLinkT.setSubSpMappingT(null);
+
+		return connectSubSpLinkT;
+	}
+
+	public List<OpportunitySubSpLinkT> getOpportunitySubSpLinkTs() {
+		return this.opportunitySubSpLinkTs;
+	}
+
+	public void setOpportunitySubSpLinkTs(List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
+		this.opportunitySubSpLinkTs = opportunitySubSpLinkTs;
+	}
+
+	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+		getOpportunitySubSpLinkTs().add(opportunitySubSpLinkT);
+		opportunitySubSpLinkT.setSubSpMappingT(this);
+
+		return opportunitySubSpLinkT;
+	}
+
+	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+		getOpportunitySubSpLinkTs().remove(opportunitySubSpLinkT);
+		opportunitySubSpLinkT.setSubSpMappingT(null);
+
+		return opportunitySubSpLinkT;
 	}
 
 }

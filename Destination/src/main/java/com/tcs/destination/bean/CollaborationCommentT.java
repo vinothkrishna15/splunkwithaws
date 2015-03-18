@@ -49,9 +49,6 @@ public class CollaborationCommentT implements Serializable {
 	@Column(name="entity_type")
 	private String entityType;
 
-	@Column(name="task_id")
-	private String taskId;
-
 	@Column(name="updated_datetime")
 	private Timestamp updatedDatetime;
 
@@ -64,6 +61,11 @@ public class CollaborationCommentT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
+
+	//bi-directional many-to-one association to TaskT
+	@ManyToOne
+	@JoinColumn(name="task_id")
+	private TaskT taskT;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -117,14 +119,6 @@ public class CollaborationCommentT implements Serializable {
 		this.entityType = entityType;
 	}
 
-	public String getTaskId() {
-		return this.taskId;
-	}
-
-	public void setTaskId(String taskId) {
-		this.taskId = taskId;
-	}
-
 	public Timestamp getUpdatedDatetime() {
 		return this.updatedDatetime;
 	}
@@ -147,6 +141,14 @@ public class CollaborationCommentT implements Serializable {
 
 	public void setOpportunityT(OpportunityT opportunityT) {
 		this.opportunityT = opportunityT;
+	}
+
+	public TaskT getTaskT() {
+		return this.taskT;
+	}
+
+	public void setTaskT(TaskT taskT) {
+		this.taskT = taskT;
 	}
 
 	public UserT getUserT() {

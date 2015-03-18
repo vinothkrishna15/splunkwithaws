@@ -25,6 +25,7 @@ public class ConnectSubSpLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="connect_sub_sp_link_id")
 	private String connectSubSpLinkId;
 
@@ -34,13 +35,15 @@ public class ConnectSubSpLinkT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="sub_sp")
-	private String subSp;
-
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
+
+	//bi-directional many-to-one association to SubSpMappingT
+	@ManyToOne
+	@JoinColumn(name="sub_sp")
+	private SubSpMappingT subSpMappingT;
 
 	public ConnectSubSpLinkT() {
 	}
@@ -69,20 +72,20 @@ public class ConnectSubSpLinkT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public String getSubSp() {
-		return this.subSp;
-	}
-
-	public void setSubSp(String subSp) {
-		this.subSp = subSp;
-	}
-
 	public ConnectT getConnectT() {
 		return this.connectT;
 	}
 
 	public void setConnectT(ConnectT connectT) {
 		this.connectT = connectT;
+	}
+
+	public SubSpMappingT getSubSpMappingT() {
+		return this.subSpMappingT;
+	}
+
+	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
+		this.subSpMappingT = subSpMappingT;
 	}
 
 }

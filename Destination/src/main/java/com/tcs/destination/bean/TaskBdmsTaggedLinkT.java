@@ -25,6 +25,7 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="task_bdms_tagged_link_id")
 	private String taskBdmsTaggedLinkId;
 

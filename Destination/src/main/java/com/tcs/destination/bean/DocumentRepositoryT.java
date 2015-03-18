@@ -97,6 +97,10 @@ public class DocumentRepositoryT implements Serializable {
 	@JoinColumn(name="uploaded_by")
 	private UserT userT;
 
+	//bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy="documentRepositoryT")
+	private List<UserFavoritesT> userFavoritesTs;
+
 	public DocumentRepositoryT() {
 	}
 
@@ -226,6 +230,28 @@ public class DocumentRepositoryT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public List<UserFavoritesT> getUserFavoritesTs() {
+		return this.userFavoritesTs;
+	}
+
+	public void setUserFavoritesTs(List<UserFavoritesT> userFavoritesTs) {
+		this.userFavoritesTs = userFavoritesTs;
+	}
+
+	public UserFavoritesT addUserFavoritesT(UserFavoritesT userFavoritesT) {
+		getUserFavoritesTs().add(userFavoritesT);
+		userFavoritesT.setDocumentRepositoryT(this);
+
+		return userFavoritesT;
+	}
+
+	public UserFavoritesT removeUserFavoritesT(UserFavoritesT userFavoritesT) {
+		getUserFavoritesTs().remove(userFavoritesT);
+		userFavoritesT.setDocumentRepositoryT(null);
+
+		return userFavoritesT;
 	}
 
 }

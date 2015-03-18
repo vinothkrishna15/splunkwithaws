@@ -183,6 +183,10 @@ public class UserT implements Serializable {
 	@JoinColumn(name = "user_role")
 	private UserRoleMappingT userRoleMappingT;
 
+	//bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy="userT")
+	private List<UserNotificationsT> userNotificationsTs;
+
 	public UserT() {
 	}
 
@@ -636,6 +640,28 @@ public class UserT implements Serializable {
 
 	public void setUserRoleMappingT(UserRoleMappingT userRoleMappingT) {
 		this.userRoleMappingT = userRoleMappingT;
+	}
+
+	public List<UserNotificationsT> getUserNotificationsTs() {
+		return this.userNotificationsTs;
+	}
+
+	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+		this.userNotificationsTs = userNotificationsTs;
+	}
+
+	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().add(userNotificationsT);
+		userNotificationsT.setUserT(this);
+
+		return userNotificationsT;
+	}
+
+	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().remove(userNotificationsT);
+		userNotificationsT.setUserT(null);
+
+		return userNotificationsT;
 	}
 
 }

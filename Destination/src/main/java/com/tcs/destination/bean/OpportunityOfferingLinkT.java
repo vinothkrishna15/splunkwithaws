@@ -25,6 +25,7 @@ public class OpportunityOfferingLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_offering_link_id")
 	private String opportunityOfferingLinkId;
 

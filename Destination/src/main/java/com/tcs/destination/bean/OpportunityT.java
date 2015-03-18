@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -34,6 +36,7 @@ public class OpportunityT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_id")
 	private String opportunityId;
 
@@ -177,6 +180,10 @@ public class OpportunityT implements Serializable {
 	//bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy="opportunityT")
 	private List<UserFavoritesT> userFavoritesTs;
+
+	//bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy="opportunityT")
+	private List<UserNotificationsT> userNotificationsTs;
 
 	public OpportunityT() {
 	}
@@ -693,6 +700,28 @@ public class OpportunityT implements Serializable {
 		userFavoritesT.setOpportunityT(null);
 
 		return userFavoritesT;
+	}
+
+	public List<UserNotificationsT> getUserNotificationsTs() {
+		return this.userNotificationsTs;
+	}
+
+	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+		this.userNotificationsTs = userNotificationsTs;
+	}
+
+	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().add(userNotificationsT);
+		userNotificationsT.setOpportunityT(this);
+
+		return userNotificationsT;
+	}
+
+	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().remove(userNotificationsT);
+		userNotificationsT.setOpportunityT(null);
+
+		return userNotificationsT;
 	}
 
 }

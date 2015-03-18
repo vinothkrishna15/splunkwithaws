@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -29,14 +31,12 @@ public class UserFavoritesT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="user_favorites_id")
 	private String userFavoritesId;
 
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
-
-	@Column(name="document_id")
-	private String documentId;
 
 	@Column(name="entity_type")
 	private String entityType;
@@ -55,6 +55,11 @@ public class UserFavoritesT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
+
+	//bi-directional many-to-one association to DocumentRepositoryT
+	@ManyToOne
+	@JoinColumn(name="document_id")
+	private DocumentRepositoryT documentRepositoryT;
 
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
@@ -90,14 +95,6 @@ public class UserFavoritesT implements Serializable {
 		this.createdDatetime = createdDatetime;
 	}
 
-	public String getDocumentId() {
-		return this.documentId;
-	}
-
-	public void setDocumentId(String documentId) {
-		this.documentId = documentId;
-	}
-
 	public String getEntityType() {
 		return this.entityType;
 	}
@@ -128,6 +125,14 @@ public class UserFavoritesT implements Serializable {
 
 	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
 		this.customerMasterT = customerMasterT;
+	}
+
+	public DocumentRepositoryT getDocumentRepositoryT() {
+		return this.documentRepositoryT;
+	}
+
+	public void setDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+		this.documentRepositoryT = documentRepositoryT;
 	}
 
 	public OpportunityT getOpportunityT() {

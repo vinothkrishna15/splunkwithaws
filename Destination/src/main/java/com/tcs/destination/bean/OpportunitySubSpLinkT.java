@@ -25,6 +25,7 @@ public class OpportunitySubSpLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="opportunity_sub_sp_link_id")
 	private String opportunitySubSpLinkId;
 
@@ -34,13 +35,15 @@ public class OpportunitySubSpLinkT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="sub_sp")
-	private String subSp;
-
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
+
+	//bi-directional many-to-one association to SubSpMappingT
+	@ManyToOne
+	@JoinColumn(name="sub_sp")
+	private SubSpMappingT subSpMappingT;
 
 	public OpportunitySubSpLinkT() {
 	}
@@ -69,20 +72,20 @@ public class OpportunitySubSpLinkT implements Serializable {
 		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
-	public String getSubSp() {
-		return this.subSp;
-	}
-
-	public void setSubSp(String subSp) {
-		this.subSp = subSp;
-	}
-
 	public OpportunityT getOpportunityT() {
 		return this.opportunityT;
 	}
 
 	public void setOpportunityT(OpportunityT opportunityT) {
 		this.opportunityT = opportunityT;
+	}
+
+	public SubSpMappingT getSubSpMappingT() {
+		return this.subSpMappingT;
+	}
+
+	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
+		this.subSpMappingT = subSpMappingT;
 	}
 
 }

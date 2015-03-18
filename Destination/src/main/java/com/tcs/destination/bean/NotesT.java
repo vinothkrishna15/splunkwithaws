@@ -45,9 +45,6 @@ public class NotesT implements Serializable {
 	@Column(name="notes_updated")
 	private String notesUpdated;
 
-	@Column(name="task_id")
-	private String taskId;
-
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
 	@JoinColumn(name="connect_id")
@@ -67,6 +64,11 @@ public class NotesT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
+
+	//bi-directional many-to-one association to TaskT
+	@ManyToOne
+	@JoinColumn(name="task_id")
+	private TaskT taskT;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -108,14 +110,6 @@ public class NotesT implements Serializable {
 		this.notesUpdated = notesUpdated;
 	}
 
-	public String getTaskId() {
-		return this.taskId;
-	}
-
-	public void setTaskId(String taskId) {
-		this.taskId = taskId;
-	}
-
 	public ConnectT getConnectT() {
 		return this.connectT;
 	}
@@ -146,6 +140,14 @@ public class NotesT implements Serializable {
 
 	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
 		this.partnerMasterT = partnerMasterT;
+	}
+
+	public TaskT getTaskT() {
+		return this.taskT;
+	}
+
+	public void setTaskT(TaskT taskT) {
+		this.taskT = taskT;
 	}
 
 	public UserT getUserT() {

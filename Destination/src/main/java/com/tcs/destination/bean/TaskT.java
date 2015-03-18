@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -35,6 +37,7 @@ public class TaskT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="task_id")
 	private String taskId;
 
@@ -63,9 +66,17 @@ public class TaskT implements Serializable {
 	@Column(name="task_status")
 	private String taskStatus;
 
+	//bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(mappedBy="taskT")
+	private List<CollaborationCommentT> collaborationCommentTs;
+
 	//bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy="taskT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
+
+	//bi-directional many-to-one association to NotesT
+	@OneToMany(mappedBy="taskT")
+	private List<NotesT> notesTs;
 
 	//bi-directional many-to-one association to TaskBdmsTaggedLinkT
 	@OneToMany(mappedBy="taskT")
@@ -85,6 +96,10 @@ public class TaskT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="task_owner")
 	private UserT userT;
+
+	//bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy="taskT")
+	private List<UserNotificationsT> userNotificationsTs;
 
 	public TaskT() {
 	}
@@ -161,6 +176,28 @@ public class TaskT implements Serializable {
 		this.taskStatus = taskStatus;
 	}
 
+	public List<CollaborationCommentT> getCollaborationCommentTs() {
+		return this.collaborationCommentTs;
+	}
+
+	public void setCollaborationCommentTs(List<CollaborationCommentT> collaborationCommentTs) {
+		this.collaborationCommentTs = collaborationCommentTs;
+	}
+
+	public CollaborationCommentT addCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().add(collaborationCommentT);
+		collaborationCommentT.setTaskT(this);
+
+		return collaborationCommentT;
+	}
+
+	public CollaborationCommentT removeCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+		getCollaborationCommentTs().remove(collaborationCommentT);
+		collaborationCommentT.setTaskT(null);
+
+		return collaborationCommentT;
+	}
+
 	public List<DocumentRepositoryT> getDocumentRepositoryTs() {
 		return this.documentRepositoryTs;
 	}
@@ -181,6 +218,28 @@ public class TaskT implements Serializable {
 		documentRepositoryT.setTaskT(null);
 
 		return documentRepositoryT;
+	}
+
+	public List<NotesT> getNotesTs() {
+		return this.notesTs;
+	}
+
+	public void setNotesTs(List<NotesT> notesTs) {
+		this.notesTs = notesTs;
+	}
+
+	public NotesT addNotesT(NotesT notesT) {
+		getNotesTs().add(notesT);
+		notesT.setTaskT(this);
+
+		return notesT;
+	}
+
+	public NotesT removeNotesT(NotesT notesT) {
+		getNotesTs().remove(notesT);
+		notesT.setTaskT(null);
+
+		return notesT;
 	}
 
 	public List<TaskBdmsTaggedLinkT> getTaskBdmsTaggedLinkTs() {
@@ -227,6 +286,28 @@ public class TaskT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public List<UserNotificationsT> getUserNotificationsTs() {
+		return this.userNotificationsTs;
+	}
+
+	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+		this.userNotificationsTs = userNotificationsTs;
+	}
+
+	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().add(userNotificationsT);
+		userNotificationsT.setTaskT(this);
+
+		return userNotificationsT;
+	}
+
+	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().remove(userNotificationsT);
+		userNotificationsT.setTaskT(null);
+
+		return userNotificationsT;
 	}
 
 }

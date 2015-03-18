@@ -40,6 +40,9 @@ public class ConnectT implements Serializable {
 	@Column(name = "connect_category")
 	private String connectCategory;
 
+	@Column(name="connect_keywords")
+	private String connectKeywords;
+
 	@Column(name = "connect_name")
 	private String connectName;
 
@@ -125,6 +128,10 @@ public class ConnectT implements Serializable {
 	@OneToMany(mappedBy = "connectT")
 	private List<UserFavoritesT> userFavoritesTs;
 
+	//bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy="connectT")
+	private List<UserNotificationsT> userNotificationsTs;
+
 	public ConnectT() {
 	}
 
@@ -142,6 +149,14 @@ public class ConnectT implements Serializable {
 
 	public void setConnectCategory(String connectCategory) {
 		this.connectCategory = connectCategory;
+	}
+
+	public String getConnectKeywords() {
+		return this.connectKeywords;
+	}
+
+	public void setConnectKeywords(String connectKeywords) {
+		this.connectKeywords = connectKeywords;
 	}
 
 	public String getConnectName() {
@@ -497,6 +512,28 @@ public class ConnectT implements Serializable {
 
 	public void setPrimaryOwner(String primaryOwner) {
 		this.primaryOwner = primaryOwner;
+	}
+
+	public List<UserNotificationsT> getUserNotificationsTs() {
+		return this.userNotificationsTs;
+	}
+
+	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+		this.userNotificationsTs = userNotificationsTs;
+	}
+
+	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().add(userNotificationsT);
+		userNotificationsT.setConnectT(this);
+
+		return userNotificationsT;
+	}
+
+	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+		getUserNotificationsTs().remove(userNotificationsT);
+		userNotificationsT.setConnectT(null);
+
+		return userNotificationsT;
 	}
 
 }
