@@ -16,6 +16,7 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.Constants.OWNER_TYPE;
 
 /**
  * Controller to handle connection details search requests.
@@ -75,10 +76,10 @@ public class ConnectController {
 			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
-
-		List<ConnectT> connects = connectService.searchforConnectsBetween(
-				fromDate, toDate);
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "owner", defaultValue ="all") String owner) {
+		List<ConnectT> connects = connectService.searchforConnectsBetweenForUser(
+				fromDate, toDate,Constants.getUserDetails(),owner);
 		return Constants.filterJsonForFieldAndViews(fields, view, connects);
 	}
 }

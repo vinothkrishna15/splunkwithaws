@@ -18,38 +18,43 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the connect_secondary_owner_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectSecondaryOwnerLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "connectSecondaryOwnerLinkId")
 @Entity
-@Table(name="connect_secondary_owner_link_t")
-@NamedQuery(name="ConnectSecondaryOwnerLinkT.findAll", query="SELECT c FROM ConnectSecondaryOwnerLinkT c")
+@Table(name = "connect_secondary_owner_link_t")
+@NamedQuery(name = "ConnectSecondaryOwnerLinkT.findAll", query = "SELECT c FROM ConnectSecondaryOwnerLinkT c")
 public class ConnectSecondaryOwnerLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="connect_secondary_owner_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "connect_secondary_owner_link_id")
 	private String connectSecondaryOwnerLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to ConnectT
+	@Column(name = "secondary_owner")
+	private String secondaryOwner;
+
+	@Column(name = "connect_id")
+	private String connectId;
+
+	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="secondary_owner")
+	@JoinColumn(name = "secondary_owner", insertable = false, updatable = false)
 	private UserT userT;
 
 	public ConnectSecondaryOwnerLinkT() {
@@ -59,7 +64,8 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 		return this.connectSecondaryOwnerLinkId;
 	}
 
-	public void setConnectSecondaryOwnerLinkId(String connectSecondaryOwnerLinkId) {
+	public void setConnectSecondaryOwnerLinkId(
+			String connectSecondaryOwnerLinkId) {
 		this.connectSecondaryOwnerLinkId = connectSecondaryOwnerLinkId;
 	}
 
@@ -95,4 +101,19 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 		this.userT = userT;
 	}
 
+	public String getSecondaryOwner() {
+		return secondaryOwner;
+	}
+
+	public void setSecondaryOwner(String secondaryOwner) {
+		this.secondaryOwner = secondaryOwner;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
 }

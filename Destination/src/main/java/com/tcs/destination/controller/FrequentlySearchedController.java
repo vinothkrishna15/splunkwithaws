@@ -8,13 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
+import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.service.FrequentlySearchedCustPartService;
+import com.tcs.destination.exception.NoManditoryFieldsFoundExceptions;
+import com.tcs.destination.exception.NoSuchEntityException;
+import com.tcs.destination.service.FrequentlySearchedService;
 import com.tcs.destination.utils.Constants;
 
 @RestController
@@ -22,11 +26,17 @@ import com.tcs.destination.utils.Constants;
 public class FrequentlySearchedController {
 
 	@Autowired
-	FrequentlySearchedCustPartService frequentService;
+	FrequentlySearchedService frequentService;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody List<CustPartResultCard> findFrequent() {
-		return frequentService.frequentCustPart();
+	public @ResponseBody String findFrequent(
+			@RequestParam(value = "entity") String entity,
+			@RequestParam(value = "count", defaultValue = "4") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "owner", defaultValue = "all") String owner) {
+		return Constants.filterJsonForFieldAndViews(fields, view,
+				frequentService.findFrequent(entity, count));
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -35,13 +45,18 @@ public class FrequentlySearchedController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED);
 
-		if (Constants.EntityType.contains(frequent.getEntityType())
-				&& frequent.getEntityId() != null
-				&& frequent.getUserId() != null) {
-			frequent.setSearchDatetime(new Timestamp(new Date().getTime()));
-			if (frequentService.insertFrequent(frequent)) {
-				status.setStatus(Status.SUCCESS);
+		frequent.setEntityType(frequent.getEntityType().toUpperCase());
+		if (Constants.EntityType.contains(frequent.getEntityType())) {
+			if (frequent.getEntityId() != null && frequent.getUserId() != null) {
+				frequent.setSearchDatetime(new Timestamp(new Date().getTime()));
+				if (frequentService.insertFrequent(frequent)) {
+					status.setStatus(Status.SUCCESS);
+				}
+			} else {
+				throw new NoManditoryFieldsFoundExceptions();
 			}
+		} else {
+			throw new NoSuchEntityException();
 		}
 
 		return Constants.filterJsonForFieldAndViews("all", "", status);

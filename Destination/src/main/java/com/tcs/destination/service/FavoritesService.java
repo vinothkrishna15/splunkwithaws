@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.UserFavoritesT;
-import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepositoryUserDetails;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.exception.NoSuchEntityException;
@@ -19,11 +19,11 @@ public class FavoritesService {
 	FavoritesSearchedRepository userFavRepository;
 
 	public List<UserFavoritesT> findFavoritesFor(
-			UserRepositoryUserDetails userRepositoryUserDetails,
+			UserT user,
 			String entityType) {
 		if (Constants.EntityType.contains(entityType)) {
 			List<UserFavoritesT> userFavorites = userFavRepository
-					.findByUserTAndEntityType(userRepositoryUserDetails,
+					.findByUserTAndEntityTypeIgnoreCase(user,
 							entityType);
 
 			if (userFavorites.isEmpty())
