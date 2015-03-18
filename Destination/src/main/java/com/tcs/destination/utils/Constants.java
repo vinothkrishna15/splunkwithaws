@@ -1,6 +1,7 @@
 package com.tcs.destination.utils;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -147,5 +148,20 @@ public class Constants {
 		response.setCount(count);
 		response.setEntity(customer);
 		return response;
+	}
+	
+	public static String getCurrentFinancialYear() {
+		String financialYear = "FY'";
+		Calendar cal = Calendar.getInstance();
+		if (cal.get(Calendar.MONTH) > 3) {
+			financialYear += cal.get(Calendar.YEAR)
+					+ "-"
+					+ String.valueOf(cal.get(Calendar.YEAR) + 1)
+							.substring(2, 4);
+		} else {
+			financialYear += (cal.get(Calendar.YEAR) - 1) + "-"
+					+ String.valueOf(cal.get(Calendar.YEAR)).subSequence(2, 4);
+		}
+		return financialYear;
 	}
 }
