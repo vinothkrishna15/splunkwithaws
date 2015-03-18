@@ -55,7 +55,7 @@ public class Constants {
 	}
 
 	public static enum OWNER_TYPE {
-		PRIMARY("Primary"), SECONDARY("Secondary"), ALL("all");
+		PRIMARY("PRIMARY"), SECONDARY("SECONDARY"), ALL("ALL");
 
 		private final String name;
 
