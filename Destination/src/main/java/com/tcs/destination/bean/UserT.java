@@ -15,6 +15,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -90,76 +91,94 @@ public class UserT implements Serializable {
 	private String userTelephone;
 
 	// bi-directional many-to-one association to BdmTargetT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<BdmTargetT> bdmTargetTs;
 
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to
 	// FrequentlySearchedCustomerPartnerT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<FrequentlySearchedCustomerPartnerT> frequentlySearchedCustomerPartnerTs;
 
 	// bi-directional many-to-one association to LoginHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<LoginHistoryT> loginHistoryTs;
 
 	// bi-directional many-to-one association to NotesT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
 	// bi-directional many-to-one association to OpportunityT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunityT> opportunityTs;
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
 	// bi-directional many-to-one association to TaskBdmsTaggedLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
 	// bi-directional many-to-one association to TaskT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<TaskT> taskTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional one-to-one association to UserSettingsT
+	@JsonIgnore
 	@OneToOne(mappedBy = "userT")
 	private UserSettingsT userSettingsT;
 
 	// bi-directional many-to-one association to UserGroupMappingT
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "user_group")
 	private UserGroupMappingT userGroupMappingT;
 
 	// bi-directional many-to-one association to UserRoleMappingT
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "user_role")
 	private UserRoleMappingT userRoleMappingT;

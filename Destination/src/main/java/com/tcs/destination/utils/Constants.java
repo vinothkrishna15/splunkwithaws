@@ -5,21 +5,27 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.tcs.destination.bean.CustPartResultCard;
+import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepositoryUserDetails;
 
 public class Constants {
 
 	public static final String FILTER = "DestinationFilter";
 
 	public static enum EntityType {
-		CUSTOMER("Customer"), PARTNER("Partner");
+		CUSTOMER("CUSTOMER"), PARTNER("PARTNER");
 
 		private final String name;
 
@@ -37,8 +43,8 @@ public class Constants {
 
 		public static boolean contains(String test) {
 
-			for (Constants.EntityType c : Constants.EntityType.values()) {
-				if (c.name().equalsIgnoreCase(test)) {
+			for (EntityType c : EntityType.values()) {
+				if (c.name().equals(test)) {
 					return true;
 				}
 			}
@@ -48,46 +54,47 @@ public class Constants {
 
 	}
 
-	public static CustPartResultCard convertToCard(PartnerMasterT partner) {
-		CustPartResultCard card = new CustPartResultCard();
+	public static enum OWNER_TYPE {
+		PRIMARY("Primary"), SECONDARY("Secondary"), ALL("all");
 
-		// recent.setGroupCustomerName(partners.getCorporateHqAddress());
-		card.setGeographyMappingT(partner.getGeographyMappingT());
-		card.setId(partner.getPartnerId());
-		card.setLogo(partner.getLogo());
-		card.setName(partner.getPartnerName());
-		card.setCreatedModifiedDatetime(partner.getCreatedModifiedDatetime());
-		card.setOpportunities(partner.getOpportunityPartnerLinkTs().size());
-		card.setConnects(partner.getConnectTs().size());
-		card.setEntityType(Constants.EntityType.PARTNER.toString());
-		return card;
+		private final String name;
+
+		private OWNER_TYPE(String name) {
+			this.name = name;
+		}
+
+		public boolean equalsName(String otherName) {
+			return (otherName == null) ? false : name.equals(otherName);
+		}
+
+		public String toString() {
+			return name;
+		}
+
+		public static boolean contains(String test) {
+			for (OWNER_TYPE c : OWNER_TYPE.values()) {
+				if (c.name().equals(test)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 	}
 
-	public static CustPartResultCard convertToCard(CustomerMasterT customer) {
-		CustPartResultCard card = new CustPartResultCard();
-		card.setGroupCustomerName(customer.getGroupCustomerName());
-		card.setGeographyMappingT(customer.getGeographyMappingT());
-		card.setId(customer.getCustomerId());
-		card.setLogo(customer.getLogo());
-		card.setName(customer.getCustomerName());
-		card.setCreatedModifiedDatetime(customer.getCreatedModifiedDatetime());
-		card.setOpportunities(customer.getOpportunityTs().size());
-		card.setConnects(customer.getConnectTs().size());
-		card.setEntityType(Constants.EntityType.CUSTOMER.toString());
-		return card;
-	}
-
-	public static String filterJsonForFieldAndViews(String fields,String view,Object object){
-		if(!view.equals("")){
+	public static String filterJsonForFieldAndViews(String fields, String view,
+			Object object) {
+		if (!view.equals("")) {
 			StringTokenizer st = new StringTokenizer(view, ",");
 			while (st.hasMoreTokens()) {
-				//TODO:check and add the Fields based on View
+				// TODO:check and add the Fields based on View
 			}
 		}
 		return filterJsonForFields(fields, object);
-			
+
 	}
-	
+
 	public static String filterJsonForFields(String fields, Object object) {
 		if (fields.equals("all")) {
 			try {
@@ -108,6 +115,7 @@ public class Constants {
 			}
 
 			ObjectMapper mapper = new ObjectMapper();
+			mapper.registerModule(new Hibernate4Module());
 			FilterProvider filters = new SimpleFilterProvider().addFilter(
 					Constants.FILTER, SimpleBeanPropertyFilter
 							.filterOutAllExcept(filterProperties));
@@ -119,5 +127,27 @@ public class Constants {
 			}
 
 		}
+	}
+
+	public static UserT getUserDetails() {
+		Authentication a = SecurityContextHolder.getContext()
+				.getAuthentication();
+		return ((UserRepositoryUserDetails) a.getPrincipal());
+	}
+
+	public static FrequentlySearchedResponse convertToFrequentlySearchedResponse(
+			Integer count, PartnerMasterT partner) {
+		FrequentlySearchedResponse response = new FrequentlySearchedResponse();
+		response.setCount(count);
+		response.setEntity(partner);
+		return response;
+	}
+
+	public static FrequentlySearchedResponse convertToFrequentlySearchedResponse(
+			Integer count, CustomerMasterT customer) {
+		FrequentlySearchedResponse response = new FrequentlySearchedResponse();
+		response.setCount(count);
+		response.setEntity(customer);
+		return response;
 	}
 }

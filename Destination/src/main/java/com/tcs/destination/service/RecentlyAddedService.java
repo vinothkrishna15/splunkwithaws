@@ -13,6 +13,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.NoDataFoundException;
+import com.tcs.destination.exception.NoSuchEntityException;
 import com.tcs.destination.utils.Constants;
 
 @Component
@@ -24,29 +25,29 @@ public class RecentlyAddedService {
 	@Autowired
 	PartnerRepository partnerRepository;
 
-	public List<CustPartResultCard> recentlyAdded(String entityType, int count) {
+	public Object recentlyAdded(String entityType, int count) {
 		if (Constants.EntityType.contains(entityType)) {
-			
+			if (entityType.equalsIgnoreCase(Constants.EntityType.CUSTOMER
+					.toString())) {
+				List<CustomerMasterT> recentCustomers = customerRepository
+						.findRecent(5);
+				if (recentCustomers.isEmpty()) {
+					throw new NoDataFoundException();
+				}
+				return recentCustomers;
+			} else if (entityType.equalsIgnoreCase(Constants.EntityType.PARTNER
+					.toString())) {
+				List<PartnerMasterT> recentpartners = partnerRepository
+						.findRecent(5);
+				if (recentpartners.isEmpty()) {
+					throw new NoDataFoundException();
+				}
+				return recentpartners;
+			} else {
+				throw new NoDataFoundException();
+			}
 		}
-		
-		ArrayList<CustPartResultCard> frequentList = new ArrayList<CustPartResultCard>();
-		List<CustomerMasterT> customerList = customerRepository.findRecent5();
-
-		for (CustomerMasterT customer : customerList) {
-			CustPartResultCard recent = Constants.convertToCard(customer);
-			frequentList.add(recent);
-		}
-
-		List<PartnerMasterT> partnerList = partnerRepository.findRecent5();
-
-		for (PartnerMasterT partner : partnerList) {
-			CustPartResultCard recent = Constants.convertToCard(partner);
-			frequentList.add(recent);
-		}
-		Collections.sort(frequentList);
-		if (frequentList.isEmpty())
-			throw new NoDataFoundException();
-		return frequentList;
+		throw new NoSuchEntityException();
 	}
 
 }

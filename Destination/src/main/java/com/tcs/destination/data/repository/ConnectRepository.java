@@ -2,7 +2,9 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -11,26 +13,30 @@ import com.tcs.destination.bean.ConnectT;
 
 /**
  * 
- *  Repository for working with {@link ConnectT} domain objects
+ * Repository for working with {@link ConnectT} domain objects
  */
 @Repository
 public interface ConnectRepository extends CrudRepository<ConnectT, String> {
-	
+
 	/**
 	 * Finds the connection details for the given connection name.
-	 * @param name is the connection name.
+	 * 
+	 * @param name
+	 *            is the connection name.
 	 * @return connection details.
 	 */
 	List<ConnectT> findByConnectNameIgnoreCaseLike(String name);
-	
+
 	/**
 	 * Finds the connection details for the given connection id.
-	 * @param connectid is the connection id.
+	 * 
+	 * @param connectid
+	 *            is the connection id.
 	 * @return connection details.
 	 */
-	List<ConnectT> findByConnectIdIgnoreCaseLike(String connectid);
+	ConnectT findByConnectId(String connectid);
 	
-	List<ConnectT> findByStartDatetimeOfConnectBetween(Timestamp fromDate,Timestamp toDate);
+	@Query(value = "select c from ConnectT c where primaryOwner=(:primaryOwner) and startDatetimeOfConnect between (:fromDate) and (:toDate)")
+	List<ConnectT> findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetween(
+			@Param("primaryOwner")String primaryOwner,@Param("fromDate") Timestamp fromDate,@Param("toDate") Timestamp toDate);
 }
-
-   

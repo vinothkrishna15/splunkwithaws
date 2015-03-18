@@ -17,6 +17,7 @@ import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.exception.CustomerNotFoundException;
 import com.tcs.destination.exception.NoDataFoundException;
+import com.tcs.destination.exception.NoSuchCurrencyException;
 
 @Component
 public class CustomerService {
@@ -45,9 +46,11 @@ public class CustomerService {
 		return topRevenueList;
 	}
 
-	public List<TargetVsActualResponse> findTargetVsActual(String name) {
+	public List<TargetVsActualResponse> findTargetVsActual(String name, String currency) {
 		BeaconConvertorMappingT beacon = beaconRepository
-				.findByCurrencyName("USD");
+				.findByCurrencyName(currency);
+		if(beacon==null)
+			throw new NoSuchCurrencyException();
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
 		String financialYear = getCurrentFinancialYear();
 		List<Object[]> actualList = customerRepository.findActual(name,
