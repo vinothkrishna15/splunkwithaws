@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
@@ -115,7 +114,6 @@ public class Constants {
 			}
 
 			ObjectMapper mapper = new ObjectMapper();
-			mapper.registerModule(new Hibernate4Module());
 			FilterProvider filters = new SimpleFilterProvider().addFilter(
 					Constants.FILTER, SimpleBeanPropertyFilter
 							.filterOutAllExcept(filterProperties));
