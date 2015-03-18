@@ -2,9 +2,6 @@ package com.tcs.destination.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,10 +18,10 @@ public class UserDetailsController {
 	ApplicationContext appContext;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String findOne(@RequestParam(value = "fields", defaultValue = "all") String fields,
+	public @ResponseBody String findOne(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) {
-		Authentication a = SecurityContextHolder.getContext().getAuthentication();
-	    UserDetails currentUserDetails = (UserDetails) a.getPrincipal();
-	    return Constants.filterJsonForFieldAndViews(fields, view, currentUserDetails);
+		return Constants.filterJsonForFieldAndViews(fields, view,
+				Constants.getUserDetails());
 	}
 }

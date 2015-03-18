@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.service.RecentlyAddedService;
+import com.tcs.destination.utils.Constants;
 
 @RestController
 @RequestMapping("/recent")
@@ -20,10 +21,11 @@ public class RecentlyAddedController {
 	RecentlyAddedService recentlyAddedService;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody List<CustPartResultCard> recentlyAdded(@RequestParam("entityType") String entityType,
+	public @ResponseBody String recentlyAdded(@RequestParam("entityType") String entityType,
 			@RequestParam(value="count",defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) {
-		return recentlyAddedService.recentlyAdded(entityType,count);
+		Object response=recentlyAddedService.recentlyAdded(entityType,count);
+		return Constants.filterJsonForFieldAndViews(fields, view, response);
 	}
 }

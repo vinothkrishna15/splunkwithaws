@@ -12,7 +12,7 @@ import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 public interface FrequentlySearchedRepository extends
 		CrudRepository<FrequentlySearchedCustomerPartnerT, String> {
 
-	@Query(value = "select  entity_type, entity_id from (select count(*), entity_id, entity_type from frequently_searched_customer_partner_t group by entity_id, entity_type order by count(*) desc limit 4)t", nativeQuery = true)
-	List<Object[]> findFrequentEntities();
+	@Query(value = "select count(*), entity_id from frequently_searched_customer_partner_t where entity_type=?1 group by entity_id, entity_type order by count(*) desc limit ?2", nativeQuery = true)
+	List<Object[]> findFrequentEntities(String entity,int count);
 
 }

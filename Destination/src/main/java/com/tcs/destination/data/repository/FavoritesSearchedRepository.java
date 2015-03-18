@@ -11,5 +11,6 @@ import com.tcs.destination.bean.UserT;
 @Repository
 public interface FavoritesSearchedRepository extends
 		CrudRepository<UserFavoritesT, String> {
-	List<UserFavoritesT> findByUserTAndEntityType(UserT usert, String entityType);
+	List<UserFavoritesT> findByUserTAndEntityTypeIgnoreCase(UserT usert, String entityType);
 }
+ 
