@@ -28,7 +28,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * @param connectid is the connection id.
 	 * @return connection details.
 	 */
-	List<ConnectT> findByConnectIdIgnoreCaseLike(String connectid);
+	ConnectT findByConnectId(String connectid);
 	
 	List<ConnectT> findByStartDatetimeOfConnectBetween(Timestamp fromDate,Timestamp toDate);
 }

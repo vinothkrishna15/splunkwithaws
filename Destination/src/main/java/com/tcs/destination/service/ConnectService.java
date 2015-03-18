@@ -1,39 +1,40 @@
 package com.tcs.destination.service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import com.sun.jna.platform.win32.Sspi.TimeStamp;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.data.repository.ConnectRepository;
-import com.tcs.destination.exception.NoDataFoundException;
+import com.tcs.destination.exception.ConnectionNotFoundException;
 
-@SuppressWarnings("unused")
+
 @Component
 public class ConnectService {
 
 	@Autowired
 	ConnectRepository connectRepository;
 
-	public List<ConnectT> searchforConnectsById(String typed) {
-		List<ConnectT> connectlist = connectRepository
-				.findByConnectIdIgnoreCaseLike("%" + typed + "%");
-		if (connectlist.isEmpty())
-			throw new NoDataFoundException();
-		return connectlist;
-
+	public ConnectT searchforConnectsById(String connectId) {
+		ConnectT connect= connectRepository.findByConnectId(connectId);
+		
+		if (connect == null)
+			throw new ConnectionNotFoundException();
+	
+		return connect;
+	 
 	}
 
-	public List<ConnectT> searchforConnectsByName(String typed) {
-		List<ConnectT> ct = connectRepository
-				.findByConnectNameIgnoreCaseLike("%" + typed + "%");
-		return ct;
+	public List<ConnectT> searchforConnectsByNameContaining(String name) {
+		List<ConnectT> connectList = connectRepository
+				.findByConnectNameIgnoreCaseLike("%" + name + "%");
+		
+		if (connectList.isEmpty())
+			throw new ConnectionNotFoundException();
+		return connectList;
 	}
 
 	public List<ConnectT> searchforConnectsBetween(Date fromDate, Date toDate) {

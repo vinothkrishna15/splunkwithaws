@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
 
@@ -30,30 +32,34 @@ public class ConnectController {
 	 * This Method is used to find connection details for the given connection
 	 * id.
 	 * 
-	 * @param typed
-	 *            is the connect id.
+	 * @param Id
+	 *            is the connection id.
 	 * @return connection details for the particular connection id.
 	 */
-	@RequestMapping(value = "/searchById", method = RequestMethod.GET)
-	public @ResponseBody List<ConnectT> ajaxConnectSearchById(
-			@RequestParam("typed") String typed) {
-
-		return connectService.searchforConnectsById(typed);
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public @ResponseBody String ConnectSearchById(
+			@PathVariable("id") String connectId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+	     	@RequestParam(value = "view", defaultValue = "") String view) {
+	  ConnectT connect=connectService.searchforConnectsById(connectId);
+	  return Constants.filterJsonForFieldAndViews(fields, view, connect);
 	}
 
 	/**
 	 * This Method is used to find connection details for the given connection
 	 * name.
 	 * 
-	 * @param typed
+	 * @param name
 	 *            is the connection name.
 	 * @return connection details for the particular connection name.
 	 */
-	@RequestMapping(value = "/searchByName", method = RequestMethod.GET)
-	public @ResponseBody List<ConnectT> search(
-			@RequestParam("typed") String typed) {
-
-		return connectService.searchforConnectsByName(typed);
+	@RequestMapping(method = RequestMethod.GET)
+	public @ResponseBody String ConnectSearchByName(
+			@RequestParam("nameWith") String connectName,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+	     	@RequestParam(value = "view", defaultValue = "") String view) {
+	  List<ConnectT> connectlist=connectService.searchforConnectsByNameContaining(connectName);
+	  return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
 	}
 
 	/**
