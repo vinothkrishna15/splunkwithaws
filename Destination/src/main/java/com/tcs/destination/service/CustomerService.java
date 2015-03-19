@@ -76,8 +76,12 @@ public class CustomerService {
 	}
 
 	public List<CustomerMasterT> findByNameContaining(String chars) {
-		return customerRepository.findByCustomerNameIgnoreCaseLike("%" + chars
-				+ "%");
+		 List<CustomerMasterT> custList= customerRepository.
+				 findByCustomerNameIgnoreCaseLike("%" + chars + "%");
+		if (custList.isEmpty())
+			throw new CustomerNotFoundException();
+		return custList;
+
 	}
 
 }
