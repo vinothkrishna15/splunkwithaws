@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,14 +26,19 @@ public class CollaborationCommentsController {
 	CollaborationCommentsRepository commentsRepository;
 
 	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody String insertComments(
+	public @ResponseBody ResponseEntity<String> insertComments(
 			@RequestBody CollaborationCommentT comments) {
 		Status status = new Status();
-		status.setStatus(Status.FAILED);
-		if (commentsService.insertComments(comments)) {
-			status.setStatus(Status.SUCCESS);
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (commentsService.insertComments(comments)) {
+				status.setStatus(Status.SUCCESS);
+			}
+		} catch (Exception e) {
+			status.setStatus(Status.FAILED,e.getMessage());
+			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.BAD_REQUEST);
 		}
-		return Constants.filterJsonForFieldAndViews("all", "", status);
+		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);;
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
