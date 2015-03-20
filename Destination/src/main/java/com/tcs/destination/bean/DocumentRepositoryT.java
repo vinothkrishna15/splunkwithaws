@@ -17,88 +17,89 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
 
 /**
  * The persistent class for the document_repository_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="documentId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "documentId")
 @Entity
-@Table(name="document_repository_t")
-@NamedQuery(name="DocumentRepositoryT.findAll", query="SELECT d FROM DocumentRepositoryT d")
+@Table(name = "document_repository_t")
+@NamedQuery(name = "DocumentRepositoryT.findAll", query = "SELECT d FROM DocumentRepositoryT d")
 public class DocumentRepositoryT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="document_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "document_id")
 	private String documentId;
 
-	@Column(name="document_name")
+	@Column(name = "document_name")
 	private String documentName;
 
-	@Column(name="document_search_keywords")
+	@Column(name = "document_search_keywords")
 	private String documentSearchKeywords;
 
-	@Column(name="document_type")
+	@Column(name = "document_type")
 	private String documentType;
 
-	@Column(name="entity_type")
+	@Column(name = "entity_type")
 	private String entityType;
 
-	@Column(name="file_reference")
+	@JsonIgnore
+	@Column(name = "file_reference")	
 	private byte[] fileReference;
 
-	@Column(name="parent_entity")
+	@Column(name = "parent_entity")
 	private String parentEntity;
 
-	@Column(name="parent_entity_id")
+	@Column(name = "parent_entity_id")
 	private String parentEntityId;
 
-	@Column(name="uploaded_datetime")
+	@Column(name = "uploaded_datetime")
 	private Timestamp uploadedDatetime;
 
-	//bi-directional many-to-one association to CollaborationCommentT
+	// bi-directional many-to-one association to CollaborationCommentT
 	@ManyToOne
-	@JoinColumn(name="comment_id")
+	@JoinColumn(name = "comment_id")
 	private CollaborationCommentT collaborationCommentT;
 
-	//bi-directional many-to-one association to ConnectT
+	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name = "connect_id")
 	private ConnectT connectT;
 
-	//bi-directional many-to-one association to CustomerMasterT
+	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_id")
+	@JoinColumn(name = "customer_id")
 	private CustomerMasterT customerMasterT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to PartnerMasterT
+	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name="partner_id")
+	@JoinColumn(name = "partner_id")
 	private PartnerMasterT partnerMasterT;
 
-	//bi-directional many-to-one association to TaskT
+	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name="task_id")
+	@JoinColumn(name = "task_id")
 	private TaskT taskT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="uploaded_by")
+	@JoinColumn(name = "uploaded_by")
 	private UserT userT;
 
-	//bi-directional many-to-one association to UserFavoritesT
-	@OneToMany(mappedBy="documentRepositoryT")
+	// bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy = "documentRepositoryT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	public DocumentRepositoryT() {
@@ -180,7 +181,8 @@ public class DocumentRepositoryT implements Serializable {
 		return this.collaborationCommentT;
 	}
 
-	public void setCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+	public void setCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
 		this.collaborationCommentT = collaborationCommentT;
 	}
 
