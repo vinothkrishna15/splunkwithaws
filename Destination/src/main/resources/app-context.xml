@@ -43,19 +43,13 @@
 		<property name="jpaDialect" ref="jpaDialect" />
 	</bean>
 
-	<bean id="loginService" class="com.tcs.destination.service.LoginService" />
-
-	<bean id="searchService" class="com.tcs.destination.service.SearchService" />
-
-	<bean id="userDetailsService"
-		class="com.tcs.destination.controller.UserRepositoryUserDetailsService" />
 
 	<bean id="dataSource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.postgresql.Driver" />
-		<property name="url" value="jdbc:postgresql://localhost:5432/destination" />
+		<property name="url" value="jdbc:postgresql://localhost:5432/Destination_Mar_18" />
 		<property name="username" value="postgres" />
-		<property name="password" value="tcs#1234" />
+		<property name="password" value="admin" />
 	</bean>
 
 

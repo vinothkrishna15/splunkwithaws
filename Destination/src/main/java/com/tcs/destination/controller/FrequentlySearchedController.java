@@ -2,7 +2,6 @@ package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,9 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
-import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.NoManditoryFieldsFoundExceptions;
 import com.tcs.destination.exception.NoSuchEntityException;
@@ -41,7 +38,9 @@ public class FrequentlySearchedController {
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String insertToFrequent(
-			@RequestBody FrequentlySearchedCustomerPartnerT frequent) {
+			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) {
 		Status status = new Status();
 		status.setStatus(Status.FAILED);
 
@@ -59,6 +58,6 @@ public class FrequentlySearchedController {
 			throw new NoSuchEntityException();
 		}
 
-		return Constants.filterJsonForFieldAndViews("all", "", status);
+		return Constants.filterJsonForFieldAndViews(fields, view, status);
 	}
 }

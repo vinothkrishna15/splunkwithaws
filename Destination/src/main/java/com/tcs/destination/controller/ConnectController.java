@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.Constants.OWNER_TYPE;
 
 /**
  * Controller to handle connection details search requests.

@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.utils.Constants;
 
