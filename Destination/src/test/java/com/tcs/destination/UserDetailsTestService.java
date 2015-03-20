@@ -26,8 +26,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.tcs.destination.controller.UserRepositoryUserDetailsService;
 import com.tcs.destination.controller.UserDetailsController;
+import com.tcs.destination.controller.UserRepositoryUserDetailsService;
 
 @ContextConfiguration({"classpath:app-context.xml" })
 @SpringApplicationConfiguration(classes = DestinationApplication.class)
@@ -60,20 +60,14 @@ public class UserDetailsTestService {
 	@Test
     public void testValidRole() throws Exception
     {
-        //Get the user by username from configured user details service
-        UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-        Authentication authToken = new UsernamePasswordAuthenticationToken (userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authToken);
         mockMvcuser.perform(get("/user")
         		.header("Authorization","Basic YWFhOmJiYg==")
         		.accept(MediaType.APPLICATION_JSON))
         	    .andExpect(status().isOk())
         		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-        		.andExpect(jsonPath("$.userId").value("541045"))
-        		.andExpect(jsonPath("$.supervisorUserId").value("833389"))
+        		.andExpect(jsonPath("$.userId").value("886301"))
+        		.andExpect(jsonPath("$.supervisorUserId").value("1323232"))
         		;
-//        DemoService service = (DemoService) applicationContext.getBean("demoService");
-//        service.method();
     }
 	
 }
