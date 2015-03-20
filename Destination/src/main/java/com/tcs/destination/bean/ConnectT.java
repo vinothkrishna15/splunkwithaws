@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.apache.activemq.filter.function.inListFunction;
+import org.hibernate.annotations.Cascade;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -63,17 +67,60 @@ public class ConnectT implements Serializable {
 
 	@Column(name = "primary_owner")
 	private String primaryOwner;
+	
+	@Column(name = "customer_id")
+	private String customerId;
+	
+	@Column(name = "partner_id")
+	private String partnerId;
+	
+	@Column(name = "country")
+	private String country;
+	
+	public ConnectT(ConnectT con){
+		this.collaborationCommentTs=con.collaborationCommentTs;
+		this.connectCategory=con.connectCategory;
+		this.connectCustomerContactLinkTs=con.connectCustomerContactLinkTs;
+		this.connectId=con.connectId;
+		this.connectKeywords=con.connectKeywords;
+		this.connectName=con.connectName;
+		this.connectOfferingLinkTs=con.connectOfferingLinkTs;
+		this.connectOpportunityLinkIdTs=con.connectOpportunityLinkIdTs;
+		this.connectSecondaryOwnerLinkTs=con.connectSecondaryOwnerLinkTs;
+		this.connectSubSpLinkTs=con.connectSubSpLinkTs;
+		this.connectTcsAccountContactLinkTs=con.connectTcsAccountContactLinkTs;
+		this.country=con.country;
+		this.createdModifiedBy=con.createdModifiedBy;
+		this.createdModifiedDatetime=con.createdModifiedDatetime;
+		this.customerId=con.customerId;
+		this.customerMasterT=con.customerMasterT;
+		this.documentRepositoryTs=con.documentRepositoryTs;
+		this.documentsAttached=con.documentsAttached;
+		this.endDatetimeOfConnect=con.endDatetimeOfConnect;
+		this.geographyCountryMappingT=con.geographyCountryMappingT;
+		this.notesTs=con.notesTs;
+		this.partnerId=con.partnerId;
+		this.partnerMasterT=con.partnerMasterT;
+		this.primaryOwner=con.primaryOwner;
+		this.startDatetimeOfConnect=con.startDatetimeOfConnect;
+		this.taskTs=con.taskTs;
+		this.userFavoritesTs=con.userFavoritesTs;
+		this.userNotificationsTs=con.userNotificationsTs;
+		this.userT=con.userT;
+		
+	}
 
 	// bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy = "connectT")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@OneToMany(mappedBy = "connectT")
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	//@JoinColumn(name="connect_id",insertable=true,updatable=true)
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
-	// bi-directional many-to-one association to ConnectOfferingLinkT
-	@OneToMany(mappedBy = "connectT")
+	// bi-directional many-to-one association to ConnectOff
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
 
 	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
@@ -81,26 +128,26 @@ public class ConnectT implements Serializable {
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	@OneToMany(mappedBy = "connectT")
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectSubSpLinkT
-	@OneToMany(mappedBy = "connectT")
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
 
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_id")
+	@JoinColumn(name = "customer_id",insertable=false,updatable=false)
 	private CustomerMasterT customerMasterT;
 
 	// bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
-	@JoinColumn(name = "country")
+	@JoinColumn(name = "country",insertable=false,updatable=false)
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name = "partner_id")
+	@JoinColumn(name = "partner_id",insertable=false,updatable=false)
 	private PartnerMasterT partnerMasterT;
 
 	// bi-directional many-to-one association to UserT
@@ -109,7 +156,7 @@ public class ConnectT implements Serializable {
 	private UserT userT;
 
 	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@OneToMany(mappedBy = "connectT")
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
@@ -117,7 +164,7 @@ public class ConnectT implements Serializable {
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy = "connectT")
+	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to TaskT
@@ -536,4 +583,28 @@ public class ConnectT implements Serializable {
 		return userNotificationsT;
 	}
 
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+	
 }

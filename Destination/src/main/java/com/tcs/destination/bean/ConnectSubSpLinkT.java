@@ -37,8 +37,19 @@ public class ConnectSubSpLinkT implements Serializable {
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id",insertable=false,updatable=false)
 	private ConnectT connectT;
+	
+	@Column(name="connect_id")
+	private String connectId;
+	
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
 
 	//bi-directional many-to-one association to SubSpMappingT
 	@ManyToOne
