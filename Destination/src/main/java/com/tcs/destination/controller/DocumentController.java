@@ -1,4 +1,11 @@
 package com.tcs.destination.controller;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import com.tcs.destination.bean.DocumentRepositoryT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.service.DocumentService;
 import com.tcs.destination.utils.Constants;
 
 @RestController
 @RequestMapping("/document")
 public class DocumentController {
+	Date date = new Date(0);
 	
 	@Autowired
 	DocumentService documentService;

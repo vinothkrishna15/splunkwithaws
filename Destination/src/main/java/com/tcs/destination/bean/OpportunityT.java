@@ -48,9 +48,6 @@ public class OpportunityT implements Serializable {
 
 	@Column(name="crm_id")
 	private String crmId;
-	
-	@Column(name="customer_id")
-	private String customerId;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name="deal_closure_date")
@@ -145,7 +142,7 @@ public class OpportunityT implements Serializable {
 
 	//bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_id",insertable=false,updatable=false)
+	@JoinColumn(name="customer_id")
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to DealTypeMappingT
@@ -289,14 +286,6 @@ public class OpportunityT implements Serializable {
 
 	public String getOpportunityDescription() {
 		return this.opportunityDescription;
-	}
-	
-	public String getCustomerId() {
-		return customerId;
-	}
-
-	public void setCustomerId(String customerId) {
-		this.customerId = customerId;
 	}
 
 	public void setOpportunityDescription(String opportunityDescription) {
