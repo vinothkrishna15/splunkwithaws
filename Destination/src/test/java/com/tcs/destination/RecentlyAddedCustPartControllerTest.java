@@ -72,35 +72,30 @@ public class RecentlyAddedCustPartControllerTest {
 	 * Test method for {@link com.tcs.destination.controller.RecentlyAddedController#recentlyAdded()}.
 	 */
 	@Test
-	public final void testRecentlyAdded() throws Exception{
+	public final void Test1RecentlyAdded() throws Exception{
 
-		mockMvc.perform(get("/recentcp").accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/recent?entityType=CUSTOMER&count=2&fields=customerId,createdModifiedBy,documentsAttached,customerName,groupCustomerName,beaconCustomerMappingTs,id,beaconCustomerName,customerGeography,customerMasterT,beaconDataTs,beaconDataId,beaconGeography,financialYear").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 			
-			.andExpect(jsonPath("$[0].id").value("CUS12"))
-			.andExpect(jsonPath("$[0].name").value("ABN Amro EU"))
-			.andExpect(jsonPath("$[0].groupCustomerName").value("ABN Amro"))
-			.andExpect(jsonPath("$[0].geographyMappingT.geography").value("Europe"))
-			.andExpect(jsonPath("$[0].geographyMappingT.active").value("Y"))
-			.andExpect(jsonPath("$[0].geographyMappingT.displayGeography").value("EU&UK"))
-			.andExpect(jsonPath("$[0].logo").value(""))
-			//.andExpect(jsonPath("$[0].createdModifiedDatetime").value("1424865956441"))
-			.andExpect(jsonPath("$[0].connects").value(0))
-			.andExpect(jsonPath("$[0].opportunities").value(0))
-			.andExpect(jsonPath("$[0].entityType").value("Customer"))
+			.andExpect(jsonPath("$[0].customerId").value("CUS614"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("287762"))
+			.andExpect(jsonPath("$[0].groupCustomerName").value("xoserve  Limited"))
+			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+			.andExpect(jsonPath("$[0].customerName").value("xoserve  Limited"))
 			
-			.andExpect(jsonPath("$[1].id").value("PAT6"))
-			.andExpect(jsonPath("$[1].name").value("Apple"))
-			//.andExpect(jsonPath("$[1].groupCustomerName").value(null))
-			.andExpect(jsonPath("$[1].geographyMappingT.geography").value("ME"))
-			.andExpect(jsonPath("$[1].geographyMappingT.active").value("Y"))
-			.andExpect(jsonPath("$[1].geographyMappingT.displayGeography").value("APAC Ind MEA"))
-			.andExpect(jsonPath("$[1].logo").value(""))
-			//.andExpect(jsonPath("$[1].createdModifiedDatetime").value("1424865956441"))
-			.andExpect(jsonPath("$[1].connects").value(1))
-			.andExpect(jsonPath("$[1].opportunities").value(0))
-			.andExpect(jsonPath("$[1].entityType").value("Partner"))
+			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.beaconCustomerName").value("xoserve  Limited"))
+			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.customerGeography").value("UK"))
+			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.customerMasterT").value("CUS614"))
+			
+			.andExpect(jsonPath("$[1].customerId").value("CUS613"))
+			.andExpect(jsonPath("$[1].createdModifiedBy").value("287761"))
+			.andExpect(jsonPath("$[1].groupCustomerName").value("World Bank Group"))
+			.andExpect(jsonPath("$[1].documentsAttached").value("YES"))
+			.andExpect(jsonPath("$[1].customerName").value("World Bank"))
+			
+			.andExpect(jsonPath("$[1].beaconCustomerMappingTs.id.beaconCustomerName").value("World Bank"))
+			.andExpect(jsonPath("$[1].beaconCustomerMappingTs.id.customerGeography").value("Americas"))
 			.andDo(print())
 			.andReturn();
 		

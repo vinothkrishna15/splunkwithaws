@@ -27,7 +27,7 @@ public class RecentlyAddedService {
 			if (entityType.equalsIgnoreCase(Constants.EntityType.CUSTOMER
 					.toString())) {
 				List<CustomerMasterT> recentCustomers = customerRepository
-						.findRecent(5);
+						.findRecent(count);
 				if (recentCustomers.isEmpty()) {
 					throw new NoDataFoundException();
 				}
@@ -35,7 +35,7 @@ public class RecentlyAddedService {
 			} else if (entityType.equalsIgnoreCase(Constants.EntityType.PARTNER
 					.toString())) {
 				List<PartnerMasterT> recentpartners = partnerRepository
-						.findRecent(5);
+						.findRecent(count);
 				if (recentpartners.isEmpty()) {
 					throw new NoDataFoundException();
 				}
