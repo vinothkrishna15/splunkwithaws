@@ -95,7 +95,7 @@ public class ConnectService {
 	public boolean insertConnect(ConnectT connect) throws Exception{
 		
 		Timestamp currentTimeStamp = getCurrentTimeStamp();
-		UserT currentUser = Constants.getUserDetails();
+		UserT currentUser = Constants.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();
 		
 		connect.setCreatedModifiedBy(currentUserId);
@@ -264,7 +264,7 @@ public class ConnectService {
 			//setNullForReferencedObjects(connect);
 			
 			Timestamp currentTimeStamp = getCurrentTimeStamp();
-			UserT currentUser = Constants.getUserDetails();
+			UserT currentUser = Constants.getCurrentUserDetails();
 			String currentUserId = currentUser.getUserId();
 			
 			connect.setCreatedModifiedBy(currentUserId);
