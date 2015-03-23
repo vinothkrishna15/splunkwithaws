@@ -17,63 +17,75 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
 
 /**
  * The persistent class for the collabration_comment_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="commentId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "commentId")
 @Entity
-@Table(name="collaboration_comment_t")
-@NamedQuery(name="CollaborationCommentT.findAll", query="SELECT c FROM CollaborationCommentT c")
+@Table(name = "collaboration_comment_t")
+@NamedQuery(name = "CollaborationCommentT.findAll", query = "SELECT c FROM CollaborationCommentT c")
 public class CollaborationCommentT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="comment_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "comment_id")
 	private String commentId;
 
-	@Column(name="comment_type")
+	@Column(name = "comment_type")
 	private String commentType;
 
 	private String comments;
 
-	@Column(name="documents_attached")
+	@Column(name = "documents_attached")
 	private String documentsAttached;
 
-	@Column(name="entity_type")
+	@Column(name = "entity_type")
 	private String entityType;
 
-	@Column(name="updated_datetime")
+	@Column(name = "updated_datetime")
 	private Timestamp updatedDatetime;
 
-	//bi-directional many-to-one association to ConnectT
+	@Column(name = "connect_id")
+	private String connectId;
+
+	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
-	//bi-directional many-to-one association to OpportunityT
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to TaskT
+	@Column(name = "task_id")
+	private String taskId;
+
+	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name="task_id")
+	@JoinColumn(name = "task_id", insertable = false, updatable = false)
 	private TaskT taskT;
 
-	//bi-directional many-to-one association to UserT
+	@Column(name = "user_id")
+	private String userId;
+
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name = "user_id", insertable = false, updatable = false)
 	private UserT userT;
 
-	//bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(mappedBy="collaborationCommentT")
+	// bi-directional many-to-one association to DocumentRepositoryT
+	@OneToMany(mappedBy = "collaborationCommentT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	public CollaborationCommentT() {
@@ -163,22 +175,57 @@ public class CollaborationCommentT implements Serializable {
 		return this.documentRepositoryTs;
 	}
 
-	public void setDocumentRepositoryTs(List<DocumentRepositoryT> documentRepositoryTs) {
+	public void setDocumentRepositoryTs(
+			List<DocumentRepositoryT> documentRepositoryTs) {
 		this.documentRepositoryTs = documentRepositoryTs;
 	}
 
-	public DocumentRepositoryT addDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT addDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().add(documentRepositoryT);
 		documentRepositoryT.setCollaborationCommentT(this);
 
 		return documentRepositoryT;
 	}
 
-	public DocumentRepositoryT removeDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT removeDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().remove(documentRepositoryT);
 		documentRepositoryT.setCollaborationCommentT(null);
 
 		return documentRepositoryT;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 }

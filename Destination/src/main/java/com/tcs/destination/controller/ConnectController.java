@@ -5,7 +5,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,10 +16,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.Constants.OWNER_TYPE;
 
 /**
  * Controller to handle connection details search requests.
@@ -79,7 +81,45 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue ="ALL") String owner) {
 		List<ConnectT> connects = connectService.searchforConnectsBetweenForUser(
-				fromDate, toDate,Constants.getUserDetails(),owner);
+				fromDate, toDate,Constants.getCurrentUserDetails(),owner);
 		return Constants.filterJsonForFieldAndViews(fields, view, connects);
 	}
+	
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> insertToConnect(
+			@RequestBody ConnectT connect) {
+		Status status = new Status();
+		status.setStatus(Status.FAILED,"");
+		try {
+			if(connectService.insertConnect(connect)){
+				status.setStatus(Status.SUCCESS,connect.getConnectId());
+				
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			status.setStatus(Status.FAILED,e.getMessage());
+			//status.setDescription();
+			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
+	}
+	
+	@RequestMapping(method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> editConnect(
+			@RequestBody ConnectT connect) {
+		Status status = new Status();
+		status.setStatus(Status.FAILED,"");
+		try{
+			if(connectService.editConnect(connect)){
+				status.setStatus(Status.SUCCESS,connect.getConnectId());
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			status.setStatus(Status.FAILED,e.getMessage());
+			//status.setDescription(e.getMessage());
+			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
+	}
+	
 }

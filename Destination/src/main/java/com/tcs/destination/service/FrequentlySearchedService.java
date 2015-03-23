@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.CustPartResultCard;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;

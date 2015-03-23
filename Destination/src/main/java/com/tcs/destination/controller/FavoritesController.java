@@ -26,7 +26,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) {
 		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
-				Constants.getUserDetails(), entityType);
+				Constants.getCurrentUserDetails(), entityType);
 		return Constants.filterJsonForFieldAndViews(fields, view,
 				userFavourites);
 	}

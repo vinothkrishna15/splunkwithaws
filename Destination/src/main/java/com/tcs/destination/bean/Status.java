@@ -8,12 +8,19 @@ public class Status {
 
 	private String status;
 
+	private String description;
+
 	public String getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(String status, String description) {
 		this.status = status;
+		this.description = description;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 }

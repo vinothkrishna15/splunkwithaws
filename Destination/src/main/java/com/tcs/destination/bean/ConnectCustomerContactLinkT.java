@@ -42,9 +42,23 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	
+	@Column(name="connect_id")
+	private String connectId;
+	
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connect_id) {
+		this.connectId = connect_id;
+	}
+
+
+	
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id",insertable=false,updatable=false)
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to ContactT

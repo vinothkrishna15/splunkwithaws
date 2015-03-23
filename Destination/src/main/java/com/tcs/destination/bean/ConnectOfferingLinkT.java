@@ -37,8 +37,21 @@ public class ConnectOfferingLinkT implements Serializable {
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id",updatable=false,insertable=false)
 	private ConnectT connectT;
+	
+	@Column(name="connect_id")
+	private String connectId;
+	
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connect_id) {
+		this.connectId = connect_id;
+	}
+
+
 
 	//bi-directional many-to-one association to OfferingMappingT
 	@ManyToOne

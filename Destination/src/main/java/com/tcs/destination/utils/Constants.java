@@ -1,6 +1,9 @@
 package com.tcs.destination.utils;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -13,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
@@ -115,7 +117,6 @@ public class Constants {
 			}
 
 			ObjectMapper mapper = new ObjectMapper();
-			mapper.registerModule(new Hibernate4Module());
 			FilterProvider filters = new SimpleFilterProvider().addFilter(
 					Constants.FILTER, SimpleBeanPropertyFilter
 							.filterOutAllExcept(filterProperties));
@@ -129,7 +130,7 @@ public class Constants {
 		}
 	}
 
-	public static UserT getUserDetails() {
+	public static UserT getCurrentUserDetails() {
 		Authentication a = SecurityContextHolder.getContext()
 				.getAuthentication();
 		return ((UserRepositoryUserDetails) a.getPrincipal());
@@ -150,4 +151,24 @@ public class Constants {
 		response.setEntity(customer);
 		return response;
 	}
+	
+	public static String getCurrentFinancialYear() {
+		String financialYear = "FY'";
+		Calendar cal = Calendar.getInstance();
+		if (cal.get(Calendar.MONTH) > 3) {
+			financialYear += cal.get(Calendar.YEAR)
+					+ "-"
+					+ String.valueOf(cal.get(Calendar.YEAR) + 1)
+							.substring(2, 4);
+		} else {
+			financialYear += (cal.get(Calendar.YEAR) - 1) + "-"
+					+ String.valueOf(cal.get(Calendar.YEAR)).subSequence(2, 4);
+		}
+		return financialYear;
+	}
+	
+	public static Timestamp getCurrentTimeStamp() {
+    	Date d = new Date();
+		return new Timestamp(d.getTime());
+}
 }
