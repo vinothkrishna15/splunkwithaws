@@ -62,6 +62,27 @@ public class DocumentRepositoryT implements Serializable {
 
 	@Column(name = "uploaded_datetime")
 	private Timestamp uploadedDatetime;
+	
+	@Column(name = "comment_id",insertable=false,updatable=false)
+	private String commentId;
+	
+	@Column(name = "connect_id",insertable=false,updatable=false)
+	private String connectId;
+	
+	@Column(name = "customer_id",insertable=false,updatable=false)
+	private String customerId;
+	
+	@Column(name = "opportunity_id",insertable=false,updatable=false)
+	private String opportunityId;
+	
+	@Column(name = "partner_id",insertable=false,updatable=false)
+	private String partnerId;
+	
+	@Column(name = "task_id",insertable=false,updatable=false)
+	private String taskId;
+	
+	@Column(name = "uploaded_by",insertable=false,updatable=false)
+	private String uploadedBy;
 
 	// bi-directional many-to-one association to CollaborationCommentT
 	@ManyToOne
@@ -254,6 +275,62 @@ public class DocumentRepositoryT implements Serializable {
 		userFavoritesT.setDocumentRepositoryT(null);
 
 		return userFavoritesT;
+	}
+
+	public String getCommentId() {
+		return commentId;
+	}
+
+	public void setCommentId(String commentId) {
+		this.commentId = commentId;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public String getUploadedBy() {
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(String uploadedBy) {
+		this.uploadedBy = uploadedBy;
 	}
 
 }
