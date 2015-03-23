@@ -1,7 +1,9 @@
 package com.tcs.destination.utils;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -164,4 +166,9 @@ public class Constants {
 		}
 		return financialYear;
 	}
+	
+	public static Timestamp getCurrentTimeStamp() {
+    	Date d = new Date();
+		return new Timestamp(d.getTime());
+}
 }

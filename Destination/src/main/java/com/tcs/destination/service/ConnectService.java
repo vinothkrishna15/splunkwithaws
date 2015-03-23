@@ -94,7 +94,7 @@ public class ConnectService {
 	
 	public boolean insertConnect(ConnectT connect) throws Exception{
 		
-		Timestamp currentTimeStamp = getCurrentTimeStamp();
+		Timestamp currentTimeStamp = Constants.getCurrentTimeStamp();
 		UserT currentUser = Constants.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();
 		
@@ -144,10 +144,7 @@ public class ConnectService {
         return false;
 	}
         
-        private Timestamp getCurrentTimeStamp() {
-        	Date d = new Date();
-    		return new Timestamp(d.getTime());
-	}
+        
 
 		private void populateConnectTcsAccountContactLinks(String currentUserId,
 			Timestamp currentTimeStamp, String connectId,
@@ -263,7 +260,7 @@ public class ConnectService {
 			//ConnectT backupConnect = backup(connect);
 			//setNullForReferencedObjects(connect);
 			
-			Timestamp currentTimeStamp = getCurrentTimeStamp();
+			Timestamp currentTimeStamp = Constants.getCurrentTimeStamp();
 			UserT currentUser = Constants.getCurrentUserDetails();
 			String currentUserId = currentUser.getUserId();
 			
