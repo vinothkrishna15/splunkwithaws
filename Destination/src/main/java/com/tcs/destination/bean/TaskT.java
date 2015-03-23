@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,9 +18,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -67,15 +70,18 @@ public class TaskT implements Serializable {
 	private String taskStatus;
 
 	//bi-directional many-to-one association to CollaborationCommentT
-	@OneToMany(mappedBy="taskT")
+	@OneToMany(cascade=CascadeType.ALL)
+	@JoinColumn(name="task_id")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	//bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(mappedBy="taskT")
+	@OneToMany(cascade=CascadeType.ALL)
+	@JoinColumn(name="task_id")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	//bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy="taskT")
+	@OneToMany(cascade=CascadeType.ALL)
+	@JoinColumn(name="task_id")
 	private List<NotesT> notesTs;
 
 	//bi-directional many-to-one association to TaskBdmsTaggedLinkT
@@ -83,24 +89,40 @@ public class TaskT implements Serializable {
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
 	//bi-directional many-to-one association to ConnectT
+	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id", insertable=false, updatable=false)
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to OpportunityT
+	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name="opportunity_id", insertable=false, updatable=false)
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to UserT
+	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="task_owner")
+	@JoinColumn(name="task_owner", insertable=false, updatable=false)
 	private UserT userT;
 
 	//bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy="taskT")
+	@OneToMany(cascade=CascadeType.ALL)
+	@JoinColumn(name="task_id")
 	private List<UserNotificationsT> userNotificationsTs;
 
+	@Column(name="task_owner")
+	private String taskOwner;
+
+	@Transient
+	private String taskOwnerName;
+	
+	@Column(name="connect_id")
+	private String connectId;
+	
+	@Column(name="opportunity_id")
+	private String opportunityId;
+	
 	public TaskT() {
 	}
 
@@ -308,6 +330,38 @@ public class TaskT implements Serializable {
 		userNotificationsT.setTaskT(null);
 
 		return userNotificationsT;
+	}
+	
+	public String getTaskOwner() {
+		return taskOwner;
+	}
+
+	public void setTaskOwner(String taskOwner) {
+		this.taskOwner = taskOwner;
+	}
+
+	public String getTaskOwnerName() {
+		return taskOwnerName;
+	}
+
+	public void setTaskOwnerName(String taskOwnerName) {
+		this.taskOwnerName = taskOwnerName;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
 	}
 
 }
