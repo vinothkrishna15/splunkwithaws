@@ -128,7 +128,7 @@ public class Constants {
 		}
 	}
 
-	public static UserT getUserDetails() {
+	public static UserT getCurrentUserDetails() {
 		Authentication a = SecurityContextHolder.getContext()
 				.getAuthentication();
 		return ((UserRepositoryUserDetails) a.getPrincipal());

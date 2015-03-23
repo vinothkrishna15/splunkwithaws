@@ -81,7 +81,7 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue ="ALL") String owner) {
 		List<ConnectT> connects = connectService.searchforConnectsBetweenForUser(
-				fromDate, toDate,Constants.getUserDetails(),owner);
+				fromDate, toDate,Constants.getCurrentUserDetails(),owner);
 		return Constants.filterJsonForFieldAndViews(fields, view, connects);
 	}
 	

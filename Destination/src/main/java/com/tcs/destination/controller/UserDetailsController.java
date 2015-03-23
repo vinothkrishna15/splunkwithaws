@@ -22,6 +22,6 @@ public class UserDetailsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) {
 		return Constants.filterJsonForFieldAndViews(fields, view,
-				Constants.getUserDetails());
+				Constants.getCurrentUserDetails());
 	}
 }
