@@ -15,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -177,6 +178,15 @@ public class ConnectT implements Serializable {
 	//bi-directional many-to-one association to UserNotificationsT
 	@OneToMany(mappedBy="connectT")
 	private List<UserNotificationsT> userNotificationsTs;
+
+	@Transient
+	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
+	
+	@Transient
+	private List<ConnectOfferingLinkT> connectOfferingLinkDeletionList;
+	
+	@Transient
+	private List<DocumentRepositoryT> documentsDeletionList;
 
 	public ConnectT() {
 	}
@@ -605,7 +615,32 @@ public class ConnectT implements Serializable {
 	public void setCountry(String country) {
 		this.country = country;
 	}
-	
 
+	public List<ConnectSubSpLinkT> getConnectSubLinkDeletionList() {
+		return connectSubLinkDeletionList;
+	}
+
+	public void setConnectSubLinkDeletionList(
+			List<ConnectSubSpLinkT> connectSubLinkDeletionList) {
+		this.connectSubLinkDeletionList = connectSubLinkDeletionList;
+	}
+
+	public List<ConnectOfferingLinkT> getConnectOfferingLinkDeletionList() {
+		return connectOfferingLinkDeletionList;
+	}
+
+	public void setConnectOfferingLinkDeletionList(
+			List<ConnectOfferingLinkT> connectOfferingLinkDeletionList) {
+		this.connectOfferingLinkDeletionList = connectOfferingLinkDeletionList;
+	}
+
+	public List<DocumentRepositoryT> getDocumentsDeletionList() {
+		return documentsDeletionList;
+	}
+
+	public void setDocumentsDeletionList(
+			List<DocumentRepositoryT> documentsDeletionList) {
+		this.documentsDeletionList = documentsDeletionList;
+	}
 
 }
