@@ -118,7 +118,7 @@ public class TaskService {
 	 * @return tasks for the given task owner.
 	 */
 	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws DestinationException {
-		List<TaskT> taskList = taskRepository.findByTaskOwner(taskOwner);
+		List<TaskT> taskList = taskRepository.findByTaskOwnerOrderByTargetDateForCompletionAsc(taskOwner);
 
 		if ((taskList == null) || taskList.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No Tasks Found for the UserId");
@@ -138,7 +138,8 @@ public class TaskService {
 	 * @return tasks assigned to others by a given user id.
 	 */
 	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws DestinationException {
-		List<TaskT> taskList = taskRepository.findTasksAssignedToOthers(userId);
+		List<TaskT> taskList = 
+				taskRepository.findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
 		if ((taskList == null) || taskList.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No Assigned Tasks Found for the UserId");

@@ -1,10 +1,10 @@
 package com.tcs.destination.data.repository;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Date;
 
 import com.tcs.destination.bean.TaskT;
 
@@ -45,15 +45,22 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	 * @param taskOwner
 	 * @return tasks for the given task owner.
 	 */
-	List<TaskT> findByTaskOwner(String taskOwner);
+	List<TaskT> findByTaskOwnerOrderByTargetDateForCompletionAsc(String taskOwner);
 
 	/**
 	 * Finds all the tasks created and assigned to others by the given user id.
 	 * 
-	 * @param userId
+	 * @param userId, userId
 	 * @return tasks created and assigned to others by the given user id.
 	 */
-	@Query(value="select * from task_t where created_modified_by = ?1 and task_owner <> ?1 order by target_date_for_completion asc",nativeQuery=true)
-	List<TaskT> findTasksAssignedToOthers(String userId);
+	List<TaskT> findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(String userId, String taskOwner);
+
+	/**
+	 * Finds all the tasks for the given task owner on a particular date.
+	 * 
+	 * @param taskOwner, date
+	 * @return tasks for the given task owner on a particular date.
+	 */
+	List<TaskT> findByTaskOwnerAndTargetDateForCompletion(String taskOwner, Date date);
 
 }
