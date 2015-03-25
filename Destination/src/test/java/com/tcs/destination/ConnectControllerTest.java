@@ -3,6 +3,8 @@ package com.tcs.destination;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,7 +17,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -26,6 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.controller.ConnectController;
+import com.tcs.destination.controller.UserRepositoryUserDetailsService;
 import com.tcs.destination.service.ConnectService;
 
 
@@ -33,6 +41,7 @@ import com.tcs.destination.service.ConnectService;
 @SpringApplicationConfiguration(classes = DestinationApplication.class)
 @ContextConfiguration({"classpath:app-context.xml" })
 @WebAppConfiguration
+@ComponentScan(basePackageClasses=UserRepositoryUserDetailsService.class)
 public class ConnectControllerTest {
 
 	 @Autowired 
@@ -43,6 +52,9 @@ public class ConnectControllerTest {
 	
 	 @Autowired
 	 FilterChainProxy springSecurityFilterChain;
+	 
+	 @Autowired
+	 UserRepositoryUserDetailsService userDetailsService;
 	 	 
 	 MockMvc mockMvc=MockMvcBuilders.standaloneSetup(new ConnectController()).build();
 	 MockMvc mockMvc1=MockMvcBuilders.standaloneSetup(new ConnectController()).build();
@@ -59,6 +71,7 @@ public class ConnectControllerTest {
 		/**
 		 * Test method for valid input{@link com.tcs.destination.controller.ConnectController#ConnectSearchById(java.lang.String)}.
 		 */
+		/*
 		@Test
 		public void Test1ConnectById() throws Exception
 		{
@@ -112,7 +125,7 @@ public class ConnectControllerTest {
 		 * Junit Test case  {@link com.tcs.destination.controller.ConnectController#ConnectSearchByName(java.lang.String)}.
 		 */  
 		
-		
+		/*
 		@Test
 		public void Test1ConnectByName() throws Exception
 		{
@@ -176,6 +189,64 @@ public class ConnectControllerTest {
 					.andDo(print())
 					.andReturn();
 		}
-				
 		
+		@Test
+		public void TestCreateConnect() throws Exception {
+
+//			JsonFactory jfactory = new JsonFactory();
+//			JSONParser parser = new JSONParser();
+//			Object obj = parser
+//					.parse(new FileReader(
+//							"/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
+	//
+//			JSONObject jsonObject = (JSONObject) obj;
+			String requestJson = "{ \"connectCategory\":\"CUSTOMER\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\",\"customerId\": \"CUS541\",\"connectCustomerContactLinkTs\": [{\"contactT\": {\"contactId\": \"CONTACT2\"}}],\"connectOfferingLinkTs\": [{\"offeringMappingT\": {\"offering\": \"Analytics\"}}],\"connectSecondaryOwnerLinkTs\": [{\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{\"subSpMappingT\": {\"subSp\": \"ABIM - Products\"}}],"
+					+ "\"connectTcsAccountContactLinkTs\": [{\"contactT\":{\"contactId\": \"CONTACT1\"}}],"
+					+ "\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 2 1\"},{\"notesUpdated\": \"Sample note9 set 2 2\"}]}";
+			//jsonObject.toString();
+			
+
+			UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
+			Authentication authToken = new UsernamePasswordAuthenticationToken(
+					userDetails, userDetails.getPassword(),
+					userDetails.getAuthorities());
+			SecurityContextHolder.getContext().setAuthentication(authToken);
+
+			this.mockMvc.perform(					
+					post("/connect")
+							.contentType(TestUtil.APPLICATION_JSON_UTF8)
+							.content(requestJson)
+							.header("Authorization", "Basic YWFhOmJiYg==")
+							.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk()).andDo(print()).andReturn();
+		}
+	*/			
+		@Test
+		public void TestEditConnect() throws Exception {
+
+//			JsonFactory jfactory = new JsonFactory();
+//			JSONParser parser = new JSONParser();
+//			Object obj = parser
+//					.parse(new FileReader(
+//							"/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
+	//
+//			JSONObject jsonObject = (JSONObject) obj;
+			String requestJson = "{\"connectCategory\":\"CUSTOMER\",\"connectId\":\"CNN1\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\", \"customerId\": \"CUS541\", \"connectCustomerContactLinkTs\": [{\"connectCustomerContactLinkId\":\"CCC31\",\"contactT\": { \"contactId\": \"CONTACT2\"}}], \"connectOfferingLinkTs\": [{\"connectOfferingLinkId\":\"COF23\",\"offeringMappingT\": {\"offering\": \"BPaaS - Cloud Payment\"} }],\"connectSecondaryOwnerLinkTs\": [{\"connectSecondaryOwnerLinkId\":\"CSO20\",\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{ \"connectSubSpLinkId\":\"CSs9\",\"subSpMappingT\": { \"subSp\": \"Mobility - Services\" }},{\"subSpMappingT\":  {\"subSp\": \"Cloud\"}}],\"connectTcsAccountContactLinkTs\": [ {\"connect_tcs_account_contact_link_id\":\"CTC11\",\"contactT\": {\"contactId\": \"CONTACT1\" }}], \"taskTs\": [{\"taskId\":\"TASK1\",\"createdModifiedBy\":\"541046\",\"createdModifiedDatetime\":982336120000,\"documentsAttached\":\"No\",\"taskStatus\":\"OPEN\",\"taskDescription\":\"Description\",\"targetDateForCompletion\":982336120000,\"taskOwner\":\"541046\",\"entityReference\":\"CUSTOMER\",\"opportunityId\":\"OPP1\"}],\"connectOpportunityLinkIdTs\": [{ \"connectOpportunityLinkId\":\"CNO1\",\"opportunityT\": {\"opportunityId\": \"OPP1\"}}],\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 3 1 update\"},{ \"notesUpdated\": \"Sample note9 set 3 2 update\" }]}";
+			//jsonObject.toString();
+			
+
+			UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
+			Authentication authToken = new UsernamePasswordAuthenticationToken(
+					userDetails, userDetails.getPassword(),
+					userDetails.getAuthorities());
+			SecurityContextHolder.getContext().setAuthentication(authToken);
+
+			this.mockMvc.perform(					
+					put("/connect")
+							.contentType(TestUtil.APPLICATION_JSON_UTF8)
+							.content(requestJson)
+							.header("Authorization", "Basic YWFhOmJiYg==")
+							.accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk()).andDo(print()).andReturn();
+		}
 }
