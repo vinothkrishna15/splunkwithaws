@@ -5,12 +5,14 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DocumentRepository;
 
+@Component
 public class DocumentService {
 
 	@Autowired 
