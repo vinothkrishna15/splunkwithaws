@@ -71,7 +71,7 @@ public class ConnectControllerTest {
 		/**
 		 * Test method for valid input{@link com.tcs.destination.controller.ConnectController#ConnectSearchById(java.lang.String)}.
 		 */
-		/*
+		
 		@Test
 		public void Test1ConnectById() throws Exception
 		{
@@ -125,7 +125,7 @@ public class ConnectControllerTest {
 		 * Junit Test case  {@link com.tcs.destination.controller.ConnectController#ConnectSearchByName(java.lang.String)}.
 		 */  
 		
-		/*
+		
 		@Test
 		public void Test1ConnectByName() throws Exception
 		{
@@ -220,7 +220,7 @@ public class ConnectControllerTest {
 							.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk()).andDo(print()).andReturn();
 		}
-	*/			
+			
 		@Test
 		public void TestEditConnect() throws Exception {
 
