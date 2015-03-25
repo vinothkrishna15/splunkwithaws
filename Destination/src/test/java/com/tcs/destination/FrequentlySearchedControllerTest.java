@@ -1,5 +1,6 @@
 package com.tcs.destination;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,17 +35,17 @@ public class FrequentlySearchedControllerTest {
 	@Autowired
 	WebApplicationContext wvc2;
 	
-	MockMvc mockMvcuser	=MockMvcBuilders.standaloneSetup(new FrequentlySearchedController()).build();
+	MockMvc mockMvc	=MockMvcBuilders.standaloneSetup(new FrequentlySearchedController()).build();
 	
 	@Before
 	public void setUp() throws Exception 
 	{
-		mockMvcuser=MockMvcBuilders.webAppContextSetup(wvc2).build();
+		mockMvc=MockMvcBuilders.webAppContextSetup(wvc2).build();
 	}
 
 	@Test
 	public void test() throws Exception {
-		mockMvcuser.perform(get("/frequent?entity=CUSTOMER&fields=count,entity,customerId"
+		mockMvc.perform(get("/frequent?entity=CUSTOMER&fields=count,entity,customerId"
 				+ ",corporateHqAddress,createdModifiedBy,createdModifiedDatetime,customerName,"
 				+ "documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
@@ -62,6 +63,21 @@ public class FrequentlySearchedControllerTest {
 		
 		  
 	}
+	@Test
+	public void TestForInsertCust() throws Exception {
+		
+		String requestJson="{\"entityType\":\"PARTNER\",\"entityId\":\"PAT7\",\"userId\":\"541045\"}";
+		
+			this.mockMvc.perform(post("/frequent")
+					.content(requestJson)
+					.header("Authorization", "Basic YWFhOmJiYg==")
+				.contentType(TestUtil.APPLICATION_JSON_UTF8)
+	           	.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andDo(print()).andReturn();	
+			}
+	
+	
 	
 
 }
