@@ -10,5 +10,5 @@ import java.lang.String;
 
 @Repository
 public interface UserRepository extends CrudRepository<UserT, Long> {
-	List<UserT> findByUserName(String username);
+	List<UserT> findByUserName(String nameWith);
 }
