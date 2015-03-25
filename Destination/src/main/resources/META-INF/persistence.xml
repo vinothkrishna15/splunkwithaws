@@ -55,6 +55,7 @@
 		<class>com.tcs.destination.bean.TimeZoneMappingT</class>
 		<class>com.tcs.destination.bean.UserFavoritesT</class>
 		<class>com.tcs.destination.bean.UserGroupMappingT</class>
+		<class>com.tcs.destination.bean.UserNotificationsT</class>
 		<class>com.tcs.destination.bean.UserRoleMappingT</class>
 		<class>com.tcs.destination.bean.UserSettingsT</class>
 		<class>com.tcs.destination.bean.UserT</class>

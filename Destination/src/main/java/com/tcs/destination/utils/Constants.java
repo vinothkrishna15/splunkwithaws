@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.EnumMap;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -170,5 +171,89 @@ public class Constants {
 	public static Timestamp getCurrentTimeStamp() {
     	Date d = new Date();
 		return new Timestamp(d.getTime());
-}
+	}
+
+	//Task Entity Reference
+	public static enum TaskEntityReference {
+		Connect("Connect"), Opportunity("Opportunity");
+
+		private final String name;
+
+		private TaskEntityReference(String name) {
+			this.name = name;
+		}
+
+		public boolean equalsName(String otherName) {
+			return (otherName == null) ? false : name.equals(otherName);
+		}
+
+		public String toString() {
+			return name;
+		}
+		
+		public static boolean contains(String type) {
+			for (TaskEntityReference entityRef : TaskEntityReference.values()) {
+				if (entityRef.name().equals(type)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	//Task Collaboration Preference
+	public static enum TaskCollaborationPreference {
+		Private("Private"), Public("Public"), Restricted("Restricted");
+
+		private final String name;
+
+		private TaskCollaborationPreference(String name) {
+			this.name = name;
+		}
+
+		public boolean equalsName(String otherName) {
+			return (otherName == null) ? false : name.equals(otherName);
+		}
+
+		public String toString() {
+			return name;
+		}
+
+		public static boolean contains(String type) {
+			for (TaskCollaborationPreference pref : TaskCollaborationPreference.values()) {
+				if (pref.name().equals(type)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	//Task Status
+	public static enum TaskStatus {
+		Open("Open"), Hold("Hold");
+
+		private final String name;
+
+		private TaskStatus(String name) {
+			this.name = name;
+		}
+
+		public boolean equalsName(String otherName) {
+			return (otherName == null) ? false : name.equals(otherName);
+		}
+
+		public String toString() {
+			return name;
+		}
+
+		public static boolean contains(String type) {
+			for (TaskStatus status : TaskStatus.values()) {
+				if (status.name().equals(type)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 }

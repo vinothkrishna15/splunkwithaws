@@ -122,7 +122,10 @@ public class TaskT implements Serializable {
 	
 	@Column(name="opportunity_id")
 	private String opportunityId;
-	
+
+	@Transient
+	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList;
+
 	public TaskT() {
 	}
 
@@ -362,6 +365,15 @@ public class TaskT implements Serializable {
 
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
+	}
+
+	public List<TaskBdmsTaggedLinkT> getTaskBdmsTaggedLinkDeletionList() {
+		return taskBdmsTaggedLinkDeletionList;
+	}
+
+	public void setTaskBdmsTaggedLinkDeletionList(
+			List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList) {
+		this.taskBdmsTaggedLinkDeletionList = taskBdmsTaggedLinkDeletionList;
 	}
 
 }
