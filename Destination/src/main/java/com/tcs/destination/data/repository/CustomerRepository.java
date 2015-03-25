@@ -30,4 +30,6 @@ public interface CustomerRepository extends
 	@Query(value = "SELECT B.Quarter,B.target FROM BEACON_DATA_T B,BEACON_CUSTOMER_MAPPING_T CM WHERE  B.beacon_customer_name =CM.beacon_customer_name AND B.FINANCIAL_YEAR=?2  AND CM.customer_name=?1", nativeQuery = true)
 	List<Object[]> findTarget(String customerName, String financialYear);
 
+	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseLike(String groupCustName);
+
 }

@@ -39,16 +39,17 @@ public class CustomerService {
 			financialYear = Constants.getCurrentFinancialYear();
 		}
 		List<CustomerMasterT> topRevenueList = customerRepository
-				.findTopRevenue(count,financialYear);
+				.findTopRevenue(count, financialYear);
 		if (topRevenueList.isEmpty())
 			throw new NoDataFoundException();
 		return topRevenueList;
 	}
 
-	public List<TargetVsActualResponse> findTargetVsActual(String name, String currency) {
+	public List<TargetVsActualResponse> findTargetVsActual(String name,
+			String currency) {
 		BeaconConvertorMappingT beacon = beaconRepository
 				.findByCurrencyName(currency);
-		if(beacon==null)
+		if (beacon == null)
 			throw new NoSuchCurrencyException();
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
 		String financialYear = Constants.getCurrentFinancialYear();
@@ -76,12 +77,18 @@ public class CustomerService {
 	}
 
 	public List<CustomerMasterT> findByNameContaining(String chars) {
-		 List<CustomerMasterT> custList= customerRepository.
-				 findByCustomerNameIgnoreCaseLike("%" + chars + "%");
+		List<CustomerMasterT> custList = customerRepository
+				.findByCustomerNameIgnoreCaseLike("%" + chars + "%");
 		if (custList.isEmpty())
 			throw new CustomerNotFoundException();
 		return custList;
 
+	}
+
+	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName) {
+		return (List<CustomerMasterT>) customerRepository
+				.findByGroupCustomerNameIgnoreCaseLike("%" + groupCustName
+						+ "%");
 	}
 
 }

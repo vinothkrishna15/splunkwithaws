@@ -64,5 +64,14 @@ public class CustomerController {
 		return Constants.filterJsonForFieldAndViews(includeFields, view,
 				topRevenueCustomers);
 	}
+	
+	@RequestMapping(value = "/group", method = RequestMethod.GET)
+	public @ResponseBody String findByGroupCustomerName(
+			@RequestParam("nameWith") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) {
+		List<CustomerMasterT> customer = (List<CustomerMasterT>)customerService.findByGroupCustomerName(nameWith);
+		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+	}
 
 }

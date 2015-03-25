@@ -48,198 +48,217 @@ public class CustomerControllerTest {
 			mockMvc=MockMvcBuilders.webAppContextSetup(ctx).build();
 		}
 		
+//		@Test
+//		public void Test1CustomerControllerById() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/CUS541").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$.customerId").value("CUS541"))
+//			.andExpect(jsonPath("$.customerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$.createdModifiedBy").value("287689"))
+//			.andExpect(jsonPath("$.documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$.groupCustomerName").value("1-800-FLOWERS.COM"))
+//			
+////			.andExpect(jsonPath("$.corporateHqAddress").value(""))
+////			.andExpect(jsonPath("$.createdModifiedDatetime").value("2001-02-16 20:38:40"))
+////			.andExpect(jsonPath("$.facebook").value(""))
+////			.andExpect(jsonPath("$.logo").value(""))
+////			.andExpect(jsonPath("$.website").value(""))
+//			
+//			.andExpect(jsonPath("$.beaconCustomerMappingTs[0].id.beaconCustomerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$.beaconCustomerMappingTs[0].id.customerGeography").value("Americas"))
+//			.andDo(print())
+//			.andReturn();
+//			
+//		CustomerMasterT CustM=	customerService.findById("CUS541");
+//		     assertNotNull(CustM);
+//			 assertNotEquals("2001-02-16 20:38:40",CustM.getCreatedModifiedDatetime());
+//			 assertEquals(null,CustM.getLogo());
+//			 assertNotEquals(" ",CustM.getCorporateHqAddress());
+//			 assertEquals(null,CustM.getFacebook());
+//			 assertEquals(null,CustM.getWebsite());
+//		}
+//		 
+//		@Test
+//		public void Test2CustomerControllerById() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/CUS541?fields=customerId,customerName,createdModifiedBy,documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$.customerId").value("CUS541"))
+//			.andExpect(jsonPath("$.customerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$.createdModifiedBy").value("287689"))
+//			.andExpect(jsonPath("$.documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$.groupCustomerName").value("1-800-FLOWERS.COM"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//		
+//		
+//		@Test
+//		public void Test3CustomerControllerById() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isNotFound());
+//			}
+//		
+//		
+//		
+//		@Test
+//		public void Test1CustomerControllerByName() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer?nameWith=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].customerId").value("CUS541"))
+//			.andExpect(jsonPath("$[0].customerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$[0].createdModifiedBy").value("287689"))
+//			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$[0].groupCustomerName").value("1-800-FLOWERS.COM"))
+//			
+////			.andExpect(jsonPath("$[0].corporateHqAddress").value(""))
+////			.andExpect(jsonPath("$[0].createdModifiedDatetime").value("2001-02-16 20:38:40"))
+////			.andExpect(jsonPath("$[0].facebook").value(""))
+////			.andExpect(jsonPath("$[0].logo").value(""))
+////			.andExpect(jsonPath("$[0].website").value(""))
+//			
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs[0].id.beaconCustomerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs[0].id.customerGeography").value("Americas"))
+//			.andDo(print())
+//			.andReturn();
+//			
+//		CustomerMasterT CustM=	customerService.findById("CUS541");
+//		     assertNotNull(CustM);
+//			 assertNotEquals("2001-02-16 20:38:40",CustM.getCreatedModifiedDatetime());
+//			 assertEquals(null,CustM.getLogo());
+//			 assertNotEquals(" ",CustM.getCorporateHqAddress());
+//			 assertEquals(null,CustM.getFacebook());
+//			 assertEquals(null,CustM.getWebsite());
+//		}
+//		
+//		@Test
+//		public void Test2CustomerControllerByName() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer?nameWith=1-800-FLOWERS.COM&fields=customerMasterT,customerId,customerName,createdModifiedBy,documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].customerId").value("CUS541"))
+//			.andExpect(jsonPath("$[0].customerName").value("1-800-FLOWERS.COM"))
+//			.andExpect(jsonPath("$[0].createdModifiedBy").value("287689"))
+//			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$[0].groupCustomerName").value("1-800-FLOWERS.COM"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//		
+//		
+//		@Test
+//		public void Test3CustomerControllerByName() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isNotFound());
+//			}
+//		
+//		
+//		@Test
+//		public void Test1CustomerControllerTopRevenue() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/topRevenue?count=4").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].customerId").value("CUS581"))
+//			.andExpect(jsonPath("$[0].customerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].createdModifiedBy").value("287729"))
+//			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$[0].groupCustomerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.beaconCustomerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.customerGeography").value("UK"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.customerMasterT").value("CUS581"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.beaconDataTs.beaconDataId").value("BEA739"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//		
+//		@Test
+//		public void Test2CustomerControllerTopRevenue() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/topRevenue?count=4&fields=customerId,createdModifiedBy,customerName,documentsAttached,groupCustomerName,beaconCustomerMappingTs,id,beaconCustomerName,customerGeography,customerMasterT").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].customerId").value("CUS581"))
+//			.andExpect(jsonPath("$[0].customerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].createdModifiedBy").value("287729"))
+//			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+//			.andExpect(jsonPath("$[0].groupCustomerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.beaconCustomerName").value("Lloyds TSB Bank PLC"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.customerGeography").value("UK"))
+//			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.customerMasterT").value("CUS581"))
+//			.andExpect(jsonPath("$[1].customerId").value("CUS596"))
+//			.andExpect(jsonPath("$[2].customerId").value("CUS553"))
+//			.andExpect(jsonPath("$[3].customerId").value("CUS611"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//		
+//		
+//		@Test
+//		public void Test3CustomerControllerTopRevenue() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/topRevenue?fields=customerId").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].customerId").value("CUS596"))
+//			.andExpect(jsonPath("$[1].customerId").value("CUS553"))
+//			.andExpect(jsonPath("$[2].customerId").value("CUS611"))
+//			.andExpect(jsonPath("$[3].customerId").value("CUS581"))
+//			.andExpect(jsonPath("$[4].customerId").value("CUS565"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//		
+//		@Test
+//		public void Test1CustomerControllerTargetVsActual() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/targetVsActual?name=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isOk())
+//			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+//			.andExpect(jsonPath("$[0].target").value(135205.41))
+//			.andExpect(jsonPath("$[0].actual").value(3796.12))
+//			.andExpect(jsonPath("$[0].quarter").value("Q2 - 2014-15"))
+//			.andExpect(jsonPath("$[1].target").value(145605.83))
+//			.andExpect(jsonPath("$[1].actual").value(11995.0))
+//			.andExpect(jsonPath("$[1].quarter").value("Q1 - 2014-15"))
+//			.andDo(print())
+//			.andReturn();
+//			}
+//	-----------------	
 		@Test
-		public void Test1CustomerControllerById() throws Exception
+		public void ToTestSearchCustomerByGroupCustomerName() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/CUS541").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/search?groupCustName=AB&fields=customerId,customerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.customerId").value("CUS541"))
-			.andExpect(jsonPath("$.customerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$.createdModifiedBy").value("287689"))
-			.andExpect(jsonPath("$.documentsAttached").value("YES"))
-			.andExpect(jsonPath("$.groupCustomerName").value("1-800-FLOWERS.COM"))
-			
-//			.andExpect(jsonPath("$.corporateHqAddress").value(""))
-//			.andExpect(jsonPath("$.createdModifiedDatetime").value("2001-02-16 20:38:40"))
-//			.andExpect(jsonPath("$.facebook").value(""))
-//			.andExpect(jsonPath("$.logo").value(""))
-//			.andExpect(jsonPath("$.website").value(""))
-			
-			.andExpect(jsonPath("$.beaconCustomerMappingTs[0].id.beaconCustomerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$.beaconCustomerMappingTs[0].id.customerGeography").value("Americas"))
-			.andDo(print())
-			.andReturn();
-			
-		CustomerMasterT CustM=	customerService.findById("CUS541");
-		     assertNotNull(CustM);
-			 assertNotEquals("2001-02-16 20:38:40",CustM.getCreatedModifiedDatetime());
-			 assertEquals(null,CustM.getLogo());
-			 assertNotEquals(" ",CustM.getCorporateHqAddress());
-			 assertEquals(null,CustM.getFacebook());
-			 assertEquals(null,CustM.getWebsite());
-		}
-		 
-		@Test
-		public void Test2CustomerControllerById() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/CUS541?fields=customerId,customerName,createdModifiedBy,documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.customerId").value("CUS541"))
-			.andExpect(jsonPath("$.customerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$.createdModifiedBy").value("287689"))
-			.andExpect(jsonPath("$.documentsAttached").value("YES"))
-			.andExpect(jsonPath("$.groupCustomerName").value("1-800-FLOWERS.COM"))
+			.andExpect(jsonPath("$[0].customerId").value("CUS559"))
+			.andExpect(jsonPath("$[0].customerName").value("Comcast Cable Communications Management, LLC"))
+			.andExpect(jsonPath("$[1].customerId").value("CUS575"))
+			.andExpect(jsonPath("$[1].customerName").value("IKEA IT AB"))
+			.andExpect(jsonPath("$[2].customerId").value("CUS598"))
+			.andExpect(jsonPath("$[2].customerName").value("TeliaSonera AB"))
+			.andExpect(jsonPath("$[3].customerId").value("CUS545"))
+			.andExpect(jsonPath("$[3].customerName").value("Apoteket AB"))
+			.andExpect(jsonPath("$[4].customerId").value("CUS542"))
+			.andExpect(jsonPath("$[4].customerName").value("ABN Amro EU"))
 			.andDo(print())
 			.andReturn();
 			}
-		
-		
-		@Test
-		public void Test3CustomerControllerById() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
-			}
-		
-		
-		
-		@Test
-		public void Test1CustomerControllerByName() throws Exception
-		{
-			this.mockMvc.perform(get("/customer?nameWith=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS541"))
-			.andExpect(jsonPath("$[0].customerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("287689"))
-			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
-			.andExpect(jsonPath("$[0].groupCustomerName").value("1-800-FLOWERS.COM"))
-			
-//			.andExpect(jsonPath("$[0].corporateHqAddress").value(""))
-//			.andExpect(jsonPath("$[0].createdModifiedDatetime").value("2001-02-16 20:38:40"))
-//			.andExpect(jsonPath("$[0].facebook").value(""))
-//			.andExpect(jsonPath("$[0].logo").value(""))
-//			.andExpect(jsonPath("$[0].website").value(""))
-			
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs[0].id.beaconCustomerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs[0].id.customerGeography").value("Americas"))
-			.andDo(print())
-			.andReturn();
-			
-		CustomerMasterT CustM=	customerService.findById("CUS541");
-		     assertNotNull(CustM);
-			 assertNotEquals("2001-02-16 20:38:40",CustM.getCreatedModifiedDatetime());
-			 assertEquals(null,CustM.getLogo());
-			 assertNotEquals(" ",CustM.getCorporateHqAddress());
-			 assertEquals(null,CustM.getFacebook());
-			 assertEquals(null,CustM.getWebsite());
-		}
-		
-		@Test
-		public void Test2CustomerControllerByName() throws Exception
-		{
-			this.mockMvc.perform(get("/customer?nameWith=1-800-FLOWERS.COM&fields=customerMasterT,customerId,customerName,createdModifiedBy,documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS541"))
-			.andExpect(jsonPath("$[0].customerName").value("1-800-FLOWERS.COM"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("287689"))
-			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
-			.andExpect(jsonPath("$[0].groupCustomerName").value("1-800-FLOWERS.COM"))
-			.andDo(print())
-			.andReturn();
-			}
-		
-		
-		@Test
-		public void Test3CustomerControllerByName() throws Exception
-		{
-			this.mockMvc.perform(get("/customer?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
-			}
-		
-		
-		@Test
-		public void Test1CustomerControllerTopRevenue() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/topRevenue?count=4").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS581"))
-			.andExpect(jsonPath("$[0].customerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("287729"))
-			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
-			.andExpect(jsonPath("$[0].groupCustomerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.beaconCustomerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.customerGeography").value("UK"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.customerMasterT").value("CUS581"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.beaconDataTs.beaconDataId").value("BEA739"))
-			.andDo(print())
-			.andReturn();
-			}
-		
-		@Test
-		public void Test2CustomerControllerTopRevenue() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/topRevenue?count=4&fields=customerId,createdModifiedBy,customerName,documentsAttached,groupCustomerName,beaconCustomerMappingTs,id,beaconCustomerName,customerGeography,customerMasterT").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS581"))
-			.andExpect(jsonPath("$[0].customerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("287729"))
-			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
-			.andExpect(jsonPath("$[0].groupCustomerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.beaconCustomerName").value("Lloyds TSB Bank PLC"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.id.customerGeography").value("UK"))
-			.andExpect(jsonPath("$[0].beaconCustomerMappingTs.customerMasterT").value("CUS581"))
-			.andExpect(jsonPath("$[1].customerId").value("CUS596"))
-			.andExpect(jsonPath("$[2].customerId").value("CUS553"))
-			.andExpect(jsonPath("$[3].customerId").value("CUS611"))
-			.andDo(print())
-			.andReturn();
-			}
-		
-		
-		@Test
-		public void Test3CustomerControllerTopRevenue() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/topRevenue?fields=customerId").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS596"))
-			.andExpect(jsonPath("$[1].customerId").value("CUS553"))
-			.andExpect(jsonPath("$[2].customerId").value("CUS611"))
-			.andExpect(jsonPath("$[3].customerId").value("CUS581"))
-			.andExpect(jsonPath("$[4].customerId").value("CUS565"))
-			.andDo(print())
-			.andReturn();
-			}
-		
-		@Test
-		public void Test1CustomerControllerTargetVsActual() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/targetVsActual?name=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].target").value(135205.41))
-			.andExpect(jsonPath("$[0].actual").value(3796.12))
-			.andExpect(jsonPath("$[0].quarter").value("Q2 - 2014-15"))
-			.andExpect(jsonPath("$[1].target").value(145605.83))
-			.andExpect(jsonPath("$[1].actual").value(11995.0))
-			.andExpect(jsonPath("$[1].quarter").value("Q1 - 2014-15"))
-			.andDo(print())
-			.andReturn();
-			}
-		
-		
-		@Test
-		public void Test2CustomerControllerTargetVsActual() throws Exception
-		{
-			this.mockMvc.perform(get("/customer/targetVsActual?name=ABN").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
-			}
+//		
+//		@Test
+//		public void Test2CustomerControllerTargetVsActual() throws Exception
+//		{
+//			this.mockMvc.perform(get("/customer/targetVsActual?name=ABN").accept(MediaType.APPLICATION_JSON))
+//			.andExpect(status().isNotFound());
+//			}
 }
 	
 	
