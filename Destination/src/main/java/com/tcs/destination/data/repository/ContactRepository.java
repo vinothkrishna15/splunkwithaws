@@ -10,7 +10,6 @@ import com.tcs.destination.bean.ContactT;
  */
 public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
-//	List<ContactT> findByCustomerId(String customerId);
 //	List<ContactT> findByPartnerId(String partnerId);
 
 }

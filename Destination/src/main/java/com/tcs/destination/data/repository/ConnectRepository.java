@@ -35,8 +35,12 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * @return connection details.
 	 */
 	ConnectT findByConnectId(String connectid);
-	
-	@Query(value = "select c from ConnectT c where primaryOwner=(:primaryOwner) and startDatetimeOfConnect between (:fromDate) and (:toDate)")
-	List<ConnectT> findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetween(
-			@Param("primaryOwner")String primaryOwner,@Param("fromDate") Timestamp fromDate,@Param("toDate") Timestamp toDate);
+
+	@Query(value = "select c from ConnectT c where (primaryOwner=(:primaryOwner) OR (:primaryOwner)='')and startDatetimeOfConnect between (:fromDate) and (:toDate) and (customer_id=(:customerId) OR (:customerId)='') and (partner_id=(:partnerId) OR (:partnerId)='')")
+	List<ConnectT> findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
+			@Param("primaryOwner") String primaryOwner,
+			@Param("fromDate") Timestamp fromDate,
+			@Param("toDate") Timestamp toDate,
+			@Param("customerId") String customerId,
+			@Param("partnerId") String partnerId);
 }

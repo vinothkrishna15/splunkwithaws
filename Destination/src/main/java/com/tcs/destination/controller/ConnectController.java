@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
 
@@ -43,9 +44,9 @@ public class ConnectController {
 	public @ResponseBody String ConnectSearchById(
 			@PathVariable("id") String connectId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-	     	@RequestParam(value = "view", defaultValue = "") String view) {
-	  ConnectT connect=connectService.searchforConnectsById(connectId);
-	  return Constants.filterJsonForFieldAndViews(fields, view, connect);
+			@RequestParam(value = "view", defaultValue = "") String view) {
+		ConnectT connect = connectService.searchforConnectsById(connectId);
+		return Constants.filterJsonForFieldAndViews(fields, view, connect);
 	}
 
 	/**
@@ -60,9 +61,10 @@ public class ConnectController {
 	public @ResponseBody String ConnectSearchByName(
 			@RequestParam("nameWith") String connectName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-	     	@RequestParam(value = "view", defaultValue = "") String view) {
-	  List<ConnectT> connectlist=connectService.searchforConnectsByNameContaining(connectName);
-	  return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
+			@RequestParam(value = "view", defaultValue = "") String view) {
+		List<ConnectT> connectlist = connectService
+				.searchforConnectsByNameContaining(connectName);
+		return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
 	}
 
 	/**
@@ -79,47 +81,57 @@ public class ConnectController {
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "owner", defaultValue ="ALL") String owner) {
-		List<ConnectT> connects = connectService.searchforConnectsBetweenForUser(
-				fromDate, toDate,Constants.getCurrentUserDetails(),owner);
+			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
+			@RequestParam(value = "customerId", defaultValue = "") String customerId,
+			@RequestParam(value = "partnerId", defaultValue = "") String partnerId) {
+		List<ConnectT> connects = connectService
+				.searchforConnectsBetweenForUser(fromDate, toDate, userId,
+						owner, customerId, partnerId);
 		return Constants.filterJsonForFieldAndViews(fields, view, connects);
 	}
-	
-	@RequestMapping(method = RequestMethod.POST)
+
+	@RequestMapping(method = RequestMethod.POST)	
 	public @ResponseBody ResponseEntity<String> insertToConnect(
 			@RequestBody ConnectT connect) {
 		Status status = new Status();
-		status.setStatus(Status.FAILED,"");
+		status.setStatus(Status.FAILED, "");
 		try {
-			if(connectService.insertConnect(connect)){
-				status.setStatus(Status.SUCCESS,connect.getConnectId());
-				
+			if (connectService.insertConnect(connect)) {
+				status.setStatus(Status.SUCCESS, connect.getConnectId());
+
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			status.setStatus(Status.FAILED,e.getMessage());
-			//status.setDescription();
-			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.BAD_REQUEST);
+			status.setStatus(Status.FAILED, e.getMessage());
+			// status.setDescription();
+			return new ResponseEntity<String>(
+					Constants.filterJsonForFieldAndViews("all", "", status),
+					HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
+		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+				"all", "", status), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editConnect(
 			@RequestBody ConnectT connect) {
 		Status status = new Status();
-		status.setStatus(Status.FAILED,"");
-		try{
-			if(connectService.editConnect(connect)){
-				status.setStatus(Status.SUCCESS,connect.getConnectId());
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (connectService.editConnect(connect)) {
+				status.setStatus(Status.SUCCESS, connect.getConnectId());
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			status.setStatus(Status.FAILED,e.getMessage());
-			//status.setDescription(e.getMessage());
-			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.BAD_REQUEST);
+			status.setStatus(Status.FAILED, e.getMessage());
+			// status.setDescription(e.getMessage());
+			return new ResponseEntity<String>(
+					Constants.filterJsonForFieldAndViews("all", "", status),
+					HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
+		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+				"all", "", status), HttpStatus.OK);
 	}
-	
+
 }
