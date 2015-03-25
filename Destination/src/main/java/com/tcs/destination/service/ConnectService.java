@@ -346,6 +346,7 @@ public class ConnectService {
 
 		List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
 				.getConnectOpportunityLinkIdTs();
+		if (conOppLinkIdTList != null)
 		populateOppLinks(currentUserId, currentTimeStamp, connectId,
 				conOppLinkIdTList);
 
