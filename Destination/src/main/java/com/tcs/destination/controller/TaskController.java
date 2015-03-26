@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.TaskT;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TaskService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.bean.Status;
@@ -40,22 +39,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTaskById(
 			@PathVariable("id") String taskId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		TaskT task = null;
-		Status status = new Status();
-		try {
-			task = taskService.findTaskById(taskId);
-			if (task != null) { 
-				status.setStatus(Status.SUCCESS, "Task Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving task: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		TaskT task = taskService.findTaskById(taskId);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
+			(Constants.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
 	}
 
 	/**
@@ -68,22 +56,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksWithName(
 			@RequestParam(value="nameWith") String chars,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		List<TaskT> taskList = null;
-		Status status = new Status();
-		try {
-			taskList = taskService.findTasksByNameContaining(chars);
-			if (taskList != null) {
-				status.setStatus(Status.SUCCESS, "Tasks Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving tasks: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksByNameContaining(chars);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 	
 	/**
@@ -96,22 +73,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksByConnectId(
 			@RequestParam(value="id") String connectId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		List<TaskT> taskList = null;
-		Status status = new Status();
-		try {
-			taskList = taskService.findTasksByConnectId(connectId);
-			if (taskList != null) {
-				status.setStatus(Status.SUCCESS, "Tasks Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving tasks: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksByConnectId(connectId);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -124,22 +90,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksByOpportunityId(
 			@RequestParam(value="id") String opportunityId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		List<TaskT> taskList = null;
-		Status status = new Status();
-		try {
-			taskList =  taskService.findTasksByOpportunityId(opportunityId);
-			if (taskList != null) {
-				status.setStatus(Status.SUCCESS, "Tasks Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving tasks: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksByOpportunityId(opportunityId);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -152,22 +107,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksByTaskOwner(
 			@RequestParam(value="id") String taskOwner,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		List<TaskT> taskList = null;
-		Status status = new Status();
-		try {
-			taskList = taskService.findTasksByTaskOwner(taskOwner);
-			if (taskList != null) {
-				status.setStatus(Status.SUCCESS, "Tasks Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving tasks: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksByTaskOwner(taskOwner);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -180,22 +124,29 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksAssignedToOthersByUser(
 			@RequestParam(value="id") String userId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) {
-		List<TaskT> taskList = null;
-		Status status = new Status();
-		try {
-			taskList = taskService.findTasksAssignedtoOthersByUser(userId);
-			if (taskList != null) {
-				status.setStatus(Status.SUCCESS, "Tasks Found");
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while retrieving tasks: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, status), de.getHttpStatus());
-		}
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+	}
+
+	/**
+	 * This method is used to find all the tasks assigned to a user with a specific target completion date.
+	 * 
+	 * @param id is the user id, date is the target completion date
+	 * @return tasks assigned to a user with a specific target completion date.
+	 */
+	@RequestMapping(value="/findByTargetDate", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findTasksByUserAndTargetDate(
+			@RequestParam(value="id") String userId,
+			@RequestParam(value="date") String targetDate,
+			@RequestParam(value="fields", defaultValue="all") String fields,
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, targetDate);
+		return new ResponseEntity<String>
+			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -205,27 +156,17 @@ public class TaskController {
 	 * @return ResponseEntity
 	 */
 	@RequestMapping(method=RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> createTask(@RequestBody TaskT task) {
+	public @ResponseBody ResponseEntity<String> createTask(@RequestBody TaskT task) 
+			throws Exception {
 		TaskT managedTask = null;
-		Status status = new Status();
-		try {
-			managedTask = taskService.createTask(task);
-			if ((null != managedTask) && managedTask.getTaskId() != null) {
-				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while inserting task: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), de.getHttpStatus());
-		} catch (Exception e) {
-			System.out.println("Error occurred while inserting task: " + e.getMessage());
-			status.setStatus(Status.FAILED, "Internal Error");
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.INTERNAL_SERVER_ERROR);
+		Status status = null;
+		managedTask = taskService.createTask(task);
+		if ((managedTask != null) && (managedTask.getTaskId() != null)) {
+			status = new Status();
+			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
 
 	/**
@@ -235,27 +176,16 @@ public class TaskController {
 	 * @return ResponseEntity
 	 */
 	@RequestMapping(method=RequestMethod.PUT)
-	public @ResponseBody ResponseEntity<String> editTask(@RequestBody TaskT task) {
+	public @ResponseBody ResponseEntity<String> editTask(@RequestBody TaskT task) 
+			throws Exception {
 		TaskT managedTask = null;
-		Status status = new Status();
-		try {
-			managedTask = taskService.editTask(task);
-			if ((null != managedTask))  {
-				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
-			}
-		} catch (DestinationException de) {
-			System.out.println("Error occurred while updating task: " + de.getMessage());
-			status.setStatus(Status.FAILED, de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), de.getHttpStatus());
-		} catch (Exception e) {
-			System.out.println("Error occurred while updating task: " + e.getMessage());
-			status.setStatus(Status.FAILED, "Internal Error");
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.INTERNAL_SERVER_ERROR);
+		Status status = null;
+		managedTask = taskService.editTask(task);
+		if (managedTask != null)  {
+			status = new Status();
+			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
 		return new ResponseEntity<String>
-		(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
-
 }

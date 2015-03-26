@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.EnumMap;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,7 +25,7 @@ import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepos
 public class Constants {
 
 	public static final String FILTER = "DestinationFilter";
-
+	
 	public static enum EntityType {
 		CUSTOMER("CUSTOMER"), PARTNER("PARTNER");
 

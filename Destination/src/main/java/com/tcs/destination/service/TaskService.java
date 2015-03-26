@@ -5,8 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
@@ -15,6 +18,8 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants.TaskCollaborationPreference;
 import com.tcs.destination.utils.Constants.TaskEntityReference;
 import com.tcs.destination.utils.Constants.TaskStatus;
+import com.tcs.destination.utils.DateUtil;
+
 
 /**
  * Service class to handle Task module related requests.
@@ -23,19 +28,21 @@ import com.tcs.destination.utils.Constants.TaskStatus;
 @Component
 public class TaskService {
 
+	private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
+	
 	@Autowired
 	TaskRepository taskRepository;
 
 	@Autowired
 	TaskBdmsTaggedLinkRepository taskBdmsTaggedLinkRepository;
-
+	
 	/**
 	 * This method is used to find task details for the given task id.
 	 * 
 	 * @param taskId
 	 * @return task details for the given task id.
 	 */
-	public TaskT findTaskById(String taskId) throws DestinationException {
+	public TaskT findTaskById(String taskId) throws Exception {
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null)
@@ -53,13 +60,14 @@ public class TaskService {
 	 * @param taskDescription
 	 * @return tasks with the given task description.
 	 */
-	public List<TaskT> findTasksByNameContaining(String taskDescription) throws DestinationException {
+	public List<TaskT> findTasksByNameContaining(String taskDescription) throws Exception {
 		List<TaskT> taskList = taskRepository.
 				findByTaskDescriptionIgnoreCaseLike("%" + taskDescription + "%");
 
-		if ((taskList == null) || taskList.isEmpty())
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found with the given task description");
-
+		if ((taskList == null) || taskList.isEmpty()) {
+			throw new DestinationException(
+					HttpStatus.NOT_FOUND, "No tasks found with the given task description");
+		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
@@ -75,7 +83,7 @@ public class TaskService {
 	 * @param connectId
 	 * @return tasks for the given connect id.
 	 */
-	public List<TaskT> findTasksByConnectId(String connectId) throws DestinationException {
+	public List<TaskT> findTasksByConnectId(String connectId) throws Exception {
 		List<TaskT> taskList = taskRepository.findByConnectId(connectId);
 
 		if ((taskList == null) || taskList.isEmpty())
@@ -96,7 +104,7 @@ public class TaskService {
 	 * @param opportunityId
 	 * @return tasks for the given opportunity id.
 	 */
-	public List<TaskT> findTasksByOpportunityId(String opportunityId) throws DestinationException {
+	public List<TaskT> findTasksByOpportunityId(String opportunityId) throws Exception {
 		List<TaskT> taskList = taskRepository.findByOpportunityId(opportunityId);
 
 		if ((taskList == null) || taskList.isEmpty())
@@ -117,11 +125,11 @@ public class TaskService {
 	 * @param taskOwner
 	 * @return tasks for the given task owner.
 	 */
-	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws DestinationException {
+	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws Exception {
 		List<TaskT> taskList = taskRepository.findByTaskOwnerOrderByTargetDateForCompletionAsc(taskOwner);
 
 		if ((taskList == null) || taskList.isEmpty())
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Tasks Found for the UserId");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
 
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
@@ -137,13 +145,45 @@ public class TaskService {
 	 * @param userId
 	 * @return tasks assigned to others by a given user id.
 	 */
-	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws DestinationException {
+	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws Exception {
 		List<TaskT> taskList = 
-				taskRepository.findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
+			taskRepository.findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
-		if ((taskList == null) || taskList.isEmpty())
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Assigned Tasks Found for the UserId");
+		if ((taskList == null) || taskList.isEmpty()) {
+			throw new DestinationException
+				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId");
+		}
+		//Set the TaskOwner details from User object
+		for (TaskT task : taskList) {
+			if (task.getUserT() != null) {
+				task.setTaskOwnerName(task.getUserT().getUserName());
+			}
+		}
+		return taskList;
+	}
 
+	/**
+	 * This method is used to find all the tasks assigned to a user with a specific target completion date.
+	 * @param userId, targetDate
+	 * @return tasks assigned to a user with a specific target completion date.
+	 */
+	public List<TaskT> findTasksByUserAndTargetDate(String userId, String targetDate) 
+			throws Exception {
+		List<TaskT> taskList = null;
+		
+		try {
+			taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletion(
+				userId, DateUtil.convertStringToDate(targetDate));
+		} catch (ParseException pe) {
+			throw new DestinationException(
+				HttpStatus.INTERNAL_SERVER_ERROR, "Error occured while parsing Target completion date");
+		}
+		
+		if ((taskList == null) || taskList.isEmpty()) {
+			throw new DestinationException(
+				HttpStatus.NOT_FOUND, "No tasks found for the UserId and Target completion date");
+		}
+		
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
@@ -160,7 +200,7 @@ public class TaskService {
 	 * @return task
 	 */
 	@Transactional
-	public TaskT createTask(TaskT task) throws DestinationException, Exception {
+	public TaskT createTask(TaskT task) throws Exception {
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
 
@@ -194,7 +234,7 @@ public class TaskService {
 	 * @return task
 	 */
 	@Transactional
-	public TaskT editTask(TaskT task) throws DestinationException, Exception {
+	public TaskT editTask(TaskT task) throws Exception {
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
@@ -229,7 +269,7 @@ public class TaskService {
 				taskBdmsTaggedLinkRepository.delete(removeBdmsTaggedLinkTs);
 			}
 		} else {
-			System.out.println("Task not found: " + task.getTaskId());
+			logger.error("Task not found: {}", task.getTaskId());
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Task Not Found For Update");
 		}
 		return managedTask;
