@@ -41,18 +41,14 @@ public class DocumentRepositoryT implements Serializable {
 	@Column(name = "document_name")
 	private String documentName;
 
-	@Column(name = "document_search_keywords")
-	private String documentSearchKeywords;
-
 	@Column(name = "document_type")
 	private String documentType;
 
 	@Column(name = "entity_type")
 	private String entityType;
-
-	@JsonIgnore
+	
 	@Column(name = "file_reference")	
-	private byte[] fileReference;
+	private String fileReference;
 
 	@Column(name = "parent_entity")
 	private String parentEntity;
@@ -142,14 +138,6 @@ public class DocumentRepositoryT implements Serializable {
 		this.documentName = documentName;
 	}
 
-	public String getDocumentSearchKeywords() {
-		return this.documentSearchKeywords;
-	}
-
-	public void setDocumentSearchKeywords(String documentSearchKeywords) {
-		this.documentSearchKeywords = documentSearchKeywords;
-	}
-
 	public String getDocumentType() {
 		return this.documentType;
 	}
@@ -166,11 +154,11 @@ public class DocumentRepositoryT implements Serializable {
 		this.entityType = entityType;
 	}
 
-	public byte[] getFileReference() {
+	public String getFileReference() {
 		return this.fileReference;
 	}
 
-	public void setFileReference(byte[] fileReference) {
+	public void setFileReference(String fileReference) {
 		this.fileReference = fileReference;
 	}
 
