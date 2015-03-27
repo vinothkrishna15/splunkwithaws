@@ -69,7 +69,7 @@ public class CustomerControllerTest {
 		public void Test2CustomerControllerById() throws Exception
 		{
 			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
+			.andExpect(status().is5xxServerError());
 			}
 		
 		
@@ -96,7 +96,7 @@ public class CustomerControllerTest {
 		public void Test2CustomerControllerByName() throws Exception
 		{
 			this.mockMvc.perform(get("/customer?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
+			.andExpect(status().is5xxServerError());
 			}
 		
 		
@@ -178,7 +178,7 @@ public class CustomerControllerTest {
 		public void Test2CustomerControllerTargetVsActual() throws Exception
 		{
 			this.mockMvc.perform(get("/customer/targetVsActual?name=ABN").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
+			.andExpect(status().is5xxServerError());
 			}
 }
 	

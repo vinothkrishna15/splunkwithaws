@@ -36,225 +36,212 @@ import com.tcs.destination.controller.ConnectController;
 import com.tcs.destination.controller.UserRepositoryUserDetailsService;
 import com.tcs.destination.service.ConnectService;
 
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = DestinationApplication.class)
-@ContextConfiguration({"classpath:app-context.xml" })
+@ContextConfiguration({ "classpath:app-context.xml" })
 @WebAppConfiguration
-@ComponentScan(basePackageClasses=UserRepositoryUserDetailsService.class)
+@ComponentScan(basePackageClasses = UserRepositoryUserDetailsService.class)
 public class ConnectControllerTest {
 
-	 @Autowired 
-	 WebApplicationContext ctx;
-	 
-	 @Autowired 
-	 ConnectService connectService;
-	
-	 @Autowired
-	 FilterChainProxy springSecurityFilterChain;
-	 
-	 @Autowired
-	 UserRepositoryUserDetailsService userDetailsService;
-	 	 
-	 MockMvc mockMvc=MockMvcBuilders.standaloneSetup(new ConnectController()).build();
-	 MockMvc mockMvc1=MockMvcBuilders.standaloneSetup(new ConnectController()).build();
-	
+	@Autowired
+	WebApplicationContext ctx;
 
-		@Before
-		public void setup()
-		{
-			
-			mockMvc=MockMvcBuilders.webAppContextSetup(ctx).build();
-			mockMvc1=MockMvcBuilders.webAppContextSetup(ctx).addFilters(springSecurityFilterChain).build();
-		}
-		
-				
-		@Test
-		public void Test1ConnectById() throws Exception
-		{
-			mockMvc.perform(get("/connect/CNN3?fields=connectId,connectCategory,connectName").accept(MediaType.APPLICATION_JSON))
+	@Autowired
+	ConnectService connectService;
+
+	@Autowired
+	FilterChainProxy springSecurityFilterChain;
+
+	@Autowired
+	UserRepositoryUserDetailsService userDetailsService;
+
+	MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ConnectController())
+			.build();
+	MockMvc mockMvc1 = MockMvcBuilders.standaloneSetup(new ConnectController())
+			.build();
+
+	@Before
+	public void setup() {
+
+		mockMvc = MockMvcBuilders.webAppContextSetup(ctx).build();
+		mockMvc1 = MockMvcBuilders.webAppContextSetup(ctx)
+				.addFilters(springSecurityFilterChain).build();
+	}
+
+	@Test
+	public void Test1ConnectById() throws Exception {
+		mockMvc.perform(
+				get(
+						"/connect/CNN3?fields=connectId,connectCategory,connectName")
+						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$.connectId").value("CNN3"))
 				.andExpect(jsonPath("$.connectCategory").value("CUSTOMER"))
 				.andExpect(jsonPath("$.connectName").value("Cloud Connect"))
-				.andDo(print())
-				.andReturn();
-		}
-				
-		
-		@Test
-		public void Test2ConnectById() throws Exception
-		{
-			mockMvc.perform(get("/connect/CNN10").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
-}
-				
-		@Test
-		public void Test1ConnectByName() throws Exception
-		{
-			mockMvc.perform(get("/connect?nameWith=Cloud&fields=ConnectT,connectId,connectCategory,connectName").accept(MediaType.APPLICATION_JSON))
+				.andDo(print()).andReturn();
+	}
+
+	@Test
+	public void Test2ConnectById() throws Exception {
+		mockMvc.perform(
+				get("/connect/CNN1000").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().is5xxServerError());
+	}
+
+	@Test
+	public void Test1ConnectByName() throws Exception {
+		mockMvc.perform(
+				get(
+						"/connect?nameWith=Cloud&fields=ConnectT,connectId,connectCategory,connectName")
+						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 				.andExpect(jsonPath("$[0].connectId").value("CNN3"))
 				.andExpect(jsonPath("$[0].connectCategory").value("CUSTOMER"))
 				.andExpect(jsonPath("$[0].connectName").value("Cloud Connect"))
-				.andDo(print())
-				.andReturn();
-		}
-				
-		
-		@Test
-		public void Test2ConnectByName() throws Exception
-		{
-			mockMvc.perform(get("/connect?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
-}
-		
-		@Test
-		public void TestConnectByDateUserIdCustPartId() throws Exception
-		{
-			mockMvc1.perform(get("/connect/date?from=20012015&to=30012015&userId=541045&customerId=CUS541&partnerId=PAT4&fields=connectId,"
-					+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,country")
-					.header("Authorization","Basic YWFhOmJiYg==")
-					.accept(MediaType.APPLICATION_JSON))
-					.andExpect(status().isOk())
-					.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-					.andExpect(jsonPath("$[0].connectId").value("CNN2"))
-					.andExpect(jsonPath("$[0].connectCategory").value("PARTNER"))
-					.andExpect(jsonPath("$[0].connectName").value("DESS Capability Presentation"))
-					.andExpect(jsonPath("$[0].createdModifiedBy").value("198054"))
-					.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
-					.andExpect(jsonPath("$[0].primaryOwner").value("541045"))
-					.andExpect(jsonPath("$[0].country").value("Netherlands"))
-					.andDo(print()).andReturn();
-		}
-		
-		@Test
-		public void TestConnectByDateCustId() throws Exception
-		{
-			mockMvc1.perform(get("/connect/date?from=01022015&to=20022015&customerId=CUS542&fields=connectId,"
-					+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,partnerId,country")
-					.header("Authorization","Basic YWFhOmJiYg==")
-					.accept(MediaType.APPLICATION_JSON))
-					.andExpect(status().isOk())
-					.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-					.andExpect(jsonPath("$[0].connectId").value("CNN3"))
-					.andExpect(jsonPath("$[0].connectCategory").value("CUSTOMER"))
-					.andExpect(jsonPath("$[0].connectName").value("Cloud Connect"))
-					.andExpect(jsonPath("$[0].createdModifiedBy").value("734628"))
-					.andExpect(jsonPath("$[0].documentsAttached").value("NO"))
-					.andExpect(jsonPath("$[0].primaryOwner").value("353911"))
-					.andExpect(jsonPath("$[0].country").value("USA"))
-					.andExpect(jsonPath("$[0].partnerId").value("PAT5"))
-					.andDo(print()).andReturn();
-		}
-		@Test
-		public void TestConnectByDatePartId() throws Exception
-		{
-			mockMvc1.perform(get("/connect/date?from=01022015&to=20022015&partnerId=PAT5&fields=connectId,connectCategory,"
-					+ "connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,partnerId,country")
-					.header("Authorization","Basic YWFhOmJiYg==")
-					.accept(MediaType.APPLICATION_JSON))
-					.andExpect(status().isOk())
-					.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-					.andExpect(jsonPath("$[0].connectId").value("CNN3"))
-					.andExpect(jsonPath("$[0].connectCategory").value("CUSTOMER"))
-					.andExpect(jsonPath("$[0].connectName").value("Cloud Connect"))
-					.andExpect(jsonPath("$[0].createdModifiedBy").value("734628"))
-					.andExpect(jsonPath("$[0].documentsAttached").value("NO"))
-					.andExpect(jsonPath("$[0].primaryOwner").value("353911"))
-					.andExpect(jsonPath("$[0].country").value("USA"))
-					.andExpect(jsonPath("$[0].customerId").value("CUS542"))
-					.andExpect(jsonPath("$[0].partnerId").value("PAT5"))
-					
-					.andExpect(jsonPath("$[1].connectId").value("CNN6"))
-					.andExpect(jsonPath("$[1].connectCategory").value("PARTNER"))
-					.andExpect(jsonPath("$[1].connectName").value("DESS Capability  Presentation"))
-					.andExpect(jsonPath("$[1].createdModifiedBy").value("278648"))
-					.andExpect(jsonPath("$[1].documentsAttached").value("YES"))
-					.andExpect(jsonPath("$[1].primaryOwner").value("759726"))
-					.andExpect(jsonPath("$[1].country").value("USA"))
-					.andExpect(jsonPath("$[1].customerId").value("CUS545"))
-					.andExpect(jsonPath("$[1].partnerId").value("PAT5"))
-					.andDo(print()).andReturn();
-					
-		}
-		
-		@Test
-		public void Test1ConnectByDate() throws Exception
-		{
-			mockMvc1.perform(get("/connect/date?from=20012015&to=30012015&owner=PRIMARY&fields=connectId,"
-					+ "connectCategory,connectName,createdModifiedBy,primaryOwner").header("Authorization","Basic YWFhOmJiYg==")
-					.accept(MediaType.APPLICATION_JSON))
-					.andExpect(status().isOk())
-					.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-					.andExpect(jsonPath("$[0].connectId").value("CNN2"))
-					.andExpect(jsonPath("$[0].connectCategory").value("PARTNER"))
-					.andExpect(jsonPath("$[0].connectName").value("DESS Capability Presentation"))
-					.andExpect(jsonPath("$[0].createdModifiedBy").value("198054"))
-					.andExpect(jsonPath("$[0].primaryOwner").value("541045"))
-					.andDo(print())
-					.andReturn();
-		}
-		
-		@Test
-		public void TestCreateConnect() throws Exception {
+				.andDo(print()).andReturn();
+	}
 
-//			JsonFactory jfactory = new JsonFactory();
-//			JSONParser parser = new JSONParser();
-//			Object obj = parser
-//					.parse(new FileReader(
-//							"/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
-	//
-//			JSONObject jsonObject = (JSONObject) obj;
-			String requestJson = "{ \"connectCategory\":\"CUSTOMER\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\",\"customerId\": \"CUS541\",\"connectCustomerContactLinkTs\": [{\"contactT\": {\"contactId\": \"CONTACT2\"}}],\"connectOfferingLinkTs\": [{\"offeringMappingT\": {\"offering\": \"Analytics\"}}],\"connectSecondaryOwnerLinkTs\": [{\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{\"subSpMappingT\": {\"subSp\": \"ABIM - Products\"}}],"
-					+ "\"connectTcsAccountContactLinkTs\": [{\"contactT\":{\"contactId\": \"CONTACT1\"}}],"
-					+ "\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 2 1\"},{\"notesUpdated\": \"Sample note9 set 2 2\"}]}";
-			//jsonObject.toString();
-			
+	@Test
+	public void Test2ConnectByName() throws Exception {
+		mockMvc.perform(
+				get("/connect?nameWith=ABCD")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().is5xxServerError());
+	}
 
-			UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-			Authentication authToken = new UsernamePasswordAuthenticationToken(
-					userDetails, userDetails.getPassword(),
-					userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authToken);
+	@Test
+	public void TestConnectByDateCustId() throws Exception {
+		mockMvc1.perform(
+				get(
+						"/connect/date?from=01022015&to=20022015&customerId=CUS542&fields=connectId,"
+								+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,partnerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
 
-			this.mockMvc.perform(					
-					post("/connect")
-							.contentType(TestUtil.APPLICATION_JSON_UTF8)
-							.content(requestJson)
-							.header("Authorization", "Basic YWFhOmJiYg==")
-							.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk()).andDo(print()).andReturn();
-		}
-			
-		@Test
-		public void TestEditConnect() throws Exception {
+	@Test
+	public void TestConnectByDatePartId() throws Exception {
+		mockMvc1.perform(
+				get(
+						"/connect/date?from=01022015&to=20022015&partnerId=PAT5&fields=connectId,connectCategory,"
+								+ "connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,partnerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$[0].connectId").value("CNN6"))
+				.andExpect(jsonPath("$[0].connectCategory").value("PARTNER"))
+				.andExpect(
+						jsonPath("$[0].connectName").value(
+								"DESS Capability  Presentation"))
+				.andExpect(jsonPath("$[0].createdModifiedBy").value("278648"))
+				.andExpect(jsonPath("$[0].documentsAttached").value("NO"))
+				.andExpect(jsonPath("$[0].primaryOwner").value("759726"))
+				.andExpect(jsonPath("$[0].country").value("USA"))
+				.andExpect(jsonPath("$[0].partnerId").value("PAT5"))
+				.andDo(print()).andReturn();
 
-//			JsonFactory jfactory = new JsonFactory();
-//			JSONParser parser = new JSONParser();
-//			Object obj = parser
-//					.parse(new FileReader(
-//							"/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
-	//
-//			JSONObject jsonObject = (JSONObject) obj;
-			String requestJson = "{\"connectCategory\":\"CUSTOMER\",\"connectId\":\"CNN1\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\", \"customerId\": \"CUS541\", \"connectCustomerContactLinkTs\": [{\"connectCustomerContactLinkId\":\"CCC31\",\"contactT\": { \"contactId\": \"CONTACT2\"}}], \"connectOfferingLinkTs\": [{\"connectOfferingLinkId\":\"COF23\",\"offeringMappingT\": {\"offering\": \"BPaaS - Cloud Payment\"} }],\"connectSecondaryOwnerLinkTs\": [{\"connectSecondaryOwnerLinkId\":\"CSO20\",\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{ \"connectSubSpLinkId\":\"CSs9\",\"subSpMappingT\": { \"subSp\": \"Mobility - Services\" }},{\"subSpMappingT\":  {\"subSp\": \"Cloud\"}}],\"connectTcsAccountContactLinkTs\": [ {\"connect_tcs_account_contact_link_id\":\"CTC11\",\"contactT\": {\"contactId\": \"CONTACT1\" }}], \"taskTs\": [{\"taskId\":\"TASK1\",\"createdModifiedBy\":\"541046\",\"createdModifiedDatetime\":982336120000,\"documentsAttached\":\"No\",\"taskStatus\":\"OPEN\",\"taskDescription\":\"Description\",\"targetDateForCompletion\":982336120000,\"taskOwner\":\"541046\",\"entityReference\":\"CUSTOMER\",\"opportunityId\":\"OPP1\"}],\"connectOpportunityLinkIdTs\": [{ \"connectOpportunityLinkId\":\"CNO1\",\"opportunityT\": {\"opportunityId\": \"OPP1\"}}],\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 3 1 update\"},{ \"notesUpdated\": \"Sample note9 set 3 2 update\" }]}";
-			//jsonObject.toString();
-			
+	}
 
-			UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-			Authentication authToken = new UsernamePasswordAuthenticationToken(
-					userDetails, userDetails.getPassword(),
-					userDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(authToken);
+	@Test
+	public void Test1ConnectByDate() throws Exception {
+		mockMvc1.perform(
+				get(
+						"/connect/date?from=20012015&to=30012015&owner=PRIMARY&fields=connectId,"
+								+ "connectCategory,connectName,createdModifiedBy,primaryOwner")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$[0].connectId").value("CNN2"))
+				.andExpect(jsonPath("$[0].connectCategory").value("PARTNER"))
+				.andExpect(
+						jsonPath("$[0].connectName").value(
+								"DESS Capability Presentation"))
+				.andExpect(jsonPath("$[0].createdModifiedBy").value("198054"))
+				.andExpect(jsonPath("$[0].primaryOwner").value("541045"))
+				.andDo(print()).andReturn();
+	}
 
-			this.mockMvc.perform(					
-					put("/connect")
-							.contentType(TestUtil.APPLICATION_JSON_UTF8)
-							.content(requestJson)
-							.header("Authorization", "Basic YWFhOmJiYg==")
-							.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk()).andDo(print()).andReturn();
-		}
+	@Test
+	public void TestCreateConnect() throws Exception {
+
+		// JsonFactory jfactory = new JsonFactory();
+		// JSONParser parser = new JSONParser();
+		// Object obj = parser
+		// .parse(new FileReader(
+		// "/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
+		//
+		// JSONObject jsonObject = (JSONObject) obj;
+		String requestJson = "{ \"connectCategory\":\"CUSTOMER\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\",\"customerId\": \"CUS541\",\"connectCustomerContactLinkTs\": [{\"contactT\": {\"contactId\": \"CON2\"}}],\"connectOfferingLinkTs\": [{\"offeringMappingT\": {\"offering\": \"Analytics\"}}],\"connectSecondaryOwnerLinkTs\": [{\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{\"subSpMappingT\": {\"subSp\": \"ABIM - Products\"}}],"
+				+ "\"connectTcsAccountContactLinkTs\": [{\"contactT\":{\"contactId\": \"CON1\"}}],"
+				+ "\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 2 1\"},{\"notesUpdated\": \"Sample note9 set 2 2\"}]}";
+		// jsonObject.toString();
+
+		UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
+		Authentication authToken = new UsernamePasswordAuthenticationToken(
+				userDetails, userDetails.getPassword(),
+				userDetails.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(authToken);
+
+		this.mockMvc
+				.perform(
+						post("/connect")
+								.contentType(TestUtil.APPLICATION_JSON_UTF8)
+								.content(requestJson)
+								.header("Authorization", "Basic YWFhOmJiYg==")
+								.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+
+	@Test
+	public void TestEditConnect() throws Exception {
+
+		// JsonFactory jfactory = new JsonFactory();
+		// JSONParser parser = new JSONParser();
+		// Object obj = parser
+		// .parse(new FileReader(
+		// "/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
+		//
+		// JSONObject jsonObject = (JSONObject) obj;
+		String requestJson = "{\"connectCategory\":\"CUSTOMER\",\"connectId\":\"CNN4\",\"connectName\":\"new connect\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,"
+				+"\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\", \"connectKeywords\": \"a197,b908\", \"customerId\": \"CUS541\", "
+				+"\"connectCustomerContactLinkTs\": [{\"connectCustomerContactLinkId\":\"CCC31\", \"contactT\": { \"contactId\": \"CON2\"}}], \"connectOfferingLinkTs\": "
+				+"[{\"connectOfferingLinkId\":\"COF23\",\"offeringMappingT\": {\"offering\": \"BPaaS - Cloud Payment\"} }], \"connectSecondaryOwnerLinkTs\": [{\"connectSecondaryOwnerLinkId\":\"CSO20\",\"secondaryOwner\": \"541045\"}],"
+				+"\"connectSubSpLinkTs\": [{ \"connectSubSpLinkId\":\"CSs9\",\"subSpMappingT\": { \"subSp\": \"Mobility - Services\" }},"
+				+"{\"subSpMappingT\":  {\"subSp\": \"Cloud\"}}],\"connectTcsAccountContactLinkTs\": "
+				+"[ {\"connect_tcs_account_contact_link_id\":\"CTC11\",\"contactT\": {\"contactId\": \"CON1\" }}], \"taskTs\": [{\"taskId\":\"TASK1\",\"createdModifiedBy\":\"541045\",\"createdModifiedDatetime\":982336120000,\"documentsAttached\":\"No\",\"taskStatus\":\"OPEN\",\"taskDescription\":\"Description\",\"targetDateForCompletion\":982336120000,\"taskOwner\":\"541045\",\"entityReference\":\"CUSTOMER\",\"opportunityId\":\"OPP1\"}],\"connectOpportunityLinkIdTs\": [{ \"connectOpportunityLinkId\":\"CNO1\",\"opportunityT\": {\"opportunityId\": \"OPP1\"}}],\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 3 1 update\"},{ \"notesUpdated\": \"Sample note9 set 3 2 update\" }]}";
+
+		UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
+		Authentication authToken = new UsernamePasswordAuthenticationToken(
+				userDetails, userDetails.getPassword(),
+				userDetails.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(authToken);
+
+		this.mockMvc
+				.perform(
+						put("/connect")
+								.contentType(TestUtil.APPLICATION_JSON_UTF8)
+								.content(requestJson)
+								.header("Authorization", "Basic YWFhOmJiYg==")
+								.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
 }

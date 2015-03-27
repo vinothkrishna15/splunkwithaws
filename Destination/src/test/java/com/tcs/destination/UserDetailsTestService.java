@@ -74,15 +74,15 @@ public class UserDetailsTestService {
 				.andExpect(status().isOk())
 				.andExpect(
 						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.userId").value("886301"))
-				.andExpect(jsonPath("$.supervisorUserId").value("1323232"))
+				.andExpect(jsonPath("$.userId").value("541045"))
+				.andExpect(jsonPath("$.supervisorUserId").value("833389"))
 				.andExpect(jsonPath("$.tempPassword").value("bbb"))
 				.andExpect(
 						jsonPath("$.userEmailId").value(
-								"gopikrish.rgk03@gmail.com"))
+								"aaa@tcs.com"))
 				.andExpect(jsonPath("$.userGeography").value("India"))
 				.andExpect(jsonPath("$.userName").value("aaa"))
-				.andExpect(jsonPath("$.userTelephone").value("9894950547"))
+				.andExpect(jsonPath("$.userTelephone").value("9042805256"))
 				.andExpect(jsonPath("$.accountNonExpired").value(val))
 				.andExpect(jsonPath("$.accountNonLocked").value(val))
 				.andExpect(jsonPath("$.credentialsNonExpired").value(val))
@@ -99,18 +99,18 @@ public class UserDetailsTestService {
 				.andExpect(status().isOk())
 				.andExpect(
 						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$[0].userId").value("886301"))
-				.andExpect(jsonPath("$[0].supervisorUserId").value("1323232"))
+				.andExpect(jsonPath("$[0].userId").value("541045"))
+				.andExpect(jsonPath("$[0].supervisorUserId").value("833389"))
 				.andExpect(
 						jsonPath("$[0].supervisorUserName").value(
-								"parthiv patel"))
+								"Parthiv Patel"))
 				.andExpect(jsonPath("$[0].tempPassword").value("bbb"))
 				.andExpect(
 						jsonPath("$[0].userEmailId").value(
-								"gopikrish.rgk03@gmail.com"))
+								"aaa@tcs.com"))
 				.andExpect(jsonPath("$[0].userGeography").value("India"))
 				.andExpect(jsonPath("$[0].userName").value("aaa"))
-				.andExpect(jsonPath("$[0].userTelephone").value("9894950547"))
+				.andExpect(jsonPath("$[0].userTelephone").value("9042805256"))
 				.andReturn();
 
 	}

@@ -26,5 +26,5 @@ public class TestUtil {
 		mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 		return mapper.writeValueAsBytes(object);
 	}
-
+	
 }

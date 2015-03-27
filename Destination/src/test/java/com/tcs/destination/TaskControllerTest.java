@@ -170,6 +170,27 @@ public class TaskControllerTest {
 	}
 	
 	@Test
+	public void TestTaskByTargetDate() throws Exception
+	{   
+		
+		mockMvc.perform(get("/task/findByTargetDate?id=833389&date=2015-03-18&fields=taskId,createdModifiedBy,documentsAttached,"
+				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$[0].taskId").value("TAS1"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("887053"))
+			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
+			.andExpect(jsonPath("$[0].taskOwner").value("833389"))
+			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
+			.andExpect(jsonPath("$[0].connectId").value("CNN1"))
+			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
+			.andDo(print()).andReturn();
+	}
+	
+	
+	
+	
+	@Test
 	public void TestTaskForCreate() throws Exception{
 		String requestJson="{\"collaborationPreference\": \"Restricted\", \"createdModifiedBy\": \"887054\", \"createdModifiedDatetime\": 1426617000000,"
    +" \"documentsAttached\": \"No\", \"entityReference\": \"Opportunity\", \"targetDateForCompletion\": 1426617000000, \"taskDescription\": \"Task for Test45\","
