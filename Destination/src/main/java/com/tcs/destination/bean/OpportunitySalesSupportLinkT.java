@@ -51,7 +51,7 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "sales_support_owner")
+	@JoinColumn(name = "sales_support_owner", insertable = false, updatable = false)
 	private UserT userT;
 
 	public OpportunitySalesSupportLinkT() {
