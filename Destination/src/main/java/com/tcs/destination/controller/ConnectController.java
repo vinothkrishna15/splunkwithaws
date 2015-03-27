@@ -89,10 +89,7 @@ public class ConnectController {
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) {
-
-		if (weekStartDate.getTime() == weekEndDate.getTime()
-				&& monthStartDate.getTime() == monthEndDate.getTime()) {
-			System.out.println("Old Code");
+		if (weekStartDate.getTime() == 0 && monthStartDate.getTime() == 0) {
 			List<ConnectT> connects = connectService
 					.searchforConnectsBetweenForUserOrCustomerOrPartner(
 							fromDate, toDate, userId, owner, customerId,
