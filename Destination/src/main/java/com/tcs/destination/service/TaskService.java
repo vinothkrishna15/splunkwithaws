@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.ParseException;
 import java.util.List;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +18,6 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants.TaskCollaborationPreference;
 import com.tcs.destination.utils.Constants.TaskEntityReference;
 import com.tcs.destination.utils.Constants.TaskStatus;
-import com.tcs.destination.utils.DateUtil;
-
 
 /**
  * Service class to handle Task module related requests.
@@ -167,17 +165,11 @@ public class TaskService {
 	 * @param userId, targetDate
 	 * @return tasks assigned to a user with a specific target completion date.
 	 */
-	public List<TaskT> findTasksByUserAndTargetDate(String userId, String targetDate) 
+	public List<TaskT> findTasksByUserAndTargetDate(String userId, Date targetDate) 
 			throws Exception {
 		List<TaskT> taskList = null;
 		
-		try {
-			taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletion(
-				userId, DateUtil.convertStringToDate(targetDate));
-		} catch (ParseException pe) {
-			throw new DestinationException(
-				HttpStatus.INTERNAL_SERVER_ERROR, "Error occured while parsing Target completion date");
-		}
+		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletion(userId, targetDate);
 		
 		if ((taskList == null) || taskList.isEmpty()) {
 			throw new DestinationException(
