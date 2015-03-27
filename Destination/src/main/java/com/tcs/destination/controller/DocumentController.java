@@ -3,10 +3,12 @@ package com.tcs.destination.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 
+
+
+//import org.apache.commons.collections.map.MultiValueMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -71,6 +73,7 @@ public class DocumentController {
 			@RequestParam(value = "view", defaultValue = "") String view) {
 		
 		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
+		if(document!=null){
 		String fullPath = document.getFileReference();
 		File file = new File(fullPath);
 		String name = document.getDocumentName();
@@ -88,15 +91,15 @@ public class DocumentController {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new ResponseEntity<InputStreamResource>(HttpStatus.NOT_FOUND);
 		}
-	    return null;
-	    
-		
-		
+		}else{
+			return new ResponseEntity<InputStreamResource>(HttpStatus.NOT_FOUND);
+		}
 		//return documentService.download(documentId);
 	}
 	
-	@RequestMapping(value = "/delete", method = RequestMethod.PUT)
+	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete){
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
@@ -125,7 +128,7 @@ public class DocumentController {
 		return Constants.filterJsonForFieldAndViews(fields, view, docrep);
 	}
 
-	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
 			@RequestParam("documentName") String documentName,
 			
