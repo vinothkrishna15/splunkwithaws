@@ -60,12 +60,74 @@ public class OpportunityControllerTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void testByOpportunityName() throws Exception {
 		mockMvc.perform(get("/opportunity?nameWith=ABM TECH&fields=opportunityId,createdModifiedBy").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 		.andExpect(jsonPath("$.opportunityId").value("OPP2"))
 		.andExpect(jsonPath("$.createdModifiedBy").value("232323"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
+	public void testOpportunityByRecentUsingCustomerId() throws Exception {
+       mockMvc.perform(get("/opportunity/recent?customerId=CUS543&fields=opportunityRequestReceiveDate,opportunityDescription,opportunityName,crmId").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$[0].opportunityRequestReceiveDate").value("2014-11-11"))
+		.andExpect(jsonPath("$[0].opportunityDescription").value("THIS IS A RETAIL COMPANY"))
+		.andExpect(jsonPath("$[0].opportunityName").value("ABM TECH"))
+		.andExpect(jsonPath("$[0].crmId").value("12343"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingPrimaryOwner() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=886301&role=PRIMARY_OWNER&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
+		.andExpect(jsonPath("$[0].crmId").value("12343"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingSalesSupport() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=886301&role=SALES_SUPPORT&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
+		.andExpect(jsonPath("$[0].crmId").value("12343"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingBidOffice() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=886301&role=BID_OFFICE&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
+		.andExpect(jsonPath("$[0].crmId").value("12343"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingAll() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=886301&role=ALL&fields=opportunityName,bidDetailsTs,bidId,actualBidSubmissionDate,coreAttributesUsedForWinning").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$[0].opportunityName").value("ABM TECH"))
+		.andExpect(jsonPath("$[0].bidDetailsTs.bidId").value("BID1"))
+		.andExpect(jsonPath("$[0].bidDetailsTs.actualBidSubmissionDate").value("2005-12-12"))
+		.andExpect(jsonPath("$[0].bidDetailsTs.coreAttributesUsedForWinning").value("HARD WORK"))
 		.andDo(print())
 		.andReturn();
 	}
