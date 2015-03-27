@@ -18,38 +18,40 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the opportunity_sales_support_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunitySalesSupportLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunitySalesSupportLinkId")
 @Entity
-@Table(name="opportunity_sales_support_link_t")
-@NamedQuery(name="OpportunitySalesSupportLinkT.findAll", query="SELECT o FROM OpportunitySalesSupportLinkT o")
+@Table(name = "opportunity_sales_support_link_t")
+@NamedQuery(name = "OpportunitySalesSupportLinkT.findAll", query = "SELECT o FROM OpportunitySalesSupportLinkT o")
 public class OpportunitySalesSupportLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_sales_support_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_sales_support_link_id")
 	private String opportunitySalesSupportLinkId;
 
-	@Column(name="create_modified_datetime")
+	@Column(name = "create_modified_datetime")
 	private Timestamp createModifiedDatetime;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	//bi-directional many-to-one association to OpportunityT
+	@Column(name = "sales_support_owner")
+	private String salesSupportOwner;
+
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="sales_support_owner")
+	@JoinColumn(name = "sales_support_owner", insertable = false, updatable = false)
 	private UserT userT;
 
 	public OpportunitySalesSupportLinkT() {
@@ -59,7 +61,8 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 		return this.opportunitySalesSupportLinkId;
 	}
 
-	public void setOpportunitySalesSupportLinkId(String opportunitySalesSupportLinkId) {
+	public void setOpportunitySalesSupportLinkId(
+			String opportunitySalesSupportLinkId) {
 		this.opportunitySalesSupportLinkId = opportunitySalesSupportLinkId;
 	}
 
@@ -93,6 +96,14 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public void setSalesSupportOwner(String salesSupportOwner) {
+		this.salesSupportOwner = salesSupportOwner;
+	}
+
+	public String getSalesSupportOwner() {
+		return salesSupportOwner;
 	}
 
 }

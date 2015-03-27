@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
 
@@ -84,14 +84,30 @@ public class ConnectController {
 			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
 			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
-			@RequestParam(value = "partnerId", defaultValue = "") String partnerId) {
-		List<ConnectT> connects = connectService
-				.searchforConnectsBetweenForUser(fromDate, toDate, userId,
-						owner, customerId, partnerId);
-		return Constants.filterJsonForFieldAndViews(fields, view, connects);
+			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
+			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
+			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
+			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) {
+		if (weekStartDate.getTime() == 0 && monthStartDate.getTime() == 0) {
+			List<ConnectT> connects = connectService
+					.searchforConnectsBetweenForUserOrCustomerOrPartner(
+							fromDate, toDate, userId, owner, customerId,
+							partnerId);
+			return Constants.filterJsonForFieldAndViews(fields, view, connects);
+		} else {
+			DashBoardConnectsResponse dashBoardConnectsResponse = connectService
+					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
+							userId, owner, customerId, partnerId,
+							weekStartDate, weekEndDate, monthStartDate,
+							monthEndDate);
+			return Constants.filterJsonForFieldAndViews(fields, view,
+					dashBoardConnectsResponse);
+		}
+
 	}
 
-	@RequestMapping(method = RequestMethod.POST)	
+	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToConnect(
 			@RequestBody ConnectT connect) {
 		Status status = new Status();

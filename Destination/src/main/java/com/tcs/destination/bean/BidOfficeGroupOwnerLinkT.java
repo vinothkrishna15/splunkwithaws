@@ -18,42 +18,54 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the bid_office_group_owner_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidOfficeGroupOwnerLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "bidOfficeGroupOwnerLinkId")
 @Entity
-@Table(name="bid_office_group_owner_link_t")
-@NamedQuery(name="BidOfficeGroupOwnerLinkT.findAll", query="SELECT b FROM BidOfficeGroupOwnerLinkT b")
+@Table(name = "bid_office_group_owner_link_t")
+@NamedQuery(name = "BidOfficeGroupOwnerLinkT.findAll", query = "SELECT b FROM BidOfficeGroupOwnerLinkT b")
 public class BidOfficeGroupOwnerLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="bid_office_group_owner_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "bid_office_group_owner_link_id")
 	private String bidOfficeGroupOwnerLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to BidDetailsT
+	@Column(name = "bid_office_group_owner")
+	private String bidOfficeGroupOwner;
+
+	@Column(name = "bid_id")
+	private String bidId;
+
+	// bi-directional many-to-one association to BidDetailsT
 	@ManyToOne
-	@JoinColumn(name="bid_id")
+	@JoinColumn(name = "bid_id", insertable = false, updatable = false)
 	private BidDetailsT bidDetailsT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="bid_office_group_owner")
+	@JoinColumn(name = "bid_office_group_owner", insertable = false, updatable = false)
 	private UserT userT;
 
 	public BidOfficeGroupOwnerLinkT() {
+	}
+
+	public String getBidId() {
+		return bidId;
+	}
+
+	public void setBidId(String bidId) {
+		this.bidId = bidId;
 	}
 
 	public String getBidOfficeGroupOwnerLinkId() {
@@ -94,6 +106,14 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public String getBidOfficeGroupOwner() {
+		return bidOfficeGroupOwner;
+	}
+
+	public void setBidOfficeGroupOwner(String bidOfficeGroupOwner) {
+		this.bidOfficeGroupOwner = bidOfficeGroupOwner;
 	}
 
 }

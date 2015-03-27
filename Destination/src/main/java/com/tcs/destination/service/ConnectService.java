@@ -17,6 +17,7 @@ import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
@@ -70,9 +71,29 @@ public class ConnectService {
 		return connectList;
 	}
 
-	public List<ConnectT> searchforConnectsBetweenForUser(Date fromDate,
-			Date toDate, String userId, String owner, String customerId,
-			String partnerId) {
+	public DashBoardConnectsResponse searchDateRangwWithWeekAndMonthCount(
+			Date fromDate, Date toDate, String userId, String owner,
+			String customerId, String partnerId, Date weekStartDate,
+			Date weekEndDate, Date monthStartDate, Date monthEndDate) {
+		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
+		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
+				fromDate, toDate, userId, owner, customerId, partnerId));
+		if (weekStartDate.getTime() != 0) {
+			response.setWeekCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
+					weekStartDate, weekEndDate, userId, owner, customerId,
+					partnerId).size());
+		}
+		if (monthStartDate.getTime() != 0) {
+			response.setMonthCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
+					monthStartDate, monthEndDate, userId, owner, customerId,
+					partnerId).size());
+		}
+		return response;
+	}
+
+	public List<ConnectT> searchforConnectsBetweenForUserOrCustomerOrPartner(
+			Date fromDate, Date toDate, String userId, String owner,
+			String customerId, String partnerId) {
 		if (OWNER_TYPE.contains(owner)) {
 			List<ConnectT> connects = new ArrayList<ConnectT>();
 			if (owner.equalsIgnoreCase(OWNER_TYPE.PRIMARY.toString())) {
@@ -347,8 +368,8 @@ public class ConnectService {
 		List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
 				.getConnectOpportunityLinkIdTs();
 		if (conOppLinkIdTList != null)
-		populateOppLinks(currentUserId, currentTimeStamp, connectId,
-				conOppLinkIdTList);
+			populateOppLinks(currentUserId, currentTimeStamp, connectId,
+					conOppLinkIdTList);
 
 		if (connect.getConnectSubLinkDeletionList() != null) {
 			deleteSubSps(connect.getConnectSubLinkDeletionList());
