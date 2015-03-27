@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.fileUpload;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -73,39 +74,61 @@ public class DocumentControllerTest {
 	
 	@Test
 	public void toTestNegativeInputs() throws Exception {
-		mockMvc.perform(get("/docuerment/DCO1?fields=documentIed,connecetT,conneectId").accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/document/DCO1?fields=documentIed,connecetT,conneectId").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isNotFound());
 	}
 	
 	@Test
 	public void TestUpload() throws Exception {
-		File resourcesDirectory = new File("src/test/java/com/tcs/destination/persistence.xml");
-		String fullPath = resourcesDirectory.getAbsolutePath();
-		
-		Path path = Paths.get(resourcesDirectory.toURI());
-		byte[] data = Files.readAllBytes(path);
-		FileNameMap fileNameMap = URLConnection.getFileNameMap();
-		 String fileUrl = "file://"+fullPath;
-		String type = fileNameMap.getContentTypeFor(fileUrl);
-		
-		MockMultipartFile mockMultipartFile =
-		       new MockMultipartFile("file", fullPath, type, data);
-		mockMvc.perform(fileUpload("/document/upload?documentName=MyDoc&documentType=DOC&entityType=CUSTOMER&parentEntity=CUSTOMER&parentEntityId=CUS541&uploadedBy=541045&connectId=CNN1")
+		MockMultipartFile mockMultipartFile = getMultipartFile(TestConstants.testUploadFileLoc,"file");
+		String fileExtension = getFileExtension(TestConstants.testUploadFileLoc);
+		mockMvc.perform(fileUpload("/document?documentName=MyDoc"+fileExtension+"&documentType=DOC&entityType=CUSTOMER&parentEntity=CUSTOMER"
+				+ "&parentEntityId=CUS541&uploadedBy=541045&connectId=CNN1")
 				.file(mockMultipartFile)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("Success"));
 		
+	}
+
+	private String getFileExtension(String testuploadfileloc) {
+		File resourcesDirectory = new File(TestConstants.testUploadFileLoc);
+		String fullPath = resourcesDirectory.getAbsolutePath();
+		return fullPath.substring(fullPath.lastIndexOf("."), fullPath.length());
+	}
+
+	/*
+	 * getMultipartFile - Returns the file in the format to upload. Accepts the file location, url param name as input.
+	 * @return MockMultipartFile
+	 * @param testuploadfileloc
+	 * @param urlParamName
+	 */
+	private MockMultipartFile getMultipartFile(String testuploadfileloc, String urlParamName) throws Exception{
+		File resourcesDirectory = new File(testuploadfileloc);
+		
+		String fullPath = resourcesDirectory.getAbsolutePath();
+		
+		String fileUrl = TestConstants.ftpPrefix+fullPath;
+		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+		String type = fileNameMap.getContentTypeFor(fileUrl);
+		
+		byte[] data = getBytes(resourcesDirectory);
+		
+		return new MockMultipartFile(urlParamName, fullPath, type, data);
+	}
+
+	private byte[] getBytes(File resourcesDirectory) throws Exception{
+		Path path = Paths.get(resourcesDirectory.toURI());
+		return Files.readAllBytes(path);
 	}
 	
 	
 	@Test
 	public void TestDownload() throws Exception {
-		mockMvc.perform(get("/document/download/DOC4")).andExpect(status().isOk());
-		
+		mockMvc.perform(get("/document/download/DOC6")).andExpect(status().isOk());
 	}
 	
 	@Test
 	public void TestDelete() throws Exception {
-		mockMvc.perform(put("/document/delete?docIds=DOC4,DOC5")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("Success"));
+		mockMvc.perform(delete("/document?docIds=DOC6,DOC7")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("Success"));
 	}
 
 }

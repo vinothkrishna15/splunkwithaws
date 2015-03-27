@@ -96,7 +96,7 @@ public class DocumentController {
 		//return documentService.download(documentId);
 	}
 	
-	@RequestMapping(value = "/delete", method = RequestMethod.PUT)
+	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete){
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
@@ -125,7 +125,7 @@ public class DocumentController {
 		return Constants.filterJsonForFieldAndViews(fields, view, docrep);
 	}
 
-	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
 			@RequestParam("documentName") String documentName,
 			
