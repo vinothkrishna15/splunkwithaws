@@ -9,12 +9,15 @@ import java.util.Calendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DocumentRepository;
+import com.tcs.destination.exception.DestinationException;
 
 @Component
 public class DocumentService {
@@ -34,8 +37,11 @@ public class DocumentService {
 //			return 0;
 //	}
 
-	public DocumentRepositoryT findByDocumentId(String documentId) {
+	public DocumentRepositoryT findByDocumentId(String documentId) throws Exception{
 		DocumentRepositoryT docRep = documentRepository.findByDocumentId(documentId);
+		if(docRep==null){
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data/document Found in the database");
+		}
 		return docRep;
 	}
 	
@@ -140,14 +146,25 @@ public class DocumentService {
 		return saveDir.toString();
 	}
 
-	public void deleteDocRecords(String[] docIds) throws Exception{
+	@Transactional
+	public String deleteDocRecords(String[] docIds){
+		StringBuffer deletedRecords = new StringBuffer("");
+		int index = 0;
 		for(String docId : docIds){
+			index++;
 			DocumentRepositoryT docRep = documentRepository.findByDocumentId(docId);
 			//getDocumentPath(connectDoc.getDocumentId());
+			if(docRep!=null){
 			String fullPath = docRep.getFileReference();
-			deleteFile(fullPath);
 			documentRepository.delete(docRep);
+			deleteFile(fullPath);
+			deletedRecords.append(docId);
+			if(index < docIds.length){
+			deletedRecords.append(",");
+			} 
+			}
 		}
+		return deletedRecords.toString();
 	}
 		
 		public void deleteFile(String fullPath) {

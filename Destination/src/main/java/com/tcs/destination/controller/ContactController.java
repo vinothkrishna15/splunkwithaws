@@ -30,7 +30,7 @@ public class ContactController {
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		List<ContactT> contactlist = contactService.searchforContact(
 				customerId, partnerId, nameWith);
 		return Constants.filterJsonForFieldAndViews(fields, view, contactlist);

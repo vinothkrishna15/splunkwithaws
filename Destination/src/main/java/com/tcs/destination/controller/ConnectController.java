@@ -44,7 +44,7 @@ public class ConnectController {
 	public @ResponseBody String ConnectSearchById(
 			@PathVariable("id") String connectId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		ConnectT connect = connectService.searchforConnectsById(connectId);
 		return Constants.filterJsonForFieldAndViews(fields, view, connect);
 	}
@@ -56,12 +56,13 @@ public class ConnectController {
 	 * @param name
 	 *            is the connection name.
 	 * @return connection details for the particular connection name.
+	 * @throws Exception 
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
 			@RequestParam("nameWith") String connectName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		List<ConnectT> connectlist = connectService
 				.searchforConnectsByNameContaining(connectName);
 		return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
@@ -88,7 +89,8 @@ public class ConnectController {
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
-			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) {
+			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) 
+	throws Exception{
 
 		if (weekStartDate.getTime() == weekEndDate.getTime()
 				&& monthStartDate.getTime() == monthEndDate.getTime()) {
@@ -112,43 +114,28 @@ public class ConnectController {
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToConnect(
-			@RequestBody ConnectT connect) {
+			@RequestBody ConnectT connect) throws Exception {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try {
+		
 			if (connectService.insertConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
-
 			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			status.setStatus(Status.FAILED, e.getMessage());
-			// status.setDescription();
-			return new ResponseEntity<String>(
-					Constants.filterJsonForFieldAndViews("all", "", status),
-					HttpStatus.BAD_REQUEST);
-		}
+		
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editConnect(
-			@RequestBody ConnectT connect) {
+			@RequestBody ConnectT connect) throws Exception {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try {
+		
 			if (connectService.editConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			status.setStatus(Status.FAILED, e.getMessage());
-			// status.setDescription(e.getMessage());
-			return new ResponseEntity<String>(
-					Constants.filterJsonForFieldAndViews("all", "", status),
-					HttpStatus.BAD_REQUEST);
-		}
+		
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}

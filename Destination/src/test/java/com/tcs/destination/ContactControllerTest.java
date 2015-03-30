@@ -67,7 +67,7 @@ public class ContactControllerTest {
 	{
 		mockMvc.perform(get("/contact?customerId=CUS54")
 				.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().is5xxServerError());
+			.andExpect(status().isNotFound());
 	}
 	
 	
@@ -94,7 +94,7 @@ public class ContactControllerTest {
 	{
 		mockMvc.perform(get("/contact?partnerId=PAT1")
 				.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().is5xxServerError());
+			.andExpect(status().isNotFound());
 	}
 	
 	@Test

@@ -21,7 +21,7 @@ public class RecentlyAddedController {
 	public @ResponseBody String recentlyAdded(@RequestParam("entityType") String entityType,
 			@RequestParam(value="count",defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		Object response=recentlyAddedService.recentlyAdded(entityType,count);
 		return Constants.filterJsonForFieldAndViews(fields, view, response);
 	}

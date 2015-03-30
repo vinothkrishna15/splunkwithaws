@@ -54,7 +54,7 @@ public class CollaborationCommentsControllerTest {
 						.content(requestJson)
 						.header("Authorization", "Basic YWFhOmJiYg==")
 						.accept(MediaType.APPLICATION_JSON))
-		.andExpect(status().isOk()).andDo(print()).andReturn();
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
 	}
 
 }

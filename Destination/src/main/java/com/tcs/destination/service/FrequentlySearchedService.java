@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.CustomerMasterT;
@@ -13,6 +14,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.FrequentlySearchedRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.exception.NoSuchEntityException;
 import com.tcs.destination.utils.Constants;
@@ -31,7 +33,7 @@ public class FrequentlySearchedService {
 	FrequentlySearchedRepository frequentRepository;
 
 	public List<FrequentlySearchedResponse> findFrequent(String entity,
-			int count) {
+			int count) throws Exception{
 		entity=entity.toUpperCase();
 
 		if (EntityType.contains(entity)) {
@@ -63,10 +65,10 @@ public class FrequentlySearchedService {
 				}
 			}
 			if (sortedList.isEmpty())
-				throw new NoDataFoundException();
+				throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
 			return sortedList;
 		} else {
-			throw new NoSuchEntityException();
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"No such Entity type exists. Please ensure your entity type.");
 		}
 	}
 

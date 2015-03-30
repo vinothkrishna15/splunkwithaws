@@ -68,7 +68,7 @@ public class DocumentController {
 	public ResponseEntity<InputStreamResource>  download(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		
 		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
 		String fullPath = document.getFileReference();
@@ -100,17 +100,9 @@ public class DocumentController {
 	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete){
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		try {
-			documentService.deleteDocRecords(docIds);
-			status.setStatus(Status.SUCCESS, "Files Deleted");
+			String deletedIds = documentService.deleteDocRecords(docIds);
+			status.setStatus(Status.SUCCESS, "Files Deleted for " + deletedIds);
 			return Constants.filterJsonForFieldAndViews("all", "", status);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			status.setStatus(Status.FAILED, "Files Not Deleted");
-			return Constants.filterJsonForFieldAndViews("all", "", status);
-		}
-		
 	}
 		
 		
@@ -119,7 +111,7 @@ public class DocumentController {
 	public @ResponseBody String findOne(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		DocumentRepositoryT docrep = documentService
 				.findByDocumentId(documentId);
 		return Constants.filterJsonForFieldAndViews(fields, view, docrep);

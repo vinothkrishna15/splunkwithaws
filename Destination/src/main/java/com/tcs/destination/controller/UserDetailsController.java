@@ -28,7 +28,7 @@ public class UserDetailsController {
 	public @ResponseBody String findOne(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "nameWith", defaultValue = "") String nameWith) {
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith) throws Exception {
 		if (nameWith.equals("")) {
 			return Constants.filterJsonForFieldAndViews(fields, view,
 					Constants.getCurrentUserDetails());

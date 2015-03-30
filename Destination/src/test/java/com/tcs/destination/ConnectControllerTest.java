@@ -87,7 +87,7 @@ public class ConnectControllerTest {
 	public void Test2ConnectById() throws Exception {
 		mockMvc.perform(
 				get("/connect/CNN1000").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().is5xxServerError());
+				.andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -110,7 +110,7 @@ public class ConnectControllerTest {
 		mockMvc.perform(
 				get("/connect?nameWith=ABCD")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().is5xxServerError());
+				status().isNotFound());
 	}
 
 	@Test

@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.exception.ConnectionNotFoundException;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.exception.NoSuchOwnerTypeException;
 import com.tcs.destination.utils.Constants;
@@ -52,29 +54,29 @@ public class ConnectService {
 	@Autowired
 	DocumentRepository docRepo;
 
-	public ConnectT searchforConnectsById(String connectId) {
+	public ConnectT searchforConnectsById(String connectId) throws Exception{
 		ConnectT connect = connectRepository.findByConnectId(connectId);
 
 		if (connect == null)
-			throw new ConnectionNotFoundException();
+			throw new DestinationException(HttpStatus.NOT_FOUND,"Connection information not available");
 
 		return connect;
 
 	}
 
-	public List<ConnectT> searchforConnectsByNameContaining(String name) {
+	public List<ConnectT> searchforConnectsByNameContaining(String name) throws Exception{
 		List<ConnectT> connectList = connectRepository
 				.findByConnectNameIgnoreCaseLike("%" + name + "%");
 
 		if (connectList.isEmpty())
-			throw new ConnectionNotFoundException();
+			throw new DestinationException(HttpStatus.NOT_FOUND,"Connection information not available");
 		return connectList;
 	}
 
 	public DashBoardConnectsResponse searchDateRangwWithWeekAndMonthCount(
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, Date weekStartDate,
-			Date weekEndDate, Date monthStartDate, Date monthEndDate) {
+			Date weekEndDate, Date monthStartDate, Date monthEndDate) throws Exception{
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
 				fromDate, toDate, userId, owner, customerId, partnerId));
@@ -93,7 +95,7 @@ public class ConnectService {
 
 	public List<ConnectT> searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
-			String customerId, String partnerId) {
+			String customerId, String partnerId) throws Exception{
 		if (OWNER_TYPE.contains(owner)) {
 			List<ConnectT> connects = new ArrayList<ConnectT>();
 			if (owner.equalsIgnoreCase(OWNER_TYPE.PRIMARY.toString())) {
@@ -124,10 +126,10 @@ public class ConnectService {
 				}
 			}
 			if (connects.isEmpty())
-				throw new NoDataFoundException();
+				throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
 			return connects;
 		}
-		throw new NoSuchOwnerTypeException();
+		throw new DestinationException(HttpStatus.BAD_REQUEST,"No such Owner Type exists. Please ensure your Owner Type.");
 	}
 
 	public boolean insertConnect(ConnectT connect) throws Exception {
@@ -142,6 +144,7 @@ public class ConnectService {
 		ConnectT backupConnect = backup(connect);
 		setNullForReferencedObjects(connect);
 
+		try {
 		if (connectRepository.save(connect) != null) {
 
 			backupConnect.setConnectId(connect.getConnectId());
@@ -186,11 +189,13 @@ public class ConnectService {
 
 			if (connectRepository.save(connect) != null) {
 				return true;
-			} else {
-				return false;
-			}
+			} 
 
 		}
+		}catch(Exception e){
+		  throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());	
+		}
+		
 		return false;
 	}
 
@@ -318,6 +323,7 @@ public class ConnectService {
 
 		// backupConnect.setConnectId(connect.getConnectId());
 		// connect = restore(backupConnect);
+		try{
 		String categoryUpperCase = connect.getConnectCategory().toUpperCase();
 		connect.setConnectCategory(categoryUpperCase);
 		String connectId = connect.getConnectId();
@@ -383,9 +389,12 @@ public class ConnectService {
 
 		if (connectRepository.save(connect) != null) {
 			return true;
-		} else {
-			return false;
+		} 
+		} catch(Exception e){
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());	
 		}
+		
+		return false;
 
 	}
 

@@ -25,7 +25,7 @@ public class PartnerController {
 	public @ResponseBody String findOne(
 			@PathVariable("id") String partnerid,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		PartnerMasterT partner = partnerService.findById(partnerid);
 		return Constants.filterJsonForFieldAndViews(fields, view, partner);
 	}
@@ -34,7 +34,7 @@ public class PartnerController {
 	public @ResponseBody String findNameWith(
 			@RequestParam("nameWith") String chars,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		List<PartnerMasterT> customer = partnerService
 				.findByNameContaining(chars);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);

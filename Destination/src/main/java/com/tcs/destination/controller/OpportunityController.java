@@ -30,7 +30,7 @@ public class OpportunityController {
 	public @ResponseBody String findOne(
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		OpportunityT opportunity = opportunityService
 				.findByOpportunityName(nameWith);
 		return Constants.filterJsonForFieldAndViews(fields, view, opportunity);
@@ -40,7 +40,7 @@ public class OpportunityController {
 	public @ResponseBody String findByCustomerId(
 			@RequestParam("customerId") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		List<OpportunityT> opportunities = opportunityService
 				.findRecentOpportunities(customerId);
 		return Constants
@@ -52,17 +52,13 @@ public class OpportunityController {
 			@RequestParam("id") String taskOwner,
 			@RequestParam(value="role",defaultValue="ALL") String opportunityRole,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
-		try{
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+
 		List<OpportunityT> opportunities = opportunityService
 				.findByTaskOwnerForRole(taskOwner,opportunityRole);
 		return new ResponseEntity<String>(Constants
 				.filterJsonForFieldAndViews(fields, view, opportunities),HttpStatus.OK);
-		}catch(DestinationException de){
-			System.out.println("No data found " + de.getMessage());
-			return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, de.getMessage()), de.getHttpStatus());
-		}
+		
 		
 	}
 

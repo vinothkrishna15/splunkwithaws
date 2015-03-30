@@ -32,15 +32,15 @@ public class OpportunityService {
 	@Autowired
 	BidOfficeGroupOwnerLinkTRepository bidOfficeGroupOwnerLinkTRepository;
 
-	public OpportunityT findByOpportunityName(String nameWith) {
+	public OpportunityT findByOpportunityName(String nameWith) throws Exception{
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
 		if (opportunity == null)
-			throw new OpportunityNotFoundException();
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No such Opportunity Found. Please ensure your Opportunity name.");
 		return opportunity;
 	}
 
-	public List<OpportunityT> findRecentOpportunities(String customerId) {
+	public List<OpportunityT> findRecentOpportunities(String customerId) throws Exception{
 
 		// Date date = new Date(); // Or where ever you get it from
 		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
@@ -53,11 +53,11 @@ public class OpportunityService {
 		if (!opportunities.isEmpty()) {
 			return opportunities;
 		}
-		throw new NoDataFoundException();
+		throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
 	}
 
 	public List<OpportunityT> findByTaskOwnerForRole(String taskOwner,
-			String opportunityRole) throws DestinationException {
+			String opportunityRole) throws Exception {
 
 		if (OpportunityRole.contains(opportunityRole)) {
 			switch (OpportunityRole.valueOf(opportunityRole)) {

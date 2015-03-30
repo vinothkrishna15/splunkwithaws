@@ -33,7 +33,7 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "count", defaultValue = "4") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "owner", defaultValue = "all") String owner) {
+			@RequestParam(value = "owner", defaultValue = "all") String owner) throws Exception{
 		return Constants.filterJsonForFieldAndViews(fields, view,
 				frequentService.findFrequent(entity, count));
 	}

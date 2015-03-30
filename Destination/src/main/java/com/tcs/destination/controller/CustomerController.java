@@ -26,7 +26,7 @@ public class CustomerController {
 	public @ResponseBody String findOne(
 			@PathVariable("id") String customerid,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		CustomerMasterT customer = customerService.findById(customerid);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
 	}
@@ -35,7 +35,7 @@ public class CustomerController {
 	public @ResponseBody String findNameWith(
 			@RequestParam("nameWith") String chars,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		List<CustomerMasterT> customer = customerService
 				.findByNameContaining(chars);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
@@ -46,7 +46,7 @@ public class CustomerController {
 			@RequestParam("name") String name,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "currency", defaultValue = "USD") String currency) {
+			@RequestParam(value = "currency", defaultValue = "USD") String currency) throws Exception {
 		List<TargetVsActualResponse> tarVsAct = customerService
 				.findTargetVsActual(name, currency);
 		return Constants.filterJsonForFieldAndViews(fields, view, tarVsAct);
@@ -57,7 +57,7 @@ public class CustomerController {
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		List<CustomerMasterT> topRevenueCustomers = customerService
 				.findTopRevenue(count, financialYear);
 
@@ -69,7 +69,7 @@ public class CustomerController {
 	public @ResponseBody String findByGroupCustomerName(
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		List<CustomerMasterT> customer = (List<CustomerMasterT>)customerService.findByGroupCustomerName(nameWith);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
 	}

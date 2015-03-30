@@ -28,24 +28,13 @@ public class CollaborationCommentsController {
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertComments(
-			@RequestBody CollaborationCommentT comments) {
+			@RequestBody CollaborationCommentT comments) throws Exception {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try {
 			if (commentsService.insertComments(comments)) {
 				status.setStatus(Status.SUCCESS,comments.getCommentId());
 			}
-		} catch (Exception e) {
-			status.setStatus(Status.FAILED,e.getMessage());
-			return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.BAD_REQUEST);
-		}
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
-	}
-
-	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String showComments() {
-		return Constants.filterJsonForFieldAndViews("all", "",
-				commentsRepository.findOne("CMT01"));
 	}
 
 }
