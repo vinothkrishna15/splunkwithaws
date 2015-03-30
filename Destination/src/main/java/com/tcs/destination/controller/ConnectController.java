@@ -98,7 +98,7 @@ public class ConnectController {
 			List<ConnectT> connects = connectService
 					.searchforConnectsBetweenForUserOrCustomerOrPartner(
 							fromDate, toDate, userId, owner, customerId,
-							partnerId);
+							partnerId,false);
 			return Constants.filterJsonForFieldAndViews(fields, view, connects);
 		} else {
 			DashBoardConnectsResponse dashBoardConnectsResponse = connectService

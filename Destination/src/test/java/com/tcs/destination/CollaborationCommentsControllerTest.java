@@ -57,4 +57,39 @@ public class CollaborationCommentsControllerTest {
 		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
 	}
 
+	@Test
+	public void Test1ByEntityType() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"CONNECT\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
+				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void Test2ByEntityType() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"OPPORTUNITY\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
+				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void Test3ByEntityType() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"TASK\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
+				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
 }

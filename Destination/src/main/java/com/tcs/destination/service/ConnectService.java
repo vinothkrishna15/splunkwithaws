@@ -54,48 +54,53 @@ public class ConnectService {
 	@Autowired
 	DocumentRepository docRepo;
 
-	public ConnectT searchforConnectsById(String connectId) throws Exception{
+	public ConnectT searchforConnectsById(String connectId) throws Exception {
 		ConnectT connect = connectRepository.findByConnectId(connectId);
 
 		if (connect == null)
-			throw new DestinationException(HttpStatus.NOT_FOUND,"Connection information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connection information not available");
 
 		return connect;
 
 	}
 
-	public List<ConnectT> searchforConnectsByNameContaining(String name) throws Exception{
+	public List<ConnectT> searchforConnectsByNameContaining(String name)
+			throws Exception {
 		List<ConnectT> connectList = connectRepository
 				.findByConnectNameIgnoreCaseLike("%" + name + "%");
 
 		if (connectList.isEmpty())
-			throw new DestinationException(HttpStatus.NOT_FOUND,"Connection information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connection information not available");
 		return connectList;
 	}
 
 	public DashBoardConnectsResponse searchDateRangwWithWeekAndMonthCount(
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, Date weekStartDate,
-			Date weekEndDate, Date monthStartDate, Date monthEndDate) throws Exception{
+			Date weekEndDate, Date monthStartDate, Date monthEndDate)
+			throws Exception {
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
-				fromDate, toDate, userId, owner, customerId, partnerId));
-		if (weekStartDate.getTime() != 0) {
+				fromDate, toDate, userId, owner, customerId, partnerId, false));
+		if (weekStartDate.getTime() != weekEndDate.getTime()) {
 			response.setWeekCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
 					weekStartDate, weekEndDate, userId, owner, customerId,
-					partnerId).size());
+					partnerId, true).size());
 		}
-		if (monthStartDate.getTime() != 0) {
+		if (monthStartDate.getTime() != monthEndDate.getTime()) {
 			response.setMonthCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
 					monthStartDate, monthEndDate, userId, owner, customerId,
-					partnerId).size());
+					partnerId, true).size());
 		}
 		return response;
 	}
 
 	public List<ConnectT> searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
-			String customerId, String partnerId) throws Exception{
+			String customerId, String partnerId, boolean isForCount)
+			throws Exception {
 		if (OWNER_TYPE.contains(owner)) {
 			List<ConnectT> connects = new ArrayList<ConnectT>();
 			if (owner.equalsIgnoreCase(OWNER_TYPE.PRIMARY.toString())) {
@@ -125,11 +130,13 @@ public class ConnectService {
 									customerId, partnerId));
 				}
 			}
-			if (connects.isEmpty())
-				throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
+			if (connects.isEmpty() && !isForCount)
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Relevent Data Found in the database");
 			return connects;
 		}
-		throw new DestinationException(HttpStatus.BAD_REQUEST,"No such Owner Type exists. Please ensure your Owner Type.");
+		throw new DestinationException(HttpStatus.BAD_REQUEST,
+				"No such Owner Type exists. Please ensure your Owner Type.");
 	}
 
 	public boolean insertConnect(ConnectT connect) throws Exception {
@@ -145,57 +152,58 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 
 		try {
-		if (connectRepository.save(connect) != null) {
-
-			backupConnect.setConnectId(connect.getConnectId());
-			connect = restore(backupConnect);
-			// connect.setCreatedModifiedBy(currentUserId);
-			// connect.setCreatedModifiedDatetime(currentTimeStamp);
-			String categoryUpperCase = connect.getConnectCategory()
-					.toUpperCase();
-			connect.setConnectCategory(categoryUpperCase);
-			String connectId = connect.getConnectId();
-			String customerId = connect.getCustomerId();
-			String partnerId = connect.getPartnerId();
-
-			List<NotesT> noteList = connect.getNotesTs();
-			populateNotes(currentTimeStamp, currentUserId, customerId,
-					partnerId, categoryUpperCase, connectId, noteList);
-
-			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
-					.getConnectCustomerContactLinkTs();
-			populateConnectCustomerContactLinks(currentUserId,
-					currentTimeStamp, connectId, conCustConLinkTList);
-
-			List<ConnectOfferingLinkT> conOffLinkTList = connect
-					.getConnectOfferingLinkTs();
-			populateConnectOfferingLinks(currentUserId, currentTimeStamp,
-					connectId, conOffLinkTList);
-
-			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
-					.getConnectSubSpLinkTs();
-			populateConnectSubSpLinks(currentUserId, currentTimeStamp,
-					connectId, conSubSpLinkTList);
-
-			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
-					.getConnectSecondaryOwnerLinkTs();
-			populateConnectSecondaryOwnerLinks(currentUserId, currentTimeStamp,
-					connectId, conSecOwnLinkTList);
-
-			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
-					.getConnectTcsAccountContactLinkTs();
-			populateConnectTcsAccountContactLinks(currentUserId,
-					currentTimeStamp, connectId, conTcsAccConLinkTList);
-
 			if (connectRepository.save(connect) != null) {
-				return true;
-			} 
 
+				backupConnect.setConnectId(connect.getConnectId());
+				connect = restore(backupConnect);
+				// connect.setCreatedModifiedBy(currentUserId);
+				// connect.setCreatedModifiedDatetime(currentTimeStamp);
+				String categoryUpperCase = connect.getConnectCategory()
+						.toUpperCase();
+				connect.setConnectCategory(categoryUpperCase);
+				String connectId = connect.getConnectId();
+				String customerId = connect.getCustomerId();
+				String partnerId = connect.getPartnerId();
+
+				List<NotesT> noteList = connect.getNotesTs();
+				populateNotes(currentTimeStamp, currentUserId, customerId,
+						partnerId, categoryUpperCase, connectId, noteList);
+
+				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
+						.getConnectCustomerContactLinkTs();
+				populateConnectCustomerContactLinks(currentUserId,
+						currentTimeStamp, connectId, conCustConLinkTList);
+
+				List<ConnectOfferingLinkT> conOffLinkTList = connect
+						.getConnectOfferingLinkTs();
+				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
+						connectId, conOffLinkTList);
+
+				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
+						.getConnectSubSpLinkTs();
+				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
+						connectId, conSubSpLinkTList);
+
+				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
+						.getConnectSecondaryOwnerLinkTs();
+				populateConnectSecondaryOwnerLinks(currentUserId,
+						currentTimeStamp, connectId, conSecOwnLinkTList);
+
+				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
+						.getConnectTcsAccountContactLinkTs();
+				populateConnectTcsAccountContactLinks(currentUserId,
+						currentTimeStamp, connectId, conTcsAccConLinkTList);
+
+				if (connectRepository.save(connect) != null) {
+					return true;
+				}
+
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-		}catch(Exception e){
-		  throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());	
-		}
-		
+
 		return false;
 	}
 
@@ -323,77 +331,80 @@ public class ConnectService {
 
 		// backupConnect.setConnectId(connect.getConnectId());
 		// connect = restore(backupConnect);
-		try{
-		String categoryUpperCase = connect.getConnectCategory().toUpperCase();
-		connect.setConnectCategory(categoryUpperCase);
-		String connectId = connect.getConnectId();
+		try {
+			String categoryUpperCase = connect.getConnectCategory()
+					.toUpperCase();
+			connect.setConnectCategory(categoryUpperCase);
+			String connectId = connect.getConnectId();
 
-		List<NotesT> noteList = connect.getNotesTs();
-		String customerId = connect.getCustomerId();
-		String partnerId = connect.getPartnerId();
-		// populateNotes(currentTimeStamp,currentUserId,categoryUpperCase,connectId,
-		// noteList,connect);
-		if (noteList != null)
-			populateNotes(currentTimeStamp, currentUserId, customerId,
-					partnerId, categoryUpperCase, connectId, noteList);
+			List<NotesT> noteList = connect.getNotesTs();
+			String customerId = connect.getCustomerId();
+			String partnerId = connect.getPartnerId();
+			// populateNotes(currentTimeStamp,currentUserId,categoryUpperCase,connectId,
+			// noteList,connect);
+			if (noteList != null)
+				populateNotes(currentTimeStamp, currentUserId, customerId,
+						partnerId, categoryUpperCase, connectId, noteList);
 
-		List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
-				.getConnectCustomerContactLinkTs();
-		if (conCustConLinkTList != null)
-			populateConnectCustomerContactLinks(currentUserId,
-					currentTimeStamp, connectId, conCustConLinkTList);
+			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
+					.getConnectCustomerContactLinkTs();
+			if (conCustConLinkTList != null)
+				populateConnectCustomerContactLinks(currentUserId,
+						currentTimeStamp, connectId, conCustConLinkTList);
 
-		List<ConnectOfferingLinkT> conOffLinkTList = connect
-				.getConnectOfferingLinkTs();
-		if (conOffLinkTList != null)
-			populateConnectOfferingLinks(currentUserId, currentTimeStamp,
-					connectId, conOffLinkTList);
+			List<ConnectOfferingLinkT> conOffLinkTList = connect
+					.getConnectOfferingLinkTs();
+			if (conOffLinkTList != null)
+				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
+						connectId, conOffLinkTList);
 
-		List<ConnectSubSpLinkT> conSubSpLinkTList = connect
-				.getConnectSubSpLinkTs();
-		if (conSubSpLinkTList != null)
-			populateConnectSubSpLinks(currentUserId, currentTimeStamp,
-					connectId, conSubSpLinkTList);
+			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
+					.getConnectSubSpLinkTs();
+			if (conSubSpLinkTList != null)
+				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
+						connectId, conSubSpLinkTList);
 
-		List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
-				.getConnectSecondaryOwnerLinkTs();
-		if (conSecOwnLinkTList != null)
-			populateConnectSecondaryOwnerLinks(currentUserId, currentTimeStamp,
-					connectId, conSecOwnLinkTList);
+			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
+					.getConnectSecondaryOwnerLinkTs();
+			if (conSecOwnLinkTList != null)
+				populateConnectSecondaryOwnerLinks(currentUserId,
+						currentTimeStamp, connectId, conSecOwnLinkTList);
 
-		List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
-				.getConnectTcsAccountContactLinkTs();
-		if (conTcsAccConLinkTList != null)
-			populateConnectTcsAccountContactLinks(currentUserId,
-					currentTimeStamp, connectId, conTcsAccConLinkTList);
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
+					.getConnectTcsAccountContactLinkTs();
+			if (conTcsAccConLinkTList != null)
+				populateConnectTcsAccountContactLinks(currentUserId,
+						currentTimeStamp, connectId, conTcsAccConLinkTList);
 
-		List<TaskT> taskList = connect.getTaskTs();
-		if (taskList != null)
-			populateTasks(currentUserId, currentTimeStamp, connectId, taskList);
+			List<TaskT> taskList = connect.getTaskTs();
+			if (taskList != null)
+				populateTasks(currentUserId, currentTimeStamp, connectId,
+						taskList);
 
-		List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
-				.getConnectOpportunityLinkIdTs();
-		if (conOppLinkIdTList != null)
-			populateOppLinks(currentUserId, currentTimeStamp, connectId,
-					conOppLinkIdTList);
+			List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
+					.getConnectOpportunityLinkIdTs();
+			if (conOppLinkIdTList != null)
+				populateOppLinks(currentUserId, currentTimeStamp, connectId,
+						conOppLinkIdTList);
 
-		if (connect.getConnectSubLinkDeletionList() != null) {
-			deleteSubSps(connect.getConnectSubLinkDeletionList());
+			if (connect.getConnectSubLinkDeletionList() != null) {
+				deleteSubSps(connect.getConnectSubLinkDeletionList());
+			}
+			if (connect.getConnectOfferingLinkDeletionList() != null) {
+				deleteOfferings(connect.getConnectOfferingLinkDeletionList());
+			}
+			if (connect.getDocumentsDeletionList() != null) {
+				deleteDocuments(connect.getDocumentsDeletionList());
+			}
+
+			if (connectRepository.save(connect) != null) {
+				return true;
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-		if (connect.getConnectOfferingLinkDeletionList() != null) {
-			deleteOfferings(connect.getConnectOfferingLinkDeletionList());
-		}
-		if (connect.getDocumentsDeletionList() != null) {
-			deleteDocuments(connect.getDocumentsDeletionList());
-		}
 
-		if (connectRepository.save(connect) != null) {
-			return true;
-		} 
-		} catch(Exception e){
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());	
-		}
-		
 		return false;
 
 	}

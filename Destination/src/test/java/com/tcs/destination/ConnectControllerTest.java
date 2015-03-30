@@ -179,7 +179,135 @@ public class ConnectControllerTest {
 				.andExpect(jsonPath("$[0].primaryOwner").value("541045"))
 				.andDo(print()).andReturn();
 	}
+	
+	@Test
+	public void TestConnectByOwnerWeekStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&owner=PRIMARY&userId=541045&customerId=CUS542&weekStartDate=01022015&"
+						+ "weekEndDate=07022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void Test1ConnectByOwnerWeekStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&owner=SECONDARY&userId=541045&customerId=CUS542&weekStartDate=01022015&"
+						+ "weekEndDate=07022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestConnectByWeekStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&userId=541045&customerId=CUS542&weekStartDate=01022015&"
+						+ "weekEndDate=07022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestConnectByOwnerMonthStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&owner=PRIMARY&userId=541045&customerId=CUS542&monthStartDate=01022015&"
+						+ "monthEndDate=28022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
 
+
+	@Test
+	public void Test1ConnectByOwnerMonthStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&owner=SECONDARY&userId=541045&customerId=CUS542&monthStartDate=01022015&"
+						+ "monthEndDate=28022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
+
+
+	@Test
+	public void TestConnectByMonthStartEndDate() throws Exception {
+		mockMvc1.perform(
+				get("/connect/date?from=01022015&to=20022015&userId=541045&customerId=CUS542&monthStartDate=01022015&"
+						+ "monthEndDate=28022015&fields=connectTs,connectId,"
+						+ "connectCategory,connectName,createdModifiedBy,documentsAttached,primaryOwner,customerId,country")
+						.header("Authorization", "Basic YWFhOmJiYg==").accept(
+								MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(
+						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.connectTs[0].connectId").value("CNN3"))
+				.andExpect(jsonPath("$.connectTs[0].connectCategory").value("CUSTOMER"))
+				.andExpect(jsonPath("$.connectTs[0].connectName").value("Cloud Connect"))
+				.andExpect(jsonPath("$.connectTs[0].createdModifiedBy").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].documentsAttached").value("no"))
+				.andExpect(jsonPath("$.connectTs[0].primaryOwner").value("541045"))
+				.andExpect(jsonPath("$.connectTs[0].country").value("USA"))
+				.andDo(print()).andReturn();
+	}
+
+	
+	
 	@Test
 	public void TestCreateConnect() throws Exception {
 

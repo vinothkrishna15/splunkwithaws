@@ -60,7 +60,7 @@ public class PartnerControllerTest {
 	@Test
 	public void test() throws Exception
 	{
-		mockMvcuser.perform(get("/partner/PAT4").accept(MediaType.APPLICATION_JSON))
+		mockMvcuser.perform(get("/partner/PAT4?fields=partnerId,corporateHqAddress,documentsAttached,partnerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 		.andExpect(jsonPath("$.partnerId").value("PAT4"))
@@ -68,8 +68,7 @@ public class PartnerControllerTest {
 		.andExpect(jsonPath("$.documentsAttached").value("YES"))
 		.andExpect(jsonPath("$.partnerName").value("Microsoft"))
 		.andDo(print())
-		.andReturn()
-		;
+		.andReturn();
 	}
 	
 }
