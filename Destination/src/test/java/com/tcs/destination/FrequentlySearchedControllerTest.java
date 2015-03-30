@@ -45,7 +45,7 @@ public class FrequentlySearchedControllerTest {
 
 	@Test
 	public void test() throws Exception {
-		mockMvc.perform(get("/frequent?entity=CUSTOMER&fields=count,entity,customerId"
+		mockMvc.perform(get("/frequent?entityType=CUSTOMER&fields=count,entity,customerId"
 				+ ",corporateHqAddress,createdModifiedBy,createdModifiedDatetime,customerName,"
 				+ "documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
