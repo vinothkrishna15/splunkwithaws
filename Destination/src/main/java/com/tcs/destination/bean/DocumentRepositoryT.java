@@ -59,60 +59,60 @@ public class DocumentRepositoryT implements Serializable {
 	@Column(name = "uploaded_datetime")
 	private Timestamp uploadedDatetime;
 	
-	@Column(name = "comment_id",insertable=false,updatable=false)
+	@Column(name = "comment_id")
 	private String commentId;
 	
-	@Column(name = "connect_id",insertable=false,updatable=false)
+	@Column(name = "connect_id")
 	private String connectId;
 	
-	@Column(name = "customer_id",insertable=false,updatable=false)
+	@Column(name = "customer_id")
 	private String customerId;
 	
-	@Column(name = "opportunity_id",insertable=false,updatable=false)
+	@Column(name = "opportunity_id")
 	private String opportunityId;
 	
-	@Column(name = "partner_id",insertable=false,updatable=false)
+	@Column(name = "partner_id")
 	private String partnerId;
 	
-	@Column(name = "task_id",insertable=false,updatable=false)
+	@Column(name = "task_id")
 	private String taskId;
 	
-	@Column(name = "uploaded_by",insertable=false,updatable=false)
+	@Column(name = "uploaded_by")
 	private String uploadedBy;
 
 	// bi-directional many-to-one association to CollaborationCommentT
 	@ManyToOne
-	@JoinColumn(name = "comment_id")
+	@JoinColumn(name = "comment_id",insertable=false,updatable=false)
 	private CollaborationCommentT collaborationCommentT;
 
 	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name = "connect_id")
+	@JoinColumn(name = "connect_id",insertable=false,updatable=false)
 	private ConnectT connectT;
 
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_id")
+	@JoinColumn(name = "customer_id",insertable=false,updatable=false)
 	private CustomerMasterT customerMasterT;
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name = "opportunity_id",insertable=false,updatable=false)
 	private OpportunityT opportunityT;
 
 	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name = "partner_id")
+	@JoinColumn(name = "partner_id",insertable=false,updatable=false)
 	private PartnerMasterT partnerMasterT;
 
 	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name = "task_id")
+	@JoinColumn(name = "task_id",insertable=false,updatable=false)
 	private TaskT taskT;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "uploaded_by")
+	@JoinColumn(name = "uploaded_by",insertable=false,updatable=false)
 	private UserT userT;
 
 	// bi-directional many-to-one association to UserFavoritesT

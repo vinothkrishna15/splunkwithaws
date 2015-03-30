@@ -25,7 +25,7 @@ public class DocumentService {
 	@Autowired 
 	DocumentRepository documentRepository;
 	
-	@Value("${fileBaseDir}")
+	@Value("#{environment.fileBaseDir}")
 	private String fileBasePath;
 	
 //	public int save(DocumentRepositoryT docrep) 
