@@ -39,7 +39,7 @@ public class FavoritesController {
 	public @ResponseBody ResponseEntity<String> addFavorite(
 			@RequestBody UserFavoritesT favorites,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if(myFavService.addFavorites(favorites)){
