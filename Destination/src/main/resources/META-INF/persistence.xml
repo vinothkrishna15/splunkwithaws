@@ -62,10 +62,10 @@
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />
 			<property name="javax.persistence.jdbc.url"
-				value="jdbc:postgresql://localhost:5432/Destination" />
-			<property name="javax.persistence.jdbc.user" value="postgres" />
-			<property name="javax.persistence.jdbc.password" value="admin" />
-			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+				value="${spring.datasource.url}" />
+			<property name="javax.persistence.jdbc.user" value="${spring.datasource.username}" />
+			<property name="javax.persistence.jdbc.password" value="${spring.datasource.password}" />
+			<property name="javax.persistence.jdbc.driver" value="${spring.datasource.driver-class-name}" />
 			<!-- <property name="hibernate.show.sql" value="true" /> <property name="hibernate.format_sql" 
 				value="true" /> <property name="eclipselink.logging.level" value="FINE" /> 
 				<property name="eclipselink.logging.parameters" value="true" /> <property 

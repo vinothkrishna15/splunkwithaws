@@ -48,13 +48,13 @@
 
 	<bean id="dataSource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="org.postgresql.Driver" />
-		<property name="url" value="jdbc:postgresql://localhost:5432/Destination_Mar_18" />
-		<property name="username" value="postgres" />
-		<property name="password" value="admin" />
+		<property name="driverClassName" value="${spring.datasource.driver-class-name}" />
+		<property name="url" value="${spring.datasource.url}" />
+		<property name="username" value="${spring.datasource.username}" />
+		<property name="password" value="${spring.datasource.password}" />
 	</bean>
 
-
+<context:property-placeholder location="classpath:application.properties" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
 </beans>
