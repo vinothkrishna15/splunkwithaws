@@ -54,18 +54,18 @@ public class MyFavoritesControllerTest {
 	@Autowired
 	FilterChainProxy springSecurityFilterChain;
 
-	MockMvc mockMvcuser = MockMvcBuilders.standaloneSetup(
+	MockMvc mockMvc = MockMvcBuilders.standaloneSetup(
 			new FavoritesController()).build();
 
 	@Before
 	public void setUp() throws Exception {
-		mockMvcuser = MockMvcBuilders.webAppContextSetup(wvc5)
+		mockMvc = MockMvcBuilders.webAppContextSetup(wvc5)
 				.addFilters(springSecurityFilterChain).build();
 	}
 
 	@Test
 	public void test() throws Exception {
-		mockMvcuser
+		mockMvc
 				.perform(
 						get("/favorites?entityType=CUSTOMER&fields=userFavoritesId,createdDatetime,entityType,customerMasterT,customerId,createdModifiedBy,customerName")
 								.header("Authorization", "Basic YWFhOmJiYg==")
@@ -91,4 +91,102 @@ public class MyFavoritesControllerTest {
 
 	}
 
+	@Test
+	public void TestByCustomerId() throws Exception{
+		String requestJson="{ \"entityType\": \"CUSTOMER\", \"customerId\": \"CUS558\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByPartnerId() throws Exception{
+		String requestJson="{ \"entityType\": \"PARTNER\", \"partnerId\": \"PAT6\", \"contactId\": \"CON2\", \"userId\": \"353911\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByConnectId() throws Exception{
+		String requestJson="{ \"entityType\": \"CONNECT\", \"connectId\": \"CNN5\", \"contactId\": \"CON3\", \"userId\": \"833389\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByOpportunityId() throws Exception{
+		String requestJson="{ \"entityType\": \"OPPORTUNITY\", \"opportunityId\": \"OPP2\", \"contactId\": \"CON1\", \"userId\": \"541045\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByDocumentId() throws Exception{
+		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC7\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	@Test
+	public void TestByCustomerIdBadReq() throws Exception{
+		String requestJson="{ \"entityType\": \"CUSTOMER\", \"customerId\": \"CUS55\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByPartnerIdBadReq() throws Exception{
+		String requestJson="{ \"entityType\": \"PARTNER\", \"partnerId\": \"PAT0\", \"contactId\": \"CON2\", \"userId\": \"353911\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByConnectIdBadReq() throws Exception{
+		String requestJson="{ \"entityType\": \"CONNECT\", \"connectId\": \"CNN0\", \"contactId\": \"CON3\", \"userId\": \"833389\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByOpportunityIdBadReq() throws Exception{
+		String requestJson="{ \"entityType\": \"OPPORTUNITY\", \"opportunityId\": \"OPP0\", \"contactId\": \"CON1\", \"userId\": \"541045\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+	}
+	
+//	@Test
+//	public void TestByDocumentIdBadReq() throws Exception{
+//		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC0\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+//				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+//						.content(requestJson)
+//						.header("Authorization", "Basic YWFhOmJiYg==")
+//						.accept(MediaType.APPLICATION_JSON))
+//		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+//	}
 }
