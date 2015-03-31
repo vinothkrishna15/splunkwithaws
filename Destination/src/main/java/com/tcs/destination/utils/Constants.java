@@ -27,7 +27,7 @@ public class Constants {
 	public static final String FILTER = "DestinationFilter";
 	
 	public static enum EntityType {
-		CUSTOMER("CUSTOMER"), PARTNER("PARTNER"),CONNECT("CONNECT"), OPPORTUNITY("OPPORTUNITY"),TASK("TASK");
+		CUSTOMER("CUSTOMER"), PARTNER("PARTNER"),CONNECT("CONNECT"), OPPORTUNITY("OPPORTUNITY"),TASK("TASK"),DOCUMENT("DOCUMENT");
 
 		private final String name;
 
