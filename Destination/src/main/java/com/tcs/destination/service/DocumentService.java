@@ -18,6 +18,8 @@ import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.Constants.EntityType;
 
 @Component
 public class DocumentService {
@@ -50,7 +52,7 @@ public class DocumentService {
 			String entityType, String parentEntity, String parentEntityId,
 			String commentId, String connectId, String customerId,
 			String opportunityId, String partnerId, String taskId,
-			String uploadedBy, MultipartFile file) throws IOException {
+			String uploadedBy, MultipartFile file) throws Exception {
 			DocumentRepositoryT document=new DocumentRepositoryT();
 			if(!commentId.equals(""))
 			document.setCommentId(commentId);
@@ -83,9 +85,10 @@ public class DocumentService {
 			/**/
 			
 			String docId = "";
+			validateInputs(document);
 			if(documentRepository.save(document)!=null){
 				docId = document.getDocumentId();
-				String entityId = getEntityId(connectId,opportunityId,taskId);
+				String entityId = getEntityId(document);
 				String saveDirLoc = getPathFromForm(entityType,entityId);
 				if (!file.isEmpty()) {
 					saveFile(file,saveDirLoc,docId);
@@ -104,6 +107,84 @@ public class DocumentService {
 	}
 
 	
+	private String getEntityId(DocumentRepositoryT document) throws Exception {
+		String entityType = document.getEntityType();
+		String customerId = document.getCustomerId();
+		String opportunityId = document.getOpportunityId();
+		String partnerId = document.getPartnerId();
+		String taskId = document.getTaskId();
+		String connectId = document.getConnectId();
+		String entityId = null;
+		if (EntityType.contains(entityType)) {
+		switch(EntityType.valueOf(entityType)){
+		case CUSTOMER:
+			entityId = customerId;
+			break;
+		case PARTNER:
+			entityId = partnerId;
+			break;
+		case OPPORTUNITY:
+			entityId = opportunityId;
+			break;
+		case CONNECT:
+			entityId = connectId;
+			break;
+		case TASK:
+			entityId = taskId;
+		}
+		} else {
+		throw new DestinationException(HttpStatus.BAD_REQUEST,
+				"Invalid Entity Type");
+		}
+		return entityId;
+		}
+
+	private void validateInputs(DocumentRepositoryT document) throws Exception{
+		String entityType = document.getEntityType();
+		String customerId = document.getCustomerId();
+		String opportunityId = document.getOpportunityId();
+		String partnerId = document.getPartnerId();
+		String taskId = document.getTaskId();
+		String connectId = document.getConnectId();
+		if (EntityType.contains(entityType)) {
+		switch(EntityType.valueOf(entityType)){
+		case CUSTOMER:
+			if (customerId == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Customer ID can not be empty");
+			}
+			break;
+		case PARTNER:
+			if (partnerId == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Partner ID can not be empty");
+			}
+			break;
+		case OPPORTUNITY:
+			if (opportunityId == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Opportunity ID can not be empty");
+			}
+			break;
+		case CONNECT:
+			if (connectId == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Connect ID can not be empty");
+			}
+			break;
+		case TASK:
+			if (taskId == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Task ID can not be empty");
+			}
+			break;
+		}
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Entity Type");
+		}
+	}
+
 	private void saveFile(MultipartFile file, String saveDirLoc, String docId) throws IOException {
 		try {
 			byte[] bytes = file.getBytes();
@@ -128,20 +209,6 @@ public class DocumentService {
 		
 		
 		
-	}
-
-	private String getEntityId(String connectId, String opportunityId,
-			String taskId) {
-		
-		if(!connectId.isEmpty()){
-			return connectId;
-		} else if(!opportunityId.isEmpty()){
-			return opportunityId;
-		} else {
-			return taskId;
-		}
-		
-		//return null;
 	}
 
 	private String getPathFromForm(String entityType,String entityId){

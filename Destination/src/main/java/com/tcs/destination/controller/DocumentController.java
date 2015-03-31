@@ -3,9 +3,10 @@ package com.tcs.destination.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
+
+import javax.activation.FileDataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,6 +81,10 @@ public class DocumentController {
 	    FileNameMap fileNameMap = URLConnection.getFileNameMap();
 	    String fileUrl = "file://"+fullPath;
 	      String type = fileNameMap.getContentTypeFor(fileUrl);
+	      if(type==null){
+	    	  FileDataSource fds = new FileDataSource(file);
+	    	  type = fds.getContentType();
+	      }
 	    respHeaders.setContentType(MediaType.valueOf(type));
 	    InputStreamResource isr;
 		try {
