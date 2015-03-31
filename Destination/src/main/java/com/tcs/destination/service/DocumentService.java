@@ -25,7 +25,7 @@ public class DocumentService {
 	@Autowired 
 	DocumentRepository documentRepository;
 	
-	@Value("#{environment.fileBaseDir}")
+	@Value("${fileBaseDir}")
 	private String fileBasePath;
 	
 //	public int save(DocumentRepositoryT docrep) 
@@ -52,22 +52,31 @@ public class DocumentService {
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws IOException {
 			DocumentRepositoryT document=new DocumentRepositoryT();
+			if(!commentId.equals(""))
 			document.setCommentId(commentId);
+			if(!connectId.equals(""))
 			document.setConnectId(connectId);
+			if(!customerId.equals(""))
 			document.setCustomerId(customerId);
+			
 			document.setDocumentName(documentName);
 			//document.setDocumentSearchKeywords(documentSearchKeywords);
 			document.setDocumentType(documentType);
 			document.setEntityType(entityType);
 			document.setFileReference(fileBasePath);
+			if(!opportunityId.equals(""))
 			document.setOpportunityId(opportunityId);
+			
 			document.setParentEntity(parentEntity);
 			document.setParentEntityId(parentEntityId);
+			if(!partnerId.equals(""))
 			document.setPartnerId(partnerId);
+			if(!taskId.equals(""))
 			document.setTaskId(taskId);
 			UserT user=new UserT();
 			user.setUserId(uploadedBy);
 			document.setUserT(user);
+			document.setUploadedBy(uploadedBy);
 			document.setUploadedDatetime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
 
 			//document.setFileReference(file.getBytes());

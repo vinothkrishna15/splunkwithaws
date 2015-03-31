@@ -34,7 +34,7 @@ public class DocumentController {
 	@Autowired
 	DocumentService documentService;
 
-	@Value("#{environment.fileBaseDir}")
+	@Value("${fileBaseDir}")
 	private String fileBasePath;
 	
 	// @RequestMapping(value = "/insert", method = RequestMethod.GET)
