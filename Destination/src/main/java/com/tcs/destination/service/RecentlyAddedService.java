@@ -30,15 +30,15 @@ public class RecentlyAddedService {
 			if (entityType.equalsIgnoreCase(Constants.EntityType.CUSTOMER
 					.toString())){
 				List<CustomerMasterT> recentCustomers = customerRepository
-						.findRecent(5);
+						.findRecent(count);
 				if (recentCustomers.isEmpty()) {
-					throw new NoDataFoundException();
+					throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
 				}
 				return recentCustomers;
 			} else if (entityType.equalsIgnoreCase(Constants.EntityType.PARTNER
 					.toString())) {
 				List<PartnerMasterT> recentpartners = partnerRepository
-						.findRecent(5);
+						.findRecent(count);
 				if (recentpartners.isEmpty()) {
 					throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
 				}

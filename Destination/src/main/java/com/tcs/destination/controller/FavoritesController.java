@@ -2,6 +2,8 @@ package com.tcs.destination.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +16,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FavoritesService;
 import com.tcs.destination.utils.Constants;
 
 @RestController
 @RequestMapping("/favorites")
 public class FavoritesController {
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(FavoritesController.class);
 
 	@Autowired
 	FavoritesService myFavService;
@@ -28,26 +34,45 @@ public class FavoritesController {
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside Favorites Controller /favorites?entityType="
+				+ entityType + " GET");
 		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
 				Constants.getCurrentUserDetails(), entityType);
 		return Constants.filterJsonForFieldAndViews(fields, view,
 				userFavourites);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addFavorite(
 			@RequestBody UserFavoritesT favorites,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside Favorites Controller /favorites POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		if(myFavService.addFavorites(favorites)){
+		if (myFavService.addFavorites(favorites)) {
+			logger.debug("User FavoritesId" + favorites.getUserFavoritesId()
+					+ "Inserted Successfully");
 			status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
 		}
-
-
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
+	}
+
+	@RequestMapping(method = RequestMethod.DELETE)
+	public @ResponseBody String removeFromFavorites(
+			@RequestParam(value = "userFavoritesId") String favoritesId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		Status status = new Status();
+		myFavService.removeFromFavorites(favoritesId);
+		status.setStatus(Status.SUCCESS, favoritesId);
+		return Constants.filterJsonForFieldAndViews("all", "", status);
+
 	}
 }

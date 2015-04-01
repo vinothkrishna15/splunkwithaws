@@ -13,7 +13,7 @@
         {
           "connectCustomerContactLinkId":"CCC31",
             "contactT": {
-                "contactId": "CONTACT2"
+                "contactId": "CON2"
             }
         }
     ],
@@ -50,7 +50,7 @@
         {
           "connect_tcs_account_contact_link_id":"CTC11",
             "contactT": {
-                "contactId": "CONTACT1"
+                "contactId": "CON1"
             }
         }
     ],
@@ -63,7 +63,7 @@
       "taskStatus":"OPEN",
       "taskDescription":"Description",
       "targetDateForCompletion":982336120000,
-      "taskOwner":"541046",
+      "taskOwner":"541045",
       "entityReference":"CUSTOMER",
       "opportunityId":"OPP1"
       

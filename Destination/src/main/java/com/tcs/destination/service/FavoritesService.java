@@ -2,12 +2,15 @@ package com.tcs.destination.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.DocumentController;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
@@ -16,67 +19,128 @@ import com.tcs.destination.utils.Constants;
 @Component
 public class FavoritesService {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(FavoritesService.class);
+
 	@Autowired
 	FavoritesSearchedRepository userFavRepository;
 
 	public List<UserFavoritesT> findFavoritesFor(UserT user, String entityType)
 			throws Exception {
+		logger.debug("Inside findFavoritesFor Service");
 		if (Constants.EntityType.contains(entityType)) {
+			logger.debug("EntityType is present");
 			List<UserFavoritesT> userFavorites = userFavRepository
 					.findByUserTAndEntityTypeIgnoreCase(user, entityType);
 
-			if (userFavorites.isEmpty())
+			if (userFavorites.isEmpty()) {
+				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Relevent Data Found in the database");
+			}
 			return userFavorites;
-		} else
+		} else {
+			logger.error("BAD_REQUEST: No such Entity type exists. Please ensure your entity type.");
 			throw new NoSuchEntityException();
+		}
 	}
 
 	public boolean addFavorites(UserFavoritesT favorites) throws Exception {
+		logger.debug("Inside addFavorites Service");
 		if (Constants.EntityType.contains(favorites.getEntityType())) {
 			switch (Constants.EntityType.valueOf(favorites.getEntityType())) {
 			case CUSTOMER:
+				logger.debug("Adding Favorites Customer");
 				if (favorites.getCustomerId() == null) {
+					logger.error("BAD_REQUEST: Customer ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Customer ID can not be empty");
+				} else {
+					favorites.setConnectId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setPartnerId(null);
 				}
 				break;
 			case PARTNER:
+				logger.debug("Adding Favorites Partner");
 				if (favorites.getPartnerId() == null) {
+					logger.error("BAD_REQUEST: Partner ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Partner ID can not be empty");
+				} else {
+					favorites.setConnectId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case CONNECT:
+				logger.debug("Adding Favorites Connect");
 				if (favorites.getConnectId() == null) {
+					logger.error("BAD_REQUEST: Connect ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Connect ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case OPPORTUNITY:
+				logger.debug("Adding Favorites Opportunity");
 				if (favorites.getOpportunityId() == null) {
+					logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Opportunity ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setConnectId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case DOCUMENT:
+				logger.debug("Adding Favorites Document");
 				if (favorites.getDocumentId() == null) {
+					logger.error("BAD_REQUEST: Document ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Document ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setOpportunityId(null);
+					favorites.setConnectId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			}
 			favorites.setCreatedDatetime(Constants.getCurrentTimeStamp());
 			try {
+				logger.debug("Saving the UserFavorite");
 				return userFavRepository.save(favorites) != null;
 			} catch (Exception e) {
+				logger.error("BAD_REQUEST" + e.getMessage());
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						e.getMessage());
 			}
 		}
+		logger.error("BAD_REQUEST: Invalid Entity Type");
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
+	}
+
+	public void removeFromFavorites(String favoritesId) throws Exception {
+		try{
+			userFavRepository.delete(favoritesId);
+		} catch(Exception e){
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
 	}
 
 }

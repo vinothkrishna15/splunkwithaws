@@ -11,7 +11,7 @@
     "connectCustomerContactLinkTs": [
         {
             "contactT": {
-                "contactId": "CONTACT2"
+                "contactId": "CON2"
             }
         }
     ],
@@ -37,7 +37,7 @@
     "connectTcsAccountContactLinkTs": [
         {
             "contactT": {
-                "contactId": "CONTACT1"
+                "contactId": "CON1"
             }
         }
     ],
