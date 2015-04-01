@@ -5,10 +5,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,11 @@ public class DocumentService {
 	
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
+	
+	//@Autowired
+    //Environment env;
+	
+	//private String fileBasePath1 = env.getProperty("fileBaseDir");
 	
 //	public int save(DocumentRepositoryT docrep) 
 //	{
@@ -223,22 +231,35 @@ public class DocumentService {
 	}
 
 	@Transactional
-	public String deleteDocRecords(String[] docIds){
+	public String deleteDocRecords(String[] docIds) throws Exception{
 		StringBuffer deletedRecords = new StringBuffer("");
 		int index = 0;
+		List<DocumentRepositoryT> docList = new ArrayList<DocumentRepositoryT>();
+		StringBuffer missingIds = new StringBuffer("");
 		for(String docId : docIds){
-			index++;
 			DocumentRepositoryT docRep = documentRepository.findByDocumentId(docId);
-			//getDocumentPath(connectDoc.getDocumentId());
 			if(docRep!=null){
-			String fullPath = docRep.getFileReference();
-			documentRepository.delete(docRep);
-			deleteFile(fullPath);
-			deletedRecords.append(docId);
-			if(index < docIds.length){
-			deletedRecords.append(",");
-			} 
+				docList.add(docRep);
+			}else {
+				missingIds.append(docId + ",");
 			}
+		}
+		
+		if(missingIds.toString().isEmpty()){
+			index = 0;
+			for(DocumentRepositoryT docRep : docList){
+				index++;
+				String fullPath = docRep.getFileReference();
+				String id = docRep.getDocumentId();
+				deleteFile(fullPath);
+				documentRepository.delete(docRep);
+				deletedRecords.append(id);
+				if(index < docList.size()){
+				deletedRecords.append(",");
+				}
+			}
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"No records found for Ids : " +  missingIds.toString());
 		}
 		return deletedRecords.toString();
 	}
