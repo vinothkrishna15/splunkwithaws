@@ -1,6 +1,8 @@
 package com.tcs.destination.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.bean.Status;
 
 import java.util.List;
+import java.util.Date;
 
 /**
  * Controller to handle Task module related requests.
@@ -140,7 +143,7 @@ public class TaskController {
 	@RequestMapping(value="/findByTargetDate", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksByUserAndTargetDate(
 			@RequestParam(value="id") String userId,
-			@RequestParam(value="date") String targetDate,
+			@RequestParam(value="date") @DateTimeFormat(iso = ISO.DATE) Date targetDate,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
@@ -148,7 +151,7 @@ public class TaskController {
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
-
+	
 	/**
 	 * This method is used to create a new task for a given Connect or Opportunity.
 	 * 
