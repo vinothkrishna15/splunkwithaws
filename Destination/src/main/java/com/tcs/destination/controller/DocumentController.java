@@ -102,7 +102,7 @@ public class DocumentController {
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE)
-	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete){
+	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete) throws Exception{
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
 			String deletedIds = documentService.deleteDocRecords(docIds);
