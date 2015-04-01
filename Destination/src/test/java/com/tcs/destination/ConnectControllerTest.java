@@ -10,7 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.FileReader;
 import java.util.List;
+
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -310,28 +315,9 @@ public class ConnectControllerTest {
 	
 	@Test
 	public void TestCreateConnect() throws Exception {
-
-		// JsonFactory jfactory = new JsonFactory();
-		// JSONParser parser = new JSONParser();
-		// Object obj = parser
-		// .parse(new FileReader(
-		// "/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
-		//
-		// JSONObject jsonObject = (JSONObject) obj;
-		String requestJson = "{ \"connectCategory\":\"CUSTOMER\",\"connectName\":\"new connect 70\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\",\"connectKeywords\": \"a197,b908\",\"customerId\": \"CUS541\",\"connectCustomerContactLinkTs\": [{\"contactT\": {\"contactId\": \"CON2\"}}],\"connectOfferingLinkTs\": [{\"offeringMappingT\": {\"offering\": \"Analytics\"}}],\"connectSecondaryOwnerLinkTs\": [{\"secondaryOwner\": \"541045\"}],\"connectSubSpLinkTs\": [{\"subSpMappingT\": {\"subSp\": \"ABIM - Products\"}}],"
-				+ "\"connectTcsAccountContactLinkTs\": [{\"contactT\":{\"contactId\": \"CON1\"}}],"
-				+ "\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 2 1\"},{\"notesUpdated\": \"Sample note9 set 2 2\"}]}";
-		// jsonObject.toString();
-
-		UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-		Authentication authToken = new UsernamePasswordAuthenticationToken(
-				userDetails, userDetails.getPassword(),
-				userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authToken);
-
-		this.mockMvc
-				.perform(
-						post("/connect")
+		String requestJson = TestUtil.getJsonString(TestConstants.requestJsonCreateConnectLoc);
+		TestUtil.setAuthToken(userDetailsService);
+		this.mockMvc.perform(post("/connect")
 								.contentType(TestUtil.APPLICATION_JSON_UTF8)
 								.content(requestJson)
 								.header("Authorization", "Basic YWFhOmJiYg==")
@@ -341,35 +327,16 @@ public class ConnectControllerTest {
 
 	@Test
 	public void TestEditConnect() throws Exception {
-
-		// JsonFactory jfactory = new JsonFactory();
-		// JSONParser parser = new JSONParser();
-		// Object obj = parser
-		// .parse(new FileReader(
-		// "/Users/bnpp/destination/Destination/src/test/java/com/tcs/destination/createconnect.json"));
-		//
-		// JSONObject jsonObject = (JSONObject) obj;
-		String requestJson = "{\"connectCategory\":\"CUSTOMER\",\"connectId\":\"CNN4\",\"connectName\":\"new connect\",\"documentsAttached\":\"no\",\"country\":\"India\",\"endDatetimeOfConnect\": 982336120000,"
-				+"\"startDatetimeOfConnect\": 982336120000,\"primaryOwner\": \"541045\", \"connectKeywords\": \"a197,b908\", \"customerId\": \"CUS541\", "
-				+"\"connectCustomerContactLinkTs\": [{\"connectCustomerContactLinkId\":\"CCC31\", \"contactT\": { \"contactId\": \"CON2\"}}], \"connectOfferingLinkTs\": "
-				+"[{\"connectOfferingLinkId\":\"COF23\",\"offeringMappingT\": {\"offering\": \"BPaaS - Cloud Payment\"} }], \"connectSecondaryOwnerLinkTs\": [{\"connectSecondaryOwnerLinkId\":\"CSO20\",\"secondaryOwner\": \"541045\"}],"
-				+"\"connectSubSpLinkTs\": [{ \"connectSubSpLinkId\":\"CSs9\",\"subSpMappingT\": { \"subSp\": \"Mobility - Services\" }},"
-				+"{\"subSpMappingT\":  {\"subSp\": \"Cloud\"}}],\"connectTcsAccountContactLinkTs\": "
-				+"[ {\"connect_tcs_account_contact_link_id\":\"CTC11\",\"contactT\": {\"contactId\": \"CON1\" }}], \"taskTs\": [{\"taskId\":\"TASK1\",\"createdModifiedBy\":\"541045\",\"createdModifiedDatetime\":982336120000,\"documentsAttached\":\"No\",\"taskStatus\":\"OPEN\",\"taskDescription\":\"Description\",\"targetDateForCompletion\":982336120000,\"taskOwner\":\"541045\",\"entityReference\":\"CUSTOMER\",\"opportunityId\":\"OPP1\"}],\"connectOpportunityLinkIdTs\": [{ \"connectOpportunityLinkId\":\"CNO1\",\"opportunityT\": {\"opportunityId\": \"OPP1\"}}],\"notesTs\": [{\"notesUpdated\": \"Sample note9 set 3 1 update\"},{ \"notesUpdated\": \"Sample note9 set 3 2 update\" }]}";
-
-		UserDetails userDetails = userDetailsService.loadUserByUsername("aaa");
-		Authentication authToken = new UsernamePasswordAuthenticationToken(
-				userDetails, userDetails.getPassword(),
-				userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authToken);
-
+		String requestJson = TestUtil.getJsonString(TestConstants.requestJsonEditConnectLoc);
+		TestUtil.setAuthToken(userDetailsService);
 		this.mockMvc
-				.perform(
-						put("/connect")
+				.perform(put("/connect")
 								.contentType(TestUtil.APPLICATION_JSON_UTF8)
 								.content(requestJson)
 								.header("Authorization", "Basic YWFhOmJiYg==")
 								.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk()).andDo(print()).andReturn();
 	}
+	
+	
 }
