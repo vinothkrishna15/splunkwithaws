@@ -42,10 +42,10 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	/**
 	 * Finds all the tasks for the given task owner.
 	 * 
-	 * @param taskOwner
+	 * @param taskOwner, taskStatus
 	 * @return tasks for the given task owner.
 	 */
-	List<TaskT> findByTaskOwnerOrderByTargetDateForCompletionAsc(String taskOwner);
+	List<TaskT> findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(String taskOwner, String taksStatus);
 
 	/**
 	 * Finds all the tasks created and assigned to others by the given user id.

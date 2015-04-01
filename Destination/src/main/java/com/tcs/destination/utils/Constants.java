@@ -230,7 +230,7 @@ public class Constants {
 
 	//Task Status
 	public static enum TaskStatus {
-		Open("Open"), Hold("Hold");
+		Open("Open"), Hold("Hold"), Closed("Closed");
 
 		private final String name;
 

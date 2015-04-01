@@ -29,6 +29,8 @@ public class TaskService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 	
+	private static final String STATUS_CLOSED = "Closed";
+	
 	@Autowired
 	TaskRepository taskRepository;
 
@@ -119,13 +121,14 @@ public class TaskService {
 	}
 
 	/**
-	 * This method is used to find all the tasks for the given task owner.
+	 * This method is used to find all the tasks (open & hold) for the given task owner.
 	 * 
-	 * @param taskOwner
+	 * @param taskOwner, taskStatus
 	 * @return tasks for the given task owner.
 	 */
 	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws Exception {
-		List<TaskT> taskList = taskRepository.findByTaskOwnerOrderByTargetDateForCompletionAsc(taskOwner);
+		List<TaskT> taskList = 
+				taskRepository.findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(taskOwner, STATUS_CLOSED);
 
 		if ((taskList == null) || taskList.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
