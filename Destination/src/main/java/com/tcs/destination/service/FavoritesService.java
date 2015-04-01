@@ -55,6 +55,12 @@ public class FavoritesService {
 					logger.error("BAD_REQUEST: Customer ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Customer ID can not be empty");
+				} else {
+					favorites.setConnectId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setPartnerId(null);
 				}
 				break;
 			case PARTNER:
@@ -63,6 +69,12 @@ public class FavoritesService {
 					logger.error("BAD_REQUEST: Partner ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Partner ID can not be empty");
+				} else {
+					favorites.setConnectId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case CONNECT:
@@ -71,6 +83,12 @@ public class FavoritesService {
 					logger.error("BAD_REQUEST: Connect ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Connect ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setOpportunityId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case OPPORTUNITY:
@@ -79,6 +97,12 @@ public class FavoritesService {
 					logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Opportunity ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setDocumentId(null);
+					favorites.setConnectId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			case DOCUMENT:
@@ -87,6 +111,12 @@ public class FavoritesService {
 					logger.error("BAD_REQUEST: Document ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Document ID can not be empty");
+				} else {
+					favorites.setPartnerId(null);
+					favorites.setContactId(null);
+					favorites.setOpportunityId(null);
+					favorites.setConnectId(null);
+					favorites.setCustomerId(null);
 				}
 				break;
 			}
@@ -103,6 +133,14 @@ public class FavoritesService {
 		logger.error("BAD_REQUEST: Invalid Entity Type");
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
+	}
+
+	public void removeFromFavorites(String favoritesId) throws Exception {
+		try{
+			userFavRepository.delete(favoritesId);
+		} catch(Exception e){
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
 	}
 
 }
