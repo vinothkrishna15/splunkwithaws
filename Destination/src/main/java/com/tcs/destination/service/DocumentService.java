@@ -259,7 +259,7 @@ public class DocumentService {
 				}
 			}
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,"No records found for Ids : " +  missingIds.toString());
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No records found for Ids : " +  missingIds.toString());
 		}
 		return deletedRecords.toString();
 	}

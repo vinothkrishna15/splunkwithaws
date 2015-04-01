@@ -200,7 +200,7 @@ public class ConnectService {
 
 			}
 		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
 		}
 
 		return false;
@@ -400,12 +400,10 @@ public class ConnectService {
 				return true;
 			}
 		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
-
 		return false;
-
 	}
 
 	private void deleteDocuments(List<DocumentRepositoryT> documentsDeletionList) {
