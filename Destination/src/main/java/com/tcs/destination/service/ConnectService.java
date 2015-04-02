@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.DocumentController;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
@@ -39,6 +42,8 @@ import com.tcs.destination.utils.Constants.OWNER_TYPE;
 @Component
 public class ConnectService {
 
+	private static final Logger logger = LoggerFactory.getLogger(ConnectService.class);
+	
 	@Autowired
 	ConnectRepository connectRepository;
 
@@ -145,22 +150,29 @@ public class ConnectService {
 		UserT currentUser = Constants.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();
 
+		
+		
 		connect.setCreatedModifiedBy(currentUserId);
 		connect.setCreatedModifiedDatetime(currentTimeStamp);
+		logger.info("Connect Insert - user : " + currentUserId);
+		logger.info("Connect Insert - timestamp : " + currentTimeStamp);
 
 		ConnectT backupConnect = backup(connect);
+		logger.info("Copied connect object.");
 		setNullForReferencedObjects(connect);
-
+		logger.info("Reference Objects set null");
 		try {
 			if (connectRepository.save(connect) != null) {
-
-				backupConnect.setConnectId(connect.getConnectId());
+				String tempId = connect.getConnectId();
+				backupConnect.setConnectId(tempId);
+				logger.info("Root Object Saved. Id : " + tempId);
 				connect = restore(backupConnect);
 				// connect.setCreatedModifiedBy(currentUserId);
 				// connect.setCreatedModifiedDatetime(currentTimeStamp);
 				String categoryUpperCase = connect.getConnectCategory()
 						.toUpperCase();
 				connect.setConnectCategory(categoryUpperCase);
+				
 				String connectId = connect.getConnectId();
 				String customerId = connect.getCustomerId();
 				String partnerId = connect.getPartnerId();
@@ -168,33 +180,40 @@ public class ConnectService {
 				List<NotesT> noteList = connect.getNotesTs();
 				populateNotes(currentTimeStamp, currentUserId, customerId,
 						partnerId, categoryUpperCase, connectId, noteList);
-
+				logger.info("Notes Populated ");
+				
 				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 						.getConnectCustomerContactLinkTs();
 				populateConnectCustomerContactLinks(currentUserId,
 						currentTimeStamp, connectId, conCustConLinkTList);
+				logger.info("ConnectCustomerContact Populated ");
 
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
 						.getConnectOfferingLinkTs();
 				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
 						connectId, conOffLinkTList);
-
+				logger.info("ConnectOffering Populated ");
+				
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 						.getConnectSubSpLinkTs();
 				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
 						connectId, conSubSpLinkTList);
-
+				logger.info("ConnectSubSp Populated ");
+				
 				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 						.getConnectSecondaryOwnerLinkTs();
 				populateConnectSecondaryOwnerLinks(currentUserId,
 						currentTimeStamp, connectId, conSecOwnLinkTList);
-
+				logger.info("ConnectSecondaryOwner Populated ");
+				
 				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 						.getConnectTcsAccountContactLinkTs();
 				populateConnectTcsAccountContactLinks(currentUserId,
 						currentTimeStamp, connectId, conTcsAccConLinkTList);
+				logger.info("ConnectTcsAccountContact Populated ");
 
 				if (connectRepository.save(connect) != null) {
+					logger.info("Connect Record Inserted - child objects saved");
 					return true;
 				}
 
@@ -327,7 +346,9 @@ public class ConnectService {
 
 		connect.setCreatedModifiedBy(currentUserId);
 		connect.setCreatedModifiedDatetime(currentTimeStamp);
-
+		logger.info("Connect Edit - user : " + currentUserId);
+		logger.info("Connect Edit - timestamp : " + currentTimeStamp);
+		
 		// backupConnect.setConnectId(connect.getConnectId());
 		// connect = restore(backupConnect);
 		try {
@@ -335,68 +356,77 @@ public class ConnectService {
 					.toUpperCase();
 			connect.setConnectCategory(categoryUpperCase);
 			String connectId = connect.getConnectId();
-
-			List<NotesT> noteList = connect.getNotesTs();
+			logger.info("Connect Id : " + connectId);
+			
 			String customerId = connect.getCustomerId();
 			String partnerId = connect.getPartnerId();
 			// populateNotes(currentTimeStamp,currentUserId,categoryUpperCase,connectId,
 			// noteList,connect);
+			List<NotesT> noteList = connect.getNotesTs();
 			if (noteList != null)
 				populateNotes(currentTimeStamp, currentUserId, customerId,
 						partnerId, categoryUpperCase, connectId, noteList);
+			logger.info("Notes Populated");
 
 			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 					.getConnectCustomerContactLinkTs();
 			if (conCustConLinkTList != null)
 				populateConnectCustomerContactLinks(currentUserId,
 						currentTimeStamp, connectId, conCustConLinkTList);
+			logger.info("ConnectCustomerContact Populated");
 
 			List<ConnectOfferingLinkT> conOffLinkTList = connect
 					.getConnectOfferingLinkTs();
 			if (conOffLinkTList != null)
 				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
 						connectId, conOffLinkTList);
-
+			logger.info("ConnectOffering Populated");
+			
 			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 					.getConnectSubSpLinkTs();
 			if (conSubSpLinkTList != null)
 				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
 						connectId, conSubSpLinkTList);
-
+			logger.info("ConnectSubSp Populated");
+			
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 					.getConnectSecondaryOwnerLinkTs();
 			if (conSecOwnLinkTList != null)
 				populateConnectSecondaryOwnerLinks(currentUserId,
 						currentTimeStamp, connectId, conSecOwnLinkTList);
+			logger.info("ConnectSecondaryOwner Populated");
 
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 					.getConnectTcsAccountContactLinkTs();
 			if (conTcsAccConLinkTList != null)
 				populateConnectTcsAccountContactLinks(currentUserId,
 						currentTimeStamp, connectId, conTcsAccConLinkTList);
+			logger.info("ConnectTcsAccountContact Populated");
 
 			List<TaskT> taskList = connect.getTaskTs();
 			if (taskList != null)
 				populateTasks(currentUserId, currentTimeStamp, connectId,
 						taskList);
+			logger.info("task Populated");
 
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
 					.getConnectOpportunityLinkIdTs();
 			if (conOppLinkIdTList != null)
 				populateOppLinks(currentUserId, currentTimeStamp, connectId,
 						conOppLinkIdTList);
+			logger.info("ConnectOpportunity Populated");
 
 			if (connect.getConnectSubLinkDeletionList() != null) {
 				deleteSubSps(connect.getConnectSubLinkDeletionList());
+				logger.info("ConnectCustomerContact deleted");
 			}
 			if (connect.getConnectOfferingLinkDeletionList() != null) {
 				deleteOfferings(connect.getConnectOfferingLinkDeletionList());
-			}
-			if (connect.getDocumentsDeletionList() != null) {
-				deleteDocuments(connect.getDocumentsDeletionList());
+				logger.info("ConnectOfferingLinks deleted");
 			}
 
 			if (connectRepository.save(connect) != null) {
+				logger.info("Connect Edit Success");
 				return true;
 			}
 		} catch (Exception e) {
@@ -404,12 +434,6 @@ public class ConnectService {
 					e.getMessage());
 		}
 		return false;
-	}
-
-	private void deleteDocuments(List<DocumentRepositoryT> documentsDeletionList) {
-		for (DocumentRepositoryT connectDoc : documentsDeletionList) {
-			docRepo.delete(connectDoc);
-		}
 	}
 
 	private void deleteOfferings(
