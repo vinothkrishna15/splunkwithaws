@@ -123,10 +123,10 @@ public class DocumentControllerTest {
 	public void TestDownload() throws Exception {
 		mockMvc.perform(get("/document/download/DOC3")).andExpect(status().isOk());
 	}
-	//Ensure that DOC5 record present in document_repository_t.
+	//Ensure that record for docIds present in document_repository_t table if no record found then change docIds and run junit again.
 	@Test
 	public void TestDelete() throws Exception {
-		mockMvc.perform(delete("/document?docIds=DOC5")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("Success"));
+		mockMvc.perform(delete("/document?docIds=DOC10")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("Success"));
 	}
 
 	@Test

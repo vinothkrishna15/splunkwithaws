@@ -3,7 +3,13 @@ package com.tcs.destination;
 import java.lang.reflect.Member;
 import java.nio.charset.Charset;
 import java.util.*;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.junit.Before;
@@ -38,7 +44,7 @@ import com.tcs.destination.controller.FavoritesController;
 import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.service.FavoritesService;
 
-@SuppressWarnings("unused")
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:app-context.xml")
 @SpringApplicationConfiguration(classes = DestinationApplication.class)
@@ -49,18 +55,22 @@ public class MyFavoritesControllerTest {
 	FavoritesService myFavService;
 
 	@Autowired
-	WebApplicationContext wvc5;
+	WebApplicationContext wac;
 	
 	@Autowired
 	FilterChainProxy springSecurityFilterChain;
 
 	MockMvc mockMvc = MockMvcBuilders.standaloneSetup(
 			new FavoritesController()).build();
+	
+	MockMvc mockMvc1 = MockMvcBuilders.standaloneSetup(
+			new FavoritesController()).build();
 
 	@Before
 	public void setUp() throws Exception {
-		mockMvc = MockMvcBuilders.webAppContextSetup(wvc5)
+		mockMvc = MockMvcBuilders.webAppContextSetup(wac)
 				.addFilters(springSecurityFilterChain).build();
+		mockMvc1 = MockMvcBuilders.webAppContextSetup(wac).build();
 	}
 
 	@Test
@@ -189,4 +199,19 @@ public class MyFavoritesControllerTest {
 						.accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
 	}
+	
+	//Ensure that record for userFavoritesId present in user_favorites_t table if there is no record found then change the userfavoritesId and run again.
+		@Test
+		public void TestDelete() throws Exception {
+			mockMvc1.perform(delete("/favorites?userFavoritesId=USF10"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.status").value("Success"));
+		}
+		
+		@Test
+		public void TestDeleteInternalServerError() throws Exception {
+			mockMvc1.perform(delete("/favorites?userFavoritesId=USF0"))
+					.andExpect(status().is5xxServerError())
+					.andExpect(jsonPath("$.status").value("Failed"));
+		}
 }
