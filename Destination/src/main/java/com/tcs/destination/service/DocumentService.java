@@ -9,9 +9,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,6 @@ import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.Constants.EntityType;
 
 @Component
@@ -29,6 +29,8 @@ public class DocumentService {
 
 	@Autowired 
 	DocumentRepository documentRepository;
+	
+	private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
 	
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
@@ -61,6 +63,7 @@ public class DocumentService {
 			String commentId, String connectId, String customerId,
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws Exception {
+		
 			DocumentRepositoryT document=new DocumentRepositoryT();
 			if(!commentId.equals(""))
 			document.setCommentId(commentId);
@@ -94,24 +97,33 @@ public class DocumentService {
 			
 			String docId = "";
 			validateInputs(document);
+			logger.info("validated input(document record) for insertion");
+			
 			if(documentRepository.save(document)!=null){
 				docId = document.getDocumentId();
+				logger.info("document record saved with id: " + docId);
 				String entityId = getEntityId(document);
+				logger.info(docId + " - entity id: " + entityId);
 				String saveDirLoc = getPathFromForm(entityType,entityId);
+				logger.info(docId + " - Directory to be stored : " + saveDirLoc);
 				if (!file.isEmpty()) {
 					saveFile(file,saveDirLoc,docId);
+					logger.info(docId + " - File saved at " + saveDirLoc);
 					String fileName = file.getOriginalFilename();
 					String fileExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
 					document.setFileReference(saveDirLoc + docId + fileExtension);
 					if(documentRepository.save(document)!=null){
+						logger.info(docId + " - Record(File Reference) in DB updated " + document.getFileReference());
 						return document.getDocumentId();
+					} else {
+						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - inner");
 					}
 				} else {
-		            return "FAILED";
+		            throw new DestinationException(HttpStatus.BAD_REQUEST,"Failure : Empty File");
 		        }
+			} else {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - outer");
 			}
-			return "FAILED";
-			
 	}
 
 	
@@ -239,20 +251,25 @@ public class DocumentService {
 		for(String docId : docIds){
 			DocumentRepositoryT docRep = documentRepository.findByDocumentId(docId);
 			if(docRep!=null){
+				logger.info(docId + " - Record Found");
 				docList.add(docRep);
 			}else {
+				logger.info(docId + " - No Records Found");
 				missingIds.append(docId + ",");
 			}
 		}
 		
 		if(missingIds.toString().isEmpty()){
+			logger.info("All the required records found");
 			index = 0;
 			for(DocumentRepositoryT docRep : docList){
 				index++;
 				String fullPath = docRep.getFileReference();
 				String id = docRep.getDocumentId();
 				deleteFile(fullPath);
+				logger.info(id + " - File deleted");
 				documentRepository.delete(docRep);
+				logger.info(id + " - record deleted");
 				deletedRecords.append(id);
 				if(index < docList.size()){
 				deletedRecords.append(",");
@@ -261,21 +278,23 @@ public class DocumentService {
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No records found for Ids : " +  missingIds.toString());
 		}
-		return deletedRecords.toString();
+		String delRecords = deletedRecords.toString();
+		logger.info("Records deleted : " + delRecords);
+		return delRecords;
 	}
 		
-		public void deleteFile(String fullPath) {
+		public void deleteFile(String fullPath) throws Exception{
 	    	try{
 	    		 //String fullPath = fileBasePath+File.separator+"my.pdf";
 	    		    File file = new File(fullPath);
 	    		    if(file.delete()){
-	        			System.out.println(file.getName() + " is deleted!");
+	    		    	logger.info(fullPath + " - File deleted");
 	        		}else{
-	        			System.out.println("Delete operation is failed.");
+	        			logger.info(fullPath + " - File deletion Failed");
 	        		}
 	    	    } catch (Exception ex) {
 	    	      //logger.info("Error writing file to output stream. Filename was '{}'", "", ex);
-	    	      throw new RuntimeException("Delete operation is failed.");
+	    	      throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,ex.getMessage() );
 	    	    }
 	    }
 	
