@@ -1,0 +1,52 @@
+{
+    "connectCategory":"CUSTOMER",
+    "connectName":"new connect 70",
+    "documentsAttached":"no",
+  "country":"India",
+    "endDatetimeOfConnect": 982336120000,
+    "startDatetimeOfConnect": 982336120000,
+    "primaryOwner": "541045",
+    "connectKeywords": "a197,b908",
+    "customerId": "CUS5410",
+    "connectCustomerContactLinkTs": [
+        {
+            "contactT": {
+                "contactId": "CON2"
+            }
+        }
+    ],
+    "connectOfferingLinkTs": [
+        {
+            "offeringMappingT": {
+                "offering": "Analytics"
+            }
+        }
+    ],
+    "connectSecondaryOwnerLinkTs": [
+        {
+            "secondaryOwner": "541045"
+        }
+    ],
+    "connectSubSpLinkTs": [
+        {
+          "subSpMappingT": {
+            "subSp": "ABIM - Products"
+          }
+        }
+    ],
+    "connectTcsAccountContactLinkTs": [
+        {
+            "contactT": {
+                "contactId": "CON1"
+            }
+        }
+    ],
+    "notesTs": [
+        {
+            "notesUpdated": "Sample note9 set 2 1"
+        },
+        {
+            "notesUpdated": "Sample note9 set 2 2"
+        }
+    ]
+}

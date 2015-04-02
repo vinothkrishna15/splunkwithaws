@@ -46,7 +46,7 @@ public class RecentlyAddedCustPartControllerTest {
 	 * Test method for {@link com.tcs.destination.controller.RecentlyAddedController#recentlyAdded()}.
 	 */
 	@Test
-	public final void testRecentlyAdded() throws Exception{
+	public final void TestRecentlyAddedCustomer() throws Exception{
 
 		mockMvc.perform(get("/recent?entityType=CUSTOMER&fields=customerId,createdModifiedBy,"
 				+ "documentsAttached,customerName,groupCustomerName").accept(MediaType.APPLICATION_JSON))
@@ -63,9 +63,30 @@ public class RecentlyAddedCustPartControllerTest {
 			.andExpect(jsonPath("$[4].customerName").value("Walgreen Co."))
 			.andExpect(jsonPath("$[4].documentsAttached").value("YES"))
 			.andExpect(jsonPath("$[4].groupCustomerName").value("Walgreen"))
-			.andDo(print())
-			.andReturn();
+			.andDo(print()).andReturn();
 		
 	}
 
+	@Test
+	public final void TestRecentlyAddedPartner() throws Exception{
+
+		mockMvc.perform(get("/recent?entityType=PARTNER&fields=partnerId,createdModifiedBy,"
+				+ "documentsAttached,partnerName").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$[0].partnerId").value("PAT4"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("198054"))
+			.andExpect(jsonPath("$[0].partnerName").value("Microsoft"))
+			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
+			.andDo(print()).andReturn();
+		
+	}
+	
+	@Test
+	public final void TestRecentlyAddedBadReq() throws Exception{
+
+		mockMvc.perform(get("/recent?entityType=ABCD").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andDo(print()).andReturn();
+	}
 }

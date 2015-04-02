@@ -84,6 +84,14 @@ public class TaskControllerTest {
 	}
 		
 	@Test
+	public void TestTaskByIdNotFound() throws Exception
+	{
+		mockMvc.perform(get("/task/TAS1000").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andDo(print()).andReturn();
+	}
+	
+	@Test
 	public void TestTaskByName() throws Exception
 	{
 		mockMvc.perform(get("/task?nameWith=Description&fields=taskId,createdModifiedBy,documentsAttached,"
@@ -97,6 +105,14 @@ public class TaskControllerTest {
 			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
 			.andExpect(jsonPath("$[0].connectId").value("CNN1"))
 			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
+			.andDo(print()).andReturn();
+	}
+
+	@Test
+	public void TestTaskByNameNotFound() throws Exception
+	{
+		mockMvc.perform(get("/task?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
 			.andDo(print()).andReturn();
 	}
 	
@@ -118,6 +134,14 @@ public class TaskControllerTest {
 	}
 	
 	@Test
+	public void TestTaskByConnectIdNotFound() throws Exception
+	{
+		mockMvc.perform(get("/task/findByConnect?id=CNN1000").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andDo(print()).andReturn();
+	}
+	
+	@Test
 	public void TestTaskByOpportunityId() throws Exception
 	{
 		mockMvc.perform(get("/task/findByOpportunity?id=OPP1&fields=taskId,createdModifiedBy,documentsAttached,"
@@ -135,6 +159,15 @@ public class TaskControllerTest {
 	}
 	
 	@Test
+	public void TestTaskByOpportunityIdNotFound() throws Exception
+	{
+		mockMvc.perform(get("/task/findByOpportunity?id=OPP1000").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andDo(print()).andReturn();
+	}
+	
+	
+	@Test
 	public void TestTaskByOwnerId() throws Exception
 	{   
 		
@@ -149,6 +182,16 @@ public class TaskControllerTest {
 			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
 			.andExpect(jsonPath("$[0].connectId").value("CNN1"))
 			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
+			.andDo(print()).andReturn();
+	}
+	
+
+	@Test
+	public void TestTaskByOwnerIdNotFound() throws Exception
+	{   
+		
+		mockMvc.perform(get("/task/findByOwner?id=887053").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
 			.andDo(print()).andReturn();
 	}
 	
@@ -169,6 +212,8 @@ public class TaskControllerTest {
 			.andDo(print()).andReturn();
 	}
 	
+	
+	
 	@Test
 	public void TestTaskByTargetDate() throws Exception
 	{   
@@ -187,12 +232,10 @@ public class TaskControllerTest {
 			.andDo(print()).andReturn();
 	}
 	
-	
-	
-	
+		
 	@Test
 	public void TestTaskForCreate() throws Exception{
-		String requestJson="{\"collaborationPreference\": \"Restricted\", \"createdModifiedBy\": \"887054\", \"createdModifiedDatetime\": 1426617000000,"
+		String requestJson="{\"collaborationPreference\": \"Restricted\", \"createdModifiedBy\": \"887053\", \"createdModifiedDatetime\": 1426617000000,"
    +" \"documentsAttached\": \"No\", \"entityReference\": \"Opportunity\", \"targetDateForCompletion\": 1426617000000, \"taskDescription\": \"Task for Test45\","
    +" \"taskStatus\": \"Open\", \"collaborationCommentTs\": [ {\"commentType\": \"Task\", \"comments\": \"Comments for Task45\","
      +"       \"documentsAttached\": \"No\", \"entityType\": \"Task\", \"updatedDatetime\": 1426849920000,\"userId\": \"541045\","
@@ -210,7 +253,7 @@ public class TaskControllerTest {
 						.accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk()).andDo(print()).andReturn();
 	}
-	
+
 	@Test
 	public void TestEditConnect() throws Exception {
 

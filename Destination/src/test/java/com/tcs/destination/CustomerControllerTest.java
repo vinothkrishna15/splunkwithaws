@@ -71,11 +71,7 @@ public class CustomerControllerTest {
 			this.mockMvc.perform(get("/customer/CUS1").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound());
 			}
-		
-		
-		
-		
-		
+			
 		@Test
 		public void Test1CustomerControllerByName() throws Exception
 		{
@@ -155,6 +151,13 @@ public class CustomerControllerTest {
 			}
 		
 		@Test
+		public void Test2CustomerControllerTargetVsActual() throws Exception
+		{
+			this.mockMvc.perform(get("/customer/targetVsActual?name=ABN").accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound());
+			}
+		
+		@Test
 		public void ToTestSearchCustomerByGroupCustomerName() throws Exception
 		{
 			this.mockMvc.perform(get("/customer/group?nameWith=AB&fields=customerId,customerName").accept(MediaType.APPLICATION_JSON))
@@ -175,11 +178,13 @@ public class CustomerControllerTest {
 			}
 		
 		@Test
-		public void Test2CustomerControllerTargetVsActual() throws Exception
+		public void TestSearchCustomerByGroupCustomerNameNotFound() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/targetVsActual?name=ABN").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/group?nameWith=ABC&fields=customerId,customerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound());
 			}
+		
+		
 }
 	
 	

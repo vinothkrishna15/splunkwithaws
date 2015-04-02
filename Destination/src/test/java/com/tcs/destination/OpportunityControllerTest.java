@@ -132,4 +132,41 @@ public class OpportunityControllerTest {
 		.andReturn();
 	}
 
+	@Test
+	public void testByOpportunityNameNotFound() throws Exception {
+		mockMvc.perform(get("/opportunity?nameWith=ABCD").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void testOpportunityByRecentUsingCustomerIdNotFound() throws Exception {
+       mockMvc.perform(get("/opportunity/recent?customerId=CUS5000").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isNotFound());
+		
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingPrimaryOwnerNotFound() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=887053&role=PRIMARY_OWNER").accept(MediaType.APPLICATION_JSON))
+       .andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingSalesSupportNotFound() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=887053&role=SALES_SUPPORT").accept(MediaType.APPLICATION_JSON))
+       .andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingBidOfficeNotFound() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=887053&role=BID_OFFICE").accept(MediaType.APPLICATION_JSON))
+       .andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void testByTaskOwnerUsingAllNotFound() throws Exception {
+       mockMvc.perform(get("/opportunity/taskOwner?id=887053&role=ALL").accept(MediaType.APPLICATION_JSON))
+       .andExpect(status().isNotFound());
+	}
+
 }

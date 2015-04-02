@@ -58,7 +58,7 @@ public class PartnerControllerTest {
 	}
 
 	@Test
-	public void test() throws Exception
+	public void TestPartnerById() throws Exception
 	{
 		mockMvcuser.perform(get("/partner/PAT4?fields=partnerId,corporateHqAddress,documentsAttached,partnerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
@@ -71,4 +71,10 @@ public class PartnerControllerTest {
 		.andReturn();
 	}
 	
+	@Test
+	public void TestPartnerByIdNotFound() throws Exception
+	{
+		mockMvcuser.perform(get("/partner/PAT4000").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isNotFound());
+	}
 }

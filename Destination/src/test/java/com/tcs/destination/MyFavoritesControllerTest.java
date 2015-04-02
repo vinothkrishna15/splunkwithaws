@@ -180,13 +180,13 @@ public class MyFavoritesControllerTest {
 		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
 	}
 	
-//	@Test
-//	public void TestByDocumentIdBadReq() throws Exception{
-//		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC0\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
-//				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
-//						.content(requestJson)
-//						.header("Authorization", "Basic YWFhOmJiYg==")
-//						.accept(MediaType.APPLICATION_JSON))
-//		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
-//	}
+	@Test
+	public void TestByDocumentIdBadReq() throws Exception{
+		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC0\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isBadRequest()).andDo(print()).andReturn();
+	}
 }

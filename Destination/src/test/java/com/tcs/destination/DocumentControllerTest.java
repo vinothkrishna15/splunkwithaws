@@ -123,10 +123,19 @@ public class DocumentControllerTest {
 	public void TestDownload() throws Exception {
 		mockMvc.perform(get("/document/download/DOC3")).andExpect(status().isOk());
 	}
-	
+	//Ensure that DOC5 record present in document_repository_t.
 	@Test
 	public void TestDelete() throws Exception {
 		mockMvc.perform(delete("/document?docIds=DOC5")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("Success"));
 	}
 
+	@Test
+	public void TestDownloadNotFound() throws Exception {
+		mockMvc.perform(get("/document/download/DOC0")).andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void TestDeleteNotFound() throws Exception {
+		mockMvc.perform(delete("/document?docIds=DOC0")).andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value("Failed"));
+	}
 }

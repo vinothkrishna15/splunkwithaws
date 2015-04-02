@@ -44,29 +44,40 @@ public class FrequentlySearchedControllerTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void TestFrequentByCustomer() throws Exception {
 		mockMvc.perform(get("/frequent?entityType=CUSTOMER&fields=count,entity,customerId"
 				+ ",corporateHqAddress,createdModifiedBy,createdModifiedDatetime,customerName,"
 				+ "documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
-		.andExpect(jsonPath("$[0].count").value(2))
 		.andExpect(jsonPath("$[0].entity.customerId").value("CUS546"))
 		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("287694"))
 		.andExpect(jsonPath("$[0].entity.customerName").value("ASDA Stores Limited"))
 		.andExpect(jsonPath("$[0].entity.documentsAttached").value("YES"))
 		.andExpect(jsonPath("$[0].entity.groupCustomerName").value("ASDA Stores Limited"))
-		.andExpect(jsonPath("$[1].count").value(2))
-		.andExpect(jsonPath("$[2].count").value(1))
-		.andExpect(jsonPath("$[2].count").value(1))
+		.andDo(print())
+		.andReturn();
+		}
+	
+	@Test
+	public void TestFrequentByPartner() throws Exception {
+		mockMvc.perform(get("/frequent?entityType=PARTNER&fields=count,entity,"
+				+ "partnerId,corporateHqAddress,createdModifiedBy,createdModifiedDatetime,"
+				+ "partnerName,documentsAttached").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$[0].entity.partnerId").value("PAT6"))
+		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("278648"))
+		.andExpect(jsonPath("$[0].entity.partnerName").value("Apple"))
+		.andExpect(jsonPath("$[0].entity.documentsAttached").value("NO"))
 		.andDo(print())
 		.andReturn();
 		
 		  
 	}
+	
 	@Test
 	public void TestForInsertCust() throws Exception {
 		
-		String requestJson="{\"entityType\":\"PARTNER\",\"entityId\":\"PAT7\",\"userId\":\"541045\"}";
+		String requestJson="{\"entityType\":\"CUSTOMER\",\"entityId\":\"CUS546\",\"userId\":\"833389\"}";
 		
 			this.mockMvc.perform(post("/frequent")
 					.content(requestJson)
@@ -77,7 +88,44 @@ public class FrequentlySearchedControllerTest {
 				.andDo(print()).andReturn();	
 			}
 	
+	@Test
+	public void TestForInsertPart() throws Exception {
+		
+		String requestJson="{\"entityType\":\"PARTNER\",\"entityId\":\"PAT4\",\"userId\":\"541045\"}";
+		
+			this.mockMvc.perform(post("/frequent")
+					.content(requestJson)
+					.header("Authorization", "Basic YWFhOmJiYg==")
+				.contentType(TestUtil.APPLICATION_JSON_UTF8)
+	           	.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andDo(print()).andReturn();	
+			}
 	
-	
+//	@Test
+//	public void TestForInsertCustBadReq() throws Exception {
+//		
+//		String requestJson="{\"entityType\":\"CUSTOMER\",\"entityId\":\"CUS5000\",\"userId\":\"833389\"}";
+//		
+//			this.mockMvc.perform(post("/frequent")
+//					.content(requestJson)
+//					.header("Authorization", "Basic YWFhOmJiYg==")
+//				.contentType(TestUtil.APPLICATION_JSON_UTF8)
+//	           	.accept(MediaType.APPLICATION_JSON))
+//				.andExpect(status().isBadRequest());	
+//			}
+//	
+//	@Test
+//	public void TestForInsertPartBadReq() throws Exception {
+//		
+//		String requestJson="{\"entityType\":\"PARTNER\",\"entityId\":\"PAT4000\",\"userId\":\"541045\"}";
+//		
+//			this.mockMvc.perform(post("/frequent")
+//					.content(requestJson)
+//					.header("Authorization", "Basic YWFhOmJiYg==")
+//				.contentType(TestUtil.APPLICATION_JSON_UTF8)
+//	           	.accept(MediaType.APPLICATION_JSON))
+//				.andExpect(status().isBadRequest());
+//			}
 
 }

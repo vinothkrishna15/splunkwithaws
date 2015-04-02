@@ -324,6 +324,19 @@ public class ConnectControllerTest {
 								.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk()).andDo(print()).andReturn();
 	}
+	
+	@Test
+	public void TestCreateConnectError() throws Exception {
+		String requestJson = TestUtil.getJsonString(TestConstants.requestJsonCreateConnectError);
+		TestUtil.setAuthToken(userDetailsService);
+		this.mockMvc.perform(post("/connect")
+								.contentType(TestUtil.APPLICATION_JSON_UTF8)
+								.content(requestJson)
+								.header("Authorization", "Basic YWFhOmJiYg==")
+								.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().is5xxServerError()).andDo(print()).andReturn();
+	}
+
 
 	@Test
 	public void TestEditConnect() throws Exception {
@@ -338,5 +351,17 @@ public class ConnectControllerTest {
 				.andExpect(status().isOk()).andDo(print()).andReturn();
 	}
 	
+	@Test
+	public void TestEditConnectInternalServerError() throws Exception {
+		String requestJson = TestUtil.getJsonString(TestConstants.requestJsonEditConnectError);
+		TestUtil.setAuthToken(userDetailsService);
+		this.mockMvc
+				.perform(put("/connect")
+								.contentType(TestUtil.APPLICATION_JSON_UTF8)
+								.content(requestJson)
+								.header("Authorization", "Basic YWFhOmJiYg==")
+								.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().is5xxServerError()).andDo(print()).andReturn();
+	}
 	
 }

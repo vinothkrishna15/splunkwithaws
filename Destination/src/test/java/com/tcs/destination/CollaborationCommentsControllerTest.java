@@ -58,10 +58,9 @@ public class CollaborationCommentsControllerTest {
 	}
 
 	@Test
-	public void Test1ByEntityType() throws Exception{
+	public void TestByEntityTypeConnect() throws Exception{
 		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
-				+ "\"entityType\": \"CONNECT\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
-				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				+ "\"entityType\": \"CONNECT\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN3\",\"userId\":\"886301\"}";
 				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
 						.content(requestJson)
 						.header("Authorization", "Basic YWFhOmJiYg==")
@@ -70,10 +69,9 @@ public class CollaborationCommentsControllerTest {
 	}
 	
 	@Test
-	public void Test2ByEntityType() throws Exception{
+	public void TestByEntityTypeOpportunity() throws Exception{
 		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
-				+ "\"entityType\": \"OPPORTUNITY\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
-				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				+ "\"entityType\": \"OPPORTUNITY\",\"updatedDatetime\": 982336120000,\"opportunityId\":\"OPP2\",\"userId\":\"886301\"}";
 				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
 						.content(requestJson)
 						.header("Authorization", "Basic YWFhOmJiYg==")
@@ -82,14 +80,47 @@ public class CollaborationCommentsControllerTest {
 	}
 	
 	@Test
-	public void Test3ByEntityType() throws Exception{
+	public void TestByEntityTypeTask() throws Exception{
 		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
-				+ "\"entityType\": \"TASK\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN1\",\"opportunityId\":\"OPP2\","
-				+ "\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
+				+ "\"entityType\": \"TASK\",\"updatedDatetime\": 982336120000,\"taskId\":\"TAS3\",\"userId\":\"886301\"}";
 				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
 						.content(requestJson)
 						.header("Authorization", "Basic YWFhOmJiYg==")
 						.accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByEntityTypeConnectInternalServerError() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"CONNECT\",\"updatedDatetime\": 982336120000,\"connectId\": \"CNN10000\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().is5xxServerError()).andDo(print()).andReturn();
+	}
+	
+	
+	@Test
+	public void TestByEntityTypeOpportunityInternalServerError() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"OPPORTUNITY\",\"updatedDatetime\": 982336120000,\"opportunityId\":\"OPP1000\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().is5xxServerError()).andDo(print()).andReturn();
+	}
+	
+	@Test
+	public void TestByEntityTypeTaskInternalServerError() throws Exception{
+		String requestJson="{ \"commentType\": \"USER\",\"comments\": \"USER Comments valid\",\"documentsAttached\": \"YES\","
+				+ "\"entityType\": \"TASK\",\"updatedDatetime\": 982336120000,\"taskId\":\"TAS1000\",\"userId\":\"886301\"}";
+				mockMvc.perform(post("/comments").contentType(TestUtil.APPLICATION_JSON_UTF8)
+						.content(requestJson)
+						.header("Authorization", "Basic YWFhOmJiYg==")
+						.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().is5xxServerError()).andDo(print()).andReturn();
 	}
 }
