@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 @RequestMapping("/country")
 public class CountryController {
 	
+	private static final Logger logger = LoggerFactory.getLogger(CountryController.class);
+	
 	@Autowired 
 	CountryService countryService;
 	
@@ -25,6 +29,7 @@ public class CountryController {
 	@RequestParam(value = "fields", defaultValue = "all") String fields,
 	@RequestParam(value = "view", defaultValue = "") String view)
 	{
+		logger.debug("Inside CountryController /country GET");
 		ArrayList<GeographyCountryMappingT> geographyCountryMapping=new ArrayList<GeographyCountryMappingT>();
 		geographyCountryMapping=(ArrayList<GeographyCountryMappingT>) countryService.findAll();
 		return Constants.filterJsonForFieldAndViews(fields, view,

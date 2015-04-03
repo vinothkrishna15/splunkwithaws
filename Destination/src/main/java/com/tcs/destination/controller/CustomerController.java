@@ -2,6 +2,8 @@ package com.tcs.destination.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,8 @@ import com.tcs.destination.utils.Constants;
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
 	@Autowired
 	CustomerService customerService;
@@ -27,6 +31,7 @@ public class CustomerController {
 			@PathVariable("id") String customerid,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside CustomerController /customer/id="+customerid+" GET");
 		CustomerMasterT customer = customerService.findById(customerid);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
 	}
@@ -36,6 +41,7 @@ public class CustomerController {
 			@RequestParam("nameWith") String chars,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+		logger.debug("Inside CustomerController /customer?namewith="+chars+" GET");
 		List<CustomerMasterT> customer = customerService
 				.findByNameContaining(chars);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
@@ -47,6 +53,7 @@ public class CustomerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "currency", defaultValue = "USD") String currency) throws Exception {
+		logger.debug("Inside CustomerController /customer/targetVsActual?name="+name+" GET");
 		List<TargetVsActualResponse> tarVsAct = customerService
 				.findTargetVsActual(name, currency);
 		return Constants.filterJsonForFieldAndViews(fields, view, tarVsAct);
@@ -58,6 +65,7 @@ public class CustomerController {
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside CustomerController /customer/topRevenue GET");
 		List<CustomerMasterT> topRevenueCustomers = customerService
 				.findTopRevenue(count, financialYear);
 
@@ -70,6 +78,7 @@ public class CustomerController {
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+		logger.debug("Inside CustomerController /customer/group?nameWith="+nameWith+" GET");
 		List<CustomerMasterT> customer = (List<CustomerMasterT>)customerService.findByGroupCustomerName(nameWith);
 		return Constants.filterJsonForFieldAndViews(fields, view, customer);
 	}

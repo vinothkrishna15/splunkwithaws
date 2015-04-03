@@ -31,10 +31,11 @@ import com.tcs.destination.utils.Constants;
 @RequestMapping("/connect")
 public class ConnectController {
 
+	private static final Logger logger = LoggerFactory.getLogger(ConnectController.class);
+	
 	@Autowired
 	ConnectService connectService;
 
-	private static final Logger logger = LoggerFactory.getLogger(ConnectController.class);
 	
 	/**
 	 * This Method is used to find connection details for the given connection
@@ -49,6 +50,7 @@ public class ConnectController {
 			@PathVariable("id") String connectId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside ConnectController /connect/id="+connectId+" GET");
 		ConnectT connect = connectService.searchforConnectsById(connectId);
 		return Constants.filterJsonForFieldAndViews(fields, view, connect);
 	}
@@ -67,6 +69,7 @@ public class ConnectController {
 			@RequestParam("nameWith") String connectName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+		logger.debug("Inside ConnectController /connect?nameWith="+connectName+" GET");
 		List<ConnectT> connectlist = connectService
 				.searchforConnectsByNameContaining(connectName);
 		return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
@@ -95,7 +98,7 @@ public class ConnectController {
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) 
 	throws Exception{
-
+		logger.debug("Inside ConnectController /connect/date?from="+fromDate+"&to="+toDate+"GET");
 		if (weekStartDate.getTime() == weekEndDate.getTime()
 				&& monthStartDate.getTime() == monthEndDate.getTime()) {
 			System.out.println("Old Code");
@@ -119,7 +122,7 @@ public class ConnectController {
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToConnect(
 			@RequestBody ConnectT connect) throws Exception {
-		logger.info("Connect Insert Request Received");
+		logger.info("Connect Insert Request Received /connect POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		
@@ -135,7 +138,7 @@ public class ConnectController {
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editConnect(
 			@RequestBody ConnectT connect) throws Exception {
-		logger.info("Connect Edit Request Received");
+		logger.info("Connect Edit Request Received /connect PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		
