@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.exception.DestinationException;
@@ -37,6 +39,12 @@ public class TaskService {
 	@Autowired
 	TaskBdmsTaggedLinkRepository taskBdmsTaggedLinkRepository;
 	
+	@Autowired
+	ConnectRepository connectRepository;
+
+	@Autowired
+	OpportunityRepository opportunityRepository;
+
 	/**
 	 * This method is used to find task details for the given task id.
 	 * 
@@ -281,20 +289,61 @@ public class TaskService {
 
 		//Validate Task Entity Reference 
 		if (task.getEntityReference() != null) {
-			if (!TaskEntityReference.contains(task.getEntityReference()))
-				throw new DestinationException(HttpStatus.NOT_ACCEPTABLE, "Invalid Task Entity Reference");
+			String entityRef = task.getEntityReference();
+			if (TaskEntityReference.contains(entityRef)) {
+				//If EntityReference is Connect, ConnectId should be passed
+				if (TaskEntityReference.Connect.equalsName(entityRef)) {
+					if (task.getConnectId() == null) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required");
+					}
+					if (task.getOpportunityId() != null) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"EntityReference is Connect, OpportunityId should not be passed");
+					}
+					if (!connectRepository.exists(task.getConnectId())) {
+						throw new DestinationException(HttpStatus.NOT_FOUND, "ConnectId not found");
+					}
+				}
+				//If EntityReference is Opportunity, OpportunityId should be passed
+				if (TaskEntityReference.Opportunity.equalsName(entityRef)) {
+					if (task.getOpportunityId() == null) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST, "OpportunityId is required");
+					}
+					if (task.getConnectId() != null) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"EntityReference is Opportunity, ConnectId should not be passed");
+					}
+					if (!opportunityRepository.exists(task.getOpportunityId())) {
+						throw new DestinationException(HttpStatus.NOT_FOUND, "OpportunityId not found");
+					}
+				}
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Entity Reference");
+			}
 		}
 		
 		//Validate Task Status
 		if (task.getTaskStatus() != null) {
 			if (!TaskStatus.contains(task.getTaskStatus()))
-				throw new DestinationException(HttpStatus.NOT_ACCEPTABLE, "Invalid Task Status");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status");
 		}
 		
 		//Validate Task Collaboration Preference
 		if (task.getCollaborationPreference() != null) {
-			if (!TaskCollaborationPreference.contains(task.getCollaborationPreference()))
-				throw new DestinationException(HttpStatus.NOT_ACCEPTABLE, "Invalid Task Collaboration Preference");
+			String collaborationPreference = task.getCollaborationPreference();
+			if (TaskCollaborationPreference.contains(collaborationPreference)) {
+				//If BDM collaboration preference is Restricted, one or more BDMs should be tagged
+				if (TaskCollaborationPreference.Restricted.equalsName(collaborationPreference)) {
+					if (task.getTaskBdmsTaggedLinkTs() == null) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST, 
+								"BDM Collaboration preference is Restricted, one or more BDMs should be tagged");
+					}
+				}
+				
+			} else {
+				throw new DestinationException(
+						HttpStatus.BAD_REQUEST, "Invalid Task BDM Collaboration Preference");
+			}
 		}
 	}
 }
