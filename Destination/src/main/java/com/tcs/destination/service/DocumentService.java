@@ -52,7 +52,27 @@ public class DocumentService {
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws Exception {
 		    logger.debug("Inside saveDocument Service");
-			DocumentRepositoryT document=new DocumentRepositoryT();
+		    DocumentRepositoryT document=new DocumentRepositoryT();
+		    document.setCommentId(commentId);
+		    document.setConnectId(connectId);
+		    document.setCustomerId(customerId);
+		    document.setDocumentName(documentName);
+		    document.setDocumentType(documentType);
+			document.setEntityType(entityType);
+			document.setFileReference(fileBasePath);
+			document.setOpportunityId(opportunityId);
+			document.setTaskId(taskId);
+			document.setPartnerId(partnerId);
+			
+		    if(isDuplicateRecord(document)){
+				throw new DestinationException(HttpStatus.BAD_REQUEST,"Failure : Duplicate found");
+			} else {
+				 document.setCommentId(null);
+				    document.setConnectId(null);
+				    document.setCustomerId(null);
+				    document.setOpportunityId(null);
+					document.setTaskId(null);
+					document.setPartnerId(null);
 			if(!commentId.equals(""))
 			{
 				logger.debug("commentId Not Empty");
@@ -105,6 +125,8 @@ public class DocumentService {
 			validateInputs(document);
 			logger.debug("validated input(document record) for insertion");
 			
+			
+			
 			if(documentRepository.save(document)!=null){
 				docId = document.getDocumentId();
 				logger.debug("document record saved with id: " + docId);
@@ -136,6 +158,26 @@ public class DocumentService {
 				logger.error("INTERNAL_SERVER_ERROR: Insertion failed - outer");
 				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - outer");
 			}
+			}
+	}
+
+	private boolean isDuplicateRecord(DocumentRepositoryT document) {
+		boolean isDuplicate = false;
+		
+		String documentName = document.getDocumentName();
+		String customerId = document.getCustomerId();
+		String partnerId = document.getPartnerId();
+		String connectId = document.getConnectId();
+		String opportunityId = document.getOpportunityId();
+		String taskId = document.getTaskId();
+		
+		DocumentRepositoryT doc = documentRepository.findDocument(documentName, customerId, partnerId, connectId, opportunityId, taskId);
+		
+		if(doc!=null){
+			isDuplicate = true;
+		}
+		
+		return isDuplicate;
 	}
 
 	private String getRelativePath(String entityType,String entityId){
