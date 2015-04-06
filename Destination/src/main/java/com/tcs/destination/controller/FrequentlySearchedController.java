@@ -3,6 +3,8 @@ package com.tcs.destination.controller;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,8 @@ import com.tcs.destination.utils.Constants;
 @RestController
 @RequestMapping("/frequent")
 public class FrequentlySearchedController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(FrequentlySearchedController.class);
 
 	@Autowired
 	FrequentlySearchedService frequentService;
@@ -36,6 +40,7 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "all") String owner)
 			throws Exception {
+		logger.debug("Inside FrequetlySearchedController /frequent?entityType="+entityType+" GET");
 		return Constants.filterJsonForFieldAndViews(fields, view,
 				frequentService.findFrequent(entityType, count));
 	}
@@ -45,9 +50,11 @@ public class FrequentlySearchedController {
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+		logger.debug("Inside FrequentlySearchedController /frequent POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if(frequentService.insertFrequent(frequent)){
+			logger.debug("Frequent Details Inserted Successfully");
 			status.setStatus(Status.SUCCESS, frequent.getFrequentlySearchedId());
 		}
 

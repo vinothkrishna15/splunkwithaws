@@ -36,7 +36,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside Favorites Controller /favorites?entityType="
+		logger.debug("Inside FavoritesController /favorites?entityType="
 				+ entityType + " GET");
 		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
 				Constants.getCurrentUserDetails(), entityType);
@@ -50,7 +50,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside Favorites Controller /favorites POST");
+		logger.debug("Inside FavoritesController /favorites POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (myFavService.addFavorites(favorites)) {
@@ -68,7 +68,7 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-
+		logger.debug("Inside FavoritesController /favorites?userFavoritesId="+favoritesId+" DELETE");
 		Status status = new Status();
 		myFavService.removeFromFavorites(favoritesId);
 		status.setStatus(Status.SUCCESS, favoritesId);

@@ -139,6 +139,7 @@ public class FavoritesService {
 		try{
 			userFavRepository.delete(favoritesId);
 		} catch(Exception e){
+			logger.error("INTERNAL_SERVER_ERROR: "+e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 	}

@@ -50,8 +50,10 @@ public class DocumentService {
 //	}
 
 	public DocumentRepositoryT findByDocumentId(String documentId) throws Exception{
+		logger.debug("Inside findByDocumentId Service");
 		DocumentRepositoryT docRep = documentRepository.findByDocumentId(documentId);
 		if(docRep==null){
+			logger.error("NOT_FOUND: No Relevent Data/document Found in the database");
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data/document Found in the database");
 		}
 		return docRep;
@@ -63,14 +65,23 @@ public class DocumentService {
 			String commentId, String connectId, String customerId,
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws Exception {
-		
+		    logger.debug("Inside saveDocument Service");
 			DocumentRepositoryT document=new DocumentRepositoryT();
 			if(!commentId.equals(""))
-			document.setCommentId(commentId);
+			{
+				logger.debug("commentId Not Empty");
+				document.setCommentId(commentId);
+			}			
 			if(!connectId.equals(""))
-			document.setConnectId(connectId);
+			{
+				logger.debug("connectId Not Empty");
+				document.setConnectId(connectId);
+			}
 			if(!customerId.equals(""))
-			document.setCustomerId(customerId);
+			{
+				logger.debug("customerId Not Empty");
+				document.setCustomerId(customerId);
+			}
 			
 			document.setDocumentName(documentName);
 			//document.setDocumentSearchKeywords(documentSearchKeywords);
@@ -78,14 +89,23 @@ public class DocumentService {
 			document.setEntityType(entityType);
 			document.setFileReference(fileBasePath);
 			if(!opportunityId.equals(""))
-			document.setOpportunityId(opportunityId);
+			{
+				logger.debug("opportunityId Not Empty");
+				document.setOpportunityId(opportunityId);
+			}
 			
 			document.setParentEntity(parentEntity);
 			document.setParentEntityId(parentEntityId);
 			if(!partnerId.equals(""))
-			document.setPartnerId(partnerId);
+			{
+				logger.debug("partnerId Not Empty");
+				document.setPartnerId(partnerId);
+			}			
 			if(!taskId.equals(""))
-			document.setTaskId(taskId);
+			{
+				logger.debug("taskId Not Empty");
+				document.setTaskId(taskId);
+			}
 			UserT user=new UserT();
 			user.setUserId(uploadedBy);
 			document.setUserT(user);
@@ -97,37 +117,41 @@ public class DocumentService {
 			
 			String docId = "";
 			validateInputs(document);
-			logger.info("validated input(document record) for insertion");
+			logger.debug("validated input(document record) for insertion");
 			
 			if(documentRepository.save(document)!=null){
 				docId = document.getDocumentId();
-				logger.info("document record saved with id: " + docId);
+				logger.debug("document record saved with id: " + docId);
 				String entityId = getEntityId(document);
-				logger.info(docId + " - entity id: " + entityId);
+				logger.debug(docId + " - entity id: " + entityId);
 				String saveDirLoc = getPathFromForm(entityType,entityId);
-				logger.info(docId + " - Directory to be stored : " + saveDirLoc);
+				logger.debug(docId + " - Directory to be stored : " + saveDirLoc);
 				if (!file.isEmpty()) {
 					saveFile(file,saveDirLoc,docId);
-					logger.info(docId + " - File saved at " + saveDirLoc);
+					logger.debug(docId + " - File saved at " + saveDirLoc);
 					String fileName = file.getOriginalFilename();
 					String fileExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
 					document.setFileReference(saveDirLoc + docId + fileExtension);
 					if(documentRepository.save(document)!=null){
-						logger.info(docId + " - Record(File Reference) in DB updated " + document.getFileReference());
+						logger.debug(docId + " - Record(File Reference) in DB updated " + document.getFileReference());
 						return document.getDocumentId();
 					} else {
+						logger.error("INTERNAL_SERVER_ERROR: Insertion failed - inner");
 						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - inner");
 					}
 				} else {
+					logger.error("BAD_REQUEST: Failure : Empty File");
 		            throw new DestinationException(HttpStatus.BAD_REQUEST,"Failure : Empty File");
 		        }
 			} else {
+				logger.error("INTERNAL_SERVER_ERROR: Insertion failed - outer");
 				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - outer");
 			}
 	}
 
 	
 	private String getEntityId(DocumentRepositoryT document) throws Exception {
+		logger.debug("Inside getEntityId Service");
 		String entityType = document.getEntityType();
 		String customerId = document.getCustomerId();
 		String opportunityId = document.getOpportunityId();
@@ -136,23 +160,30 @@ public class DocumentService {
 		String connectId = document.getConnectId();
 		String entityId = null;
 		if (EntityType.contains(entityType)) {
+			logger.debug("Inside getEntityId Service");
 		switch(EntityType.valueOf(entityType)){
 		case CUSTOMER:
+			logger.debug("Entity of Customer Found");
 			entityId = customerId;
 			break;
 		case PARTNER:
+			logger.debug("Entity of Partner Found");
 			entityId = partnerId;
 			break;
 		case OPPORTUNITY:
+			logger.debug("Entity of Opportunity Found");
 			entityId = opportunityId;
 			break;
 		case CONNECT:
+			logger.debug("Entity of Connect Found");
 			entityId = connectId;
 			break;
 		case TASK:
+			logger.debug("Entity of Task Found");
 			entityId = taskId;
 		}
 		} else {
+		logger.error("BAD_REQUEST: Invalid Entity Type");
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
 		}
@@ -160,6 +191,7 @@ public class DocumentService {
 		}
 
 	private void validateInputs(DocumentRepositoryT document) throws Exception{
+		logger.debug("Inside validateInputs Service");
 		String entityType = document.getEntityType();
 		String customerId = document.getCustomerId();
 		String opportunityId = document.getOpportunityId();
@@ -167,51 +199,66 @@ public class DocumentService {
 		String taskId = document.getTaskId();
 		String connectId = document.getConnectId();
 		if (EntityType.contains(entityType)) {
+			logger.debug("EntityType is Present");
 		switch(EntityType.valueOf(entityType)){
 		case CUSTOMER:
+			logger.debug("Customer is Found");
 			if (customerId == null) {
+				logger.error("BAD_REQUEST: Customer ID can not be empty");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Customer ID can not be empty");
 			}
 			break;
 		case PARTNER:
+			logger.debug("Partner is Found");
 			if (partnerId == null) {
+				logger.error("BAD_REQUEST: Partner ID can not be empty");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Partner ID can not be empty");
 			}
 			break;
 		case OPPORTUNITY:
+			logger.debug("Opportunity is Found");
 			if (opportunityId == null) {
+				logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Opportunity ID can not be empty");
 			}
 			break;
 		case CONNECT:
+			logger.debug("Connect is Found");
 			if (connectId == null) {
+				logger.error("BAD_REQUEST: Connect ID can not be empty");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Connect ID can not be empty");
 			}
 			break;
 		case TASK:
+			logger.debug("Task is Found");
 			if (taskId == null) {
+				logger.error("BAD_REQUEST: Task ID can not be empty");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Task ID can not be empty");
 			}
 			break;
 		}
 		} else {
+			logger.error("BAD_REQUEST: Invalid Entity Type");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Entity Type");
 		}
 	}
 
 	private void saveFile(MultipartFile file, String saveDirLoc, String docId) throws IOException {
+		logger.debug("Inside saveFile service");
 		try {
 			byte[] bytes = file.getBytes();
 			File dir = new File(saveDirLoc);
 			if (!dir.exists())
-	            dir.mkdirs();
-			
+			{
+				logger.debug("Directory does not exists");
+				dir.mkdirs();
+			}
 			String fileName = file.getOriginalFilename();
 			String saveFileName = docId;
             String fileExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
@@ -224,6 +271,7 @@ public class DocumentService {
             stream.close();
             
 		} catch (IOException e) {
+			logger.error("Exception: "+e.getMessage());
 			throw e;
 		}
 		
@@ -232,6 +280,7 @@ public class DocumentService {
 	}
 
 	private String getPathFromForm(String entityType,String entityId){
+		logger.debug("Inside getPathFromForm Form");
 		StringBuffer saveDir = new StringBuffer("");
 		saveDir.append(fileBasePath);
 		saveDir.append(File.separator);
@@ -244,6 +293,7 @@ public class DocumentService {
 
 	@Transactional
 	public String deleteDocRecords(String[] docIds) throws Exception{
+		logger.debug("Inside deleteDocRecords Service");
 		StringBuffer deletedRecords = new StringBuffer("");
 		int index = 0;
 		List<DocumentRepositoryT> docList = new ArrayList<DocumentRepositoryT>();
@@ -251,48 +301,51 @@ public class DocumentService {
 		for(String docId : docIds){
 			DocumentRepositoryT docRep = documentRepository.findByDocumentId(docId);
 			if(docRep!=null){
-				logger.info(docId + " - Record Found");
+				logger.debug(docId + " - Record Found");
 				docList.add(docRep);
 			}else {
-				logger.info(docId + " - No Records Found");
+				logger.debug(docId + " - No Records Found");
 				missingIds.append(docId + ",");
 			}
 		}
 		
 		if(missingIds.toString().isEmpty()){
-			logger.info("All the required records found");
+			logger.debug("All the required records found");
 			index = 0;
 			for(DocumentRepositoryT docRep : docList){
 				index++;
 				String fullPath = docRep.getFileReference();
 				String id = docRep.getDocumentId();
 				deleteFile(fullPath);
-				logger.info(id + " - File deleted");
+				logger.debug(id + " - File deleted");
 				documentRepository.delete(docRep);
-				logger.info(id + " - record deleted");
+				logger.debug(id + " - record deleted");
 				deletedRecords.append(id);
 				if(index < docList.size()){
 				deletedRecords.append(",");
 				}
 			}
 		} else {
+			logger.error("NOT_FOUND: No records found for Ids" +  missingIds.toString());
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No records found for Ids : " +  missingIds.toString());
 		}
 		String delRecords = deletedRecords.toString();
-		logger.info("Records deleted : " + delRecords);
+		logger.debug("Records deleted : " + delRecords);
 		return delRecords;
 	}
 		
 		public void deleteFile(String fullPath) throws Exception{
+			logger.debug("Insdie deleteFile Service");
 	    	try{
 	    		 //String fullPath = fileBasePath+File.separator+"my.pdf";
 	    		    File file = new File(fullPath);
 	    		    if(file.delete()){
-	    		    	logger.info(fullPath + " - File deleted");
+	    		    	logger.debug(fullPath + " - File deleted");
 	        		}else{
-	        			logger.info(fullPath + " - File deletion Failed");
+	        			logger.debug(fullPath + " - File deletion Failed");
 	        		}
 	    	    } catch (Exception ex) {
+	    	    	logger.error("INTERNAL_SERVER_ERROR"+ex.getMessage());
 	    	      //logger.info("Error writing file to output stream. Filename was '{}'", "", ex);
 	    	      throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,ex.getMessage() );
 	    	    }

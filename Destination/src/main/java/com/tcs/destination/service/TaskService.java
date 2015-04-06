@@ -52,13 +52,17 @@ public class TaskService {
 	 * @return task details for the given task id.
 	 */
 	public TaskT findTaskById(String taskId) throws Exception {
+		logger.debug("Inside findTaskById Service");
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null)
+		{
+			logger.error("NOT_FOUND: No task found for the TaskId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No task found for the TaskId");
-
+		}
 		//Set the TaskOwner details from User object
 		if (task.getUserT() != null) {
+			logger.debug("UserT NOT NULL");
 			task.setTaskOwnerName(task.getUserT().getUserName());
 		}
 		return task;
@@ -70,16 +74,19 @@ public class TaskService {
 	 * @return tasks with the given task description.
 	 */
 	public List<TaskT> findTasksByNameContaining(String taskDescription) throws Exception {
+		logger.debug("Inside findTasksByNameContaining Service");
 		List<TaskT> taskList = taskRepository.
 				findByTaskDescriptionIgnoreCaseLike("%" + taskDescription + "%");
 
 		if ((taskList == null) || taskList.isEmpty()) {
+			logger.error("NOT_FOUND: No tasks found with the given task description");
 			throw new DestinationException(
 					HttpStatus.NOT_FOUND, "No tasks found with the given task description");
 		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -93,14 +100,18 @@ public class TaskService {
 	 * @return tasks for the given connect id.
 	 */
 	public List<TaskT> findTasksByConnectId(String connectId) throws Exception {
+		logger.debug("Inside findTasksByConnectId Service");
 		List<TaskT> taskList = taskRepository.findByConnectId(connectId);
 
 		if ((taskList == null) || taskList.isEmpty())
+		{
+			logger.error("NOT_FOUND: No tasks found for the ConnectId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId");
-
+		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -114,14 +125,18 @@ public class TaskService {
 	 * @return tasks for the given opportunity id.
 	 */
 	public List<TaskT> findTasksByOpportunityId(String opportunityId) throws Exception {
+		logger.debug("Inside findTasksByOpportunityId Service");
 		List<TaskT> taskList = taskRepository.findByOpportunityId(opportunityId);
 
 		if ((taskList == null) || taskList.isEmpty())
+		{
+			logger.error("NOT_FOUND: No tasks found for the OpportunityId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId");
-
+		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -135,15 +150,19 @@ public class TaskService {
 	 * @return tasks for the given task owner.
 	 */
 	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws Exception {
+		logger.debug("Inside findTasksByTaskOwner Service");
 		List<TaskT> taskList = 
 				taskRepository.findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(taskOwner, STATUS_CLOSED);
 
 		if ((taskList == null) || taskList.isEmpty())
+		{
+			logger.error("NOT_FOUND: No tasks found for the UserId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
-
+		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -156,16 +175,19 @@ public class TaskService {
 	 * @return tasks assigned to others by a given user id.
 	 */
 	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws Exception {
+		logger.debug("Inside findTasksAssignedtoOthersByUser Service");
 		List<TaskT> taskList = 
 			taskRepository.findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
 		if ((taskList == null) || taskList.isEmpty()) {
+			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId");
 			throw new DestinationException
 				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId");
 		}
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -179,11 +201,13 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByUserAndTargetDate(String userId, Date targetDate) 
 			throws Exception {
+		logger.debug("Inside findTasksByUserAndTargetDate Service");
 		List<TaskT> taskList = null;
 		
 		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletion(userId, targetDate);
 		
 		if ((taskList == null) || taskList.isEmpty()) {
+			logger.error("NOT_FOUND: No tasks found for the UserId and Target completion date");
 			throw new DestinationException(
 				HttpStatus.NOT_FOUND, "No tasks found for the UserId and Target completion date");
 		}
@@ -191,6 +215,7 @@ public class TaskService {
 		//Set the TaskOwner details from User object
 		for (TaskT task : taskList) {
 			if (task.getUserT() != null) {
+				logger.debug("UserT NOT NULL");
 				task.setTaskOwnerName(task.getUserT().getUserName());
 			}
 		}
@@ -205,6 +230,7 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT createTask(TaskT task) throws Exception {
+		logger.debug("Inside createTask Service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
 
@@ -213,6 +239,7 @@ public class TaskService {
 
 		//TaskBdmsTaggedLinkT contains a not null task_id, so save the parent task first
 		if (task.getTaskBdmsTaggedLinkTs() != null) {
+			logger.debug("TaskBdmsTaggedLinkTs NOT NULL");
 			taskBdmsTaggedLinkTs = task.getTaskBdmsTaggedLinkTs();
 			task.setTaskBdmsTaggedLinkTs(null);
 		}
@@ -220,7 +247,9 @@ public class TaskService {
 		managedTask = taskRepository.save(task);
 
 		if ((null != managedTask) && managedTask.getTaskId() != null) {
+			logger.debug("ManagedTask and TaskId NOT NULL");
 			if (taskBdmsTaggedLinkTs != null) {
+				logger.debug("taskBdmsTaggedLinkTs NOT NULL");
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink: taskBdmsTaggedLinkTs) {
 					taskBdmTaggedLink.setTaskT(managedTask);
 				}
@@ -239,23 +268,26 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT editTask(TaskT task) throws Exception {
+		logger.debug("Inside editTask Service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
 
 		//Check if task exists
 		if (taskRepository.exists(task.getTaskId())) {
-
+			logger.debug("Task Exists");
 			//Validate input parameters
 			validateTask(task);
 			
 			if (task.getTaskBdmsTaggedLinkTs() != null) {
+				logger.debug("TaskBdmsTaggedLink NOT NULL");
 				taskBdmsTaggedLinkTs = task.getTaskBdmsTaggedLinkTs();
 				task.setTaskBdmsTaggedLinkTs(null);
 			}
 
 			//Remove all the TaskBdmsTaggedLinkT's marked for remove
 			if (task.getTaskBdmsTaggedLinkDeletionList() != null) {
+				logger.debug("TaskBdmsTaggedLink NOT NULL");
 				removeBdmsTaggedLinkTs = task.getTaskBdmsTaggedLinkDeletionList();
 				task.setTaskBdmsTaggedLinkDeletionList(null);
 			}
@@ -265,11 +297,13 @@ public class TaskService {
 
 			//Persist TaskBdmsTaggedLinkT
 			if (taskBdmsTaggedLinkTs != null) {
+				logger.debug("TaskBdmsTaggedLinkTs Saved Successfully");
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
 			}
 
 			//Remove all the TaskBdmsTaggedLinkT's marked for remove
 			if (removeBdmsTaggedLinkTs != null) {
+				logger.debug("TaskBdmsTaggedLink Removed Successfully");
 				taskBdmsTaggedLinkRepository.delete(removeBdmsTaggedLinkTs);
 			}
 		} else {
@@ -289,58 +323,73 @@ public class TaskService {
 
 		//Validate Task Entity Reference 
 		if (task.getEntityReference() != null) {
+			logger.debug("Entity Reference NOT NULL");
 			String entityRef = task.getEntityReference();
 			if (TaskEntityReference.contains(entityRef)) {
 				//If EntityReference is Connect, ConnectId should be passed
 				if (TaskEntityReference.Connect.equalsName(entityRef)) {
 					if (task.getConnectId() == null) {
+						logger.error("BAD_REQUEST: ConnectId is required");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required");
 					}
 					if (task.getOpportunityId() != null) {
+						logger.error("BAD_REQUEST: EntityReference is Connect, OpportunityId should not be passed");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"EntityReference is Connect, OpportunityId should not be passed");
 					}
 					if (!connectRepository.exists(task.getConnectId())) {
+						logger.error("NOT_FOUND: ConnectId not found");
 						throw new DestinationException(HttpStatus.NOT_FOUND, "ConnectId not found");
 					}
 				}
 				//If EntityReference is Opportunity, OpportunityId should be passed
 				if (TaskEntityReference.Opportunity.equalsName(entityRef)) {
 					if (task.getOpportunityId() == null) {
+						logger.error("BAD_REQUEST: OpportunityId is required");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, "OpportunityId is required");
 					}
 					if (task.getConnectId() != null) {
+						logger.error("BAD_REQUEST: EntityReference is Opportunity, ConnectId should not be passed");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"EntityReference is Opportunity, ConnectId should not be passed");
 					}
 					if (!opportunityRepository.exists(task.getOpportunityId())) {
+						logger.error("NOT_FOUND: OpportunityId not found");
 						throw new DestinationException(HttpStatus.NOT_FOUND, "OpportunityId not found");
 					}
 				}
 			} else {
+				logger.error("BAD_REQUEST: Invalid Task Entity Reference");
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Entity Reference");
 			}
 		}
 		
 		//Validate Task Status
 		if (task.getTaskStatus() != null) {
+			logger.debug("Task Status NOT NULL");
 			if (!TaskStatus.contains(task.getTaskStatus()))
+			{
+				logger.error("BAD_REQUEST: Invalid Task Status");
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status");
+			}				
 		}
 		
 		//Validate Task Collaboration Preference
 		if (task.getCollaborationPreference() != null) {
+			logger.debug("Task Collaboration Preference NOT NULL");
 			String collaborationPreference = task.getCollaborationPreference();
 			if (TaskCollaborationPreference.contains(collaborationPreference)) {
 				//If BDM collaboration preference is Restricted, one or more BDMs should be tagged
 				if (TaskCollaborationPreference.Restricted.equalsName(collaborationPreference)) {
 					if (task.getTaskBdmsTaggedLinkTs() == null) {
+						logger.error("BAD_REQUEST: BDM Collaboration preference is Restricted, one or more BDMs should be tagged");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, 
 								"BDM Collaboration preference is Restricted, one or more BDMs should be tagged");
 					}
 				}
 				
 			} else {
+				logger.error("BAD_REQUEST: Invalid Task BDM Collaboration Preference");
 				throw new DestinationException(
 						HttpStatus.BAD_REQUEST, "Invalid Task BDM Collaboration Preference");
 			}

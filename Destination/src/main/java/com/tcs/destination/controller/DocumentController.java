@@ -75,17 +75,17 @@ public class DocumentController {
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.info("Download Request received for id: " + documentId);
+		logger.debug("Download Request received for id: " + documentId);
 		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
 		if(document!=null){
-			logger.info(documentId + " - Record Found");
+			logger.debug(documentId + " - Record Found");
 		String fullPath = document.getFileReference();
-		logger.info(documentId + " - File Found : " + fullPath);
+		logger.debug(documentId + " - File Found : " + fullPath);
 		File file = new File(fullPath);
 		String name = document.getDocumentName();
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentDispositionFormData("attachment", name);
-	    logger.info(documentId + " - Download Header - Attachment : " + name);
+	    logger.debug(documentId + " - Download Header - Attachment : " + name);
 	    FileNameMap fileNameMap = URLConnection.getFileNameMap();
 	    String fileUrl = "file://"+fullPath;
 	      String type = fileNameMap.getContentTypeFor(fileUrl);
@@ -95,27 +95,29 @@ public class DocumentController {
 	      }
 	    respHeaders.setContentType(MediaType.valueOf(type));
 	    
-	    logger.info(documentId + " - Download Header - Mime Type : " + type);
+	    logger.debug(documentId + " - Download Header - Mime Type : " + type);
 	    InputStreamResource isr;
 		try {
 			isr = new InputStreamResource(new FileInputStream(file));
-			logger.info("DOWNLOAD PROCESSED SUCCESSFULLY - " + documentId);
+			logger.debug("DOWNLOAD PROCESSED SUCCESSFULLY - " + documentId);
 			return new ResponseEntity<InputStreamResource>(isr,respHeaders,HttpStatus.OK);
 		} catch (FileNotFoundException e) {
+			logger.error("INTERNAL_SERVER_ERROR: Error processing the file");
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,documentId + "Error processing the file");
 		}
 		}
+		logger.error("NOT_FOUND: No Records Found");
 		throw new DestinationException(HttpStatus.NOT_FOUND,documentId + "No Records Found");
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete) throws Exception{
-		logger.info("Deletion request Received for ids: " + idsToDelete);
+		logger.debug("Deletion request Received for ids: " + idsToDelete);
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
 			String deletedIds = documentService.deleteDocRecords(docIds);
 			status.setStatus(Status.SUCCESS, "Files Deleted for " + deletedIds);
-			logger.info("DELETE SUCCESS - Files Deleted for " + deletedIds);
+			logger.debug("DELETE SUCCESS - Files Deleted for " + deletedIds);
 			return Constants.filterJsonForFieldAndViews("all", "", status);
 	}
 		
@@ -126,6 +128,7 @@ public class DocumentController {
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside DocumentController /document/documentId="+documentId+" GET");
 		DocumentRepositoryT docrep = documentService
 				.findByDocumentId(documentId);
 		return Constants.filterJsonForFieldAndViews(fields, view, docrep);
@@ -134,7 +137,6 @@ public class DocumentController {
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
 			@RequestParam("documentName") String documentName,
-			
 			@RequestParam("documentType") String documentType,
 			@RequestParam("entityType") String entityType,
 			@RequestParam("parentEntity") String parentEntity,
@@ -149,7 +151,7 @@ public class DocumentController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.info("Upload request Received : docName - " + documentName + ", entityType" + entityType
+		logger.debug("Upload request Received : docName - " + documentName + ", entityType" + entityType
 				+ ", uploadedBy" + uploadedBy);
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
@@ -160,8 +162,9 @@ public class DocumentController {
 					customerId, opportunityId, partnerId, taskId, uploadedBy,
 					file);
 			status.setStatus(Status.SUCCESS, "Id : " + docId);
-           logger.info("UPLOAD SUCCESS - Record Created,  Id: " + docId);
+           logger.debug("UPLOAD SUCCESS - Record Created,  Id: " + docId);
 		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" +e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
 //			status.setStatus(Status.FAILED, e.getMessage());
 //			return Constants.filterJsonForFieldAndViews(fields, view, status);

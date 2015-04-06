@@ -122,13 +122,13 @@ public class ConnectController {
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToConnect(
 			@RequestBody ConnectT connect) throws Exception {
-		logger.info("Connect Insert Request Received /connect POST");
+		logger.debug("Connect Insert Request Received /connect POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		
 			if (connectService.insertConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
-				logger.info("CONNECT CREATED SUCCESS" + connect.getConnectId());
+				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
 		
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
@@ -138,13 +138,13 @@ public class ConnectController {
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editConnect(
 			@RequestBody ConnectT connect) throws Exception {
-		logger.info("Connect Edit Request Received /connect PUT");
+		logger.debug("Connect Edit Request Received /connect PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		
 			if (connectService.editConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
-				logger.info("CONNECT EDIT SUCCESS" + connect.getConnectId());
+				logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
 			}
 		
 		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(

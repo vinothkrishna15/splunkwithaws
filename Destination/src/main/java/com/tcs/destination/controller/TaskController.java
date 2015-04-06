@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
@@ -28,6 +30,8 @@ import java.util.Date;
 @RestController
 @RequestMapping("/task")
 public class TaskController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
 
 	@Autowired
 	TaskService taskService;
@@ -44,6 +48,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/id="+taskId+" GET");
 		TaskT task = taskService.findTaskById(taskId);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
@@ -61,6 +66,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task?nameWith="+chars+" GET");
 		List<TaskT> taskList = taskService.findTasksByNameContaining(chars);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -78,6 +84,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/findByConnect?id="+connectId+" GET");
 		List<TaskT> taskList = taskService.findTasksByConnectId(connectId);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -95,6 +102,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/findByOpportunity?id="+opportunityId+" GET");
 		List<TaskT> taskList = taskService.findTasksByOpportunityId(opportunityId);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -112,6 +120,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/findByOwner?id="+taskOwner+" GET");
 		List<TaskT> taskList = taskService.findTasksByTaskOwner(taskOwner);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -129,6 +138,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/findAssigned?id="+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -147,6 +157,7 @@ public class TaskController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, targetDate);
 		return new ResponseEntity<String>
 			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
@@ -161,10 +172,12 @@ public class TaskController {
 	@RequestMapping(method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createTask(@RequestBody TaskT task) 
 			throws Exception {
+		logger.debug("Inside TaskController /task POST");
 		TaskT managedTask = null;
 		Status status = null;
 		managedTask = taskService.createTask(task);
 		if ((managedTask != null) && (managedTask.getTaskId() != null)) {
+			logger.debug("Managed Task and Task Id NOT NULL");
 			status = new Status();
 			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
@@ -181,10 +194,12 @@ public class TaskController {
 	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editTask(@RequestBody TaskT task) 
 			throws Exception {
+		logger.debug("Inside TaskController /task PUT");
 		TaskT managedTask = null;
 		Status status = null;
 		managedTask = taskService.editTask(task);
 		if (managedTask != null)  {
+			logger.debug("Managed Task NOT NULL");
 			status = new Status();
 			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
