@@ -37,7 +37,10 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.exception.NoSuchOwnerTypeException;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.Constants.OWNER_TYPE;
+import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.enums.OwnerType;
 
 @Component
 public class ConnectService {
@@ -115,10 +118,10 @@ public class ConnectService {
 			String customerId, String partnerId, boolean isForCount)
 			throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner Service");
-		if (OWNER_TYPE.contains(owner)) {
+		if (OwnerType.contains(owner)) {
 			logger.debug("Owner Type Contains owner");
 			List<ConnectT> connects = new ArrayList<ConnectT>();
-			if (owner.equalsIgnoreCase(OWNER_TYPE.PRIMARY.toString())) {
+			if (owner.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
 				logger.debug("owner is PRIMARY");
 				connects = connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
@@ -126,14 +129,14 @@ public class ConnectService {
 								new Timestamp(toDate.getTime()), customerId,
 								partnerId);
 				System.out.println("Primary :" + connects.size());
-			} else if (owner.equalsIgnoreCase(OWNER_TYPE.SECONDARY.toString())) {
+			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
 				connects = connectSecondaryOwnerRepository
 						.findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), customerId,
 								partnerId);
-			} else if (owner.equalsIgnoreCase(OWNER_TYPE.ALL.toString())) {
+			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner value is ALL");
 				connects.addAll(connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
@@ -164,8 +167,8 @@ public class ConnectService {
 
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
-		Timestamp currentTimeStamp = Constants.getCurrentTimeStamp();
-		UserT currentUser = Constants.getCurrentUserDetails();
+		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();		
 		connect.setCreatedModifiedBy(currentUserId);
 		connect.setCreatedModifiedDatetime(currentTimeStamp);
@@ -359,8 +362,8 @@ public class ConnectService {
 		// ConnectT backupConnect = backup(connect);
 		// setNullForReferencedObjects(connect);
 
-		Timestamp currentTimeStamp = Constants.getCurrentTimeStamp();
-		UserT currentUser = Constants.getCurrentUserDetails();
+		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();
 
 		connect.setCreatedModifiedBy(currentUserId);

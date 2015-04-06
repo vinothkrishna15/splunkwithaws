@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.DocumentController;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 
 @Component
 public class FavoritesService {
@@ -28,7 +28,7 @@ public class FavoritesService {
 	public List<UserFavoritesT> findFavoritesFor(UserT user, String entityType)
 			throws Exception {
 		logger.debug("Inside findFavoritesFor Service");
-		if (Constants.EntityType.contains(entityType)) {
+		if (EntityType.contains(entityType)) {
 			logger.debug("EntityType is present");
 			List<UserFavoritesT> userFavorites = userFavRepository
 					.findByUserTAndEntityTypeIgnoreCase(user, entityType);
@@ -47,8 +47,8 @@ public class FavoritesService {
 
 	public boolean addFavorites(UserFavoritesT favorites) throws Exception {
 		logger.debug("Inside addFavorites Service");
-		if (Constants.EntityType.contains(favorites.getEntityType())) {
-			switch (Constants.EntityType.valueOf(favorites.getEntityType())) {
+		if (EntityType.contains(favorites.getEntityType())) {
+			switch (EntityType.valueOf(favorites.getEntityType())) {
 			case CUSTOMER:
 				logger.debug("Adding Favorites Customer");
 				if (favorites.getCustomerId() == null) {
@@ -119,8 +119,14 @@ public class FavoritesService {
 					favorites.setCustomerId(null);
 				}
 				break;
+				
+			case TASK:
+				logger.debug("Adding Favorites Document");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Saving Task as favorite is not supported!");
+				
 			}
-			favorites.setCreatedDatetime(Constants.getCurrentTimeStamp());
+			favorites.setCreatedDatetime(DateUtils.getCurrentTimeStamp());
 			try {
 				logger.debug("Saving the UserFavorite");
 				return userFavRepository.save(favorites) != null;

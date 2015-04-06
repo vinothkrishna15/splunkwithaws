@@ -1,26 +1,25 @@
 package com.tcs.destination.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Date;
+import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Date;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
 import com.tcs.destination.data.repository.TaskRepository;
+import com.tcs.destination.enums.TaskCollaborationPreference;
+import com.tcs.destination.enums.TaskEntityReference;
+import com.tcs.destination.enums.TaskStatus;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants.TaskCollaborationPreference;
-import com.tcs.destination.utils.Constants.TaskEntityReference;
-import com.tcs.destination.utils.Constants.TaskStatus;
 
 /**
  * Service class to handle Task module related requests.

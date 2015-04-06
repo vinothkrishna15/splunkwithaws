@@ -1,12 +1,13 @@
 package com.tcs.destination.enums;
 
 
-public enum CommentType {
-	USER("USER"), AUTO("AUTO");
+
+public enum OwnerType {
+	PRIMARY("PRIMARY"), SECONDARY("SECONDARY"), ALL("ALL");
 
 	private final String name;
 
-	private CommentType(String name) {
+	private OwnerType(String name) {
 		this.name = name;
 	}
 
@@ -19,8 +20,7 @@ public enum CommentType {
 	}
 
 	public static boolean contains(String test) {
-
-		for (CommentType c : CommentType.values()) {
+		for (OwnerType c : OwnerType.values()) {
 			if (c.name().equals(test)) {
 				return true;
 			}
