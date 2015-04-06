@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -15,8 +13,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -24,20 +20,22 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "financeCustomerName")
 @Entity
 @Table(name = "revenue_customer_mapping_t")
 @NamedQuery(name = "RevenueCustomerMappingT.findAll", query = "SELECT r FROM RevenueCustomerMappingT r")
 public class RevenueCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "finance_customer_name")
+	// @Id
+	// @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "finance_customer_name", insertable = false, updatable = false)
 	private String financeCustomerName;
 
-	@Column(name = "customer_geography")
+	@Column(name = "customer_geography", insertable = false, updatable = false)
 	private String customerGeography;
+
+	@EmbeddedId
+	private RevenueCustomerMappingTPK id;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
 	@OneToMany(mappedBy = "revenueCustomerMappingT")
@@ -65,6 +63,14 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setCustomerGeography(String customerGeography) {
 		this.customerGeography = customerGeography;
+	}
+
+	public RevenueCustomerMappingTPK getId() {
+		return this.id;
+	}
+
+	public void setId(RevenueCustomerMappingTPK id) {
+		this.id = id;
 	}
 
 	public List<ActualRevenuesDataT> getActualRevenuesDataTs() {

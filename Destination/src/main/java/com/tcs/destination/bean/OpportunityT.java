@@ -19,8 +19,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -28,7 +26,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityId")
 @Entity
 @Table(name = "opportunity_t")
 @NamedQuery(name = "OpportunityT.findAll", query = "SELECT o FROM OpportunityT o")
@@ -36,157 +33,167 @@ public class OpportunityT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_id")
 	private String opportunityId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="crm_id")
+	@Column(name = "crm_id")
 	private String crmId;
-	
-	@Column(name="customer_id")
+
+	@Column(name = "customer_id")
 	private String customerId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="deal_closure_date")
+	@Column(name = "deal_closure_date")
 	private Date dealClosureDate;
 
-	@Column(name="description_for_win_loss")
+	@Column(name = "description_for_win_loss")
 	private String descriptionForWinLoss;
 
-	@Column(name="digital_deal_value")
+	@Column(name = "digital_deal_value")
 	private Integer digitalDealValue;
 
-	@Column(name="documents_attached")
+	@Column(name = "documents_attached")
 	private String documentsAttached;
 
-	@Column(name="engagement_duration")
+	@Column(name = "engagement_duration")
 	private String engagementDuration;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="engagement_start_date")
+	@Column(name = "engagement_start_date")
 	private Date engagementStartDate;
 
-	@Column(name="factors_for_win_loss")
+	@Column(name = "factors_for_win_loss")
 	private String factorsForWinLoss;
 
-	@Column(name="new_logo")
+	@Column(name = "new_logo")
 	private String newLogo;
 
-	@Column(name="opportunity_description")
+	@Column(name = "opportunity_description")
 	private String opportunityDescription;
 
-	@Column(name="opportunity_name")
+	@Column(name = "opportunity_name")
 	private String opportunityName;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="opportunity_request_receive_date")
+	@Column(name = "opportunity_request_receive_date")
 	private Date opportunityRequestReceiveDate;
 
-	@Column(name="overall_deal_size")
+	@Column(name = "overall_deal_size")
 	private Integer overallDealSize;
 
-	@Column(name="strategic_initiative")
+	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
 
-	//bi-directional many-to-one association to BidDetailsT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to BidDetailsT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<BidDetailsT> bidDetailsTs;
 
-	//bi-directional many-to-one association to CollaborationCommentT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
-	//bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
-	//bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to DocumentRepositoryT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
-	//bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to NotesT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<NotesT> notesTs;
 
-	//bi-directional many-to-one association to OpportunityCompetitorLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunityCompetitorLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs;
 
-	//bi-directional many-to-one association to OpportunityCustomerContactLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
 
-	//bi-directional many-to-one association to OpportunityOfferingLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunityOfferingLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
 
-	//bi-directional many-to-one association to OpportunityPartnerLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunityPartnerLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
 
-	//bi-directional many-to-one association to OpportunitySalesSupportLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
-	//bi-directional many-to-one association to OpportunitySubSpLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunitySubSpLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
-	//bi-directional many-to-one association to BeaconConvertorMappingT
+	// bi-directional many-to-one association to BeaconConvertorMappingT
 	@ManyToOne
-	@JoinColumn(name="deal_currency")
+	@JoinColumn(name = "deal_currency")
 	private BeaconConvertorMappingT beaconConvertorMappingT;
 
-	//bi-directional many-to-one association to CustomerMasterT
+	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_id",insertable=false,updatable=false)
+	@JoinColumn(name = "customer_id", insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
-	//bi-directional many-to-one association to DealTypeMappingT
+	// bi-directional many-to-one association to DealTypeMappingT
 	@ManyToOne
-	@JoinColumn(name="deal_type")
+	@JoinColumn(name = "deal_type")
 	private DealTypeMappingT dealTypeMappingT;
 
-	//bi-directional many-to-one association to GeographyCountryMappingT
+	// bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
-	@JoinColumn(name="country")
+	@JoinColumn(name = "country")
 	private GeographyCountryMappingT geographyCountryMappingT;
 
-	//bi-directional many-to-one association to SalesStageMappingT
+	// bi-directional many-to-one association to SalesStageMappingT
 	@ManyToOne
-	@JoinColumn(name="sales_stage_code")
+	@JoinColumn(name = "sales_stage_code")
 	private SalesStageMappingT salesStageMappingT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="opportunity_owner")
+	@JoinColumn(name = "opportunity_owner")
 	private UserT userT;
 
-	//bi-directional many-to-one association to OpportunityTcsAccountContactLinkT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
+
+	// bi-directional many-to-one association to
+	// OpportunityTcsAccountContactLinkT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
 
-	//bi-directional many-to-one association to OpportunityTimelineHistoryT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
-	//bi-directional many-to-one association to TaskT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to TaskT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<TaskT> taskTs;
 
-	//bi-directional many-to-one association to UserFavoritesT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<UserFavoritesT> userFavoritesTs;
 
-	//bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<UserNotificationsT> userNotificationsTs;
+
+	// bi-directional many-to-one association to UserTaggedFollowedT
+	@OneToMany(mappedBy = "opportunityT")
+	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
 	public OpportunityT() {
 	}
@@ -290,7 +297,7 @@ public class OpportunityT implements Serializable {
 	public String getOpportunityDescription() {
 		return this.opportunityDescription;
 	}
-	
+
 	public String getCustomerId() {
 		return customerId;
 	}
@@ -315,7 +322,8 @@ public class OpportunityT implements Serializable {
 		return this.opportunityRequestReceiveDate;
 	}
 
-	public void setOpportunityRequestReceiveDate(Date opportunityRequestReceiveDate) {
+	public void setOpportunityRequestReceiveDate(
+			Date opportunityRequestReceiveDate) {
 		this.opportunityRequestReceiveDate = opportunityRequestReceiveDate;
 	}
 
@@ -361,18 +369,21 @@ public class OpportunityT implements Serializable {
 		return this.collaborationCommentTs;
 	}
 
-	public void setCollaborationCommentTs(List<CollaborationCommentT> collaborationCommentTs) {
+	public void setCollaborationCommentTs(
+			List<CollaborationCommentT> collaborationCommentTs) {
 		this.collaborationCommentTs = collaborationCommentTs;
 	}
 
-	public CollaborationCommentT addCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+	public CollaborationCommentT addCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
 		getCollaborationCommentTs().add(collaborationCommentT);
 		collaborationCommentT.setOpportunityT(this);
 
 		return collaborationCommentT;
 	}
 
-	public CollaborationCommentT removeCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+	public CollaborationCommentT removeCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
 		getCollaborationCommentTs().remove(collaborationCommentT);
 		collaborationCommentT.setOpportunityT(null);
 
@@ -383,18 +394,21 @@ public class OpportunityT implements Serializable {
 		return this.connectOpportunityLinkIdTs;
 	}
 
-	public void setConnectOpportunityLinkIdTs(List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs) {
+	public void setConnectOpportunityLinkIdTs(
+			List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs) {
 		this.connectOpportunityLinkIdTs = connectOpportunityLinkIdTs;
 	}
 
-	public ConnectOpportunityLinkIdT addConnectOpportunityLinkIdT(ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
+	public ConnectOpportunityLinkIdT addConnectOpportunityLinkIdT(
+			ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
 		getConnectOpportunityLinkIdTs().add(connectOpportunityLinkIdT);
 		connectOpportunityLinkIdT.setOpportunityT(this);
 
 		return connectOpportunityLinkIdT;
 	}
 
-	public ConnectOpportunityLinkIdT removeConnectOpportunityLinkIdT(ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
+	public ConnectOpportunityLinkIdT removeConnectOpportunityLinkIdT(
+			ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
 		getConnectOpportunityLinkIdTs().remove(connectOpportunityLinkIdT);
 		connectOpportunityLinkIdT.setOpportunityT(null);
 
@@ -405,18 +419,21 @@ public class OpportunityT implements Serializable {
 		return this.documentRepositoryTs;
 	}
 
-	public void setDocumentRepositoryTs(List<DocumentRepositoryT> documentRepositoryTs) {
+	public void setDocumentRepositoryTs(
+			List<DocumentRepositoryT> documentRepositoryTs) {
 		this.documentRepositoryTs = documentRepositoryTs;
 	}
 
-	public DocumentRepositoryT addDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT addDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().add(documentRepositoryT);
 		documentRepositoryT.setOpportunityT(this);
 
 		return documentRepositoryT;
 	}
 
-	public DocumentRepositoryT removeDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT removeDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().remove(documentRepositoryT);
 		documentRepositoryT.setOpportunityT(null);
 
@@ -449,18 +466,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunityCompetitorLinkTs;
 	}
 
-	public void setOpportunityCompetitorLinkTs(List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs) {
+	public void setOpportunityCompetitorLinkTs(
+			List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs) {
 		this.opportunityCompetitorLinkTs = opportunityCompetitorLinkTs;
 	}
 
-	public OpportunityCompetitorLinkT addOpportunityCompetitorLinkT(OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
+	public OpportunityCompetitorLinkT addOpportunityCompetitorLinkT(
+			OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
 		getOpportunityCompetitorLinkTs().add(opportunityCompetitorLinkT);
 		opportunityCompetitorLinkT.setOpportunityT(this);
 
 		return opportunityCompetitorLinkT;
 	}
 
-	public OpportunityCompetitorLinkT removeOpportunityCompetitorLinkT(OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
+	public OpportunityCompetitorLinkT removeOpportunityCompetitorLinkT(
+			OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
 		getOpportunityCompetitorLinkTs().remove(opportunityCompetitorLinkT);
 		opportunityCompetitorLinkT.setOpportunityT(null);
 
@@ -471,19 +491,24 @@ public class OpportunityT implements Serializable {
 		return this.opportunityCustomerContactLinkTs;
 	}
 
-	public void setOpportunityCustomerContactLinkTs(List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs) {
+	public void setOpportunityCustomerContactLinkTs(
+			List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs) {
 		this.opportunityCustomerContactLinkTs = opportunityCustomerContactLinkTs;
 	}
 
-	public OpportunityCustomerContactLinkT addOpportunityCustomerContactLinkT(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().add(opportunityCustomerContactLinkT);
+	public OpportunityCustomerContactLinkT addOpportunityCustomerContactLinkT(
+			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
+		getOpportunityCustomerContactLinkTs().add(
+				opportunityCustomerContactLinkT);
 		opportunityCustomerContactLinkT.setOpportunityT(this);
 
 		return opportunityCustomerContactLinkT;
 	}
 
-	public OpportunityCustomerContactLinkT removeOpportunityCustomerContactLinkT(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().remove(opportunityCustomerContactLinkT);
+	public OpportunityCustomerContactLinkT removeOpportunityCustomerContactLinkT(
+			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
+		getOpportunityCustomerContactLinkTs().remove(
+				opportunityCustomerContactLinkT);
 		opportunityCustomerContactLinkT.setOpportunityT(null);
 
 		return opportunityCustomerContactLinkT;
@@ -493,18 +518,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunityOfferingLinkTs;
 	}
 
-	public void setOpportunityOfferingLinkTs(List<OpportunityOfferingLinkT> opportunityOfferingLinkTs) {
+	public void setOpportunityOfferingLinkTs(
+			List<OpportunityOfferingLinkT> opportunityOfferingLinkTs) {
 		this.opportunityOfferingLinkTs = opportunityOfferingLinkTs;
 	}
 
-	public OpportunityOfferingLinkT addOpportunityOfferingLinkT(OpportunityOfferingLinkT opportunityOfferingLinkT) {
+	public OpportunityOfferingLinkT addOpportunityOfferingLinkT(
+			OpportunityOfferingLinkT opportunityOfferingLinkT) {
 		getOpportunityOfferingLinkTs().add(opportunityOfferingLinkT);
 		opportunityOfferingLinkT.setOpportunityT(this);
 
 		return opportunityOfferingLinkT;
 	}
 
-	public OpportunityOfferingLinkT removeOpportunityOfferingLinkT(OpportunityOfferingLinkT opportunityOfferingLinkT) {
+	public OpportunityOfferingLinkT removeOpportunityOfferingLinkT(
+			OpportunityOfferingLinkT opportunityOfferingLinkT) {
 		getOpportunityOfferingLinkTs().remove(opportunityOfferingLinkT);
 		opportunityOfferingLinkT.setOpportunityT(null);
 
@@ -515,18 +543,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunityPartnerLinkTs;
 	}
 
-	public void setOpportunityPartnerLinkTs(List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
+	public void setOpportunityPartnerLinkTs(
+			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
 		this.opportunityPartnerLinkTs = opportunityPartnerLinkTs;
 	}
 
-	public OpportunityPartnerLinkT addOpportunityPartnerLinkT(OpportunityPartnerLinkT opportunityPartnerLinkT) {
+	public OpportunityPartnerLinkT addOpportunityPartnerLinkT(
+			OpportunityPartnerLinkT opportunityPartnerLinkT) {
 		getOpportunityPartnerLinkTs().add(opportunityPartnerLinkT);
 		opportunityPartnerLinkT.setOpportunityT(this);
 
 		return opportunityPartnerLinkT;
 	}
 
-	public OpportunityPartnerLinkT removeOpportunityPartnerLinkT(OpportunityPartnerLinkT opportunityPartnerLinkT) {
+	public OpportunityPartnerLinkT removeOpportunityPartnerLinkT(
+			OpportunityPartnerLinkT opportunityPartnerLinkT) {
 		getOpportunityPartnerLinkTs().remove(opportunityPartnerLinkT);
 		opportunityPartnerLinkT.setOpportunityT(null);
 
@@ -537,18 +568,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunitySalesSupportLinkTs;
 	}
 
-	public void setOpportunitySalesSupportLinkTs(List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs) {
+	public void setOpportunitySalesSupportLinkTs(
+			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs) {
 		this.opportunitySalesSupportLinkTs = opportunitySalesSupportLinkTs;
 	}
 
-	public OpportunitySalesSupportLinkT addOpportunitySalesSupportLinkT(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
+	public OpportunitySalesSupportLinkT addOpportunitySalesSupportLinkT(
+			OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
 		getOpportunitySalesSupportLinkTs().add(opportunitySalesSupportLinkT);
 		opportunitySalesSupportLinkT.setOpportunityT(this);
 
 		return opportunitySalesSupportLinkT;
 	}
 
-	public OpportunitySalesSupportLinkT removeOpportunitySalesSupportLinkT(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
+	public OpportunitySalesSupportLinkT removeOpportunitySalesSupportLinkT(
+			OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
 		getOpportunitySalesSupportLinkTs().remove(opportunitySalesSupportLinkT);
 		opportunitySalesSupportLinkT.setOpportunityT(null);
 
@@ -559,18 +593,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunitySubSpLinkTs;
 	}
 
-	public void setOpportunitySubSpLinkTs(List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
+	public void setOpportunitySubSpLinkTs(
+			List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
 		this.opportunitySubSpLinkTs = opportunitySubSpLinkTs;
 	}
 
-	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(
+			OpportunitySubSpLinkT opportunitySubSpLinkT) {
 		getOpportunitySubSpLinkTs().add(opportunitySubSpLinkT);
 		opportunitySubSpLinkT.setOpportunityT(this);
 
 		return opportunitySubSpLinkT;
 	}
 
-	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(
+			OpportunitySubSpLinkT opportunitySubSpLinkT) {
 		getOpportunitySubSpLinkTs().remove(opportunitySubSpLinkT);
 		opportunitySubSpLinkT.setOpportunityT(null);
 
@@ -581,7 +618,8 @@ public class OpportunityT implements Serializable {
 		return this.beaconConvertorMappingT;
 	}
 
-	public void setBeaconConvertorMappingT(BeaconConvertorMappingT beaconConvertorMappingT) {
+	public void setBeaconConvertorMappingT(
+			BeaconConvertorMappingT beaconConvertorMappingT) {
 		this.beaconConvertorMappingT = beaconConvertorMappingT;
 	}
 
@@ -605,7 +643,8 @@ public class OpportunityT implements Serializable {
 		return this.geographyCountryMappingT;
 	}
 
-	public void setGeographyCountryMappingT(GeographyCountryMappingT geographyCountryMappingT) {
+	public void setGeographyCountryMappingT(
+			GeographyCountryMappingT geographyCountryMappingT) {
 		this.geographyCountryMappingT = geographyCountryMappingT;
 	}
 
@@ -623,25 +662,39 @@ public class OpportunityT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+
+	}
+
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 	public List<OpportunityTcsAccountContactLinkT> getOpportunityTcsAccountContactLinkTs() {
 		return this.opportunityTcsAccountContactLinkTs;
 	}
 
-	public void setOpportunityTcsAccountContactLinkTs(List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs) {
+	public void setOpportunityTcsAccountContactLinkTs(
+			List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs) {
 		this.opportunityTcsAccountContactLinkTs = opportunityTcsAccountContactLinkTs;
 	}
 
-	public OpportunityTcsAccountContactLinkT addOpportunityTcsAccountContactLinkT(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().add(opportunityTcsAccountContactLinkT);
+	public OpportunityTcsAccountContactLinkT addOpportunityTcsAccountContactLinkT(
+			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
+		getOpportunityTcsAccountContactLinkTs().add(
+				opportunityTcsAccountContactLinkT);
 		opportunityTcsAccountContactLinkT.setOpportunityT(this);
 
 		return opportunityTcsAccountContactLinkT;
 	}
 
-	public OpportunityTcsAccountContactLinkT removeOpportunityTcsAccountContactLinkT(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().remove(opportunityTcsAccountContactLinkT);
+	public OpportunityTcsAccountContactLinkT removeOpportunityTcsAccountContactLinkT(
+			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
+		getOpportunityTcsAccountContactLinkTs().remove(
+				opportunityTcsAccountContactLinkT);
 		opportunityTcsAccountContactLinkT.setOpportunityT(null);
 
 		return opportunityTcsAccountContactLinkT;
@@ -651,18 +704,21 @@ public class OpportunityT implements Serializable {
 		return this.opportunityTimelineHistoryTs;
 	}
 
-	public void setOpportunityTimelineHistoryTs(List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
+	public void setOpportunityTimelineHistoryTs(
+			List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
 		this.opportunityTimelineHistoryTs = opportunityTimelineHistoryTs;
 	}
 
-	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
 		getOpportunityTimelineHistoryTs().add(opportunityTimelineHistoryT);
 		opportunityTimelineHistoryT.setOpportunityT(this);
 
 		return opportunityTimelineHistoryT;
 	}
 
-	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
 		getOpportunityTimelineHistoryTs().remove(opportunityTimelineHistoryT);
 		opportunityTimelineHistoryT.setOpportunityT(null);
 
@@ -717,22 +773,50 @@ public class OpportunityT implements Serializable {
 		return this.userNotificationsTs;
 	}
 
-	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+	public void setUserNotificationsTs(
+			List<UserNotificationsT> userNotificationsTs) {
 		this.userNotificationsTs = userNotificationsTs;
 	}
 
-	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT addUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().add(userNotificationsT);
 		userNotificationsT.setOpportunityT(this);
 
 		return userNotificationsT;
 	}
 
-	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT removeUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().remove(userNotificationsT);
 		userNotificationsT.setOpportunityT(null);
 
 		return userNotificationsT;
+	}
+
+	public List<UserTaggedFollowedT> getUserTaggedFollowedTs() {
+		return this.userTaggedFollowedTs;
+	}
+
+	public void setUserTaggedFollowedTs(
+			List<UserTaggedFollowedT> userTaggedFollowedTs) {
+		this.userTaggedFollowedTs = userTaggedFollowedTs;
+	}
+
+	public UserTaggedFollowedT addUserTaggedFollowedT(
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().add(userTaggedFollowedT);
+		userTaggedFollowedT.setOpportunityT(this);
+
+		return userTaggedFollowedT;
+	}
+
+	public UserTaggedFollowedT removeUserTaggedFollowedT(
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().remove(userTaggedFollowedT);
+		userTaggedFollowedT.setOpportunityT(null);
+
+		return userTaggedFollowedT;
 	}
 
 }

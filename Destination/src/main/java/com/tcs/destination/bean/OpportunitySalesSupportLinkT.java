@@ -14,8 +14,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -23,7 +21,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunitySalesSupportLinkId")
 @Entity
 @Table(name = "opportunity_sales_support_link_t")
 @NamedQuery(name = "OpportunitySalesSupportLinkT.findAll", query = "SELECT o FROM OpportunitySalesSupportLinkT o")
@@ -48,6 +45,11 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -104,6 +106,14 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 
 	public String getSalesSupportOwner() {
 		return salesSupportOwner;
+	}
+
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 }

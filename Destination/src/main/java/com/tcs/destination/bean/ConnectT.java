@@ -18,8 +18,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -27,7 +25,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "connectId")
 @Entity
 @Table(name = "connect_t")
 @NamedQuery(name = "ConnectT.findAll", query = "SELECT c FROM ConnectT c")
@@ -41,9 +38,6 @@ public class ConnectT implements Serializable {
 
 	@Column(name = "connect_category")
 	private String connectCategory;
-
-	@Column(name="connect_keywords")
-	private String connectKeywords;
 
 	@Column(name = "connect_name")
 	private String connectName;
@@ -81,7 +75,6 @@ public class ConnectT implements Serializable {
 		this.connectCategory=con.connectCategory;
 		this.connectCustomerContactLinkTs=con.connectCustomerContactLinkTs;
 		this.connectId=con.connectId;
-		this.connectKeywords=con.connectKeywords;
 		this.connectName=con.connectName;
 		this.connectOfferingLinkTs=con.connectOfferingLinkTs;
 		this.connectOpportunityLinkIdTs=con.connectOpportunityLinkIdTs;
@@ -155,6 +148,10 @@ public class ConnectT implements Serializable {
 	@JoinColumn(name = "primary_owner", insertable = false, updatable = false)
 	private UserT userT;
 
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
+
 	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
 	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
@@ -205,14 +202,6 @@ public class ConnectT implements Serializable {
 
 	public void setConnectCategory(String connectCategory) {
 		this.connectCategory = connectCategory;
-	}
-
-	public String getConnectKeywords() {
-		return this.connectKeywords;
-	}
-
-	public void setConnectKeywords(String connectKeywords) {
-		this.connectKeywords = connectKeywords;
 	}
 
 	public String getConnectName() {
@@ -642,5 +631,13 @@ public class ConnectT implements Serializable {
 			List<DocumentRepositoryT> documentsDeletionList) {
 		this.documentsDeletionList = documentsDeletionList;
 	}
+	
+	public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 
 }

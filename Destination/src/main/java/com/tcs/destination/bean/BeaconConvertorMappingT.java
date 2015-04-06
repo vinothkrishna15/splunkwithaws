@@ -17,8 +17,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 
@@ -27,7 +25,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="currencyName")
 @Entity
 @Table(name="beacon_convertor_mapping_t")
 @NamedQuery(name="BeaconConvertorMappingT.findAll", query="SELECT b FROM BeaconConvertorMappingT b")

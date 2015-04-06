@@ -1,15 +1,20 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -17,7 +22,6 @@ import java.sql.Timestamp;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectOfferingLinkId")
 @Entity
 @Table(name="connect_offering_link_t")
 @NamedQuery(name="ConnectOfferingLinkT.findAll", query="SELECT c FROM ConnectOfferingLinkT c")
@@ -57,6 +61,11 @@ public class ConnectOfferingLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="offering")
 	private OfferingMappingT offeringMappingT;
+
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
 
 	public ConnectOfferingLinkT() {
 	}
@@ -101,4 +110,12 @@ public class ConnectOfferingLinkT implements Serializable {
 		this.offeringMappingT = offeringMappingT;
 	}
 
+
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 }

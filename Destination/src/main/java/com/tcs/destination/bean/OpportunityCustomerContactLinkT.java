@@ -14,8 +14,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -24,7 +22,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityCustomerContactLinkId")
 @Entity
 @Table(name = "opportunity_customer_contact_link_t")
 @NamedQuery(name = "OpportunityCustomerContactLinkT.findAll", query = "SELECT o FROM OpportunityCustomerContactLinkT o")
@@ -53,6 +50,10 @@ public class OpportunityCustomerContactLinkT implements Serializable {
 	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
 
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 	public OpportunityCustomerContactLinkT() {
 	}
 
@@ -96,4 +97,11 @@ public class OpportunityCustomerContactLinkT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 }

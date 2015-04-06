@@ -2,11 +2,10 @@ package com.tcs.destination.bean;
 
 import java.io.Serializable;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -14,16 +13,15 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "financeCustomerName")
 @Embeddable
 public class RevenueCustomerMappingTPK implements Serializable {
 	//default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	@Column(name="finance_customer_name")
+	@Column(name="finance_customer_name", insertable = false, updatable = false)
 	private String financeCustomerName;
 
-	@Column(name="customer_geography")
+	@Column(name="customer_geography", insertable = false, updatable = false)
 	private String customerGeography;
 
 	public RevenueCustomerMappingTPK() {

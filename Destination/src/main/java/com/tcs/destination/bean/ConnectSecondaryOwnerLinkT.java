@@ -14,8 +14,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -23,7 +21,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "connectSecondaryOwnerLinkId")
 @Entity
 @Table(name = "connect_secondary_owner_link_t")
 @NamedQuery(name = "ConnectSecondaryOwnerLinkT.findAll", query = "SELECT c FROM ConnectSecondaryOwnerLinkT c")
@@ -51,6 +48,11 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
+
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -116,4 +118,13 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 	public void setConnectId(String connectId) {
 		this.connectId = connectId;
 	}
+	
+	public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
+
 }

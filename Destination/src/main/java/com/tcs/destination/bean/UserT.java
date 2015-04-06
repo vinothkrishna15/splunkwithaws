@@ -57,7 +57,7 @@ public class UserT implements Serializable {
 		this.userName = user.userName;
 		this.userPhoto = user.userPhoto;
 		this.userRoleMappingT = user.userRoleMappingT;
-		this.userSettingsT = user.userSettingsT;
+		this.userGeneralSettingsT = user.userGeneralSettingsT;
 		this.userTelephone = user.userTelephone;
 
 	}
@@ -97,7 +97,7 @@ public class UserT implements Serializable {
 
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
 	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
+	@OneToMany(mappedBy = "bidOfficeGroupOwnerUser")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
@@ -169,7 +169,7 @@ public class UserT implements Serializable {
 	// bi-directional one-to-one association to UserSettingsT
 	@JsonIgnore
 	@OneToOne(mappedBy = "userT")
-	private UserSettingsT userSettingsT;
+	private UserGeneralSettingsT userGeneralSettingsT;
 
 	// bi-directional many-to-one association to UserGroupMappingT
 	@JsonIgnore
@@ -296,7 +296,7 @@ public class UserT implements Serializable {
 	public BidOfficeGroupOwnerLinkT addBidOfficeGroupOwnerLinkT(
 			BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT) {
 		getBidOfficeGroupOwnerLinkTs().add(bidOfficeGroupOwnerLinkT);
-		bidOfficeGroupOwnerLinkT.setUserT(this);
+		bidOfficeGroupOwnerLinkT.setBidOfficeGroupOwnerUser(this);
 
 		return bidOfficeGroupOwnerLinkT;
 	}
@@ -304,7 +304,7 @@ public class UserT implements Serializable {
 	public BidOfficeGroupOwnerLinkT removeBidOfficeGroupOwnerLinkT(
 			BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT) {
 		getBidOfficeGroupOwnerLinkTs().remove(bidOfficeGroupOwnerLinkT);
-		bidOfficeGroupOwnerLinkT.setUserT(null);
+		bidOfficeGroupOwnerLinkT.setBidOfficeGroupOwnerUser(null);
 
 		return bidOfficeGroupOwnerLinkT;
 	}
@@ -618,12 +618,12 @@ public class UserT implements Serializable {
 		return userFavoritesT;
 	}
 
-	public UserSettingsT getUserSettingsT() {
-		return this.userSettingsT;
+	public UserGeneralSettingsT getUserSettingsT() {
+		return this.userGeneralSettingsT;
 	}
 
-	public void setUserSettingsT(UserSettingsT userSettingsT) {
-		this.userSettingsT = userSettingsT;
+	public void setUserSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
+		this.userGeneralSettingsT = userGeneralSettingsT;
 	}
 
 	public UserGroupMappingT getUserGroupMappingT() {
@@ -662,6 +662,14 @@ public class UserT implements Serializable {
 		userNotificationsT.setUserT(null);
 
 		return userNotificationsT;
+	}
+
+	public UserGeneralSettingsT getUserGeneralSettingsT() {
+		return userGeneralSettingsT;
+	}
+
+	public void setUserGeneralSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
+		this.userGeneralSettingsT = userGeneralSettingsT;
 	}
 
 }

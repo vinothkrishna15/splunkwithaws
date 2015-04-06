@@ -14,8 +14,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -24,7 +22,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityTcsAccountContactLinkId")
 @Entity
 @Table(name = "opportunity_tcs_account_contact_link_t")
 @NamedQuery(name = "OpportunityTcsAccountContactLinkT.findAll", query = "SELECT o FROM OpportunityTcsAccountContactLinkT o")
@@ -32,25 +29,30 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_tcs_account_contact_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_tcs_account_contact_link_id")
 	private String opportunityTcsAccountContactLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to ContactT
+	// bi-directional many-to-one association to ContactT
 	@ManyToOne
-	@JoinColumn(name="contact_id")
+	@JoinColumn(name = "contact_id")
 	private ContactT contactT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
 
 	public OpportunityTcsAccountContactLinkT() {
 	}
@@ -59,7 +61,8 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 		return this.opportunityTcsAccountContactLinkId;
 	}
 
-	public void setOpportunityTcsAccountContactLinkId(String opportunityTcsAccountContactLinkId) {
+	public void setOpportunityTcsAccountContactLinkId(
+			String opportunityTcsAccountContactLinkId) {
 		this.opportunityTcsAccountContactLinkId = opportunityTcsAccountContactLinkId;
 	}
 
@@ -95,4 +98,11 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
 }

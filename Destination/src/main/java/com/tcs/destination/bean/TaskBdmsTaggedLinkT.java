@@ -1,49 +1,56 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.tcs.destination.utils.Constants;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.tcs.destination.utils.Constants;
 
 /**
  * The persistent class for the task_bdms_tagged_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "taskBdmsTaggedLinkId")
 @Entity
-@Table(name="task_bdms_tagged_link_t")
-@NamedQuery(name="TaskBdmsTaggedLinkT.findAll", query="SELECT t FROM TaskBdmsTaggedLinkT t")
+@Table(name = "task_bdms_tagged_link_t")
+@NamedQuery(name = "TaskBdmsTaggedLinkT.findAll", query = "SELECT t FROM TaskBdmsTaggedLinkT t")
 public class TaskBdmsTaggedLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="task_bdms_tagged_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "task_bdms_tagged_link_id")
 	private String taskBdmsTaggedLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to TaskT
+	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name="task_id")
+	@JoinColumn(name = "task_id")
 	private TaskT taskT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="bdms_tagged")
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "bdms_tagged")
 	private UserT userT;
 
 	public TaskBdmsTaggedLinkT() {
@@ -87,5 +94,13 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
 	}
 }

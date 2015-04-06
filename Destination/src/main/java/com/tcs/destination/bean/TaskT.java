@@ -21,110 +21,114 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
 
 /**
  * The persistent class for the task_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskId")
 @Entity
-@Table(name="task_t")
-@NamedQuery(name="TaskT.findAll", query="SELECT t FROM TaskT t")
+@Table(name = "task_t")
+@NamedQuery(name = "TaskT.findAll", query = "SELECT t FROM TaskT t")
 public class TaskT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="task_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "task_id")
 	private String taskId;
 
-	@Column(name="collaboration_preference")
+	@Column(name = "collaboration_preference")
 	private String collaborationPreference;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="documents_attached")
+	@Column(name = "documents_attached")
 	private String documentsAttached;
 
-	@Column(name="entity_reference")
+	@Column(name = "entity_reference")
 	private String entityReference;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="target_date_for_completion")
+	@Column(name = "target_date_for_completion")
 	private Date targetDateForCompletion;
 
-	@Column(name="task_description")
+	@Column(name = "task_description")
 	private String taskDescription;
 
-	@Column(name="task_status")
+	@Column(name = "task_status")
 	private String taskStatus;
 
-	//bi-directional many-to-one association to CollaborationCommentT
-	@OneToMany(cascade=CascadeType.ALL)
-	@JoinColumn(name="task_id")
+	// bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "task_id")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
-	//bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(cascade=CascadeType.ALL)
-	@JoinColumn(name="task_id")
+	// bi-directional many-to-one association to DocumentRepositoryT
+	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "task_id")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
-	//bi-directional many-to-one association to NotesT
-	@OneToMany(cascade=CascadeType.ALL)
-	@JoinColumn(name="task_id")
+	// bi-directional many-to-one association to NotesT
+	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "task_id")
 	private List<NotesT> notesTs;
 
-	//bi-directional many-to-one association to TaskBdmsTaggedLinkT
-	@OneToMany(mappedBy="taskT")
+	// bi-directional many-to-one association to TaskBdmsTaggedLinkT
+	@OneToMany(mappedBy = "taskT")
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
-	//bi-directional many-to-one association to ConnectT
+	// bi-directional many-to-one association to ConnectT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="connect_id", insertable=false, updatable=false)
+	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="opportunity_id", insertable=false, updatable=false)
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
+	// bi-directional many-to-one association to UserT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="task_owner", insertable=false, updatable=false)
+	@JoinColumn(name = "task_owner", insertable = false, updatable = false)
 	private UserT userT;
 
-	//bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(cascade=CascadeType.ALL)
-	@JoinColumn(name="task_id")
+	// bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "task_id")
 	private List<UserNotificationsT> userNotificationsTs;
 
-	@Column(name="task_owner")
+	@Column(name = "task_owner")
 	private String taskOwner;
 
 	@Transient
 	private String taskOwnerName;
-	
-	@Column(name="connect_id")
+
+	@Column(name = "connect_id")
 	private String connectId;
-	
-	@Column(name="opportunity_id")
+
+	@Column(name = "opportunity_id")
 	private String opportunityId;
 
 	@Transient
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList;
+
+	@OneToMany(mappedBy = "taskT")
+	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
 	public TaskT() {
 	}
@@ -205,18 +209,21 @@ public class TaskT implements Serializable {
 		return this.collaborationCommentTs;
 	}
 
-	public void setCollaborationCommentTs(List<CollaborationCommentT> collaborationCommentTs) {
+	public void setCollaborationCommentTs(
+			List<CollaborationCommentT> collaborationCommentTs) {
 		this.collaborationCommentTs = collaborationCommentTs;
 	}
 
-	public CollaborationCommentT addCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+	public CollaborationCommentT addCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
 		getCollaborationCommentTs().add(collaborationCommentT);
 		collaborationCommentT.setTaskT(this);
 
 		return collaborationCommentT;
 	}
 
-	public CollaborationCommentT removeCollaborationCommentT(CollaborationCommentT collaborationCommentT) {
+	public CollaborationCommentT removeCollaborationCommentT(
+			CollaborationCommentT collaborationCommentT) {
 		getCollaborationCommentTs().remove(collaborationCommentT);
 		collaborationCommentT.setTaskT(null);
 
@@ -227,18 +234,21 @@ public class TaskT implements Serializable {
 		return this.documentRepositoryTs;
 	}
 
-	public void setDocumentRepositoryTs(List<DocumentRepositoryT> documentRepositoryTs) {
+	public void setDocumentRepositoryTs(
+			List<DocumentRepositoryT> documentRepositoryTs) {
 		this.documentRepositoryTs = documentRepositoryTs;
 	}
 
-	public DocumentRepositoryT addDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT addDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().add(documentRepositoryT);
 		documentRepositoryT.setTaskT(this);
 
 		return documentRepositoryT;
 	}
 
-	public DocumentRepositoryT removeDocumentRepositoryT(DocumentRepositoryT documentRepositoryT) {
+	public DocumentRepositoryT removeDocumentRepositoryT(
+			DocumentRepositoryT documentRepositoryT) {
 		getDocumentRepositoryTs().remove(documentRepositoryT);
 		documentRepositoryT.setTaskT(null);
 
@@ -271,18 +281,21 @@ public class TaskT implements Serializable {
 		return this.taskBdmsTaggedLinkTs;
 	}
 
-	public void setTaskBdmsTaggedLinkTs(List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs) {
+	public void setTaskBdmsTaggedLinkTs(
+			List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs) {
 		this.taskBdmsTaggedLinkTs = taskBdmsTaggedLinkTs;
 	}
 
-	public TaskBdmsTaggedLinkT addTaskBdmsTaggedLinkT(TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+	public TaskBdmsTaggedLinkT addTaskBdmsTaggedLinkT(
+			TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
 		getTaskBdmsTaggedLinkTs().add(taskBdmsTaggedLinkT);
 		taskBdmsTaggedLinkT.setTaskT(this);
 
 		return taskBdmsTaggedLinkT;
 	}
 
-	public TaskBdmsTaggedLinkT removeTaskBdmsTaggedLinkT(TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
+	public TaskBdmsTaggedLinkT removeTaskBdmsTaggedLinkT(
+			TaskBdmsTaggedLinkT taskBdmsTaggedLinkT) {
 		getTaskBdmsTaggedLinkTs().remove(taskBdmsTaggedLinkT);
 		taskBdmsTaggedLinkT.setTaskT(null);
 
@@ -313,34 +326,54 @@ public class TaskT implements Serializable {
 		this.userT = userT;
 	}
 
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
 	public List<UserNotificationsT> getUserNotificationsTs() {
 		return this.userNotificationsTs;
 	}
 
-	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+	public void setUserNotificationsTs(
+			List<UserNotificationsT> userNotificationsTs) {
 		this.userNotificationsTs = userNotificationsTs;
 	}
 
-	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT addUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().add(userNotificationsT);
 		userNotificationsT.setTaskT(this);
 
 		return userNotificationsT;
 	}
 
-	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT removeUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().remove(userNotificationsT);
 		userNotificationsT.setTaskT(null);
 
 		return userNotificationsT;
 	}
-	
+
 	public String getTaskOwner() {
 		return taskOwner;
 	}
 
 	public void setTaskOwner(String taskOwner) {
 		this.taskOwner = taskOwner;
+	}
+
+	public List<UserTaggedFollowedT> getUserTaggedFollowedTs() {
+		return this.userTaggedFollowedTs;
+	}
+
+	public void setUserTaggedFollowedTs(
+			List<UserTaggedFollowedT> userTaggedFollowedTs) {
+		this.userTaggedFollowedTs = userTaggedFollowedTs;
 	}
 
 	public String getTaskOwnerName() {
@@ -374,6 +407,22 @@ public class TaskT implements Serializable {
 	public void setTaskBdmsTaggedLinkDeletionList(
 			List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList) {
 		this.taskBdmsTaggedLinkDeletionList = taskBdmsTaggedLinkDeletionList;
+	}
+
+	public UserTaggedFollowedT addUserTaggedFollowedT(
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().add(userTaggedFollowedT);
+		userTaggedFollowedT.setTaskT(this);
+
+		return userTaggedFollowedT;
+	}
+
+	public UserTaggedFollowedT removeUserTaggedFollowedT(
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().remove(userTaggedFollowedT);
+		userTaggedFollowedT.setTaskT(null);
+
+		return userTaggedFollowedT;
 	}
 
 }

@@ -63,6 +63,10 @@ public class ConnectTcsAccountContactLinkT implements Serializable {
 	@JoinColumn(name="contact_id")
 	private ContactT contactT;
 
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 	public ConnectTcsAccountContactLinkT() {
 	}
 
@@ -106,4 +110,11 @@ public class ConnectTcsAccountContactLinkT implements Serializable {
 		this.contactT = contactT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 }

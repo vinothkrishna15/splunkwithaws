@@ -1,15 +1,20 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -17,7 +22,6 @@ import java.sql.Timestamp;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectSubSpLinkId")
 @Entity
 @Table(name="connect_sub_sp_link_t")
 @NamedQuery(name="ConnectSubSpLinkT.findAll", query="SELECT c FROM ConnectSubSpLinkT c")
@@ -55,6 +59,10 @@ public class ConnectSubSpLinkT implements Serializable {
 	@JoinColumn(name="sub_sp")
 	private SubSpMappingT subSpMappingT;
 
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 	public ConnectSubSpLinkT() {
 	}
 
@@ -98,4 +106,11 @@ public class ConnectSubSpLinkT implements Serializable {
 		this.subSpMappingT = subSpMappingT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 }

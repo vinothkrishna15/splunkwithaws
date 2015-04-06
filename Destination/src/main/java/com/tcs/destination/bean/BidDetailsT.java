@@ -19,8 +19,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -28,7 +26,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidId")
 @Entity
 @Table(name = "bid_details_t")
 @NamedQuery(name = "BidDetailsT.findAll", query = "SELECT b FROM BidDetailsT b")
@@ -51,7 +48,7 @@ public class BidDetailsT implements Serializable {
 	@Column(name="core_attributes_used_for_winning")
 	private String coreAttributesUsedForWinning;
 
-	@Column(name = "created_modified_by")
+	@Column(name = "created_modified_by", insertable = false, updatable = false)
 	private String createdModifiedBy;
 
 	@Column(name = "created_modified_datetime")
@@ -78,6 +75,9 @@ public class BidDetailsT implements Serializable {
 	@JoinColumn(name = "opportunity_id")
 	private OpportunityT opportunityT;
 
+	@ManyToOne
+	@JoinColumn(name="created_modified_by")
+	private UserT userT;
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
 	@OneToMany(mappedBy = "bidDetailsT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
@@ -176,6 +176,14 @@ public class BidDetailsT implements Serializable {
 
 	public void setOpportunityT(OpportunityT opportunityT) {
 		this.opportunityT = opportunityT;
+	}
+
+	public UserT getUserT() {
+		return this.userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 
 	public List<BidOfficeGroupOwnerLinkT> getBidOfficeGroupOwnerLinkTs() {

@@ -16,8 +16,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 
@@ -26,7 +24,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="contactId")
 @Entity
 @Table(name="contact_t")
 @NamedQuery(name="ContactT.findAll", query="SELECT c FROM ContactT c")
@@ -93,6 +90,9 @@ public class ContactT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 
 	//bi-directional many-to-one association to OpportunityCustomerContactLinkT
 	@OneToMany(mappedBy="contactT")
@@ -273,6 +273,13 @@ public class ContactT implements Serializable {
 		this.partnerMasterT = partnerMasterT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 	public List<OpportunityCustomerContactLinkT> getOpportunityCustomerContactLinkTs() {
 		return this.opportunityCustomerContactLinkTs;
 	}

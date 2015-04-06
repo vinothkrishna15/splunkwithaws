@@ -1,27 +1,29 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-
-import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.tcs.destination.utils.Constants;
-
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.tcs.destination.utils.Constants;
 
 /**
- * The persistent class for the user_settings_t database table.
+ * The persistent class for the user_general_settings_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userId")
 @Entity
-@Table(name="user_settings_t")
-@NamedQuery(name="UserSettingsT.findAll", query="SELECT u FROM UserSettingsT u")
-public class UserSettingsT implements Serializable {
+@Table(name="user_general_settings_t")
+@NamedQuery(name="UserGeneralSettingsT.findAll", query="SELECT u FROM UserGeneralSettingsT u")
+public class UserGeneralSettingsT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -33,6 +35,12 @@ public class UserSettingsT implements Serializable {
 
 	@Column(name="email_digest")
 	private String emailDigest;
+
+	@Column(name="event_reminder")
+	private String eventReminder;
+
+	@Column(name="missed_update_reminder")
+	private String missedUpdateReminder;
 
 	private String theme;
 
@@ -49,7 +57,7 @@ public class UserSettingsT implements Serializable {
 	@JoinColumn(name="user_id")
 	private UserT userT;
 
-	public UserSettingsT() {
+	public UserGeneralSettingsT() {
 	}
 
 	public String getUserId() {
@@ -74,6 +82,22 @@ public class UserSettingsT implements Serializable {
 
 	public void setEmailDigest(String emailDigest) {
 		this.emailDigest = emailDigest;
+	}
+
+	public String getEventReminder() {
+		return this.eventReminder;
+	}
+
+	public void setEventReminder(String eventReminder) {
+		this.eventReminder = eventReminder;
+	}
+
+	public String getMissedUpdateReminder() {
+		return this.missedUpdateReminder;
+	}
+
+	public void setMissedUpdateReminder(String missedUpdateReminder) {
+		this.missedUpdateReminder = missedUpdateReminder;
 	}
 
 	public String getTheme() {

@@ -64,6 +64,10 @@ public class ConnectOpportunityLinkIdT implements Serializable {
 	@JoinColumn(name="opportunity_id")
 	private OpportunityT opportunityT;
 
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 	public ConnectOpportunityLinkIdT() {
 	}
 
@@ -107,4 +111,11 @@ public class ConnectOpportunityLinkIdT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 }

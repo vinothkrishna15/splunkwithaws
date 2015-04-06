@@ -1,15 +1,20 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -17,7 +22,6 @@ import java.sql.Timestamp;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityTimelineHistoryId")
 @Entity
 @Table(name="opportunity_timeline_history_t")
 @NamedQuery(name="OpportunityTimelineHistoryT.findAll", query="SELECT o FROM OpportunityTimelineHistoryT o")

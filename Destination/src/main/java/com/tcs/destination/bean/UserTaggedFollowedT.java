@@ -5,8 +5,6 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -18,30 +16,25 @@ import com.tcs.destination.utils.Constants;
 
 
 /**
- * The persistent class for the user_notifications_t database table.
+ * The persistent class for the user_tagged_followed_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
 @Entity
-@Table(name="user_notifications_t")
-@NamedQuery(name="UserNotificationsT.findAll", query="SELECT u FROM UserNotificationsT u")
-public class UserNotificationsT implements Serializable {
+@Table(name="user_tagged_followed_t")
+@NamedQuery(name="UserTaggedFollowedT.findAll", query="SELECT u FROM UserTaggedFollowedT u")
+public class UserTaggedFollowedT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="user_notification_id")
-	private String userNotificationId;
+	@Column(name="user_tagged_followed_id")
+	private String userTaggedFollowedId;
 
-	private String comments;
+	@Column(name="created_modified_datetime")
+	private Timestamp createdModifiedDatetime;
 
 	@Column(name="entity_type")
 	private String entityType;
-
-	private String read;
-
-	@Column(name="updated_datetime")
-	private Timestamp updatedDatetime;
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
@@ -60,26 +53,31 @@ public class UserNotificationsT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
+	@JoinColumn(name="created_modified_by")
+	private UserT userT1;
+
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
 	@JoinColumn(name="user_id")
-	private UserT userT;
+	private UserT userT2;
 
-	public UserNotificationsT() {
+	public UserTaggedFollowedT() {
 	}
 
-	public String getUserNotificationId() {
-		return this.userNotificationId;
+	public String getUserTaggedFollowedId() {
+		return this.userTaggedFollowedId;
 	}
 
-	public void setUserNotificationId(String userNotificationId) {
-		this.userNotificationId = userNotificationId;
+	public void setUserTaggedFollowedId(String userTaggedFollowedId) {
+		this.userTaggedFollowedId = userTaggedFollowedId;
 	}
 
-	public String getComments() {
-		return this.comments;
+	public Timestamp getCreatedModifiedDatetime() {
+		return this.createdModifiedDatetime;
 	}
 
-	public void setComments(String comments) {
-		this.comments = comments;
+	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
+		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
 	public String getEntityType() {
@@ -88,22 +86,6 @@ public class UserNotificationsT implements Serializable {
 
 	public void setEntityType(String entityType) {
 		this.entityType = entityType;
-	}
-
-	public String getRead() {
-		return this.read;
-	}
-
-	public void setRead(String read) {
-		this.read = read;
-	}
-
-	public Timestamp getUpdatedDatetime() {
-		return this.updatedDatetime;
-	}
-
-	public void setUpdatedDatetime(Timestamp updatedDatetime) {
-		this.updatedDatetime = updatedDatetime;
 	}
 
 	public ConnectT getConnectT() {
@@ -130,12 +112,20 @@ public class UserNotificationsT implements Serializable {
 		this.taskT = taskT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getUserT1() {
+		return this.userT1;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setUserT1(UserT userT1) {
+		this.userT1 = userT1;
+	}
+
+	public UserT getUserT2() {
+		return this.userT2;
+	}
+
+	public void setUserT2(UserT userT2) {
+		this.userT2 = userT2;
 	}
 
 }

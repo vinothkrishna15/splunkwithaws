@@ -14,8 +14,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 
@@ -24,7 +22,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectCustomerContactLinkId")
 @Entity
 @Table(name="connect_customer_contact_link_t")
 @NamedQuery(name="ConnectCustomerContactLinkT.findAll", query="SELECT c FROM ConnectCustomerContactLinkT c")
@@ -42,6 +39,10 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
 	
 	@Column(name="connect_id")
 	private String connectId;
@@ -65,6 +66,7 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="contact_id")
 	private ContactT contactT;
+
 
 	public ConnectCustomerContactLinkT() {
 	}
@@ -107,6 +109,14 @@ public class ConnectCustomerContactLinkT implements Serializable {
 
 	public void setContactT(ContactT contactT) {
 		this.contactT = contactT;
+	}
+
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
+
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 }

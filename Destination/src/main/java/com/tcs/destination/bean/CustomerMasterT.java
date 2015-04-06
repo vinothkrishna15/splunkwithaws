@@ -16,8 +16,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -25,7 +23,6 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="customerId")
 @Entity
 @Table(name = "customer_master_t")
 @NamedQuery(name = "CustomerMasterT.findAll", query = "SELECT c FROM CustomerMasterT c")
@@ -83,6 +80,10 @@ public class CustomerMasterT implements Serializable {
 	@JoinColumn(name = "iou", insertable = false, updatable = false)
 	private IouCustomerMappingT iouCustomerMappingT;
 
+//bi-directional many-to-one association to UserT
+@ManyToOne
+@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+private UserT createdModifiedByUser;
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
@@ -268,6 +269,13 @@ public class CustomerMasterT implements Serializable {
 		this.iouCustomerMappingT = iouCustomerMappingT;
 	}
 
+public UserT getCreatedModifiedByUser() {
+return this.createdModifiedByUser;
+}
+
+public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+this.createdModifiedByUser = createdModifiedByUser;
+}
 	public List<DocumentRepositoryT> getDocumentRepositoryTs() {
 		return this.documentRepositoryTs;
 	}
