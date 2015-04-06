@@ -49,24 +49,28 @@ public class DocumentController {
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		
 		logger.debug("Download Request received for id: " + documentId);
+		
 		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
 		if(document!=null){
 			logger.debug(documentId + " - Record Found");
-		String fullPath = document.getFileReference();
+		String fullPath = fileBasePath + document.getFileReference();
 		logger.debug(documentId + " - File Found : " + fullPath);
-		File file = new File(fullPath);
-		String name = document.getDocumentName();
+		
 		HttpHeaders respHeaders = new HttpHeaders();
+		String name = document.getDocumentName();
 	    respHeaders.setContentDispositionFormData("attachment", name);
 	    logger.debug(documentId + " - Download Header - Attachment : " + name);
+	    
 	    FileNameMap fileNameMap = URLConnection.getFileNameMap();
 	    String fileUrl = "file://"+fullPath;
-	      String type = fileNameMap.getContentTypeFor(fileUrl);
-	      if(type==null){
-	    	  FileDataSource fds = new FileDataSource(file);
-	    	  type = fds.getContentType();
-	      }
+	    String type = fileNameMap.getContentTypeFor(fileUrl);
+	    File file = new File(fullPath);
+	    if(type==null){
+	    	 FileDataSource fds = new FileDataSource(file);
+	    	 type = fds.getContentType();
+	    }
 	    respHeaders.setContentType(MediaType.valueOf(type));
 	    
 	    logger.debug(documentId + " - Download Header - Mime Type : " + type);

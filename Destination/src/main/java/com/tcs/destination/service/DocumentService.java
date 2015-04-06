@@ -117,7 +117,10 @@ public class DocumentService {
 					logger.debug(docId + " - File saved at " + saveDirLoc);
 					String fileName = file.getOriginalFilename();
 					String fileExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
-					document.setFileReference(saveDirLoc + docId + fileExtension);
+					String relativePath = getRelativePath(entityType, entityId) + docId + fileExtension;
+
+					//document.setFileReference(saveDirLoc + docId + fileExtension);
+					document.setFileReference(relativePath);
 					if(documentRepository.save(document)!=null){
 						logger.debug(docId + " - Record(File Reference) in DB updated " + document.getFileReference());
 						return document.getDocumentId();
@@ -135,6 +138,15 @@ public class DocumentService {
 			}
 	}
 
+	private String getRelativePath(String entityType,String entityId){
+		StringBuffer relativePath = new StringBuffer("");
+		relativePath.append(File.separator);
+		relativePath.append(entityType);
+		relativePath.append(File.separator);
+		relativePath.append(entityId);
+		relativePath.append(File.separator);
+		return relativePath.toString();
+	}
 	
 	private String getEntityId(DocumentRepositoryT document) throws Exception {
 		logger.debug("Inside getEntityId Service");
@@ -300,7 +312,7 @@ public class DocumentService {
 			index = 0;
 			for(DocumentRepositoryT docRep : docList){
 				index++;
-				String fullPath = docRep.getFileReference();
+				String fullPath = fileBasePath + docRep.getFileReference();
 				String id = docRep.getDocumentId();
 				deleteFile(fullPath);
 				logger.debug(id + " - File deleted");
