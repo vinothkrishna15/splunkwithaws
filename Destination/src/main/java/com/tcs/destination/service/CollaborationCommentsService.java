@@ -9,7 +9,7 @@ import com.tcs.destination.bean.CollaborationCommentT;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.enums.CommentType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants.EntityType;
+import com.tcs.destination.enums.EntityType;
 
 @Component
 public class CollaborationCommentsService {

@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.service.UserService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/user")
@@ -37,11 +38,11 @@ public class UserDetailsController {
 		logger.debug("Inside UserDetailsController /user GET");
 		if (nameWith.equals("")) {
 			logger.debug("nameWith is EMPTY");
-			return Constants.filterJsonForFieldAndViews(fields, view,
-					Constants.getCurrentUserDetails());
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					DestinationUtils.getCurrentUserDetails());
 		} else {
 			List<UserT> user = userService.findByUserName(nameWith);
-			return Constants.filterJsonForFieldAndViews(fields, view, user);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, user);
 		}
 	}
 

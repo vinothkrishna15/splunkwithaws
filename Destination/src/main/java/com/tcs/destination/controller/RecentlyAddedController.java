@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.RecentlyAddedService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/recent")
@@ -29,6 +29,6 @@ public class RecentlyAddedController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside RecentlyAddedController /recent?entityType="+entityType+" GET");
 		Object response=recentlyAddedService.recentlyAdded(entityType,count);
-		return Constants.filterJsonForFieldAndViews(fields, view, response);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, response);
 	}
 }

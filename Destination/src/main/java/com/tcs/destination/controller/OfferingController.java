@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.service.OfferingService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/offering")
@@ -29,7 +29,7 @@ public class OfferingController {
 		logger.debug("Inside OfferingController /offering GET");
 		ArrayList<OfferingMappingT> offeringMapping = (ArrayList<OfferingMappingT>) offeringService
 				.findAll();
-		return Constants.filterJsonForFieldAndViews(fields, view,
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				offeringMapping);
 	}
 

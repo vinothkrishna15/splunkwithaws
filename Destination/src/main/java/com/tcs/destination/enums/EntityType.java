@@ -1,12 +1,12 @@
 package com.tcs.destination.enums;
 
 
-public enum CommentType {
-	USER("USER"), AUTO("AUTO");
+public enum EntityType {
+	CUSTOMER("CUSTOMER"), PARTNER("PARTNER"),CONNECT("CONNECT"), OPPORTUNITY("OPPORTUNITY"),TASK("TASK"),DOCUMENT("DOCUMENT");
 
 	private final String name;
 
-	private CommentType(String name) {
+	private EntityType(String name) {
 		this.name = name;
 	}
 
@@ -20,7 +20,7 @@ public enum CommentType {
 
 	public static boolean contains(String test) {
 
-		for (CommentType c : CommentType.values()) {
+		for (EntityType c : EntityType.values()) {
 			if (c.name().equals(test)) {
 				return true;
 			}

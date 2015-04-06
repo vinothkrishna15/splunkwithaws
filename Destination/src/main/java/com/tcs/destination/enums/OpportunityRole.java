@@ -1,6 +1,5 @@
 package com.tcs.destination.enums;
 
-import com.tcs.destination.utils.Constants.EntityType;
 
 public enum OpportunityRole {
 	PRIMARY_OWNER("PRIMARY_OWNER"), SALES_SUPPORT("SALES_SUPPORT"), BID_OFFICE(

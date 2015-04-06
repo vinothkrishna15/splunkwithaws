@@ -21,7 +21,7 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.service.ConnectService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller to handle connection details search requests.
@@ -52,7 +52,7 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside ConnectController /connect/id="+connectId+" GET");
 		ConnectT connect = connectService.searchforConnectsById(connectId);
-		return Constants.filterJsonForFieldAndViews(fields, view, connect);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connect);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class ConnectController {
 		logger.debug("Inside ConnectController /connect?nameWith="+connectName+" GET");
 		List<ConnectT> connectlist = connectService
 				.searchforConnectsByNameContaining(connectName);
-		return Constants.filterJsonForFieldAndViews(fields, view, connectlist);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connectlist);
 	}
 
 	/**
@@ -106,14 +106,14 @@ public class ConnectController {
 					.searchforConnectsBetweenForUserOrCustomerOrPartner(
 							fromDate, toDate, userId, owner, customerId,
 							partnerId,false);
-			return Constants.filterJsonForFieldAndViews(fields, view, connects);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connects);
 		} else {
 			DashBoardConnectsResponse dashBoardConnectsResponse = connectService
 					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
 							userId, owner, customerId, partnerId,
 							weekStartDate, weekEndDate, monthStartDate,
 							monthEndDate);
-			return Constants.filterJsonForFieldAndViews(fields, view,
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					dashBoardConnectsResponse);
 		}
 
@@ -131,7 +131,7 @@ public class ConnectController {
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
 		
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 
@@ -147,7 +147,7 @@ public class ConnectController {
 				logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
 			}
 		
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 

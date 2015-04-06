@@ -1,12 +1,11 @@
 package com.tcs.destination.enums;
 
-
-public enum CommentType {
-	USER("USER"), AUTO("AUTO");
+public enum TaskStatus {
+	Open("Open"), Hold("Hold"), Closed("Closed");
 
 	private final String name;
 
-	private CommentType(String name) {
+	private TaskStatus(String name) {
 		this.name = name;
 	}
 
@@ -18,15 +17,12 @@ public enum CommentType {
 		return name;
 	}
 
-	public static boolean contains(String test) {
-
-		for (CommentType c : CommentType.values()) {
-			if (c.name().equals(test)) {
+	public static boolean contains(String type) {
+		for (TaskStatus status : TaskStatus.values()) {
+			if (status.name().equals(type)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
-
 }

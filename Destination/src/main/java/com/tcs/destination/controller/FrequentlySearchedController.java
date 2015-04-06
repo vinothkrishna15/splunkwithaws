@@ -17,11 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoManditoryFieldsFoundExceptions;
-import com.tcs.destination.exception.NoSuchEntityException;
 import com.tcs.destination.service.FrequentlySearchedService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/frequent")
@@ -41,7 +38,7 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "owner", defaultValue = "all") String owner)
 			throws Exception {
 		logger.debug("Inside FrequetlySearchedController /frequent?entityType="+entityType+" GET");
-		return Constants.filterJsonForFieldAndViews(fields, view,
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				frequentService.findFrequent(entityType, count));
 	}
 
@@ -59,7 +56,7 @@ public class FrequentlySearchedController {
 		}
 
 
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 }

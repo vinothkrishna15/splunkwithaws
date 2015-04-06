@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.PartnerService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/partner")
@@ -33,7 +33,7 @@ public class PartnerController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside PartnerController /partner/id="+partnerid+" GET");
 		PartnerMasterT partner = partnerService.findById(partnerid);
-		return Constants.filterJsonForFieldAndViews(fields, view, partner);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partner);
 	}
 	
 	@RequestMapping(method = RequestMethod.GET)
@@ -44,6 +44,6 @@ public class PartnerController {
 		logger.debug("Inside PartnerController /partner?nameWith="+chars+" GET");
 		List<PartnerMasterT> customer = partnerService
 				.findByNameContaining(chars);
-		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
 	}
 }

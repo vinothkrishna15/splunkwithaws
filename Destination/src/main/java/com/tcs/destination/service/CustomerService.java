@@ -4,21 +4,21 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
-import com.tcs.destination.exception.CustomerNotFoundException;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoDataFoundException;
 import com.tcs.destination.exception.NoSuchCurrencyException;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 
 @Component
 public class CustomerService {
@@ -46,7 +46,7 @@ public class CustomerService {
 		logger.debug("Inside findTopRevenue Service");
 		if (financialYear.equals("")){
 			logger.debug("Financial Year is Empty");
-			financialYear = Constants.getCurrentFinancialYear();
+			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<CustomerMasterT> topRevenueList = customerRepository
 				.findTopRevenue(count, financialYear);
@@ -69,7 +69,7 @@ public class CustomerService {
 			throw new NoSuchCurrencyException();
 		}
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
-		String financialYear = Constants.getCurrentFinancialYear();
+		String financialYear = DateUtils.getCurrentFinancialYear();
 		List<Object[]> actualList = customerRepository.findActual(name,
 				financialYear);
 		List<Object[]> targetList = customerRepository.findTarget(name,

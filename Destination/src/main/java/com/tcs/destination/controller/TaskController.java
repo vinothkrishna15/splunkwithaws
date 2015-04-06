@@ -1,27 +1,27 @@
 package com.tcs.destination.controller;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.service.TaskService;
-import com.tcs.destination.utils.Constants;
-import com.tcs.destination.bean.Status;
-
-import java.util.List;
-import java.util.Date;
+import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller to handle Task module related requests.
@@ -51,7 +51,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/id="+taskId+" GET");
 		TaskT task = taskService.findTaskById(taskId);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task?nameWith="+chars+" GET");
 		List<TaskT> taskList = taskService.findTasksByNameContaining(chars);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/findByConnect?id="+connectId+" GET");
 		List<TaskT> taskList = taskService.findTasksByConnectId(connectId);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/findByOpportunity?id="+opportunityId+" GET");
 		List<TaskT> taskList = taskService.findTasksByOpportunityId(opportunityId);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/findByOwner?id="+taskOwner+" GET");
 		List<TaskT> taskList = taskService.findTasksByTaskOwner(taskOwner);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -141,7 +141,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/findAssigned?id="+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 
 	/**
@@ -160,7 +160,7 @@ public class TaskController {
 		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, targetDate);
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
 	
 	/**
@@ -182,7 +182,7 @@ public class TaskController {
 			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
 
 	/**
@@ -204,6 +204,6 @@ public class TaskController {
 			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 		}
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
 }

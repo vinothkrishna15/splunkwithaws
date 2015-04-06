@@ -21,8 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DocumentRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants.EntityType;
 
 @Component
 public class DocumentService {
@@ -34,20 +34,6 @@ public class DocumentService {
 	
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
-	
-	//@Autowired
-    //Environment env;
-	
-	//private String fileBasePath1 = env.getProperty("fileBaseDir");
-	
-//	public int save(DocumentRepositoryT docrep) 
-//	{
-//		DocumentRepositoryT documentrep=documentRepository.save(docrep);
-//		if(documentrep != null)
-//		    return 1;
-//		else
-//			return 0;
-//	}
 
 	public DocumentRepositoryT findByDocumentId(String documentId) throws Exception{
 		logger.debug("Inside findByDocumentId Service");
