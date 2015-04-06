@@ -53,6 +53,8 @@
 		<property name="username" value="${spring.datasource.username}" />
 		<property name="password" value="${spring.datasource.password}" />
 	</bean>
+	
+	<bean id="eventListenerBean" class="com.tcs.destination.DestinationContextListener" />
 
 <context:property-placeholder location="classpath:application.properties" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
