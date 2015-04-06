@@ -1,8 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoManditoryFieldsFoundExceptions;
-import com.tcs.destination.exception.NoSuchEntityException;
 import com.tcs.destination.service.FrequentlySearchedService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/frequent")
@@ -36,7 +30,7 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "all") String owner)
 			throws Exception {
-		return Constants.filterJsonForFieldAndViews(fields, view,
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				frequentService.findFrequent(entityType, count));
 	}
 
@@ -52,7 +46,7 @@ public class FrequentlySearchedController {
 		}
 
 
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.service.ContactService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller to handle contact details search requests.
@@ -38,7 +38,7 @@ public class ContactController {
 		logger.debug("Inside ContactController /contact GET");
 		List<ContactT> contactlist = contactService.searchforContact(
 				customerId, partnerId, nameWith);
-		return Constants.filterJsonForFieldAndViews(fields, view, contactlist);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, contactlist);
 	}
 
 }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller class to handle application exceptions.
@@ -32,7 +32,7 @@ public class GlobalExceptionController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, de.getMessage());
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), de.getHttpStatus());
+			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), de.getHttpStatus());
 	}
 
 	/**
@@ -47,7 +47,7 @@ public class GlobalExceptionController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, e.getMessage());
 		return new ResponseEntity<String>
-			(Constants.filterJsonForFieldAndViews("all", "", status), HttpStatus.INTERNAL_SERVER_ERROR);
+			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }

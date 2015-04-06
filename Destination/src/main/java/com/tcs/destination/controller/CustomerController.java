@@ -16,6 +16,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/customer")
@@ -33,7 +34,7 @@ public class CustomerController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside CustomerController /customer/id="+customerid+" GET");
 		CustomerMasterT customer = customerService.findById(customerid);
-		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -44,7 +45,7 @@ public class CustomerController {
 		logger.debug("Inside CustomerController /customer?namewith="+chars+" GET");
 		List<CustomerMasterT> customer = customerService
 				.findByNameContaining(chars);
-		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
 	}
 
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
@@ -56,7 +57,7 @@ public class CustomerController {
 		logger.debug("Inside CustomerController /customer/targetVsActual?name="+name+" GET");
 		List<TargetVsActualResponse> tarVsAct = customerService
 				.findTargetVsActual(name, currency);
-		return Constants.filterJsonForFieldAndViews(fields, view, tarVsAct);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, tarVsAct);
 	}
 
 	@RequestMapping(value = "/topRevenue", method = RequestMethod.GET)
@@ -69,7 +70,7 @@ public class CustomerController {
 		List<CustomerMasterT> topRevenueCustomers = customerService
 				.findTopRevenue(count, financialYear);
 
-		return Constants.filterJsonForFieldAndViews(includeFields, view,
+		return ResponseConstructors.filterJsonForFieldAndViews(includeFields, view,
 				topRevenueCustomers);
 	}
 	
@@ -80,7 +81,7 @@ public class CustomerController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		logger.debug("Inside CustomerController /customer/group?nameWith="+nameWith+" GET");
 		List<CustomerMasterT> customer = (List<CustomerMasterT>)customerService.findByGroupCustomerName(nameWith);
-		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
 	}
 
 }

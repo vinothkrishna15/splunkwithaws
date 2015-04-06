@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.service.RecentlyAddedService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/recent")
@@ -23,6 +23,6 @@ public class RecentlyAddedController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		Object response=recentlyAddedService.recentlyAdded(entityType,count);
-		return Constants.filterJsonForFieldAndViews(fields, view, response);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, response);
 	}
 }

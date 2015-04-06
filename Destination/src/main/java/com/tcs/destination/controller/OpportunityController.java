@@ -12,10 +12,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunityT;
-import com.tcs.destination.bean.Status;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/opportunity")
@@ -33,7 +31,7 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		OpportunityT opportunity = opportunityService
 				.findByOpportunityName(nameWith);
-		return Constants.filterJsonForFieldAndViews(fields, view, opportunity);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunity);
 	}
 
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)
@@ -43,7 +41,7 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		List<OpportunityT> opportunities = opportunityService
 				.findRecentOpportunities(customerId);
-		return Constants
+		return ResponseConstructors
 				.filterJsonForFieldAndViews(fields, view, opportunities);
 	}
 
@@ -56,7 +54,7 @@ public class OpportunityController {
 
 		List<OpportunityT> opportunities = opportunityService
 				.findByTaskOwnerForRole(taskOwner,opportunityRole);
-		return new ResponseEntity<String>(Constants
+		return new ResponseEntity<String>(ResponseConstructors
 				.filterJsonForFieldAndViews(fields, view, opportunities),HttpStatus.OK);
 		
 		

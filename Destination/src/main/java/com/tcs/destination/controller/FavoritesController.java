@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FavoritesService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/favorites")
@@ -39,8 +39,8 @@ public class FavoritesController {
 		logger.debug("Inside Favorites Controller /favorites?entityType="
 				+ entityType + " GET");
 		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
-				Constants.getCurrentUserDetails(), entityType);
-		return Constants.filterJsonForFieldAndViews(fields, view,
+				DestinationUtils.getCurrentUserDetails(), entityType);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				userFavourites);
 	}
 
@@ -58,7 +58,7 @@ public class FavoritesController {
 					+ "Inserted Successfully");
 			status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
 		}
-		return new ResponseEntity<String>(Constants.filterJsonForFieldAndViews(
+		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
 
@@ -72,7 +72,7 @@ public class FavoritesController {
 		Status status = new Status();
 		myFavService.removeFromFavorites(favoritesId);
 		status.setStatus(Status.SUCCESS, favoritesId);
-		return Constants.filterJsonForFieldAndViews("all", "", status);
+		return ResponseConstructors.filterJsonForFieldAndViews("all", "", status);
 
 	}
 }

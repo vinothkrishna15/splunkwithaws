@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.service.PartnerService;
-import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
 @RequestMapping("/partner")
@@ -27,7 +27,7 @@ public class PartnerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		PartnerMasterT partner = partnerService.findById(partnerid);
-		return Constants.filterJsonForFieldAndViews(fields, view, partner);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partner);
 	}
 	
 	@RequestMapping(method = RequestMethod.GET)
@@ -37,6 +37,6 @@ public class PartnerController {
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		List<PartnerMasterT> customer = partnerService
 				.findByNameContaining(chars);
-		return Constants.filterJsonForFieldAndViews(fields, view, customer);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
 	}
 }
