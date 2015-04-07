@@ -19,4 +19,6 @@ public interface OpportunityRepository extends
 	
 	List<OpportunityT> findByUserT(UserT userT);
 
+	OpportunityT findByOpportunityId(String opportunityId);
+
 }

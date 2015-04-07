@@ -1,17 +1,21 @@
 package com.tcs.destination.controller;
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -35,6 +39,17 @@ public class OpportunityController {
 		OpportunityT opportunity = opportunityService
 				.findByOpportunityName(nameWith);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunity);
+	}
+	
+	@RequestMapping(value="/{id}", method= RequestMethod.GET)
+	public @ResponseBody String findByOpportunityId(
+			@PathVariable("id") String opportunityId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside OpportunityController /opportunity/Id="+opportunityId+" GET");
+		OpportunityT opportunity=opportunityService.findByOpportunityId(opportunityId);
+		return ResponseConstructors
+				.filterJsonForFieldAndViews(fields, view, opportunity);
 	}
 
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserT;
@@ -147,5 +149,12 @@ public class OpportunityService {
 		List<OpportunityT> opportunities = opportunitySalesSupportLinkTRepository
 				.findOpportunityTByUserId(userId);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
+	}
+
+	public OpportunityT findByOpportunityId(String opportunityId) throws DestinationException{
+		logger.debug("Inside findByOpportunityId Service");
+		OpportunityT opportunity=opportunityRepository.findByOpportunityId(opportunityId);
+		return opportunity;
+		// TODO Auto-generated method stub
 	}
 }
