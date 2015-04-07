@@ -47,7 +47,7 @@ public class DocumentService {
 	
 	public String saveDocument(String documentName,
 			 String documentType,
-			String entityType, String parentEntity, String parentEntityId,
+			String entityType, String parentEntity,
 			String commentId, String connectId, String customerId,
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws Exception {
@@ -101,7 +101,6 @@ public class DocumentService {
 			}
 			
 			document.setParentEntity(parentEntity);
-			document.setParentEntityId(parentEntityId);
 			if(!partnerId.equals(""))
 			{
 				logger.debug("partnerId Not Empty");

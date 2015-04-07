@@ -118,7 +118,6 @@ public class DocumentController {
 			@RequestParam("documentType") String documentType,
 			@RequestParam("entityType") String entityType,
 			@RequestParam("parentEntity") String parentEntity,
-			@RequestParam("parentEntityId") String parentEntityId,
 			@RequestParam(value = "commentId", defaultValue = "") String commentId,
 			@RequestParam(value = "connectId", defaultValue = "") String connectId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -136,7 +135,7 @@ public class DocumentController {
 		try {
 			String docId = documentService.saveDocument(documentName,
 				 documentType, entityType,
-					parentEntity, parentEntityId, commentId, connectId,
+					parentEntity, commentId, connectId,
 					customerId, opportunityId, partnerId, taskId, uploadedBy,
 					file);
 			status.setStatus(Status.SUCCESS, "Id : " + docId);

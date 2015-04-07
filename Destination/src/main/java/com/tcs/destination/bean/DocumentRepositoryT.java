@@ -49,9 +49,6 @@ public class DocumentRepositoryT implements Serializable {
 	@Column(name = "parent_entity")
 	private String parentEntity;
 
-	@Column(name = "parent_entity_id")
-	private String parentEntityId;
-
 	@Column(name = "uploaded_datetime")
 	private Timestamp uploadedDatetime;
 	
@@ -164,14 +161,6 @@ public class DocumentRepositoryT implements Serializable {
 
 	public void setParentEntity(String parentEntity) {
 		this.parentEntity = parentEntity;
-	}
-
-	public String getParentEntityId() {
-		return this.parentEntityId;
-	}
-
-	public void setParentEntityId(String parentEntityId) {
-		this.parentEntityId = parentEntityId;
 	}
 
 	public Timestamp getUploadedDatetime() {
