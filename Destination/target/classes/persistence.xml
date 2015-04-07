@@ -5,27 +5,68 @@
 	version="1.0">
 
 	<persistence-unit name="application" transaction-type="RESOURCE_LOCAL">
-		<class>com.tcs.destination.bean.UserT</class>
+		<class>com.tcs.destination.bean.ActualRevenuesDataT</class>
+		<class>com.tcs.destination.bean.BdmTargetT</class>
+		<class>com.tcs.destination.bean.BeaconConvertorMappingT</class>
+		<class>com.tcs.destination.bean.BeaconCustomerMappingT</class>
+		<class>com.tcs.destination.bean.BeaconCustomerMappingTPK</class>
+		<class>com.tcs.destination.bean.BeaconDataT</class>
+		<class>com.tcs.destination.bean.BidDetailsT</class>
+		<class>com.tcs.destination.bean.BidOfficeGroupOwnerLinkT</class>
+		<class>com.tcs.destination.bean.BidRequestTypeMappingT</class>
+		<class>com.tcs.destination.bean.CollaborationCommentT</class>
+		<class>com.tcs.destination.bean.CompetitorMappingT</class>
+		<class>com.tcs.destination.bean.ConnectCustomerContactLinkT</class>
+		<class>com.tcs.destination.bean.ConnectOfferingLinkT</class>
+		<class>com.tcs.destination.bean.ConnectOpportunityLinkIdT</class>
+		<class>com.tcs.destination.bean.ConnectSecondaryOwnerLinkT</class>
+		<class>com.tcs.destination.bean.ConnectSubSpLinkT</class>
+		<class>com.tcs.destination.bean.ConnectT</class>
+		<class>com.tcs.destination.bean.ConnectTcsAccountContactLinkT</class>
+		<class>com.tcs.destination.bean.ContactRoleMappingT</class>
+		<class>com.tcs.destination.bean.ContactT</class>
 		<class>com.tcs.destination.bean.CustomerMasterT</class>
-		<class>com.tcs.destination.bean.IouCustomerMappingT</class>
+		<class>com.tcs.destination.bean.DealTypeMappingT</class>
+		<class>com.tcs.destination.bean.DocumentRepositoryT</class>
+		<class>com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT</class>
 		<class>com.tcs.destination.bean.GeographyCountryMappingT</class>
 		<class>com.tcs.destination.bean.GeographyMappingT</class>
-		<class>com.tcs.destination.bean.SearchCusPartAjax</class>
-		<class>com.tcs.destination.bean.PartnerMasterT</class>
-		<class>com.tcs.destination.bean.ConnectT</class>
-
-		<class>com.tcs.destination.bean.ConnectOpportunityLinkIdT</class>
-		<class>com.tcs.destination.bean.DocumentRepositoryT</class>
+		<class>com.tcs.destination.bean.IouBeaconMappingT</class>
+		<class>com.tcs.destination.bean.IouCustomerMappingT</class>
+		<class>com.tcs.destination.bean.LoginHistoryT</class>
+		<class>com.tcs.destination.bean.NotesT</class>
 		<class>com.tcs.destination.bean.OfferingMappingT</class>
+		<class>com.tcs.destination.bean.OpportunityCompetitorLinkT</class>
+		<class>com.tcs.destination.bean.OpportunityCustomerContactLinkT</class>
+		<class>com.tcs.destination.bean.OpportunityOfferingLinkT</class>
+		<class>com.tcs.destination.bean.OpportunityPartnerLinkT</class>
+		<class>com.tcs.destination.bean.OpportunitySalesSupportLinkT</class>
+		<class>com.tcs.destination.bean.OpportunitySubSpLinkT</class>
+		<class>com.tcs.destination.bean.OpportunityT</class>
+		<class>com.tcs.destination.bean.OpportunityTcsAccountContactLinkT</class>
+		<class>com.tcs.destination.bean.OpportunityTimelineHistoryT</class>
+		<class>com.tcs.destination.bean.PartnerMasterT</class>
+		<class>com.tcs.destination.bean.RevenueCustomerMappingT</class>
+		<class>com.tcs.destination.bean.RevenueCustomerMappingTPK</class>
+		<class>com.tcs.destination.bean.SalesStageMappingT</class>
+		<class>com.tcs.destination.bean.SubSpMappingT</class>
+		<class>com.tcs.destination.bean.TaskBdmsTaggedLinkT</class>
 		<class>com.tcs.destination.bean.TaskT</class>
+		<class>com.tcs.destination.bean.TimeZoneMappingT</class>
+		<class>com.tcs.destination.bean.UserFavoritesT</class>
 		<class>com.tcs.destination.bean.UserGroupMappingT</class>
+		<class>com.tcs.destination.bean.UserNotificationsT</class>
 		<class>com.tcs.destination.bean.UserRoleMappingT</class>
+		<class>com.tcs.destination.bean.UserGeneralSettingsT</class>
+		<class>com.tcs.destination.bean.UserNotificationSettingsT</class>
+		<class>com.tcs.destination.bean.UserT</class>
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/mydb" />
-			<property name="javax.persistence.jdbc.user" value="postgres" />
-			<property name="javax.persistence.jdbc.password" value="admin" />
-			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+			<property name="javax.persistence.jdbc.url"
+				value="${spring.datasource.url}" />
+			<property name="javax.persistence.jdbc.user" value="${spring.datasource.username}" />
+			<property name="javax.persistence.jdbc.password" value="${spring.datasource.password}" />
+			<property name="javax.persistence.jdbc.driver" value="${spring.datasource.driver-class-name}" />
 			<!-- <property name="hibernate.show.sql" value="true" /> <property name="hibernate.format_sql" 
 				value="true" /> <property name="eclipselink.logging.level" value="FINE" /> 
 				<property name="eclipselink.logging.parameters" value="true" /> <property 
