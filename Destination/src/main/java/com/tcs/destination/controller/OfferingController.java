@@ -25,7 +25,7 @@ public class OfferingController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) {
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside OfferingController /offering GET");
 		ArrayList<OfferingMappingT> offeringMapping = (ArrayList<OfferingMappingT>) offeringService
 				.findAll();
