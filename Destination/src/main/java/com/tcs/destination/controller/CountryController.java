@@ -27,7 +27,7 @@ public class CountryController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 	@RequestParam(value = "fields", defaultValue = "all") String fields,
-	@RequestParam(value = "view", defaultValue = "") String view)
+	@RequestParam(value = "view", defaultValue = "") String view) throws Exception
 	{
 		logger.debug("Inside CountryController /country GET");
 		ArrayList<GeographyCountryMappingT> geographyCountryMapping=new ArrayList<GeographyCountryMappingT>();
