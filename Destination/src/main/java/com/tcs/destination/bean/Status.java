@@ -22,5 +22,10 @@ public class Status {
 	public String getDescription() {
 		return description;
 	}
+	
+	@Override
+	public String toString() {
+		return " {status:\"" + status + "\",description:\"" + description + "\"}";     
+	}
 
 }

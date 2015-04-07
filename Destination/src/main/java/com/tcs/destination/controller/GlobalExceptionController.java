@@ -31,8 +31,7 @@ public class GlobalExceptionController {
 		logger.error("DestinationException: " + de.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, de.getMessage());
-		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), de.getHttpStatus());
+		return new ResponseEntity<String> (status.toString(), de.getHttpStatus());
 	}
 
 	/**
@@ -46,8 +45,7 @@ public class GlobalExceptionController {
 		logger.error("Exception: " + e.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, e.getMessage());
-		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<String>(status.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
