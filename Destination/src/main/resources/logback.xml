@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
-	<property name="LOG_HOME" value="/Users/Bnpp/Desktop" />
+    <property file="src/main/resources/application.properties" />
+	
 	<appender name="StdOut" class="ch.qos.logback.core.ConsoleAppender">
 	    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     	<encoder>
@@ -10,9 +11,9 @@
   	</appender>
 
 	<appender name="FileLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${LOG_HOME}/logs/application.log</file>
+		<file>${logBaseDir}/logs/application.log</file>
     	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-    		<fileNamePattern>${LOG_HOME}/logs/application_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+    		<fileNamePattern>${logBaseDir}/logs/application_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
     		<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
     			<maxFileSize>5MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>

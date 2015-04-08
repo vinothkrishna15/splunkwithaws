@@ -11,6 +11,9 @@ public class DestinationContextListener implements
 
 	private static final Logger logger = LoggerFactory.getLogger(DestinationContextListener.class);
 
+	@Value("${logBaseDir}")
+	private String logBasePath;
+	
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
 
@@ -34,12 +37,13 @@ public class DestinationContextListener implements
 		// difference between init-method and @PostConstructor where you can't)
 		// this class can be annotated as spring service, and you can use
 		// @Autowired in it
-		logger.info("spring.datasource.url : " + springDatasourceUrl);
-		logger.info("spring.datasource.username : " + springDatasourceUsername);
-		logger.info("spring.datasource.driver-class-name : " + springDatasourceDriver_class_name);
-		logger.info("fileBaseDir : " + fileBasePath);
-		logger.info("multipart.maxFileSize : " + multipartMaxFileSize);
-		logger.info("multipart.maxRequestSize : " + multipartMaxRequestSize);
+		logger.info("Datasource Url - " + springDatasourceUrl);
+		logger.info("Datasource Username - " + springDatasourceUsername);
+		logger.info("Datasource Driver - " + springDatasourceDriver_class_name);
+		logger.info("Log files Directory - " + logBasePath);
+		logger.info("Uploaded files Directory - " + fileBasePath);
+		logger.info("Max Size of file upload - " + multipartMaxFileSize);
+		logger.info("Max size of Request - " + multipartMaxRequestSize);
 	}
 
 }
