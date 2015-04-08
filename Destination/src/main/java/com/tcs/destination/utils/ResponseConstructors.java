@@ -52,9 +52,16 @@ public class ResponseConstructors {
 		} else {
 			StringTokenizer st = new StringTokenizer(fields, ",");
 			Set<String> filterProperties = new HashSet<String>();
+			String objectId = null;
 			while (st.hasMoreTokens()) {
 				String token = st.nextToken();
 				filterProperties.add(token);
+				//Add object id to support JsonIdentityInfo object reference
+				objectId = BeanObjectIdMapper.getObjectId(token); 
+				if (objectId != null) {
+					logger.debug("Adding ObjectId: {}", objectId);
+					filterProperties.add(objectId);
+				}
 			}
 
 			FilterProvider filters = new SimpleFilterProvider().addFilter(
