@@ -59,6 +59,7 @@
 		<class>com.tcs.destination.bean.UserRoleMappingT</class>
 		<class>com.tcs.destination.bean.UserGeneralSettingsT</class>
 		<class>com.tcs.destination.bean.UserNotificationSettingsT</class>
+		<class>com.tcs.destination.bean.UserTaggedFollowedT</class>
 		<class>com.tcs.destination.bean.UserT</class>
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />
