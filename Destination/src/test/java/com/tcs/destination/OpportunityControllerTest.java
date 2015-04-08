@@ -138,6 +138,21 @@ public class OpportunityControllerTest {
 	}
 	
 	@Test
+	public void ToTestGetOpportunityUsingId() throws Exception {
+       mockMvc.perform(get("/opportunity/OPP2?fields=createdModifiedBy,crmId,customerId,documentsAttached,opportunityName,opportunityRequestReceiveDate").accept(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
+		.andExpect(jsonPath("$.createdModifiedBy").value("833389"))
+		.andExpect(jsonPath("$.crmId").value("12343"))
+		.andExpect(jsonPath("$.customerId").value("CUS543"))
+		.andExpect(jsonPath("$.documentsAttached").value("YES"))
+		.andExpect(jsonPath("$.opportunityName").value("ABM TECH"))
+		.andExpect(jsonPath("$.opportunityRequestReceiveDate").value("2014-11-11"))
+		.andDo(print())
+		.andReturn();
+	}
+	
+	@Test
 	public void testOpportunityByRecentUsingCustomerIdNotFound() throws Exception {
        mockMvc.perform(get("/opportunity/recent?customerId=CUS5000").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isNotFound());
