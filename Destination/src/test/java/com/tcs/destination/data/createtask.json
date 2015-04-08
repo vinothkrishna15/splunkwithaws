@@ -1,0 +1,54 @@
+{
+	"collaborationPreference": "Restricted", 
+	"createdModifiedBy": "833389", 
+	"createdModifiedDatetime": 1426617000000,
+    "documentsAttached": "No", 
+	"entityReference": "Opportunity", 
+	"targetDateForCompletion": 1426617000000, 
+	"taskDescription": "Task for Test45",
+    "taskStatus": "Open", 
+	"collaborationCommentTs": [ 
+	
+		{
+			"commentType": "Task", 
+			"comments": "Comments for Task45",
+            "documentsAttached": "No", 
+			"entityType": "Task", 
+			"updatedDatetime": 1426849920000,
+			"userId": "541045",
+            "documentRepositoryTs": []
+            }
+            ],
+            
+            "documentRepositoryTs": [],  
+            "notesTs": [
+            	{
+            		"createdDatetime": 1426763160000,
+            		"entityType": "Task",
+            		"notesUpdated": "Notes for Task45",
+            		"connectT": null,
+            		"customerMasterT": null,
+            		"opportunityT": null,
+            		"partnerMasterT": null,
+	    "userT": {
+	    		"userId": "541045" 
+	    			} } ],
+	    			 "taskBdmsTaggedLinkTs": [ 
+	    			 	{ 
+	    			 		"createdModifiedBy": "541045",
+	    			 		"createdModifiedDatetime": 1426852080000,
+	    			 		"userT": { 
+	    			 					"userId":"833389" } }  ],  
+	    			 					"userNotificationsTs": [
+	    			 						{
+	    			 							"comments": "Comments for User Notifications45",
+	    			 							"entityType": "Task",
+	    			 							"read": "TSK", 
+	    			 							"updatedDatetime": 1426851120000,
+	    			 							"userT": "833389"}  ], 
+	    			 							
+	    			 							"taskOwner": "541045",
+	    			 							"opportunityId": "OPP2"
+	    			 							
+}
+		
