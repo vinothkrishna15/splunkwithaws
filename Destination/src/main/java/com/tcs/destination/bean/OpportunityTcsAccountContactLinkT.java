@@ -14,6 +14,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -22,6 +24,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityTcsAccountContactLinkId")
 @Entity
 @Table(name = "opportunity_tcs_account_contact_link_t")
 @NamedQuery(name = "OpportunityTcsAccountContactLinkT.findAll", query = "SELECT o FROM OpportunityTcsAccountContactLinkT o")

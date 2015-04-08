@@ -12,6 +12,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -19,6 +21,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="searchKeywordsId")
 @Entity
 @Table(name="search_keywords_t")
 @NamedQuery(name="SearchKeywordsT.findAll", query="SELECT s FROM SearchKeywordsT s")

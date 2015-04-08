@@ -19,6 +19,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -26,6 +28,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidId")
 @Entity
 @Table(name = "bid_details_t")
 @NamedQuery(name = "BidDetailsT.findAll", query = "SELECT b FROM BidDetailsT b")

@@ -15,6 +15,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 
@@ -23,6 +25,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="beaconDataId")
 @Entity
 @Table(name="beacon_data_t")
 @NamedQuery(name="BeaconDataT.findAll", query="SELECT b FROM BeaconDataT b")

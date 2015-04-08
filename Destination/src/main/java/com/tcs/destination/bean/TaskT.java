@@ -8,7 +8,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -22,7 +21,9 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -30,6 +31,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskId")
 @Entity
 @Table(name = "task_t")
 @NamedQuery(name = "TaskT.findAll", query = "SELECT t FROM TaskT t")
@@ -86,12 +88,12 @@ public class TaskT implements Serializable {
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
 	// bi-directional many-to-one association to ConnectT
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
 	// bi-directional many-to-one association to OpportunityT
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
@@ -107,7 +109,6 @@ public class TaskT implements Serializable {
 	private UserT userT;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "task_id")
 	private List<UserNotificationsT> userNotificationsTs;

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller class to handle application exceptions.

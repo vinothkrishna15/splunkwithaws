@@ -1,16 +1,12 @@
 package com.tcs.destination.utils;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,11 +14,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.exception.DestinationException;
 
 public class ResponseConstructors {
 
@@ -43,18 +37,8 @@ public class ResponseConstructors {
 	public static String filterJsonForFields(String fields, Object object) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		//For Jackson to understand Hibernate datatypes (e.g .Lazy loading)
-		mapper.registerModule(new Hibernate4Module());
+		//mapper.registerModule(new Hibernate4Module());
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-		//Handle child objects 
-		if (object instanceof List) {
-			logger.info("Object is a List");
-			List<Object> objList = (List<Object>) object;
-			for (Object obj: objList) {
-				handleChildObjects(obj);
-			}
-		} else {
-			handleChildObjects(object);
-		}
 		
 		if (fields.equals("all")) {
 			try {
@@ -92,7 +76,7 @@ public class ResponseConstructors {
 	 * @param object
 	 * @return 
 	 */
-	private static void handleChildObjects(Object parentObj) throws Exception {
+/*	private static void handleChildObjects(Object parentObj) throws Exception {
 		//logger.info("Inside handleChildObjects() method");
 		Method[] methods = null;
 		
@@ -108,7 +92,7 @@ public class ResponseConstructors {
 						Object childObj = method.invoke(parentObj, new Object[] {});
 						if (null != childObj) { 
 							//For lazy loading
-							childObj.toString();
+							childObj.toString(); 
 						}
 					}
 				}
@@ -118,7 +102,7 @@ public class ResponseConstructors {
 			}
 		}
 	}
-	
+*/	
 	public static FrequentlySearchedResponse convertToFrequentlySearchedResponse(
 			Integer count, PartnerMasterT partner) {
 		FrequentlySearchedResponse response = new FrequentlySearchedResponse();
