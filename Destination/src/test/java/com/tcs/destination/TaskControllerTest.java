@@ -131,7 +131,7 @@ public class TaskControllerTest {
 				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS2"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS8"))
 			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
 			.andExpect(jsonPath("$[0].taskOwner").value("541045"))
