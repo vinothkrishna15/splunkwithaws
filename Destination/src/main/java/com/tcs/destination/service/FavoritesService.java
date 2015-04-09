@@ -5,6 +5,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +27,14 @@ public class FavoritesService {
 	@Autowired
 	FavoritesSearchedRepository userFavRepository;
 
-	public List<UserFavoritesT> findFavoritesFor(UserT user, String entityType)
+	public List<UserFavoritesT> findFavoritesFor(UserT user, String entityType, int start, int count)
 			throws Exception {
 		logger.debug("Inside findFavoritesFor Service");
 		if (EntityType.contains(entityType)) {
 			logger.debug("EntityType is present");
+			Pageable pageable=new PageRequest(start, count);
 			List<UserFavoritesT> userFavorites = userFavRepository
-					.findByUserTAndEntityTypeIgnoreCase(user, entityType);
+					.findByUserTAndEntityTypeIgnoreCase(user, entityType,pageable);
 
 			if (userFavorites.isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");

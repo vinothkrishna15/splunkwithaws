@@ -52,14 +52,14 @@ public class RecentlyAddedCustPartControllerTest {
 				+ "documentsAttached,customerName,groupCustomerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].customerId").value("CUS614"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("287762"))
+			.andExpect(jsonPath("$[0].customerId").value("CUS599"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].customerName").value("xoserve  Limited"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
 			.andExpect(jsonPath("$[0].groupCustomerName").value("xoserve  Limited"))
 			
-			.andExpect(jsonPath("$[4].customerId").value("CUS610"))
-			.andExpect(jsonPath("$[4].createdModifiedBy").value("287758"))
+			.andExpect(jsonPath("$[4].customerId").value("CUS595"))
+			.andExpect(jsonPath("$[4].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[4].customerName").value("Walgreen Co."))
 			.andExpect(jsonPath("$[4].documentsAttached").value("YES"))
 			.andExpect(jsonPath("$[4].groupCustomerName").value("Walgreen"))
@@ -75,7 +75,7 @@ public class RecentlyAddedCustPartControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$[0].partnerId").value("PAT4"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("198054"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].partnerName").value("Microsoft"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("YES"))
 			.andDo(print()).andReturn();
@@ -83,10 +83,10 @@ public class RecentlyAddedCustPartControllerTest {
 	}
 	
 	@Test
-	public final void TestRecentlyAddedBadReq() throws Exception{
+	public final void TestRecentlyAddedNotFound() throws Exception{
 
 		mockMvc.perform(get("/recent?entityType=ABCD").accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isBadRequest())
+			.andExpect(status().isNotFound())
 			.andDo(print()).andReturn();
 	}
 }

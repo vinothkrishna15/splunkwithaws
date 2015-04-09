@@ -50,10 +50,10 @@ public class FrequentlySearchedControllerTest {
 				+ "documentsAttached,groupCustomerName").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(jsonPath("$[0].entity.customerId").value("CUS546"))
-		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("287694"))
-		.andExpect(jsonPath("$[0].entity.customerName").value("ASDA Stores Limited"))
+		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("541045"))
+		.andExpect(jsonPath("$[0].entity.customerName").value("Constellation Energy Group, Inc."))
 		.andExpect(jsonPath("$[0].entity.documentsAttached").value("YES"))
-		.andExpect(jsonPath("$[0].entity.groupCustomerName").value("ASDA Stores Limited"))
+		.andExpect(jsonPath("$[0].entity.groupCustomerName").value("Constellation Energy Group, Inc."))
 		.andDo(print())
 		.andReturn();
 		}
@@ -64,10 +64,10 @@ public class FrequentlySearchedControllerTest {
 				+ "partnerId,corporateHqAddress,createdModifiedBy,createdModifiedDatetime,"
 				+ "partnerName,documentsAttached").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
-		.andExpect(jsonPath("$[0].entity.partnerId").value("PAT6"))
-		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("278648"))
-		.andExpect(jsonPath("$[0].entity.partnerName").value("Apple"))
-		.andExpect(jsonPath("$[0].entity.documentsAttached").value("NO"))
+		.andExpect(jsonPath("$[0].entity.partnerId").value("PAT4"))
+		.andExpect(jsonPath("$[0].entity.createdModifiedBy").value("541045"))
+		.andExpect(jsonPath("$[0].entity.partnerName").value("Microsoft"))
+		.andExpect(jsonPath("$[0].entity.documentsAttached").value("YES"))
 		.andDo(print())
 		.andReturn();
 		

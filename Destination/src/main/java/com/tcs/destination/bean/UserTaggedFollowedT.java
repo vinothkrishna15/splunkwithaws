@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -30,38 +32,55 @@ public class UserTaggedFollowedT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="user_tagged_followed_id")
 	private String userTaggedFollowedId;
+	
+	@Column(name="connect_id")
+	private String connectId;
+
+	@Column(name="created_modified_by")
+	private String createdModifiedBy;
 
 	@Column(name="created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
 	@Column(name="entity_type")
 	private String entityType;
+	
+
+	@Column(name="opportunity_id")
+	private String opportunityId;
+
+	@Column(name="task_id")
+	private String taskId;
+
+	@Column(name="user_id")
+	private String userId;
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id",insertable=false,updatable=false)
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name="opportunity_id",insertable=false,updatable=false)
 	private OpportunityT opportunityT;
 
 	//bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name="task_id")
+	@JoinColumn(name="task_id",insertable=false,updatable=false)
 	private TaskT taskT;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_modified_by")
+	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
 	private UserT userT1;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id",insertable=false,updatable=false)
 	private UserT userT2;
 
 	public UserTaggedFollowedT() {
@@ -131,4 +150,45 @@ public class UserTaggedFollowedT implements Serializable {
 		this.userT2 = userT2;
 	}
 
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
+	public String getCreatedModifiedBy() {
+		return createdModifiedBy;
+	}
+
+	public void setCreatedModifiedBy(String createdModifiedBy) {
+		this.createdModifiedBy = createdModifiedBy;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	
 }

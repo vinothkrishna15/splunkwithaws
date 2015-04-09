@@ -87,7 +87,7 @@ public class OpportunityService {
 				"No Relevent Data Found in the database");
 	}
 
-	public List<OpportunityT> findByTaskOwnerForRole(String taskOwner,
+	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
 			String opportunityRole) throws Exception {
 		logger.debug("Inside findByTaskOwnerForRole Service");
 		if (OpportunityRole.contains(opportunityRole)) {
@@ -96,24 +96,24 @@ public class OpportunityService {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
 				System.out.println("Primary Owner");
-				return findForPrimaryOwner(taskOwner, true);
+				return findForPrimaryOwner(opportunityOwner, true);
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
 				System.out.println("Sales Support");
-				return findForSalesSupport(taskOwner, true);
+				return findForSalesSupport(opportunityOwner, true);
 			case BID_OFFICE:
 				logger.debug("Bid Office Found");
 				System.out.println("Bid office");
-				return findForBidOffice(taskOwner, true);
+				return findForBidOffice(opportunityOwner, true);
 			case ALL:
 				logger.debug("ALL Found");
 				System.out.println("All");
 				List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
-				opportunities.addAll(findForPrimaryOwner(taskOwner, false));
+				opportunities.addAll(findForPrimaryOwner(opportunityOwner, false));
 				System.out.println("Primary " + opportunities.size());
-				opportunities.addAll(findForSalesSupport(taskOwner, false));
+				opportunities.addAll(findForSalesSupport(opportunityOwner, false));
 				System.out.println("Sales Support " + opportunities.size());
-				opportunities.addAll(findForBidOffice(taskOwner, false));
+				opportunities.addAll(findForBidOffice(opportunityOwner, false));
 				System.out.println("Bid Office " + opportunities.size());
 				return validateAndReturnOpportunitesData(opportunities, true);
 			}
@@ -174,9 +174,11 @@ public class OpportunityService {
 	public OpportunityT findByOpportunityId(String opportunityId)
 			throws DestinationException {
 		logger.debug("Inside findByOpportunityId Service");
-		OpportunityT opportunity = opportunityRepository
-				.findByOpportunityId(opportunityId);
+		OpportunityT opportunity=opportunityRepository.findByOpportunityId(opportunityId);
+		if(opportunity != null)
 		return opportunity;
+		else
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportuinty Id "+opportunityId+" Not Found");
 	}
 
 	@Transactional
@@ -337,5 +339,6 @@ public class OpportunityService {
 		opportunity.setOpportunityId(opportunityRepository.save(
 				childOpportunityT).getOpportunityId());
 		logger.error("ID " + childOpportunityT.getOpportunityId());
+
 	}
 }

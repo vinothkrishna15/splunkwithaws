@@ -1,0 +1,81 @@
+{    
+	"taskId": "TAS9",   
+	"collaborationPreference": "Restricted",    
+	"createdModifiedBy": "541045",    
+	"createdModifiedDatetime": 1426617000000,    
+	"documentsAttached": "No",    
+	"entityReference": "Opportunity",    
+	"targetDateForCompletion": "2015-03-18",    
+	"taskDescription": "Task for Test45",    
+	"taskStatus": "Hold",    
+	"collaborationCommentTs": [     
+			{ 
+					"commentId": "COC9",     
+					"commentType": "Task",           
+					"comments": "Comments updated for Task45",            
+					"documentsAttached": "No",            
+					"entityType": "Task",           
+					"updatedDatetime": 1426849920000,            
+					"connectId": null,            
+					"connectT": null,            
+					"opportunityId": null,            
+					"opportunityT": null,            
+					"taskId": "TAS9",            
+					"taskT": "TAS9",           
+					"userId": "833389",          
+				"userT": {               
+							"userId": "833389" 	   
+													},          
+				"documentRepositoryTs": []       
+									}    ],   
+									"documentRepositoryTs": [],    
+									"notesTs": [        {           
+												"noteId": "NOT12",            
+												"createdDatetime": 1426763160000,           
+												"entityType": "Task",            
+												"notesUpdated": "Notes updated for Task45",           
+								"connectT": null,          
+								"connectId": null,       
+								"customerMasterT": null,         
+								"opportunityT": null,          
+								"partnerMasterT": null,           
+								"taskT": "TAS9",        
+								"userT": "833389"        }    ],   
+						"taskBdmsTaggedLinkTs": [       
+						
+						 {        
+							"createdModifiedBy": "833389",           
+							"createdModifiedDatetime": 1426852080000,     
+							"taskT": "TAS9",          
+							"userT": {            
+						"userId": "541045"            }        }    ],   
+					"userNotificationsTs": [        {            "userNotificationId": "USN7",     
+					"comments": "Comments updated for User Notifications45",          
+				 	 "entityType": "Task",        
+					"read": "TSK",           
+					"updatedDatetime": 1426851120000,            
+					"connectT": null,         
+					"opportunityT": null,            
+					"taskT": "TAS9",           
+					"userT": {                
+								"userId": "554654"           
+											 }        
+											 	}   
+											 		 ],   
+								"taskOwner": "541045",   
+								 "taskOwnerName": "User200",    
+								 "connectId": null,   
+								"opportunityId": "OPP1",    
+								"taskBdmsTaggedLinkDeletionList": [       
+								
+											 {          
+										"taskBdmsTaggedLinkId": "TBT28",           	
+										"createdModifiedBy": "541045",         
+										"createdModifiedDatetime": 1426852080000,            
+										"taskT": "TAS9",           
+										"userT": "554654"       
+										 }  
+										   ]
+}
+
+		

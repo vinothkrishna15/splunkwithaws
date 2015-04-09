@@ -77,17 +77,16 @@ public class MyFavoritesControllerTest {
 	public void test() throws Exception {
 		mockMvc
 				.perform(
-						get("/favorites?entityType=CUSTOMER&fields=userFavoritesId,createdDatetime,entityType,customerMasterT,customerId,createdModifiedBy,customerName")
+						get("/favorites?entityType=CUSTOMER&page=0&count=5&fields=userFavoritesId,createdDatetime,entityType,customerMasterT,customerId,createdModifiedBy,customerName")
 								.header("Authorization", "Basic YWFhOmJiYg==")
 								.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(
 						content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$[0].userFavoritesId").value("USF1"))
+				.andExpect(jsonPath("$[0].userFavoritesId").value("USF19"))
 				// .andExpect(jsonPath("$.createdDatetime").value("2015-02-03 02:41:06.0"))
 				.andExpect(jsonPath("$[0].entityType").value("CUSTOMER"))
-				// .andExpect(jsonPath("$.customerMasterT.customerId").value("287693"))
-				// .andExpect(jsonPath("$.customerMasterT.customerName").value("Apoteket AB"))
+				.andExpect(jsonPath("$[0].customerId").value("CUS558"))
 				.andDo(print()).andReturn();
 
 		// List<MyFavorites> myfav=myFavService.findFavoritesFor(null,
@@ -143,7 +142,7 @@ public class MyFavoritesControllerTest {
 	
 	@Test
 	public void TestByDocumentId() throws Exception{
-		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC7\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
+		String requestJson="{ \"entityType\": \"DOCUMENT\", \"documentId\": \"DOC1\", \"contactId\": \"CON1\", \"userId\": \"465897\" }";
 				mockMvc.perform(post("/favorites").contentType(TestUtil.APPLICATION_JSON_UTF8)
 						.content(requestJson)
 						.header("Authorization", "Basic YWFhOmJiYg==")

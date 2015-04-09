@@ -24,6 +24,7 @@ public class CollaborationCommentsService {
 		if (isValidComment(comments)) {
 			logger.debug("Inside insertComments Service");
 			try {
+				
 				return commentsRepository.save(comments) != null;
 			} catch (Exception e) {
 				logger.error("INTERNAL_SERVER_ERROR "+e.getMessage());
@@ -54,6 +55,7 @@ public class CollaborationCommentsService {
 				logger.debug("Connect Found");
 				if (comments.getConnectId() != null)
 				{
+					comments.setEntityId(comments.getConnectId());
 					logger.debug("Customer Id Available");
 					return true;
 				}					
@@ -67,6 +69,7 @@ public class CollaborationCommentsService {
 				logger.debug("Opportunity Found");
 				if (comments.getOpportunityId() != null)
 				{
+					comments.setEntityId(comments.getOpportunityId());
 					logger.debug("Opportunity Id Available");
 					return true;
 				}
@@ -81,6 +84,7 @@ public class CollaborationCommentsService {
 				logger.debug("Task Found");
 				if (comments.getTaskId() != null)
 				{
+					comments.setEntityId(comments.getTaskId());
 					logger.debug("Task Id Available");
 					return true;
 				}	
