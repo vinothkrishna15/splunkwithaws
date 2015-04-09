@@ -42,8 +42,8 @@ public class FollowedService {
 							logger.error("NOT_FOUND: No Relevent Data Found in the database");
 							throw new DestinationException(HttpStatus.NOT_FOUND,
 									"No Relevent Data Found in the database");
-						}else 
-								return userFollowed;
+						}else {
+								return userFollowed;}
 						
 					default : 
 						logger.error("NOT_FOUND: You cannot follow "+entityType);
