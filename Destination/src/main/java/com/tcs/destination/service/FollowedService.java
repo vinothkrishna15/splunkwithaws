@@ -1,5 +1,7 @@
 package com.tcs.destination.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,7 @@ public class FollowedService {
 	@Autowired
 	FollowedRepository followedRepository;
 
-	public UserTaggedFollowedT findFollowedFor(String userId, String entityType)
+	public List<UserTaggedFollowedT> findFollowedFor(String userId, String entityType)
 			throws Exception {
 		
 		logger.debug("Inside findFollowedFor Service");
@@ -33,15 +35,15 @@ public class FollowedService {
 					case OPPORTUNITY:
 					case TASK:
 						logger.debug("EntityType is present");
-						UserTaggedFollowedT userFollowed = followedRepository.
+						List<UserTaggedFollowedT> userFollowed = followedRepository.
 								findByUserIdAndEntityType(userId, entityType);
 
-						if (userFollowed.equals(null)) {
+						if (userFollowed.isEmpty()) {
 							logger.error("NOT_FOUND: No Relevent Data Found in the database");
 							throw new DestinationException(HttpStatus.NOT_FOUND,
 									"No Relevent Data Found in the database");
-						}
-						return userFollowed;
+						}else 
+								return userFollowed;
 						
 					default : 
 						logger.error("NOT_FOUND: You cannot follow "+entityType);
@@ -50,7 +52,7 @@ public class FollowedService {
 					}
 				}
 				else {
-					logger.error("BAD_REQUEST: No such Entity type exists. Please ensure your entity type.");
+					logger.error("NOT_FOUND: No such Entity type exists. Please ensure your entity type.");
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No such Entity type exists. Please ensure your entity type");
 				}
@@ -59,11 +61,10 @@ public class FollowedService {
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
 		 
 			logger.debug("Inside addFollowed Service");
-			System.out.println(followed.getEntityType());
 			if (EntityType.contains(followed.getEntityType())) {
 				switch (EntityType.valueOf(followed.getEntityType())) {
 				case CONNECT:
-					logger.debug("Adding Favorites Connect");
+					logger.debug("Adding Followed Connect");
 					if (followed.getConnectId() == null) {
 						logger.error("BAD_REQUEST: Connect ID can not be empty");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -75,7 +76,7 @@ public class FollowedService {
 					}
 					break;
 				case OPPORTUNITY:
-					logger.debug("Adding Favorites Opportunity");
+					logger.debug("Adding Followed Opportunity");
 					if (followed.getOpportunityId() == null) {
 						logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -88,7 +89,7 @@ public class FollowedService {
 					break;
 									
 				case TASK:
-					logger.debug("Adding Favorites Opportunity");
+					logger.debug("Adding Followed Opportunity");
 					if (followed.getTaskId() == null) {
 						logger.error("BAD_REQUEST: Task ID can not be empty");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,

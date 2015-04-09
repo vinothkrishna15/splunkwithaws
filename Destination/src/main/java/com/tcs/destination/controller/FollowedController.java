@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,7 @@ public class FollowedController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-			UserTaggedFollowedT userFollowed = followedService.findFollowedFor(userId, entityType);
+			List<UserTaggedFollowedT> userFollowed = followedService.findFollowedFor(userId, entityType);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				userFollowed);
 	}
@@ -51,8 +53,8 @@ public class FollowedController {
 		status.setStatus(Status.FAILED, "");
 		System.out.println(followed.getEntityType());
 		if (followedService.addFollow(followed)) {
-//			logger.debug("User FavoritesId" + favorites.getUserFavoritesId()
-//					+ "Inserted Successfully");
+			logger.debug("User FollowedId" + followed.getUserTaggedFollowedId()
+					+ "Inserted Successfully");
 			status.setStatus(Status.SUCCESS, followed.getUserTaggedFollowedId());
 		}
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
