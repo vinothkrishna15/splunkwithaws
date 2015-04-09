@@ -47,6 +47,9 @@ public class CollaborationCommentT implements Serializable {
 
 	@Column(name = "entity_type")
 	private String entityType;
+	
+	@Column(name = "entity_id")
+	private String entityId;
 
 	@Column(name = "updated_datetime")
 	private Timestamp updatedDatetime;
@@ -128,6 +131,14 @@ public class CollaborationCommentT implements Serializable {
 
 	public void setEntityType(String entityType) {
 		this.entityType = entityType;
+	}
+
+	public String getEntityId() {
+		return entityId;
+	}
+
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
 	}
 
 	public Timestamp getUpdatedDatetime() {

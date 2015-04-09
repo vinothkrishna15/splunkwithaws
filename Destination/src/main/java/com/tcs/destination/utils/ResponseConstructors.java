@@ -24,10 +24,21 @@ public class ResponseConstructors {
 
 	public static String filterJsonForFieldAndViews(String fields, String view,
 			Object object) throws Exception {
+		StringBuffer viewFields = null;
 		if (!view.equals("")) {
+			viewFields = new StringBuffer();
 			StringTokenizer st = new StringTokenizer(view, ",");
 			while (st.hasMoreTokens()) {
-				// TODO:check and add the Fields based on View
+				String v_fields = ViewFieldsMapper.getFields(st.nextToken());
+				if (v_fields != null)
+					viewFields.append(v_fields);
+			}
+		}
+		if ((viewFields != null) && (viewFields.length() > 0)) {
+			if (fields.equalsIgnoreCase("all")) {
+				fields = viewFields.toString();
+			} else { 
+				fields = fields.concat("," + viewFields.toString());
 			}
 		}
 		return filterJsonForFields(fields, object);
