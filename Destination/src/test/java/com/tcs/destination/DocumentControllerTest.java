@@ -80,7 +80,7 @@ public class DocumentControllerTest {
 	public void TestUpload() throws Exception {
 		MockMultipartFile mockMultipartFile = getMultipartFile(TestConstants.testUploadFileLoc,"file");
 		String fileExtension = getFileExtension(TestConstants.testUploadFileLoc);
-		mockMvc.perform(fileUpload("/document?documentName=DOC104"+fileExtension+"&documentType=DOC&entityType=CONNECT&parentEntity=CUSTOMER"
+		mockMvc.perform(fileUpload("/document?documentName=DOC106"+fileExtension+"&documentType=DOC&entityType=CONNECT&parentEntity=CUSTOMER"
 				+ "&uploadedBy=541045&connectId=CNN1")
 				.file(mockMultipartFile)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("Success"));
@@ -121,7 +121,7 @@ public class DocumentControllerTest {
 	
 	@Test
 	public void TestDownload() throws Exception {
-		mockMvc.perform(get("/document/download/DOC103")).andExpect(status().isOk());
+		mockMvc.perform(get("/document/download/DOC106")).andExpect(status().isOk());
 	}
 	//Ensure that record for docIds present in document_repository_t table if no record found then change docIds and run junit again.
 	@Test

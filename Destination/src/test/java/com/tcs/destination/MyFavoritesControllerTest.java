@@ -77,7 +77,7 @@ public class MyFavoritesControllerTest {
 	public void test() throws Exception {
 		mockMvc
 				.perform(
-						get("/favorites?entityType=CUSTOMER&fields=userFavoritesId,createdDatetime,entityType,customerMasterT,customerId,createdModifiedBy,customerName")
+						get("/favorites?entityType=CUSTOMER&page=0&count=5&fields=userFavoritesId,createdDatetime,entityType,customerMasterT,customerId,createdModifiedBy,customerName")
 								.header("Authorization", "Basic YWFhOmJiYg==")
 								.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
