@@ -2,6 +2,7 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,8 @@ import com.tcs.destination.bean.UserT;
 @Repository
 public interface FavoritesSearchedRepository extends
 		CrudRepository<UserFavoritesT, String> {
-	List<UserFavoritesT> findByUserTAndEntityTypeIgnoreCase(UserT usert, String entityType);
+	
+	List<UserFavoritesT> findByUserTAndEntityTypeIgnoreCase(UserT usert, String entityType,Pageable pageable);
+	
 }
  
