@@ -10,25 +10,44 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
+import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunityCompetitorLinkT;
+import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.OpportunityOfferingLinkT;
+import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
+import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
+import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoDataFoundException;
-import com.tcs.destination.exception.OpportunityNotFoundException;
 
 @Component
 public class OpportunityService {
-	
-	private static final Logger logger = LoggerFactory.getLogger(OpportunityService.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(OpportunityService.class);
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
+
+	@Autowired
+	BidDetailsTRepository bidDetailsTRepository;
+
+	@Autowired
+	SearchKeywordsRepository searchKeywordsRepository;
 
 	@Autowired
 	OpportunitySalesSupportLinkTRepository opportunitySalesSupportLinkTRepository;
@@ -36,19 +55,20 @@ public class OpportunityService {
 	@Autowired
 	BidOfficeGroupOwnerLinkTRepository bidOfficeGroupOwnerLinkTRepository;
 
-	public OpportunityT findByOpportunityName(String nameWith) throws Exception{
+	public OpportunityT findByOpportunityName(String nameWith) throws Exception {
 		logger.debug("Inside findByOpportunityName Service");
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
-		if (opportunity == null)
-		{
+		if (opportunity == null) {
 			logger.error("NOT_FOUND: No such Opportunity Found. Please ensure your Opportunity name.");
-			throw new DestinationException(HttpStatus.NOT_FOUND,"No such Opportunity Found. Please ensure your Opportunity name.");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No such Opportunity Found. Please ensure your Opportunity name.");
 		}
 		return opportunity;
 	}
 
-	public List<OpportunityT> findRecentOpportunities(String customerId) throws Exception{
+	public List<OpportunityT> findRecentOpportunities(String customerId)
+			throws Exception {
 		logger.debug("Inside findRecentOpportunities Service");
 		// Date date = new Date(); // Or where ever you get it from
 		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
@@ -63,7 +83,8 @@ public class OpportunityService {
 			return opportunities;
 		}
 		logger.error("NOT_FOUND: No Relevent Data Found in the database");
-		throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data Found in the database");
+		throw new DestinationException(HttpStatus.NOT_FOUND,
+				"No Relevent Data Found in the database");
 	}
 
 	public List<OpportunityT> findByTaskOwnerForRole(String taskOwner,
@@ -94,7 +115,7 @@ public class OpportunityService {
 				System.out.println("Sales Support " + opportunities.size());
 				opportunities.addAll(findForBidOffice(taskOwner, false));
 				System.out.println("Bid Office " + opportunities.size());
-				 return validateAndReturnOpportunitesData(opportunities, true);
+				return validateAndReturnOpportunitesData(opportunities, true);
 			}
 			return null;
 		} else {
@@ -103,13 +124,12 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role");
 		}
 	}
+
 	private List<OpportunityT> findForPrimaryOwner(String userId, boolean isOnly)
 			throws DestinationException {
 		logger.debug("Inside findForPrimaryOwner Service");
-		UserT userT = new UserT();
-		userT.setUserId(userId);
 		List<OpportunityT> opportunities = opportunityRepository
-				.findByUserT(userT);
+				.findByOpportunityOwner(userId);
 
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
@@ -151,10 +171,171 @@ public class OpportunityService {
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
-	public OpportunityT findByOpportunityId(String opportunityId) throws DestinationException{
+	public OpportunityT findByOpportunityId(String opportunityId)
+			throws DestinationException {
 		logger.debug("Inside findByOpportunityId Service");
-		OpportunityT opportunity=opportunityRepository.findByOpportunityId(opportunityId);
+		OpportunityT opportunity = opportunityRepository
+				.findByOpportunityId(opportunityId);
 		return opportunity;
-		// TODO Auto-generated method stub
+	}
+
+	@Transactional
+	public void create(OpportunityT opportunity) throws Exception {
+		try {
+			saveBaseObject(opportunity);
+			logger.error("Base table saved with ID "
+					+ opportunity.getOpportunityId());
+			saveChildObject(opportunity);
+
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+	}
+
+	private void saveChildObject(OpportunityT opportunity) {
+		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
+			for (OpportunityCustomerContactLinkT customerContact : opportunity
+					.getOpportunityCustomerContactLinkTs()) {
+				customerContact
+						.setOpportunityId(opportunity.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunityTcsAccountContactLinkTs() != null) {
+			for (OpportunityTcsAccountContactLinkT tcsContact : opportunity
+					.getOpportunityTcsAccountContactLinkTs()) {
+				tcsContact.setOpportunityId(opportunity.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunityPartnerLinkTs() != null) {
+			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
+					.getOpportunityPartnerLinkTs()) {
+				opportunityPartnerLinkT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunityCompetitorLinkTs() != null) {
+			for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+					.getOpportunityCompetitorLinkTs()) {
+				opportunityCompetitorLinkT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunitySubSpLinkTs() != null) {
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getOpportunitySubSpLinkTs()) {
+				opportunitySubSpLinkT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunityOfferingLinkTs() != null) {
+			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
+					.getOpportunityOfferingLinkTs()) {
+				opportunityOfferingLinkT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getConnectOpportunityLinkIdTs() != null) {
+			for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
+					.getConnectOpportunityLinkIdTs()) {
+				connectOpportunityLinkIdT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getOpportunitySalesSupportLinkTs() != null) {
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+				opportunitySalesSupportLinkT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getNotesTs() != null) {
+			for (NotesT notesT : opportunity.getNotesTs()) {
+				notesT.setOpportunityId(opportunity.getOpportunityId());
+			}
+		}
+
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
+				logger.error("Saving Bid Details by "
+						+ bidDetailsT.getCreatedModifiedBy());
+				List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
+						bidDetailsT.getBidOfficeGroupOwnerLinkTs());
+				bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
+				bidDetailsTRepository.save(bidDetailsT);
+				bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
+				logger.error("Saved Bid Details " + bidDetailsT.getBidId());
+				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
+					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
+							.getBidOfficeGroupOwnerLinkTs()) {
+						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
+					}
+				}
+			}
+		}
+
+		if (opportunity.getSearchKeywordsTs() != null) {
+			for (SearchKeywordsT searchKeywordT : opportunity
+					.getSearchKeywordsTs()) {
+				searchKeywordT.setEntityId(opportunity.getOpportunityId());
+				searchKeywordsRepository.save(searchKeywordT);
+			}
+		}
+
+		opportunityRepository.save(opportunity);
+
+	}
+
+	private void saveBaseObject(OpportunityT opportunity) {
+		OpportunityT childOpportunityT = new OpportunityT();
+		childOpportunityT.setCreatedModifiedBy(opportunity
+				.getCreatedModifiedBy());
+		childOpportunityT.setCreatedModifiedDatetime(opportunity
+				.getCreatedModifiedDatetime());
+		childOpportunityT.setCrmId(childOpportunityT.getCrmId());
+		childOpportunityT.setCustomerId(opportunity.getCustomerId());
+		childOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
+		childOpportunityT.setDescriptionForWinLoss(opportunity
+				.getDescriptionForWinLoss());
+		childOpportunityT
+				.setDigitalDealValue(opportunity.getDigitalDealValue());
+		childOpportunityT.setDocumentsAttached(opportunity
+				.getDocumentsAttached());
+		childOpportunityT.setEngagementDuration(opportunity
+				.getEngagementDuration());
+		childOpportunityT.setEngagementStartDate(opportunity
+				.getEngagementStartDate());
+		childOpportunityT.setFactorsForWinLoss(opportunity
+				.getFactorsForWinLoss());
+		childOpportunityT.setNewLogo(opportunity.getNewLogo());
+		childOpportunityT.setOpportunityDescription(opportunity
+				.getOpportunityDescription());
+		childOpportunityT.setOpportunityName(opportunity.getOpportunityName());
+		childOpportunityT.setOpportunityRequestReceiveDate(opportunity
+				.getOpportunityRequestReceiveDate());
+		childOpportunityT.setOverallDealSize(opportunity.getOverallDealSize());
+		childOpportunityT.setStrategicInitiative(opportunity
+				.getStrategicInitiative());
+		childOpportunityT.setDealType(opportunity.getDealType());
+		childOpportunityT.setCountry(opportunity.getCountry());
+		childOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
+		childOpportunityT.setEngagementStartDate(opportunity
+				.getEngagementStartDate());
+		childOpportunityT.setEngagementDuration(opportunity
+				.getEngagementDuration());
+		childOpportunityT.setFactorsForWinLoss(opportunity
+				.getFactorsForWinLoss());
+		opportunity.setOpportunityId(opportunityRepository.save(
+				childOpportunityT).getOpportunityId());
+		logger.error("ID " + childOpportunityT.getOpportunityId());
 	}
 }

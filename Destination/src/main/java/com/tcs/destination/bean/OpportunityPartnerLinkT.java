@@ -23,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityPartnerLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityPartnerLinkId")
 @Entity
 @Table(name = "opportunity_partner_link_t")
 @NamedQuery(name = "OpportunityPartnerLinkT.findAll", query = "SELECT o FROM OpportunityPartnerLinkT o")
@@ -31,29 +31,36 @@ public class OpportunityPartnerLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_partner_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_partner_link_id")
 	private String opportunityPartnerLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to PartnerMasterT
+	@Column(name = "partner_id")
+	private String partnerId;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name="partner_id")
+	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
 	private PartnerMasterT partnerMasterT;
 
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
 	public OpportunityPartnerLinkT() {
 	}
 
@@ -97,11 +104,27 @@ private UserT createdModifiedByUser;
 		this.partnerMasterT = partnerMasterT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
 }

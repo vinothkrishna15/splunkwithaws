@@ -23,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunitySubSpLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunitySubSpLinkId")
 @Entity
 @Table(name = "opportunity_sub_sp_link_t")
 @NamedQuery(name = "OpportunitySubSpLinkT.findAll", query = "SELECT o FROM OpportunitySubSpLinkT o")
@@ -41,19 +41,25 @@ public class OpportunitySubSpLinkT implements Serializable {
 	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	@Column(name = "sub_sp")
+	private String subSp;
+
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
 	// bi-directional many-to-one association to SubSpMappingT
 	@ManyToOne
-	@JoinColumn(name = "sub_sp")
+	@JoinColumn(name = "sub_sp", insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "created_modified_by",insertable=false,updatable=false)
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT createdModifiedByUser;
 
 	public OpportunitySubSpLinkT() {
@@ -105,5 +111,21 @@ public class OpportunitySubSpLinkT implements Serializable {
 
 	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
 		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getSubSp() {
+		return subSp;
+	}
+
+	public void setSubSp(String subSp) {
+		this.subSp = subSp;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
 	}
 }

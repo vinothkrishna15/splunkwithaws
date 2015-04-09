@@ -138,12 +138,12 @@ public class UserT implements Serializable {
 
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
 	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
+	@OneToMany(mappedBy = "salesSupportOwnerUser")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
 	// bi-directional many-to-one association to OpportunityT
 	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
+	@OneToMany(mappedBy = "primaryOwnerUser")
 	private List<OpportunityT> opportunityTs;
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
@@ -489,7 +489,7 @@ public class UserT implements Serializable {
 	public OpportunitySalesSupportLinkT addOpportunitySalesSupportLinkT(
 			OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
 		getOpportunitySalesSupportLinkTs().add(opportunitySalesSupportLinkT);
-		opportunitySalesSupportLinkT.setUserT(this);
+		opportunitySalesSupportLinkT.setSalesSupportOwnerUser(this);
 
 		return opportunitySalesSupportLinkT;
 	}
@@ -497,7 +497,7 @@ public class UserT implements Serializable {
 	public OpportunitySalesSupportLinkT removeOpportunitySalesSupportLinkT(
 			OpportunitySalesSupportLinkT opportunitySalesSupportLinkT) {
 		getOpportunitySalesSupportLinkTs().remove(opportunitySalesSupportLinkT);
-		opportunitySalesSupportLinkT.setUserT(null);
+		opportunitySalesSupportLinkT.setSalesSupportOwnerUser(null);
 
 		return opportunitySalesSupportLinkT;
 	}
@@ -512,14 +512,14 @@ public class UserT implements Serializable {
 
 	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
 		getOpportunityTs().add(opportunityT);
-		opportunityT.setUserT(this);
+		opportunityT.setPrimaryOwnerUser(this);
 
 		return opportunityT;
 	}
 
 	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
 		getOpportunityTs().remove(opportunityT);
-		opportunityT.setUserT(null);
+		opportunityT.setPrimaryOwnerUser(null);
 
 		return opportunityT;
 	}

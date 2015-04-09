@@ -18,72 +18,72 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the notes_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="noteId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "noteId")
 @Entity
-@Table(name="notes_t")
-@NamedQuery(name="NotesT.findAll", query="SELECT n FROM NotesT n")
+@Table(name = "notes_t")
+@NamedQuery(name = "NotesT.findAll", query = "SELECT n FROM NotesT n")
 public class NotesT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="note_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "note_id")
 	private String noteId;
 
-	@Column(name="created_datetime")
+	@Column(name = "created_datetime")
 	private Timestamp createdDatetime;
 
-	@Column(name="entity_type")
+	@Column(name = "entity_type")
 	private String entityType;
 
-	@Column(name="notes_updated")
+	@Column(name = "notes_updated")
 	private String notesUpdated;
 
-	//bi-directional many-to-one association to ConnectT
+	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id",insertable=false,updatable=false)
+	@JoinColumn(name = "connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
-	
-	@Column(name="connect_id")
+	@Column(name = "connect_id")
 	private String connectId;
-	
-	public String getConnectId() {
-		return connectId;
-	}
 
-	public void setConnectId(String connectId) {
-		this.connectId = connectId;
-	}
-	//bi-directional many-to-one association to CustomerMasterT
+	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_id")
+	@JoinColumn(name = "customer_id")
 	private CustomerMasterT customerMasterT;
 
-	//bi-directional many-to-one association to OpportunityT
+	@Column(name = "partner_id")
+	private String partnerId;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to PartnerMasterT
+	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name="partner_id")
+	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
 	private PartnerMasterT partnerMasterT;
 
-	//bi-directional many-to-one association to TaskT
+	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name="task_id")
+	@JoinColumn(name = "task_id")
 	private TaskT taskT;
 
-	//bi-directional many-to-one association to UserT
+	@Column(name = "user_updated")
+	private String userUpdated;
+
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_updated")
+	@JoinColumn(name = "user_updated", insertable = false, updatable = false)
 	private UserT userT;
 
 	public NotesT() {
@@ -167,6 +167,30 @@ public class NotesT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
+	public String getUserUpdated() {
+		return userUpdated;
+	}
+
+	public void setUserUpdated(String userUpdated) {
+		this.userUpdated = userUpdated;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
 	}
 
 }

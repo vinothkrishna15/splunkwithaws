@@ -24,7 +24,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityCustomerContactLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityCustomerContactLinkId")
 @Entity
 @Table(name = "opportunity_customer_contact_link_t")
 @NamedQuery(name = "OpportunityCustomerContactLinkT.findAll", query = "SELECT o FROM OpportunityCustomerContactLinkT o")
@@ -44,19 +44,26 @@ public class OpportunityCustomerContactLinkT implements Serializable {
 
 	// bi-directional many-to-one association to ContactT
 
+	@Column(name = "contact_id")
+	private String contactId;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
 	@ManyToOne
-	@JoinColumn(name = "contact_id")
+	@JoinColumn(name = "contact_id", insertable = false, updatable = false)
 	private ContactT contactT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-//bi-directional many-to-one association to UserT
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
 	public OpportunityCustomerContactLinkT() {
 	}
 
@@ -64,7 +71,8 @@ private UserT createdModifiedByUser;
 		return this.opportunityCustomerContactLinkId;
 	}
 
-	public void setOpportunityCustomerContactLinkId(String opportunityCustomerContactLinkId) {
+	public void setOpportunityCustomerContactLinkId(
+			String opportunityCustomerContactLinkId) {
 		this.opportunityCustomerContactLinkId = opportunityCustomerContactLinkId;
 	}
 
@@ -100,11 +108,27 @@ private UserT createdModifiedByUser;
 		this.opportunityT = opportunityT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getContactId() {
+		return contactId;
+	}
+
+	public void setContactId(String contactId) {
+		this.contactId = contactId;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
 }

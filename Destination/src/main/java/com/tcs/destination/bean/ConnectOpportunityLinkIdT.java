@@ -18,38 +18,40 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the connect_opportunity_link_id_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectOpportunityLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "connectOpportunityLinkId")
 @Entity
-@Table(name="connect_opportunity_link_id_t")
-@NamedQuery(name="ConnectOpportunityLinkIdT.findAll", query="SELECT c FROM ConnectOpportunityLinkIdT c")
+@Table(name = "connect_opportunity_link_id_t")
+@NamedQuery(name = "ConnectOpportunityLinkIdT.findAll", query = "SELECT c FROM ConnectOpportunityLinkIdT c")
 public class ConnectOpportunityLinkIdT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="connect_opportunity_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "connect_opportunity_link_id")
 	private String connectOpportunityLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to ConnectT
+	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id",updatable=false,insertable=false)
+	@JoinColumn(name = "connect_id", updatable = false, insertable = false)
 	private ConnectT connectT;
 
-	@Column(name="connect_id")
+	@Column(name = "connect_id")
 	private String connectId;
-	
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
 	public String getConnectId() {
 		return connectId;
 	}
@@ -58,16 +60,16 @@ public class ConnectOpportunityLinkIdT implements Serializable {
 		this.connectId = connectId;
 	}
 
-	
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-//bi-directional many-to-one association to UserT
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
 	public ConnectOpportunityLinkIdT() {
 	}
 
@@ -111,11 +113,20 @@ private UserT createdModifiedByUser;
 		this.opportunityT = opportunityT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+	
+	
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+	
 }

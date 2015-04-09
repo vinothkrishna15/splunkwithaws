@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -21,32 +23,36 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="searchKeywordsId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "searchKeywordsId")
 @Entity
-@Table(name="search_keywords_t")
-@NamedQuery(name="SearchKeywordsT.findAll", query="SELECT s FROM SearchKeywordsT s")
+@Table(name = "search_keywords_t")
+@NamedQuery(name = "SearchKeywordsT.findAll", query = "SELECT s FROM SearchKeywordsT s")
 public class SearchKeywordsT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name="search_keywords_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "search_keywords_id")
 	private String searchKeywordsId;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="entity_id")
+	@Column(name = "entity_id")
 	private String entityId;
 
-	@Column(name="entity_type")
+	@Column(name = "entity_type")
 	private String entityType;
 
-	@Column(name="search_keywords")
+	@Column(name = "search_keywords")
 	private String searchKeywords;
 
-	//bi-directional many-to-one association to UserT
+	@Column(name = "created_modified_by")
+	private String createdModifiedBy;
+
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_modified_by")
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT userT;
 
 	public SearchKeywordsT() {
@@ -98,6 +104,14 @@ public class SearchKeywordsT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public String getCreatedModifiedBy() {
+		return createdModifiedBy;
+	}
+
+	public void setCreatedModifiedBy(String createdModifiedBy) {
+		this.createdModifiedBy = createdModifiedBy;
 	}
 
 }

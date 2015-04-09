@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,6 +18,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -28,7 +30,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityId")
 @Entity
 @Table(name = "opportunity_t")
 @NamedQuery(name = "OpportunityT.findAll", query = "SELECT o FROM OpportunityT o")
@@ -84,6 +86,12 @@ public class OpportunityT implements Serializable {
 	@Column(name = "opportunity_name")
 	private String opportunityName;
 
+	@Column(name = "deal_type")
+	private String dealType;
+
+	@Column(name = "country")
+	private String country;
+
 	@Temporal(TemporalType.DATE)
 	@Column(name = "opportunity_request_receive_date")
 	private Date opportunityRequestReceiveDate;
@@ -94,53 +102,62 @@ public class OpportunityT implements Serializable {
 	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
 
+	@Column(name = "opportunity_owner")
+	private String opportunityOwner;
+
+	@Column(name = "deal_currency")
+	private String dealCurrency;
+
+	@Column(name = "sales_stage_code")
+	private int salesStageCode;
+
 	// bi-directional many-to-one association to BidDetailsT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<BidDetailsT> bidDetailsTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to OpportunityCompetitorLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs;
 
 	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
 
 	// bi-directional many-to-one association to OpportunityOfferingLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
 
 	// bi-directional many-to-one association to OpportunityPartnerLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
 
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
 
 	// bi-directional many-to-one association to OpportunitySubSpLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
 	// bi-directional many-to-one association to BeaconConvertorMappingT
 	@ManyToOne
-	@JoinColumn(name = "deal_currency")
+	@JoinColumn(name = "deal_currency", insertable = false, updatable = false)
 	private BeaconConvertorMappingT beaconConvertorMappingT;
 
 	// bi-directional many-to-one association to CustomerMasterT
@@ -150,53 +167,56 @@ public class OpportunityT implements Serializable {
 
 	// bi-directional many-to-one association to DealTypeMappingT
 	@ManyToOne
-	@JoinColumn(name = "deal_type")
+	@JoinColumn(name = "deal_type", insertable = false, updatable = false)
 	private DealTypeMappingT dealTypeMappingT;
 
 	// bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
-	@JoinColumn(name = "country")
+	@JoinColumn(name = "country", insertable = false, updatable = false)
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	// bi-directional many-to-one association to SalesStageMappingT
 	@ManyToOne
-	@JoinColumn(name = "sales_stage_code")
+	@JoinColumn(name = "sales_stage_code", insertable = false, updatable = false)
 	private SalesStageMappingT salesStageMappingT;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_owner")
-	private UserT userT;
+	@JoinColumn(name = "opportunity_owner", insertable = false, updatable = false)
+	private UserT primaryOwnerUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "created_modified_by",insertable=false,updatable=false)
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to
 	// OpportunityTcsAccountContactLinkT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
 	// bi-directional many-to-one association to TaskT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<TaskT> taskTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<UserNotificationsT> userNotificationsTs;
 
 	// bi-directional many-to-one association to UserTaggedFollowedT
-	@OneToMany(mappedBy = "opportunityT")
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
+
+	@Transient
+	private List<SearchKeywordsT> searchKeywordsTs;
 
 	public OpportunityT() {
 	}
@@ -659,12 +679,12 @@ public class OpportunityT implements Serializable {
 		this.salesStageMappingT = salesStageMappingT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getPrimaryOwnerUser() {
+		return this.primaryOwnerUser;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setPrimaryOwnerUser(UserT primaryOwnerUser) {
+		this.primaryOwnerUser = primaryOwnerUser;
 
 	}
 
@@ -820,6 +840,54 @@ public class OpportunityT implements Serializable {
 		userTaggedFollowedT.setOpportunityT(null);
 
 		return userTaggedFollowedT;
+	}
+
+	public String getOpportunityOwner() {
+		return opportunityOwner;
+	}
+
+	public void setOpportunityOwner(String opportunityOwner) {
+		this.opportunityOwner = opportunityOwner;
+	}
+
+	public String getDealCurrency() {
+		return dealCurrency;
+	}
+
+	public void setDealCurrency(String dealCurrency) {
+		this.dealCurrency = dealCurrency;
+	}
+
+	public int getSalesStageCode() {
+		return salesStageCode;
+	}
+
+	public void setSalesStageCode(int salesStageCode) {
+		this.salesStageCode = salesStageCode;
+	}
+
+	public String getDealType() {
+		return dealType;
+	}
+
+	public void setDealType(String dealType) {
+		this.dealType = dealType;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public List<SearchKeywordsT> getSearchKeywordsTs() {
+		return searchKeywordsTs;
+	}
+
+	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
+		this.searchKeywordsTs = searchKeywordsTs;
 	}
 
 }

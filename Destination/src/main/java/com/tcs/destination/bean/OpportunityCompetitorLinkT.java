@@ -18,44 +18,50 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the opportunity_competitor_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityCompetitorLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityCompetitorLinkId")
 @Entity
-@Table(name="opportunity_competitor_link_t")
-@NamedQuery(name="OpportunityCompetitorLinkT.findAll", query="SELECT o FROM OpportunityCompetitorLinkT o")
+@Table(name = "opportunity_competitor_link_t")
+@NamedQuery(name = "OpportunityCompetitorLinkT.findAll", query = "SELECT o FROM OpportunityCompetitorLinkT o")
 public class OpportunityCompetitorLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_competitor_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_competitor_link_id")
 	private String opportunityCompetitorLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to CompetitorMappingT
+	@Column(name = "competitor_name")
+	private String competitorName;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+	
+	// bi-directional many-to-one association to CompetitorMappingT
 	@ManyToOne
-	@JoinColumn(name="competitor_name")
+	@JoinColumn(name = "competitor_name", insertable = false, updatable = false)
 	private CompetitorMappingT competitorMappingT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id",insertable=false,updatable=false)
 	private OpportunityT opportunityT;
 
-//bi-directional many-to-one association to UserT
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
 	public OpportunityCompetitorLinkT() {
 	}
 
@@ -63,7 +69,8 @@ private UserT createdModifiedByUser;
 		return this.opportunityCompetitorLinkId;
 	}
 
-	public void setOpportunityCompetitorLinkId(String opportunityCompetitorLinkId) {
+	public void setOpportunityCompetitorLinkId(
+			String opportunityCompetitorLinkId) {
 		this.opportunityCompetitorLinkId = opportunityCompetitorLinkId;
 	}
 
@@ -99,11 +106,27 @@ private UserT createdModifiedByUser;
 		this.opportunityT = opportunityT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getCompetitorName() {
+		return competitorName;
+	}
+
+	public void setCompetitorName(String competitorName) {
+		this.competitorName = competitorName;
+	}
+	
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+	
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
 }

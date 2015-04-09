@@ -24,7 +24,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityTcsAccountContactLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityTcsAccountContactLinkId")
 @Entity
 @Table(name = "opportunity_tcs_account_contact_link_t")
 @NamedQuery(name = "OpportunityTcsAccountContactLinkT.findAll", query = "SELECT o FROM OpportunityTcsAccountContactLinkT o")
@@ -42,19 +42,25 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name = "contact_id")
+	private String contactId;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
 	// bi-directional many-to-one association to ContactT
 	@ManyToOne
-	@JoinColumn(name = "contact_id")
+	@JoinColumn(name = "contact_id", insertable = false, updatable = false)
 	private ContactT contactT;
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "created_modified_by",insertable=false,updatable=false)
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT createdModifiedByUser;
 
 	public OpportunityTcsAccountContactLinkT() {
@@ -107,5 +113,21 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 
 	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
 		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public String getContactId() {
+		return contactId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public void setContactId(String contactId) {
+		this.contactId = contactId;
 	}
 }

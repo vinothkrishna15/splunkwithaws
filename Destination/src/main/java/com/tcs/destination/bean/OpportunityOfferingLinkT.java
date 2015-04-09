@@ -18,44 +18,50 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the opportunity_offering_link_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityOfferingLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityOfferingLinkId")
 @Entity
-@Table(name="opportunity_offering_link_t")
-@NamedQuery(name="OpportunityOfferingLinkT.findAll", query="SELECT o FROM OpportunityOfferingLinkT o")
+@Table(name = "opportunity_offering_link_t")
+@NamedQuery(name = "OpportunityOfferingLinkT.findAll", query = "SELECT o FROM OpportunityOfferingLinkT o")
 public class OpportunityOfferingLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_offering_link_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_offering_link_id")
 	private String opportunityOfferingLinkId;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	@Column(name = "offering")
+	private String offering;
+
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	//bi-directional many-to-one association to OfferingMappingT
+	// bi-directional many-to-one association to OfferingMappingT
 	@ManyToOne
-	@JoinColumn(name="offering")
+	@JoinColumn(name = "offering", insertable = false, updatable = false)
 	private OfferingMappingT offeringMappingT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-//bi-directional many-to-one association to UserT
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	// bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
+
 	public OpportunityOfferingLinkT() {
 	}
 
@@ -99,11 +105,27 @@ private UserT createdModifiedByUser;
 		this.opportunityT = opportunityT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getOffering() {
+		return offering;
+	}
+
+	public void setOffering(String offering) {
+		this.offering = offering;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
 }

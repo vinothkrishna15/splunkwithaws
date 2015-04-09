@@ -17,7 +17,7 @@ public interface OpportunityRepository extends
 	
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(String customerId,Date fromDate);
 	
-	List<OpportunityT> findByUserT(UserT userT);
+	List<OpportunityT> findByOpportunityOwner(String primaryOwner);
 
 	OpportunityT findByOpportunityId(String opportunityId);
 

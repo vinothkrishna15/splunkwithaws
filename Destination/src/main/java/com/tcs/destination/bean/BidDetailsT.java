@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,6 +19,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.Cascade;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -28,7 +31,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "bidId")
 @Entity
 @Table(name = "bid_details_t")
 @NamedQuery(name = "BidDetailsT.findAll", query = "SELECT b FROM BidDetailsT b")
@@ -41,17 +44,17 @@ public class BidDetailsT implements Serializable {
 	private String bidId;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="actual_bid_submission_date")
+	@Column(name = "actual_bid_submission_date")
 	private Date actualBidSubmissionDate;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="bid_request_receive_date")
+	@Column(name = "bid_request_receive_date")
 	private Date bidRequestReceiveDate;
 
-	@Column(name="core_attributes_used_for_winning")
+	@Column(name = "core_attributes_used_for_winning")
 	private String coreAttributesUsedForWinning;
 
-	@Column(name = "created_modified_by", insertable = false, updatable = false)
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
 	@Column(name = "created_modified_datetime")
@@ -62,31 +65,37 @@ public class BidDetailsT implements Serializable {
 	private Date expectedDateOfOutcome;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="target_bid_submission_date")
+	@Column(name = "target_bid_submission_date")
 	private Date targetBidSubmissionDate;
 
 	@Column(name = "win_probability")
 	private String winProbability;
 
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	@Column(name = "bid_request_type")
+	private String bidRequestType;
+
 	// bi-directional many-to-one association to BidRequestTypeMappingT
 	@ManyToOne
-	@JoinColumn(name = "bid_request_type")
+	@JoinColumn(name = "bid_request_type", insertable = false, updatable = false)
 	private BidRequestTypeMappingT bidRequestTypeMappingT;
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
 	@ManyToOne
-	@JoinColumn(name="created_modified_by")
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT userT;
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
-	@OneToMany(mappedBy = "bidDetailsT")
+	@OneToMany(mappedBy = "bidDetailsT",cascade=CascadeType.ALL)
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
-	//bi-directional many-to-one association to OpportunityTimelineHistoryT
-	@OneToMany(mappedBy="bidDetailsT")
+	// bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@OneToMany(mappedBy = "bidDetailsT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
 	public BidDetailsT() {
@@ -120,7 +129,8 @@ public class BidDetailsT implements Serializable {
 		return this.coreAttributesUsedForWinning;
 	}
 
-	public void setCoreAttributesUsedForWinning(String coreAttributesUsedForWinning) {
+	public void setCoreAttributesUsedForWinning(
+			String coreAttributesUsedForWinning) {
 		this.coreAttributesUsedForWinning = coreAttributesUsedForWinning;
 	}
 
@@ -218,22 +228,41 @@ public class BidDetailsT implements Serializable {
 		return this.opportunityTimelineHistoryTs;
 	}
 
-	public void setOpportunityTimelineHistoryTs(List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
+	public void setOpportunityTimelineHistoryTs(
+			List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs) {
 		this.opportunityTimelineHistoryTs = opportunityTimelineHistoryTs;
 	}
 
-	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+	public OpportunityTimelineHistoryT addOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
 		getOpportunityTimelineHistoryTs().add(opportunityTimelineHistoryT);
 		opportunityTimelineHistoryT.setBidDetailsT(this);
 
 		return opportunityTimelineHistoryT;
 	}
 
-	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
+	public OpportunityTimelineHistoryT removeOpportunityTimelineHistoryT(
+			OpportunityTimelineHistoryT opportunityTimelineHistoryT) {
 		getOpportunityTimelineHistoryTs().remove(opportunityTimelineHistoryT);
 		opportunityTimelineHistoryT.setBidDetailsT(null);
 
 		return opportunityTimelineHistoryT;
+	}
+
+	public String getBidRequestType() {
+		return bidRequestType;
+	}
+
+	public void setBidRequestType(String bidRequestType) {
+		this.bidRequestType = bidRequestType;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
 	}
 
 }
