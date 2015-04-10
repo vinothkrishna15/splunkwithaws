@@ -1,6 +1,6 @@
 {
     "connectCategory":"CUSTOMER",
-  "connectId":"CNN1",
+  "connectId":"CNN40",
     "connectName":"new connect 70",
     "documentsAttached":"no",
   "country":"India",
@@ -72,17 +72,18 @@
   "connectOpportunityLinkIdTs": [
     {
       "connectOpportunityLinkId":"CNO1",
-      "opportunityT": {
-      "opportunityId": "OPP1"
-      }
+      "opportunityId": "OPP1",
+      
     }
    ],
     "notesTs": [
         {
-            "notesUpdated": "Sample note9 set 3 1 update"
+            "notesUpdated": "Sample note9 set 3 1 update",
+            "userUpdated": "833389"
         },
         {
-            "notesUpdated": "Sample note9 set 3 2 update"
+            "notesUpdated": "Sample note9 set 3 2 update",
+             "userUpdated": "833389"
         }
     ]
 }
