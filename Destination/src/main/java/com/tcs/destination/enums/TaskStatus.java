@@ -1,7 +1,7 @@
 package com.tcs.destination.enums;
 
 public enum TaskStatus {
-	Open("Open"), Hold("Hold"), Closed("Closed");
+	OPEN("OPEN"), HOLD("HOLD"), CLOSED("CLOSED");
 
 	private final String name;
 

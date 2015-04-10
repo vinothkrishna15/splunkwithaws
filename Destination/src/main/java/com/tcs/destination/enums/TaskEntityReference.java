@@ -4,7 +4,7 @@ package com.tcs.destination.enums;
 
 
 public enum TaskEntityReference {
-	Connect("Connect"), Opportunity("Opportunity");
+	CONNECT("CONNECT"), OPPORTUNITY("OPPORTUNITY");
 
 	private final String name;
 

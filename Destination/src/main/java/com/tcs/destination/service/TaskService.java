@@ -326,7 +326,7 @@ public class TaskService {
 			String entityRef = task.getEntityReference();
 			if (TaskEntityReference.contains(entityRef)) {
 				//If EntityReference is Connect, ConnectId should be passed
-				if (TaskEntityReference.Connect.equalsName(entityRef)) {
+				if (TaskEntityReference.CONNECT.equalsName(entityRef)) {
 					if (task.getConnectId() == null) {
 						logger.error("BAD_REQUEST: ConnectId is required");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required");
@@ -342,7 +342,7 @@ public class TaskService {
 					}
 				}
 				//If EntityReference is Opportunity, OpportunityId should be passed
-				if (TaskEntityReference.Opportunity.equalsName(entityRef)) {
+				if (TaskEntityReference.OPPORTUNITY.equalsName(entityRef)) {
 					if (task.getOpportunityId() == null) {
 						logger.error("BAD_REQUEST: OpportunityId is required");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, "OpportunityId is required");
@@ -379,7 +379,7 @@ public class TaskService {
 			String collaborationPreference = task.getCollaborationPreference();
 			if (TaskCollaborationPreference.contains(collaborationPreference)) {
 				//If BDM collaboration preference is Restricted, one or more BDMs should be tagged
-				if (TaskCollaborationPreference.Restricted.equalsName(collaborationPreference)) {
+				if (TaskCollaborationPreference.RESTRICTED.equalsName(collaborationPreference)) {
 					if (task.getTaskBdmsTaggedLinkTs() == null) {
 						logger.error("BAD_REQUEST: BDM Collaboration preference is Restricted, one or more BDMs should be tagged");
 						throw new DestinationException(HttpStatus.BAD_REQUEST, 

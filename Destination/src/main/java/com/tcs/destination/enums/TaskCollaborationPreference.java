@@ -1,7 +1,7 @@
 package com.tcs.destination.enums;
 
 public enum TaskCollaborationPreference {
-	Private("Private"), Public("Public"), Restricted("Restricted");
+	PRIVATE("PRIVATE"), PUBLIC("PUBLIC"), RESTRICTED("RESTRICTED");
 
 	private final String name;
 
