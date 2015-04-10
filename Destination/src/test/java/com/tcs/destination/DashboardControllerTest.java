@@ -42,7 +42,7 @@ public class DashboardControllerTest {
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 		.andExpect(jsonPath("$.target").value(1500))
 		.andExpect(jsonPath("$.winSum").value(211231))
-		.andExpect(jsonPath("$.pipelineSum").value(1901079))
+		.andExpect(jsonPath("$.pipelineSum").value(2112310))
 	    .andDo(print())
 		.andReturn();
 	}

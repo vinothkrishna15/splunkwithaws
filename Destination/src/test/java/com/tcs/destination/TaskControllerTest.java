@@ -103,16 +103,14 @@ public class TaskControllerTest {
 	public void TestTaskByName() throws Exception
 	{
 		mockMvc.perform(get("/task?nameWith=Description&fields=taskId,createdModifiedBy,documentsAttached,"
-				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
+				+ "taskOwner,taskOwnerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS3"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("886301"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS17"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
-			.andExpect(jsonPath("$[0].taskOwner").value("833389"))
-			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
-			//.andExpect(jsonPath("$[0].connectId").value("CNN1"))
-			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
+			.andExpect(jsonPath("$[0].taskOwner").value("541045"))
+			.andExpect(jsonPath("$[0].taskOwnerName").value("aaa"))
 			.andDo(print()).andReturn();
 	}
 
@@ -128,16 +126,14 @@ public class TaskControllerTest {
 	public void TestTaskByConnectId() throws Exception
 	{
 		mockMvc.perform(get("/task/findByConnect?id=CNN1&fields=taskId,createdModifiedBy,documentsAttached,"
-				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
+				+ "taskOwner,taskOwnerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS8"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS17"))
 			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
 			.andExpect(jsonPath("$[0].taskOwner").value("541045"))
 			.andExpect(jsonPath("$[0].taskOwnerName").value("aaa"))
-			.andExpect(jsonPath("$[0].connectId").value("CNN1"))
-			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
 			.andDo(print()).andReturn();
 	}
 	
@@ -153,16 +149,14 @@ public class TaskControllerTest {
 	public void TestTaskByOpportunityId() throws Exception
 	{
 		mockMvc.perform(get("/task/findByOpportunity?id=OPP1&fields=taskId,createdModifiedBy,documentsAttached,"
-				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
+				+ "taskOwner,taskOwnerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS3"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("886301"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS9"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
-			.andExpect(jsonPath("$[0].taskOwner").value("833389"))
-			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
-			//.andExpect(jsonPath("$[0].connectId").value("CNN1"))
-			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
+			.andExpect(jsonPath("$[0].taskOwner").value("541045"))
+			.andExpect(jsonPath("$[0].taskOwnerName").value("aaa"))
 			.andDo(print()).andReturn();
 	}
 	
@@ -180,16 +174,14 @@ public class TaskControllerTest {
 	{   
 		
 		mockMvc.perform(get("/task/findByOwner?id=833389&fields=taskId,createdModifiedBy,documentsAttached,"
-				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
+				+ "taskOwner,taskOwnerName").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS3"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("886301"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS1"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
 			.andExpect(jsonPath("$[0].taskOwner").value("833389"))
 			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
-			//.andExpect(jsonPath("$[0].connectId").value("CNN1"))
-			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
 			.andDo(print()).andReturn();
 	}
 	
@@ -230,13 +222,11 @@ public class TaskControllerTest {
 				+ "taskOwner,taskOwnerName,connectId,opportunityId").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$[0].taskId").value("TAS3"))
-			.andExpect(jsonPath("$[0].createdModifiedBy").value("886301"))
+			.andExpect(jsonPath("$[0].taskId").value("TAS1"))
+			.andExpect(jsonPath("$[0].createdModifiedBy").value("541045"))
 			.andExpect(jsonPath("$[0].documentsAttached").value("No"))
 			.andExpect(jsonPath("$[0].taskOwner").value("833389"))
 			.andExpect(jsonPath("$[0].taskOwnerName").value("Parvez Patel"))
-			//.andExpect(jsonPath("$[0].connectId").value("CNN1"))
-			.andExpect(jsonPath("$[0].opportunityId").value("OPP1"))
 			.andDo(print()).andReturn();
 	}
 	

@@ -31,7 +31,8 @@
 									"documentRepositoryTs": [],    
 									"notesTs": [        {           
 												"noteId": "NOT12",            
-												"createdDatetime": 1426763160000,           
+												"createdDatetime": 1426763160000,  
+												"userUpdated": "833389",         
 												"entityType": "Task",            
 												"notesUpdated": "Notes updated for Task45",           
 								"connectT": null,          
