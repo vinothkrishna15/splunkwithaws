@@ -62,7 +62,13 @@ public class FrequentlySearchedService {
 									customer);
 					sortedList.add(frequentResponse);
 				}
-				return sortedList;
+					if (sortedList.isEmpty()) {
+						logger.error("NOT_FOUND: No Relevent Data Found in the database");
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"No Relevent Data Found in the database");
+					}else {
+								return sortedList; 
+	}
 			case PARTNER:
 				logger.debug("PARTNER ENTITY FOUND");
 				for (Object[] frequent : frequentMapping) {
@@ -75,7 +81,13 @@ public class FrequentlySearchedService {
 					sortedList.add(frequentResponse);
 
 				}
-				return sortedList;
+				if (sortedList.isEmpty()) {
+				logger.error("NOT_FOUND: No Relevent Data Found in the database");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Relevent Data Found in the database");
+			}else {
+						return sortedList; 
+}
 			default:
 			{
 				logger.error("BAD_REQUEST: Please ensure your entity type.");
@@ -86,7 +98,6 @@ public class FrequentlySearchedService {
 //=======
 						"This Feature is unavailable for " + entityType);
 
-//>>>>>>> 2e608ca3023dc288d7e7291656f680f7d028fbdc
 			}
 			}} else {
 			logger.error("BAD_REQUEST: No such Entity type exists. Please ensure your entity type.");
