@@ -194,16 +194,16 @@ public class TaskService {
 	}
 
 	/**
-	 * This method is used to find all the tasks assigned to a user with a specific target completion date.
-	 * @param userId, targetDate
-	 * @return tasks assigned to a user with a specific target completion date.
+	 * This method is used to find all the tasks assigned to a user with a specific target completion start and end date.
+	 * @param userId, fromDate, toDate
+	 * @return tasks assigned to a user with a specific target completion start and end date.
 	 */
-	public List<TaskT> findTasksByUserAndTargetDate(String userId, Date targetDate) 
+	public List<TaskT> findTasksByUserAndTargetDate(String userId, Date fromDate, Date toDate) 
 			throws Exception {
 		logger.debug("Inside findTasksByUserAndTargetDate Service");
 		List<TaskT> taskList = null;
 		
-		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletion(userId, targetDate);
+		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletionBetween(userId, fromDate, toDate);
 		
 		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No tasks found for the UserId and Target completion date");

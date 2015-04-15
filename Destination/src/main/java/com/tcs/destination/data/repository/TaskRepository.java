@@ -56,11 +56,11 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	List<TaskT> findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(String userId, String taskOwner);
 
 	/**
-	 * Finds all the tasks for the given user with a specific target date.
+	 * Finds all the tasks for the given user with a specific target start and end date.
 	 * 
-	 * @param userId, targetDate
-	 * @return tasks for the given user with a specific target date.
+	 * @param userId, fromDate, toDate
+	 * @return tasks for the given user with a specific target start and end date.
 	 */
-	List<TaskT> findByTaskOwnerAndTargetDateForCompletion(String userId, Date targetDate);
+	List<TaskT> findByTaskOwnerAndTargetDateForCompletionBetween(String userId, Date fromDate, Date toDate);
 
 }
