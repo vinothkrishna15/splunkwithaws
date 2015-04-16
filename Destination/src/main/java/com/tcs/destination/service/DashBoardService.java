@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -47,9 +48,22 @@ public class DashBoardService {
 			if (targetList.get(0) != null)
 				hasValues = true;
 		}
+		String year = financialYear.substring(3, 7);
+		System.out.println("Year " + year);
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.YEAR, Integer.parseInt(year));
+		cal.set(Calendar.MONTH, 4);
+		cal.set(Calendar.DATE, 1);
+		Date fromDate = new Date(cal.getTimeInMillis());
+		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
+		// cal.add(Calendar.DATE, -1);
+		Date toDate = new Date(cal.getTimeInMillis());
+
+		System.out.println("Date between : " + fromDate + " - " + toDate);
 
 		List<BigInteger> pipelineList = opportunityRepository
-				.findDealValueForPipeline(userId);
+				.findDealValueForPipeline(userId,
+						new Timestamp(toDate.getTime()));
 
 		if (pipelineList != null && !pipelineList.isEmpty()) {
 			performanceBean.setPipelineSum(pipelineList.get(0));
@@ -58,15 +72,8 @@ public class DashBoardService {
 				hasValues = true;
 		}
 
-		String year = financialYear.substring(3, 7);
-		System.out.println("Year " + year);
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.YEAR, Integer.parseInt(year));
-		cal.set(Calendar.MONTH, 4);
-		cal.set(Calendar.DATE, 1);
-		Date afterDate = new Date(cal.getTimeInMillis());
 		List<BigInteger> winList = opportunityRepository.findDealValueForWins(
-				userId, afterDate);
+				userId, fromDate, toDate);
 
 		if (winList != null && !winList.isEmpty()) {
 			performanceBean.setWinSum(winList.get(0));
