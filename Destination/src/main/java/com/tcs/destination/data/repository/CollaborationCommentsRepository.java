@@ -23,7 +23,7 @@ public interface CollaborationCommentsRepository extends
 	@Query(value =  "SELECT comment_id,entity_type,entity_id,comments,updated_datetime FROM " +
 			" (SELECT DISTINCT on (entity_id) entity_id,comment_id,entity_type,comments,updated_datetime FROM collaboration_comment_t where user_id!=?1 and entity_id!='' " +
 			 " ORDER BY entity_id DESC) as T1 " +
-			"WHERE T1.updated_datetime <= to_timestamp(?2,'YYYY-MM-DD HH24:MI:SS.FF') AND "+
+			"WHERE T1.updated_datetime < to_timestamp(?2,'YYYY-MM-DD HH24:MI:SS.FF') AND "+
 			     " (  (T1.entity_type = 'TASK' and T1.entity_id in "+
 			           "(select task.task_id from task_t as task where "+
 			               "(task.task_owner=?1 OR task.collaboration_preference='PUBLIC' OR " +
