@@ -22,6 +22,7 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -217,6 +218,36 @@ public class OpportunityT implements Serializable {
 
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
+
+	@Transient
+	private List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs;
+
+	@Transient
+	private List<NotesT> deleteNotesTs;
+
+	@Transient
+	private List<OpportunityCompetitorLinkT> deleteOpportunityCompetitorLinkTs;
+
+	@Transient
+	private List<OpportunityCustomerContactLinkT> deleteOpportunityCustomerContactLinkTs;
+
+	@Transient
+	private List<OpportunityPartnerLinkT> deleteOpportunityPartnerLinkTs;
+
+	@Transient
+	private List<OpportunitySalesSupportLinkT> deleteOpportunitySalesSupportLinkTs;
+
+	@Transient
+	private List<OpportunitySubSpLinkT> deleteOpportunitySubSpLinkTs;
+
+	@Transient
+	private List<OpportunityTcsAccountContactLinkT> deleteOpportunityOpportunityTcsAccountContactLinkTs;
+
+	@Transient
+	private List<OpportunityOfferingLinkT> deleteOpportunityOfferingLinkTs;
+
+	@Transient
+	private List<OpportunityTcsAccountContactLinkT> deleteOpportunityTcsAccountContactLinkTs;
 
 	public OpportunityT() {
 	}
@@ -882,12 +913,109 @@ public class OpportunityT implements Serializable {
 		this.country = country;
 	}
 
+	@JsonIgnore
 	public List<SearchKeywordsT> getSearchKeywordsTs() {
 		return searchKeywordsTs;
 	}
 
 	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
 		this.searchKeywordsTs = searchKeywordsTs;
+	}
+
+	@JsonIgnore
+	public List<ConnectOpportunityLinkIdT> getDeleteConnectOpportunityLinkIdTs() {
+		return deleteConnectOpportunityLinkIdTs;
+	}
+
+	public void setDeleteConnectOpportunityLinkIdTs(
+			List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs) {
+		this.deleteConnectOpportunityLinkIdTs = deleteConnectOpportunityLinkIdTs;
+	}
+
+	public List<NotesT> getDeleteNotesTs() {
+		return deleteNotesTs;
+	}
+
+	public void setDeleteNotesTs(List<NotesT> deleteNotesTs) {
+		this.deleteNotesTs = deleteNotesTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunityCompetitorLinkT> getDeleteOpportunityCompetitorLinkTs() {
+		return deleteOpportunityCompetitorLinkTs;
+	}
+
+	public void setDeleteOpportunityCompetitorLinkTs(
+			List<OpportunityCompetitorLinkT> deleteOpportunityCompetitorLinkTs) {
+		this.deleteOpportunityCompetitorLinkTs = deleteOpportunityCompetitorLinkTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunityCustomerContactLinkT> getDeleteOpportunityCustomerContactLinkTs() {
+		return deleteOpportunityCustomerContactLinkTs;
+	}
+
+	public void setDeleteOpportunityCustomerContactLinkTs(
+			List<OpportunityCustomerContactLinkT> deleteOpportunityCustomerContactLinkTs) {
+		this.deleteOpportunityCustomerContactLinkTs = deleteOpportunityCustomerContactLinkTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunityPartnerLinkT> getDeleteOpportunityPartnerLinkTs() {
+		return deleteOpportunityPartnerLinkTs;
+	}
+
+	public void setDeleteOpportunityPartnerLinkTs(
+			List<OpportunityPartnerLinkT> deleteOpportunityPartnerLinkTs) {
+		this.deleteOpportunityPartnerLinkTs = deleteOpportunityPartnerLinkTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunitySalesSupportLinkT> getDeleteOpportunitySalesSupportLinkTs() {
+		return deleteOpportunitySalesSupportLinkTs;
+	}
+
+	public void setDeleteOpportunitySalesSupportLinkTs(
+			List<OpportunitySalesSupportLinkT> deleteOpportunitySalesSupportLinkTs) {
+		this.deleteOpportunitySalesSupportLinkTs = deleteOpportunitySalesSupportLinkTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunitySubSpLinkT> getDeleteOpportunitySubSpLinkTs() {
+		return deleteOpportunitySubSpLinkTs;
+	}
+
+	public void setDeleteOpportunitySubSpLinkTs(
+			List<OpportunitySubSpLinkT> deleteOpportunitySubSpLinkTs) {
+		this.deleteOpportunitySubSpLinkTs = deleteOpportunitySubSpLinkTs;
+	}
+
+	@JsonIgnore
+	public List<OpportunityTcsAccountContactLinkT> getDeleteOpportunityOpportunityTcsAccountContactLinkTs() {
+		return deleteOpportunityOpportunityTcsAccountContactLinkTs;
+	}
+
+	public void setDeleteOpportunityOpportunityTcsAccountContactLinkTs(
+			List<OpportunityTcsAccountContactLinkT> deleteOpportunityOpportunityTcsAccountContactLinkTs) {
+		this.deleteOpportunityOpportunityTcsAccountContactLinkTs = deleteOpportunityOpportunityTcsAccountContactLinkTs;
+	}
+
+	public List<OpportunityOfferingLinkT> getDeleteOpportunityOfferingLinkTs() {
+		return deleteOpportunityOfferingLinkTs;
+	}
+
+	public void setDeleteOpportunityOfferingLinkTs(
+			List<OpportunityOfferingLinkT> deleteOpportunityOfferingLinkTs) {
+		this.deleteOpportunityOfferingLinkTs = deleteOpportunityOfferingLinkTs;
+	}
+
+	public List<OpportunityTcsAccountContactLinkT> getDeleteOpportunityTcsAccountContactLinkTs() {
+		return deleteOpportunityTcsAccountContactLinkTs;
+	}
+
+	public void setDeleteOpportunityTcsAccountContactLinkTs(
+			List<OpportunityTcsAccountContactLinkT> deleteOpportunityTcsAccountContactLinkTs) {
+		this.deleteOpportunityTcsAccountContactLinkTs = deleteOpportunityTcsAccountContactLinkTs;
 	}
 
 }

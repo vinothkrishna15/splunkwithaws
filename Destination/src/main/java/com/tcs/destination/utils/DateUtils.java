@@ -29,7 +29,7 @@ public class DateUtils {
 	public static String getCurrentFinancialYear() {
 		String financialYear = "FY'";
 		Calendar cal = Calendar.getInstance();
-		if (cal.get(Calendar.MONTH) > 3) {
+		if (cal.get(Calendar.MONTH) > 2) {
 			financialYear += cal.get(Calendar.YEAR)
 					+ "-"
 					+ String.valueOf(cal.get(Calendar.YEAR) + 1)

@@ -53,10 +53,11 @@ public class CustomerController {
 			@RequestParam("name") String name,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "currency", defaultValue = "USD") String currency) throws Exception {
 		logger.debug("Inside CustomerController /customer/targetVsActual?name="+name+" GET");
 		List<TargetVsActualResponse> tarVsAct = customerService
-				.findTargetVsActual(name, currency);
+				.findTargetVsActual(name, currency,financialYear);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, tarVsAct);
 	}
 

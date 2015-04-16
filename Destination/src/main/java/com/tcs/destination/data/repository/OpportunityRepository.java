@@ -30,8 +30,8 @@ public interface OpportunityRepository extends
 			+ "order by updated_datetime Desc))", nativeQuery = true)
 	List<OpportunityT> findTrendingOpportunities(String userId);
 
-	@Query(value = "select sum(digital_deal_value) from opportunity_t where opportunity_owner=?1 and deal_closure_date >= ?2 and sales_stage_code =9", nativeQuery = true)
-	List<BigInteger> findDealValueForWins(String userId, Date afterDate);
+	@Query(value = "select sum(digital_deal_value) from opportunity_t where opportunity_owner=?1 and deal_closure_date >= ?2 and deal_closure_date <= ?3 and sales_stage_code =9", nativeQuery = true)
+	List<BigInteger> findDealValueForWins(String userId, Date fromDate,Date toDate);
 
 	@Query(value = "select sum(digital_deal_value) from opportunity_t where opportunity_owner=?1 and sales_stage_code between 4 and 8", nativeQuery = true)
 	List<BigInteger> findDealValueForPipeline(String userId);
