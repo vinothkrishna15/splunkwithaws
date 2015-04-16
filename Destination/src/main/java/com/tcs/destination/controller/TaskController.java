@@ -147,18 +147,20 @@ public class TaskController {
 	/**
 	 * This method is used to find all the tasks assigned to a user with a specific target completion date.
 	 * 
-	 * @param id is the user id, date is the target completion date
-	 * @return tasks assigned to a user with a specific target completion date.
+	 * @param id is the user id
+	 * @param fromDate is the target completion start date, toDate is target completion end date
+	 * @return tasks assigned to a user with a specific target completion start and end date.
 	 */
 	@RequestMapping(value="/findByTargetDate", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksByUserAndTargetDate(
 			@RequestParam(value="id") String userId,
-			@RequestParam(value="date") @DateTimeFormat(iso = ISO.DATE) Date targetDate,
+			@RequestParam(value="fromDate") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
+			@RequestParam(value="toDate") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
 		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
-		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, targetDate);
+		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, fromDate, toDate);
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
