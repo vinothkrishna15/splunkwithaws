@@ -61,7 +61,7 @@ public class CustomerService {
 	}
 
 	public List<TargetVsActualResponse> findTargetVsActual(String name,
-			String currency) throws Exception {
+			String currency, String financialYear) throws Exception {
 		logger.debug("Inside findTargetVsActual Service");
 		BeaconConvertorMappingT beacon = beaconRepository
 				.findByCurrencyName(currency);
@@ -70,7 +70,9 @@ public class CustomerService {
 			throw new NoSuchCurrencyException();
 		}
 		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
-		String financialYear = DateUtils.getCurrentFinancialYear();
+		if (financialYear.equals("")) {
+			financialYear = DateUtils.getCurrentFinancialYear();
+		}
 		List<Object[]> actualList = customerRepository.findActual(name,
 				financialYear);
 		List<Object[]> targetList = customerRepository.findTarget(name,

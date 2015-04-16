@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -33,6 +32,9 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityService opportunityService;
+
+	// @Autowired
+	// CustomerRepository customerRepository;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -101,6 +103,35 @@ public class OpportunityController {
 		logger.debug("Inside FavoritesController /favorites POST");
 		Status status = new Status();
 		opportunityService.create(opportunity);
+		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
+	}
+
+	// @RequestMapping(value = "/insertImage", method = RequestMethod.GET)
+	// public @ResponseBody byte[] sampleInsert() throws IOException {
+	// // open image
+	// File imgPath = new File("/Users/lax/Downloads/att.jpg");
+	// byte[] fileContent = Files.readAllBytes(imgPath.toPath());
+	// System.out.println("Byte Array >>> \n"+fileContent);
+	// customerRepository.addImage(fileContent,"CUS550");
+	// return fileContent;
+	// }
+
+	@RequestMapping(method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> editOpportunity(
+			@RequestBody OpportunityT opportunity,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside FavoritesController /favorites POST");
+		Status status = new Status();
+		if (opportunity.getOpportunityId() == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Cannot update a opportunity without opportunityId");
+		}
+		opportunityService.edit(opportunity);
 		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",

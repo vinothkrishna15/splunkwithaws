@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +29,16 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
+import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
+import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
@@ -54,6 +63,30 @@ public class OpportunityService {
 
 	@Autowired
 	BidOfficeGroupOwnerLinkTRepository bidOfficeGroupOwnerLinkTRepository;
+
+	@Autowired
+	ConnectOpportunityLinkTRepository connectOpportunityLinkTRepository;
+
+	@Autowired
+	NotesTRepository notesTRepository;
+
+	@Autowired
+	OpportunityPartnerLinkTRepository opportunityPartnerLinkTRepository;
+
+	@Autowired
+	OpportunityCompetitorLinkTRepository opportunityCompetitorLinkTRepository;
+
+	@Autowired
+	OpportunityCustomerContactLinkTRepository opportunityCustomerContactLinkTRepository;
+
+	@Autowired
+	OpportunityOfferingLinkTRepository opportunityOfferingLinkTRepository;
+
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
+
+	@Autowired
+	OpportunityTcsAccountContactLinkTRepository opportunityTcsAccountContactLinkTRepository;
 
 	public OpportunityT findByOpportunityName(String nameWith) throws Exception {
 		logger.debug("Inside findByOpportunityName Service");
@@ -109,9 +142,11 @@ public class OpportunityService {
 				logger.debug("ALL Found");
 				System.out.println("All");
 				List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
-				opportunities.addAll(findForPrimaryOwner(opportunityOwner, false));
+				opportunities.addAll(findForPrimaryOwner(opportunityOwner,
+						false));
 				System.out.println("Primary " + opportunities.size());
-				opportunities.addAll(findForSalesSupport(opportunityOwner, false));
+				opportunities.addAll(findForSalesSupport(opportunityOwner,
+						false));
 				System.out.println("Sales Support " + opportunities.size());
 				opportunities.addAll(findForBidOffice(opportunityOwner, false));
 				System.out.println("Bid Office " + opportunities.size());
@@ -174,16 +209,20 @@ public class OpportunityService {
 	public OpportunityT findByOpportunityId(String opportunityId)
 			throws DestinationException {
 		logger.debug("Inside findByOpportunityId Service");
-		OpportunityT opportunity=opportunityRepository.findByOpportunityId(opportunityId);
-		if(opportunity != null)
-		return opportunity;
+		OpportunityT opportunity = opportunityRepository
+				.findByOpportunityId(opportunityId);
+		if (opportunity != null)
+			return opportunity;
 		else
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportuinty Id "+opportunityId+" Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportuinty Id " + opportunityId + " Not Found");
 	}
 
 	@Transactional
 	public void create(OpportunityT opportunity) throws Exception {
 		try {
+			logger.error("Before saving table with ID "
+					+ opportunity.getOpportunityId());
 			saveBaseObject(opportunity);
 			logger.error("Base table saved with ID "
 					+ opportunity.getOpportunityId());
@@ -195,7 +234,7 @@ public class OpportunityService {
 		}
 	}
 
-	private void saveChildObject(OpportunityT opportunity) {
+	private void saveChildObject(OpportunityT opportunity) throws Exception {
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
@@ -336,9 +375,103 @@ public class OpportunityService {
 				.getEngagementDuration());
 		childOpportunityT.setFactorsForWinLoss(opportunity
 				.getFactorsForWinLoss());
+		childOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				childOpportunityT).getOpportunityId());
 		logger.error("ID " + childOpportunityT.getOpportunityId());
+
+	}
+
+	public void edit(OpportunityT opportunity) throws Exception {
+
+		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
+				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
+			for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
+					.getDeleteConnectOpportunityLinkIdTs()) {
+				connectOpportunityLinkTRepository
+						.delete(connectOpportunityLinkIdT);
+			}
+		}
+
+		if (opportunity.getDeleteNotesTs() != null
+				&& opportunity.getDeleteNotesTs().size() > 0) {
+			for (NotesT noteT : opportunity.getDeleteNotesTs()) {
+				notesTRepository.delete(noteT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityPartnerLinkTs() != null
+				&& opportunity.getDeleteOpportunityPartnerLinkTs().size() > 0) {
+			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
+					.getDeleteOpportunityPartnerLinkTs()) {
+				opportunityPartnerLinkTRepository
+						.delete(opportunityPartnerLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
+				&& opportunity.getDeleteOpportunityCompetitorLinkTs().size() > 0) {
+			for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+					.getDeleteOpportunityCompetitorLinkTs()) {
+				opportunityCompetitorLinkTRepository
+						.delete(opportunityCompetitorLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityCustomerContactLinkTs() != null
+				&& opportunity.getDeleteOpportunityCustomerContactLinkTs()
+						.size() > 0) {
+			for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity
+					.getDeleteOpportunityCustomerContactLinkTs()) {
+				opportunityCustomerContactLinkTRepository
+						.delete(opportunityCustomerContactLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
+				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
+			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
+					.getDeleteOpportunityOfferingLinkTs()) {
+				opportunityOfferingLinkTRepository
+						.delete(opportunityOfferingLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
+				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
+			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
+					.getDeleteOpportunityOfferingLinkTs()) {
+				opportunityOfferingLinkTRepository
+						.delete(opportunityOfferingLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
+				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getDeleteOpportunitySalesSupportLinkTs()) {
+				opportunitySalesSupportLinkTRepository
+						.delete(opportunitySalesSupportLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunitySubSpLinkTs() != null
+				&& opportunity.getDeleteOpportunitySubSpLinkTs().size() > 0) {
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getDeleteOpportunitySubSpLinkTs()) {
+				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT);
+			}
+		}
+		
+		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
+				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs().size() > 0) {
+			for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
+					.getDeleteOpportunityTcsAccountContactLinkTs()) {
+				opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT);
+			}
+		}
+
+		create(opportunity);
 
 	}
 }
