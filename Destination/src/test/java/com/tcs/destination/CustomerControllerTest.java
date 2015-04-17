@@ -100,7 +100,7 @@ public class CustomerControllerTest {
 		@Test
 		public void Test1CustomerControllerTopRevenue() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/topRevenue?count=4&fields=customerId,createdModifiedBy,customerName,documentsAttached,groupCustomerName,beaconCustomerMappingTs,id,beaconCustomerName,customerGeography,customerMasterT").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/topRevenue?count=4&fields=customerId,createdModifiedBy,customerName,documentsAttached,groupCustomerName,beaconCustomerMappingTs,id,beaconCustomerName,customerGeography,customerMasterT&year=FY'2014-15").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$[0].customerId").value("CUS566"))
@@ -122,7 +122,7 @@ public class CustomerControllerTest {
 		@Test
 		public void Test2CustomerControllerTopRevenue() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/topRevenue?fields=customerId").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/topRevenue?fields=customerId&year=FY'2014-15").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$[0].customerId").value("CUS581"))
@@ -137,7 +137,7 @@ public class CustomerControllerTest {
 		@Test
 		public void Test1CustomerControllerTargetVsActual() throws Exception
 		{
-			this.mockMvc.perform(get("/customer/targetVsActual?name=1-800-FLOWERS.COM").accept(MediaType.APPLICATION_JSON))
+			this.mockMvc.perform(get("/customer/targetVsActual?name=1-800-FLOWERS.COM&year=FY'2014-15").accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$[0].target").value(106946.95))

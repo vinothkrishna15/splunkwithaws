@@ -1,12 +1,12 @@
 {
-	"collaborationPreference": "Restricted", 
+	"collaborationPreference": "RESTRICTED", 
 	"createdModifiedBy": "833389", 
 	"createdModifiedDatetime": 1426617000000,
     "documentsAttached": "No", 
-	"entityReference": "Opportunity", 
+	"entityReference": "OPPORTUNITY", 
 	"targetDateForCompletion": 1426617000000, 
 	"taskDescription": "Task for Test45",
-    "taskStatus": "Open", 
+    "taskStatus": "OPEN", 
 	"collaborationCommentTs": [ 
 	
 		{

@@ -200,13 +200,13 @@ public class MyFavoritesControllerTest {
 	}
 	
 	//Ensure that record for userFavoritesId present in user_favorites_t table if there is no record found then change the userfavoritesId and run again.
-		@Test
-		public void TestDelete() throws Exception {
-			mockMvc1.perform(delete("/favorites?userFavoritesId=USF100"))
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.status").value("Success"));
-		}
-		
+//		@Test
+//		public void TestDelete() throws Exception {
+//			mockMvc1.perform(delete("/favorites?userFavoritesId=USF100"))
+//					.andExpect(status().isOk())
+//					.andExpect(jsonPath("$.status").value("Success"));
+//		}
+//		
 		@Test
 		public void TestDeleteInternalServerError() throws Exception {
 			mockMvc1.perform(delete("/favorites?userFavoritesId=USF0"))

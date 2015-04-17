@@ -1,13 +1,13 @@
 {    
 	"taskId": "TAS9",   
-	"collaborationPreference": "Restricted",    
+	"collaborationPreference": "RESTRICTED",    
 	"createdModifiedBy": "541045",    
 	"createdModifiedDatetime": 1426617000000,    
 	"documentsAttached": "No",    
-	"entityReference": "Opportunity",    
+	"entityReference": "OPPORTUNITY",    
 	"targetDateForCompletion": "2015-03-18",    
 	"taskDescription": "Task for Test45",    
-	"taskStatus": "Hold",    
+	"taskStatus": "HOLD",    
 	"collaborationCommentTs": [     
 			{ 
 					"commentId": "COC9",     
