@@ -34,18 +34,20 @@ public class FavoritesController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
-			@RequestParam("page") int page,
-			@RequestParam("count") int count,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside FavoritesController /favorites?entityType="
 				+ entityType + " GET");
-		if(page<0 && count <0){
-			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid pagination request");
+		if (page < 0 && count < 0) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid pagination request");
 		}
 		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
-				DestinationUtils.getCurrentUserDetails(), entityType, page,count);
+				DestinationUtils.getCurrentUserDetails(), entityType, page,
+				count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				userFavourites);
 	}
@@ -64,8 +66,9 @@ public class FavoritesController {
 					+ "Inserted Successfully");
 			status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.DELETE)
@@ -74,11 +77,13 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside FavoritesController /favorites?userFavoritesId="+favoritesId+" DELETE");
+		logger.debug("Inside FavoritesController /favorites?userFavoritesId="
+				+ favoritesId + " DELETE");
 		Status status = new Status();
 		myFavService.removeFromFavorites(favoritesId);
 		status.setStatus(Status.SUCCESS, favoritesId);
-		return ResponseConstructors.filterJsonForFieldAndViews("all", "", status);
+		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+				status);
 
 	}
 }
