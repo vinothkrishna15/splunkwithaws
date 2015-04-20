@@ -59,11 +59,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No task found for the TaskId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No task found for the TaskId");
 		}
-		//Set the TaskOwner details from User object
-		if (task.getUserT() != null) {
-			logger.debug("UserT NOT NULL");
-			task.setTaskOwnerName(task.getUserT().getUserName());
-		}
 		return task;
 	}
 
@@ -81,13 +76,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No tasks found with the given task description");
 			throw new DestinationException(
 					HttpStatus.NOT_FOUND, "No tasks found with the given task description");
-		}
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
 		}
 		return taskList;
 	}
@@ -107,13 +95,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No tasks found for the ConnectId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId");
 		}
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
-		}
 		return taskList;
 	}
 
@@ -131,13 +112,6 @@ public class TaskService {
 		{
 			logger.error("NOT_FOUND: No tasks found for the OpportunityId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId");
-		}
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
 		}
 		return taskList;
 	}
@@ -158,13 +132,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No tasks found for the UserId");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
 		}
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
-		}
 		return taskList;
 	}
 
@@ -182,13 +149,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId");
 			throw new DestinationException
 				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId");
-		}
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
 		}
 		return taskList;
 	}
@@ -209,14 +169,6 @@ public class TaskService {
 			logger.error("NOT_FOUND: No tasks found for the UserId and Target completion date");
 			throw new DestinationException(
 				HttpStatus.NOT_FOUND, "No tasks found for the UserId and Target completion date");
-		}
-		
-		//Set the TaskOwner details from User object
-		for (TaskT task : taskList) {
-			if (task.getUserT() != null) {
-				logger.debug("UserT NOT NULL");
-				task.setTaskOwnerName(task.getUserT().getUserName());
-			}
 		}
 		return taskList;
 	}

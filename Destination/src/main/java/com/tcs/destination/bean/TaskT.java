@@ -103,10 +103,9 @@ public class TaskT implements Serializable {
 	private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to UserT
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "task_owner", insertable = false, updatable = false)
-	private UserT userT;
+	private UserT taskOwnerT;
 
 	// bi-directional many-to-one association to UserNotificationsT
 	@OneToMany(cascade = CascadeType.ALL)
@@ -115,9 +114,6 @@ public class TaskT implements Serializable {
 
 	@Column(name = "task_owner")
 	private String taskOwner;
-
-	@Transient
-	private String taskOwnerName;
 
 	@Column(name = "connect_id")
 	private String connectId;
@@ -319,12 +315,12 @@ public class TaskT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getTaskOwnerT() {
+		return this.taskOwnerT;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setTaskOwnerT(UserT taskOwnerT) {
+		this.taskOwnerT = taskOwnerT;
 	}
 
 	public UserT getCreatedModifiedByUser() {
@@ -375,14 +371,6 @@ public class TaskT implements Serializable {
 	public void setUserTaggedFollowedTs(
 			List<UserTaggedFollowedT> userTaggedFollowedTs) {
 		this.userTaggedFollowedTs = userTaggedFollowedTs;
-	}
-
-	public String getTaskOwnerName() {
-		return taskOwnerName;
-	}
-
-	public void setTaskOwnerName(String taskOwnerName) {
-		this.taskOwnerName = taskOwnerName;
 	}
 
 	public String getConnectId() {

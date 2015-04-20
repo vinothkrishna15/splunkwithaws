@@ -158,7 +158,7 @@ public class UserT implements Serializable {
 
 	// bi-directional many-to-one association to TaskT
 	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
+	@OneToMany(mappedBy = "taskOwnerT")
 	private List<TaskT> taskTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
@@ -584,14 +584,14 @@ public class UserT implements Serializable {
 
 	public TaskT addTaskT(TaskT taskT) {
 		getTaskTs().add(taskT);
-		taskT.setUserT(this);
+		taskT.setTaskOwnerT(this);
 
 		return taskT;
 	}
 
 	public TaskT removeTaskT(TaskT taskT) {
 		getTaskTs().remove(taskT);
-		taskT.setUserT(null);
+		taskT.setTaskOwnerT(null);
 
 		return taskT;
 	}
