@@ -24,8 +24,9 @@ import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class TrendingService {
-	
-	private static final Logger logger = LoggerFactory.getLogger(TrendingService.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(TrendingService.class);
 
 	@Autowired
 	OpportunityRepository oppRepository;
@@ -54,25 +55,27 @@ public class TrendingService {
 
 	public TimelineResponse getDistinctComment(Timestamp timestamp, int count,
 			String entityType) throws Exception {
-		
-		logger.info("Page Token(timestamp) : " + timestamp + " , records to fetch : " + count + " , entityType");
+
+		logger.info("Page Token(timestamp) : " + timestamp
+				+ " , records to fetch : " + count + " , entityType");
 		TimelineResponse response = new TimelineResponse();
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		List<EntityBean> filteredList = new ArrayList<EntityBean>();
-		List<Object[]> entityIdList = commentsRepository
-				.getDistinctComments(userId, timestamp,count);
-		
+		List<Object[]> entityIdList = commentsRepository.getDistinctComments(
+				userId, timestamp, count);
+
 		if (entityIdList != null && entityIdList.size() != 0) {
 			int listSize = entityIdList.size();
-			logger.info("Distinct Comments Retrieved Size : " + listSize + " for token: " + timestamp.toString());
+			logger.info("Distinct Comments Retrieved Size : " + listSize
+					+ " for token: " + timestamp.toString());
 			for (Object[] item : entityIdList) {
 				String commentId = (String) item[0];
 				String entityTypeRetrieved = (String) item[1];
 				String entityId = (String) item[2];
 				Timestamp dateTime = (Timestamp) item[4];
 				populateAndAddtoResponseBeanList(filteredList,
-						entityTypeRetrieved, entityId, commentId,dateTime);
+						entityTypeRetrieved, entityId, commentId, dateTime);
 			}
 		} else {
 			logger.info("Datalist empty");
@@ -82,7 +85,7 @@ public class TrendingService {
 
 		response.setBean(filteredList);
 		int responseListSize = filteredList.size() - 1;
-        EntityBean lastItem = filteredList.get(responseListSize);
+		EntityBean lastItem = filteredList.get(responseListSize);
 		response.setToken(lastItem.getDateTime());
 		logger.info("Page Token sent : " + response.getToken());
 		return response;
@@ -90,22 +93,24 @@ public class TrendingService {
 
 	private void populateAndAddtoResponseBeanList(
 			List<EntityBean> filteredList, String entityTypeRetrieved,
-			String entityId, String commentId,Timestamp dateTime) {
+			String entityId, String commentId, Timestamp dateTime) {
 		EntityBean e = new EntityBean();
 		e.setCommentId(commentId);
-		switch (EntityType.valueOf(entityTypeRetrieved)) {
-		case CONNECT:
-			e.setConnect(connectRepository.findByConnectId(entityId));
-			break;
-		case OPPORTUNITY:
-			e.setOpportunity(oppRepository.findByOpportunityId(entityId));
-			break;
-		case TASK:
-			e.setTask(taskRepository.findOne(entityId));
-			break;
+		if (EntityType.contains(entityTypeRetrieved)) {
+			switch (EntityType.valueOf(entityTypeRetrieved)) {
+			case CONNECT:
+				e.setConnect(connectRepository.findByConnectId(entityId));
+				break;
+			case OPPORTUNITY:
+				e.setOpportunity(oppRepository.findByOpportunityId(entityId));
+				break;
+			case TASK:
+				e.setTask(taskRepository.findOne(entityId));
+				break;
+			}
+			e.setDateTime(dateTime);
+			filteredList.add(e);
 		}
-		e.setDateTime(dateTime);
-		filteredList.add(e);
 	}
 
 	private int getEndIndex(int page, int count, int listSize) {
