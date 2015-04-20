@@ -12,7 +12,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @ImportResource("classpath:app-context.xml")
 @SpringBootApplication
 @EnableJpaRepositories
-@EnableWebMvc
 public class DestinationApplication extends SpringBootServletInitializer {
 
 	private static Class<DestinationApplication> applicationClass = DestinationApplication.class;
