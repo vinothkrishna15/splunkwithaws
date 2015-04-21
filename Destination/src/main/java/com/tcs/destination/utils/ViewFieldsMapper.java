@@ -14,7 +14,7 @@ public class ViewFieldsMapper {
 
 	static {
 		Map<String, String> map = new HashMap<String, String>();
-		map.put("timeline", "commentId,updatedDatetime,taskId,taskDescription,connectId,connectName,collaborationCommentTs,comments,collaborationCommentT,startDatetimeOfConnect,endDatetimeOfConnect,connectSecondaryOwnerLinkTs,ConnectSecondaryOwnerLinkT,secondaryOwner,customerMasterT,primaryOwner,customerId,customerName,opportunityId,opportunityName,opportunityDescription,salesStageMappingT,salesStageCode,userT,opportunitySalesSupportLinkTs,OpportunitySalesSupportLinkT,bidDetailsTs,bidOfficeGroupOwnerLinkTs,bid_office_group_owner_link_id,bidOfficeGroupOwner,targetDateForCompletion");
+		map.put("timeline", "connectT,opportunityT,commentId,updatedDatetime,taskId,taskDescription,connectId,connectName,collaborationCommentTs,comments,collaborationCommentT,startDatetimeOfConnect,endDatetimeOfConnect,connectSecondaryOwnerLinkTs,ConnectSecondaryOwnerLinkT,secondaryOwner,customerMasterT,primaryOwner,customerId,customerName,opportunityId,opportunityName,opportunityDescription,salesStageMappingT,salesStageCode,userT,opportunitySalesSupportLinkTs,OpportunitySalesSupportLinkT,bidDetailsTs,bidOfficeGroupOwnerLinkTs,bid_office_group_owner_link_id,bidOfficeGroupOwner,targetDateForCompletion");
 		VIEW_FIELD_MAP = Collections.unmodifiableMap(map);
 	}
 	

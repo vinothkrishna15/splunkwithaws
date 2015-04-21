@@ -74,6 +74,7 @@ public class TrendingService {
 				String entityTypeRetrieved = (String) item[1];
 				String entityId = (String) item[2];
 				Timestamp dateTime = (Timestamp) item[4];
+
 				populateAndAddtoResponseBeanList(filteredList,
 						entityTypeRetrieved, entityId, commentId, dateTime);
 			}
@@ -84,6 +85,11 @@ public class TrendingService {
 		}
 
 		response.setBean(filteredList);
+		if(filteredList.isEmpty()){
+			logger.info("Datalist Doesnt have any Destired Entity Types");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Relevant Data found");
+		}
 		int responseListSize = filteredList.size() - 1;
 		EntityBean lastItem = filteredList.get(responseListSize);
 		response.setToken(lastItem.getDateTime());
