@@ -1,5 +1,8 @@
 package com.tcs.destination.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -7,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import org.jvnet.ws.wadl.Application;
@@ -18,9 +23,15 @@ import org.jvnet.ws.wadl.Request;
 import org.jvnet.ws.wadl.Resource;
 import org.jvnet.ws.wadl.Resources;
 import org.jvnet.ws.wadl.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,20 +44,64 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.condition.ProducesRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
+import com.tcs.destination.exception.DestinationException;
   
 @RestController
-@RequestMapping("/destination.wadl")
-public class WADLControllerV2 {
+@RequestMapping("/wadl")
+public class WADLController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(WADLController.class);
+	
     String xs_namespace="http://www.w3.org/2001/XMLSchema" ;
+    
     @Autowired
     private RequestMappingHandlerMapping handlerMapping;
+    
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
+    @Value("${logBaseDir}")
+    private String basePath;
  
-    @RequestMapping(method=RequestMethod.GET, produces={"application/xml"} ) 
-    public @ResponseBody Application generateWadl(HttpServletRequest request) {
-        Application result = new Application();
-        Doc doc = new Doc();
+    @RequestMapping(value = "/view",method=RequestMethod.GET, produces={"application/xml"} ) 
+    public @ResponseBody Application viewWadl(HttpServletRequest request) throws DestinationException {
+    	logger.info("WADL View Request received");
+        Application result = getResult(request);
+		return result;
+    }
+
+	@RequestMapping(value = "/download",method=RequestMethod.GET, produces={"application/xml"} ) 
+    public @ResponseBody ResponseEntity<InputStreamResource> downloadWadl(HttpServletRequest request) throws DestinationException {
+    	logger.info("WADL Dowload Request received");
+    	
+        Application result = getResult(request);
+		try {
+			//converting to xml
+			logger.info("WADL Object Formed");
+			JAXBContext context = JAXBContext.newInstance(Application.class);
+			Marshaller m = context.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			m.marshal(result, new FileOutputStream(basePath+ "/destination.wadl"));
+			String fullPath = basePath + "/destination.wadl";
+			logger.info("WADL file Saved at " + fullPath);
+			
+			File file = new File(fullPath);
+			InputStreamResource isr = new InputStreamResource(new FileInputStream(file));
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders.setContentDispositionFormData("attachment","destination.wadl");
+			respHeaders.setContentType(MediaType.APPLICATION_XML);
+			return new ResponseEntity<InputStreamResource>(isr, respHeaders,HttpStatus.OK);
+			
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Problem saving and retrieving xml");
+		}
+    }
+	
+	private Application getResult(HttpServletRequest request) {
+    	Application result = new Application();
+    	Doc doc = new Doc();
         doc.setTitle("Destination RESTful Services WADL");
         result.getDoc().add(doc);
         Resources wadResources = new Resources();
@@ -54,7 +109,6 @@ public class WADLControllerV2 {
           
         Map<RequestMappingInfo, HandlerMethod> handletMethods = handlerMapping.getHandlerMethods();
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handletMethods.entrySet()) {
-             
               
             HandlerMethod handlerMethod = entry.getValue();
              
@@ -146,18 +200,13 @@ public class WADLControllerV2 {
                     }
                     wadlMethod.getResponse().add(wadlResponse);
                 }
-                  
                 wadlResource.getMethodOrResource().add(wadlMethod);
-                  
             }
-              
-     
-              
         }
         result.getResources().add(wadResources);
-          
         return result;
-    }
+	}
+    
     private QName convertJavaToXMLType(Class<?> type) {
         QName nm = new QName("");
         String classname=type.toString();
