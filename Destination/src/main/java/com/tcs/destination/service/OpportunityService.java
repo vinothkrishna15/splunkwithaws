@@ -1,8 +1,8 @@
 package com.tcs.destination.service;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -121,7 +121,8 @@ public class OpportunityService {
 	}
 
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
-			String opportunityRole) throws Exception {
+			String opportunityRole, Date fromDate, Date toDate)
+			throws Exception {
 		logger.debug("Inside findByTaskOwnerForRole Service");
 		if (OpportunityRole.contains(opportunityRole)) {
 			logger.error("Opportunity Role is Present");
@@ -129,26 +130,30 @@ public class OpportunityService {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
 				System.out.println("Primary Owner");
-				return findForPrimaryOwner(opportunityOwner, true);
+				return findForPrimaryOwner(opportunityOwner, true, fromDate,
+						toDate);
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
 				System.out.println("Sales Support");
-				return findForSalesSupport(opportunityOwner, true);
+				return findForSalesSupport(opportunityOwner, true, fromDate,
+						toDate);
 			case BID_OFFICE:
 				logger.debug("Bid Office Found");
 				System.out.println("Bid office");
-				return findForBidOffice(opportunityOwner, true);
+				return findForBidOffice(opportunityOwner, true, fromDate,
+						toDate);
 			case ALL:
 				logger.debug("ALL Found");
 				System.out.println("All");
 				List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
 				opportunities.addAll(findForPrimaryOwner(opportunityOwner,
-						false));
+						false, fromDate, toDate));
 				System.out.println("Primary " + opportunities.size());
 				opportunities.addAll(findForSalesSupport(opportunityOwner,
-						false));
+						false, fromDate, toDate));
 				System.out.println("Sales Support " + opportunities.size());
-				opportunities.addAll(findForBidOffice(opportunityOwner, false));
+				opportunities.addAll(findForBidOffice(opportunityOwner, false,
+						fromDate, toDate));
 				System.out.println("Bid Office " + opportunities.size());
 				return validateAndReturnOpportunitesData(opportunities, true);
 			}
@@ -160,11 +165,13 @@ public class OpportunityService {
 		}
 	}
 
-	private List<OpportunityT> findForPrimaryOwner(String userId, boolean isOnly)
+	private List<OpportunityT> findForPrimaryOwner(String userId,
+			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
 		logger.debug("Inside findForPrimaryOwner Service");
 		List<OpportunityT> opportunities = opportunityRepository
-				.findByOpportunityOwner(userId);
+				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
+						fromDate, toDate);
 
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
@@ -188,21 +195,27 @@ public class OpportunityService {
 		}
 	}
 
-	private List<OpportunityT> findForBidOffice(String userId, boolean isOnly)
-			throws DestinationException {
+	private List<OpportunityT> findForBidOffice(String userId, boolean isOnly,
+			Date fromDate, Date toDate) throws DestinationException {
 		logger.debug("Inside findForBidOffice Service");
 		UserT userT = new UserT();
 		userT.setUserId(userId);
-		List<OpportunityT> opportunities = bidOfficeGroupOwnerLinkTRepository
-				.findOpportunityTFromBidDetailsTFromBidOfficeGroupOwnerLinkTByUserId(userId);
+		List<OpportunityT> opportunities = opportunityRepository
+				.findOpportunityTFromBidDetailsTFromBidOfficeGroupOwnerLinkTByUserId(
+						userId, fromDate, toDate);
+		for (OpportunityT opprtunity : opportunities) {
+			System.out.println("Name " + opprtunity.getOpportunityName());
+		}
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
-	private List<OpportunityT> findForSalesSupport(String userId, boolean isOnly)
+	private List<OpportunityT> findForSalesSupport(String userId,
+			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
 		logger.debug("Inside findForSalesSupport Service");
-		List<OpportunityT> opportunities = opportunitySalesSupportLinkTRepository
-				.findOpportunityTByUserId(userId);
+		List<OpportunityT> opportunities = opportunityRepository
+				.findOpportunityTForSalesSupportOwnerWithDateBetween(userId,
+						fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
@@ -462,16 +475,33 @@ public class OpportunityService {
 				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT);
 			}
 		}
-		
+
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
-				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs().size() > 0) {
+				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs()
+						.size() > 0) {
 			for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
 					.getDeleteOpportunityTcsAccountContactLinkTs()) {
-				opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT);
+				opportunityTcsAccountContactLinkTRepository
+						.delete(opportunityTcsAccountContactLinkT);
 			}
 		}
 
 		create(opportunity);
 
+	}
+
+	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		List<OpportunityT> opportunityList = null;
+		opportunityList = opportunityRepository
+				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
+						fromDate, toDate);
+		if ((opportunityList == null) || opportunityList.isEmpty()) {
+			logger.error("NOT_FOUND: No Opportunity found for the UserId and Target Bid Submission date");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Opportunity found for the UserId and Target Bid Submission date");
+		}
+		// TODO Auto-generated method stub
+		return opportunityList;
 	}
 }

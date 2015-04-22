@@ -84,49 +84,66 @@ public class OpportunityControllerTest {
 	
 	@Test
 	public void testByTaskOwnerUsingPrimaryOwner() throws Exception {
-       mockMvc.perform(get("/opportunity/taskOwner?id=833389&role=PRIMARY_OWNER&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+       mockMvc.perform(get("/opportunity/taskOwner?role=PRIMARY_OWNER&fromDate=2000-12-12&toDate=2016-12-12&id=886301&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
-		.andExpect(jsonPath("$[0].crmId").value("12343"))
-		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP86"))
+		.andExpect(jsonPath("$[0].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS526"))
 		.andDo(print())
 		.andReturn();
 	}
 	
 	@Test
 	public void testByTaskOwnerUsingSalesSupport() throws Exception {
-       mockMvc.perform(get("/opportunity/taskOwner?id=833389&role=SALES_SUPPORT&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+       mockMvc.perform(get("/opportunity/taskOwner?role=SALES_SUPPORT&fromDate=2000-12-12&toDate=2016-12-12&id=886301&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
-		.andExpect(jsonPath("$[0].crmId").value("12343"))
-		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP79"))
+		.andExpect(jsonPath("$[0].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS526"))
 		.andDo(print())
 		.andReturn();
 	}
 	
 	@Test
 	public void testByTaskOwnerUsingBidOffice() throws Exception {
-       mockMvc.perform(get("/opportunity/taskOwner?id=833389&role=PRIMARY_OWNER&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
+       mockMvc.perform(get("/opportunity/taskOwner?role=BID_OFFICE&fromDate=2000-12-12&toDate=2016-12-12&id=886301&fields=opportunityId,opportunityId,crmId,customerId").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-		.andExpect(jsonPath("$[0].opportunityId").value("OPP2"))
-		.andExpect(jsonPath("$[0].crmId").value("12343"))
-		.andExpect(jsonPath("$[0].customerId").value("CUS543"))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP88"))
+		.andExpect(jsonPath("$[0].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS526"))
+		.andExpect(jsonPath("$[1].opportunityId").value("OPP81"))
+		.andExpect(jsonPath("$[1].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[1].customerId").value("CUS527"))
+		.andExpect(jsonPath("$[2].opportunityId").value("OPP85"))
+		.andExpect(jsonPath("$[2].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[2].customerId").value("CUS527"))
 		.andDo(print())
 		.andReturn();
 	}
 	
 	@Test
 	public void testByTaskOwnerUsingAll() throws Exception {
-       mockMvc.perform(get("/opportunity/taskOwner?id=833389&role=ALL&fields=opportunityName,bidDetailsTs,bidId,actualBidSubmissionDate,coreAttributesUsedForWinning").accept(MediaType.APPLICATION_JSON))
+       mockMvc.perform(get("/opportunity/taskOwner?role=ALL&fromDate=2000-12-12&toDate=2016-12-12&id=886301&fields=customerId,opportunityId,crmId").accept(MediaType.APPLICATION_JSON))
 		.andExpect(status().isOk())
 		.andExpect(content().contentType(TestUtil.APPLICATION_JSON_UTF8))
-		.andExpect(jsonPath("$[0].opportunityName").value("ABM TECH"))
-		.andExpect(jsonPath("$[0].bidDetailsTs.bidId").value("BID1"))
-		.andExpect(jsonPath("$[0].bidDetailsTs.actualBidSubmissionDate").value("2005-12-12"))
-		.andExpect(jsonPath("$[0].bidDetailsTs.coreAttributesUsedForWinning").value("HARD WORK"))
+		.andExpect(jsonPath("$[0].opportunityId").value("OPP86"))
+		.andExpect(jsonPath("$[0].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[0].customerId").value("CUS526"))
+		.andExpect(jsonPath("$[1].opportunityId").value("OPP79"))
+		.andExpect(jsonPath("$[1].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[1].customerId").value("CUS526"))
+	    .andExpect(jsonPath("$[2].opportunityId").value("OPP88"))
+		.andExpect(jsonPath("$[2].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[2].customerId").value("CUS526"))
+	    .andExpect(jsonPath("$[3].opportunityId").value("OPP81"))
+		.andExpect(jsonPath("$[3].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[3].customerId").value("CUS527"))
+	    .andExpect(jsonPath("$[4].opportunityId").value("OPP85"))
+		.andExpect(jsonPath("$[4].crmId").value("CRM_ID"))
+		.andExpect(jsonPath("$[4].customerId").value("CUS527"))
 		.andDo(print())
 		.andReturn();
 	}

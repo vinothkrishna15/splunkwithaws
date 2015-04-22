@@ -1,10 +1,13 @@
 package com.tcs.destination.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,20 +82,22 @@ public class OpportunityController {
 	}
 
 	@RequestMapping(value = "/taskOwner", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> findByTaskOwner(
+	public @ResponseBody String findByTaskOwner(
 			@RequestParam("id") String taskOwner,
 			@RequestParam(value = "role", defaultValue = "ALL") String opportunityRole,
+			@RequestParam(value="fromDate", defaultValue="1970-01-01") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
+			@RequestParam(value="toDate", defaultValue="2099-12-31") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
 				+ taskOwner + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByTaskOwnerForRole(taskOwner, opportunityRole);
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						opportunities), HttpStatus.OK);
+				.findByTaskOwnerForRole(taskOwner, opportunityRole,fromDate,toDate);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						opportunities);
 	}
+	
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createOpportunity(
