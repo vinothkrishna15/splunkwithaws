@@ -51,6 +51,7 @@ public class FavoritesService {
 	public boolean addFavorites(UserFavoritesT favorites) throws Exception {
 		logger.debug("Inside addFavorites Service");
 		if (EntityType.contains(favorites.getEntityType())) {
+			UserFavoritesT userFavoritesT = null;
 			switch (EntityType.valueOf(favorites.getEntityType())) {
 			case CUSTOMER:
 				logger.debug("Adding Favorites Customer");
@@ -59,6 +60,7 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Customer ID can not be empty");
 				} else {
+					userFavoritesT = userFavRepository.findByCustomerIdAndUserId(favorites.getCustomerId(), favorites.getUserId());
 					favorites.setConnectId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -73,6 +75,7 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Partner ID can not be empty");
 				} else {
+					userFavoritesT = userFavRepository.findByPartnerIdAndUserId(favorites.getPartnerId(), favorites.getUserId());
 					favorites.setConnectId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -87,6 +90,7 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Connect ID can not be empty");
 				} else {
+					userFavoritesT = userFavRepository.findByConnectIdAndUserId(favorites.getConnectId(), favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -101,6 +105,7 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Opportunity ID can not be empty");
 				} else {
+					userFavoritesT = userFavRepository.findByOpportunityIdAndUserId(favorites.getOpportunityId(), favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -115,6 +120,7 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Document ID can not be empty");
 				} else {
+					userFavoritesT = userFavRepository.findByDocumentIdAndUserId(favorites.getDocumentId(), favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setOpportunityId(null);
@@ -129,6 +135,13 @@ public class FavoritesService {
 						"Saving Task as favorite is not supported!");
 				
 			}
+			
+			if (userFavoritesT != null) {
+				logger.error("BAD_REQUEST: The Entity has already been added to User Favorites");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"The Entity has already been added to User Favorites");
+			} 
+			
 			favorites.setCreatedDatetime(DateUtils.getCurrentTimeStamp());
 			try {
 				logger.debug("Saving the UserFavorite");
