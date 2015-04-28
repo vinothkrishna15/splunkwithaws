@@ -105,8 +105,9 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside FavoritesController /favorites POST");
+		logger.debug("Inside OpportunityController /opportunity POST");
 		Status status = new Status();
+		status.setStatus(Status.FAILED, "Save unsuccessful");
 		opportunityService.create(opportunity);
 		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 		return new ResponseEntity<String>(
@@ -130,7 +131,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside FavoritesController /favorites POST");
+		logger.debug("Inside OpportunityController /opportunity PUT");
 		Status status = new Status();
 		if (opportunity.getOpportunityId() == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,

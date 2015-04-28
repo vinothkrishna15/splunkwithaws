@@ -92,6 +92,9 @@ public class OpportunityT implements Serializable {
 
 	@Column(name = "country")
 	private String country;
+	
+	@Column(name = "onhold")
+	private String onHold;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "opportunity_request_receive_date")
@@ -1016,6 +1019,14 @@ public class OpportunityT implements Serializable {
 	public void setDeleteOpportunityTcsAccountContactLinkTs(
 			List<OpportunityTcsAccountContactLinkT> deleteOpportunityTcsAccountContactLinkTs) {
 		this.deleteOpportunityTcsAccountContactLinkTs = deleteOpportunityTcsAccountContactLinkTs;
+	}
+	
+	public String getOnHold() {
+		return onHold;
+	}
+	
+	public void setOnHold(String onHold) {
+		this.onHold = onHold;
 	}
 
 }

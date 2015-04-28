@@ -231,16 +231,26 @@ public class OpportunityService {
 					"Opportuinty Id " + opportunityId + " Not Found");
 	}
 
-	@Transactional
 	public void create(OpportunityT opportunity) throws Exception {
+		opportunity.setOpportunityId(null);
+		saveOpportunity(opportunity, false);
+	}
+
+	@Transactional
+	private void saveOpportunity(OpportunityT opportunity, boolean isUpdate)
+			throws Exception {
 		try {
-			logger.error("Before saving table with ID "
+			if (isUpdate) {
+				deleteChildObjects(opportunity);
+			}
+			opportunity.setOnHold("NO");
+			logger.error("Before saving opp table with ID "
 					+ opportunity.getOpportunityId());
 			saveBaseObject(opportunity);
 			logger.error("Base table saved with ID "
 					+ opportunity.getOpportunityId());
 			saveChildObject(opportunity);
-
+			logger.error("Saved the opportunity");
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -346,10 +356,10 @@ public class OpportunityService {
 		}
 
 		opportunityRepository.save(opportunity);
-
+		System.out.println("Save Successful12345");
 	}
 
-	private void saveBaseObject(OpportunityT opportunity) {
+	private void saveBaseObject(OpportunityT opportunity) throws Exception {
 		OpportunityT childOpportunityT = new OpportunityT();
 		childOpportunityT.setCreatedModifiedBy(opportunity
 				.getCreatedModifiedBy());
@@ -389,6 +399,8 @@ public class OpportunityService {
 		childOpportunityT.setFactorsForWinLoss(opportunity
 				.getFactorsForWinLoss());
 		childOpportunityT.setOpportunityId(opportunity.getOpportunityId());
+		childOpportunityT
+				.setOpportunityOwner(opportunity.getOpportunityOwner());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				childOpportunityT).getOpportunityId());
 		logger.error("ID " + childOpportunityT.getOpportunityId());
@@ -397,6 +409,20 @@ public class OpportunityService {
 
 	public void edit(OpportunityT opportunity) throws Exception {
 
+		OpportunityT dbOpportunity = null;
+
+		dbOpportunity = opportunityRepository.findOne(opportunity
+				.getOpportunityId());
+		if (dbOpportunity != null && dbOpportunity.getOnHold() != null) {
+			if (dbOpportunity.getOnHold().equals("YES")) {
+				throw new DestinationException(HttpStatus.LOCKED,
+						"The Opportunity is put on HOLD. Kindly contact your System Administrator");
+			}
+		}
+		saveOpportunity(opportunity, true);
+	}
+
+	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
 			for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
@@ -485,9 +511,6 @@ public class OpportunityService {
 						.delete(opportunityTcsAccountContactLinkT);
 			}
 		}
-
-		create(opportunity);
-
 	}
 
 	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
@@ -501,7 +524,6 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunity found for the UserId and Target Bid Submission date");
 		}
-		// TODO Auto-generated method stub
 		return opportunityList;
 	}
 }
