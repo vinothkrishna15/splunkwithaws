@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -109,6 +110,7 @@ public class ConnectT implements Serializable {
 	
 	// bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy = "connectT")
+	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
@@ -280,6 +282,7 @@ private UserT createdModifiedByUser;
 		return collaborationCommentT;
 	}
 
+	
 	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
 		return this.connectCustomerContactLinkTs;
 	}

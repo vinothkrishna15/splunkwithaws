@@ -15,6 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -71,6 +72,7 @@ public class TaskT implements Serializable {
 	// bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "task_id")
+	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
