@@ -42,7 +42,6 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.scheduler.BatchTaskExecutor;
 
 @Component
 public class OpportunityService {
@@ -89,8 +88,6 @@ public class OpportunityService {
 	@Autowired
 	OpportunityTcsAccountContactLinkTRepository opportunityTcsAccountContactLinkTRepository;
 
-	@Autowired
-	BatchTaskExecutor batchTaskExecutor;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith)
 			throws Exception {
@@ -425,8 +422,7 @@ public class OpportunityService {
 			}
 		}
 		saveOpportunity(opportunity, true);
-		batchTaskExecutor.startComparisionThread(
-				dbOpportunity.getOpportunityId(), dbOpportunity);
+		
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
