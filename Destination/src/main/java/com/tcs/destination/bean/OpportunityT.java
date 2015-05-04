@@ -36,7 +36,7 @@ import com.tcs.destination.utils.Constants;
 @Entity
 @Table(name = "opportunity_t")
 @NamedQuery(name = "OpportunityT.findAll", query = "SELECT o FROM OpportunityT o")
-public class OpportunityT implements Serializable {
+public class OpportunityT implements Serializable,Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -1030,5 +1030,9 @@ public class OpportunityT implements Serializable {
 	public void setOnHold(String onHold) {
 		this.onHold = onHold;
 	}
+	
+	public OpportunityT clone() throws CloneNotSupportedException {
+        return (OpportunityT) super.clone();
+    }
 
 }

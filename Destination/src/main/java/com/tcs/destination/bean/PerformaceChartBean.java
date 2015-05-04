@@ -9,9 +9,9 @@ public class PerformaceChartBean {
 
 	private BigDecimal target;
 
-	private BigInteger winSum;
+	private BigDecimal winSum;
 
-	private BigInteger pipelineSum;
+	private BigDecimal pipelineSum;
 
 	public BigDecimal getTarget() {
 		return target;
@@ -21,19 +21,19 @@ public class PerformaceChartBean {
 		this.target = target;
 	}
 
-	public BigInteger getWinSum() {
+	public BigDecimal getWinSum() {
 		return winSum;
 	}
 
-	public void setWinSum(BigInteger winSum) {
+	public void setWinSum(BigDecimal winSum) {
 		this.winSum = winSum;
 	}
 
-	public BigInteger getPipelineSum() {
+	public BigDecimal getPipelineSum() {
 		return pipelineSum;
 	}
 
-	public void setPipelineSum(BigInteger pipelineSum) {
+	public void setPipelineSum(BigDecimal pipelineSum) {
 		this.pipelineSum = pipelineSum;
 	}
 

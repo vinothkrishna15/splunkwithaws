@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.math.BigDecimal;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,7 +25,8 @@ public class CurrencyController {
 			@RequestParam("value") String value) throws DestinationException{
 		
 	        Double d = Double.parseDouble(value);
-	        Status status = beaconService.convert(base, target, d.doubleValue());	       	        
+	        Status status = new Status();
+	        status.setStatus(Status.SUCCESS,beaconService.convert(base, target, d.doubleValue()).toString());	       	        
 	        return status;
 		
 	}

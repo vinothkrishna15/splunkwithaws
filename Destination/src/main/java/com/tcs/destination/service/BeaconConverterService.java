@@ -18,7 +18,7 @@ public class BeaconConverterService {
 	@Autowired
 	BeaconConvertorRepository converterRepository;
 	
-	public Status convert(String base,String target,double value) throws DestinationException{
+	public BigDecimal convert(String base,String target,double value) throws DestinationException{
 		
 		BigDecimal sourceVal = BigDecimal.valueOf(value);
 		BigDecimal convertedVal = null;
@@ -42,7 +42,7 @@ public class BeaconConverterService {
 		{
 			throw new DestinationException(HttpStatus.NOT_FOUND,"Currency Type "+target+" Not Found");
 		}
-		return status;
+		return convertedVal;
 	}
 	
 	
