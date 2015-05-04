@@ -39,7 +39,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.tcs.destination.DestinationApplication;
-import com.tcs.destination.bean.MyFavorites;
 import com.tcs.destination.controller.FavoritesController;
 import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.service.FavoritesService;
