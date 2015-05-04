@@ -42,6 +42,7 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.scheduler.BatchTaskExecutor;
 
 @Component
 public class OpportunityService {
@@ -88,16 +89,20 @@ public class OpportunityService {
 	@Autowired
 	OpportunityTcsAccountContactLinkTRepository opportunityTcsAccountContactLinkTRepository;
 
-	public OpportunityT findByOpportunityName(String nameWith) throws Exception {
+	@Autowired
+	BatchTaskExecutor batchTaskExecutor;
+
+	public List<OpportunityT> findByOpportunityName(String nameWith)
+			throws Exception {
 		logger.debug("Inside findByOpportunityName Service");
-		OpportunityT opportunity = opportunityRepository
+		List<OpportunityT> opportunities = opportunityRepository
 				.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
-		if (opportunity == null) {
+		if (opportunities.isEmpty()) {
 			logger.error("NOT_FOUND: No such Opportunity Found. Please ensure your Opportunity name.");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such Opportunity Found. Please ensure your Opportunity name.");
 		}
-		return opportunity;
+		return opportunities;
 	}
 
 	public List<OpportunityT> findRecentOpportunities(String customerId)
@@ -237,8 +242,8 @@ public class OpportunityService {
 	}
 
 	@Transactional
-	private void saveOpportunity(OpportunityT opportunity, boolean isUpdate)
-			throws Exception {
+	private OpportunityT saveOpportunity(OpportunityT opportunity,
+			boolean isUpdate) throws Exception {
 		try {
 			if (isUpdate) {
 				deleteChildObjects(opportunity);
@@ -249,15 +254,16 @@ public class OpportunityService {
 			saveBaseObject(opportunity);
 			logger.error("Base table saved with ID "
 					+ opportunity.getOpportunityId());
-			saveChildObject(opportunity);
-			logger.error("Saved the opportunity");
+			return saveChildObject(opportunity);
+			// logger.error("Saved the opportunity");
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
 	}
 
-	private void saveChildObject(OpportunityT opportunity) throws Exception {
+	private OpportunityT saveChildObject(OpportunityT opportunity)
+			throws Exception {
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
@@ -355,14 +361,15 @@ public class OpportunityService {
 			}
 		}
 
-		opportunityRepository.save(opportunity);
-		System.out.println("Save Successful12345");
+		return opportunityRepository.save(opportunity);
+		// System.out.println("Save Successful12345");
 	}
 
 	private void saveBaseObject(OpportunityT opportunity) throws Exception {
 		OpportunityT childOpportunityT = new OpportunityT();
 		childOpportunityT.setCreatedModifiedBy(opportunity
 				.getCreatedModifiedBy());
+
 		childOpportunityT.setCreatedModifiedDatetime(opportunity
 				.getCreatedModifiedDatetime());
 		childOpportunityT.setCrmId(childOpportunityT.getCrmId());
@@ -409,10 +416,8 @@ public class OpportunityService {
 
 	public void edit(OpportunityT opportunity) throws Exception {
 
-		OpportunityT dbOpportunity = null;
-
-		dbOpportunity = opportunityRepository.findOne(opportunity
-				.getOpportunityId());
+		OpportunityT dbOpportunity = opportunityRepository.findByOpportunityId(
+				opportunity.getOpportunityId()).clone();
 		if (dbOpportunity != null && dbOpportunity.getOnHold() != null) {
 			if (dbOpportunity.getOnHold().equals("YES")) {
 				throw new DestinationException(HttpStatus.LOCKED,
@@ -420,6 +425,8 @@ public class OpportunityService {
 			}
 		}
 		saveOpportunity(opportunity, true);
+		batchTaskExecutor.startComparisionThread(
+				dbOpportunity.getOpportunityId(), dbOpportunity);
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
