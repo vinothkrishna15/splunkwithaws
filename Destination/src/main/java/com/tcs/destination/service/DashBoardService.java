@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -31,6 +30,9 @@ public class DashBoardService {
 	@Autowired
 	BdmTargetTRepository bdmTargetRepository;
 
+	@Autowired
+	BeaconConverterService beaconService;
+
 	public PerformaceChartBean getChartValues(String userId,
 			String financialYear) throws Exception {
 
@@ -52,7 +54,7 @@ public class DashBoardService {
 		System.out.println("Year " + year);
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.YEAR, Integer.parseInt(year));
-		cal.set(Calendar.MONTH, 4);
+		cal.set(Calendar.MONTH, Calendar.APRIL);
 		cal.set(Calendar.DATE, 1);
 		Date fromDate = new Date(cal.getTimeInMillis());
 		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
@@ -61,26 +63,42 @@ public class DashBoardService {
 
 		System.out.println("Date between : " + fromDate + " - " + toDate);
 
-		List<BigInteger> pipelineList = opportunityRepository
+		List<Object[]> pipelineList = opportunityRepository
 				.findDealValueForPipeline(userId,
 						new Timestamp(toDate.getTime()));
 
-		if (pipelineList != null && !pipelineList.isEmpty()) {
-			performanceBean.setPipelineSum(pipelineList.get(0));
-			System.out.println("Has Pipeline");
-			if (pipelineList.get(0) != null)
-				hasValues = true;
-		}
+		System.out.println("Pipeline");
 
-		List<BigInteger> winList = opportunityRepository.findDealValueForWins(
+		BigDecimal pipelineSum = new BigDecimal(0);
+
+		for (Object[] pipeline : pipelineList) {
+			System.out.println("Initialised Big Decimal " + pipeline[1]);
+			System.out.println("Initialised Big Decimal " + pipeline[0]);
+			if (pipeline[1] != null && pipeline[0] != null) {
+				pipelineSum = pipelineSum.add(beaconService.convert(
+						pipeline[1].toString(), "USD",
+						((Integer) pipeline[0]).doubleValue()));
+				hasValues = true;
+			}
+
+		}
+		System.out.println("For Ended	with sum " + pipelineSum);
+		performanceBean.setPipelineSum(pipelineSum);
+		System.out.println(">>>>>>>>>>>> Pipeline <<<<<<<");
+
+		System.out.println("Wins");
+		List<Object[]> winList = opportunityRepository.findDealValueForWins(
 				userId, fromDate, toDate);
-
-		if (winList != null && !winList.isEmpty()) {
-			performanceBean.setWinSum(winList.get(0));
-			if (winList.get(0) != null)
-				hasValues = true;
+		BigDecimal winSum = new BigDecimal(0);
+		for (Object[] win : winList) {
+			if (win[1] != null && win[0] != null)
+				winSum = winSum.add(beaconService.convert(win[1].toString(),
+						"USD", ((Integer) win[0]).doubleValue()));
+			hasValues = true;
 		}
+		performanceBean.setWinSum(winSum);
 
+		System.out.println(">>>>>>>>>>>>>>>> Wins <<<<<<<<<<<<<<< " + winSum);
 		if (!hasValues) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found for the performance Chart");

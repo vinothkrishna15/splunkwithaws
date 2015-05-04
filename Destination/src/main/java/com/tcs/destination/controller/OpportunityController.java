@@ -47,10 +47,10 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
-		OpportunityT opportunity = opportunityService
+		List<OpportunityT> opportunities = opportunityService
 				.findByOpportunityName(nameWith);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunity);
+				opportunities);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
