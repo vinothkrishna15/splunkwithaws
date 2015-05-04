@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -60,6 +61,7 @@ public class PartnerMasterT implements Serializable {
 
 	// bi-directional many-to-one association to ConnectT
 	@OneToMany(mappedBy = "partnerMasterT")
+	@OrderBy("start_datetime_of_connect DESC")
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to ContactT

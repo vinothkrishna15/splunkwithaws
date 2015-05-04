@@ -23,7 +23,7 @@ public class UserService {
 	
 	public List<UserT> findByUserName(String nameWith) throws Exception{
 		logger.debug("Inside findByUserName Service");
-		List<UserT> users = (List<UserT>) userRepository.findByUserName(nameWith);
+		List<UserT> users = (List<UserT>) userRepository.findByUserNameIgnoreCaseLike("%"+nameWith+"%");
 		
 		if (users.isEmpty())
 		{
