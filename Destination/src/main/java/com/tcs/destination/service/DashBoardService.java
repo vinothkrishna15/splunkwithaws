@@ -61,7 +61,7 @@ public class DashBoardService {
 		// cal.add(Calendar.DATE, -1);
 		Date toDate = new Date(cal.getTimeInMillis());
 
-		System.out.println("Date between : " + fromDate + " - " + toDate);
+//		System.out.println("Date between : " + fromDate + " - " + toDate);
 
 		List<Object[]> pipelineList = opportunityRepository
 				.findDealValueForPipeline(userId,
@@ -72,8 +72,8 @@ public class DashBoardService {
 		BigDecimal pipelineSum = new BigDecimal(0);
 
 		for (Object[] pipeline : pipelineList) {
-			System.out.println("Initialised Big Decimal " + pipeline[1]);
-			System.out.println("Initialised Big Decimal " + pipeline[0]);
+//			System.out.println("Initialised Big Decimal " + pipeline[1]);
+//			System.out.println("Initialised Big Decimal " + pipeline[0]);
 			if (pipeline[1] != null && pipeline[0] != null) {
 				pipelineSum = pipelineSum.add(beaconService.convert(
 						pipeline[1].toString(), "USD",
@@ -82,11 +82,11 @@ public class DashBoardService {
 			}
 
 		}
-		System.out.println("For Ended	with sum " + pipelineSum);
+//		System.out.println("For Ended	with sum " + pipelineSum);
 		performanceBean.setPipelineSum(pipelineSum);
-		System.out.println(">>>>>>>>>>>> Pipeline <<<<<<<");
+//		System.out.println(">>>>>>>>>>>> Pipeline <<<<<<<");
 
-		System.out.println("Wins");
+//		System.out.println("Wins");
 		List<Object[]> winList = opportunityRepository.findDealValueForWins(
 				userId, fromDate, toDate);
 		BigDecimal winSum = new BigDecimal(0);
@@ -98,7 +98,7 @@ public class DashBoardService {
 		}
 		performanceBean.setWinSum(winSum);
 
-		System.out.println(">>>>>>>>>>>>>>>> Wins <<<<<<<<<<<<<<< " + winSum);
+//		System.out.println(">>>>>>>>>>>>>>>> Wins <<<<<<<<<<<<<<< " + winSum);
 		if (!hasValues) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found for the performance Chart");
