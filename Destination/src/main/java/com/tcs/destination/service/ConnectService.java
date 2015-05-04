@@ -165,6 +165,7 @@ public class ConnectService {
 				"No such Owner Type exists. Please ensure your Owner Type.");
 	}
 
+	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
 		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
