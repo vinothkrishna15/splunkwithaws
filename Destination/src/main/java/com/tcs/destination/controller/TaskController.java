@@ -3,8 +3,10 @@ package com.tcs.destination.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Date;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TaskService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -177,7 +180,11 @@ public class TaskController {
 		logger.debug("Inside TaskController /task POST");
 		TaskT managedTask = null;
 		Status status = null;
-		managedTask = taskService.createTask(task);
+		try {
+			managedTask = taskService.createTask(task);
+		} catch (Exception ex) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+		}
 		if ((managedTask != null) && (managedTask.getTaskId() != null)) {
 			logger.debug("Managed Task and Task Id NOT NULL");
 			status = new Status();
@@ -199,7 +206,11 @@ public class TaskController {
 		logger.debug("Inside TaskController /task PUT");
 		TaskT managedTask = null;
 		Status status = null;
-		managedTask = taskService.editTask(task);
+		try {
+			managedTask = taskService.editTask(task);
+		} catch (Exception ex) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+		}
 		if (managedTask != null)  {
 			logger.debug("Managed Task NOT NULL");
 			status = new Status();
