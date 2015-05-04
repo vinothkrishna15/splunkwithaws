@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -125,12 +126,15 @@ public class ConnectController {
 		logger.debug("Connect Insert Request Received /connect POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		
+		try{
 			if (connectService.insertConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
-		
+		} catch(Exception e){
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+		}
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
