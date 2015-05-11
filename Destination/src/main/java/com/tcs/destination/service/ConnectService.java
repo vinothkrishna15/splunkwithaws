@@ -40,6 +40,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 
 @Component
@@ -176,6 +177,8 @@ public class ConnectService {
 		logger.debug("Connect Insert - user : " + currentUserId);
 		logger.debug("Connect Insert - timestamp : " + currentTimeStamp);
 
+		validateRequest(connect);
+		
 		ConnectT backupConnect = backup(connect);
 		logger.debug("Copied connect object.");
 		setNullForReferencedObjects(connect);
@@ -243,6 +246,40 @@ public class ConnectService {
 		}
 		logger.debug("Connect Details are not Saved successfully");
 		return false;
+	}
+
+	private void validateRequest(ConnectT connect) throws Exception {
+		String connectCategory = connect.getConnectCategory();
+		
+		if (connectCategory == null || connectCategory.trim().isEmpty()) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is required");
+		} else {
+			connectCategory = connectCategory.toUpperCase();
+		}
+		
+		String customerId = connect.getCustomerId();
+		String partnerId = connect.getPartnerId();
+		boolean isValid = false;
+		if(EntityType.contains(connectCategory)) {
+			switch(EntityType.valueOf(connectCategory)) {
+				case CUSTOMER:
+							if (customerId != null && !customerId.trim().isEmpty())
+								isValid = true;
+							break;
+				case PARTNER:
+							if (partnerId != null && !partnerId.trim().isEmpty()) 
+								isValid = true;
+							break;
+				default: 
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is Invalid");
+			}
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is Invalid");
+		}
+		
+		if(!isValid){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Request - Missing PartnerId/CustomerId");
+		}
 	}
 
 	private void populateConnectTcsAccountContactLinks(String currentUserId,
@@ -374,6 +411,7 @@ public class ConnectService {
 		
 		// backupConnect.setConnectId(connect.getConnectId());
 		// connect = restore(backupConnect);
+		validateRequest(connect);
 		try {
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
