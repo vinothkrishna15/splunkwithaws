@@ -26,11 +26,11 @@ public class GlobalExceptionController {
 	 * @return ResponseEntity
 	 */
 	@ExceptionHandler(DestinationException.class)
-	public ResponseEntity<String> handleDestinationException(DestinationException de) {
+	public ResponseEntity<Status> handleDestinationException(DestinationException de) {
 		logger.error("DestinationException: " + de.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, de.getMessage());
-		return new ResponseEntity<String> (status.toString(), de.getHttpStatus());
+		return new ResponseEntity<Status> (status, de.getHttpStatus());
 	}
 
 	/**
@@ -40,11 +40,11 @@ public class GlobalExceptionController {
 	 * @return ResponseEntity
 	 */
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<String> handleAllException(Exception e) {
+	public ResponseEntity<Status> handleAllException(Exception e) {
 		logger.error("Exception: " + e.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, e.getMessage());
-		return new ResponseEntity<String>(status.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<Status>(status, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }

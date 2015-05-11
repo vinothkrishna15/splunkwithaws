@@ -40,6 +40,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 
 @Component
@@ -165,6 +166,7 @@ public class ConnectService {
 				"No such Owner Type exists. Please ensure your Owner Type.");
 	}
 
+	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
 		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
@@ -175,6 +177,8 @@ public class ConnectService {
 		logger.debug("Connect Insert - user : " + currentUserId);
 		logger.debug("Connect Insert - timestamp : " + currentTimeStamp);
 
+		validateRequest(connect);
+		
 		ConnectT backupConnect = backup(connect);
 		logger.debug("Copied connect object.");
 		setNullForReferencedObjects(connect);
@@ -202,33 +206,53 @@ public class ConnectService {
 				
 				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 						.getConnectCustomerContactLinkTs();
+				if(conCustConLinkTList!=null){
 				populateConnectCustomerContactLinks(currentUserId,
 						currentTimeStamp, connectId, conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conCustConLinkTList null");
+				}
 
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
 						.getConnectOfferingLinkTs();
+				if(conOffLinkTList!=null){
 				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
 						connectId, conOffLinkTList);
 				logger.debug("ConnectOffering Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conOffLinkTList null");
+				}
 				
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 						.getConnectSubSpLinkTs();
+				if(conSubSpLinkTList!=null){
 				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
 						connectId, conSubSpLinkTList);
 				logger.debug("ConnectSubSp Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSubSpLinkTList null");
+				}
 				
 				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 						.getConnectSecondaryOwnerLinkTs();
+				if(conSecOwnLinkTList!=null){
 				populateConnectSecondaryOwnerLinks(currentUserId,
 						currentTimeStamp, connectId, conSecOwnLinkTList);
 				logger.debug("ConnectSecondaryOwner Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSecOwnLinkTList null");
+				}
 				
 				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 						.getConnectTcsAccountContactLinkTs();
+				if(conTcsAccConLinkTList!=null){
 				populateConnectTcsAccountContactLinks(currentUserId,
 						currentTimeStamp, connectId, conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conTcsAccConLinkTList null");
+				}
 
 				if (connectRepository.save(connect) != null) {
 					logger.debug("Connect Record Inserted - child objects saved");
@@ -244,9 +268,41 @@ public class ConnectService {
 		return false;
 	}
 
+	private void validateRequest(ConnectT connect) throws Exception {
+		String connectCategory = connect.getConnectCategory();
+		
+		if (connectCategory == null || connectCategory.trim().isEmpty()) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is required");
+		} 
+		
+		String customerId = connect.getCustomerId();
+		String partnerId = connect.getPartnerId();
+		boolean isValid = false;
+		if(EntityType.contains(connectCategory)) {
+			switch(EntityType.valueOf(connectCategory)) {
+				case CUSTOMER:
+							if (customerId != null && !customerId.trim().isEmpty())
+								isValid = true;
+							break;
+				case PARTNER:
+							if (partnerId != null && !partnerId.trim().isEmpty()) 
+								isValid = true;
+							break;
+				default: 
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is Invalid");
+			}
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is Invalid");
+		}
+		
+		if(!isValid){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Request - Missing PartnerId/CustomerId");
+		}
+	}
+
 	private void populateConnectTcsAccountContactLinks(String currentUserId,
 			Timestamp currentTimeStamp, String connectId,
-			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList) {
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList) throws Exception{
 		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			conTcsAccConLink.setCreatedModifiedBy(currentUserId);
@@ -373,6 +429,7 @@ public class ConnectService {
 		
 		// backupConnect.setConnectId(connect.getConnectId());
 		// connect = restore(backupConnect);
+		validateRequest(connect);
 		try {
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
