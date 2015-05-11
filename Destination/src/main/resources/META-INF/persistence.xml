@@ -61,10 +61,11 @@
 		<class>com.tcs.destination.bean.UserNotificationSettingsT</class>
 		<class>com.tcs.destination.bean.UserTaggedFollowedT</class>
 		<class>com.tcs.destination.bean.UserT</class>
+		<class>com.tcs.destination.bean.OpportunityWinLossFactorsT</class>
+		<class>com.tcs.destination.bean.WinLossFactorMappingT</class>
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />
-			<property name="javax.persistence.jdbc.url"
-				value="${spring.datasource.url}" />
+			<property name="javax.persistence.jdbc.url" value="${spring.datasource.url}" />
 			<property name="javax.persistence.jdbc.user" value="${spring.datasource.username}" />
 			<property name="javax.persistence.jdbc.password" value="${spring.datasource.password}" />
 			<property name="javax.persistence.jdbc.driver" value="${spring.datasource.driver-class-name}" />
