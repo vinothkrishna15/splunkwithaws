@@ -206,33 +206,53 @@ public class ConnectService {
 				
 				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 						.getConnectCustomerContactLinkTs();
+				if(conCustConLinkTList!=null){
 				populateConnectCustomerContactLinks(currentUserId,
 						currentTimeStamp, connectId, conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conCustConLinkTList null");
+				}
 
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
 						.getConnectOfferingLinkTs();
+				if(conOffLinkTList!=null){
 				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
 						connectId, conOffLinkTList);
 				logger.debug("ConnectOffering Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conOffLinkTList null");
+				}
 				
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 						.getConnectSubSpLinkTs();
+				if(conSubSpLinkTList!=null){
 				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
 						connectId, conSubSpLinkTList);
 				logger.debug("ConnectSubSp Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSubSpLinkTList null");
+				}
 				
 				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 						.getConnectSecondaryOwnerLinkTs();
+				if(conSecOwnLinkTList!=null){
 				populateConnectSecondaryOwnerLinks(currentUserId,
 						currentTimeStamp, connectId, conSecOwnLinkTList);
 				logger.debug("ConnectSecondaryOwner Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSecOwnLinkTList null");
+				}
 				
 				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 						.getConnectTcsAccountContactLinkTs();
+				if(conTcsAccConLinkTList!=null){
 				populateConnectTcsAccountContactLinks(currentUserId,
 						currentTimeStamp, connectId, conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"conTcsAccConLinkTList null");
+				}
 
 				if (connectRepository.save(connect) != null) {
 					logger.debug("Connect Record Inserted - child objects saved");
@@ -282,7 +302,7 @@ public class ConnectService {
 
 	private void populateConnectTcsAccountContactLinks(String currentUserId,
 			Timestamp currentTimeStamp, String connectId,
-			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList) {
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList) throws Exception{
 		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			conTcsAccConLink.setCreatedModifiedBy(currentUserId);
