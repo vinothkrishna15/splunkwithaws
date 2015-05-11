@@ -70,6 +70,8 @@ public class BeanObjectIdMapper {
 		map.put("userrolemappingt", "userRole");
 		map.put("usert", "userId");
 		map.put("usertaggedfollowedt", "userTaggedFollowedId");
+		map.put("opportunityWinLossFactorsT", "opportunityWinLossFactorsId");
+		map.put("winLossFactorMappingT", "winLossFactor");
 		OBJECT_ID_MAP = Collections.unmodifiableMap(map);
 	}
 	

@@ -76,8 +76,6 @@ public class OpportunityT implements Serializable,Cloneable {
 	@Column(name = "engagement_start_date")
 	private Date engagementStartDate;
 
-	@Column(name = "factors_for_win_loss")
-	private String factorsForWinLoss;
 
 	@Column(name = "new_logo")
 	private String newLogo;
@@ -107,6 +105,10 @@ public class OpportunityT implements Serializable,Cloneable {
 	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
 
+	//bi-directional many-to-one association to OpportunityWinLossFactorsT
+	@OneToMany(mappedBy="opportunityT", cascade=CascadeType.ALL)
+	private List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs;
+	
 	@Column(name = "opportunity_owner")
 	private String opportunityOwner;
 
@@ -297,14 +299,6 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.dealClosureDate = dealClosureDate;
 	}
 
-	public String getDescriptionForWinLoss() {
-		return this.descriptionForWinLoss;
-	}
-
-	public void setDescriptionForWinLoss(String descriptionForWinLoss) {
-		this.descriptionForWinLoss = descriptionForWinLoss;
-	}
-
 	public Integer getDigitalDealValue() {
 		return this.digitalDealValue;
 	}
@@ -313,6 +307,14 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.digitalDealValue = digitalDealValue;
 	}
 
+	public String getDescriptionForWinLoss() {
+		return this.descriptionForWinLoss;
+	}
+
+	public void setDescriptionForWinLoss(String descriptionForWinLoss) {
+		this.descriptionForWinLoss = descriptionForWinLoss;
+	}
+	
 	public String getDocumentsAttached() {
 		return this.documentsAttached;
 	}
@@ -337,13 +339,6 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.engagementStartDate = engagementStartDate;
 	}
 
-	public String getFactorsForWinLoss() {
-		return this.factorsForWinLoss;
-	}
-
-	public void setFactorsForWinLoss(String factorsForWinLoss) {
-		this.factorsForWinLoss = factorsForWinLoss;
-	}
 
 	public String getNewLogo() {
 		return this.newLogo;
@@ -353,14 +348,14 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.newLogo = newLogo;
 	}
 
-	public String getOpportunityDescription() {
-		return this.opportunityDescription;
-	}
-
 	public String getCustomerId() {
 		return customerId;
 	}
 
+	public String getOpportunityDescription() {
+		return this.opportunityDescription;
+	}
+	
 	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
 	}
@@ -910,6 +905,14 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.dealType = dealType;
 	}
 
+	public List<OpportunityWinLossFactorsT> getOpportunityWinLossFactorsTs() {
+		return this.opportunityWinLossFactorsTs;
+	}
+
+	public void setOpportunityWinLossFactorsTs(List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
+		this.opportunityWinLossFactorsTs = opportunityWinLossFactorsTs;
+	}
+	
 	public String getCountry() {
 		return country;
 	}
@@ -1034,5 +1037,19 @@ public class OpportunityT implements Serializable,Cloneable {
 	public OpportunityT clone() throws CloneNotSupportedException {
         return (OpportunityT) super.clone();
     }
+
+	public OpportunityWinLossFactorsT addOpportunityWinLossFactorsT(OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
+		getOpportunityWinLossFactorsTs().add(opportunityWinLossFactorsT);
+		opportunityWinLossFactorsT.setOpportunityT(this);
+
+		return opportunityWinLossFactorsT;
+	}
+
+	public OpportunityWinLossFactorsT removeOpportunityWinLossFactorsT(OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
+		getOpportunityWinLossFactorsTs().remove(opportunityWinLossFactorsT);
+		opportunityWinLossFactorsT.setOpportunityT(null);
+
+		return opportunityWinLossFactorsT;
+	}
 
 }

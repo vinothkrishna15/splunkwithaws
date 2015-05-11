@@ -25,6 +25,7 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
+import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -361,6 +362,14 @@ public class OpportunityService {
 			}
 		}
 
+		if (opportunity.getOpportunityWinLossFactorsTs() != null) {
+			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+					.getOpportunityWinLossFactorsTs()) {
+				opportunityWinLossFactorsT.setOpportunityId(opportunity
+						.getOpportunityId());
+			}
+		}
+
 		return opportunityRepository.save(opportunity);
 		// System.out.println("Save Successful12345");
 	}
@@ -385,8 +394,6 @@ public class OpportunityService {
 				.getEngagementDuration());
 		childOpportunityT.setEngagementStartDate(opportunity
 				.getEngagementStartDate());
-		childOpportunityT.setFactorsForWinLoss(opportunity
-				.getFactorsForWinLoss());
 		childOpportunityT.setNewLogo(opportunity.getNewLogo());
 		childOpportunityT.setOpportunityDescription(opportunity
 				.getOpportunityDescription());
@@ -403,8 +410,6 @@ public class OpportunityService {
 				.getEngagementStartDate());
 		childOpportunityT.setEngagementDuration(opportunity
 				.getEngagementDuration());
-		childOpportunityT.setFactorsForWinLoss(opportunity
-				.getFactorsForWinLoss());
 		childOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		childOpportunityT
 				.setOpportunityOwner(opportunity.getOpportunityOwner());
