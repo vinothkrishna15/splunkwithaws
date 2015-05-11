@@ -253,9 +253,7 @@ public class ConnectService {
 		
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Connect Category is required");
-		} else {
-			connectCategory = connectCategory.toUpperCase();
-		}
+		} 
 		
 		String customerId = connect.getCustomerId();
 		String partnerId = connect.getPartnerId();
