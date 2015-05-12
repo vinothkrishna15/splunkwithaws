@@ -41,9 +41,12 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
+	@Column(name = "task_id")
+	private String taskId;
+
 	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name = "task_id")
+	@JoinColumn(name = "task_id", insertable = false, updatable = false)
 	private TaskT taskT;
 
 	// bi-directional many-to-one association to UserT
@@ -105,5 +108,13 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 
 	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
 		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
 	}
 }
