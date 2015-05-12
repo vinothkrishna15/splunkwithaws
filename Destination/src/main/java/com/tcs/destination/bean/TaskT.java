@@ -70,14 +70,12 @@ public class TaskT implements Serializable {
 	private String taskStatus;
 
 	// bi-directional many-to-one association to CollaborationCommentT
-	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "task_id")
+	@OneToMany(mappedBy = "taskT")
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
-	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "task_id")
+	@OneToMany(mappedBy = "taskT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to NotesT
