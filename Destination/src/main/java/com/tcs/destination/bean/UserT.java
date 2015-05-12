@@ -618,14 +618,6 @@ public class UserT implements Serializable {
 		return userFavoritesT;
 	}
 
-	public UserGeneralSettingsT getUserSettingsT() {
-		return this.userGeneralSettingsT;
-	}
-
-	public void setUserSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
-		this.userGeneralSettingsT = userGeneralSettingsT;
-	}
-
 	public UserGroupMappingT getUserGroupMappingT() {
 		return this.userGroupMappingT;
 	}
