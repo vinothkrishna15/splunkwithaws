@@ -36,7 +36,7 @@ import com.tcs.destination.utils.Constants;
 @Entity
 @Table(name = "opportunity_t")
 @NamedQuery(name = "OpportunityT.findAll", query = "SELECT o FROM OpportunityT o")
-public class OpportunityT implements Serializable,Cloneable {
+public class OpportunityT implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -76,7 +76,6 @@ public class OpportunityT implements Serializable,Cloneable {
 	@Column(name = "engagement_start_date")
 	private Date engagementStartDate;
 
-
 	@Column(name = "new_logo")
 	private String newLogo;
 
@@ -91,7 +90,7 @@ public class OpportunityT implements Serializable,Cloneable {
 
 	@Column(name = "country")
 	private String country;
-	
+
 	@Column(name = "onhold")
 	private String onHold;
 
@@ -105,10 +104,10 @@ public class OpportunityT implements Serializable,Cloneable {
 	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
 
-	//bi-directional many-to-one association to OpportunityWinLossFactorsT
-	@OneToMany(mappedBy="opportunityT", cascade=CascadeType.ALL)
+	// bi-directional many-to-one association to OpportunityWinLossFactorsT
+	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs;
-	
+
 	@Column(name = "opportunity_owner")
 	private String opportunityOwner;
 
@@ -256,6 +255,9 @@ public class OpportunityT implements Serializable,Cloneable {
 	@Transient
 	private List<OpportunityTcsAccountContactLinkT> deleteOpportunityTcsAccountContactLinkTs;
 
+	@Transient
+	private List<OpportunityWinLossFactorsT> deleteOpportunityWinLossFactorsTs;
+
 	public OpportunityT() {
 	}
 
@@ -314,7 +316,7 @@ public class OpportunityT implements Serializable,Cloneable {
 	public void setDescriptionForWinLoss(String descriptionForWinLoss) {
 		this.descriptionForWinLoss = descriptionForWinLoss;
 	}
-	
+
 	public String getDocumentsAttached() {
 		return this.documentsAttached;
 	}
@@ -339,7 +341,6 @@ public class OpportunityT implements Serializable,Cloneable {
 		this.engagementStartDate = engagementStartDate;
 	}
 
-
 	public String getNewLogo() {
 		return this.newLogo;
 	}
@@ -355,7 +356,7 @@ public class OpportunityT implements Serializable,Cloneable {
 	public String getOpportunityDescription() {
 		return this.opportunityDescription;
 	}
-	
+
 	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
 	}
@@ -909,10 +910,11 @@ public class OpportunityT implements Serializable,Cloneable {
 		return this.opportunityWinLossFactorsTs;
 	}
 
-	public void setOpportunityWinLossFactorsTs(List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
+	public void setOpportunityWinLossFactorsTs(
+			List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
 		this.opportunityWinLossFactorsTs = opportunityWinLossFactorsTs;
 	}
-	
+
 	public String getCountry() {
 		return country;
 	}
@@ -1025,31 +1027,42 @@ public class OpportunityT implements Serializable,Cloneable {
 			List<OpportunityTcsAccountContactLinkT> deleteOpportunityTcsAccountContactLinkTs) {
 		this.deleteOpportunityTcsAccountContactLinkTs = deleteOpportunityTcsAccountContactLinkTs;
 	}
-	
+
 	public String getOnHold() {
 		return onHold;
 	}
-	
+
 	public void setOnHold(String onHold) {
 		this.onHold = onHold;
 	}
-	
-	public OpportunityT clone() throws CloneNotSupportedException {
-        return (OpportunityT) super.clone();
-    }
 
-	public OpportunityWinLossFactorsT addOpportunityWinLossFactorsT(OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
+	public OpportunityT clone() throws CloneNotSupportedException {
+		return (OpportunityT) super.clone();
+	}
+
+	public OpportunityWinLossFactorsT addOpportunityWinLossFactorsT(
+			OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
 		getOpportunityWinLossFactorsTs().add(opportunityWinLossFactorsT);
 		opportunityWinLossFactorsT.setOpportunityT(this);
 
 		return opportunityWinLossFactorsT;
 	}
 
-	public OpportunityWinLossFactorsT removeOpportunityWinLossFactorsT(OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
+	public OpportunityWinLossFactorsT removeOpportunityWinLossFactorsT(
+			OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
 		getOpportunityWinLossFactorsTs().remove(opportunityWinLossFactorsT);
 		opportunityWinLossFactorsT.setOpportunityT(null);
 
 		return opportunityWinLossFactorsT;
+	}
+
+	public List<OpportunityWinLossFactorsT> getDeleteOpportunityWinLossFactorsTs() {
+		return deleteOpportunityWinLossFactorsTs;
+	}
+
+	public void setDeleteOpportunityWinLossFactorsTs(
+			List<OpportunityWinLossFactorsT> deleteOpportunityWinLossFactorsTs) {
+		this.deleteOpportunityWinLossFactorsTs = deleteOpportunityWinLossFactorsTs;
 	}
 
 }

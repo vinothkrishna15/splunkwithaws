@@ -1,14 +1,13 @@
 package com.tcs.destination.service;
 
-import java.util.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +39,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
 import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
@@ -89,6 +89,8 @@ public class OpportunityService {
 	@Autowired
 	OpportunityTcsAccountContactLinkTRepository opportunityTcsAccountContactLinkTRepository;
 
+	@Autowired
+	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith)
 			throws Exception {
@@ -427,7 +429,7 @@ public class OpportunityService {
 			}
 		}
 		saveOpportunity(opportunity, true);
-		
+
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
@@ -517,6 +519,15 @@ public class OpportunityService {
 					.getDeleteOpportunityTcsAccountContactLinkTs()) {
 				opportunityTcsAccountContactLinkTRepository
 						.delete(opportunityTcsAccountContactLinkT);
+			}
+		}
+
+		if (opportunity.getDeleteOpportunityWinLossFactorsTs() != null
+				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
+			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+					.getDeleteOpportunityWinLossFactorsTs()) {
+				opportunityWinLossFactorsTRepository
+						.delete(opportunityWinLossFactorsT);
 			}
 		}
 	}
