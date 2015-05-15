@@ -12,6 +12,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -35,10 +36,12 @@ public class SalesStageMappingT implements Serializable {
 	private String salesStageDescription;
 
 	//bi-directional many-to-one association to OpportunityT
+	@JsonIgnore
 	@OneToMany(mappedBy="salesStageMappingT")
 	private List<OpportunityT> opportunityTs;
 
 	//bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy="salesStageMappingT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
