@@ -13,12 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.service.PerformanceReportService;
-import com.tcs.destination.utils.ResponseConstructors;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.SubSpReport;
+import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.service.PerformanceReportsService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -33,9 +31,6 @@ public class PerformanceReportController {
 	@Autowired
 	PerformanceReportsService perfService;
 
-	@Autowired
-	private PerformanceReportService perfReportService;
-
 	@RequestMapping(value = "/revenue", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getActualRevenue(
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
@@ -49,7 +44,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
 
-		List<TargetVsActualResponse> response = perfReportService
+		List<TargetVsActualResponse> response = perfService
 				.getTargetVsActualRevenueSummary(financialYear, quarter,
 						geography, serviceLine, iou, customerName, currency);
 		return new ResponseEntity<String>(
