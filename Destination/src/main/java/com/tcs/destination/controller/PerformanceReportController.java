@@ -17,19 +17,19 @@ import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.service.PerformanceReportsService;
+import com.tcs.destination.service.PerformanceReportService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
-@RequestMapping("/perfReport")
+@RequestMapping("/perfreport")
 public class PerformanceReportController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PerformanceReportController.class);
 
 	@Autowired
-	PerformanceReportsService perfService;
+	PerformanceReportService perfService;
 
 	@RequestMapping(value = "/revenue", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getActualRevenue(
@@ -74,7 +74,7 @@ public class PerformanceReportController {
 				iouList);
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/subSp")
+	@RequestMapping(method = RequestMethod.GET, value = "/subsp")
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
@@ -101,7 +101,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getGeo(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography") String geography,
+			@RequestParam(value = "geography",defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "subSp", defaultValue = "") String serviceLine,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,

@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
 
-public interface PerformanceReportsRepository extends
+public interface PerformanceReportRepository extends
 		CrudRepository<ActualRevenuesDataT, String> {
 
 	@Query(value = "select distinct ICMT.display_iou as displayIOU, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"

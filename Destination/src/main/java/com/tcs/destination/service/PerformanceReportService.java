@@ -20,18 +20,18 @@ import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
-import com.tcs.destination.data.repository.PerformanceReportsRepository;
+import com.tcs.destination.data.repository.PerformanceReportRepository;
 import com.tcs.destination.exception.NoSuchCurrencyException;
 import com.tcs.destination.utils.DateUtils;
 
 @Component
-public class PerformanceReportsService {
+public class PerformanceReportService {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(PerformanceReportsService.class);
+			.getLogger(PerformanceReportService.class);
 
 	@Autowired
-	private PerformanceReportsRepository perfRepo;
+	private PerformanceReportRepository perfRepo;
 
 	private static final BigDecimal ZERO_REVENUE = new BigDecimal("0.0");
 
