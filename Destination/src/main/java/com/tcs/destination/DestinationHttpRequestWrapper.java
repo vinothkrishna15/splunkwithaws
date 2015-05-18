@@ -13,10 +13,10 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 
-public class MyRequestWrapper extends HttpServletRequestWrapper {
+public class DestinationHttpRequestWrapper extends HttpServletRequestWrapper {
 	private ByteArrayOutputStream cachedBytes;
 
-	  public MyRequestWrapper(HttpServletRequest request) {
+	  public DestinationHttpRequestWrapper(HttpServletRequest request) {
 	    super(request);
 	  }
 

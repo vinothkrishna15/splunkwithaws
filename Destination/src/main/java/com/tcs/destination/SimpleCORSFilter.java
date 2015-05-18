@@ -37,20 +37,20 @@ public class SimpleCORSFilter implements Filter {
 				"POST, GET, OPTIONS, DELETE,PUT");
 		response.setHeader("Access-Control-Max-Age", "3600");
 		response.setHeader("Access-Control-Allow-Headers", "accept,authorization,x-requested-with,Content-Type");
-		MyRequestWrapper myRequestWrapper = logRequest(req);
+		DestinationHttpRequestWrapper myRequestWrapper = logRequest(req);
 		if(myRequestWrapper!=null)
 			chain.doFilter(myRequestWrapper, res);
 		else
 			chain.doFilter(req, res);
 	}
 
-	private MyRequestWrapper logRequest(ServletRequest req)  {
+	private DestinationHttpRequestWrapper logRequest(ServletRequest req)  {
 		final HttpServletRequest httpRequest = (HttpServletRequest) req;
 		logger.info("======REQUEST DETAILS======");
 		logger.info("Timestamp : " + new Date());
 		logger.info("URL : " + getUrlWithParams(httpRequest));
 		logger.info("Method : " + httpRequest.getMethod());
-		MyRequestWrapper myRequestWrapper = new MyRequestWrapper((HttpServletRequest) httpRequest);
+		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper((HttpServletRequest) httpRequest);
 		try {
 			ServletInputStream inputStream = myRequestWrapper.getInputStream();
 			String postStr = convertStreamToString(inputStream);
