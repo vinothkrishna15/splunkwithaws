@@ -240,9 +240,7 @@ public class ConnectService {
 				populateConnectSecondaryOwnerLinks(currentUserId,
 						currentTimeStamp, connectId, conSecOwnLinkTList);
 				logger.debug("ConnectSecondaryOwner Populated ");
-				} else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSecOwnLinkTList null");
-				}
+				} 
 				
 				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 						.getConnectTcsAccountContactLinkTs();
