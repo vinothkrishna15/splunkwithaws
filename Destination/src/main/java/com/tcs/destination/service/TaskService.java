@@ -203,6 +203,7 @@ public class TaskService {
 				logger.debug("taskBdmsTaggedLinkTs NOT NULL");
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink: taskBdmsTaggedLinkTs) {
 					taskBdmTaggedLink.setTaskT(managedTask);
+					taskBdmTaggedLink.setTaskId(managedTask.getTaskId());
 				}
 				//Persist TaskBdmsTaggedLinkT
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
@@ -248,8 +249,13 @@ public class TaskService {
 
 			//Persist TaskBdmsTaggedLinkT
 			if (taskBdmsTaggedLinkTs != null) {
-				logger.debug("TaskBdmsTaggedLinkTs Saved Successfully");
+				logger.debug("taskBdmsTaggedLinkTs NOT NULL");
+				for (TaskBdmsTaggedLinkT taskBdmTaggedLink: taskBdmsTaggedLinkTs) {
+					taskBdmTaggedLink.setTaskT(managedTask);
+					taskBdmTaggedLink.setTaskId(managedTask.getTaskId());
+				}
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
+				logger.debug("TaskBdmsTaggedLinkTs Saved Successfully");
 			}
 
 			//Remove all the TaskBdmsTaggedLinkT's marked for remove
