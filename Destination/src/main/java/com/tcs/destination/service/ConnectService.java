@@ -220,8 +220,6 @@ public class ConnectService {
 				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
 						connectId, conOffLinkTList);
 				logger.debug("ConnectOffering Populated ");
-				} else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,"conOffLinkTList null");
 				}
 				
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
@@ -230,8 +228,6 @@ public class ConnectService {
 				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
 						connectId, conSubSpLinkTList);
 				logger.debug("ConnectSubSp Populated ");
-				} else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,"conSubSpLinkTList null");
 				}
 				
 				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
