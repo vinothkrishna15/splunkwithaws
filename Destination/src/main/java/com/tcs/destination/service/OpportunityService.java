@@ -130,7 +130,7 @@ public class OpportunityService {
 			throws Exception {
 		logger.debug("Inside findByTaskOwnerForRole Service");
 		if (OpportunityRole.contains(opportunityRole)) {
-			logger.error("Opportunity Role is Present");
+			logger.debug("Opportunity Role is Present");
 			switch (OpportunityRole.valueOf(opportunityRole)) {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
@@ -237,29 +237,33 @@ public class OpportunityService {
 	}
 
 	public void create(OpportunityT opportunity) throws Exception {
-		opportunity.setOpportunityId(null);
-		saveOpportunity(opportunity, false);
+		try {
+			if (opportunity != null) {
+				opportunity.setOpportunityId(null);
+				saveOpportunity(opportunity, false);
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 	}
 
 	@Transactional
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate) throws Exception {
-		try {
-			if (isUpdate) {
-				deleteChildObjects(opportunity);
-			}
-			opportunity.setOnHold("NO");
-			logger.error("Before saving opp table with ID "
-					+ opportunity.getOpportunityId());
-			saveBaseObject(opportunity);
-			logger.error("Base table saved with ID "
-					+ opportunity.getOpportunityId());
-			return saveChildObject(opportunity);
-			// logger.error("Saved the opportunity");
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+
+		if (isUpdate) {
+			deleteChildObjects(opportunity);
 		}
+		opportunity.setOnHold("NO");
+		logger.error("Before saving opp table with ID "
+				+ opportunity.getOpportunityId());
+		saveBaseObject(opportunity);
+		logger.debug("Base table saved with ID "
+				+ opportunity.getOpportunityId());
+		return saveChildObject(opportunity);
+		// logger.error("Saved the opportunity");
+
 	}
 
 	private OpportunityT saveChildObject(OpportunityT opportunity)
@@ -336,14 +340,16 @@ public class OpportunityService {
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
-				logger.error("Saving Bid Details by "
+				logger.debug("Saving Bid Details by "
 						+ bidDetailsT.getCreatedModifiedBy());
-				List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
-						bidDetailsT.getBidOfficeGroupOwnerLinkTs());
-				bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
-				bidDetailsTRepository.save(bidDetailsT);
-				bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
-				logger.error("Saved Bid Details " + bidDetailsT.getBidId());
+				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
+					List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
+							bidDetailsT.getBidOfficeGroupOwnerLinkTs());
+					bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
+				}
+					bidDetailsTRepository.save(bidDetailsT);
+					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
+				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
 					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
 							.getBidOfficeGroupOwnerLinkTs()) {
@@ -414,7 +420,7 @@ public class OpportunityService {
 				.setOpportunityOwner(opportunity.getOpportunityOwner());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				childOpportunityT).getOpportunityId());
-		logger.error("ID " + childOpportunityT.getOpportunityId());
+		logger.debug("ID " + childOpportunityT.getOpportunityId());
 
 	}
 
