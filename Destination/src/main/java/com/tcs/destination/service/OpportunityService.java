@@ -342,13 +342,16 @@ public class OpportunityService {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
 				logger.debug("Saving Bid Details by "
 						+ bidDetailsT.getCreatedModifiedBy());
+				List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = null;
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
-					List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
+					bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
 							bidDetailsT.getBidOfficeGroupOwnerLinkTs());
 					bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
 				}
-					bidDetailsTRepository.save(bidDetailsT);
+				bidDetailsTRepository.save(bidDetailsT);
+				if (bidOfficeOwnerLinkTs != null && bidOfficeOwnerLinkTs.size() > 0) {
 					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
+				}
 				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
 					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
