@@ -421,6 +421,7 @@ public class OpportunityService {
 		childOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		childOpportunityT
 				.setOpportunityOwner(opportunity.getOpportunityOwner());
+		childOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				childOpportunityT).getOpportunityId());
 		logger.debug("ID " + childOpportunityT.getOpportunityId());
