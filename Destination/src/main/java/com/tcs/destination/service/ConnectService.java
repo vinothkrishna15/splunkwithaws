@@ -200,6 +200,7 @@ public class ConnectService {
 				String partnerId = connect.getPartnerId();
 
 				List<NotesT> noteList = connect.getNotesTs();
+				if(noteList!=null)
 				populateNotes(currentTimeStamp, currentUserId, customerId,
 						partnerId, categoryUpperCase, connectId, noteList);
 				logger.debug("Notes Populated ");
@@ -357,7 +358,6 @@ public class ConnectService {
 			String currentUserId, String customerId, String partnerId,
 			String categoryUpperCase, String connectId, List<NotesT> noteList) {
 		logger.debug("Inside populateNotes service");
-		if(noteList!=null)
 		for (NotesT note : noteList) {
 			note.setEntityType(categoryUpperCase);
 			UserT user = new UserT();
