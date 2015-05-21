@@ -34,7 +34,7 @@ public class FavoritesService {
 			logger.debug("EntityType is present");
 			Pageable pageable=new PageRequest(start, count);
 			List<UserFavoritesT> userFavorites = userFavRepository
-					.findByUserTAndEntityTypeIgnoreCase(user, entityType,pageable);
+					.findByUserTAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(user, entityType, pageable);
 
 			if (userFavorites.isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
