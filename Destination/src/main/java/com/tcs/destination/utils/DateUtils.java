@@ -5,6 +5,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,22 @@ public class DateUtils {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
+	
+	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
+    static {
+        monthMap.put("JAN",Calendar.JANUARY);
+        monthMap.put("FEB",Calendar.FEBRUARY);
+        monthMap.put("MAR", Calendar.MARCH);
+        monthMap.put("APR", Calendar.APRIL);
+        monthMap.put("MAY", Calendar.MAY);
+        monthMap.put("JUN", Calendar.JUNE);
+        monthMap.put("JUL", Calendar.JULY);
+        monthMap.put("AUG", Calendar.AUGUST);
+        monthMap.put("SEP", Calendar.SEPTEMBER);
+        monthMap.put("OCT", Calendar.OCTOBER);
+        monthMap.put("NOV", Calendar.NOVEMBER);
+        monthMap.put("DEC", Calendar.DECEMBER);
+    }
 
 	public static Date convertStringToDate(String strDate)
 			throws ParseException {
@@ -75,7 +93,7 @@ public class DateUtils {
 		try {
 			String yearStr = financialYear.split("'")[1].split("-")[0];
 			int startYear = Integer.parseInt(yearStr);
-			Calendar cal = Calendar.getInstance();
+			Calendar cal = getDefaultTime();
 			if (isStartDate) {
 				cal.set(Calendar.YEAR, startYear);
 				cal.set(Calendar.MONTH, Calendar.APRIL);
@@ -86,6 +104,7 @@ public class DateUtils {
 				cal.set(Calendar.DATE,
 						cal.getActualMaximum(Calendar.DAY_OF_MONTH));
 			}
+			setEndHourMinuteSec(cal);
 			return cal.getTime();
 		} catch (Exception e) {
 			logger.error("Exception in Financial Year Format " + e);
@@ -114,7 +133,7 @@ public class DateUtils {
 			int quarterNumber = Integer.parseInt(quarter.charAt(1) + "");
 			String yearStr = quarter.split("-")[1].trim();
 			int startYear = Integer.parseInt(yearStr);
-			Calendar cal = Calendar.getInstance();
+			Calendar cal = getDefaultTime();
 			if (isStartDate) {
 				switch (quarterNumber) {
 				case 1:
@@ -160,6 +179,7 @@ public class DateUtils {
 				}
 				cal.set(Calendar.DATE,
 						cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+				setEndHourMinuteSec(cal);
 			}
 			return cal.getTime();
 		} catch (Exception e) {
@@ -168,4 +188,60 @@ public class DateUtils {
 					"Invalid Quarter format. Must be in the format Qx - 20xx-xx.");
 		}
 	}
+	
+	public static Date getDateFromMonth(String month, boolean isStartDate) throws Exception{
+		try{
+			String[] monthStr = month.split("-");
+			String yearStr = monthStr[1].trim();
+			String monStr = monthStr[0].trim();
+			int startYear = Integer.parseInt(yearStr);
+			int endYear = Integer.parseInt(yearStr);
+			int startMon, endMon;
+			int startDay = 1;
+			if(monthMap.containsKey(monStr)){
+				startMon = monthMap.get(monStr);
+				endMon = monthMap.get(monStr);
+				Calendar cal = getDefaultTime();
+				if(isStartDate){
+					cal.set(Calendar.YEAR, startYear);
+					cal.set(Calendar.MONTH, startMon);
+					cal.set(Calendar.DATE, startDay);
+				} else {
+					cal.set(Calendar.YEAR, endYear);
+					cal.set(Calendar.MONTH, endMon);
+					cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+					setEndHourMinuteSec(cal);
+				}
+				return cal.getTime();
+			} else {
+				//invalid month
+				logger.error("Exception in Month Format ");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Month format. Must be in the format MMM-YYYY.");
+			}
+		} catch (Exception e){
+			logger.error("Exception in Month Format " + e);
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Month format. Must be in the format MMM-YYYY.");
+		}
+	}
+
+	private static Calendar getDefaultTime() {
+		Calendar cal=Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY,0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		return cal;
+	}
+	
+	private static void setEndHourMinuteSec(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		cal.set(Calendar.MILLISECOND, 999);
+	}
+
+	
+	
 }
