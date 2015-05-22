@@ -14,6 +14,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -36,6 +37,7 @@ public class UserRoleMappingT implements Serializable {
 	private String userRole;
 
 	// bi-directional many-to-one association to UserT
+	@JsonIgnore
 	@OneToMany(mappedBy = "userRoleMappingT")
 	private List<UserT> userTs;
 

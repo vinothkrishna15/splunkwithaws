@@ -178,7 +178,7 @@ public class UserT implements Serializable {
 	private UserGroupMappingT userGroupMappingT;
 
 	// bi-directional many-to-one association to UserRoleMappingT
-	@JsonIgnore
+	//@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "user_role")
 	private UserRoleMappingT userRoleMappingT;
