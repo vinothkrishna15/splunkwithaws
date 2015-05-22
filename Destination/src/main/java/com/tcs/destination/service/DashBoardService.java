@@ -46,34 +46,25 @@ public class DashBoardService {
 				.findSumOfTargetByBdmTargetIdAndYear(userId, financialYear);
 		if (targetList != null && !targetList.isEmpty()) {
 			performanceBean.setTarget(targetList.get(0));
-			System.out.println("Has Target");
 			if (targetList.get(0) != null)
 				hasValues = true;
 		}
 		String year = financialYear.substring(3, 7);
-		System.out.println("Year " + year);
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.YEAR, Integer.parseInt(year));
 		cal.set(Calendar.MONTH, Calendar.APRIL);
 		cal.set(Calendar.DATE, 1);
 		Date fromDate = new Date(cal.getTimeInMillis());
 		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
-		// cal.add(Calendar.DATE, -1);
 		Date toDate = new Date(cal.getTimeInMillis());
-
-//		System.out.println("Date between : " + fromDate + " - " + toDate);
 
 		List<Object[]> pipelineList = opportunityRepository
 				.findDealValueForPipeline(userId,
 						new Timestamp(toDate.getTime()));
 
-		System.out.println("Pipeline");
-
 		BigDecimal pipelineSum = new BigDecimal(0);
 
 		for (Object[] pipeline : pipelineList) {
-//			System.out.println("Initialised Big Decimal " + pipeline[1]);
-//			System.out.println("Initialised Big Decimal " + pipeline[0]);
 			if (pipeline[1] != null && pipeline[0] != null) {
 				pipelineSum = pipelineSum.add(beaconService.convert(
 						pipeline[1].toString(), "USD",
@@ -82,11 +73,8 @@ public class DashBoardService {
 			}
 
 		}
-//		System.out.println("For Ended	with sum " + pipelineSum);
 		performanceBean.setPipelineSum(pipelineSum);
-//		System.out.println(">>>>>>>>>>>> Pipeline <<<<<<<");
 
-//		System.out.println("Wins");
 		List<Object[]> winList = opportunityRepository.findDealValueForWins(
 				userId, fromDate, toDate);
 		BigDecimal winSum = new BigDecimal(0);
@@ -98,7 +86,6 @@ public class DashBoardService {
 		}
 		performanceBean.setWinSum(winSum);
 
-//		System.out.println(">>>>>>>>>>>>>>>> Wins <<<<<<<<<<<<<<< " + winSum);
 		if (!hasValues) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found for the performance Chart");
