@@ -41,6 +41,7 @@ import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 
@@ -255,13 +256,20 @@ public class OpportunityService {
 		logger.debug("Inside findByOpportunityId Service");
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
-		if (opportunity != null)
+		if (opportunity != null) {
+			//Add Search Keywords
+			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository.
+					findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.toString(), opportunity.getOpportunityId());
+			if (searchKeywords != null && searchKeywords.size() > 0) {
+				opportunity.setSearchKeywordsTs(searchKeywords);
+			}
 			return opportunity;
-		else
+		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty Id " + opportunityId + " Not Found");
+		}
 	}
-
+	
 	public void create(OpportunityT opportunity) throws Exception {
 		try {
 			if (opportunity != null) {
@@ -391,6 +399,7 @@ public class OpportunityService {
 		if (opportunity.getSearchKeywordsTs() != null) {
 			for (SearchKeywordsT searchKeywordT : opportunity
 					.getSearchKeywordsTs()) {
+				searchKeywordT.setEntityType(EntityType.OPPORTUNITY.toString());
 				searchKeywordT.setEntityId(opportunity.getOpportunityId());
 				searchKeywordsRepository.save(searchKeywordT);
 			}

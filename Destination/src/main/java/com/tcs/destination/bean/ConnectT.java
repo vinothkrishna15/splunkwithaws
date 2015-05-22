@@ -28,7 +28,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="connectId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "connectId")
 @Entity
 @Table(name = "connect_t")
 @NamedQuery(name = "ConnectT.findAll", query = "SELECT c FROM ConnectT c")
@@ -64,88 +64,89 @@ public class ConnectT implements Serializable {
 	@Column(name = "primary_owner")
 	private String primaryOwner;
 
-	
 	@Column(name = "customer_id")
 	private String customerId;
-	
+
 	@Column(name = "partner_id")
 	private String partnerId;
-	
+
 	@Column(name = "country")
 	private String country;
 	
-	public ConnectT(ConnectT con){
-		this.collaborationCommentTs=con.collaborationCommentTs;
-		this.connectCategory=con.connectCategory;
-		this.connectCustomerContactLinkTs=con.connectCustomerContactLinkTs;
-		this.connectId=con.connectId;
-		this.connectName=con.connectName;
-		this.connectOfferingLinkTs=con.connectOfferingLinkTs;
-		this.connectOpportunityLinkIdTs=con.connectOpportunityLinkIdTs;
-		this.connectSecondaryOwnerLinkTs=con.connectSecondaryOwnerLinkTs;
-		this.connectSubSpLinkTs=con.connectSubSpLinkTs;
-		this.connectTcsAccountContactLinkTs=con.connectTcsAccountContactLinkTs;
-		this.country=con.country;
-		this.createdModifiedBy=con.createdModifiedBy;
-		this.createdModifiedDatetime=con.createdModifiedDatetime;
-		this.customerId=con.customerId;
-		this.customerMasterT=con.customerMasterT;
-		this.documentRepositoryTs=con.documentRepositoryTs;
-		this.documentsAttached=con.documentsAttached;
-		this.endDatetimeOfConnect=con.endDatetimeOfConnect;
-		this.geographyCountryMappingT=con.geographyCountryMappingT;
-		this.notesTs=con.notesTs;
-		this.partnerId=con.partnerId;
-		this.partnerMasterT=con.partnerMasterT;
-		this.primaryOwner=con.primaryOwner;
-		this.startDatetimeOfConnect=con.startDatetimeOfConnect;
-		this.taskTs=con.taskTs;
-		this.userFavoritesTs=con.userFavoritesTs;
-		this.userNotificationsTs=con.userNotificationsTs;
-		this.userT=con.userT;
-		
+	@Transient
+	private List<SearchKeywordsT> searchKeywordsTs;
+
+	public ConnectT(ConnectT con) {
+		this.collaborationCommentTs = con.collaborationCommentTs;
+		this.connectCategory = con.connectCategory;
+		this.connectCustomerContactLinkTs = con.connectCustomerContactLinkTs;
+		this.connectId = con.connectId;
+		this.connectName = con.connectName;
+		this.connectOfferingLinkTs = con.connectOfferingLinkTs;
+		this.connectOpportunityLinkIdTs = con.connectOpportunityLinkIdTs;
+		this.connectSecondaryOwnerLinkTs = con.connectSecondaryOwnerLinkTs;
+		this.connectSubSpLinkTs = con.connectSubSpLinkTs;
+		this.connectTcsAccountContactLinkTs = con.connectTcsAccountContactLinkTs;
+		this.country = con.country;
+		this.createdModifiedBy = con.createdModifiedBy;
+		this.createdModifiedDatetime = con.createdModifiedDatetime;
+		this.customerId = con.customerId;
+		this.customerMasterT = con.customerMasterT;
+		this.documentRepositoryTs = con.documentRepositoryTs;
+		this.documentsAttached = con.documentsAttached;
+		this.endDatetimeOfConnect = con.endDatetimeOfConnect;
+		this.geographyCountryMappingT = con.geographyCountryMappingT;
+		this.notesTs = con.notesTs;
+		this.partnerId = con.partnerId;
+		this.partnerMasterT = con.partnerMasterT;
+		this.primaryOwner = con.primaryOwner;
+		this.startDatetimeOfConnect = con.startDatetimeOfConnect;
+		this.taskTs = con.taskTs;
+		this.userFavoritesTs = con.userFavoritesTs;
+		this.userNotificationsTs = con.userNotificationsTs;
+		this.userT = con.userT;
+		this.searchKeywordsTs = con.searchKeywordsTs;
+
 	}
 
-	
-	
 	// bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy = "connectT")
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
 	// bi-directional many-to-one association to ConnectOfferingLinkT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
 
 	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
 
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
 	// bi-directional many-to-one association to ConnectSubSpLinkT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
 
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_id",insertable=false,updatable=false)
+	@JoinColumn(name = "customer_id", insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
 	// bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
-	@JoinColumn(name = "country",insertable=false,updatable=false)
+	@JoinColumn(name = "country", insertable = false, updatable = false)
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name = "partner_id",insertable=false,updatable=false)
+	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
 	private PartnerMasterT partnerMasterT;
 
 	// bi-directional many-to-one association to UserT
@@ -153,12 +154,12 @@ public class ConnectT implements Serializable {
 	@JoinColumn(name = "primary_owner", insertable = false, updatable = false)
 	private UserT userT;
 
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	@ManyToOne
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
+	private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT
@@ -166,27 +167,27 @@ private UserT createdModifiedByUser;
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to NotesT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to TaskT
-	@OneToMany(mappedBy = "connectT",cascade=CascadeType.ALL)
+	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<TaskT> taskTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "connectT")
 	private List<UserFavoritesT> userFavoritesTs;
 
-	//bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy="connectT")
+	// bi-directional many-to-one association to UserNotificationsT
+	@OneToMany(mappedBy = "connectT")
 	private List<UserNotificationsT> userNotificationsTs;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
-	
+
 	@Transient
 	private List<ConnectOfferingLinkT> connectOfferingLinkDeletionList;
-	
+
 	@Transient
 	private List<DocumentRepositoryT> documentsDeletionList;
 
@@ -282,7 +283,6 @@ private UserT createdModifiedByUser;
 		return collaborationCommentT;
 	}
 
-	
 	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
 		return this.connectCustomerContactLinkTs;
 	}
@@ -569,24 +569,27 @@ private UserT createdModifiedByUser;
 		return this.userNotificationsTs;
 	}
 
-	public void setUserNotificationsTs(List<UserNotificationsT> userNotificationsTs) {
+	public void setUserNotificationsTs(
+			List<UserNotificationsT> userNotificationsTs) {
 		this.userNotificationsTs = userNotificationsTs;
 	}
 
-	public UserNotificationsT addUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT addUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().add(userNotificationsT);
 		userNotificationsT.setConnectT(this);
 
 		return userNotificationsT;
 	}
 
-	public UserNotificationsT removeUserNotificationsT(UserNotificationsT userNotificationsT) {
+	public UserNotificationsT removeUserNotificationsT(
+			UserNotificationsT userNotificationsT) {
 		getUserNotificationsTs().remove(userNotificationsT);
 		userNotificationsT.setConnectT(null);
 
 		return userNotificationsT;
 	}
-	
+
 	public String getCustomerId() {
 		return customerId;
 	}
@@ -637,13 +640,20 @@ private UserT createdModifiedByUser;
 			List<DocumentRepositoryT> documentsDeletionList) {
 		this.documentsDeletionList = documentsDeletionList;
 	}
-	
+
 	public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
 
+	public List<SearchKeywordsT> getSearchKeywordsTs() {
+		return searchKeywordsTs;
+	}
+
+	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
+		this.searchKeywordsTs = searchKeywordsTs;
+	}
 }
