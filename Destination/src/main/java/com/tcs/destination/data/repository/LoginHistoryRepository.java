@@ -7,6 +7,6 @@ import com.tcs.destination.bean.LoginHistoryT;
 
 public interface LoginHistoryRepository extends CrudRepository<LoginHistoryT, Integer> {
 	
-	@Query(value="select * from login_history_t where user_id= ?1 order by login_datetime desc limit 1", nativeQuery=true)
-	LoginHistoryT findLastUpdatedTime(String userId);
+	@Query(value="select * from login_history_t where user_id = ?1 order by login_datetime desc limit 1", nativeQuery=true)
+	LoginHistoryT findLastLoginByUserId(String userId);
 }
