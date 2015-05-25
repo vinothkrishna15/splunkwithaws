@@ -1,6 +1,7 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -12,6 +13,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -90,6 +92,9 @@ public class UserT implements Serializable {
 	@Column(name = "user_telephone")
 	private String userTelephone;
 
+	@Transient
+	private Timestamp lastLogin;
+	
 	// bi-directional many-to-one association to BdmTargetT
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
@@ -663,5 +668,15 @@ public class UserT implements Serializable {
 	public void setUserGeneralSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
 		this.userGeneralSettingsT = userGeneralSettingsT;
 	}
+
+	public Timestamp getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(Timestamp lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+	
+	
 
 }
