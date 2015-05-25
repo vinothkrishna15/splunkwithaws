@@ -35,10 +35,13 @@ public class LoginHistoryT implements Serializable {
 
 	@Column(name="login_datetime")
 	private Timestamp loginDatetime;
+	
+	@Column(name="user_id")
+	private String userId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id",insertable=false, updatable=false)
 	private UserT userT;
 
 	public LoginHistoryT() {
@@ -67,5 +70,15 @@ public class LoginHistoryT implements Serializable {
 	public void setUserT(UserT userT) {
 		this.userT = userT;
 	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	
+	
 
 }
