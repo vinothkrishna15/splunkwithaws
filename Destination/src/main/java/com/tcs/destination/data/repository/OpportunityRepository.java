@@ -89,4 +89,21 @@ public interface OpportunityRepository extends
 			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner= ?3))) "
 			+ "order by OPP.created_modified_datetime desc", nativeQuery = true) 
 	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner, String salesSupportOwner, String bidOfficeOwner);
+	
+	
+	//list of top opportunities based on digital deal value
+		 @Query(value="select distinct OPP.* from opportunity_t OPP"
+				  + " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
+				  + " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?2 OR ?2 = '')"
+				  + " JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country"
+				  + " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = ?1 OR ?1 = '')"
+				  + " JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id"
+				  + " JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = ?3 OR ?3 = '')"
+				  + " JOIN opportunity_timeline_history_t OTH"
+				  + " 	ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between ?6 and ?7"
+				  + " 	and OTH.updated_datetime between ?4 and ?5)"
+				  + " where OPP.digital_deal_value <> 0"
+				  + " order by OPP.digital_deal_value DESC limit ?8"
+				  ,nativeQuery=true)
+		  public List<OpportunityT> getTopOpportunities(String geography,String subSp,String iou,Date dateFrom,Date dateTo,int stageFrom,int stageTo,int count);
 }

@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -15,11 +16,14 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.bean.TopOpportunitiesReport;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PerformanceReportRepository;
 import com.tcs.destination.exception.NoSuchCurrencyException;
 import com.tcs.destination.utils.DateUtils;
@@ -32,6 +36,9 @@ public class PerformanceReportService {
 
 	@Autowired
 	private PerformanceReportRepository perfRepo;
+	
+	@Autowired
+	private OpportunityRepository oppRepo;
 
 	private static final BigDecimal ZERO_REVENUE = new BigDecimal("0.0");
 
@@ -287,6 +294,17 @@ public class PerformanceReportService {
 			geoRevenuesList.add(item);
 		}
 		return geoRevenuesList;
+	}
+	
+	public List<OpportunityT> getTopOpportunities(String currency,
+			String geography, int stageFrom, int stageTo, String subSp,
+			String iou, Date dateFrom, Date dateTo, int count) {
+
+		List<OpportunityT> topOppList = new ArrayList<OpportunityT>();
+		topOppList = oppRepo.getTopOpportunities(geography, subSp, iou,
+				dateFrom, dateTo, stageFrom, stageTo, count);
+		return topOppList;
+
 	}
 
 }
