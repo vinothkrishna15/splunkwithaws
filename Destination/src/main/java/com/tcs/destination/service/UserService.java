@@ -40,10 +40,29 @@ public class UserService {
 		return users;
 	}
 	
-	public Timestamp getUserNotification(String userId) {
+	public UserT findUserByName(String userName) throws Exception {
+		logger.debug("Inside findUserByName Service");
+		UserT user = null;
+		try {
+			user = userRepository.findByUserName(userName);
+		} catch (Exception e) {
+			logger.error("Error occured while retrieving user details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+		
+		if (user == null) {
+			logger.error("NOT_FOUND: No matching user found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found");
+		}			
+		return user;
+	}
+
+	public Timestamp getUserLastLogin(String userId) {
 		logger.debug("Inside getUserNotification Service");
-		LoginHistoryT userLastLoginHistory=loginHistoryRepository.findLastUpdatedTime(userId);
-		Timestamp lastLogin=userLastLoginHistory.getLoginDatetime();
+		Timestamp lastLogin = null;
+		LoginHistoryT loginHistory = loginHistoryRepository.findLastLoginByUserId(userId);
+		if (loginHistory != null)
+			lastLogin = loginHistory.getLoginDatetime();
 		return lastLogin;
 	}
 	
@@ -54,8 +73,8 @@ public class UserService {
 
 	public boolean addLoginHistory(LoginHistoryT loginHistory) {
 		logger.debug("Inside addLoginHistory Service");
-		LoginHistoryT loginHistory1=loginHistoryRepository.save(loginHistory);
-		if(loginHistory1 == null)
+		LoginHistoryT managedLoginHistory = loginHistoryRepository.save(loginHistory);
+		if(managedLoginHistory == null)
 		    return false;
 		else 
 			return true;

@@ -19,7 +19,6 @@ import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -54,29 +53,28 @@ public class UserDetailsController {
 	
 	@RequestMapping(value="/login", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getUserNotifications(
+			@RequestParam(value = "userName") String userName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		
 		    logger.debug("Inside UserDetailsController /User/login GET");
-		    Status status = new Status();
-		    status.setStatus(Status.FAILED, "");
-		    UserT user=DestinationUtils.getCurrentUserDetails();
-		    Timestamp lastLogin=userService.getUserNotification(user.getUserId());
-		    if(lastLogin == null)
-			{
-				throw new DestinationException(HttpStatus.NOT_FOUND,"No Previous Login History found for this User");
-			}
-		    user.setLastLogin(lastLogin);
-			LoginHistoryT loginHistory=new LoginHistoryT();
-			loginHistory.setUserId(user.getUserId());
-			if(!(userService.addLoginHistory(loginHistory)))
-			{
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Internal Server Error");
-			}
-			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews("all", "",
-							user), HttpStatus.OK);
+		    UserT user = userService.findUserByName(userName);
+		    if (user != null) {
+			    //Get Last Login Time
+		    	Timestamp lastLogin = userService.getUserLastLogin(user.getUserId());
+		    	if (lastLogin != null) 	
+				    user.setLastLogin(lastLogin);
+
+		    	//Save current login session
+		    	LoginHistoryT loginHistory = new LoginHistoryT();
+				loginHistory.setUserId(user.getUserId());
+				if (!userService.addLoginHistory(loginHistory)) {
+					throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not save Login History");
+				}
+		    }
+		    return new ResponseEntity<String>
+		    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, user), HttpStatus.OK);
 	   }
 
 }
