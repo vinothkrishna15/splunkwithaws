@@ -47,12 +47,12 @@ public class ConnectController {
 	 * @return connection details for the particular connection id.
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public @ResponseBody String ConnectSearchById(
+	public @ResponseBody String findConnectById(
 			@PathVariable("id") String connectId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside ConnectController /connect/id="+connectId+" GET");
-		ConnectT connect = connectService.searchforConnectsById(connectId);
+		ConnectT connect = connectService.findConnectById(connectId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connect);
 	}
 

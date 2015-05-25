@@ -923,7 +923,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.country = country;
 	}
 
-	@JsonIgnore
 	public List<SearchKeywordsT> getSearchKeywordsTs() {
 		return searchKeywordsTs;
 	}

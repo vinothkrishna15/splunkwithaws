@@ -24,6 +24,7 @@ import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.controller.DocumentController;
@@ -32,6 +33,7 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
+import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.exception.ConnectionNotFoundException;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoDataFoundException;
@@ -62,18 +64,26 @@ public class ConnectService {
 
 	@Autowired
 	DocumentRepository docRepo;
+	
+	@Autowired
+	SearchKeywordsRepository searchKeywordsRepository;
 
-	public ConnectT searchforConnectsById(String connectId) throws Exception {
+	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
         ConnectT connect = connectRepository.findByConnectId(connectId);
-        if (connect == null)
-		{
-			logger.error("NOT_FOUND: Connection information not available");
+        if (connect != null) {
+			//Add Search Keywords
+			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository.
+					findByEntityTypeAndEntityId(EntityType.CONNECT.toString(), connect.getConnectId());
+			if (searchKeywords != null && searchKeywords.size() > 0) {
+				connect.setSearchKeywordsTs(searchKeywords);
+			}
+        } else {
+			logger.error("NOT_FOUND: Connect not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connection information not available");
+					"Connect not found");
 		}
 		return connect;
-
 	}
 
 	public List<ConnectT> searchforConnectsByNameContaining(String name)
@@ -247,6 +257,16 @@ public class ConnectService {
 				logger.debug("ConnectTcsAccountContact Populated ");
 				} else {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,"conTcsAccConLinkTList null");
+				}
+
+				//Save Search Keywords
+				if (connect.getSearchKeywordsTs() != null) {
+					for (SearchKeywordsT searchKeywordT : connect
+							.getSearchKeywordsTs()) {
+						searchKeywordT.setEntityType(EntityType.CONNECT.toString());
+						searchKeywordT.setEntityId(connect.getConnectId());
+						searchKeywordsRepository.save(searchKeywordT);
+					}
 				}
 
 				if (connectRepository.save(connect) != null) {
@@ -497,6 +517,16 @@ public class ConnectService {
 			if (connect.getConnectOfferingLinkDeletionList() != null) {
 				deleteOfferings(connect.getConnectOfferingLinkDeletionList());
 				logger.debug("ConnectOfferingLinks deleted");
+			}
+
+			//Save Search Keywords
+			if (connect.getSearchKeywordsTs() != null) {
+				for (SearchKeywordsT searchKeywordT : connect
+						.getSearchKeywordsTs()) {
+					searchKeywordT.setEntityType(EntityType.CONNECT.toString());
+					searchKeywordT.setEntityId(connect.getConnectId());
+					searchKeywordsRepository.save(searchKeywordT);
+				}
 			}
 
 			if (connectRepository.save(connect) != null) {

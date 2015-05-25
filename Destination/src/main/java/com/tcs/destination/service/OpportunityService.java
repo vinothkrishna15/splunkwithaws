@@ -41,6 +41,7 @@ import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 
@@ -125,6 +126,43 @@ public class OpportunityService {
 				"No Relevent Data Found in the database");
 	}
 
+	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
+			String opportunityRole) throws Exception {
+		List<OpportunityT> opportunities = null;
+		logger.debug("Inside findOpportunitiesByOwnerAndRole Service");
+		if (OpportunityRole.contains(opportunityRole)) {
+			logger.debug("Opportunity Role is Present");
+			switch (OpportunityRole.valueOf(opportunityRole)) {
+			case PRIMARY_OWNER:
+				logger.debug("Primary Owner Found");
+				opportunities = 
+					opportunityRepository.findOpportunityTsByOwnerAndRole(userId, "", "");
+				break;
+			case SALES_SUPPORT:
+				logger.debug("Sales Support Found");
+				opportunities = 
+					opportunityRepository.findOpportunityTsByOwnerAndRole("", userId, "");
+				break;
+			case BID_OFFICE:
+				logger.debug("Bid Office Found");
+				opportunities = 
+					opportunityRepository.findOpportunityTsByOwnerAndRole("", "", userId);
+				break;
+			case ALL:
+				logger.debug("ALL Found");
+				opportunities = 
+					opportunityRepository.findOpportunityTsByOwnerAndRole(userId, userId, userId);
+				break;
+			}
+		} else {
+			logger.error("BAD_REQUEST: Invalid Opportunity Role");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Oppurtunity Role");
+		}
+		return validateAndReturnOpportunitesData(opportunities, true);
+		
+	}
+
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
 			String opportunityRole, Date fromDate, Date toDate)
 			throws Exception {
@@ -134,37 +172,30 @@ public class OpportunityService {
 			switch (OpportunityRole.valueOf(opportunityRole)) {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
-				System.out.println("Primary Owner");
 				return findForPrimaryOwner(opportunityOwner, true, fromDate,
 						toDate);
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
-				System.out.println("Sales Support");
 				return findForSalesSupport(opportunityOwner, true, fromDate,
 						toDate);
 			case BID_OFFICE:
 				logger.debug("Bid Office Found");
-				System.out.println("Bid office");
 				return findForBidOffice(opportunityOwner, true, fromDate,
 						toDate);
 			case ALL:
 				logger.debug("ALL Found");
-				System.out.println("All");
 				List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
 				opportunities.addAll(findForPrimaryOwner(opportunityOwner,
 						false, fromDate, toDate));
-				System.out.println("Primary " + opportunities.size());
 				opportunities.addAll(findForSalesSupport(opportunityOwner,
 						false, fromDate, toDate));
-				System.out.println("Sales Support " + opportunities.size());
 				opportunities.addAll(findForBidOffice(opportunityOwner, false,
 						fromDate, toDate));
-				System.out.println("Bid Office " + opportunities.size());
 				return validateAndReturnOpportunitesData(opportunities, true);
 			}
 			return null;
 		} else {
-			logger.error("BAD_REQUEST: Invalid Oppurtunity Role");
+			logger.error("BAD_REQUEST: Invalid Opportunity Role");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Oppurtunity Role");
 		}
@@ -185,7 +216,6 @@ public class OpportunityService {
 			List<OpportunityT> opportunities, boolean validate)
 			throws DestinationException {
 		logger.debug("validateAndReturnOpportunitesData");
-		System.out.println("Opportunity " + opportunities.size());
 		if (validate) {
 			if (opportunities.size() > 0) {
 				logger.debug("Opportunity List Is Present");
@@ -208,9 +238,6 @@ public class OpportunityService {
 		List<OpportunityT> opportunities = opportunityRepository
 				.findOpportunityTFromBidDetailsTFromBidOfficeGroupOwnerLinkTByUserId(
 						userId, fromDate, toDate);
-		for (OpportunityT opprtunity : opportunities) {
-			System.out.println("Name " + opprtunity.getOpportunityName());
-		}
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
@@ -229,13 +256,20 @@ public class OpportunityService {
 		logger.debug("Inside findByOpportunityId Service");
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
-		if (opportunity != null)
+		if (opportunity != null) {
+			//Add Search Keywords
+			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository.
+					findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.toString(), opportunity.getOpportunityId());
+			if (searchKeywords != null && searchKeywords.size() > 0) {
+				opportunity.setSearchKeywordsTs(searchKeywords);
+			}
 			return opportunity;
-		else
+		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty Id " + opportunityId + " Not Found");
+		}
 	}
-
+	
 	public void create(OpportunityT opportunity) throws Exception {
 		try {
 			if (opportunity != null) {
@@ -365,6 +399,7 @@ public class OpportunityService {
 		if (opportunity.getSearchKeywordsTs() != null) {
 			for (SearchKeywordsT searchKeywordT : opportunity
 					.getSearchKeywordsTs()) {
+				searchKeywordT.setEntityType(EntityType.OPPORTUNITY.toString());
 				searchKeywordT.setEntityId(opportunity.getOpportunityId());
 				searchKeywordsRepository.save(searchKeywordT);
 			}
@@ -379,7 +414,6 @@ public class OpportunityService {
 		}
 
 		return opportunityRepository.save(opportunity);
-		// System.out.println("Save Successful12345");
 	}
 
 	private void saveBaseObject(OpportunityT opportunity) throws Exception {

@@ -83,17 +83,14 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/taskOwner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
-			@RequestParam("id") String taskOwner,
+			@RequestParam("id") String userId,
 			@RequestParam(value = "role", defaultValue = "ALL") String opportunityRole,
-			@RequestParam(value="fromDate", defaultValue="1970-01-01") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
-			@RequestParam(value="toDate", defaultValue="2099-12-31") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
-				+ taskOwner + " GET");
-		List<OpportunityT> opportunities = opportunityService
-				.findByTaskOwnerForRole(taskOwner, opportunityRole,fromDate,toDate);
+				+ userId + " GET");
+		List<OpportunityT> opportunities = opportunityService.findOpportunitiesByOwnerAndRole(userId, opportunityRole);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						opportunities);
 	}

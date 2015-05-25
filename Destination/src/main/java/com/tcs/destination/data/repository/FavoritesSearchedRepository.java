@@ -13,7 +13,7 @@ import com.tcs.destination.bean.UserT;
 public interface FavoritesSearchedRepository extends
 		CrudRepository<UserFavoritesT, String> {
 	
-	List<UserFavoritesT> findByUserTAndEntityTypeIgnoreCase(UserT usert, String entityType,Pageable pageable);
+	List<UserFavoritesT> findByUserTAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(UserT usert, String entityType, Pageable pageable);
 	
 	UserFavoritesT findByCustomerIdAndUserId(String customerId,String userId);
 	
