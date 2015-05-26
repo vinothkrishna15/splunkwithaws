@@ -14,7 +14,9 @@ public interface PartnerRepository extends
 
 	List<PartnerMasterT> findByPartnerName(String partnername);
 
-	List<PartnerMasterT> findByPartnerNameIgnoreCaseLike(String partnername);
+	List<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(String partnername);
+
+	List<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(String startsWith);
 
 	@Query(value = "select * from partner_master_t p ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
 	List<PartnerMasterT> findRecent(int count);

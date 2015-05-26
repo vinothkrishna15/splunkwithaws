@@ -109,31 +109,37 @@ public class CustomerService {
 		return tarActResponseList;
 	}
 
-	public List<CustomerMasterT> findByNameContaining(String chars)
+	public List<CustomerMasterT> findByNameContaining(String nameWith)
 			throws Exception {
 		List<CustomerMasterT> custList = customerRepository
-				.findByCustomerNameIgnoreCaseLike("%" + chars + "%");
+				.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(nameWith);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No such Customer");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
 		}
 		return custList;
-
 	}
 
 	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName)
 			throws Exception {
 		logger.debug("Inside findByGroupCustomerName Service");
-		List<CustomerMasterT> custList = (List<CustomerMasterT>) customerRepository
-				.findByGroupCustomerNameIgnoreCaseLike("%" + groupCustName
-						+ "%");
+		List<CustomerMasterT> custList = customerRepository
+				.findByGroupCustomerNameIgnoreCaseContainingOrderByGroupCustomerNameAsc(groupCustName);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No such Customer");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
 		}
 		return custList;
 	}
 
+	public List<CustomerMasterT> findByNameStarting(String startsWith)
+			throws Exception {
+		List<CustomerMasterT> custList = customerRepository
+				.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(startsWith);
+		if (custList.isEmpty()) {
+			logger.error("NOT_FOUND: No such Customer");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
+		}
+		return custList;
+	}
 }

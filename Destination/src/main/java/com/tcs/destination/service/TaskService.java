@@ -54,10 +54,9 @@ public class TaskService {
 		logger.debug("Inside findTaskById Service");
 		TaskT task = taskRepository.findOne(taskId);
 
-		if (task == null)
-		{
+		if (task == null) {
 			logger.error("NOT_FOUND: No task found for the TaskId");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No task found for the TaskId");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Task found");
 		}
 		return task;
 	}
@@ -70,7 +69,7 @@ public class TaskService {
 	public List<TaskT> findTasksByNameContaining(String taskDescription) throws Exception {
 		logger.debug("Inside findTasksByNameContaining Service");
 		List<TaskT> taskList = taskRepository.
-				findByTaskDescriptionIgnoreCaseLike("%" + taskDescription + "%");
+				findByTaskDescriptionIgnoreCaseContaining(taskDescription);
 
 		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No tasks found with the given task description");

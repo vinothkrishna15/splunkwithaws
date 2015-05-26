@@ -39,7 +39,7 @@ public class FavoritesService {
 			if (userFavorites.isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
+						"No Favorites found");
 			}
 			return userFavorites;
 		} else {
@@ -128,7 +128,23 @@ public class FavoritesService {
 					favorites.setCustomerId(null);
 				}
 				break;
-				
+
+			case CONTACT:
+				logger.debug("Adding Favorites Contact");
+				if (favorites.getContactId() == null) {
+					logger.error("BAD_REQUEST: Contact ID can not be empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Contact ID can not be empty");
+				} else {
+					userFavoritesT = userFavRepository.findByContactIdAndUserId(favorites.getContactId(), favorites.getUserId());
+					favorites.setPartnerId(null);
+					favorites.setOpportunityId(null);
+					favorites.setConnectId(null);
+					favorites.setCustomerId(null);
+					favorites.setDocumentId(null);
+				}
+				break;
+
 			case TASK:
 				logger.debug("Adding Favorites Document");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -142,7 +158,6 @@ public class FavoritesService {
 						"The Entity has already been added to User Favorites");
 			} 
 			
-			favorites.setCreatedDatetime(DateUtils.getCurrentTimeStamp());
 			try {
 				logger.debug("Saving the UserFavorite");
 				return userFavRepository.save(favorites) != null;

@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -39,13 +41,22 @@ public class CustomerController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
-			@RequestParam("nameWith") String chars,
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
-		logger.debug("Inside CustomerController /customer?namewith="+chars+" GET");
-		List<CustomerMasterT> customer = customerService
-				.findByNameContaining(chars);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customer);
+		logger.debug("Inside CustomerController /customer?namewith="+nameWith+" GET");
+		List<CustomerMasterT> customers = null;
+		
+		if (!nameWith.isEmpty()) {
+			customers = customerService.findByNameContaining(nameWith);
+		} else if (!startsWith.isEmpty()) {
+			customers = customerService.findByNameStarting(startsWith);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Either nameWith / startsWith is required");
+		}
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, customers);
+		
 	}
 
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)

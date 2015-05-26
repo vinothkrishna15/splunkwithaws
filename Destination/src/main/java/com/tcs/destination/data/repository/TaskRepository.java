@@ -29,7 +29,7 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	 * @param taskDescription
 	 * @return tasks with the given task description.
 	 */
-	List<TaskT> findByTaskDescriptionIgnoreCaseLike(String taskDescription);
+	List<TaskT> findByTaskDescriptionIgnoreCaseContaining(String taskDescription);
 
 	/**
 	 * Finds all the tasks for the given opportunity id.

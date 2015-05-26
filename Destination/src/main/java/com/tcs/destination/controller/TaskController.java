@@ -65,12 +65,12 @@ public class TaskController {
 	 */
 	@RequestMapping(method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksWithName(
-			@RequestParam(value="nameWith") String chars,
+			@RequestParam(value="nameWith") String nameWith,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
-		logger.debug("Inside TaskController /task?nameWith="+chars+" GET");
-		List<TaskT> taskList = taskService.findTasksByNameContaining(chars);
+		logger.debug("Inside TaskController /task?nameWith="+nameWith+" GET");
+		List<TaskT> taskList = taskService.findTasksByNameContaining(nameWith);
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}

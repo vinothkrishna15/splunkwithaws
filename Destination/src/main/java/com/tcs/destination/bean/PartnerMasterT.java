@@ -70,6 +70,7 @@ public class PartnerMasterT implements Serializable {
 
 	// bi-directional many-to-one association to ContactT
 	@OneToMany(mappedBy = "partnerMasterT")
+	@OrderBy("contact_name ASC")
 	private List<ContactT> contactTs;
 
 	// bi-directional many-to-one association to DocumentRepositoryT

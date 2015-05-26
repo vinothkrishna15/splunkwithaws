@@ -35,13 +35,23 @@ public class PartnerService {
 		return partner;
 	}
 
-	public List<PartnerMasterT> findByNameContaining(String chars) throws Exception {
+	public List<PartnerMasterT> findByNameContaining(String nameWith) throws Exception {
 		logger.debug("Inside findByNameContaining Service");
-		List<PartnerMasterT> partners=partnerRepository.findByPartnerNameIgnoreCaseLike("%" + chars
-				+ "%");
+		List<PartnerMasterT> partners = partnerRepository.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(nameWith);
 		
-		if(partners.isEmpty())
-		 {
+		if (partners.isEmpty()) {
+			 logger.error("NOT_FOUND: No Partners found");
+			 throw new DestinationException(HttpStatus.NOT_FOUND,"No Partners found");
+		 }
+		 return partners;
+	}
+
+	public List<PartnerMasterT> findByNameStarting(String startsWith) throws Exception {
+		logger.debug("Inside findByNameContaining Service");
+		List<PartnerMasterT> partners = partnerRepository.
+				findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(startsWith);
+		
+		if (partners.isEmpty()) {
 			 logger.error("NOT_FOUND: No Partners found");
 			 throw new DestinationException(HttpStatus.NOT_FOUND,"No Partners found");
 		 }

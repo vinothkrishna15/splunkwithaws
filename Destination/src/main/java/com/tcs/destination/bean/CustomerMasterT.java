@@ -77,6 +77,7 @@ public class CustomerMasterT implements Serializable {
 
 	// bi-directional many-to-one association to ContactT
 	@OneToMany(mappedBy = "customerMasterT")
+	@OrderBy("contact_name ASC")
 	private List<ContactT> contactTs;
 
 	// bi-directional many-to-one association to GeographyMappingT
