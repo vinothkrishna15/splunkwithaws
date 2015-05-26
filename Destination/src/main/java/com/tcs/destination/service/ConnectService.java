@@ -183,7 +183,7 @@ public class ConnectService {
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();		
 		connect.setCreatedModifiedBy(currentUserId);
-		connect.setCreatedModifiedDatetime(currentTimeStamp);
+		//connect.setCreatedModifiedDatetime(currentTimeStamp);
 		logger.debug("Connect Insert - user : " + currentUserId);
 		logger.debug("Connect Insert - timestamp : " + currentTimeStamp);
 
@@ -211,7 +211,7 @@ public class ConnectService {
 
 				List<NotesT> noteList = connect.getNotesTs();
 				if(noteList!=null)
-				populateNotes(currentTimeStamp, currentUserId, customerId,
+				populateNotes(currentUserId, customerId,
 						partnerId, categoryUpperCase, connectId, noteList);
 				logger.debug("Notes Populated ");
 				
@@ -219,7 +219,7 @@ public class ConnectService {
 						.getConnectCustomerContactLinkTs();
 				if(conCustConLinkTList!=null){
 				populateConnectCustomerContactLinks(currentUserId,
-						currentTimeStamp, connectId, conCustConLinkTList);
+						connectId, conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
 				} else {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,"conCustConLinkTList null");
@@ -228,7 +228,7 @@ public class ConnectService {
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
 						.getConnectOfferingLinkTs();
 				if(conOffLinkTList!=null){
-				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
+				populateConnectOfferingLinks(currentUserId,
 						connectId, conOffLinkTList);
 				logger.debug("ConnectOffering Populated ");
 				}
@@ -236,7 +236,7 @@ public class ConnectService {
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 						.getConnectSubSpLinkTs();
 				if(conSubSpLinkTList!=null){
-				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
+				populateConnectSubSpLinks(currentUserId,
 						connectId, conSubSpLinkTList);
 				logger.debug("ConnectSubSp Populated ");
 				}
@@ -245,7 +245,7 @@ public class ConnectService {
 						.getConnectSecondaryOwnerLinkTs();
 				if(conSecOwnLinkTList!=null){
 				populateConnectSecondaryOwnerLinks(currentUserId,
-						currentTimeStamp, connectId, conSecOwnLinkTList);
+						connectId, conSecOwnLinkTList);
 				logger.debug("ConnectSecondaryOwner Populated ");
 				} 
 				
@@ -253,7 +253,7 @@ public class ConnectService {
 						.getConnectTcsAccountContactLinkTs();
 				if(conTcsAccConLinkTList!=null){
 				populateConnectTcsAccountContactLinks(currentUserId,
-						currentTimeStamp, connectId, conTcsAccConLinkTList);
+						connectId, conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
 				} else {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,"conTcsAccConLinkTList null");
@@ -316,65 +316,60 @@ public class ConnectService {
 	}
 
 	private void populateConnectTcsAccountContactLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			 String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList) throws Exception{
 		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			conTcsAccConLink.setCreatedModifiedBy(currentUserId);
-			conTcsAccConLink.setCreatedModifiedDatetime(currentTimeStamp);
 			conTcsAccConLink.setConnectId(connectId);
 		}
 
 	}
 
 	private void populateConnectSecondaryOwnerLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			 String connectId,
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
 		logger.debug("Inside populateConnectSecondaryOwnerLinks Service");
 		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
 			conSecOwnLink.setCreatedModifiedBy(currentUserId);
-			conSecOwnLink.setCreatedModifiedDatetime(currentTimeStamp);
 			conSecOwnLink.setConnectId(connectId);
 		}
 
 	}
 
 	private void populateConnectSubSpLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			 String connectId,
 			List<ConnectSubSpLinkT> conSubSpLinkTList) {
 		logger.debug("Inside populateConnectSubSpLinks Service");
 		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
 			conSubSpLink.setConnectId(connectId);
 			conSubSpLink.setCreatedModifiedBy(currentUserId);
-			conSubSpLink.setCreatedModifiedDatetime(currentTimeStamp);
 		}
 
 	}
 
 	private void populateConnectOfferingLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			 String connectId,
 			List<ConnectOfferingLinkT> conOffLinkTList) {
 		logger.debug("Inside populateConnectOfferingLinks Service");
 		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
 			conOffLink.setCreatedModifiedBy(currentUserId);
-			conOffLink.setCreatedModifiedDatetime(currentTimeStamp);
 			conOffLink.setConnectId(connectId);
 		}
 
 	}
 
 	private void populateConnectCustomerContactLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			String connectId,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
 		logger.debug("Inside populateConnectCustomerContactLinks service");
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
 			conCustConLink.setCreatedModifiedBy(currentUserId);
-			conCustConLink.setCreatedModifiedDatetime(currentTimeStamp);
 			conCustConLink.setConnectId(connectId);
 		}
 	}
 
-	private void populateNotes(Timestamp currentTimeStamp,
+	private void populateNotes(
 			String currentUserId, String customerId, String partnerId,
 			String categoryUpperCase, String connectId, List<NotesT> noteList) {
 		logger.debug("Inside populateNotes service");
@@ -383,7 +378,6 @@ public class ConnectService {
 			UserT user = new UserT();
 			user.setUserId(currentUserId);
 			note.setUserT(user);
-			note.setCreatedDatetime(currentTimeStamp);
 			note.setConnectId(connectId);
 
 			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
@@ -438,7 +432,6 @@ public class ConnectService {
 		String currentUserId = currentUser.getUserId();
 
 		connect.setCreatedModifiedBy(currentUserId);
-		connect.setCreatedModifiedDatetime(currentTimeStamp);
 		logger.debug("Connect Edit - user : " + currentUserId);
 		logger.debug("Connect Edit - timestamp : " + currentTimeStamp);
 		
@@ -454,11 +447,9 @@ public class ConnectService {
 			
 			String customerId = connect.getCustomerId();
 			String partnerId = connect.getPartnerId();
-			// populateNotes(currentTimeStamp,currentUserId,categoryUpperCase,connectId,
-			// noteList,connect);
 			List<NotesT> noteList = connect.getNotesTs();
 			if (noteList != null)
-				populateNotes(currentTimeStamp, currentUserId, customerId,
+				populateNotes(currentUserId, customerId,
 						partnerId, categoryUpperCase, connectId, noteList);
 			logger.debug("Notes Populated");
 
@@ -466,20 +457,20 @@ public class ConnectService {
 					.getConnectCustomerContactLinkTs();
 			if (conCustConLinkTList != null)
 				populateConnectCustomerContactLinks(currentUserId,
-						currentTimeStamp, connectId, conCustConLinkTList);
+						connectId, conCustConLinkTList);
 			logger.debug("ConnectCustomerContact Populated");
 
 			List<ConnectOfferingLinkT> conOffLinkTList = connect
 					.getConnectOfferingLinkTs();
 			if (conOffLinkTList != null)
-				populateConnectOfferingLinks(currentUserId, currentTimeStamp,
+				populateConnectOfferingLinks(currentUserId,
 						connectId, conOffLinkTList);
 			logger.debug("ConnectOffering Populated");
 			
 			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 					.getConnectSubSpLinkTs();
 			if (conSubSpLinkTList != null)
-				populateConnectSubSpLinks(currentUserId, currentTimeStamp,
+				populateConnectSubSpLinks(currentUserId,
 						connectId, conSubSpLinkTList);
 			logger.debug("ConnectSubSp Populated");
 			
@@ -487,26 +478,26 @@ public class ConnectService {
 					.getConnectSecondaryOwnerLinkTs();
 			if (conSecOwnLinkTList != null)
 				populateConnectSecondaryOwnerLinks(currentUserId,
-						currentTimeStamp, connectId, conSecOwnLinkTList);
+						connectId, conSecOwnLinkTList);
 			logger.debug("ConnectSecondaryOwner Populated");
 
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 					.getConnectTcsAccountContactLinkTs();
 			if (conTcsAccConLinkTList != null)
 				populateConnectTcsAccountContactLinks(currentUserId,
-						currentTimeStamp, connectId, conTcsAccConLinkTList);
+						connectId, conTcsAccConLinkTList);
 			logger.debug("ConnectTcsAccountContact Populated");
 
 			List<TaskT> taskList = connect.getTaskTs();
 			if (taskList != null)
-				populateTasks(currentUserId, currentTimeStamp, connectId,
+				populateTasks(currentUserId, connectId,
 						taskList);
 			logger.debug("task Populated");
 
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
 					.getConnectOpportunityLinkIdTs();
 			if (conOppLinkIdTList != null)
-				populateOppLinks(currentUserId, currentTimeStamp, connectId,
+				populateOppLinks(currentUserId, connectId,
 						conOppLinkIdTList);
 			logger.debug("ConnectOpportunity Populated");
 
@@ -557,23 +548,21 @@ public class ConnectService {
 	}
 
 	private void populateOppLinks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId,
+			String connectId,
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList) {
 		logger.debug("Inside populateOppLinks Service");
 		for (ConnectOpportunityLinkIdT conOppLinkId : conOppLinkIdTList) {
 			conOppLinkId.setCreatedModifiedBy(currentUserId);
-			conOppLinkId.setCreatedModifiedDatetime(currentTimeStamp);
 			conOppLinkId.setConnectId(connectId);
 		}
 
 	}
 
 	private void populateTasks(String currentUserId,
-			Timestamp currentTimeStamp, String connectId, List<TaskT> taskList) {
+			String connectId, List<TaskT> taskList) {
 		logger.debug("Inside populateTasks Service");
 		for (TaskT task : taskList) {
 			task.setCreatedModifiedBy(currentUserId);
-			task.setCreatedModifiedDatetime(currentTimeStamp);
 			task.setConnectId(connectId);
 		}
 
