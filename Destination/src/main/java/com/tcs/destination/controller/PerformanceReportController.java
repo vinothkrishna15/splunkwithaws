@@ -137,6 +137,7 @@ public class PerformanceReportController {
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/topopps")
 	public @ResponseBody String getTopOpportunities(
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
@@ -148,19 +149,26 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-
-		if (quarter != null && !quarter.isEmpty()) {
-			Date startDate = DateUtils.getDateFromQuarter(quarter, true);
-			Date endDate = DateUtils.getDateFromQuarter(quarter, false);
+		Date startDate,endDate;
+		if (financialYear.isEmpty() && quarter.isEmpty()) {
+			financialYear = DateUtils.getCurrentFinancialYear();
+			startDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+			endDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+		} else if(financialYear.isEmpty() && !quarter.isEmpty()) {
+			startDate = DateUtils.getDateFromQuarter(quarter, true);
+			endDate = DateUtils.getDateFromQuarter(quarter, false);
+		} else if(!financialYear.isEmpty() && quarter.isEmpty()){
+			startDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+			endDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Request - year and quarter cannot be set together");
+		}
 			List<OpportunityT> oppList = perfService.getTopOpportunities(
 					currency, geography, salesStageFrom, salesStageTo,
 					serviceLine, iou, startDate, endDate, count);
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, oppList);
-		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Quarter");
-		}
+		
 	}
 	
 }

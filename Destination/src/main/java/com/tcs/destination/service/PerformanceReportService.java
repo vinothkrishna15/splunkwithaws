@@ -19,7 +19,6 @@ import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.bean.TopOpportunitiesReport;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
