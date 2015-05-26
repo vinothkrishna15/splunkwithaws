@@ -75,8 +75,7 @@ public interface OpportunityRepository extends
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and "
 			+ "(ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code = 9	and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate)", nativeQuery = true)
 	List<Object[]> findWinsPerformance(@Param("geography") String geography,
 			@Param("iou") String iou, @Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
@@ -87,6 +86,143 @@ public interface OpportunityRepository extends
 			+ "(select opportunity_id from opportunity_sales_support_link_t where sales_support_owner = ?2) union "
 			+ "(select opportunity_id from bid_details_t BDT where BDT.bid_id in "
 			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner= ?3))) "
-			+ "order by OPP.created_modified_datetime desc", nativeQuery = true) 
-	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner, String salesSupportOwner, String bidOfficeOwner);
+			+ "order by OPP.created_modified_datetime desc", nativeQuery = true)
+	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner,
+			String salesSupportOwner, String bidOfficeOwner);
+
+	@Query(value = "select OTH.sales_stage_code as SalesStage, count(*) as Bids, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "where OPP.digital_deal_value <> 0 group by SalesStage order by SalesStage", nativeQuery = true)
+	List<Object[]> findPipelinePerformanceBySalesStage(
+			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("serviceLine") String serviceLine,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select ICMT.display_iou, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "where OPP.digital_deal_value <> 0 group by ICMT.display_iou order by ICMT.display_iou", nativeQuery = true)
+	List<Object[]> findPipelinePerformanceByIOU(
+			@Param("geography") String geography,
+			@Param("serviceLine") String serviceLine,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select ICMT.display_iou, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by ICMT.display_iou order by ICMT.display_iou", nativeQuery = true)
+	List<Object[]> findWinsPerformanceByIOU(
+			@Param("geography") String geography,
+			@Param("serviceLine") String serviceLine,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "where OPP.digital_deal_value <> 0 group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
+	List<Object[]> findPipelinePerformanceByServiceLine(
+			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
+			+ "(:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and "
+			+ "(ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
+	List<Object[]> findWinsPerformanceByServiceLine(
+			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select GMT.display_geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "where OPP.digital_deal_value <> 0 group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
+	List<Object[]> findPipelinePerformanceByGeography(
+			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select GMT.display_geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
+			+ "(:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and "
+			+ "(ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
+	List<Object[]> findWinsPerformanceByGeography(
+			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select GMT.geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '')"
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name= (:customerName) OR (:customerName)='')"
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "where OPP.digital_deal_value <> 0 group by GMT.geography order by GMT.geography", nativeQuery = true)
+	List<Object[]> findPipelinePerformanceBySubGeography(
+			@Param("customerName") String customerName,
+			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
+			@Param("geography") String geography,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select GMT.geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
+			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '')"
+			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name= (:customerName) OR (:customerName)='')"
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by GMT.geography order by GMT.geography", nativeQuery = true)
+	List<Object[]> findWinsPerformanceBySubGeography(
+			@Param("customerName") String customerName,
+			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
+			@Param("geography") String geography,
+			@Param("currency") String currency,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 }
