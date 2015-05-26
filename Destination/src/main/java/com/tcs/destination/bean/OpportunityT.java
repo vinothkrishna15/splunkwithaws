@@ -126,6 +126,10 @@ public class OpportunityT implements Serializable, Cloneable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
+	//bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy="opportunityT")
+	private List<CommentsT> commentsTs;
+	
 	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
@@ -443,6 +447,28 @@ public class OpportunityT implements Serializable, Cloneable {
 		collaborationCommentT.setOpportunityT(null);
 
 		return collaborationCommentT;
+	}
+
+	public List<CommentsT> getCommentsTs() {
+		return this.commentsTs;
+	}
+
+	public void setCommentsTs(List<CommentsT> commentsTs) {
+		this.commentsTs = commentsTs;
+	}
+
+	public CommentsT addCommentsT(CommentsT commentsT) {
+		getCommentsTs().add(commentsT);
+		commentsT.setOpportunityT(this);
+
+		return commentsT;
+	}
+
+	public CommentsT removeCommentsT(CommentsT commentsT) {
+		getCommentsTs().remove(commentsT);
+		commentsT.setOpportunityT(null);
+
+		return commentsT;
 	}
 
 	public List<ConnectOpportunityLinkIdT> getConnectOpportunityLinkIdTs() {

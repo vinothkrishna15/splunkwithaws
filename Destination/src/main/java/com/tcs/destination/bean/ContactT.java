@@ -93,9 +93,10 @@ public class ContactT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="partner_id")
 	private PartnerMasterT partnerMasterT;
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	
+	@ManyToOne
+	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
 
 	//bi-directional many-to-one association to OpportunityCustomerContactLinkT
 	@OneToMany(mappedBy="contactT")

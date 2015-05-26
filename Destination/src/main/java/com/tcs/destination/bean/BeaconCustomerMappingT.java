@@ -32,11 +32,17 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	//bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
+	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name", 
+		insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
-	// bi-directional many-to-one association to BeaconDataT
-	@OneToMany(mappedBy = "beaconCustomerMappingT")
+	//bi-directional many-to-one association to GeographyMappingT
+	@ManyToOne
+	@JoinColumn(name="customer_geography", insertable = false, updatable = false)
+	private GeographyMappingT geographyMappingT;
+
+	//bi-directional many-to-one association to BeaconDataT
+	@OneToMany(mappedBy="beaconCustomerMappingT")
 	private List<BeaconDataT> beaconDataTs;
 
 	public BeaconCustomerMappingT() {
@@ -56,6 +62,14 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
 		this.customerMasterT = customerMasterT;
+	}
+
+	public GeographyMappingT getGeographyMappingT() {
+		return this.geographyMappingT;
+	}
+
+	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
+		this.geographyMappingT = geographyMappingT;
 	}
 
 	public List<BeaconDataT> getBeaconDataTs() {

@@ -36,6 +36,10 @@ public class IouCustomerMappingT implements Serializable {
 	@Column(name = "display_iou")
 	private String displayIou;
 
+	//bi-directional many-to-one association to ActualRevenuesDataT
+	@OneToMany(mappedBy="iouCustomerMappingT")
+	private List<ActualRevenuesDataT> actualRevenuesDataTs;
+
 	//bi-directional many-to-one association to CustomerMasterT
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
@@ -57,6 +61,28 @@ public class IouCustomerMappingT implements Serializable {
 
 	public void setDisplayIou(String displayIou) {
 		this.displayIou = displayIou;
+	}
+
+	public List<ActualRevenuesDataT> getActualRevenuesDataTs() {
+		return this.actualRevenuesDataTs;
+	}
+
+	public void setActualRevenuesDataTs(List<ActualRevenuesDataT> actualRevenuesDataTs) {
+		this.actualRevenuesDataTs = actualRevenuesDataTs;
+	}
+
+	public ActualRevenuesDataT addActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+		getActualRevenuesDataTs().add(actualRevenuesDataT);
+		actualRevenuesDataT.setIouCustomerMappingT(this);
+
+		return actualRevenuesDataT;
+	}
+
+	public ActualRevenuesDataT removeActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+		getActualRevenuesDataTs().remove(actualRevenuesDataT);
+		actualRevenuesDataT.setIouCustomerMappingT(null);
+
+		return actualRevenuesDataT;
 	}
 
 	public List<CustomerMasterT> getCustomerMasterTs() {

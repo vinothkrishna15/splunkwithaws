@@ -66,6 +66,10 @@ public class CustomerMasterT implements Serializable {
 	@OneToMany(mappedBy="customerMasterT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
 
+	//bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy="customerMasterT")
+	private List<CommentsT> commentsTs;
+	
 	//bi-directional many-to-one association to ConnectT
 	@OneToMany(mappedBy="customerMasterT")
 	@OrderBy("start_datetime_of_connect DESC")
@@ -85,10 +89,11 @@ public class CustomerMasterT implements Serializable {
 	@JoinColumn(name = "iou", insertable = false, updatable = false)
 	private IouCustomerMappingT iouCustomerMappingT;
 
-//bi-directional many-to-one association to UserT
-@ManyToOne
-@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
-private UserT createdModifiedByUser;
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+	private UserT createdModifiedByUser;
+	
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
@@ -212,6 +217,28 @@ private UserT createdModifiedByUser;
 		beaconCustomerMappingT.setCustomerMasterT(null);
 
 		return beaconCustomerMappingT;
+	}
+
+	public List<CommentsT> getCommentsTs() {
+		return this.commentsTs;
+	}
+
+	public void setCommentsTs(List<CommentsT> commentsTs) {
+		this.commentsTs = commentsTs;
+	}
+
+	public CommentsT addCommentsT(CommentsT commentsT) {
+		getCommentsTs().add(commentsT);
+		commentsT.setCustomerMasterT(this);
+
+		return commentsT;
+	}
+
+	public CommentsT removeCommentsT(CommentsT commentsT) {
+		getCommentsTs().remove(commentsT);
+		commentsT.setCustomerMasterT(null);
+
+		return commentsT;
 	}
 
 	public List<ConnectT> getConnectTs() {

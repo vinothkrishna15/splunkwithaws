@@ -42,6 +42,9 @@ public class UserGeneralSettingsT implements Serializable {
 	@Column(name="missed_update_reminder")
 	private String missedUpdateReminder;
 
+	@Column(name="push_subscribed")
+	private String pushSubscribed;
+
 	private String theme;
 
 	@Column(name="widget_order")
@@ -98,6 +101,14 @@ public class UserGeneralSettingsT implements Serializable {
 
 	public void setMissedUpdateReminder(String missedUpdateReminder) {
 		this.missedUpdateReminder = missedUpdateReminder;
+	}
+
+	public String getPushSubscribed() {
+		return this.pushSubscribed;
+	}
+
+	public void setPushSubscribed(String pushSubscribed) {
+		this.pushSubscribed = pushSubscribed;
 	}
 
 	public String getTheme() {
