@@ -84,7 +84,7 @@ public class CustomerService {
 					beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
 			for (Object[] target : targetList) {
 				if (target[0].toString().equals(response.getQuarter())) {
-					logger.debug("Tatget Equals Quarter");
+					logger.debug("Target Equals Quarter");
 					response.setTarget(new BigDecimal(target[1].toString())
 							.divide(beacon.getConversionRate(), 2,
 									RoundingMode.HALF_UP));

@@ -36,5 +36,22 @@ public interface CustomerRepository extends
 
 //	@Query(value = "update customer_master_t set logo = ?1  where customer_id=?2", nativeQuery = true)
 //	void addImage(byte[] imageBytes, String id);
+	
+	@Query(value="select ART.quarter,sum(ART.revenue) as actual from ACTUAL_REVENUES_DATA_T ART,REVENUE_CUSTOMER_MAPPING_T RCM where ART.financial_year like (?1) "
+			+ "and ART.finance_customer_name = RCM.finance_customer_name and (ART.QUARTER= (?2) or (?2)  = '') "
+			+ "and RCM.customer_name in (select CMT.customer_name from customer_master_t CMT "
+			+ "where ( CMT.geography in (select geography from geography_mapping_t where (display_geography= (?3) OR (?3) =''))) "
+			+ "and CMT.iou in (select iou from iou_customer_mapping_t where (display_iou= (?5) OR (?5) ='')) "
+			+ "and CMT.customer_id in (select customer_id from opportunity_t OPP "
+			+ "where OPP.opportunity_id in (select opportunity_id from opportunity_sub_sp_link_t "
+			+ "where sub_sp in (select sub_sp from sub_sp_mapping_t where (display_sub_sp= (?4) OR (?4) ='')))) "
+			+ "and (CMT.customer_id = (?6) OR (?6) ='')) group by ART.QUARTER", nativeQuery=true)
+	List<Object[]> findActualRevenue(
+			String financialYear,
+			String quarter,
+			String geography,
+			String serviceLine, 
+			String iou,
+			String customerId);
 
 }

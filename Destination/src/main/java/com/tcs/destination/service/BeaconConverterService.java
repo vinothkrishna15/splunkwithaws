@@ -17,33 +17,34 @@ public class BeaconConverterService {
 
 	@Autowired
 	BeaconConvertorRepository converterRepository;
-	
-	public BigDecimal convert(String base,String target,double value) throws DestinationException{
-		
+
+	public BigDecimal convert(String base, String target, double value)
+			throws DestinationException {
+
 		BigDecimal sourceVal = BigDecimal.valueOf(value);
 		BigDecimal convertedVal = null;
-		Status status=new Status();
+		Status status = new Status();
 		status.setStatus("FAILED", "Currency Conversion Failed");
-		if(!base.equalsIgnoreCase("INR")){
-			BeaconConvertorMappingT converterBase = converterRepository.findByCurrencyName(base);
-			if(converterBase != null)
+		BeaconConvertorMappingT converterBase = converterRepository
+				.findByCurrencyName(base);
+		if (converterBase != null)
 			sourceVal = converterBase.getConversionRate().multiply(sourceVal);
-			else
-				throw new DestinationException(HttpStatus.NOT_FOUND,"Currency Type "+base+" Not Found");
-		}
-		
-		BeaconConvertorMappingT converterTarget = converterRepository.findByCurrencyName(target);
-		if(converterTarget != null)
-		{
-		convertedVal = sourceVal.divide(converterTarget.getConversionRate(),2, RoundingMode.HALF_UP); 
-		 status.setStatus("SUCCESS", convertedVal.toString());
-		}
 		else
-		{
-			throw new DestinationException(HttpStatus.NOT_FOUND,"Currency Type "+target+" Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Currency Type " + base + " Not Found");
+
+		BeaconConvertorMappingT converterTarget = converterRepository
+				.findByCurrencyName(target);
+		if (converterTarget != null) {
+			convertedVal = sourceVal.divide(
+					converterTarget.getConversionRate(), 2,
+					RoundingMode.HALF_UP);
+			status.setStatus("SUCCESS", convertedVal.toString());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Currency Type " + target + " Not Found");
 		}
 		return convertedVal;
 	}
-	
-	
+
 }
