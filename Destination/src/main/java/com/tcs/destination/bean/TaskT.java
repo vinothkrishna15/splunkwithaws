@@ -74,6 +74,10 @@ public class TaskT implements Serializable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
+	//bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy="taskT")
+	private List<CommentsT> commentsTs;
+	
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "taskT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
@@ -124,6 +128,7 @@ public class TaskT implements Serializable {
 	@Transient
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList;
 
+	//bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "taskT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
@@ -225,6 +230,28 @@ public class TaskT implements Serializable {
 		collaborationCommentT.setTaskT(null);
 
 		return collaborationCommentT;
+	}
+
+	public List<CommentsT> getCommentsTs() {
+		return this.commentsTs;
+	}
+
+	public void setCommentsTs(List<CommentsT> commentsTs) {
+		this.commentsTs = commentsTs;
+	}
+
+	public CommentsT addCommentsT(CommentsT commentsT) {
+		getCommentsTs().add(commentsT);
+		commentsT.setTaskT(this);
+
+		return commentsT;
+	}
+
+	public CommentsT removeCommentsT(CommentsT commentsT) {
+		getCommentsTs().remove(commentsT);
+		commentsT.setTaskT(null);
+
+		return commentsT;
 	}
 
 	public List<DocumentRepositoryT> getDocumentRepositoryTs() {

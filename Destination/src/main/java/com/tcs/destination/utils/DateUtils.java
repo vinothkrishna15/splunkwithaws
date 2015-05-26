@@ -103,8 +103,9 @@ public class DateUtils {
 				cal.set(Calendar.MONTH, Calendar.MARCH);
 				cal.set(Calendar.DATE,
 						cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+				setEndHourMinuteSec(cal);
 			}
-			setEndHourMinuteSec(cal);
+			
 			return cal.getTime();
 		} catch (Exception e) {
 			logger.error("Exception in Financial Year Format " + e);

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.ReportsOpportunity;
 import com.tcs.destination.bean.ReportsSalesStage;
 import com.tcs.destination.bean.SalesStageMappingT;
@@ -32,8 +33,6 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchCurrencyException;
 import com.tcs.destination.utils.DateUtils;
 
-import freemarker.template.utility.DateUtil;
-
 @Component
 public class PerformanceReportService {
 
@@ -42,6 +41,9 @@ public class PerformanceReportService {
 
 	@Autowired
 	private PerformanceReportRepository perfRepo;
+
+	@Autowired
+	private OpportunityRepository opportunityRepository;
 
 	private static final BigDecimal ZERO_REVENUE = new BigDecimal("0.0");
 
@@ -53,9 +55,6 @@ public class PerformanceReportService {
 
 	@Autowired
 	BeaconConvertorRepository beaconRepository;
-
-	@Autowired
-	OpportunityRepository opportunityRepository;
 
 	@Autowired
 	SalesStageMappingRepository salesStageMappingRepository;
@@ -305,6 +304,17 @@ public class PerformanceReportService {
 		return geoRevenuesList;
 	}
 
+	public List<OpportunityT> getTopOpportunities(String currency,
+			String geography, int stageFrom, int stageTo, String subSp,
+			String iou, Date dateFrom, Date dateTo, int count) {
+
+		List<OpportunityT> topOppList = new ArrayList<OpportunityT>();
+		topOppList = opportunityRepository.getTopOpportunities(geography, subSp, iou,
+				dateFrom, dateTo, stageFrom, stageTo, count);
+		return topOppList;
+
+	}
+
 	public ReportsOpportunity getOpportunity(String financialYear,
 			String quarter, String geography, String iou, String serviceLine,
 			String currency, boolean pipelines) throws DestinationException {
@@ -545,12 +555,14 @@ public class PerformanceReportService {
 		List<Object[]> opportunitiesByGeographyReports = null;
 		if (isPipeline) {
 			opportunitiesByGeographyReports = opportunityRepository
-					.findPipelinePerformanceBySubGeography( customerName, serviceLine, iou, geography,
-							currency,fromDate,toDate);
+					.findPipelinePerformanceBySubGeography(customerName,
+							serviceLine, iou, geography, currency, fromDate,
+							toDate);
 		} else {
 			opportunitiesByGeographyReports = opportunityRepository
-					.findWinsPerformanceBySubGeography(customerName, serviceLine, iou, geography,
-							currency,fromDate,toDate);
+					.findWinsPerformanceBySubGeography(customerName,
+							serviceLine, iou, geography, currency, fromDate,
+							toDate);
 		}
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {

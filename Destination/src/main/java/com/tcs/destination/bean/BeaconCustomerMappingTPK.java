@@ -21,7 +21,7 @@ public class BeaconCustomerMappingTPK implements Serializable {
 	@Column(name = "beacon_customer_name")
 	private String beaconCustomerName;
 
-	@Column(name = "customer_geography")
+	@Column(name="customer_geography", insertable=false, updatable=false)
 	private String customerGeography;
 
 	public BeaconCustomerMappingTPK() {
@@ -50,9 +50,10 @@ public class BeaconCustomerMappingTPK implements Serializable {
 		if (!(other instanceof BeaconCustomerMappingTPK)) {
 			return false;
 		}
-		BeaconCustomerMappingTPK castOther = (BeaconCustomerMappingTPK) other;
-		return this.beaconCustomerName.equals(castOther.beaconCustomerName)
-				&& this.customerGeography.equals(castOther.customerGeography);
+		BeaconCustomerMappingTPK castOther = (BeaconCustomerMappingTPK)other;
+		return 
+			this.beaconCustomerName.equals(castOther.beaconCustomerName)
+			&& this.customerGeography.equals(castOther.customerGeography);
 	}
 
 	public int hashCode() {

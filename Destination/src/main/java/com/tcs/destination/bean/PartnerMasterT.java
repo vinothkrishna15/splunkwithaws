@@ -59,6 +59,10 @@ public class PartnerMasterT implements Serializable {
 
 	private String website;
 
+	//bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<CommentsT> commentsTs;
+
 	// bi-directional many-to-one association to ConnectT
 	@OneToMany(mappedBy = "partnerMasterT")
 	@OrderBy("start_datetime_of_connect DESC")
@@ -167,6 +171,28 @@ public class PartnerMasterT implements Serializable {
 
 	public void setWebsite(String website) {
 		this.website = website;
+	}
+
+	public List<CommentsT> getCommentsTs() {
+		return this.commentsTs;
+	}
+
+	public void setCommentsTs(List<CommentsT> commentsTs) {
+		this.commentsTs = commentsTs;
+	}
+
+	public CommentsT addCommentsT(CommentsT commentsT) {
+		getCommentsTs().add(commentsT);
+		commentsT.setPartnerMasterT(this);
+
+		return commentsT;
+	}
+
+	public CommentsT removeCommentsT(CommentsT commentsT) {
+		getCommentsTs().remove(commentsT);
+		commentsT.setPartnerMasterT(null);
+
+		return commentsT;
 	}
 
 	public List<ConnectT> getConnectTs() {

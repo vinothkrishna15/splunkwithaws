@@ -41,6 +41,10 @@ public class SubSpMappingT implements Serializable {
 
 	@Column(name="sub_sp_id")
 	private Integer subSpId;
+	
+	//bi-directional many-to-one association to ActualRevenuesDataT
+	@OneToMany(mappedBy="subSpMappingT")
+	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
 	//bi-directional many-to-one association to ConnectSubSpLinkT
 	@OneToMany(mappedBy="subSpMappingT")
@@ -91,6 +95,28 @@ public class SubSpMappingT implements Serializable {
 
 	public void setSubSpId(Integer subSpId) {
 		this.subSpId = subSpId;
+	}
+
+	public List<ActualRevenuesDataT> getActualRevenuesDataTs() {
+		return this.actualRevenuesDataTs;
+	}
+
+	public void setActualRevenuesDataTs(List<ActualRevenuesDataT> actualRevenuesDataTs) {
+		this.actualRevenuesDataTs = actualRevenuesDataTs;
+	}
+
+	public ActualRevenuesDataT addActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+		getActualRevenuesDataTs().add(actualRevenuesDataT);
+		actualRevenuesDataT.setSubSpMappingT(this);
+
+		return actualRevenuesDataT;
+	}
+
+	public ActualRevenuesDataT removeActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+		getActualRevenuesDataTs().remove(actualRevenuesDataT);
+		actualRevenuesDataT.setSubSpMappingT(null);
+
+		return actualRevenuesDataT;
 	}
 
 	public List<ConnectSubSpLinkT> getConnectSubSpLinkTs() {

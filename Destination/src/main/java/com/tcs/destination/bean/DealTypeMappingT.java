@@ -35,7 +35,10 @@ public class DealTypeMappingT implements Serializable {
 	@Column(name="deal_type")
 	private String dealType;
 
-	
+	//bi-directional many-to-one association to OpportunityT
+	@OneToMany(mappedBy="dealTypeMappingT")
+	private List<OpportunityT> opportunityTs;
+
 	public DealTypeMappingT() {
 	}
 
@@ -45,6 +48,28 @@ public class DealTypeMappingT implements Serializable {
 
 	public void setDealType(String dealType) {
 		this.dealType = dealType;
+	}
+
+	public List<OpportunityT> getOpportunityTs() {
+		return this.opportunityTs;
+	}
+
+	public void setOpportunityTs(List<OpportunityT> opportunityTs) {
+		this.opportunityTs = opportunityTs;
+	}
+
+	public OpportunityT addOpportunityT(OpportunityT opportunityT) {
+		getOpportunityTs().add(opportunityT);
+		opportunityT.setDealTypeMappingT(this);
+
+		return opportunityT;
+	}
+
+	public OpportunityT removeOpportunityT(OpportunityT opportunityT) {
+		getOpportunityTs().remove(opportunityT);
+		opportunityT.setDealTypeMappingT(null);
+
+		return opportunityT;
 	}
 
 }

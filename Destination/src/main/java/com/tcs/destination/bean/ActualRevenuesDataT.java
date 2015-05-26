@@ -54,6 +54,11 @@ public class ActualRevenuesDataT implements Serializable {
 
 	private BigDecimal revenue;
 
+	//bi-directional many-to-one association to IouCustomerMappingT
+	@ManyToOne
+	@JoinColumn(name="finance_iou", insertable = false, updatable = false)
+	private IouCustomerMappingT iouCustomerMappingT;
+
 	@Column(name = "sub_sp")
 	private String subSp;
 
@@ -63,6 +68,11 @@ public class ActualRevenuesDataT implements Serializable {
 			@JoinColumn(name = "finance_customer_name", referencedColumnName = "finance_customer_name", insertable = false, updatable = false),
 			@JoinColumn(name = "finance_geography", referencedColumnName = "customer_geography", insertable = false, updatable = false) })
 	private RevenueCustomerMappingT revenueCustomerMappingT;
+
+	//bi-directional many-to-one association to SubSpMappingT
+	@ManyToOne
+	@JoinColumn(name="sub_sp", insertable = false, updatable = false)
+	private SubSpMappingT subSpMappingT;
 
 	public ActualRevenuesDataT() {
 	}
@@ -131,6 +141,14 @@ public class ActualRevenuesDataT implements Serializable {
 		this.revenue = revenue;
 	}
 
+	public IouCustomerMappingT getIouCustomerMappingT() {
+		return this.iouCustomerMappingT;
+	}
+
+	public void setIouCustomerMappingT(IouCustomerMappingT iouCustomerMappingT) {
+		this.iouCustomerMappingT = iouCustomerMappingT;
+	}
+
 	public String getSubSp() {
 		return this.subSp;
 	}
@@ -146,6 +164,14 @@ public class ActualRevenuesDataT implements Serializable {
 	public void setRevenueCustomerMappingT(
 			RevenueCustomerMappingT revenueCustomerMappingT) {
 		this.revenueCustomerMappingT = revenueCustomerMappingT;
+	}
+
+	public SubSpMappingT getSubSpMappingT() {
+		return this.subSpMappingT;
+	}
+
+	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
+		this.subSpMappingT = subSpMappingT;
 	}
 
 }

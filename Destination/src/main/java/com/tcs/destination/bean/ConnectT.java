@@ -114,6 +114,10 @@ public class ConnectT implements Serializable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
+	//bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy="connectT")
+	private List<CommentsT> commentsTs;
+	
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
@@ -181,6 +185,10 @@ public class ConnectT implements Serializable {
 	// bi-directional many-to-one association to UserNotificationsT
 	@OneToMany(mappedBy = "connectT")
 	private List<UserNotificationsT> userNotificationsTs;
+
+	//bi-directional many-to-one association to UserTaggedFollowedT
+	@OneToMany(mappedBy="connectT")
+	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
@@ -283,6 +291,28 @@ public class ConnectT implements Serializable {
 		return collaborationCommentT;
 	}
 
+	public List<CommentsT> getCommentsTs() {
+		return this.commentsTs;
+	}
+
+	public void setCommentsTs(List<CommentsT> commentsTs) {
+		this.commentsTs = commentsTs;
+	}
+
+	public CommentsT addCommentsT(CommentsT commentsT) {
+		getCommentsTs().add(commentsT);
+		commentsT.setConnectT(this);
+
+		return commentsT;
+	}
+
+	public CommentsT removeCommentsT(CommentsT commentsT) {
+		getCommentsTs().remove(commentsT);
+		commentsT.setConnectT(null);
+
+		return commentsT;
+	}
+	
 	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
 		return this.connectCustomerContactLinkTs;
 	}
@@ -656,4 +686,30 @@ public class ConnectT implements Serializable {
 	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
 		this.searchKeywordsTs = searchKeywordsTs;
 	}
+	
+	public List<UserTaggedFollowedT> getUserTaggedFollowedTs() {
+		return this.userTaggedFollowedTs;
+	}
+
+	public void setUserTaggedFollowedTs(
+		List<UserTaggedFollowedT> userTaggedFollowedTs) {
+			this.userTaggedFollowedTs = userTaggedFollowedTs;
+	}
+
+	public UserTaggedFollowedT addUserTaggedFollowedT(
+		UserTaggedFollowedT userTaggedFollowedT) {
+			getUserTaggedFollowedTs().add(userTaggedFollowedT);
+			userTaggedFollowedT.setConnectT(this);
+
+			return userTaggedFollowedT;
+	}
+
+	public UserTaggedFollowedT removeUserTaggedFollowedT(
+		UserTaggedFollowedT userTaggedFollowedT) {
+			getUserTaggedFollowedTs().remove(userTaggedFollowedT);
+			userTaggedFollowedT.setConnectT(null);
+
+			return userTaggedFollowedT;
+	}
+
 }

@@ -39,26 +39,16 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	@Column(name="created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
-
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
 	private UserT createdModifiedByUser;
-	
+
+	@Column(name="created_modified_datetime")
+	private Timestamp createdModifiedDatetime;
+
 	@Column(name="connect_id")
 	private String connectId;
-	
-	public String getConnectId() {
-		return connectId;
-	}
-
-	public void setConnectId(String connect_id) {
-		this.connectId = connect_id;
-	}
-
-
 	
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
@@ -69,7 +59,6 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="contact_id")
 	private ContactT contactT;
-
 
 	public ConnectCustomerContactLinkT() {
 	}
@@ -96,6 +85,14 @@ public class ConnectCustomerContactLinkT implements Serializable {
 
 	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
 		this.createdModifiedDatetime = createdModifiedDatetime;
+	}
+
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connect_id) {
+		this.connectId = connect_id;
 	}
 
 	public ConnectT getConnectT() {

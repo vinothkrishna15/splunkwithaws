@@ -46,6 +46,11 @@ public class RevenueCustomerMappingT implements Serializable {
 	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
 	private CustomerMasterT customerMasterT;
 
+	//bi-directional many-to-one association to GeographyMappingT
+	@ManyToOne
+	@JoinColumn(name="customer_geography", insertable = false, updatable = false)
+	private GeographyMappingT geographyMappingT;
+	
 	public RevenueCustomerMappingT() {
 	}
 
@@ -104,6 +109,14 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
 		this.customerMasterT = customerMasterT;
+	}
+
+	public GeographyMappingT getGeographyMappingT() {
+		return this.geographyMappingT;
+	}
+
+	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
+		this.geographyMappingT = geographyMappingT;
 	}
 
 }

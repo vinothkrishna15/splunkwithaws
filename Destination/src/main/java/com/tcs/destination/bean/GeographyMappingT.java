@@ -38,6 +38,10 @@ public class GeographyMappingT implements Serializable {
 	@Column(name = "display_geography")
 	private String displayGeography;
 
+	//bi-directional many-to-one association to BeaconCustomerMappingT
+	@OneToMany(mappedBy="geographyMappingT")
+	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
+
 	//bi-directional many-to-one association to CustomerMasterT
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<CustomerMasterT> customerMasterTs;
@@ -45,6 +49,10 @@ public class GeographyMappingT implements Serializable {
 	//bi-directional many-to-one association to PartnerMasterT
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
+
+	//bi-directional many-to-one association to RevenueCustomerMappingT
+	@OneToMany(mappedBy="geographyMappingT")
+	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
 	public GeographyMappingT() {
 	}
@@ -71,6 +79,28 @@ public class GeographyMappingT implements Serializable {
 
 	public void setDisplayGeography(String displayGeography) {
 		this.displayGeography = displayGeography;
+	}
+
+	public List<BeaconCustomerMappingT> getBeaconCustomerMappingTs() {
+		return this.beaconCustomerMappingTs;
+	}
+
+	public void setBeaconCustomerMappingTs(List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
+	}
+
+	public BeaconCustomerMappingT addBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+		getBeaconCustomerMappingTs().add(beaconCustomerMappingT);
+		beaconCustomerMappingT.setGeographyMappingT(this);
+
+		return beaconCustomerMappingT;
+	}
+
+	public BeaconCustomerMappingT removeBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+		getBeaconCustomerMappingTs().remove(beaconCustomerMappingT);
+		beaconCustomerMappingT.setGeographyMappingT(null);
+
+		return beaconCustomerMappingT;
 	}
 
 	public List<CustomerMasterT> getCustomerMasterTs() {
@@ -115,6 +145,28 @@ public class GeographyMappingT implements Serializable {
 		partnerMasterT.setGeographyMappingT(null);
 
 		return partnerMasterT;
+	}
+
+	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {
+		return this.revenueCustomerMappingTs;
+	}
+
+	public void setRevenueCustomerMappingTs(List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
+	}
+
+	public RevenueCustomerMappingT addRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().add(revenueCustomerMappingT);
+		revenueCustomerMappingT.setGeographyMappingT(this);
+
+		return revenueCustomerMappingT;
+	}
+
+	public RevenueCustomerMappingT removeRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().remove(revenueCustomerMappingT);
+		revenueCustomerMappingT.setGeographyMappingT(null);
+
+		return revenueCustomerMappingT;
 	}
 
 }

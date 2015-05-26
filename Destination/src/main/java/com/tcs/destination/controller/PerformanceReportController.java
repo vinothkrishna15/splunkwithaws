@@ -1,7 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.ReportsOpportunity;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
@@ -39,7 +40,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "", required = false) String quarter,
 			@RequestParam(value = "geography", defaultValue = "", required = false) String geography,
-			@RequestParam(value = "serviceLine", defaultValue = "", required = false) String serviceLine,
+			@RequestParam(value = "serviceline", defaultValue = "", required = false) String serviceLine,
 			@RequestParam(value = "iou", defaultValue = "", required = false) String iou,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
@@ -63,7 +64,6 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
-			@RequestParam(value = "connects", defaultValue = "") String connects,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -101,7 +101,6 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
-			@RequestParam(value = "connects", defaultValue = "") String connects,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -135,12 +134,11 @@ public class PerformanceReportController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
-			@RequestParam(value = "subSp", defaultValue = "") String serviceLine,
+			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
-			@RequestParam(value = "connects", defaultValue = "") String connects,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -217,4 +215,42 @@ public class PerformanceReportController {
 				reportsOpportunity);
 
 	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/topopps")
+	public @ResponseBody String getTopOpportunities(
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
+			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "iou", defaultValue = "") String iou,
+			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
+			@RequestParam(value = "stagefrom", defaultValue = "4") int salesStageFrom,
+			@RequestParam(value = "stageto", defaultValue = "8") int salesStageTo,
+			@RequestParam(value = "currency", defaultValue = "USD") String currency,
+			@RequestParam(value = "count", defaultValue = "3") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		Date startDate, endDate;
+		if (financialYear.isEmpty() && quarter.isEmpty()) {
+			financialYear = DateUtils.getCurrentFinancialYear();
+			startDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+			endDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+		} else if (financialYear.isEmpty() && !quarter.isEmpty()) {
+			startDate = DateUtils.getDateFromQuarter(quarter, true);
+			endDate = DateUtils.getDateFromQuarter(quarter, false);
+		} else if (!financialYear.isEmpty() && quarter.isEmpty()) {
+			startDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+			endDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Request - year and quarter cannot be set together");
+		}
+		List<OpportunityT> oppList = perfService.getTopOpportunities(currency,
+				geography, salesStageFrom, salesStageTo, serviceLine, iou,
+				startDate, endDate, count);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				oppList);
+
+	}
+
 }

@@ -15,6 +15,7 @@
 		<class>com.tcs.destination.bean.BidOfficeGroupOwnerLinkT</class>
 		<class>com.tcs.destination.bean.BidRequestTypeMappingT</class>
 		<class>com.tcs.destination.bean.CollaborationCommentT</class>
+		<class>com.tcs.destination.bean.CommentsT</class>
 		<class>com.tcs.destination.bean.CompetitorMappingT</class>
 		<class>com.tcs.destination.bean.ConnectCustomerContactLinkT</class>
 		<class>com.tcs.destination.bean.ConnectOfferingLinkT</class>
@@ -35,6 +36,13 @@
 		<class>com.tcs.destination.bean.IouCustomerMappingT</class>
 		<class>com.tcs.destination.bean.LoginHistoryT</class>
 		<class>com.tcs.destination.bean.NotesT</class>
+		<class>com.tcs.destination.bean.NotificationEventGroupMappingT</class>
+		<class>com.tcs.destination.bean.NotificationSentHistoryT</class>
+		<class>com.tcs.destination.bean.NotificationSettingsEventConditionsMappingT</class>
+		<class>com.tcs.destination.bean.NotificationSettingsEventConditionsT</class>
+		<class>com.tcs.destination.bean.NotificationSettingsEventMappingT</class>
+		<class>com.tcs.destination.bean.NotificationSettingsGroupMappingT</class>
+		<class>com.tcs.destination.bean.NotificationSettingsModeMappingT</class>
 		<class>com.tcs.destination.bean.OfferingMappingT</class>
 		<class>com.tcs.destination.bean.OpportunityCompetitorLinkT</class>
 		<class>com.tcs.destination.bean.OpportunityCustomerContactLinkT</class>
@@ -45,23 +53,26 @@
 		<class>com.tcs.destination.bean.OpportunityT</class>
 		<class>com.tcs.destination.bean.OpportunityTcsAccountContactLinkT</class>
 		<class>com.tcs.destination.bean.OpportunityTimelineHistoryT</class>
+		<class>com.tcs.destination.bean.OpportunityWinLossFactorsT</class>
 		<class>com.tcs.destination.bean.PartnerMasterT</class>
+		<class>com.tcs.destination.bean.PushNotificationRegistrationT</class>
 		<class>com.tcs.destination.bean.RevenueCustomerMappingT</class>
 		<class>com.tcs.destination.bean.RevenueCustomerMappingTPK</class>
 		<class>com.tcs.destination.bean.SalesStageMappingT</class>
+		<class>com.tcs.destination.bean.SearchKeywordsT</class>
 		<class>com.tcs.destination.bean.SubSpMappingT</class>
 		<class>com.tcs.destination.bean.TaskBdmsTaggedLinkT</class>
 		<class>com.tcs.destination.bean.TaskT</class>
 		<class>com.tcs.destination.bean.TimeZoneMappingT</class>
 		<class>com.tcs.destination.bean.UserFavoritesT</class>
+		<class>com.tcs.destination.bean.UserGeneralSettingsT</class>
 		<class>com.tcs.destination.bean.UserGroupMappingT</class>
+		<class>com.tcs.destination.bean.UserNotificationSettingsConditionsT</class>
+		<class>com.tcs.destination.bean.UserNotificationSettingsT</class>
 		<class>com.tcs.destination.bean.UserNotificationsT</class>
 		<class>com.tcs.destination.bean.UserRoleMappingT</class>
-		<class>com.tcs.destination.bean.UserGeneralSettingsT</class>
-		<class>com.tcs.destination.bean.UserNotificationSettingsT</class>
-		<class>com.tcs.destination.bean.UserTaggedFollowedT</class>
 		<class>com.tcs.destination.bean.UserT</class>
-		<class>com.tcs.destination.bean.OpportunityWinLossFactorsT</class>
+		<class>com.tcs.destination.bean.UserTaggedFollowedT</class>
 		<class>com.tcs.destination.bean.WinLossFactorMappingT</class>
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="None" />

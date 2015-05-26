@@ -2,6 +2,7 @@ package com.tcs.destination.bean;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -46,10 +48,19 @@ public class UserNotificationsT implements Serializable {
 	@Column(name="updated_datetime")
 	private Timestamp updatedDatetime;
 
+	//bi-directional many-to-one association to NotificationSentHistoryT
+	@OneToMany(mappedBy="userNotificationsT")
+	private List<NotificationSentHistoryT> notificationSentHistoryTs;
+
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
 	@JoinColumn(name="connect_id")
 	private ConnectT connectT;
+
+	//bi-directional many-to-one association to NotificationSettingsEventMappingT
+	@ManyToOne
+	@JoinColumn(name="event_id")
+	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
 
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
@@ -63,8 +74,13 @@ public class UserNotificationsT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
+	@JoinColumn(name="recipient")
+	private UserT userT1;
+
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
 	@JoinColumn(name="user_id")
-	private UserT userT;
+	private UserT userT2;
 
 	public UserNotificationsT() {
 	}
@@ -109,12 +125,42 @@ public class UserNotificationsT implements Serializable {
 		this.updatedDatetime = updatedDatetime;
 	}
 
+	public List<NotificationSentHistoryT> getNotificationSentHistoryTs() {
+		return this.notificationSentHistoryTs;
+	}
+
+	public void setNotificationSentHistoryTs(List<NotificationSentHistoryT> notificationSentHistoryTs) {
+		this.notificationSentHistoryTs = notificationSentHistoryTs;
+	}
+
+	public NotificationSentHistoryT addNotificationSentHistoryT(NotificationSentHistoryT notificationSentHistoryT) {
+		getNotificationSentHistoryTs().add(notificationSentHistoryT);
+		notificationSentHistoryT.setUserNotificationsT(this);
+
+		return notificationSentHistoryT;
+	}
+
+	public NotificationSentHistoryT removeNotificationSentHistoryT(NotificationSentHistoryT notificationSentHistoryT) {
+		getNotificationSentHistoryTs().remove(notificationSentHistoryT);
+		notificationSentHistoryT.setUserNotificationsT(null);
+
+		return notificationSentHistoryT;
+	}
+
 	public ConnectT getConnectT() {
 		return this.connectT;
 	}
 
 	public void setConnectT(ConnectT connectT) {
 		this.connectT = connectT;
+	}
+
+	public NotificationSettingsEventMappingT getNotificationSettingsEventMappingT() {
+		return this.notificationSettingsEventMappingT;
+	}
+
+	public void setNotificationSettingsEventMappingT(NotificationSettingsEventMappingT notificationSettingsEventMappingT) {
+		this.notificationSettingsEventMappingT = notificationSettingsEventMappingT;
 	}
 
 	public OpportunityT getOpportunityT() {
@@ -133,12 +179,20 @@ public class UserNotificationsT implements Serializable {
 		this.taskT = taskT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getUserT1() {
+		return this.userT1;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setUserT1(UserT userT1) {
+		this.userT1 = userT1;
+	}
+
+	public UserT getUserT2() {
+		return this.userT2;
+	}
+
+	public void setUserT2(UserT userT2) {
+		this.userT2 = userT2;
 	}
 
 }

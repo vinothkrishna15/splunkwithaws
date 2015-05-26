@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 @Table(name = "opportunity_win_loss_factors_t")
 @NamedQuery(name = "OpportunityWinLossFactorsT.findAll", query = "SELECT o FROM OpportunityWinLossFactorsT o")
 public class OpportunityWinLossFactorsT implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -39,15 +40,20 @@ public class OpportunityWinLossFactorsT implements Serializable {
 
 	private Integer rank;
 
-	// bi-directional many-to-one association to WinLossFactorMappingT
-	@ManyToOne
-	@JoinColumn(name = "win_loss_factor",insertable=false,updatable=false)
-	private WinLossFactorMappingT winLossFactorMappingT;
-
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
+
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="created_modified_by", insertable = false, updatable = false)
+	private UserT userT;
+	
+	// bi-directional many-to-one association to WinLossFactorMappingT
+	@ManyToOne
+	@JoinColumn(name = "win_loss_factor",insertable=false,updatable=false)
+	private WinLossFactorMappingT winLossFactorMappingT;
 
 	@Column(name = "opportunity_id")
 	private String opportunityId;
@@ -121,4 +127,11 @@ public class OpportunityWinLossFactorsT implements Serializable {
 		this.winLossFactor = winLossFactor;
 	}
 
+	public UserT getUserT() {
+		return userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
+	}
 }
