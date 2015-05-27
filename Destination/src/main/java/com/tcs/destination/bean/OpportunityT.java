@@ -957,7 +957,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.searchKeywordsTs = searchKeywordsTs;
 	}
 
-	@JsonIgnore
 	public List<ConnectOpportunityLinkIdT> getDeleteConnectOpportunityLinkIdTs() {
 		return deleteConnectOpportunityLinkIdTs;
 	}
@@ -975,7 +974,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteNotesTs = deleteNotesTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunityCompetitorLinkT> getDeleteOpportunityCompetitorLinkTs() {
 		return deleteOpportunityCompetitorLinkTs;
 	}
@@ -985,7 +983,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunityCompetitorLinkTs = deleteOpportunityCompetitorLinkTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunityCustomerContactLinkT> getDeleteOpportunityCustomerContactLinkTs() {
 		return deleteOpportunityCustomerContactLinkTs;
 	}
@@ -995,7 +992,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunityCustomerContactLinkTs = deleteOpportunityCustomerContactLinkTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunityPartnerLinkT> getDeleteOpportunityPartnerLinkTs() {
 		return deleteOpportunityPartnerLinkTs;
 	}
@@ -1005,7 +1001,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunityPartnerLinkTs = deleteOpportunityPartnerLinkTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunitySalesSupportLinkT> getDeleteOpportunitySalesSupportLinkTs() {
 		return deleteOpportunitySalesSupportLinkTs;
 	}
@@ -1015,7 +1010,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunitySalesSupportLinkTs = deleteOpportunitySalesSupportLinkTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunitySubSpLinkT> getDeleteOpportunitySubSpLinkTs() {
 		return deleteOpportunitySubSpLinkTs;
 	}
@@ -1025,7 +1019,6 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunitySubSpLinkTs = deleteOpportunitySubSpLinkTs;
 	}
 
-	@JsonIgnore
 	public List<OpportunityTcsAccountContactLinkT> getDeleteOpportunityOpportunityTcsAccountContactLinkTs() {
 		return deleteOpportunityOpportunityTcsAccountContactLinkTs;
 	}
