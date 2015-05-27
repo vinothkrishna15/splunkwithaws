@@ -718,7 +718,7 @@ public class ConnectT implements Serializable {
 			return userTaggedFollowedT;
 	}
 
-	@JsonIgnore
+	
 	public List<ConnectCustomerContactLinkT> getDeleteConnectCustomerContactLinkTs() {
 		return deleteConnectCustomerContactLinkTs;
 	}
@@ -728,7 +728,7 @@ public class ConnectT implements Serializable {
 		this.deleteConnectCustomerContactLinkTs = deleteConnectCustomerContactLinkTs;
 	}
 
-	@JsonIgnore
+	
 	public List<ConnectTcsAccountContactLinkT> getDeleteConnectTcsAccountContactLinkTs() {
 		return deleteConnectTcsAccountContactLinkTs;
 	}
