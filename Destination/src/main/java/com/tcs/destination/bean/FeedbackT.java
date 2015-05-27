@@ -50,21 +50,64 @@ public class FeedbackT implements Serializable {
 	private String subModule;
 
 	private String title;
-
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="user_id",insertable = false, updatable = false)
-	private UserT userT;
+	
+	@Column(name="updated_datetime")
+	private Timestamp updatedDatetime;
+	
+	@Column(name="updated_user_id")
+	private String updatedUserId;
 	
 	@Column(name = "user_id")
 	private String userId;
 
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="user_id",insertable = false, updatable = false)
+	private UserT createdUser;
+		
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="updated_user_id",insertable = false, updatable = false)
+	private UserT modifiedUser;
+	
 	public String getUserId() {
 		return userId;
 	}
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getUpdatedUserId() {
+		return updatedUserId;
+	}
+
+	public void setUpdatedUserId(String updatedUserId) {
+		this.updatedUserId = updatedUserId;
+	}
+
+	public Timestamp getUpdatedDatetime() {
+		return updatedDatetime;
+	}
+
+	public void setUpdatedDatetime(Timestamp updatedDatetime) {
+		this.updatedDatetime = updatedDatetime;
+	}
+
+	public UserT getCreatedUser() {
+		return createdUser;
+	}
+
+	public void setCreatedUser(UserT createdUser) {
+		this.createdUser = createdUser;
+	}
+
+	public UserT getModifiedUser() {
+		return modifiedUser;
+	}
+
+	public void setModifiedUser(UserT modifiedUser) {
+		this.modifiedUser = modifiedUser;
 	}
 
 	public FeedbackT() {
@@ -151,11 +194,11 @@ public class FeedbackT implements Serializable {
 	}
 
 	public UserT getUserT() {
-		return this.userT;
+		return this.createdUser;
 	}
 
 	public void setUserT(UserT userT) {
-		this.userT = userT;
+		this.createdUser = userT;
 	}
 
 }

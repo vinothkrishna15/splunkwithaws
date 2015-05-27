@@ -58,11 +58,15 @@ public class FeedbackService {
 		} else {
 			FeedbackT checkRecord = findFeedbackById(feedback.getFeedbackId());
 			boolean isUserIdNull = feedback.getUserId() == null;
+			boolean isUpdatedUserNull = feedback.getUpdatedUserId()==null;
 			boolean isCreatedDateNull = feedback.getCreatedDatetime() == null;
-			if (isUserIdNull || isCreatedDateNull) {
+			if (isUserIdNull || isCreatedDateNull || isUpdatedUserNull) {
 				StringBuffer message = new StringBuffer("");
 				if (isUserIdNull) {
 					message.append("userId,");
+				}
+				if (isUpdatedUserNull) {
+					message.append("updatedUserId,");
 				}
 				if (isCreatedDateNull) {
 					message.append("createdDatetime");

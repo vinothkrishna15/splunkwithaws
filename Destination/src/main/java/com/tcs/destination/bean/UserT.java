@@ -108,8 +108,13 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy = "userT")
 	private List<ContactCustomerLinkT> contactCustomerLinkTs;
 
-	@OneToMany(mappedBy = "userT")
-	private List<FeedbackT> feedbackTs;
+	@JsonIgnore
+	@OneToMany(mappedBy = "createdUser")
+	private List<FeedbackT> feedbackTs1;
+	
+	@JsonIgnore
+	@OneToMany(mappedBy = "modifiedUser")
+	private List<FeedbackT> feedbackTs2;
 
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
 	@JsonIgnore
@@ -188,6 +193,9 @@ public class UserT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
+
+	//bi-directional many-to-one association to FeedbackT
+	
 
 	// bi-directional many-to-one association to
 	// FrequentlySearchedCustomerPartnerT
@@ -1605,23 +1613,46 @@ public class UserT implements Serializable {
 		this.lastLogin = lastLogin;
 	}
 
-	public List<FeedbackT> getFeedbackTs() {
-		return this.feedbackTs;
+	public List<FeedbackT> getFeedbackTs1() {
+		return this.feedbackTs1;
 	}
 
-	public void setFeedbackTs(List<FeedbackT> feedbackTs) {
-		this.feedbackTs = feedbackTs;
+	public void setFeedbackTs1(List<FeedbackT> feedbackTs1) {
+		this.feedbackTs1 = feedbackTs1;
+	}
+	
+	public List<FeedbackT> getFeedbackTs2() {
+		return feedbackTs2;
 	}
 
-	public FeedbackT addFeedbackT(FeedbackT feedbackT) {
-		getFeedbackTs().add(feedbackT);
+	public void setFeedbackTs2(List<FeedbackT> feedbackTs2) {
+		this.feedbackTs2 = feedbackTs2;
+	}
+	
+	
+	public FeedbackT addFeedbackT2(FeedbackT feedbackT) {
+		getFeedbackTs2().add(feedbackT);
 		feedbackT.setUserT(this);
 
 		return feedbackT;
 	}
 
-	public FeedbackT removeFeedbackT(FeedbackT feedbackT) {
-		getFeedbackTs().remove(feedbackT);
+	public FeedbackT removeFeedbackT2(FeedbackT feedbackT) {
+		getFeedbackTs2().remove(feedbackT);
+		feedbackT.setUserT(null);
+
+		return feedbackT;
+	}
+
+	public FeedbackT addFeedbackT1(FeedbackT feedbackT) {
+		getFeedbackTs1().add(feedbackT);
+		feedbackT.setUserT(this);
+
+		return feedbackT;
+	}
+
+	public FeedbackT removeFeedbackT1(FeedbackT feedbackT) {
+		getFeedbackTs1().remove(feedbackT);
 		feedbackT.setUserT(null);
 
 		return feedbackT;
