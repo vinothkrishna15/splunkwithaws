@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -55,6 +56,7 @@ public class OpportunityTcsAccountContactLinkT implements Serializable {
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
+	@OrderBy("created_modified_datetime DESC")
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 

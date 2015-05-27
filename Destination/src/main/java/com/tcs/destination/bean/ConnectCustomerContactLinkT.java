@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -52,6 +53,7 @@ public class ConnectCustomerContactLinkT implements Serializable {
 	
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
+	@OrderBy("start_datetime_of_connect ASC")
 	@JoinColumn(name="connect_id",insertable=false,updatable=false)
 	private ConnectT connectT;
 
