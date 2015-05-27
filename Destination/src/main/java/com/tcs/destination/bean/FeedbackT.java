@@ -53,8 +53,19 @@ public class FeedbackT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id",insertable = false, updatable = false)
 	private UserT userT;
+	
+	@Column(name = "user_id")
+	private String userId;
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
 
 	public FeedbackT() {
 	}
