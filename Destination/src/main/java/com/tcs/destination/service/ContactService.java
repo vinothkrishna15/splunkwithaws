@@ -16,6 +16,7 @@ import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.enums.ContactType;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 
 @Component
@@ -97,55 +98,93 @@ public class ContactService {
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
 		if (isUpdate) {
-			if (contact.getContactId() == null)
+			if (contact.getContactId() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Cannot Update Contact without contactId.");
+						"Cannot Update Contact without contactId");
+			}
 			if (contact.getDeleteContactCustomerLinkTs() != null) {
 				for (ContactCustomerLinkT contactCustomerLinkT : contact
 						.getDeleteContactCustomerLinkTs()) {
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
-			} else {
-				if (contact.getContactId() != null)
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Cannot Create Contact with contactId. It is auto-generated");
+			} 
+		} else {
+			if (contact.getContactId() != null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"ContactId should not be passed");
 			}
 		}
 
+		//Validate input parameters
+		validateRequest(contact);
+		
+		ContactT managedContact = saveBaseContact(contact);
+		saveChildContactObjects(managedContact);
+		return true;
+	}
+
+	/**
+	 * This method is used to validate contact input parameters.
+	 * 
+	 * @param contact
+	 * @return
+	 */
+	private void validateRequest(ContactT contact) throws DestinationException {
+
+		if (EntityType.contains(contact.getContactCategory())) {
+			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
+				if(contact.getContactCustomerLinkTs() == null || 
+						contact.getContactCustomerLinkTs().size() == 0) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "CustomerId is required");	
+				}	
+				contact.setPartnerId(null);
+			} else if (contact.getContactCategory().equals(EntityType.PARTNER.name())) {
+				if (contact.getPartnerId() == null || contact.getPartnerId().isEmpty()) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "PartnerId is required");	
+				}
+				contact.setContactCustomerLinkTs(null);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Entity Type");	
+			}
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Entity Type");
+		}
+		
 		if (ContactType.contains(contact.getContactType())) {
-			logger.debug("Contact Role is Present");
-			switch (ContactType.valueOf(contact.getContactType())) {
-			case INTERNAL:
-				if (contact.getEmployeeNumber() == null) {
+			logger.debug("Contact Type is Present");
+			if (contact.getContactType().equals(ContactType.INTERNAL.name())) {
+				if (contact.getEmployeeNumber() == null || contact.getEmployeeNumber().isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				if (contact.getPartnerId() != null) {
+				if (contact.getPartnerId() != null && !(contact.getPartnerId().isEmpty())) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Internal Contact must be a contact from Partner");
+							"Internal Contact cannot be added to Partner");
 				}
-			case EXTERNAL:
-				ContactT overallContact = saveBaseContact(contact);
-				saveOverallContact(overallContact);
-				return true;
+			} 
+			
+			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
+				if (contact.getEmployeeNumber() != null && !(contact.getEmployeeNumber().isEmpty())) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"External Contact should not have Employee Number");
+				}
 			}
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Contact Role");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Type");
 		}
-		return false;
 	}
-
-	private ContactT saveBaseContact(ContactT contact)
-			throws CloneNotSupportedException {
-		ContactT actualContact = contact.clone();
-		contact.setContactCustomerLinkTs(null);
-		actualContact.setContactId(contactRepository.save(contact)
+	
+	private ContactT saveBaseContact(ContactT requestContact)
+			throws CloneNotSupportedException, Exception {
+		ContactT contact = requestContact.clone();
+		requestContact.setContactCustomerLinkTs(null);
+		contact.setContactId(contactRepository.save(requestContact)
 				.getContactId());
-		return actualContact;
+		return contact;
 	}
 
-	private ContactT saveOverallContact(ContactT contact) {
+	private ContactT saveChildContactObjects(ContactT contact) {
+		//Set Contact Customer Links
 		if (contact.getContactCustomerLinkTs() != null) {
 			for (ContactCustomerLinkT contactCustomerLinkT : contact
 					.getContactCustomerLinkTs()) {
@@ -161,7 +200,7 @@ public class ContactService {
 				.findAll();
 		if (contactRoleMappingTs != null && contactRoleMappingTs.size() == 0) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Contact Roles available");
+					"No Contact Roles found");
 		}
 		return contactRoleMappingTs;
 	}
