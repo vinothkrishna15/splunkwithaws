@@ -202,7 +202,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
-			@RequestParam(value = "subSp", defaultValue = "") String serviceLine,
+			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,

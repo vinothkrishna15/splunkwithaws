@@ -20,6 +20,7 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -106,7 +107,6 @@ public class ConnectT implements Serializable {
 		this.userNotificationsTs = con.userNotificationsTs;
 		this.userT = con.userT;
 		this.searchKeywordsTs = con.searchKeywordsTs;
-
 	}
 
 	// bi-directional many-to-one association to CollaborationCommentT
@@ -198,6 +198,12 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<DocumentRepositoryT> documentsDeletionList;
+	
+	@Transient
+	private List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs;
+	
+	@Transient
+	private List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs;
 
 	public ConnectT() {
 	}
@@ -712,4 +718,23 @@ public class ConnectT implements Serializable {
 			return userTaggedFollowedT;
 	}
 
+	@JsonIgnore
+	public List<ConnectCustomerContactLinkT> getDeleteConnectCustomerContactLinkTs() {
+		return deleteConnectCustomerContactLinkTs;
+	}
+
+	public void setDeleteConnectCustomerContactLinkTs(
+			List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs) {
+		this.deleteConnectCustomerContactLinkTs = deleteConnectCustomerContactLinkTs;
+	}
+
+	@JsonIgnore
+	public List<ConnectTcsAccountContactLinkT> getDeleteConnectTcsAccountContactLinkTs() {
+		return deleteConnectTcsAccountContactLinkTs;
+	}
+
+	public void setDeleteConnectTcsAccountContactLinkTs(
+			List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs) {
+		this.deleteConnectTcsAccountContactLinkTs = deleteConnectTcsAccountContactLinkTs;
+	}
 }
