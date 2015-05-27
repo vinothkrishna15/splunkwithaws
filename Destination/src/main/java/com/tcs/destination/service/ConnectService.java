@@ -28,20 +28,16 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.controller.DocumentController;
+import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
+import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
-import com.tcs.destination.exception.ConnectionNotFoundException;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoDataFoundException;
-import com.tcs.destination.exception.NoSuchOwnerTypeException;
-import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
-import com.tcs.destination.utils.ResponseConstructors;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 
@@ -67,6 +63,12 @@ public class ConnectService {
 	
 	@Autowired
 	SearchKeywordsRepository searchKeywordsRepository;
+
+	@Autowired
+	ConnectCustomerContactLinkTRepository connCustContRepo;
+	
+	@Autowired
+	ConnectTcsAccountContactLinkTRepository connTcsAcctContRepo;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
@@ -179,13 +181,10 @@ public class ConnectService {
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
-		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();		
 		connect.setCreatedModifiedBy(currentUserId);
-		//connect.setCreatedModifiedDatetime(currentTimeStamp);
 		logger.debug("Connect Insert - user : " + currentUserId);
-		logger.debug("Connect Insert - timestamp : " + currentTimeStamp);
 
 		validateRequest(connect);
 		
@@ -193,14 +192,13 @@ public class ConnectService {
 		logger.debug("Copied connect object.");
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
+
 		try {
 			if (connectRepository.save(connect) != null) {
 				String tempId = connect.getConnectId();
 				backupConnect.setConnectId(tempId);
 				logger.debug("Root Object Saved. Id : " + tempId);
 				connect = restore(backupConnect);
-				// connect.setCreatedModifiedBy(currentUserId);
-				// connect.setCreatedModifiedDatetime(currentTimeStamp);
 				String categoryUpperCase = connect.getConnectCategory()
 						.toUpperCase();
 				connect.setConnectCategory(categoryUpperCase);
@@ -424,20 +422,14 @@ public class ConnectService {
 	@Transactional
 	public boolean editConnect(ConnectT connect) throws Exception {
 		logger.debug("inside editConnect Service");
-		// ConnectT backupConnect = backup(connect);
-		// setNullForReferencedObjects(connect);
-
-		Timestamp currentTimeStamp = DateUtils.getCurrentTimeStamp();
+		
 		UserT currentUser = DestinationUtils.getCurrentUserDetails();
 		String currentUserId = currentUser.getUserId();
-
 		connect.setCreatedModifiedBy(currentUserId);
 		logger.debug("Connect Edit - user : " + currentUserId);
-		logger.debug("Connect Edit - timestamp : " + currentTimeStamp);
-		
-		// backupConnect.setConnectId(connect.getConnectId());
-		// connect = restore(backupConnect);
+
 		validateRequest(connect);
+		
 		try {
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
@@ -447,6 +439,7 @@ public class ConnectService {
 			
 			String customerId = connect.getCustomerId();
 			String partnerId = connect.getPartnerId();
+
 			List<NotesT> noteList = connect.getNotesTs();
 			if (noteList != null)
 				populateNotes(currentUserId, customerId,
@@ -519,7 +512,23 @@ public class ConnectService {
 					searchKeywordsRepository.save(searchKeywordT);
 				}
 			}
-
+			
+			//Delete connectCustomerContactLinkTs 
+			if (connect.getDeleteConnectCustomerContactLinkTs() != null 
+					&& connect.getDeleteConnectCustomerContactLinkTs().size () > 0)
+			{
+				deleteConnectCustomerContacts(connect.getDeleteConnectCustomerContactLinkTs());
+				logger.debug("ConnectCustomerContacts deleted");
+			}
+			
+			//Delete connectTcsAccountContactLinkTs
+			if (connect.getDeleteConnectTcsAccountContactLinkTs() != null &
+					connect.getDeleteConnectTcsAccountContactLinkTs().size() > 0) 
+			{
+				deleteConnectTcsAccountContacts(connect.getDeleteConnectTcsAccountContactLinkTs());
+				logger.debug("ConnectTcsAccountContacts deleted");
+			}
+			
 			if (connectRepository.save(connect) != null) {
 				logger.debug("Connect Edit Success");
 				return true;
@@ -547,6 +556,21 @@ public class ConnectService {
 		}
 	}
 
+	private void deleteConnectCustomerContacts(
+			List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
+		logger.debug("Inside deleteConnectCustomerContacts Service");
+		for (ConnectCustomerContactLinkT connectCustomerContact : connectCustomerContactLinkTs) {
+			connCustContRepo.delete(connectCustomerContact.getConnectCustomerContactLinkId());
+		}
+	}
+	private void deleteConnectTcsAccountContacts(
+			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
+		logger.debug("Inside deleteConnectTcsAccountContacts Service");
+		for (ConnectTcsAccountContactLinkT connectTcsContact : connectTcsAccountContactLinkTs) {
+			connTcsAcctContRepo.delete(connectTcsContact.getConnectTcsAccountContactLinkId());
+		}
+	}
+
 	private void populateOppLinks(String currentUserId,
 			String connectId,
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList) {
@@ -567,5 +591,5 @@ public class ConnectService {
 		}
 
 	}
-
+	
 }
