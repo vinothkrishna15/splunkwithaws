@@ -20,94 +20,95 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the contact_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="contactId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "contactId")
 @Entity
-@Table(name="contact_t")
-@NamedQuery(name="ContactT.findAll", query="SELECT c FROM ContactT c")
+@Table(name = "contact_t")
+@NamedQuery(name = "ContactT.findAll", query = "SELECT c FROM ContactT c")
 public class ContactT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="contact_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "contact_id")
 	private String contactId;
 
-	@Column(name="contact_category")
+	@Column(name = "contact_category")
 	private String contactCategory;
 
-	@Column(name="contact_email_id")
+	@Column(name = "contact_email_id")
 	private String contactEmailId;
 
-	@Column(name="contact_linkedin_profile")
+	@Column(name = "contact_linkedin_profile")
 	private String contactLinkedinProfile;
 
-	@Column(name="contact_name")
+	@Column(name = "contact_name")
 	private String contactName;
 
-	@Column(name="contact_photo")
+	@Column(name = "contact_photo")
 	private byte[] contactPhoto;
 
-	@Column(name="contact_telephone")
+	@Column(name = "contact_role")
+	private String contactRole;
+
+	@Column(name = "contact_telephone")
 	private String contactTelephone;
 
-	@Column(name="contact_type")
+	@Column(name = "contact_type")
 	private String contactType;
 
-	@Column(name="created_modified_by")
+	@Column(name = "created_modified_by")
 	private String createdModifiedBy;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="employee_number")
+	@Column(name = "employee_number")
 	private String employeeNumber;
 
-	@Column(name="other_role")
+	@Column(name = "other_role")
 	private String otherRole;
 
-	//bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@OneToMany(mappedBy="contactT")
+	// bi-directional many-to-one association to ConnectCustomerContactLinkT
+	@OneToMany(mappedBy = "contactT")
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
 
-	//bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@OneToMany(mappedBy="contactT")
+	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
+	@OneToMany(mappedBy = "contactT")
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
-	//bi-directional many-to-one association to ContactRoleMappingT
+	@OneToMany(mappedBy = "contactT")
+	private List<ContactCustomerLinkT> contactCustomerLinkTs;
+
+	// bi-directional many-to-one association to ContactRoleMappingT
 	@ManyToOne
-	@JoinColumn(name="contact_role")
+	@JoinColumn(name = "contact_role", insertable = false, updatable = false)
 	private ContactRoleMappingT contactRoleMappingT;
 
-	//bi-directional many-to-one association to CustomerMasterT
+	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name="customer_id")
-	private CustomerMasterT customerMasterT;
-
-	//bi-directional many-to-one association to PartnerMasterT
-	@ManyToOne
-	@JoinColumn(name="partner_id")
+	@JoinColumn(name = "partner_id")
 	private PartnerMasterT partnerMasterT;
-	
+
 	@ManyToOne
-	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
+	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT createdModifiedByUser;
 
-	//bi-directional many-to-one association to OpportunityCustomerContactLinkT
-	@OneToMany(mappedBy="contactT")
+	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
+	@OneToMany(mappedBy = "contactT")
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
 
-	//bi-directional many-to-one association to OpportunityTcsAccountContactLinkT
-	@OneToMany(mappedBy="contactT")
+	// bi-directional many-to-one association to
+	// OpportunityTcsAccountContactLinkT
+	@OneToMany(mappedBy = "contactT")
 	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
 
-	//bi-directional many-to-one association to UserFavoritesT
-	@OneToMany(mappedBy="contactT")
+	// bi-directional many-to-one association to UserFavoritesT
+	@OneToMany(mappedBy = "contactT")
 	private List<UserFavoritesT> userFavoritesTs;
 
 	public ContactT() {
@@ -213,18 +214,30 @@ public class ContactT implements Serializable {
 		return this.connectCustomerContactLinkTs;
 	}
 
-	public void setConnectCustomerContactLinkTs(List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
+	public void setConnectCustomerContactLinkTs(
+			List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
 		this.connectCustomerContactLinkTs = connectCustomerContactLinkTs;
 	}
 
-	public ConnectCustomerContactLinkT addConnectCustomerContactLinkT(ConnectCustomerContactLinkT connectCustomerContactLinkT) {
+	public ConnectCustomerContactLinkT addConnectCustomerContactLinkT(
+			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
 		getConnectCustomerContactLinkTs().add(connectCustomerContactLinkT);
 		connectCustomerContactLinkT.setContactT(this);
 
 		return connectCustomerContactLinkT;
 	}
 
-	public ConnectCustomerContactLinkT removeConnectCustomerContactLinkT(ConnectCustomerContactLinkT connectCustomerContactLinkT) {
+	public List<ContactCustomerLinkT> getContactCustomerLinkTs() {
+		return this.contactCustomerLinkTs;
+	}
+
+	public void setContactCustomerLinkTs(
+			List<ContactCustomerLinkT> contactCustomerLinkTs) {
+		this.contactCustomerLinkTs = contactCustomerLinkTs;
+	}
+
+	public ConnectCustomerContactLinkT removeConnectCustomerContactLinkT(
+			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
 		getConnectCustomerContactLinkTs().remove(connectCustomerContactLinkT);
 		connectCustomerContactLinkT.setContactT(null);
 
@@ -235,19 +248,39 @@ public class ContactT implements Serializable {
 		return this.connectTcsAccountContactLinkTs;
 	}
 
-	public void setConnectTcsAccountContactLinkTs(List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
+	public ContactCustomerLinkT addContactCustomerLinkT(
+			ContactCustomerLinkT contactCustomerLinkT) {
+		getContactCustomerLinkTs().add(contactCustomerLinkT);
+		contactCustomerLinkT.setContactT(this);
+
+		return contactCustomerLinkT;
+	}
+
+	public ContactCustomerLinkT removeContactCustomerLinkT(
+			ContactCustomerLinkT contactCustomerLinkT) {
+		getContactCustomerLinkTs().remove(contactCustomerLinkT);
+		contactCustomerLinkT.setContactT(null);
+
+		return contactCustomerLinkT;
+	}
+
+	public void setConnectTcsAccountContactLinkTs(
+			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
 		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;
 	}
 
-	public ConnectTcsAccountContactLinkT addConnectTcsAccountContactLinkT(ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
+	public ConnectTcsAccountContactLinkT addConnectTcsAccountContactLinkT(
+			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
 		getConnectTcsAccountContactLinkTs().add(connectTcsAccountContactLinkT);
 		connectTcsAccountContactLinkT.setContactT(this);
 
 		return connectTcsAccountContactLinkT;
 	}
 
-	public ConnectTcsAccountContactLinkT removeConnectTcsAccountContactLinkT(ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
-		getConnectTcsAccountContactLinkTs().remove(connectTcsAccountContactLinkT);
+	public ConnectTcsAccountContactLinkT removeConnectTcsAccountContactLinkT(
+			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
+		getConnectTcsAccountContactLinkTs().remove(
+				connectTcsAccountContactLinkT);
 		connectTcsAccountContactLinkT.setContactT(null);
 
 		return connectTcsAccountContactLinkT;
@@ -261,14 +294,6 @@ public class ContactT implements Serializable {
 		this.contactRoleMappingT = contactRoleMappingT;
 	}
 
-	public CustomerMasterT getCustomerMasterT() {
-		return this.customerMasterT;
-	}
-
-	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
-		this.customerMasterT = customerMasterT;
-	}
-
 	public PartnerMasterT getPartnerMasterT() {
 		return this.partnerMasterT;
 	}
@@ -277,30 +302,36 @@ public class ContactT implements Serializable {
 		this.partnerMasterT = partnerMasterT;
 	}
 
-public UserT getCreatedModifiedByUser() {
-return this.createdModifiedByUser;
-}
+	public UserT getCreatedModifiedByUser() {
+		return this.createdModifiedByUser;
+	}
 
-public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-this.createdModifiedByUser = createdModifiedByUser;
-}
+	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+		this.createdModifiedByUser = createdModifiedByUser;
+	}
+
 	public List<OpportunityCustomerContactLinkT> getOpportunityCustomerContactLinkTs() {
 		return this.opportunityCustomerContactLinkTs;
 	}
 
-	public void setOpportunityCustomerContactLinkTs(List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs) {
+	public void setOpportunityCustomerContactLinkTs(
+			List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs) {
 		this.opportunityCustomerContactLinkTs = opportunityCustomerContactLinkTs;
 	}
 
-	public OpportunityCustomerContactLinkT addOpportunityCustomerContactLinkT(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().add(opportunityCustomerContactLinkT);
+	public OpportunityCustomerContactLinkT addOpportunityCustomerContactLinkT(
+			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
+		getOpportunityCustomerContactLinkTs().add(
+				opportunityCustomerContactLinkT);
 		opportunityCustomerContactLinkT.setContactT(this);
 
 		return opportunityCustomerContactLinkT;
 	}
 
-	public OpportunityCustomerContactLinkT removeOpportunityCustomerContactLinkT(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().remove(opportunityCustomerContactLinkT);
+	public OpportunityCustomerContactLinkT removeOpportunityCustomerContactLinkT(
+			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
+		getOpportunityCustomerContactLinkTs().remove(
+				opportunityCustomerContactLinkT);
 		opportunityCustomerContactLinkT.setContactT(null);
 
 		return opportunityCustomerContactLinkT;
@@ -310,19 +341,24 @@ this.createdModifiedByUser = createdModifiedByUser;
 		return this.opportunityTcsAccountContactLinkTs;
 	}
 
-	public void setOpportunityTcsAccountContactLinkTs(List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs) {
+	public void setOpportunityTcsAccountContactLinkTs(
+			List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs) {
 		this.opportunityTcsAccountContactLinkTs = opportunityTcsAccountContactLinkTs;
 	}
 
-	public OpportunityTcsAccountContactLinkT addOpportunityTcsAccountContactLinkT(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().add(opportunityTcsAccountContactLinkT);
+	public OpportunityTcsAccountContactLinkT addOpportunityTcsAccountContactLinkT(
+			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
+		getOpportunityTcsAccountContactLinkTs().add(
+				opportunityTcsAccountContactLinkT);
 		opportunityTcsAccountContactLinkT.setContactT(this);
 
 		return opportunityTcsAccountContactLinkT;
 	}
 
-	public OpportunityTcsAccountContactLinkT removeOpportunityTcsAccountContactLinkT(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().remove(opportunityTcsAccountContactLinkT);
+	public OpportunityTcsAccountContactLinkT removeOpportunityTcsAccountContactLinkT(
+			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
+		getOpportunityTcsAccountContactLinkTs().remove(
+				opportunityTcsAccountContactLinkT);
 		opportunityTcsAccountContactLinkT.setContactT(null);
 
 		return opportunityTcsAccountContactLinkT;

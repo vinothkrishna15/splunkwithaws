@@ -22,7 +22,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="geography")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "geography")
 @Entity
 @Table(name = "geography_mapping_t")
 @NamedQuery(name = "GeographyMappingT.findAll", query = "SELECT g FROM GeographyMappingT g")
@@ -38,21 +38,24 @@ public class GeographyMappingT implements Serializable {
 	@Column(name = "display_geography")
 	private String displayGeography;
 
-	//bi-directional many-to-one association to BeaconCustomerMappingT
-	@OneToMany(mappedBy="geographyMappingT")
+	// bi-directional many-to-one association to BeaconCustomerMappingT
+	@OneToMany(mappedBy = "geographyMappingT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
 
-	//bi-directional many-to-one association to CustomerMasterT
-	@OneToMany(mappedBy="geographyMappingT")
+	// bi-directional many-to-one association to CustomerMasterT
+	@OneToMany(mappedBy = "geographyMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 
-	//bi-directional many-to-one association to PartnerMasterT
-	@OneToMany(mappedBy="geographyMappingT")
+	// bi-directional many-to-one association to PartnerMasterT
+	@OneToMany(mappedBy = "geographyMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
 
-	//bi-directional many-to-one association to RevenueCustomerMappingT
-	@OneToMany(mappedBy="geographyMappingT")
+	// bi-directional many-to-one association to RevenueCustomerMappingT
+	@OneToMany(mappedBy = "geographyMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
+
+	@OneToMany(mappedBy = "geographyMappingT")
+	private List<UserT> userTs;
 
 	public GeographyMappingT() {
 	}
@@ -85,18 +88,21 @@ public class GeographyMappingT implements Serializable {
 		return this.beaconCustomerMappingTs;
 	}
 
-	public void setBeaconCustomerMappingTs(List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+	public void setBeaconCustomerMappingTs(
+			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
 		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
 	}
 
-	public BeaconCustomerMappingT addBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+	public BeaconCustomerMappingT addBeaconCustomerMappingT(
+			BeaconCustomerMappingT beaconCustomerMappingT) {
 		getBeaconCustomerMappingTs().add(beaconCustomerMappingT);
 		beaconCustomerMappingT.setGeographyMappingT(this);
 
 		return beaconCustomerMappingT;
 	}
 
-	public BeaconCustomerMappingT removeBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
+	public BeaconCustomerMappingT removeBeaconCustomerMappingT(
+			BeaconCustomerMappingT beaconCustomerMappingT) {
 		getBeaconCustomerMappingTs().remove(beaconCustomerMappingT);
 		beaconCustomerMappingT.setGeographyMappingT(null);
 
@@ -151,22 +157,47 @@ public class GeographyMappingT implements Serializable {
 		return this.revenueCustomerMappingTs;
 	}
 
-	public void setRevenueCustomerMappingTs(List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+	public void setRevenueCustomerMappingTs(
+			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
 		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
 	}
 
-	public RevenueCustomerMappingT addRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+	public RevenueCustomerMappingT addRevenueCustomerMappingT(
+			RevenueCustomerMappingT revenueCustomerMappingT) {
 		getRevenueCustomerMappingTs().add(revenueCustomerMappingT);
 		revenueCustomerMappingT.setGeographyMappingT(this);
 
 		return revenueCustomerMappingT;
 	}
 
-	public RevenueCustomerMappingT removeRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+	public RevenueCustomerMappingT removeRevenueCustomerMappingT(
+			RevenueCustomerMappingT revenueCustomerMappingT) {
 		getRevenueCustomerMappingTs().remove(revenueCustomerMappingT);
 		revenueCustomerMappingT.setGeographyMappingT(null);
 
 		return revenueCustomerMappingT;
+	}
+
+	public List<UserT> getUserTs() {
+		return this.userTs;
+	}
+
+	public void setUserTs(List<UserT> userTs) {
+		this.userTs = userTs;
+	}
+
+	public UserT addUserT(UserT userT) {
+		getUserTs().add(userT);
+		userT.setGeographyMappingT(this);
+
+		return userT;
+	}
+
+	public UserT removeUserT(UserT userT) {
+		getUserTs().remove(userT);
+		userT.setGeographyMappingT(null);
+
+		return userT;
 	}
 
 }
