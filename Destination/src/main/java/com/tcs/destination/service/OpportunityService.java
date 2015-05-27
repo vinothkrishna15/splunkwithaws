@@ -135,23 +135,23 @@ public class OpportunityService {
 			switch (OpportunityRole.valueOf(opportunityRole)) {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
-				opportunities = 
-					opportunityRepository.findOpportunityTsByOwnerAndRole(userId, "", "");
+				opportunities = opportunityRepository
+						.findOpportunityTsByOwnerAndRole(userId, "", "");
 				break;
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
-				opportunities = 
-					opportunityRepository.findOpportunityTsByOwnerAndRole("", userId, "");
+				opportunities = opportunityRepository
+						.findOpportunityTsByOwnerAndRole("", userId, "");
 				break;
 			case BID_OFFICE:
 				logger.debug("Bid Office Found");
-				opportunities = 
-					opportunityRepository.findOpportunityTsByOwnerAndRole("", "", userId);
+				opportunities = opportunityRepository
+						.findOpportunityTsByOwnerAndRole("", "", userId);
 				break;
 			case ALL:
 				logger.debug("ALL Found");
-				opportunities = 
-					opportunityRepository.findOpportunityTsByOwnerAndRole(userId, userId, userId);
+				opportunities = opportunityRepository
+						.findOpportunityTsByOwnerAndRole(userId, userId, userId);
 				break;
 			}
 		} else {
@@ -160,7 +160,7 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role");
 		}
 		return validateAndReturnOpportunitesData(opportunities, true);
-		
+
 	}
 
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
@@ -257,9 +257,11 @@ public class OpportunityService {
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
 		if (opportunity != null) {
-			//Add Search Keywords
-			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository.
-					findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.toString(), opportunity.getOpportunityId());
+			// Add Search Keywords
+			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
+					.findByEntityTypeAndEntityId(
+							EntityType.OPPORTUNITY.toString(),
+							opportunity.getOpportunityId());
 			if (searchKeywords != null && searchKeywords.size() > 0) {
 				opportunity.setSearchKeywordsTs(searchKeywords);
 			}
@@ -269,7 +271,8 @@ public class OpportunityService {
 					"Opportuinty Id " + opportunityId + " Not Found");
 		}
 	}
-	
+
+	@Transactional
 	public void create(OpportunityT opportunity) throws Exception {
 		try {
 			if (opportunity != null) {
@@ -282,7 +285,6 @@ public class OpportunityService {
 		}
 	}
 
-	@Transactional
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate) throws Exception {
 
@@ -383,8 +385,10 @@ public class OpportunityService {
 					bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
 				}
 				bidDetailsTRepository.save(bidDetailsT);
-				if (bidOfficeOwnerLinkTs != null && bidOfficeOwnerLinkTs.size() > 0) {
-					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
+				if (bidOfficeOwnerLinkTs != null
+						&& bidOfficeOwnerLinkTs.size() > 0) {
+					bidDetailsT
+							.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
 				}
 				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
@@ -462,6 +466,7 @@ public class OpportunityService {
 
 	}
 
+	@Transactional
 	public void edit(OpportunityT opportunity) throws Exception {
 
 		OpportunityT dbOpportunity = opportunityRepository.findByOpportunityId(

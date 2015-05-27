@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -29,7 +31,7 @@ import com.tcs.destination.utils.Constants;
 @Entity
 @Table(name = "contact_t")
 @NamedQuery(name = "ContactT.findAll", query = "SELECT c FROM ContactT c")
-public class ContactT implements Serializable {
+public class ContactT implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -73,6 +75,9 @@ public class ContactT implements Serializable {
 	@Column(name = "other_role")
 	private String otherRole;
 
+	@Column(name = "partner_id")
+	private String partnerId;
+
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "contactT")
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
@@ -81,8 +86,11 @@ public class ContactT implements Serializable {
 	@OneToMany(mappedBy = "contactT")
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
-	@OneToMany(mappedBy = "contactT")
+	@OneToMany(mappedBy = "contactT", cascade = CascadeType.ALL)
 	private List<ContactCustomerLinkT> contactCustomerLinkTs;
+
+	@Transient
+	private List<ContactCustomerLinkT> deleteContactCustomerLinkTs;
 
 	// bi-directional many-to-one association to ContactRoleMappingT
 	@ManyToOne
@@ -91,7 +99,7 @@ public class ContactT implements Serializable {
 
 	// bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
-	@JoinColumn(name = "partner_id")
+	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
 	private PartnerMasterT partnerMasterT;
 
 	@ManyToOne
@@ -384,6 +392,35 @@ public class ContactT implements Serializable {
 		userFavoritesT.setContactT(null);
 
 		return userFavoritesT;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public String getContactRole() {
+		return contactRole;
+	}
+
+	public void setContactRole(String contactRole) {
+		this.contactRole = contactRole;
+	}
+
+	public List<ContactCustomerLinkT> getDeleteContactCustomerLinkTs() {
+		return deleteContactCustomerLinkTs;
+	}
+
+	public void setDeleteContactCustomerLinkTs(
+			List<ContactCustomerLinkT> deleteContactCustomerLinkTs) {
+		this.deleteContactCustomerLinkTs = deleteContactCustomerLinkTs;
+	}
+
+	public ContactT clone() throws CloneNotSupportedException {
+		return (ContactT) super.clone();
 	}
 
 }

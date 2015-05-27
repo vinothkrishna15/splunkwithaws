@@ -90,11 +90,11 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
 				+ userId + " GET");
-		List<OpportunityT> opportunities = opportunityService.findOpportunitiesByOwnerAndRole(userId, opportunityRole);
+		List<OpportunityT> opportunities = opportunityService
+				.findOpportunitiesByOwnerAndRole(userId, opportunityRole);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						opportunities);
+				opportunities);
 	}
-	
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createOpportunity(
@@ -105,7 +105,12 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
-		opportunityService.create(opportunity);
+		try {
+			opportunityService.create(opportunity);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -134,7 +139,12 @@ public class OpportunityController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot update a opportunity without opportunityId");
 		}
-		opportunityService.edit(opportunity);
+		try {
+			opportunityService.edit(opportunity);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
