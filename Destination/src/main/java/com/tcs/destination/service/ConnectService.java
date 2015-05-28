@@ -253,8 +253,6 @@ public class ConnectService {
 				populateConnectTcsAccountContactLinks(currentUserId,
 						connectId, conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
-				} else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,"conTcsAccConLinkTList null");
 				}
 
 				//Save Search Keywords
