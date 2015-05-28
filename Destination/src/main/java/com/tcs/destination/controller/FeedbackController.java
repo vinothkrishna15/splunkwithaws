@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FeedbackT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
@@ -34,7 +33,7 @@ public class FeedbackController {
 	public @ResponseBody String getFeedback(
 			@PathVariable("id") String feedbackId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
+			@RequestParam(value = "view", defaultValue = "feedback") String view)
 			throws Exception {
 		logger.debug("Inside searchforfeedbacksById service");
 		FeedbackT feedback = feedbackService.findFeedbackById(feedbackId);
@@ -52,11 +51,11 @@ public class FeedbackController {
 		try{
 			if (feedbackService.insertFeedback(feedback)) {
 				status.setStatus(Status.SUCCESS, feedback.getFeedbackId());
-				logger.debug("FEEDBACK CREATED SUCCESS" + feedback.getFeedbackId());
+				logger.debug("Feedback created successfully" + feedback.getFeedbackId());
 			}
-		} catch(Exception e){
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
@@ -71,9 +70,9 @@ public class FeedbackController {
 		try{
 			if (feedbackService.editFeedback(feedback)) {
 				status.setStatus(Status.SUCCESS, feedback.getFeedbackId());
-				logger.debug("FEEDBACK edited SUCCESS" + feedback.getFeedbackId());
+				logger.debug("Feedback updated successfully" + feedback.getFeedbackId());
 			}
-		} catch(Exception e){
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
 		}
