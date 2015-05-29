@@ -20,21 +20,21 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
- * The persistent class for the actual_revenues_data_t database table.
+ * The persistent class for the projected_revenues_data_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "actualRevenuesDataId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "projectedRevenuesDataId")
 @Entity
-@Table(name = "actual_revenues_data_t")
-@NamedQuery(name = "ActualRevenuesDataT.findAll", query = "SELECT a FROM ActualRevenuesDataT a")
-public class ActualRevenuesDataT implements Serializable {
+@Table(name = "projected_revenues_data_t")
+@NamedQuery(name = "ProjectedRevenuesDataT.findAll", query = "SELECT p FROM ProjectedRevenuesDataT p")
+public class ProjectedRevenuesDataT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "actual_revenues_data_id")
-	private String actualRevenuesDataId;
+	@Column(name = "projected_revenues_data_id")
+	private String projectedRevenuesDataId;
 
 	@Column(name = "client_country")
 	private String clientCountry;
@@ -74,15 +74,15 @@ public class ActualRevenuesDataT implements Serializable {
 	@JoinColumn(name = "sub_sp", referencedColumnName = "actual_sub_sp", insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
 
-	public ActualRevenuesDataT() {
+	public ProjectedRevenuesDataT() {
 	}
 
-	public String getActualRevenuesDataId() {
-		return this.actualRevenuesDataId;
+	public String getProjectedRevenuesDataId() {
+		return this.projectedRevenuesDataId;
 	}
 
-	public void setActualRevenuesDataId(String actualRevenuesDataId) {
-		this.actualRevenuesDataId = actualRevenuesDataId;
+	public void setProjectedRevenuesDataId(String projectedRevenuesDataId) {
+		this.projectedRevenuesDataId = projectedRevenuesDataId;
 	}
 
 	public String getClientCountry() {

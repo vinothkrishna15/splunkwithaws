@@ -20,7 +20,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="subSp")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subSp")
 @Entity
 @Table(name = "sub_sp_mapping_t")
 @NamedQuery(name = "SubSpMappingT.findAll", query = "SELECT s FROM SubSpMappingT s")
@@ -28,30 +28,36 @@ public class SubSpMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name="sub_sp")
+	@Column(name = "sub_sp")
 	private String subSp;
 
 	private String active;
 
-	@Column(name="display_sub_sp")
+	@Column(name = "display_sub_sp")
 	private String displaySubSp;
 
-	@Column(name="sp_code")
+	@Column(name = "sp_code")
 	private Integer spCode;
 
-	@Column(name="sub_sp_id")
+	@Column(name = "sub_sp_id")
 	private Integer subSpId;
-	
-	//bi-directional many-to-one association to ActualRevenuesDataT
-	@OneToMany(mappedBy="subSpMappingT")
+
+	@Column(name = "actual_sub_sp")
+	private String actualSubSpId;
+
+	// bi-directional many-to-one association to ActualRevenuesDataT
+	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
-	//bi-directional many-to-one association to ConnectSubSpLinkT
-	@OneToMany(mappedBy="subSpMappingT")
+	@OneToMany(mappedBy = "subSpMappingT")
+	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
+
+	// bi-directional many-to-one association to ConnectSubSpLinkT
+	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
 
-	//bi-directional many-to-one association to OpportunitySubSpLinkT
-	@OneToMany(mappedBy="subSpMappingT")
+	// bi-directional many-to-one association to OpportunitySubSpLinkT
+	@OneToMany(mappedBy = "subSpMappingT")
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
 	public SubSpMappingT() {
@@ -101,18 +107,21 @@ public class SubSpMappingT implements Serializable {
 		return this.actualRevenuesDataTs;
 	}
 
-	public void setActualRevenuesDataTs(List<ActualRevenuesDataT> actualRevenuesDataTs) {
+	public void setActualRevenuesDataTs(
+			List<ActualRevenuesDataT> actualRevenuesDataTs) {
 		this.actualRevenuesDataTs = actualRevenuesDataTs;
 	}
 
-	public ActualRevenuesDataT addActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+	public ActualRevenuesDataT addActualRevenuesDataT(
+			ActualRevenuesDataT actualRevenuesDataT) {
 		getActualRevenuesDataTs().add(actualRevenuesDataT);
 		actualRevenuesDataT.setSubSpMappingT(this);
 
 		return actualRevenuesDataT;
 	}
 
-	public ActualRevenuesDataT removeActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
+	public ActualRevenuesDataT removeActualRevenuesDataT(
+			ActualRevenuesDataT actualRevenuesDataT) {
 		getActualRevenuesDataTs().remove(actualRevenuesDataT);
 		actualRevenuesDataT.setSubSpMappingT(null);
 
@@ -127,14 +136,16 @@ public class SubSpMappingT implements Serializable {
 		this.connectSubSpLinkTs = connectSubSpLinkTs;
 	}
 
-	public ConnectSubSpLinkT addConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+	public ConnectSubSpLinkT addConnectSubSpLinkT(
+			ConnectSubSpLinkT connectSubSpLinkT) {
 		getConnectSubSpLinkTs().add(connectSubSpLinkT);
 		connectSubSpLinkT.setSubSpMappingT(this);
 
 		return connectSubSpLinkT;
 	}
 
-	public ConnectSubSpLinkT removeConnectSubSpLinkT(ConnectSubSpLinkT connectSubSpLinkT) {
+	public ConnectSubSpLinkT removeConnectSubSpLinkT(
+			ConnectSubSpLinkT connectSubSpLinkT) {
 		getConnectSubSpLinkTs().remove(connectSubSpLinkT);
 		connectSubSpLinkT.setSubSpMappingT(null);
 
@@ -145,22 +156,42 @@ public class SubSpMappingT implements Serializable {
 		return this.opportunitySubSpLinkTs;
 	}
 
-	public void setOpportunitySubSpLinkTs(List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
+	public void setOpportunitySubSpLinkTs(
+			List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
 		this.opportunitySubSpLinkTs = opportunitySubSpLinkTs;
 	}
 
-	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(
+			OpportunitySubSpLinkT opportunitySubSpLinkT) {
 		getOpportunitySubSpLinkTs().add(opportunitySubSpLinkT);
 		opportunitySubSpLinkT.setSubSpMappingT(this);
 
 		return opportunitySubSpLinkT;
 	}
 
-	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(OpportunitySubSpLinkT opportunitySubSpLinkT) {
+	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(
+			OpportunitySubSpLinkT opportunitySubSpLinkT) {
 		getOpportunitySubSpLinkTs().remove(opportunitySubSpLinkT);
 		opportunitySubSpLinkT.setSubSpMappingT(null);
 
 		return opportunitySubSpLinkT;
+	}
+
+	public List<ProjectedRevenuesDataT> getProjectedRevenuesDataTs() {
+		return this.projectedRevenuesDataTs;
+	}
+
+	public void setProjectedRevenuesDataTs(
+			List<ProjectedRevenuesDataT> projectedRevenuesDataTs) {
+		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
+	}
+
+	public String getActualSubSpId() {
+		return actualSubSpId;
+	}
+
+	public void setActualSubSpId(String actualSubSpId) {
+		this.actualSubSpId = actualSubSpId;
 	}
 
 }
