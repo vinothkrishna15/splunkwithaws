@@ -16,7 +16,7 @@ public interface PerformanceReportRepository extends
 			+ " from iou_customer_mapping_t ICMT join actual_revenues_data_t ARDT on ICMT.iou = ARDT.finance_iou"
 			+ " and ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '')"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.display_geography = ?3 or ?3 = '')"
-			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
 			+ " group by ICMT.display_iou"
 			+ " order by actualRevenue desc) Result on ICMT.display_iou = Result.displayIOU order by revenue desc", nativeQuery=true)
 	  public List<Object[]> getRevenuesByIOU(String financialYear, String quarter, String geography, String serviceLine);
@@ -24,7 +24,7 @@ public interface PerformanceReportRepository extends
 	  @Query(value="select distinct SSMT.display_sub_sp as displaySubSp, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			  +" from sub_sp_mapping_t SSMT left outer join" 
 			  +" (select SSMT.display_sub_sp as displaySubSp, sum(ARDT.revenue) as actualRevenue" 
-			  +" from sub_sp_mapping_t SSMT join actual_revenues_data_t ARDT on SSMT.sub_sp = ARDT.sub_sp"
+			  +" from sub_sp_mapping_t SSMT join actual_revenues_data_t ARDT on SSMT.actual_sub_sp = ARDT.sub_sp"
 			  +" and ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '')"
 			  +" join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.display_geography = ?3 or ?3 = '')"
 			  +" join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?5 or ?5 = '')"
@@ -40,7 +40,7 @@ public interface PerformanceReportRepository extends
 			  + " (select GMT.display_geography as displayGeography, sum(ARDT.revenue) as actualRevenue"
 			  + " from geography_mapping_t GMT join actual_revenues_data_t ARDT on GMT.geography = ARDT.finance_geography" 
 			  + " and ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '')"
-			  + " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
+			  + " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
 			  + " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?5 or ?5 = '')"
 			  + " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and"
 			  + " (RCMT.customer_name = ?3 or ?3 = '')"
@@ -54,7 +54,7 @@ public interface PerformanceReportRepository extends
 			  + " (select GMT.geography as displayGeography, sum(ARDT.revenue) as actualRevenue" 
 			  + " from geography_mapping_t GMT left outer join actual_revenues_data_t ARDT on GMT.geography = ARDT.finance_geography" 
 			  + " and (GMT.display_geography = ?6 or ?6 = '')"
-			  + " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
+			  + " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '')"
 			  + " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?5 or ?5 = '')"
 			  + " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name = ?3 or ?3 = '')"
 			  + " where ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '')"
@@ -63,6 +63,7 @@ public interface PerformanceReportRepository extends
 			  + " where GMT.display_geography = ?6 order by revenue desc",nativeQuery=true)
 	  public List<Object[]> getRevenuesBySubGeo(String financialYear,String quarter,String customer,String subSp,String iou,String geography);
 	  
+	 
 	  
 	  
 }

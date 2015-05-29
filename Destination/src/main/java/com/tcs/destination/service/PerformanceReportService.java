@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.slf4j.Logger;
@@ -28,6 +31,7 @@ import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PerformanceReportRepository;
+import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
 import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchCurrencyException;
@@ -49,6 +53,9 @@ public class PerformanceReportService {
 
 	@Autowired
 	ActualRevenuesDataTRepository actualsRepository;
+	
+	@Autowired
+	ProjectedRevenuesDataTRepository projectedRepository;
 
 	@Autowired
 	BeaconDataTRepository beaconDataTRepository;
@@ -82,6 +89,13 @@ public class PerformanceReportService {
 				serviceLine);
 		logger.info("Actual Revenue has " + actualRevenueList.size()
 				+ " values");
+		
+		List<Object[]> projectedRevenueList = projectedRepository.findProjectedRevenue(
+				financialYear, quarter, geography, iou, customerName,
+				serviceLine);
+		logger.info("Actual Revenue has " + actualRevenueList.size()
+				+ " values");
+		
 		List<Object[]> targetRevenueList = null;
 		if (serviceLine.equals("")) {
 			targetRevenueList = beaconDataTRepository.findTargetRevenue(
@@ -91,18 +105,56 @@ public class PerformanceReportService {
 		}
 
 		List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
+		
 		List<TargetVsActualResponse> actualList = new ArrayList<TargetVsActualResponse>();
 		populateResponseList(actualRevenueList, actualList, false,
 				beacon.getConversionRate());
+		
+		List<TargetVsActualResponse> projectedList = new ArrayList<TargetVsActualResponse>();
+		populateResponseList(projectedRevenueList, projectedList, false,
+				beacon.getConversionRate());
+		
+		List<TargetVsActualResponse> sumList = getSumList(actualList,projectedList);
+		
 		if (serviceLine.equals("")) {
 			populateResponseList(targetRevenueList, targetList, true,
 					beacon.getConversionRate());
 			List<TargetVsActualResponse> tarActResponseList = mergeLists(
-					targetList, actualList);
+					targetList, sumList);
 			return tarActResponseList;
 		} else {
 			return actualList;
 		}
+	}
+
+	private List<TargetVsActualResponse> getSumList(
+			List<TargetVsActualResponse> actualList,
+			List<TargetVsActualResponse> projectedList) {
+		Map<String,BigDecimal> map = new TreeMap<String,BigDecimal>();
+		for(TargetVsActualResponse tarActResponse : actualList){
+			map.put(tarActResponse.getQuarter(),tarActResponse.getActual());
+		}
+		
+		for(TargetVsActualResponse projResponse : projectedList){
+		  BigDecimal actualRevenue = map.get(projResponse.getQuarter());
+		  if(actualRevenue!=null)
+			  map.put(projResponse.getQuarter(), projResponse.getActual().add(actualRevenue));
+		  else
+			  map.put(projResponse.getQuarter(), projResponse.getActual()); 
+		}
+		
+		List<TargetVsActualResponse> respList = new ArrayList<TargetVsActualResponse>();
+		for (Map.Entry<String, BigDecimal> entry : map.entrySet()) {
+			String quarter = entry.getKey();
+			BigDecimal actual = entry.getValue();
+			TargetVsActualResponse resp = new TargetVsActualResponse();
+			resp.setQuarter(quarter);
+			resp.setActual(actual);
+			//resp.setTarget(target);
+			respList.add(resp);
+		}
+		
+		return respList;
 	}
 
 	private void populateResponseList(List<Object[]> objList,
@@ -194,12 +246,26 @@ public class PerformanceReportService {
 			throw new NoSuchCurrencyException();
 		}
 
-		List<Object[]> iouObjList = new ArrayList<Object[]>();
-		iouObjList = perfRepo.getRevenuesByIOU(financialYear, quarter,
+		List<Object[]> iouObjList = perfRepo.getRevenuesByIOU(financialYear, quarter,
 				geography, serviceLine);
-		List<IOUReport> iouRevenuesList = new ArrayList<IOUReport>();
+		
+		List<IOUReport> iouRevenuesList = getIOUReportFromObject(beacon, iouObjList);
+		
+		List<Object[]> iouProjObjList = projectedRepository.getRevenuesByIOU(financialYear, quarter,
+				geography, serviceLine);
+		
+		List<IOUReport> iouProjRevenuesList = getIOUReportFromObject(beacon,iouProjObjList);
+		
+		List<IOUReport> iouSumList = getSumIOUList(iouRevenuesList,iouProjRevenuesList);
+		
+		return iouSumList;
+	}
 
-		for (Object[] obj : iouObjList) {
+	private List<IOUReport> getIOUReportFromObject(BeaconConvertorMappingT beacon,
+			List<Object[]> iouProjObjList) {
+		List<IOUReport> iouProjRevenuesList = new ArrayList<IOUReport>();
+
+		for (Object[] obj : iouProjObjList) {
 			IOUReport item = new IOUReport();
 			item.setDisplayIOU((String) obj[0]);
 			BigDecimal rev = new BigDecimal(obj[1].toString());
@@ -208,9 +274,39 @@ public class PerformanceReportService {
 			item.setActualRevenue(rev.divide(beacon.getConversionRate(), 2)
 					.setScale(2, BigDecimal.ROUND_DOWN));
 			// item.setActualRevenue(rev.setScale(2, BigDecimal.ROUND_DOWN));
-			iouRevenuesList.add(item);
+			iouProjRevenuesList.add(item);
 		}
-		return iouRevenuesList;
+		return iouProjRevenuesList;
+	}
+
+	private List<IOUReport> getSumIOUList(List<IOUReport> iouRevenuesList,
+			List<IOUReport> iouProjRevenuesList) {
+		Map<String,BigDecimal> map = new TreeMap<String,BigDecimal>();
+		for(IOUReport item : iouRevenuesList){
+			map.put(item.getDisplayIOU(),item.getActualRevenue());
+		}
+		
+		for(IOUReport item : iouProjRevenuesList){
+		  BigDecimal actualRevenue = map.get(item.getDisplayIOU());
+		  if(actualRevenue!=null)
+			  map.put(item.getDisplayIOU(), item.getActualRevenue().add(actualRevenue));
+		  else
+			  map.put(item.getDisplayIOU(), item.getActualRevenue()); 
+		}
+		
+		List<IOUReport> respList = new ArrayList<IOUReport>();
+		for (Map.Entry<String, BigDecimal> entry : map.entrySet()) {
+			String dispIOU = entry.getKey();
+			BigDecimal actual = entry.getValue();
+			IOUReport resp = new IOUReport();
+			resp.setDisplayIOU(dispIOU);
+			resp.setActualRevenue(actual);
+			//resp.setTarget(target);
+			respList.add(resp);
+		}
+		
+		return respList;
+		//return null;
 	}
 
 	public List<SubSpReport> getRevenuesBySubSp(String financialYear,
@@ -224,9 +320,23 @@ public class PerformanceReportService {
 			throw new NoSuchCurrencyException();
 		}
 
-		List<Object[]> subObjList = new ArrayList<Object[]>();
-		subObjList = perfRepo.getRevenuesBySubSp(financialYear, quarter,
+		List<Object[]> subObjList = perfRepo.getRevenuesBySubSp(financialYear, quarter,
 				geography, customerName, iou);
+		
+		List<SubSpReport> subSpRevenuesList = getSubSPReportFromObject(beacon,subObjList);
+		
+		List<Object[]> subProjObjList = projectedRepository.getRevenuesBySubSp(financialYear, quarter,
+				geography, customerName, iou);
+		
+		List<SubSpReport> subSpProjRevenuesList = getSubSPReportFromObject(beacon,subProjObjList);
+		
+		List<SubSpReport> subSpSumList = getSumSubSpList(subSpRevenuesList, subSpProjRevenuesList);
+		
+		return subSpSumList;
+	}
+
+	private List<SubSpReport> getSubSPReportFromObject(
+			BeaconConvertorMappingT beacon, List<Object[]> subObjList) {
 		List<SubSpReport> subSpRevenuesList = new ArrayList<SubSpReport>();
 
 		for (Object[] obj : subObjList) {
@@ -243,6 +353,38 @@ public class PerformanceReportService {
 		return subSpRevenuesList;
 	}
 
+	private List<SubSpReport> getSumSubSpList(
+			List<SubSpReport> subSpRevenuesList,
+			List<SubSpReport> subSpProjRevenuesList) {
+		Map<String,BigDecimal> map = new TreeMap<String,BigDecimal>();
+		for (SubSpReport item : subSpRevenuesList) {
+			map.put(item.getDisplaySubSp(), item.getActualRevenue());
+		}
+
+		for (SubSpReport item : subSpProjRevenuesList) {
+		  BigDecimal actualRevenue = map.get(item.getDisplaySubSp());
+		  if (actualRevenue != null) {
+			  map.put(item.getDisplaySubSp(), item.getActualRevenue().add(actualRevenue));
+		  }
+		  else {
+			  map.put(item.getDisplaySubSp(), item.getActualRevenue());
+		  }
+		}
+		
+		List<SubSpReport> respList = new ArrayList<SubSpReport>();
+		for (Map.Entry<String, BigDecimal> entry : map.entrySet()) {
+			String dispSubSp = entry.getKey();
+			BigDecimal actual = entry.getValue();
+			logger.info("dispSubSp = " + dispSubSp + " " + actual);
+			SubSpReport resp = new SubSpReport();
+			resp.setDisplaySubSp(dispSubSp);
+			resp.setActualRevenue(actual);
+			respList.add(resp);
+		}
+		
+		return respList;
+	}
+
 	public List<GeographyReport> getRevenuesByDispGeography(
 			String financialYear, String quarter, String customer,
 			String subSp, String iou, String currency) throws Exception {
@@ -254,9 +396,25 @@ public class PerformanceReportService {
 			throw new NoSuchCurrencyException();
 		}
 
-		List<Object[]> geoObjList = new ArrayList<Object[]>();
-		geoObjList = perfRepo.getRevenuesByDispGeo(financialYear, quarter,
+		List<Object[]> geoObjList = perfRepo.getRevenuesByDispGeo(financialYear, quarter,
 				customer, subSp, iou);
+		
+		List<GeographyReport> geoRevenuesList = getGeographyReportFromObject(
+				beacon, geoObjList);
+		
+		List<Object[]> geoProjObjList = projectedRepository.getRevenuesByDispGeo(financialYear, quarter,
+				customer, subSp, iou);
+		
+		List<GeographyReport> geoProjRevenuesList = getGeographyReportFromObject(
+				beacon, geoProjObjList);
+		
+		List<GeographyReport> geoSumList = getSumGeoList(geoRevenuesList, geoProjRevenuesList);
+		
+		return geoSumList;
+	}
+
+	private List<GeographyReport> getGeographyReportFromObject(
+			BeaconConvertorMappingT beacon, List<Object[]> geoObjList) {
 		List<GeographyReport> geoRevenuesList = new ArrayList<GeographyReport>();
 
 		for (Object[] obj : geoObjList) {
@@ -271,6 +429,38 @@ public class PerformanceReportService {
 			geoRevenuesList.add(item);
 		}
 		return geoRevenuesList;
+	}
+
+	private List<GeographyReport> getSumGeoList(
+			List<GeographyReport> geoRevenuesList,
+			List<GeographyReport> geoProjRevenuesList) {
+		Map<String,BigDecimal> map = new TreeMap<String,BigDecimal>();
+		for (GeographyReport item : geoRevenuesList) {
+			map.put(item.getGeography(), item.getActualRevenue());
+		}
+
+		for (GeographyReport item : geoProjRevenuesList) {
+		  BigDecimal actualRevenue = map.get(item.getGeography());
+		  if (actualRevenue != null) {
+			  map.put(item.getGeography(), item.getActualRevenue().add(actualRevenue));
+		  }
+		  else {
+			  map.put(item.getGeography(), item.getActualRevenue());
+		  }
+		}
+		
+		List<GeographyReport> respList = new ArrayList<GeographyReport>();
+		for (Map.Entry<String, BigDecimal> entry : map.entrySet()) {
+			String geography = entry.getKey();
+			BigDecimal actual = entry.getValue();
+			logger.info("geography = " + geography + " " + actual);
+			GeographyReport resp = new GeographyReport();
+			resp.setGeography(geography);
+			resp.setActualRevenue(actual);
+			respList.add(resp);
+		}
+		
+		return respList;
 	}
 
 	public List<GeographyReport> getRevenuesBySubGeography(
@@ -288,20 +478,18 @@ public class PerformanceReportService {
 		List<Object[]> geoObjList = new ArrayList<Object[]>();
 		geoObjList = perfRepo.getRevenuesBySubGeo(financialYear, quarter,
 				customer, subSp, iou, geography);
-		List<GeographyReport> geoRevenuesList = new ArrayList<GeographyReport>();
-
-		for (Object[] obj : geoObjList) {
-			GeographyReport item = new GeographyReport();
-			item.setGeography((String) obj[0]);
-			BigDecimal rev = new BigDecimal(obj[1].toString());
-			// BigDecimal revenue = (BigDecimal) obj[1];
-			// revenue = revenue.setScale(2, BigDecimal.ROUND_DOWN);
-			item.setActualRevenue(rev.divide(beacon.getConversionRate(), 2)
-					.setScale(2, BigDecimal.ROUND_DOWN));
-			// item.setActualRevenue(rev.setScale(2, BigDecimal.ROUND_DOWN));
-			geoRevenuesList.add(item);
-		}
-		return geoRevenuesList;
+		List<GeographyReport> geoRevenuesList = getGeographyReportFromObject(
+				beacon, geoObjList);
+		
+		List<Object[]> geoProjObjList = new ArrayList<Object[]>();
+		geoProjObjList = projectedRepository.getRevenuesBySubGeo(financialYear, quarter,
+				customer, subSp, iou, geography);
+		List<GeographyReport> geoProjRevenuesList = getGeographyReportFromObject(
+				beacon, geoProjObjList);
+		
+		List<GeographyReport> geoSumList = getSumGeoList(geoRevenuesList, geoProjRevenuesList);
+		
+		return geoSumList;
 	}
 
 	public List<OpportunityT> getTopOpportunities(String currency,
