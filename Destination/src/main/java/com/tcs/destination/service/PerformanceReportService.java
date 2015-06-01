@@ -22,7 +22,6 @@ import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
-import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PerformanceReportRepository;
@@ -37,6 +36,8 @@ public class PerformanceReportService {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PerformanceReportService.class);
 
+	private static final BigDecimal ZERO_REVENUE = new BigDecimal("0.0");
+
 	@Autowired
 	private PerformanceReportRepository perfRepo;
 
@@ -45,8 +46,6 @@ public class PerformanceReportService {
 	
 	@Autowired
 	BeaconConverterService beaconService;
-
-	private static final BigDecimal ZERO_REVENUE = new BigDecimal("0.0");
 
 	@Autowired
 	ActualRevenuesDataTRepository actualsRepository;
@@ -58,14 +57,11 @@ public class PerformanceReportService {
 	BeaconDataTRepository beaconDataTRepository;
 
 	@Autowired
-	BeaconConvertorRepository beaconRepository;
-
-	@Autowired
 	SalesStageMappingRepository salesStageMappingRepository;
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
 			String financialYear, String quarter, String geography,
-			String serviceLine, String iou, String customerName, String currency) throws DestinationException {
+			String serviceLine, String iou, String customerName, String currency) throws Exception {
 		logger.info("Inside getRevenueSummary Service");
 
 		if (financialYear.equals("")) {
@@ -111,7 +107,7 @@ public class PerformanceReportService {
 	}
 
 	private List<TargetVsActualResponse> convertMaptoTargetvsActualResponse(
-			Map<String, BigDecimal> quarterMap, String targetCurrency) throws DestinationException {
+			Map<String, BigDecimal> quarterMap, String targetCurrency) throws Exception {
 		List<TargetVsActualResponse> revenueList = new ArrayList<TargetVsActualResponse>();
 		for (Map.Entry<String, BigDecimal> entry : quarterMap.entrySet()) {
 			String dispName = entry.getKey();
@@ -129,7 +125,7 @@ public class PerformanceReportService {
 
 	private void populateResponseList(List<Object[]> objList,
 			List<TargetVsActualResponse> respList, boolean isTarget,
-			String targetCurrency) throws DestinationException {
+			String targetCurrency) throws Exception {
 		if (objList != null && !objList.isEmpty()) {
 			for (Object[] objArr : objList) {
 				TargetVsActualResponse resp = new TargetVsActualResponse();
@@ -154,14 +150,14 @@ public class PerformanceReportService {
 
 	private static List<TargetVsActualResponse> mergeLists(
 			List<TargetVsActualResponse> targetList,
-			List<TargetVsActualResponse> actualList) {
+			List<TargetVsActualResponse> actualList) throws Exception {
 		Map<String, BigDecimal[]> map = getMapFromLists(targetList, actualList);
 		List<TargetVsActualResponse> respList = getMergedListFromMap(map);
 		return respList;
 	}
 
 	private static List<TargetVsActualResponse> getMergedListFromMap(
-			Map<String, BigDecimal[]> map) {
+			Map<String, BigDecimal[]> map) throws Exception {
 		List<TargetVsActualResponse> respList = new ArrayList<TargetVsActualResponse>();
 		for (Map.Entry<String, BigDecimal[]> entry : map.entrySet()) {
 			String quarter = entry.getKey();
@@ -179,10 +175,10 @@ public class PerformanceReportService {
 
 	private static Map<String, BigDecimal[]> getMapFromLists(
 			List<TargetVsActualResponse> targetList,
-			List<TargetVsActualResponse> actualList) {
+			List<TargetVsActualResponse> actualList) throws Exception {
 		Map<String, BigDecimal[]> map = new TreeMap<String, BigDecimal[]>();
 
-		// Populate Target Revenue
+		//Populate Target Revenue
 		for (TargetVsActualResponse obj : targetList) {
 			BigDecimal[] values = new BigDecimal[2];
 			String quarter = obj.getQuarter();
@@ -192,7 +188,7 @@ public class PerformanceReportService {
 			map.put(quarter, values);
 		}
 
-		// Populate Actual Revenue
+		//Populate Actual Revenue
 		for (TargetVsActualResponse obj : actualList) {
 			BigDecimal[] values1 = new BigDecimal[2];
 			String quarter = obj.getQuarter();
@@ -218,7 +214,7 @@ public class PerformanceReportService {
 		List<Object[]> iouObjList = perfRepo.getRevenuesByIOU(financialYear, quarter,
 				geography, serviceLine);
 		
-		//initialising the map with actuals data
+		//initializing the map with actuals data
 		Map<String,BigDecimal> iouMap = getMapFromObjList(iouObjList);
 		
 		List<Object[]> iouProjObjList = projectedRepository.getRevenuesByIOU(financialYear, quarter,
@@ -232,7 +228,8 @@ public class PerformanceReportService {
 		return iouRevenuesList;
 	}
 
-	private List<IOUReport> convertMaptoIOUList(Map<String, BigDecimal> iouMap, String targetCurrency) throws DestinationException {
+	private List<IOUReport> convertMaptoIOUList(Map<String, BigDecimal> iouMap, String targetCurrency) 
+			throws Exception {
 		List<IOUReport> iouList = new ArrayList<IOUReport>();
 		
 		for (Map.Entry<String, BigDecimal> entry : iouMap.entrySet()) {
@@ -250,11 +247,11 @@ public class PerformanceReportService {
 	}
 
 	private void mergeProjectedRevenue(Map<String, BigDecimal> map,
-			List<Object[]> projObjList) {
+			List<Object[]> projObjList) throws Exception {
 		for (Object[] obj : projObjList) {
 			String dispName = (String) obj[0];
 			BigDecimal projRev = new BigDecimal(obj[1].toString());
-			if(map.containsKey(dispName)){
+			if (map.containsKey(dispName)) {
 				BigDecimal actual = map.get(dispName);
 				map.put(dispName, actual.add(projRev));
 			} else {
@@ -265,7 +262,7 @@ public class PerformanceReportService {
 		}
 	}
 
-	private Map<String, BigDecimal> getMapFromObjList(List<Object[]> objList) {
+	private Map<String, BigDecimal> getMapFromObjList(List<Object[]> objList) throws Exception {
 		Map<String, BigDecimal> map = new TreeMap<String, BigDecimal>();
 		for (Object[] obj : objList) {
 			String dispName = (String) obj[0];
@@ -282,7 +279,7 @@ public class PerformanceReportService {
 		List<Object[]> subObjList = perfRepo.getRevenuesBySubSp(financialYear, quarter,
 				geography, customerName, iou);
 		
-		//initialising the map with actuals data
+		//initializing the map with actuals data
 		Map<String,BigDecimal> subSpMap = getMapFromObjList(subObjList);
 		
 		List<Object[]> subProjObjList = projectedRepository.getRevenuesBySubSp(financialYear, quarter,
@@ -297,7 +294,7 @@ public class PerformanceReportService {
 	}
 
 	private List<SubSpReport> convertMaptoSubSpList(
-			Map<String, BigDecimal> subSpMap, String targetCurrency) throws DestinationException {
+			Map<String, BigDecimal> subSpMap, String targetCurrency) throws Exception {
 		List<SubSpReport> subSpList = new ArrayList<SubSpReport>();
 
 		for (Map.Entry<String, BigDecimal> entry : subSpMap.entrySet()) {
@@ -321,14 +318,14 @@ public class PerformanceReportService {
 		List<Object[]> geoObjList = perfRepo.getRevenuesByDispGeo(
 				financialYear, quarter, customer, subSp, iou);
 
-		// initialising the map with actuals data
+		//initializing the map with actuals data
 		Map<String, BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
 
 		List<Object[]> geoProjObjList = projectedRepository
 				.getRevenuesByDispGeo(financialYear, quarter, customer, subSp,
 						iou);
 
-		// adding projected revenue
+		//adding projected revenue
 		mergeProjectedRevenue(dispGeoMap, geoProjObjList);
 
 		List<GeographyReport> geoRevenuesList = convertMaptoGeographyList(
@@ -338,7 +335,7 @@ public class PerformanceReportService {
 	}
 
 	private List<GeographyReport> convertMaptoGeographyList(
-			Map<String, BigDecimal> dispGeoMap, String targetCurrency) throws DestinationException {
+			Map<String, BigDecimal> dispGeoMap, String targetCurrency) throws Exception {
 		List<GeographyReport> geoList = new ArrayList<GeographyReport>();
 
 		for (Map.Entry<String, BigDecimal> entry : dispGeoMap.entrySet()) {
@@ -363,7 +360,7 @@ public class PerformanceReportService {
 		List<Object[]> geoObjList = perfRepo.getRevenuesBySubGeo(financialYear, quarter,
 				customer, subSp, iou, geography);
 		
-		//initialising the map with actuals data
+		//initializing the map with actuals data
 		Map<String,BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
 		
 		List<Object[]> geoProjObjList = projectedRepository.getRevenuesBySubGeo(financialYear, quarter,
@@ -379,7 +376,7 @@ public class PerformanceReportService {
 
 	public List<OpportunityT> getTopOpportunities(String currency,
 			String geography, int stageFrom, int stageTo, String subSp,
-			String iou, Date dateFrom, Date dateTo, int count) {
+			String iou, Date dateFrom, Date dateTo, int count) throws Exception {
 
 		List<OpportunityT> topOppList = new ArrayList<OpportunityT>();
 		topOppList = opportunityRepository.getTopOpportunities(geography, subSp, iou,
@@ -390,7 +387,7 @@ public class PerformanceReportService {
 
 	public ReportsOpportunity getOpportunity(String financialYear,
 			String quarter, String geography, String iou, String serviceLine,
-			String currency, boolean pipelines) throws DestinationException {
+			String currency, boolean pipelines) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		ReportsOpportunity reportsOpportunity = new ReportsOpportunity();
@@ -443,7 +440,7 @@ public class PerformanceReportService {
 
 			}
 		} else {
-			// Setting values for Pipeline
+			//Setting values for Pipeline
 
 			List<Object[]> pipelineData = opportunityRepository
 					.findPipelinePerformance(geography, iou, serviceLine,
@@ -462,7 +459,7 @@ public class PerformanceReportService {
 			pipeLineReports.setSalesStageCodeDescription("Pipeline");
 			salesStageList.add(pipeLineReports);
 
-			// Setting values for Wins
+			//Setting values for Wins
 			List<Object[]> winsList = opportunityRepository
 					.findWinsPerformance(geography, iou, serviceLine, currency,
 							fromDate, toDate);
@@ -492,7 +489,7 @@ public class PerformanceReportService {
 	}
 
 	private Date getDate(String financialYear, String quarter,
-			boolean isFromDate) throws DestinationException {
+			boolean isFromDate) throws Exception {
 		Date date = new Date();
 		if (financialYear.equals("")) {
 			if (quarter.equals("")) {
@@ -516,7 +513,7 @@ public class PerformanceReportService {
 
 	public List<IOUReport> getOpportunitiesByIOU(String financialYear,
 			String quarter, String geography, String serviceLine,
-			String currency, boolean isPipeline) throws DestinationException {
+			String currency, boolean isPipeline) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<IOUReport> iouReports = new ArrayList<IOUReport>();
@@ -551,7 +548,7 @@ public class PerformanceReportService {
 
 	public List<SubSpReport> getOpportunitiesBySubSp(String financialYear,
 			String quarter, String geography, String iou, String currency,
-			boolean isPipeline) throws DestinationException {
+			boolean isPipeline) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<SubSpReport> subSpReports = new ArrayList<SubSpReport>();
@@ -586,7 +583,7 @@ public class PerformanceReportService {
 
 	public List<GeographyReport> getOpportunitiesByDispGeography(
 			String financialYear, String quarter, String subSp, String iou,
-			String currency, boolean isPipeline) throws DestinationException {
+			String currency, boolean isPipeline) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
@@ -621,7 +618,7 @@ public class PerformanceReportService {
 	public List<GeographyReport> getOpportunitiesBySubGeography(
 			String financialYear, String quarter, String customerName,
 			String serviceLine, String iou, String geography, String currency,
-			boolean isPipeline) throws DestinationException {
+			boolean isPipeline) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
