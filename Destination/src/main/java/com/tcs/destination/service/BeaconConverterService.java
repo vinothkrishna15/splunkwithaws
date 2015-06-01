@@ -15,6 +15,10 @@ import com.tcs.destination.exception.DestinationException;
 @Component
 public class BeaconConverterService {
 
+	public static final String ACTUALS_REVENUE_CURRENCY = "INR";
+	
+	public static final String TARGET_REVENUE_CURRENCY = "INR";
+	
 	@Autowired
 	BeaconConvertorRepository converterRepository;
 
@@ -22,6 +26,35 @@ public class BeaconConverterService {
 			throws DestinationException {
 
 		BigDecimal sourceVal = BigDecimal.valueOf(value);
+		BigDecimal convertedVal = null;
+		Status status = new Status();
+		status.setStatus("FAILED", "Currency Conversion Failed");
+		BeaconConvertorMappingT converterBase = converterRepository
+				.findByCurrencyName(base);
+		if (converterBase != null)
+			sourceVal = converterBase.getConversionRate().multiply(sourceVal);
+		else
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Currency Type " + base + " Not Found");
+
+		BeaconConvertorMappingT converterTarget = converterRepository
+				.findByCurrencyName(target);
+		if (converterTarget != null) {
+			convertedVal = sourceVal.divide(
+					converterTarget.getConversionRate(), 2,
+					RoundingMode.HALF_UP);
+			status.setStatus("SUCCESS", convertedVal.toString());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Currency Type " + target + " Not Found");
+		}
+		return convertedVal;
+	}
+	
+	public BigDecimal convert(String base, String target, BigDecimal value)
+			throws DestinationException {
+
+		BigDecimal sourceVal = value;
 		BigDecimal convertedVal = null;
 		Status status = new Status();
 		status.setStatus("FAILED", "Currency Conversion Failed");
