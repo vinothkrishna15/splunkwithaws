@@ -42,7 +42,7 @@ public class FavoritesService {
 						"No Favorites found");
 			} else {
 				favorites = new FavoritesResponse();
-				favorites.setUserFavorites(userFavorites.getContent());
+				favorites.setUserFavoritesTs(userFavorites.getContent());
 				logger.debug("Total Favorites: " + userFavorites.getTotalElements());
 				favorites.setTotalCount(userFavorites.getTotalElements());
 				return favorites;
