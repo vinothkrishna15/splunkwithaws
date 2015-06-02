@@ -1,22 +1,20 @@
 package com.tcs.destination.service;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.FavoritesResponse;
 import com.tcs.destination.bean.UserFavoritesT;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
-import com.tcs.destination.utils.DateUtils;
 
 @Component
 public class FavoritesService {
@@ -27,21 +25,28 @@ public class FavoritesService {
 	@Autowired
 	FavoritesSearchedRepository userFavRepository;
 
-	public List<UserFavoritesT> findFavoritesFor(UserT user, String entityType, int start, int count)
+	public FavoritesResponse findFavoritesFor(String userId, String entityType, int start, int count)
 			throws Exception {
+		FavoritesResponse favorites = null; 
+
 		logger.debug("Inside findFavoritesFor Service");
 		if (EntityType.contains(entityType)) {
 			logger.debug("EntityType is present");
-			Pageable pageable=new PageRequest(start, count);
-			List<UserFavoritesT> userFavorites = userFavRepository
-					.findByUserTAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(user, entityType, pageable);
-
-			if (userFavorites.isEmpty()) {
+			Pageable pageable = new PageRequest(start, count);
+			Page<UserFavoritesT> userFavorites = userFavRepository
+					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(userId, entityType, pageable);
+			
+			if (userFavorites.getContent().isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
+			} else {
+				favorites = new FavoritesResponse();
+				favorites.setUserFavorites(userFavorites.getContent());
+				logger.debug("Total Favorites: " + userFavorites.getTotalElements());
+				favorites.setTotalCount(userFavorites.getTotalElements());
+				return favorites;
 			}
-			return userFavorites;
 		} else {
 			logger.error("BAD_REQUEST: No such Entity type exists. Please ensure your entity type.");
 			throw new NoSuchEntityException();

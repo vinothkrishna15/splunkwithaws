@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.FavoritesResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FavoritesService;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -34,6 +32,7 @@ public class FavoritesController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
+			@RequestParam("userId") String userId,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -45,11 +44,10 @@ public class FavoritesController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid pagination request");
 		}
-		List<UserFavoritesT> userFavourites = myFavService.findFavoritesFor(
-				DestinationUtils.getCurrentUserDetails(), entityType, page,
-				count);
+		FavoritesResponse favourites = myFavService.findFavoritesFor(
+				userId, entityType, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				userFavourites);
+				favourites);
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
