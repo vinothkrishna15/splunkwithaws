@@ -220,6 +220,15 @@ public class CustomerMasterT implements Serializable {
 
 		return beaconCustomerMappingT;
 	}
+	
+	public List<ContactCustomerLinkT> getContactCustomerLinkTs() {
+		return contactCustomerLinkTs;
+	}
+
+	public void setContactCustomerLinkTs(
+			List<ContactCustomerLinkT> contactCustomerLinkTs) {
+		this.contactCustomerLinkTs = contactCustomerLinkTs;
+	}
 
 	public List<CommentsT> getCommentsTs() {
 		return this.commentsTs;
