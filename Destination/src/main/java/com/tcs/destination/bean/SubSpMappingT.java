@@ -43,7 +43,7 @@ public class SubSpMappingT implements Serializable {
 	private Integer subSpId;
 
 	@Column(name = "actual_sub_sp")
-	private String actualSubSpId;
+	private String actualSubSp;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
 	@OneToMany(mappedBy = "subSpMappingT")
@@ -186,12 +186,12 @@ public class SubSpMappingT implements Serializable {
 		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
 	}
 
-	public String getActualSubSpId() {
-		return actualSubSpId;
+	public String getActualSubSp() {
+		return actualSubSp;
 	}
 
-	public void setActualSubSpId(String actualSubSpId) {
-		this.actualSubSpId = actualSubSpId;
+	public void setActualSubSp(String actualSubSp) {
+		this.actualSubSp = actualSubSp;
 	}
 
 }
