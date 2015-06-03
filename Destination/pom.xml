@@ -6,7 +6,7 @@
 	<groupId>org.test</groupId>
 	<artifactId>destination</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>Destination</name>
 	<description>Destination project</description>
@@ -72,7 +72,6 @@
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>4.1.7.Final</version>
 		</dependency>
-
 
 		<!-- <dependency> <groupId>org.aspectj</groupId> <artifactId>aspectjweaver</artifactId> 
 			</dependency> -->
