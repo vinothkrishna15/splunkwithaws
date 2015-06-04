@@ -520,7 +520,7 @@ public class ConnectService {
 			}
 			
 			//Delete connectTcsAccountContactLinkTs
-			if (connect.getDeleteConnectTcsAccountContactLinkTs() != null &
+			if (connect.getDeleteConnectTcsAccountContactLinkTs() != null &&
 					connect.getDeleteConnectTcsAccountContactLinkTs().size() > 0) 
 			{
 				deleteConnectTcsAccountContacts(connect.getDeleteConnectTcsAccountContactLinkTs());
