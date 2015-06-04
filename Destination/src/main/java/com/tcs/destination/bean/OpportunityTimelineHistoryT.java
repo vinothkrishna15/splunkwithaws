@@ -18,45 +18,56 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
-
 /**
  * The persistent class for the opportunity_timeline_history_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="opportunityTimelineHistoryId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityTimelineHistoryId")
 @Entity
-@Table(name="opportunity_timeline_history_t")
-@NamedQuery(name="OpportunityTimelineHistoryT.findAll", query="SELECT o FROM OpportunityTimelineHistoryT o")
+@Table(name = "opportunity_timeline_history_t")
+@NamedQuery(name = "OpportunityTimelineHistoryT.findAll", query = "SELECT o FROM OpportunityTimelineHistoryT o")
 public class OpportunityTimelineHistoryT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="opportunity_timeline_history_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "opportunity_timeline_history_id")
 	private String opportunityTimelineHistoryId;
 
-	@Column(name="updated_datetime")
+	@Column(name = "updated_datetime")
 	private Timestamp updatedDatetime;
 
-	//bi-directional many-to-one association to BidDetailsT
+	@Column(name = "bid_id")
+	private String bidId;
+
+	@Column(name = "opportunity_id")
+	private String opportunityId;
+
+	@Column(name = "sales_stage_code")
+	private int salesStageCode;
+
+	@Column(name = "user_updated")
+	private String userUpdated;
+
+	// bi-directional many-to-one association to BidDetailsT
 	@ManyToOne
-	@JoinColumn(name="bid_id")
+	@JoinColumn(name = "bid_id", insertable = false, updatable = false)
 	private BidDetailsT bidDetailsT;
 
-	//bi-directional many-to-one association to OpportunityT
+	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name="opportunity_id")
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to SalesStageMappingT
+	// bi-directional many-to-one association to SalesStageMappingT
 	@ManyToOne
-	@JoinColumn(name="sales_stage_code")
+	@JoinColumn(name = "sales_stage_code", insertable = false, updatable = false)
 	private SalesStageMappingT salesStageMappingT;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_updated")
+	@JoinColumn(name = "user_updated", insertable = false, updatable = false)
 	private UserT userT;
 
 	public OpportunityTimelineHistoryT() {
@@ -66,7 +77,8 @@ public class OpportunityTimelineHistoryT implements Serializable {
 		return this.opportunityTimelineHistoryId;
 	}
 
-	public void setOpportunityTimelineHistoryId(String opportunityTimelineHistoryId) {
+	public void setOpportunityTimelineHistoryId(
+			String opportunityTimelineHistoryId) {
 		this.opportunityTimelineHistoryId = opportunityTimelineHistoryId;
 	}
 
@@ -109,5 +121,39 @@ public class OpportunityTimelineHistoryT implements Serializable {
 	public void setUserT(UserT userT) {
 		this.userT = userT;
 	}
+
+	public String getBidId() {
+		return bidId;
+	}
+
+	public void setBidId(String bidId) {
+		this.bidId = bidId;
+	}
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
+	public int getSalesStageCode() {
+		return salesStageCode;
+	}
+
+	public void setSalesStageCode(int salesStageCode) {
+		this.salesStageCode = salesStageCode;
+	}
+
+	public String getUserUpdated() {
+		return userUpdated;
+	}
+
+	public void setUserUpdated(String userUpdated) {
+		this.userUpdated = userUpdated;
+	}
+	
+	
 
 }

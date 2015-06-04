@@ -24,6 +24,7 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
+import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
@@ -39,6 +40,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
 import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.EntityType;
@@ -59,6 +61,9 @@ public class OpportunityService {
 
 	@Autowired
 	SearchKeywordsRepository searchKeywordsRepository;
+
+	@Autowired
+	OpportunityTimelineHistoryTRepository opportunityTimelineHistoryTRepository;
 
 	@Autowired
 	OpportunitySalesSupportLinkTRepository opportunitySalesSupportLinkTRepository;
@@ -304,6 +309,7 @@ public class OpportunityService {
 
 	private OpportunityT saveChildObject(OpportunityT opportunity)
 			throws Exception {
+
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
@@ -395,6 +401,23 @@ public class OpportunityService {
 					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
 							.getBidOfficeGroupOwnerLinkTs()) {
 						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
+					}
+				}
+				if (opportunity.getOpportunityId() != null) {
+					List<OpportunityTimelineHistoryT> savedOpportunityTimelineHistoryTs = opportunityTimelineHistoryTRepository
+							.findByOpportunityId(opportunity.getOpportunityId());
+					if (savedOpportunityTimelineHistoryTs != null
+							&& savedOpportunityTimelineHistoryTs.size() > 0) {
+
+						OpportunityTimelineHistoryT opportunityTimelineHistoryT = savedOpportunityTimelineHistoryTs
+								.get(savedOpportunityTimelineHistoryTs.size() - 1);
+						opportunityTimelineHistoryT
+								.setOpportunityId(opportunity
+										.getOpportunityId());
+						opportunityTimelineHistoryT.setBidId(bidDetailsT
+								.getBidId());
+						opportunity
+								.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
 					}
 				}
 			}

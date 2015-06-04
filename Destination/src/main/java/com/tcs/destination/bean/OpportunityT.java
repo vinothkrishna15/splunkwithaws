@@ -118,7 +118,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	private int salesStageCode;
 
 	// bi-directional many-to-one association to BidDetailsT
-	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "opportunityT")
+	@OrderBy("created_modified_datetime DESC")
 	private List<BidDetailsT> bidDetailsTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
@@ -208,6 +209,7 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@OrderBy("updated_datetime DESC")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
 	// bi-directional many-to-one association to TaskT
