@@ -74,6 +74,7 @@ public class ContactController {
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -82,7 +83,7 @@ public class ContactController {
 
 		if (!nameWith.isEmpty()) {
 			contactlist = contactService.findContactsWithNameContaining(
-					nameWith, customerId, partnerId);
+					nameWith, customerId, partnerId,contactType);
 		} else if (!startsWith.isEmpty()) {
 			contactlist = contactService
 					.findContactsWithNameStarting(startsWith);

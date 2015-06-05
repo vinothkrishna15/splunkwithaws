@@ -61,10 +61,12 @@ public class ContactService {
 	 * @return contacts.
 	 */
 	public List<ContactT> findContactsWithNameContaining(String contactName,
-			String customerId, String partnerId) throws Exception {
+			String customerId, String partnerId, String contactType)
+			throws Exception {
 		logger.debug("Inside findContactsWithNameContaining Service");
+
 		List<ContactT> contactList = contactRepository.findByContactName("%"
-				+ contactName + "%", customerId, partnerId);
+				+ contactName + "%", customerId, partnerId, contactType);
 
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
@@ -107,7 +109,7 @@ public class ContactService {
 						.getDeleteContactCustomerLinkTs()) {
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
-			} 
+			}
 		} else {
 			if (contact.getContactId() != null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -115,9 +117,9 @@ public class ContactService {
 			}
 		}
 
-		//Validate input parameters
+		// Validate input parameters
 		validateRequest(contact);
-		
+
 		ContactT managedContact = saveBaseContact(contact);
 		saveChildContactObjects(managedContact);
 		return true;
@@ -133,47 +135,57 @@ public class ContactService {
 
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
-				if(contact.getContactCustomerLinkTs() == null || 
-						contact.getContactCustomerLinkTs().size() == 0) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "CustomerId is required");	
-				}	
+				if (contact.getContactCustomerLinkTs() == null
+						|| contact.getContactCustomerLinkTs().size() == 0) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"CustomerId is required");
+				}
 				contact.setPartnerId(null);
-			} else if (contact.getContactCategory().equals(EntityType.PARTNER.name())) {
-				if (contact.getPartnerId() == null || contact.getPartnerId().isEmpty()) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "PartnerId is required");	
+			} else if (contact.getContactCategory().equals(
+					EntityType.PARTNER.name())) {
+				if (contact.getPartnerId() == null
+						|| contact.getPartnerId().isEmpty()) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"PartnerId is required");
 				}
 				contact.setContactCustomerLinkTs(null);
 			} else {
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Entity Type");	
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Contact Entity Type");
 			}
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Entity Type");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Contact Entity Type");
 		}
-		
+
 		if (ContactType.contains(contact.getContactType())) {
 			logger.debug("Contact Type is Present");
 			if (contact.getContactType().equals(ContactType.INTERNAL.name())) {
-				if (contact.getEmployeeNumber() == null || contact.getEmployeeNumber().isEmpty()) {
+				if (contact.getEmployeeNumber() == null
+						|| contact.getEmployeeNumber().isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				if (contact.getPartnerId() != null && !(contact.getPartnerId().isEmpty())) {
+				if (contact.getPartnerId() != null
+						&& !(contact.getPartnerId().isEmpty())) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact cannot be added to Partner");
 				}
-			} 
-			
+			}
+
 			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
-				if (contact.getEmployeeNumber() != null && !(contact.getEmployeeNumber().isEmpty())) {
+				if (contact.getEmployeeNumber() != null
+						&& !(contact.getEmployeeNumber().isEmpty())) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"External Contact should not have Employee Number");
 				}
 			}
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Type");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Contact Type");
 		}
 	}
-	
+
 	private ContactT saveBaseContact(ContactT requestContact)
 			throws CloneNotSupportedException, Exception {
 		ContactT contact = requestContact.clone();
@@ -184,7 +196,7 @@ public class ContactService {
 	}
 
 	private ContactT saveChildContactObjects(ContactT contact) {
-		//Set Contact Customer Links
+		// Set Contact Customer Links
 		if (contact.getContactCustomerLinkTs() != null) {
 			for (ContactCustomerLinkT contactCustomerLinkT : contact
 					.getContactCustomerLinkTs()) {
