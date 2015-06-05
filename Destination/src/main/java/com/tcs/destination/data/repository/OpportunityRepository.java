@@ -17,6 +17,9 @@ public interface OpportunityRepository extends
 
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
+	
+	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
+			String opportunityname,String customerId);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 			String customerId, Date fromDate);

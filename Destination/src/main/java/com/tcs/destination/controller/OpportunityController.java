@@ -42,13 +42,14 @@ public class OpportunityController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@RequestParam("nameWith") String nameWith,
+			@RequestParam(value="customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith);
+				.findByOpportunityName(nameWith,customerId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}

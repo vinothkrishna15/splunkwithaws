@@ -98,11 +98,17 @@ public class OpportunityService {
 	@Autowired
 	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
 
-	public List<OpportunityT> findByOpportunityName(String nameWith)
+	public List<OpportunityT> findByOpportunityName(String nameWith,String customerId)
 			throws Exception {
 		logger.debug("Inside findByOpportunityName Service");
-		List<OpportunityT> opportunities = opportunityRepository
+		List<OpportunityT> opportunities = null;
+		if(customerId.isEmpty()){
+		opportunities = opportunityRepository
 				.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
+		} else {
+			opportunities = opportunityRepository
+					.findByOpportunityNameIgnoreCaseLikeAndCustomerId("%" + nameWith + "%",customerId);
+		}
 		if (opportunities.isEmpty()) {
 			logger.error("NOT_FOUND: No such Opportunity Found. Please ensure your Opportunity name.");
 			throw new DestinationException(HttpStatus.NOT_FOUND,

@@ -32,12 +32,12 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RequestMapping("/connect")
 public class ConnectController {
 
-	private static final Logger logger = LoggerFactory.getLogger(ConnectController.class);
-	
+	private static final Logger logger = LoggerFactory
+			.getLogger(ConnectController.class);
+
 	@Autowired
 	ConnectService connectService;
 
-	
 	/**
 	 * This Method is used to find connection details for the given connection
 	 * id.
@@ -50,10 +50,13 @@ public class ConnectController {
 	public @ResponseBody String findConnectById(
 			@PathVariable("id") String connectId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.debug("Inside ConnectController /connect/id="+connectId+" GET");
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside ConnectController /connect/id=" + connectId
+				+ " GET");
 		ConnectT connect = connectService.findConnectById(connectId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connect);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				connect);
 	}
 
 	/**
@@ -63,17 +66,21 @@ public class ConnectController {
 	 * @param name
 	 *            is the connection name.
 	 * @return connection details for the particular connection name.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
 			@RequestParam("nameWith") String connectName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
-		logger.debug("Inside ConnectController /connect?nameWith="+connectName+" GET");
+			@RequestParam(value = "customerId", defaultValue = "") String customerId,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside ConnectController /connect?nameWith="
+				+ connectName + " GET");
 		List<ConnectT> connectlist = connectService
-				.searchforConnectsByNameContaining(connectName);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connectlist);
+				.searchforConnectsByNameContaining(connectName, customerId);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				connectlist);
 	}
 
 	/**
@@ -97,25 +104,27 @@ public class ConnectController {
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
-			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate) 
-	throws Exception{
-		logger.debug("Inside ConnectController /connect/date?from="+fromDate+"&to="+toDate+"GET");
+			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
+			throws Exception {
+		logger.debug("Inside ConnectController /connect/date?from=" + fromDate
+				+ "&to=" + toDate + "GET");
 		if (weekStartDate.getTime() == weekEndDate.getTime()
 				&& monthStartDate.getTime() == monthEndDate.getTime()) {
 			System.out.println("Old Code");
 			List<ConnectT> connects = connectService
 					.searchforConnectsBetweenForUserOrCustomerOrPartner(
 							fromDate, toDate, userId, owner, customerId,
-							partnerId,false);
-			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connects);
+							partnerId, false);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, connects);
 		} else {
 			DashBoardConnectsResponse dashBoardConnectsResponse = connectService
 					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
 							userId, owner, customerId, partnerId,
 							weekStartDate, weekEndDate, monthStartDate,
 							monthEndDate);
-			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-					dashBoardConnectsResponse);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, dashBoardConnectsResponse);
 		}
 
 	}
@@ -126,17 +135,19 @@ public class ConnectController {
 		logger.debug("Connect Insert Request Received /connect POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try{
+		try {
 			if (connectService.insertConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
-		} catch(Exception e){
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
@@ -145,14 +156,15 @@ public class ConnectController {
 		logger.debug("Connect Edit Request Received /connect PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		
-			if (connectService.editConnect(connect)) {
-				status.setStatus(Status.SUCCESS, connect.getConnectId());
-				logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
-			}
-		
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+
+		if (connectService.editConnect(connect)) {
+			status.setStatus(Status.SUCCESS, connect.getConnectId());
+			logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
+		}
+
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
 
 }
