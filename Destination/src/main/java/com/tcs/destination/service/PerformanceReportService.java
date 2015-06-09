@@ -100,8 +100,18 @@ public class PerformanceReportService {
 			
 			List<TargetVsActualResponse> tarActResponseList = mergeLists(
 					targetList, actualProjectedList);
+			if (tarActResponseList.isEmpty()) {
+				logger.error("NOT_FOUND: No Relevent Data Found in the database");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Relevent Data Found in the database");
+			}
 			return tarActResponseList;
 		} else {
+			if (actualProjectedList.isEmpty()) {
+				logger.error("NOT_FOUND: No Relevent Data Found in the database");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Relevent Data Found in the database");
+			}
 			return actualProjectedList;
 		}
 	}
