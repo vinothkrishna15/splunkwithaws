@@ -57,6 +57,9 @@ public class OpportunityService {
 	OpportunityRepository opportunityRepository;
 
 	@Autowired
+	BeaconConverterService beaconConverterService;
+
+	@Autowired
 	BidDetailsTRepository bidDetailsTRepository;
 
 	@Autowired
@@ -98,27 +101,29 @@ public class OpportunityService {
 	@Autowired
 	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
 
-	public List<OpportunityT> findByOpportunityName(String nameWith,String customerId)
-			throws Exception {
+	public List<OpportunityT> findByOpportunityName(String nameWith,
+			String customerId, String toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityName Service");
 		List<OpportunityT> opportunities = null;
-		if(customerId.isEmpty()){
-		opportunities = opportunityRepository
-				.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
+		if (customerId.isEmpty()) {
+			opportunities = opportunityRepository
+					.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
 		} else {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLikeAndCustomerId("%" + nameWith + "%",customerId);
+					.findByOpportunityNameIgnoreCaseLikeAndCustomerId("%"
+							+ nameWith + "%", customerId);
 		}
 		if (opportunities.isEmpty()) {
-			logger.error("NOT_FOUND: No such Opportunity Found. Please ensure your Opportunity name.");
+			logger.error("NOT_FOUND: No Opportunities Found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No such Opportunity Found. Please ensure your Opportunity name.");
+					"No Opportunities Found");
 		}
-		return opportunities;
+
+		return convertCurrency(opportunities, toCurrency);
 	}
 
-	public List<OpportunityT> findRecentOpportunities(String customerId)
-			throws Exception {
+	public List<OpportunityT> findRecentOpportunities(String customerId,
+			String toCurrency) throws Exception {
 		logger.debug("Inside findRecentOpportunities Service");
 		// Date date = new Date(); // Or where ever you get it from
 		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
@@ -128,17 +133,17 @@ public class OpportunityService {
 		List<OpportunityT> opportunities = opportunityRepository
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 						customerId, fromDate);
-		if (!opportunities.isEmpty()) {
-			logger.debug("Opportunity Not Empty");
-			return opportunities;
+		if (opportunities.isEmpty()) {
+			logger.error("NOT_FOUND: No Data Found in the database");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 		}
-		logger.error("NOT_FOUND: No Relevent Data Found in the database");
-		throw new DestinationException(HttpStatus.NOT_FOUND,
-				"No Relevent Data Found in the database");
+
+		return convertCurrency(opportunities, toCurrency);
 	}
 
 	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
-			String opportunityRole) throws Exception {
+			String opportunityRole, String toCurrency) throws Exception {
 		List<OpportunityT> opportunities = null;
 		logger.debug("Inside findOpportunitiesByOwnerAndRole Service");
 		if (OpportunityRole.contains(opportunityRole)) {
@@ -170,41 +175,44 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Oppurtunity Role");
 		}
-		return validateAndReturnOpportunitesData(opportunities, true);
+		opportunities= validateAndReturnOpportunitesData(opportunities, true);
+		return convertCurrency(opportunities, toCurrency);
 
 	}
 
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
-			String opportunityRole, Date fromDate, Date toDate)
-			throws Exception {
+			String opportunityRole, Date fromDate, Date toDate,
+			String toCurrency) throws Exception {
 		logger.debug("Inside findByTaskOwnerForRole Service");
 		if (OpportunityRole.contains(opportunityRole)) {
+			List<OpportunityT> opportunities = null;
 			logger.debug("Opportunity Role is Present");
 			switch (OpportunityRole.valueOf(opportunityRole)) {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
-				return findForPrimaryOwner(opportunityOwner, true, fromDate,
-						toDate);
+				opportunities = findForPrimaryOwner(opportunityOwner, true,
+						fromDate, toDate);
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
-				return findForSalesSupport(opportunityOwner, true, fromDate,
-						toDate);
+				opportunities = findForSalesSupport(opportunityOwner, true,
+						fromDate, toDate);
 			case BID_OFFICE:
 				logger.debug("Bid Office Found");
-				return findForBidOffice(opportunityOwner, true, fromDate,
-						toDate);
+				opportunities = findForBidOffice(opportunityOwner, true,
+						fromDate, toDate);
 			case ALL:
 				logger.debug("ALL Found");
-				List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
+				opportunities = new ArrayList<OpportunityT>();
 				opportunities.addAll(findForPrimaryOwner(opportunityOwner,
 						false, fromDate, toDate));
 				opportunities.addAll(findForSalesSupport(opportunityOwner,
 						false, fromDate, toDate));
 				opportunities.addAll(findForBidOffice(opportunityOwner, false,
 						fromDate, toDate));
-				return validateAndReturnOpportunitesData(opportunities, true);
+				opportunities = validateAndReturnOpportunitesData(
+						opportunities, true);
 			}
-			return null;
+			return convertCurrency(opportunities, toCurrency);
 		} else {
 			logger.error("BAD_REQUEST: Invalid Opportunity Role");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -262,8 +270,8 @@ public class OpportunityService {
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
-	public OpportunityT findByOpportunityId(String opportunityId)
-			throws DestinationException {
+	public OpportunityT findByOpportunityId(String opportunityId,
+			String toCurrency) throws DestinationException {
 		logger.debug("Inside findByOpportunityId Service");
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
@@ -276,7 +284,7 @@ public class OpportunityService {
 			if (searchKeywords != null && searchKeywords.size() > 0) {
 				opportunity.setSearchKeywordsTs(searchKeywords);
 			}
-			return opportunity;
+			return convertCurrency(opportunity, toCurrency);
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty Id " + opportunityId + " Not Found");
@@ -303,13 +311,8 @@ public class OpportunityService {
 			deleteChildObjects(opportunity);
 		}
 		opportunity.setOnHold("NO");
-		logger.error("Before saving opp table with ID "
-				+ opportunity.getOpportunityId());
 		saveBaseObject(opportunity);
-		logger.debug("Base table saved with ID "
-				+ opportunity.getOpportunityId());
 		return saveChildObject(opportunity);
-		// logger.error("Saved the opportunity");
 
 	}
 
@@ -611,7 +614,7 @@ public class OpportunityService {
 	}
 
 	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
-			Date fromDate, Date toDate) throws Exception {
+			Date fromDate, Date toDate, String toCurrency) throws Exception {
 		List<OpportunityT> opportunityList = null;
 		opportunityList = opportunityRepository
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
@@ -621,6 +624,40 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunity found for the UserId and Target Bid Submission date");
 		}
-		return opportunityList;
+		return convertCurrency(opportunityList, toCurrency);
+	}
+
+	private List<OpportunityT> convertCurrency(
+			List<OpportunityT> opportunityTs, String toCurrency)
+			throws DestinationException {
+		if (!opportunityTs.isEmpty() && !toCurrency.isEmpty()) {
+			for (OpportunityT opportunityT : opportunityTs) {
+				convertCurrency(opportunityT, toCurrency);
+			}
+		}
+		return opportunityTs;
+	}
+
+	private OpportunityT convertCurrency(OpportunityT opportunityT,
+			String toCurrency) throws DestinationException {
+		if (opportunityT != null && !toCurrency.isEmpty()) {
+			String fromCurrency = opportunityT.getDealCurrency();
+			if (fromCurrency != null && !fromCurrency.isEmpty()) {
+				if (opportunityT.getDigitalDealValue() != null) {
+					opportunityT.setDigitalDealValue(beaconConverterService
+							.convert(fromCurrency, toCurrency,
+									opportunityT.getDigitalDealValue())
+							.intValue());
+				}
+				if (opportunityT.getOverallDealSize() != null) {
+					opportunityT.setOverallDealSize(beaconConverterService
+							.convert(fromCurrency, toCurrency,
+									opportunityT.getOverallDealSize())
+							.intValue());
+				}
+				opportunityT.setDealCurrency(toCurrency);
+			}
+		}
+		return opportunityT;
 	}
 }
