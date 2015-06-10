@@ -41,13 +41,13 @@ public class OpportunityController {
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value="customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "currency", defaultValue = "") String currency,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith,customerId,currency);
+				.findByOpportunityName(nameWith,customerId,currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -55,14 +55,14 @@ public class OpportunityController {
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findByOpportunityId(
 			@PathVariable("id") String opportunityId,
-			@RequestParam(value = "currency", defaultValue = "") String currency,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/Id="
 				+ opportunityId + " GET");
 		OpportunityT opportunity = opportunityService
-				.findByOpportunityId(opportunityId,currency);
+				.findByOpportunityId(opportunityId,currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunity);
 	}
@@ -70,14 +70,14 @@ public class OpportunityController {
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)
 	public @ResponseBody String findByCustomerId(
 			@RequestParam("customerId") String customerId,
-			@RequestParam(value = "currency", defaultValue = "") String currency,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/recent?customerId="
 				+ customerId + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findRecentOpportunities(customerId,currency);
+				.findRecentOpportunities(customerId,currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -85,7 +85,7 @@ public class OpportunityController {
 	@RequestMapping(value = "/taskOwner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
 			@RequestParam("id") String userId,
-			@RequestParam(value = "currency", defaultValue = "") String currency,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "role", defaultValue = "ALL") String opportunityRole,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -93,7 +93,7 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
 				+ userId + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,currency);
+				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}

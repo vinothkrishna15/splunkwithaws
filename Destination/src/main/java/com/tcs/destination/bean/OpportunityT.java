@@ -127,10 +127,10 @@ public class OpportunityT implements Serializable, Cloneable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
-	//bi-directional many-to-one association to CommentsT
-	@OneToMany(mappedBy="opportunityT")
+	// bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy = "opportunityT")
 	private List<CommentsT> commentsTs;
-	
+
 	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
@@ -263,6 +263,9 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	@Transient
 	private List<OpportunityWinLossFactorsT> deleteOpportunityWinLossFactorsTs;
+
+	@Transient
+	private List<OpportunityDealValue> opportunityDealValues;
 
 	public OpportunityT() {
 	}
@@ -1083,6 +1086,15 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setDeleteOpportunityWinLossFactorsTs(
 			List<OpportunityWinLossFactorsT> deleteOpportunityWinLossFactorsTs) {
 		this.deleteOpportunityWinLossFactorsTs = deleteOpportunityWinLossFactorsTs;
+	}
+
+	public List<OpportunityDealValue> getOpportunityDealValues() {
+		return opportunityDealValues;
+	}
+
+	public void setOpportunityDealValues(
+			List<OpportunityDealValue> opportunityDealValues) {
+		this.opportunityDealValues = opportunityDealValues;
 	}
 
 }
