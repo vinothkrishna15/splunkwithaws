@@ -5,6 +5,7 @@
 	version="1.0">
 
 	<persistence-unit name="application" transaction-type="RESOURCE_LOCAL">
+		<class>com.tcs.destination.bean.ApplicationSettingsT</class>
 		<class>com.tcs.destination.bean.ActualRevenuesDataT</class>
 		<class>com.tcs.destination.bean.BdmTargetT</class>
 		<class>com.tcs.destination.bean.BeaconConvertorMappingT</class>
