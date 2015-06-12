@@ -53,17 +53,12 @@ public class SimpleCORSFilter implements Filter {
 	private DestinationHttpRequestWrapper logRequest(ServletRequest req) throws ServletException {
 		final HttpServletRequest httpServletRequest = (HttpServletRequest) req;
 		
-		MDC.remove("sessionId"); 
-		if (httpServletRequest.getRequestedSessionId() != null) {
-		
-			String sessionId = httpServletRequest.getRequestedSessionId();
-			//Logging SessionId
-			logger.info("SessionId : " + sessionId);
-			//Check if the requested session is valid
-			if (!httpServletRequest.isRequestedSessionIdValid()) {
-				throw new ServletException("Invalid Session");
-			}
-			MDC.put("sessionId", sessionId);
+		MDC.remove("traceId"); 
+		if (httpServletRequest.getHeader("TraceId") != null) {
+			String traceId = httpServletRequest.getHeader("TraceId");
+			//Logging TraceId
+			logger.info("TraceId : " + traceId);
+			MDC.put("traceId", traceId);
 		}
 		
 		logger.info("======REQUEST DETAILS======");

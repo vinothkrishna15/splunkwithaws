@@ -29,6 +29,7 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		UserT user = null;
 
 		try {
+			logger.info("Inside user detail service");
 			user = userRepository.findByUserName(userName);
 		} catch (Exception e) {
 			logger.error("No Such User: " + userName);
