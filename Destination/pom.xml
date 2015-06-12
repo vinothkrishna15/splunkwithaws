@@ -147,7 +147,12 @@
 			<artifactId>wadl-client-plugin</artifactId>
 			<version>1.1.6</version>
 		</dependency>
-
+		<!-- For User Agent Handling --> 
+		<dependency>
+   			<groupId>eu.bitwalker</groupId>
+   			<artifactId>UserAgentUtils</artifactId>
+   			<version>1.15</version>
+		</dependency>
 	</dependencies>
 
 	<build>
