@@ -3,13 +3,14 @@ package com.tcs.destination.controller;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,11 @@ import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
+
+
+import eu.bitwalker.useragentutils.Browser;
+import eu.bitwalker.useragentutils.OperatingSystem;
+import eu.bitwalker.useragentutils.UserAgent;
 
 @RestController
 @RequestMapping("/user")
@@ -43,7 +49,7 @@ public class UserDetailsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside UserDetailsController /user GET");
 		if (nameWith.equals("")) {
 			logger.debug("nameWith is EMPTY");
@@ -57,24 +63,57 @@ public class UserDetailsController {
 	}
 
 	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> getUserNotifications(
+	public @ResponseBody ResponseEntity<String> userLogin(HttpServletRequest httpServletRequest,
 			@RequestParam(value = "userName") String userName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+					throws Exception {
 
 		logger.debug("Inside UserDetailsController /User/login GET");
 		UserT user = userService.findUserByName(userName);
 		if (user != null) {
+			// Log Username for debugging
+			logger.info("Username : " + userName);
 			// Get Last Login Time
 			Timestamp lastLogin = userService
 					.getUserLastLogin(user.getUserId());
 			if (lastLogin != null)
 				user.setLastLogin(lastLogin);
 
+			// Get Browser, Device details from request header
+			logger.info("UserAgent : " + httpServletRequest.getHeader("User-Agent"));
+ 			UserAgent userAgent = UserAgent.parseUserAgentString(
+ 					httpServletRequest.getHeader("User-Agent"));
+			Browser browser = userAgent.getBrowser();
+			String browserName = browser.getName();
+			String browserVersion = userAgent.getBrowserVersion().getVersion();
+			logger.info("Browser : " + browserName + " Version : " + browserVersion);
+
+			// Get OS details
+			OperatingSystem os = userAgent.getOperatingSystem();
+			String osName = os.getName();
+			
+			short osVersion = os.getId();
+			logger.info("OS : " + os + " Version : " + (byte) osVersion);
+
+			// Get Device details
+			String device = os.getDeviceType().getName();
+			logger.info("Device :" + device);
+
+			// Get Current Session
+			String sessionId = httpServletRequest.getSession().getId();
+			logger.info("SessionId : " + sessionId);
+
 			// Save current login session
 			LoginHistoryT loginHistory = new LoginHistoryT();
 			loginHistory.setUserId(user.getUserId());
+			loginHistory.setSessionId(sessionId);
+			loginHistory.setBrowser(browserName);
+			loginHistory.setBrowserVersion(browserVersion);
+			loginHistory.setOs(osName);
+			loginHistory.setOsVersion(Integer.toString((byte) osVersion));
+			loginHistory.setDevice(device);
+
 			if (!userService.addLoginHistory(loginHistory)) {
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR,

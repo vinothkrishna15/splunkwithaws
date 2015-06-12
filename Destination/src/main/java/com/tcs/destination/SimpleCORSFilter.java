@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.Filter;
@@ -22,7 +23,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class SimpleCORSFilter implements Filter {
@@ -44,13 +50,28 @@ public class SimpleCORSFilter implements Filter {
 			chain.doFilter(req, res);
 	}
 
-	private DestinationHttpRequestWrapper logRequest(ServletRequest req)  {
-		final HttpServletRequest httpRequest = (HttpServletRequest) req;
+	private DestinationHttpRequestWrapper logRequest(ServletRequest req) throws ServletException {
+		final HttpServletRequest httpServletRequest = (HttpServletRequest) req;
+		
+		MDC.remove("sessionId"); 
+		if (httpServletRequest.getRequestedSessionId() != null) {
+		
+			String sessionId = httpServletRequest.getRequestedSessionId();
+			//Logging SessionId
+			logger.info("SessionId : " + sessionId);
+			//Check if the requested session is valid
+			if (!httpServletRequest.isRequestedSessionIdValid()) {
+				throw new ServletException("Invalid Session");
+			}
+			MDC.put("sessionId", sessionId);
+		}
+		
 		logger.info("======REQUEST DETAILS======");
 		logger.info("Timestamp : " + new Date());
-		logger.info("URL : " + getUrlWithParams(httpRequest));
-		logger.info("Method : " + httpRequest.getMethod());
-		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper((HttpServletRequest) httpRequest);
+		logger.info("URL : " + getUrlWithParams(httpServletRequest));
+		logger.info("Method : " + httpServletRequest.getMethod());
+
+		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper(httpServletRequest);
 		try {
 			ServletInputStream inputStream = myRequestWrapper.getInputStream();
 			String postStr = convertStreamToString(inputStream);
@@ -67,6 +88,7 @@ public class SimpleCORSFilter implements Filter {
 
 	private StringBuffer getUrlWithParams(final HttpServletRequest httpRequest) {
 		StringBuffer baseUrl = httpRequest.getRequestURL();
+		//logger.info("base url = " + baseUrl);
 		Map<String, String[]> parameterMap = httpRequest.getParameterMap();
 		if(parameterMap.size() != 0){
 			baseUrl.append("?");

@@ -33,9 +33,24 @@ public class LoginHistoryT implements Serializable {
 	@Column(name="login_id")
 	private Integer loginId;
 
+	private String browser;
+
+	@Column(name="browser_version")
+	private String browserVersion;
+
+	private String device;
+
 	@Column(name="login_datetime")
 	private Timestamp loginDatetime;
-	
+
+	private String os;
+
+	@Column(name="os_version")
+	private String osVersion;
+
+	@Column(name="session_id")
+	private String sessionId;
+
 	@Column(name="user_id")
 	private String userId;
 
@@ -55,6 +70,30 @@ public class LoginHistoryT implements Serializable {
 		this.loginId = loginId;
 	}
 
+	public String getBrowser() {
+		return this.browser;
+	}
+
+	public void setBrowser(String browser) {
+		this.browser = browser;
+	}
+
+	public String getBrowserVersion() {
+		return this.browserVersion;
+	}
+
+	public void setBrowserVersion(String browserVersion) {
+		this.browserVersion = browserVersion;
+	}
+
+	public String getDevice() {
+		return this.device;
+	}
+
+	public void setDevice(String device) {
+		this.device = device;
+	}
+
 	public Timestamp getLoginDatetime() {
 		return this.loginDatetime;
 	}
@@ -63,14 +102,29 @@ public class LoginHistoryT implements Serializable {
 		this.loginDatetime = loginDatetime;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public String getOs() {
+		return this.os;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setOs(String os) {
+		this.os = os;
 	}
 
+	public String getOsVersion() {
+		return this.osVersion;
+	}
+
+	public void setOsVersion(String osVersion) {
+		this.osVersion = osVersion;
+	}
+
+	public String getSessionId() {
+		return this.sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
 	public String getUserId() {
 		return userId;
 	}
@@ -80,5 +134,12 @@ public class LoginHistoryT implements Serializable {
 	}
 	
 	
+	public UserT getUserT() {
+		return this.userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
+	}
 
 }
