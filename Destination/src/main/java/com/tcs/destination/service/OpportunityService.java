@@ -119,7 +119,10 @@ public class OpportunityService {
 					"No Opportunities Found");
 		}
 
-		return beaconConverterService.convertOpportunityCurrency(opportunities, toCurrency);
+		beaconConverterService.convertOpportunityCurrency(opportunities,
+				toCurrency);
+		prepareOpportunity(opportunities);
+		return opportunities;
 	}
 
 	public List<OpportunityT> findRecentOpportunities(String customerId,
@@ -139,7 +142,12 @@ public class OpportunityService {
 					"No Data Found");
 		}
 
-		return beaconConverterService.convertOpportunityCurrency(opportunities, toCurrency);
+		beaconConverterService.convertOpportunityCurrency(opportunities,
+				toCurrency);
+
+		prepareOpportunity(opportunities);
+
+		return opportunities;
 	}
 
 	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
@@ -176,7 +184,12 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role");
 		}
 		opportunities = validateAndReturnOpportunitesData(opportunities, true);
-		return beaconConverterService.convertOpportunityCurrency(opportunities, toCurrency);
+		beaconConverterService.convertOpportunityCurrency(opportunities,
+				toCurrency);
+
+		prepareOpportunity(opportunities);
+
+		return opportunities;
 
 	}
 
@@ -212,7 +225,12 @@ public class OpportunityService {
 				opportunities = validateAndReturnOpportunitesData(
 						opportunities, true);
 			}
-			return beaconConverterService.convertOpportunityCurrency(opportunities, toCurrency);
+			beaconConverterService.convertOpportunityCurrency(opportunities,
+					toCurrency);
+
+			prepareOpportunity(opportunities);
+
+			return opportunities;
 		} else {
 			logger.error("BAD_REQUEST: Invalid Opportunity Role");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -284,7 +302,12 @@ public class OpportunityService {
 			if (searchKeywords != null && searchKeywords.size() > 0) {
 				opportunity.setSearchKeywordsTs(searchKeywords);
 			}
-			return beaconConverterService.convertOpportunityCurrency(opportunity, toCurrency);
+			beaconConverterService.convertOpportunityCurrency(opportunity,
+					toCurrency);
+
+			prepareOpportunity(opportunity);
+
+			return opportunity;
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty Id " + opportunityId + " Not Found");
@@ -614,7 +637,8 @@ public class OpportunityService {
 	}
 
 	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
-			Date fromDate, Date toDate, List<String> toCurrency) throws Exception {
+			Date fromDate, Date toDate, List<String> toCurrency)
+			throws Exception {
 		List<OpportunityT> opportunityList = null;
 		opportunityList = opportunityRepository
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
@@ -624,41 +648,48 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunity found for the UserId and Target Bid Submission date");
 		}
-		return beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
+		beaconConverterService.convertOpportunityCurrency(opportunityList,
+				toCurrency);
+
+		prepareOpportunity(opportunityList);
+
+		return opportunityList;
 	}
 
-//	private List<OpportunityT> convertCurrency(
-//			List<OpportunityT> opportunityTs, String toCurrency)
-//			throws DestinationException {
-//		if (!opportunityTs.isEmpty() && !toCurrency.isEmpty()) {
-//			for (OpportunityT opportunityT : opportunityTs) {
-//				convertCurrency(opportunityT, toCurrency);
-//			}
-//		}
-//		return opportunityTs;
-//	}
-//
-//	private OpportunityT convertCurrency(OpportunityT opportunityT,
-//			String toCurrency) throws DestinationException {
-//		
-//		if (opportunityT != null && !toCurrency.isEmpty()) {
-//			String fromCurrency = opportunityT.getDealCurrency();
-//			if (fromCurrency != null && !fromCurrency.isEmpty()) {
-//				if (opportunityT.getDigitalDealValue() != null) {
-//					opportunityT.setDigitalDealValue(beaconConverterService
-//							.convert(fromCurrency, toCurrency,
-//									opportunityT.getDigitalDealValue())
-//							.intValue());
-//				}
-//				if (opportunityT.getOverallDealSize() != null) {
-//					opportunityT.setOverallDealSize(beaconConverterService
-//							.convert(fromCurrency, toCurrency,
-//									opportunityT.getOverallDealSize())
-//							.intValue());
-//				}
-//				opportunityT.setDealCurrency(toCurrency);
-//			}
-//		}
-//		return opportunityT;
-//	}
+	private void prepareOpportunity(List<OpportunityT> opportunityTs) {
+		if (opportunityTs != null) {
+			for (OpportunityT opportunityT : opportunityTs) {
+				prepareOpportunity(opportunityT);
+			}
+		}
+	}
+
+	private void prepareOpportunity(OpportunityT opportunityT) {
+
+		setSearchKeywordTs(opportunityT);
+		removeCyclicForLinkedConnects(opportunityT);
+	}
+
+	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
+		if (opportunityT != null) {
+			if (opportunityT.getConnectOpportunityLinkIdTs() != null) {
+				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunityT
+						.getConnectOpportunityLinkIdTs()) {
+					connectOpportunityLinkIdT.getConnectT()
+							.setConnectOpportunityLinkIdTs(null);
+				}
+			}
+		}
+	}
+
+	private void setSearchKeywordTs(OpportunityT opportunityT) {
+		// Add Search Keywords
+		List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
+				.findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.toString(),
+						opportunityT.getOpportunityId());
+		if (searchKeywords != null && searchKeywords.size() > 0) {
+			opportunityT.setSearchKeywordsTs(searchKeywords);
+		}
+	}
+
 }

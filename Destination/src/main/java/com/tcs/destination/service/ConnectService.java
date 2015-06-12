@@ -23,6 +23,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
@@ -73,21 +74,25 @@ public class ConnectService {
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
-		ConnectT connect = connectRepository.findByConnectId(connectId);
-		if (connect != null) {
-			// Add Search Keywords
-			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
-					.findByEntityTypeAndEntityId(EntityType.CONNECT.toString(),
-							connect.getConnectId());
-			if (searchKeywords != null && searchKeywords.size() > 0) {
-				connect.setSearchKeywordsTs(searchKeywords);
-			}
+		ConnectT connectT = connectRepository.findByConnectId(connectId);
+		if (connectT != null) {
+			prepareConnect(connectT);
 		} else {
 			logger.error("NOT_FOUND: Connect not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Connect not found");
 		}
-		return connect;
+		return connectT;
+	}
+
+	private void setSearchKeywordTs(ConnectT connect) {
+		// Add Search Keywords
+		List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
+				.findByEntityTypeAndEntityId(EntityType.CONNECT.toString(),
+						connect.getConnectId());
+		if (searchKeywords != null && searchKeywords.size() > 0) {
+			connect.setSearchKeywordsTs(searchKeywords);
+		}
 	}
 
 	public List<ConnectT> searchforConnectsByNameContaining(String name,
@@ -98,8 +103,9 @@ public class ConnectService {
 			connectList = connectRepository.findByConnectNameIgnoreCaseLike("%"
 					+ name + "%");
 		} else {
-			connectList = connectRepository.findByConnectNameIgnoreCaseLikeAndCustomerId("%"
-					+ name + "%",customerId);
+			connectList = connectRepository
+					.findByConnectNameIgnoreCaseLikeAndCustomerId("%" + name
+							+ "%", customerId);
 		}
 
 		if (connectList.isEmpty()) {
@@ -107,6 +113,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Connection information not available");
 		}
+		prepareConnect(connectList);
 		return connectList;
 	}
 
@@ -178,6 +185,7 @@ public class ConnectService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Relevent Data Found in the database");
 			}
+			prepareConnect(connects);
 			return connects;
 		}
 		logger.error("BAD_REQUEST: No such Owner Type exists. Please ensure your Owner Type.");
@@ -601,6 +609,33 @@ public class ConnectService {
 			task.setConnectId(connectId);
 		}
 
+	}
+
+	private void prepareConnect(List<ConnectT> connectTs) {
+		if (connectTs != null) {
+			for (ConnectT connectT : connectTs) {
+				prepareConnect(connectT);
+			}
+		}
+	}
+
+	private void prepareConnect(ConnectT connectT) {
+		if (connectT != null) {
+			setSearchKeywordTs(connectT);
+			removeCyclicForLinkedOpportunityTs(connectT);
+		}
+	}
+
+	private void removeCyclicForLinkedOpportunityTs(ConnectT connectT) {
+		if (connectT != null) {
+			if (connectT.getConnectOpportunityLinkIdTs() != null) {
+				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
+						.getConnectOpportunityLinkIdTs()) {
+					connectOpportunityLinkIdT.getOpportunityT()
+							.setConnectOpportunityLinkIdTs(null);
+				}
+			}
+		}
 	}
 
 }
