@@ -12,30 +12,31 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
-
 
 /**
  * The persistent class for the time_zone_mapping_t database table.
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="timeZoneCode")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "timeZoneCode")
 @Entity
-@Table(name="time_zone_mapping_t")
-@NamedQuery(name="TimeZoneMappingT.findAll", query="SELECT t FROM TimeZoneMappingT t")
+@Table(name = "time_zone_mapping_t")
+@NamedQuery(name = "TimeZoneMappingT.findAll", query = "SELECT t FROM TimeZoneMappingT t")
 public class TimeZoneMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name="time_zone_code")
+	@Column(name = "time_zone_code")
 	private String timeZoneCode;
 
 	private String description;
 
-	//bi-directional many-to-one association to UserGeneralSettingsT
-	@OneToMany(mappedBy="timeZoneMappingT")
+	// bi-directional many-to-one association to UserGeneralSettingsT
+	@JsonIgnore
+	@OneToMany(mappedBy = "timeZoneMappingT")
 	private List<UserGeneralSettingsT> userGeneralSettingsTs;
 
 	public TimeZoneMappingT() {
@@ -61,18 +62,21 @@ public class TimeZoneMappingT implements Serializable {
 		return this.userGeneralSettingsTs;
 	}
 
-	public void setUserGeneralSettingsTs(List<UserGeneralSettingsT> userGeneralSettingsTs) {
+	public void setUserGeneralSettingsTs(
+			List<UserGeneralSettingsT> userGeneralSettingsTs) {
 		this.userGeneralSettingsTs = userGeneralSettingsTs;
 	}
 
-	public UserGeneralSettingsT addUserGeneralSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
+	public UserGeneralSettingsT addUserGeneralSettingsT(
+			UserGeneralSettingsT userGeneralSettingsT) {
 		getUserGeneralSettingsTs().add(userGeneralSettingsT);
 		userGeneralSettingsT.setTimeZoneMappingT(this);
 
 		return userGeneralSettingsT;
 	}
 
-	public UserGeneralSettingsT removeUserGeneralSettingsT(UserGeneralSettingsT userGeneralSettingsT) {
+	public UserGeneralSettingsT removeUserGeneralSettingsT(
+			UserGeneralSettingsT userGeneralSettingsT) {
 		getUserGeneralSettingsTs().remove(userGeneralSettingsT);
 		userGeneralSettingsT.setTimeZoneMappingT(null);
 
