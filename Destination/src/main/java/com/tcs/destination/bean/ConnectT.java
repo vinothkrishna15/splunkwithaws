@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -73,7 +74,14 @@ public class ConnectT implements Serializable {
 
 	@Column(name = "country")
 	private String country;
-	
+
+	@Column(name = "time_zone")
+	private String timeZone;
+
+	@OneToOne
+	@JoinColumn(name = "time_zone", insertable = false, updatable = false)
+	private TimeZoneMappingT timeZoneMappingT;
+
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
 
@@ -82,6 +90,7 @@ public class ConnectT implements Serializable {
 		this.connectCategory = con.connectCategory;
 		this.connectCustomerContactLinkTs = con.connectCustomerContactLinkTs;
 		this.connectId = con.connectId;
+		this.timeZone=con.timeZone;
 		this.connectName = con.connectName;
 		this.connectOfferingLinkTs = con.connectOfferingLinkTs;
 		this.connectOpportunityLinkIdTs = con.connectOpportunityLinkIdTs;
@@ -114,10 +123,10 @@ public class ConnectT implements Serializable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
-	//bi-directional many-to-one association to CommentsT
-	@OneToMany(mappedBy="connectT")
+	// bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy = "connectT")
 	private List<CommentsT> commentsTs;
-	
+
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
@@ -186,8 +195,8 @@ public class ConnectT implements Serializable {
 	@OneToMany(mappedBy = "connectT")
 	private List<UserNotificationsT> userNotificationsTs;
 
-	//bi-directional many-to-one association to UserTaggedFollowedT
-	@OneToMany(mappedBy="connectT")
+	// bi-directional many-to-one association to UserTaggedFollowedT
+	@OneToMany(mappedBy = "connectT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
 	@Transient
@@ -198,10 +207,10 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<DocumentRepositoryT> documentsDeletionList;
-	
+
 	@Transient
 	private List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs;
-	
+
 	@Transient
 	private List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs;
 
@@ -318,7 +327,7 @@ public class ConnectT implements Serializable {
 
 		return commentsT;
 	}
-	
+
 	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
 		return this.connectCustomerContactLinkTs;
 	}
@@ -692,33 +701,32 @@ public class ConnectT implements Serializable {
 	public void setSearchKeywordsTs(List<SearchKeywordsT> searchKeywordsTs) {
 		this.searchKeywordsTs = searchKeywordsTs;
 	}
-	
+
 	public List<UserTaggedFollowedT> getUserTaggedFollowedTs() {
 		return this.userTaggedFollowedTs;
 	}
 
 	public void setUserTaggedFollowedTs(
-		List<UserTaggedFollowedT> userTaggedFollowedTs) {
-			this.userTaggedFollowedTs = userTaggedFollowedTs;
+			List<UserTaggedFollowedT> userTaggedFollowedTs) {
+		this.userTaggedFollowedTs = userTaggedFollowedTs;
 	}
 
 	public UserTaggedFollowedT addUserTaggedFollowedT(
-		UserTaggedFollowedT userTaggedFollowedT) {
-			getUserTaggedFollowedTs().add(userTaggedFollowedT);
-			userTaggedFollowedT.setConnectT(this);
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().add(userTaggedFollowedT);
+		userTaggedFollowedT.setConnectT(this);
 
-			return userTaggedFollowedT;
+		return userTaggedFollowedT;
 	}
 
 	public UserTaggedFollowedT removeUserTaggedFollowedT(
-		UserTaggedFollowedT userTaggedFollowedT) {
-			getUserTaggedFollowedTs().remove(userTaggedFollowedT);
-			userTaggedFollowedT.setConnectT(null);
+			UserTaggedFollowedT userTaggedFollowedT) {
+		getUserTaggedFollowedTs().remove(userTaggedFollowedT);
+		userTaggedFollowedT.setConnectT(null);
 
-			return userTaggedFollowedT;
+		return userTaggedFollowedT;
 	}
 
-	
 	public List<ConnectCustomerContactLinkT> getDeleteConnectCustomerContactLinkTs() {
 		return deleteConnectCustomerContactLinkTs;
 	}
@@ -728,7 +736,6 @@ public class ConnectT implements Serializable {
 		this.deleteConnectCustomerContactLinkTs = deleteConnectCustomerContactLinkTs;
 	}
 
-	
 	public List<ConnectTcsAccountContactLinkT> getDeleteConnectTcsAccountContactLinkTs() {
 		return deleteConnectTcsAccountContactLinkTs;
 	}
@@ -736,5 +743,21 @@ public class ConnectT implements Serializable {
 	public void setDeleteConnectTcsAccountContactLinkTs(
 			List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs) {
 		this.deleteConnectTcsAccountContactLinkTs = deleteConnectTcsAccountContactLinkTs;
+	}
+
+	public String getTimeZone() {
+		return timeZone;
+	}
+
+	public void setTimeZone(String timeZone) {
+		this.timeZone = timeZone;
+	}
+
+	public TimeZoneMappingT getTimeZoneMappingT() {
+		return timeZoneMappingT;
+	}
+
+	public void setTimeZoneMappingT(TimeZoneMappingT timeZoneMappingT) {
+		this.timeZoneMappingT = timeZoneMappingT;
 	}
 }

@@ -39,6 +39,11 @@ public class TimeZoneMappingT implements Serializable {
 	@OneToMany(mappedBy = "timeZoneMappingT")
 	private List<UserGeneralSettingsT> userGeneralSettingsTs;
 
+	// bi-directional many-to-one association to ConnectT
+	@JsonIgnore
+	@OneToMany(mappedBy = "timeZoneMappingT")
+	private List<ConnectT> connectTs;
+
 	public TimeZoneMappingT() {
 	}
 
@@ -81,6 +86,14 @@ public class TimeZoneMappingT implements Serializable {
 		userGeneralSettingsT.setTimeZoneMappingT(null);
 
 		return userGeneralSettingsT;
+	}
+
+	public List<ConnectT> getConnectTs() {
+		return connectTs;
+	}
+
+	public void setConnectTs(List<ConnectT> connectTs) {
+		this.connectTs = connectTs;
 	}
 
 }

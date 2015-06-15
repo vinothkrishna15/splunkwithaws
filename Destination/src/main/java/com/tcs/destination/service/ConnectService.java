@@ -21,14 +21,11 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
-import com.tcs.destination.bean.DocumentRepositoryT;
 import com.tcs.destination.bean.NotesT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.DocumentController;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -37,10 +34,10 @@ import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
-import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class ConnectService {
