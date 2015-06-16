@@ -1,7 +1,6 @@
 package com.tcs.destination;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,7 +8,6 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Map;
 
 import javax.servlet.Filter;
@@ -21,14 +19,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
-import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class SimpleCORSFilter implements Filter {
@@ -40,7 +35,7 @@ public class SimpleCORSFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods",
-				"POST, GET, OPTIONS, DELETE,PUT");
+				"POST, GET, OPTIONS, DELETE, PUT");
 		response.setHeader("Access-Control-Max-Age", "3600");
 		response.setHeader("Access-Control-Allow-Headers", "accept,authorization,x-requested-with,Content-Type");
 		DestinationHttpRequestWrapper myRequestWrapper = logRequest(req);
@@ -53,19 +48,39 @@ public class SimpleCORSFilter implements Filter {
 	private DestinationHttpRequestWrapper logRequest(ServletRequest req) throws ServletException {
 		final HttpServletRequest httpServletRequest = (HttpServletRequest) req;
 		
-		MDC.remove("traceId"); 
-		if (httpServletRequest.getHeader("TraceId") != null) {
-			String traceId = httpServletRequest.getHeader("TraceId");
-			//Logging TraceId
-			logger.info("TraceId : " + traceId);
-			MDC.put("traceId", traceId);
-		}
-		
+		MDC.remove("sessionId"); 
+
 		logger.info("======REQUEST DETAILS======");
 		logger.info("Timestamp : " + new Date());
 		logger.info("URL : " + getUrlWithParams(httpServletRequest));
 		logger.info("Method : " + httpServletRequest.getMethod());
 
+		// Get the current HttpSession, do not create one
+		HttpSession session = httpServletRequest.getSession(false);
+		
+		// Check if the Login Service has Session populated
+		if (httpServletRequest.getRequestURL().indexOf("/user/login") > 0) {
+			if (session != null) {
+				logger.error("Session should not be passed for User Login service : " + 
+						session.getId());
+				throw new ServletException ("Session should not be passed for User Login service");
+			}
+		} else {
+			// Check if other services has valid session populated
+/*			if (session == null) {
+				logger.error("Valid session is required");
+				throw new ServletException("Valid session is required");
+			} else {
+				if (session.isNew()) {
+					logger.error("Invalid session requested : " + session.getId());
+					throw new ServletException("Invalid session requested");
+				}
+*/		    if (session != null) {
+				logger.info("SessionId : " + session.getId());
+				MDC.put("sessionId", session.getId());
+			}
+		}
+		
 		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper(httpServletRequest);
 		try {
 			ServletInputStream inputStream = myRequestWrapper.getInputStream();

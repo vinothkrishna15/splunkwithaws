@@ -80,4 +80,18 @@ public class UserService {
 			return true;
 	}
 
+	/**
+	 * This method is used to find user login details for the given session id.
+	 * 
+	 * @param userId, sessionId.
+	 * @return user login details.
+	 */
+	public LoginHistoryT findByUserIdAndSessionId(String userId, String sessionId) throws Exception {
+		logger.info("Inside findByuserIdAndSessionId Service");
+		LoginHistoryT loginHistory = null;
+		if (userId != null && sessionId != null) {
+			loginHistory = loginHistoryRepository.findByUserIdAndSessionId(userId, sessionId);
+		}
+		return loginHistory;
+	}
 }

@@ -26,9 +26,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		// Instruct Spring Security not to use Session to get SecurityContext and
-		// re-authenticate every request
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		// Instruct Spring Security not to create Session and use session exists already if any
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
 		http.csrf().disable();
 		//http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
 		

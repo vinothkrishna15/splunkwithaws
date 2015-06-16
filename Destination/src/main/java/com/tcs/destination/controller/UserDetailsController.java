@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.ApplicationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UserService;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
-
 
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.OperatingSystem;
@@ -44,12 +47,15 @@ public class UserDetailsController {
 	@Autowired
 	ApplicationSettingsService applicationSettingsService;
 
+	@Autowired
+	ApplicationSettingsRepository applicationSettingsRepository;
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside UserDetailsController /user GET");
 		if (nameWith.equals("")) {
 			logger.debug("nameWith is EMPTY");
@@ -62,18 +68,43 @@ public class UserDetailsController {
 		}
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> userLogin(HttpServletRequest httpServletRequest,
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> userLogin(
+			HttpServletRequest httpServletRequest,
 			@RequestParam(value = "userName") String userName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 
-		logger.debug("Inside UserDetailsController /User/login GET");
+		logger.debug("Inside UserDetailsController /user/login POST");
 		UserT user = userService.findUserByName(userName);
 		if (user != null) {
 			// Log Username for debugging
 			logger.info("Username : " + userName);
+
+			HttpSession session = httpServletRequest.getSession(false);
+			if (session == null) {
+				logger.info("Session is null, creating new session");
+				session = httpServletRequest.getSession();
+
+			}
+			logger.info("sessionId = " + session.getId());
+
+			// Check if the User has already logged in with the same session
+			if (userService.findByUserIdAndSessionId(user.getUserId(),
+					session.getId()) != null) {
+				throw new DestinationException(HttpStatus.FORBIDDEN,
+						"User has already logged in with the same session");
+			}
+
+			// Set the custom TimeOut
+			ApplicationSettingsT appSettings = applicationSettingsRepository
+					.findOne(Constants.TIME_OUT);
+			logger.debug("Time_Out Interval : " + appSettings.getValue());
+			session.setMaxInactiveInterval(Integer.parseInt(appSettings
+					.getValue()) * 60);
+			logger.debug("Session Timeout : " + session.getMaxInactiveInterval());
+
 			// Get Last Login Time
 			Timestamp lastLogin = userService
 					.getUserLastLogin(user.getUserId());
@@ -81,18 +112,21 @@ public class UserDetailsController {
 				user.setLastLogin(lastLogin);
 
 			// Get Browser, Device details from request header
-			logger.info("UserAgent : " + httpServletRequest.getHeader("User-Agent"));
- 			UserAgent userAgent = UserAgent.parseUserAgentString(
- 					httpServletRequest.getHeader("User-Agent"));
+			logger.info("UserAgent : "
+					+ httpServletRequest.getHeader("User-Agent"));
+			UserAgent userAgent = UserAgent
+					.parseUserAgentString(httpServletRequest
+							.getHeader("User-Agent"));
 			Browser browser = userAgent.getBrowser();
 			String browserName = browser.getName();
 			String browserVersion = userAgent.getBrowserVersion().getVersion();
-			logger.info("Browser : " + browserName + " Version : " + browserVersion);
+			logger.info("Browser : " + browserName + " Version : "
+					+ browserVersion);
 
 			// Get OS details
 			OperatingSystem os = userAgent.getOperatingSystem();
 			String osName = os.getName();
-			
+
 			short osVersion = os.getId();
 			logger.info("OS : " + os + " Version : " + (byte) osVersion);
 
@@ -100,14 +134,10 @@ public class UserDetailsController {
 			String device = os.getDeviceType().getName();
 			logger.info("Device :" + device);
 
-			// Get Current Session
-			String sessionId = httpServletRequest.getSession().getId();
-			logger.info("SessionId : " + sessionId);
-
 			// Save current login session
 			LoginHistoryT loginHistory = new LoginHistoryT();
 			loginHistory.setUserId(user.getUserId());
-			loginHistory.setSessionId(sessionId);
+			loginHistory.setSessionId(session.getId());
 			loginHistory.setBrowser(browserName);
 			loginHistory.setBrowserVersion(browserVersion);
 			loginHistory.setOs(osName);
@@ -136,5 +166,23 @@ public class UserDetailsController {
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						user), headers, HttpStatus.OK);
 	}
-
+	
+	@RequestMapping(value = "/logout", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> userLogout(HttpServletRequest httpServletRequest)
+		throws Exception {
+		logger.debug("Inside UserDetailsController /user/logout GET");
+		Status status = new Status();
+	
+		if (httpServletRequest.getSession(false) != null) {
+			logger.info("Logging out User Session : " + httpServletRequest.getSession().getId());
+			httpServletRequest.logout();
+			status.setStatus(Status.SUCCESS, "Session logged out");
+		} else {
+			logger.error("No Valid session to log out");
+			status.setStatus(Status.FAILED, "No valid session to log out");
+		}
+		
+		return new ResponseEntity<String>
+			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+	}
 }
