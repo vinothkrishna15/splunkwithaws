@@ -14,6 +14,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -22,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="iou")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="iou")
 @Entity
 @Table(name = "iou_customer_mapping_t")
 @NamedQuery(name = "IouCustomerMappingT.findAll", query = "SELECT i FROM IouCustomerMappingT i")
@@ -37,10 +38,12 @@ public class IouCustomerMappingT implements Serializable {
 	private String displayIou;
 
 	//bi-directional many-to-one association to ActualRevenuesDataT
+	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
 	//bi-directional many-to-one association to CustomerMasterT
+	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 

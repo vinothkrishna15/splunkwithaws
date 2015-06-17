@@ -12,8 +12,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -31,6 +30,7 @@ public class BeaconCustomerMappingT implements Serializable {
 	private BeaconCustomerMappingTPK id;
 
 	//bi-directional many-to-one association to CustomerMasterT
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name", 
 		insertable = false, updatable = false)
@@ -42,6 +42,7 @@ public class BeaconCustomerMappingT implements Serializable {
 	private GeographyMappingT geographyMappingT;
 
 	//bi-directional many-to-one association to BeaconDataT
+	@JsonIgnore
 	@OneToMany(mappedBy="beaconCustomerMappingT")
 	private List<BeaconDataT> beaconDataTs;
 

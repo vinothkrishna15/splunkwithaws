@@ -17,8 +17,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
 
 
@@ -27,7 +26,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="currencyName")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="currencyName")
 @Entity
 @Table(name="beacon_convertor_mapping_t")
 @NamedQuery(name="BeaconConvertorMappingT.findAll", query="SELECT b FROM BeaconConvertorMappingT b")
@@ -47,6 +46,7 @@ public class BeaconConvertorMappingT implements Serializable {
 	private Date dateUpdated;
 
 	//bi-directional many-to-one association to OpportunityT
+	@JsonIgnore
 	@OneToMany(mappedBy="beaconConvertorMappingT")
 	private List<OpportunityT> opportunityTs;
 

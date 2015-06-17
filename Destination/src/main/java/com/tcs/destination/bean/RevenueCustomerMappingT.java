@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -38,6 +39,7 @@ public class RevenueCustomerMappingT implements Serializable {
 	private RevenueCustomerMappingTPK id;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
+	@JsonIgnore
 	@OneToMany(mappedBy = "revenueCustomerMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 

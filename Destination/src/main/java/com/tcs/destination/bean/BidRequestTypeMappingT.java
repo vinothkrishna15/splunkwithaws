@@ -13,8 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
 
 
@@ -23,7 +22,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidRequestType")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidRequestType")
 @Entity
 @Table(name="bid_request_type_mapping_t")
 @NamedQuery(name="BidRequestTypeMappingT.findAll", query="SELECT b FROM BidRequestTypeMappingT b")
@@ -36,6 +35,7 @@ public class BidRequestTypeMappingT implements Serializable {
 	private String bidRequestType;
 
 	//bi-directional many-to-one association to BidDetailsT
+	@JsonIgnore
 	@OneToMany(mappedBy="bidRequestTypeMappingT")
 	private List<BidDetailsT> bidDetailsTs;
 

@@ -21,7 +21,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "timeZoneCode")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "timeZoneCode")
 @Entity
 @Table(name = "time_zone_mapping_t")
 @NamedQuery(name = "TimeZoneMappingT.findAll", query = "SELECT t FROM TimeZoneMappingT t")

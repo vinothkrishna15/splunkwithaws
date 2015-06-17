@@ -12,6 +12,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -20,7 +21,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="offering")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="offering")
 @Entity
 @Table(name = "offering_mapping_t")
 @NamedQuery(name = "OfferingMappingT.findAll", query = "SELECT o FROM OfferingMappingT o")
@@ -39,10 +40,12 @@ public class OfferingMappingT implements Serializable {
 	private String subSp;
 
 	//bi-directional many-to-one association to ConnectOfferingLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy="offeringMappingT")
 	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
 
 	//bi-directional many-to-one association to OpportunityOfferingLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy="offeringMappingT")
 	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
 

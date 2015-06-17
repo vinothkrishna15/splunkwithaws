@@ -13,8 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
 
 
@@ -23,7 +22,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="competitorName")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="competitorName")
 @Entity
 @Table(name="competitor_mapping_t")
 @NamedQuery(name="CompetitorMappingT.findAll", query="SELECT c FROM CompetitorMappingT c")
@@ -39,6 +38,7 @@ public class CompetitorMappingT implements Serializable {
 	private String activeFlag;
 
 	//bi-directional many-to-one association to OpportunityCompetitorLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy="competitorMappingT")
 	private List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs;
 

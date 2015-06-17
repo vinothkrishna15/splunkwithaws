@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -22,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="country")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="country")
 @Entity
 @Table(name="geography_country_mapping_t")
 @NamedQuery(name="GeographyCountryMappingT.findAll", query="SELECT g FROM GeographyCountryMappingT g")
@@ -36,10 +37,12 @@ public class GeographyCountryMappingT implements Serializable {
 	private String geography;
 
 	//bi-directional many-to-one association to ConnectT
+	@JsonIgnore
 	@OneToMany(mappedBy="geographyCountryMappingT")
 	private List<ConnectT> connectTs;
 
 	//bi-directional many-to-one association to OpportunityT
+	@JsonIgnore
 	@OneToMany(mappedBy="geographyCountryMappingT")
 	private List<OpportunityT> opportunityTs;
 

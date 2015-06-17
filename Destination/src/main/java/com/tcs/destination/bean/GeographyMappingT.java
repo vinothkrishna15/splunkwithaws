@@ -14,6 +14,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -22,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "geography")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "geography")
 @Entity
 @Table(name = "geography_mapping_t")
 @NamedQuery(name = "GeographyMappingT.findAll", query = "SELECT g FROM GeographyMappingT g")
@@ -39,22 +40,27 @@ public class GeographyMappingT implements Serializable {
 	private String displayGeography;
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
+	@JsonIgnore
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
 
 	// bi-directional many-to-one association to CustomerMasterT
+	@JsonIgnore
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 
 	// bi-directional many-to-one association to PartnerMasterT
+	@JsonIgnore
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
 
 	// bi-directional many-to-one association to RevenueCustomerMappingT
+	@JsonIgnore
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
 	@OneToMany(mappedBy = "geographyMappingT")
+	@JsonIgnore
 	private List<UserT> userTs;
 
 	public GeographyMappingT() {

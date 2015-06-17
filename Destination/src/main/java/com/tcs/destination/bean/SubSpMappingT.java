@@ -12,6 +12,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -20,7 +21,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subSp")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "subSp")
 @Entity
 @Table(name = "sub_sp_mapping_t")
 @NamedQuery(name = "SubSpMappingT.findAll", query = "SELECT s FROM SubSpMappingT s")
@@ -46,17 +47,21 @@ public class SubSpMappingT implements Serializable {
 	private String actualSubSp;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
+	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
+	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
 
 	// bi-directional many-to-one association to ConnectSubSpLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
 
 	// bi-directional many-to-one association to OpportunitySubSpLinkT
+	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
