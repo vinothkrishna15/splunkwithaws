@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectSummaryResponse;
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.service.BidReportService;
-import com.tcs.destination.service.ConnectReportService;
+import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -30,11 +29,8 @@ public class ReportsController {
 			.getLogger(ReportsController.class);
 
 	@Autowired
-	BidReportService bidReportService;
+	ReportsService reportsService;
 	
-	@Autowired
-	ConnectReportService connectReportService;
-
 	@RequestMapping(value = "/connect", method = RequestMethod.GET)
 	public @ResponseBody String connectDetailedReport(
 			@RequestParam(value = "month", defaultValue = "") String month,
@@ -48,7 +44,7 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ConnectReportController /report/connect GET");
-		List<ConnectT> connects = connectReportService
+		List<ConnectT> connects = reportsService
 				.getConnectDetailedReports(month, quarter, year, iou,
 						geography, country, serviceLines);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
@@ -70,7 +66,7 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ConnectReportController /report/connect/summary GET");
-		List<ConnectSummaryResponse> connectSummaryResponses = connectReportService
+		List<ConnectSummaryResponse> connectSummaryResponses = reportsService
 				.getSummaryReports(required, month, quarter, year, iou,
 						geography, country, serviceLines);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
@@ -93,7 +89,7 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside BidReportController /report/biddetails GET");
-		List<BidDetailsT> biddetails = bidReportService.getBidDetailedReport(year, fromDate, toDate,bidOwner, currency,
+		List<BidDetailsT> biddetails = reportsService.getBidDetailedReport(year, fromDate, toDate,bidOwner, currency,
 				iou, geography, country,serviceLines);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
