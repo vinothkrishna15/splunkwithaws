@@ -2,6 +2,7 @@ package com.tcs.destination.bean;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -57,6 +59,19 @@ public class UserNotificationSettingsT implements Serializable {
 	@JoinColumn(name="user_id")
 	private UserT userT;
 
+	@Transient
+	private List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsT;
+
+	public List<UserNotificationSettingsConditionsT> getUserNotificationSettingsConditionsT() {
+		return userNotificationSettingsConditionsT;
+	}
+
+	public void setUserNotificationSettingsConditionsT(
+			List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsT) {
+		this.userNotificationSettingsConditionsT = userNotificationSettingsConditionsT;
+	}
+
+	
 	public UserNotificationSettingsT() {
 	}
 
