@@ -49,6 +49,7 @@ public class ContactService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contact found");
 		}
+		removeCyclicForLinkedContactTs(contact);
 		return contact;
 	}
 
@@ -73,6 +74,7 @@ public class ContactService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contacts found");
 		}
+		removeCyclicForLinkedContactTs(contactList);
 		return contactList;
 	}
 
@@ -94,6 +96,7 @@ public class ContactService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contacts found");
 		}
+		removeCyclicForLinkedContactTs(contactList);
 		return contactList;
 	}
 
@@ -215,5 +218,25 @@ public class ContactService {
 					"No Contact Roles found");
 		}
 		return contactRoleMappingTs;
+	}
+
+	private void removeCyclicForLinkedContactTs(List<ContactT> contactTs) {
+		if (contactTs != null) {
+			for (ContactT contactT : contactTs) {
+				removeCyclicForLinkedContactTs(contactT);
+			}
+		}
+	}
+
+	private void removeCyclicForLinkedContactTs(ContactT contactT) {
+		if (contactT != null) {
+			if (contactT.getContactCustomerLinkTs() != null) {
+				for (ContactCustomerLinkT contactCustomerLinkT : contactT
+						.getContactCustomerLinkTs()) {
+					contactCustomerLinkT.getCustomerMasterT()
+							.setContactCustomerLinkTs(null);
+				}
+			}
+		}
 	}
 }

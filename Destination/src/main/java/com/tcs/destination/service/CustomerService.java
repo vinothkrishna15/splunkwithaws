@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.BeaconConvertorMappingT;
+import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -34,13 +35,15 @@ public class CustomerService {
 
 	public CustomerMasterT findById(String customerid) throws Exception {
 		logger.debug("Inside findById Service");
-		CustomerMasterT customer = customerRepository.findOne(customerid);
-		if (customer == null) {
+		CustomerMasterT customerMasterT = customerRepository
+				.findOne(customerid);
+		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: No such Customer");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such Customer");
 		}
-		return customer;
+		removeCyclicForLinkedContactTs(customerMasterT);
+		return customerMasterT;
 	}
 
 	public List<CustomerMasterT> findTopRevenue(int count, String financialYear)
@@ -57,6 +60,7 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Relevent Data Found in the database");
 		}
+		removeCyclicForLinkedContactTs(topRevenueList);
 		return topRevenueList;
 	}
 
@@ -115,8 +119,10 @@ public class CustomerService {
 				.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(nameWith);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Customer found");
 		}
+		removeCyclicForLinkedContactTs(custList);
 		return custList;
 	}
 
@@ -127,8 +133,10 @@ public class CustomerService {
 				.findByGroupCustomerNameIgnoreCaseContainingOrderByGroupCustomerNameAsc(groupCustName);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Customer found");
 		}
+		removeCyclicForLinkedContactTs(custList);
 		return custList;
 	}
 
@@ -138,8 +146,32 @@ public class CustomerService {
 				.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(startsWith);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Customer found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Customer found");
 		}
+		removeCyclicForLinkedContactTs(custList);
 		return custList;
 	}
+
+	private void removeCyclicForLinkedContactTs(
+			List<CustomerMasterT> customerMasterTs) {
+		if (customerMasterTs != null) {
+			for (CustomerMasterT customerMasterT : customerMasterTs) {
+				removeCyclicForLinkedContactTs(customerMasterT);
+			}
+		}
+	}
+
+	private void removeCyclicForLinkedContactTs(CustomerMasterT customerMasterT) {
+		if (customerMasterT != null) {
+			if (customerMasterT.getContactCustomerLinkTs() != null) {
+				for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
+						.getContactCustomerLinkTs()) {
+					contactCustomerLinkT.getContactT()
+							.setContactCustomerLinkTs(null);
+				}
+			}
+		}
+	}
+
 }
