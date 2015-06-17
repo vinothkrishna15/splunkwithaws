@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.PerformanceReportService;
 
 /**
  * 
@@ -26,22 +25,22 @@ public class DateUtils {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
-	
+
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
-    static {
-        monthMap.put("JAN",Calendar.JANUARY);
-        monthMap.put("FEB",Calendar.FEBRUARY);
-        monthMap.put("MAR", Calendar.MARCH);
-        monthMap.put("APR", Calendar.APRIL);
-        monthMap.put("MAY", Calendar.MAY);
-        monthMap.put("JUN", Calendar.JUNE);
-        monthMap.put("JUL", Calendar.JULY);
-        monthMap.put("AUG", Calendar.AUGUST);
-        monthMap.put("SEP", Calendar.SEPTEMBER);
-        monthMap.put("OCT", Calendar.OCTOBER);
-        monthMap.put("NOV", Calendar.NOVEMBER);
-        monthMap.put("DEC", Calendar.DECEMBER);
-    }
+	static {
+		monthMap.put("JAN", Calendar.JANUARY);
+		monthMap.put("FEB", Calendar.FEBRUARY);
+		monthMap.put("MAR", Calendar.MARCH);
+		monthMap.put("APR", Calendar.APRIL);
+		monthMap.put("MAY", Calendar.MAY);
+		monthMap.put("JUN", Calendar.JUNE);
+		monthMap.put("JUL", Calendar.JULY);
+		monthMap.put("AUG", Calendar.AUGUST);
+		monthMap.put("SEP", Calendar.SEPTEMBER);
+		monthMap.put("OCT", Calendar.OCTOBER);
+		monthMap.put("NOV", Calendar.NOVEMBER);
+		monthMap.put("DEC", Calendar.DECEMBER);
+	}
 
 	public static Date convertStringToDate(String strDate)
 			throws ParseException {
@@ -105,7 +104,7 @@ public class DateUtils {
 						cal.getActualMaximum(Calendar.DAY_OF_MONTH));
 				setEndHourMinuteSec(cal);
 			}
-			
+
 			return cal.getTime();
 		} catch (Exception e) {
 			logger.error("Exception in Financial Year Format " + e);
@@ -189,9 +188,10 @@ public class DateUtils {
 					"Invalid Quarter format. Must be in the format Qx - 20xx-xx.");
 		}
 	}
-	
-	public static Date getDateFromMonth(String month, boolean isStartDate) throws Exception{
-		try{
+
+	public static Date getDateFromMonth(String month, boolean isStartDate)
+			throws Exception {
+		try {
 			String[] monthStr = month.split("-");
 			String yearStr = monthStr[1].trim();
 			String monStr = monthStr[0].trim();
@@ -199,28 +199,29 @@ public class DateUtils {
 			int endYear = Integer.parseInt(yearStr);
 			int startMon, endMon;
 			int startDay = 1;
-			if(monthMap.containsKey(monStr)){
+			if (monthMap.containsKey(monStr)) {
 				startMon = monthMap.get(monStr);
 				endMon = monthMap.get(monStr);
 				Calendar cal = getDefaultTime();
-				if(isStartDate){
+				if (isStartDate) {
 					cal.set(Calendar.YEAR, startYear);
 					cal.set(Calendar.MONTH, startMon);
 					cal.set(Calendar.DATE, startDay);
 				} else {
 					cal.set(Calendar.YEAR, endYear);
 					cal.set(Calendar.MONTH, endMon);
-					cal.set(Calendar.DATE, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+					cal.set(Calendar.DATE,
+							cal.getActualMaximum(Calendar.DAY_OF_MONTH));
 					setEndHourMinuteSec(cal);
 				}
 				return cal.getTime();
 			} else {
-				//invalid month
+				// invalid month
 				logger.error("Exception in Month Format ");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid Month format. Must be in the format MMM-YYYY.");
 			}
-		} catch (Exception e){
+		} catch (Exception e) {
 			logger.error("Exception in Month Format " + e);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Month format. Must be in the format MMM-YYYY.");
@@ -228,14 +229,14 @@ public class DateUtils {
 	}
 
 	private static Calendar getDefaultTime() {
-		Calendar cal=Calendar.getInstance();
-		cal.set(Calendar.HOUR_OF_DAY,0);
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		return cal;
 	}
-	
+
 	private static void setEndHourMinuteSec(Calendar cal) {
 		cal.set(Calendar.HOUR_OF_DAY, 23);
 		cal.set(Calendar.MINUTE, 59);
@@ -243,6 +244,23 @@ public class DateUtils {
 		cal.set(Calendar.MILLISECOND, 999);
 	}
 
-	
-	
+	public static Date getDate(String month,String quarter,String year,
+			boolean isStart) throws Exception {
+		if (year.isEmpty() && quarter.isEmpty() && month.isEmpty())
+			year = DateUtils.getCurrentFinancialYear();
+
+		Date fromDate;
+		if (!quarter.isEmpty() && year.isEmpty() && month.isEmpty()) {
+			fromDate = DateUtils.getDateFromQuarter(quarter, isStart);
+		} else if (!year.isEmpty() && quarter.isEmpty() && month.isEmpty()) {
+			fromDate = DateUtils.getDateFromFinancialYear(year, isStart);
+		} else if (!month.isEmpty() && quarter.isEmpty() && year.isEmpty()) {
+			fromDate = DateUtils.getDateFromMonth(month, isStart);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Request");
+		}
+		return fromDate;
+	}
+
 }
