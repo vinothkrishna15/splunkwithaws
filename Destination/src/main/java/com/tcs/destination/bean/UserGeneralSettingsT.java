@@ -52,7 +52,7 @@ public class UserGeneralSettingsT implements Serializable {
 
 	//bi-directional many-to-one association to TimeZoneMappingT
 	@ManyToOne
-	@JoinColumn(name="user_time_zone")
+	@JoinColumn(name="time_zone_desc")
 	private TimeZoneMappingT timeZoneMappingT;
 
 	//bi-directional one-to-one association to UserT

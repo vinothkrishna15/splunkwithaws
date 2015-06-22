@@ -75,13 +75,14 @@ public class ConnectT implements Serializable {
 	@Column(name = "country")
 	private String country;
 
-	@Column(name = "time_zone")
+	@Column(name = "time_zone_desc")
 	private String timeZone;
 
-	@OneToOne
-	@JoinColumn(name = "time_zone", insertable = false, updatable = false)
+	//bi-directional many-to-one association to TimeZoneMappingT
+	@ManyToOne
+	@JoinColumn(name="time_zone_desc", insertable = false, updatable = false)
 	private TimeZoneMappingT timeZoneMappingT;
-
+	
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
 

@@ -29,11 +29,15 @@ public class TimeZoneMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@Column(name = "description")
+	private String description;
+	
 	@Column(name = "time_zone_code")
 	private String timeZoneCode;
 
-	private String description;
-
+	@Column(name="time_zone_offset")
+	private String timeZoneOffset;
+	
 	// bi-directional many-to-one association to UserGeneralSettingsT
 	@JsonIgnore
 	@OneToMany(mappedBy = "timeZoneMappingT")
@@ -63,6 +67,13 @@ public class TimeZoneMappingT implements Serializable {
 		this.description = description;
 	}
 
+	public String getTimeZoneOffset() {
+		return this.timeZoneOffset;
+	}
+
+	public void setTimeZoneOffset(String timeZoneOffset) {
+		this.timeZoneOffset = timeZoneOffset;
+	}
 	public List<UserGeneralSettingsT> getUserGeneralSettingsTs() {
 		return this.userGeneralSettingsTs;
 	}
