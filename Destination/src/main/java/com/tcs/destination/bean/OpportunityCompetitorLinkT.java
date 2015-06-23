@@ -62,6 +62,9 @@ public class OpportunityCompetitorLinkT implements Serializable {
 	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
 	private UserT createdModifiedByUser;
 
+	@Column(name="incumbent_flag")
+	private String incumbentFlag;
+	
 	public OpportunityCompetitorLinkT() {
 	}
 
@@ -129,4 +132,11 @@ public class OpportunityCompetitorLinkT implements Serializable {
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
 	}
-}
+
+	public String getIncumbentFlag() {
+		return this.incumbentFlag;
+	}
+
+	public void setIncumbentFlag(String incumbentFlag) {
+		this.incumbentFlag = incumbentFlag;
+	}}
