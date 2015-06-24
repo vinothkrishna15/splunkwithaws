@@ -81,15 +81,39 @@ public class ContactController {
 		logger.debug("Inside ContactController /contact GET");
 		List<ContactT> contactlist = null;
 
+		// If NameWith service
 		if (!nameWith.isEmpty()) {
 			contactlist = contactService.findContactsWithNameContaining(
-					nameWith, customerId, partnerId,contactType);
+					nameWith, customerId, partnerId, contactType);
 		} else if (!startsWith.isEmpty()) {
 			contactlist = contactService
 					.findContactsWithNameStarting(startsWith);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						contactlist), HttpStatus.OK);
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/contactType")
+	public @ResponseBody ResponseEntity<String> findContactsWithContactType(
+			@RequestParam(value = "customerId", defaultValue = "") String customerId,
+			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "contactType") String contactType,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside ContactController /contact GET");
+		List<ContactT> contactlist = null;
+
+		if (!customerId.isEmpty() || !partnerId.isEmpty()) {
+			contactlist = contactService.findContactsWithNameContaining("",
+					customerId, partnerId, contactType);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Either customerId or partnerId is required");
 		}
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
