@@ -68,6 +68,9 @@ public class ConnectService {
 
 	@Autowired
 	ConnectTcsAccountContactLinkTRepository connTcsAcctContRepo;
+	
+	@Autowired
+	ConnectSecondaryOwnerRepository connSecOwnerRepo;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
@@ -542,6 +545,14 @@ public class ConnectService {
 						.getDeleteConnectTcsAccountContactLinkTs());
 				logger.debug("ConnectTcsAccountContacts deleted");
 			}
+			
+			// Delete ConnectSecondaryOwnerLinkTs
+			if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
+					&& connect.getDeleteConnectSecondaryOwnerLinkTs().size() > 0) {
+				deleteConnectSecondaryOwnerLinks(connect
+						.getDeleteConnectSecondaryOwnerLinkTs());
+				logger.debug("ConnectSecondaryOwnerLinks deleted");
+			}
 
 			if (connectRepository.save(connect) != null) {
 				logger.debug("Connect Edit Success");
@@ -587,6 +598,15 @@ public class ConnectService {
 					.getConnectTcsAccountContactLinkId());
 		}
 	}
+	
+	private void deleteConnectSecondaryOwnerLinks(
+			List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs) {
+		logger.debug("Inside deleteConnectSecondaryOwnerLink Service");
+		for (ConnectSecondaryOwnerLinkT connectSecondaryOwner : connectSecondaryOwnerLinkTs) {
+			connSecOwnerRepo.delete(connectSecondaryOwner
+					.getConnectSecondaryOwnerLinkId());
+		}
+	}
 
 	private void populateOppLinks(String currentUserId, String connectId,
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList) {
@@ -605,7 +625,6 @@ public class ConnectService {
 			task.setCreatedModifiedBy(currentUserId);
 			task.setConnectId(connectId);
 		}
-
 	}
 
 	private void prepareConnect(List<ConnectT> connectTs) {

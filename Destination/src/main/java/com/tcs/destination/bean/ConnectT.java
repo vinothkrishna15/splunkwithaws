@@ -214,6 +214,9 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs;
+	
+	@Transient
+	private List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs;
 
 	public ConnectT() {
 	}
@@ -744,6 +747,15 @@ public class ConnectT implements Serializable {
 	public void setDeleteConnectTcsAccountContactLinkTs(
 			List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs) {
 		this.deleteConnectTcsAccountContactLinkTs = deleteConnectTcsAccountContactLinkTs;
+	}
+
+	public List<ConnectSecondaryOwnerLinkT> getDeleteConnectSecondaryOwnerLinkTs() {
+		return deleteConnectSecondaryOwnerLinkTs;
+	}
+
+	public void setDeleteConnectSecondaryOwnerLinkTs(
+			List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs) {
+		this.deleteConnectSecondaryOwnerLinkTs = deleteConnectSecondaryOwnerLinkTs;
 	}
 
 	public String getTimeZone() {
