@@ -42,6 +42,8 @@ import com.tcs.destination.utils.DestinationUtils;
 @Component
 public class ConnectService {
 
+	private static final int ONE_DAY_IN_MILLIS = 86400000;
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectService.class);
 
@@ -151,11 +153,12 @@ public class ConnectService {
 			List<ConnectT> connects = new ArrayList<ConnectT>();
 			if (owner.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
 				logger.debug("owner is PRIMARY");
+				// Exclude the toDate from the date range
 				connects = connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime()), customerId,
-								partnerId);
+								new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1),
+								customerId, partnerId);
 				System.out.println("Primary :" + connects.size());
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
