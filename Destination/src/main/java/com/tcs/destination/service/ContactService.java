@@ -79,6 +79,28 @@ public class ContactService {
 	}
 
 	/**
+	 * This method is used to find all the contacts with the given contact type 
+	 * and/or for a specific Customer / Partner.
+	 * 
+	 * @param customerId, partnerId, contactType
+	 * @return contacts.
+	 */
+	public List<ContactT> findContactsByContactType(String customerId, String partnerId, String contactType)
+			throws Exception {
+		logger.debug("Inside findContactsByContactType Service");
+
+		List<ContactT> contactList = contactRepository.findByContactType(customerId, partnerId, contactType);
+
+		if (contactList == null || contactList.isEmpty()) {
+			logger.error("NOT_FOUND: Contact information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Contacts found");
+		}
+		removeCyclicForLinkedContactTs(contactList);
+		return contactList;
+	}
+
+	/**
 	 * This method is used to find all the contacts with the given starting
 	 * alphabet .
 	 * 

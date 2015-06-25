@@ -97,23 +97,22 @@ public class ContactController {
 						contactlist), HttpStatus.OK);
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/contactType")
-	public @ResponseBody ResponseEntity<String> findContactsWithContactType(
+	@RequestMapping(value = "/contacttype", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findContactsByContactType(
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
-			@RequestParam(value = "contactType") String contactType,
+			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside ContactController /contact GET");
+		logger.debug("Inside ContactController /contact/contacttype GET");
 		List<ContactT> contactlist = null;
 
 		if (!customerId.isEmpty() || !partnerId.isEmpty()) {
-			contactlist = contactService.findContactsWithNameContaining("",
-					customerId, partnerId, contactType);
+			contactlist = contactService.findContactsByContactType(customerId, partnerId, contactType);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Either customerId or partnerId is required");
+					"Either CustomerId or PartnerId is required");
 		}
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
