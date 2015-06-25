@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,7 @@ import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UserService;
@@ -172,17 +174,47 @@ public class UserDetailsController {
 		throws Exception {
 		logger.debug("Inside UserDetailsController /user/logout GET");
 		Status status = new Status();
-	
-		if (httpServletRequest.getSession(false) != null) {
-			logger.info("Logging out User Session : " + httpServletRequest.getSession().getId());
-			httpServletRequest.logout();
+		HttpSession session = httpServletRequest.getSession(false);
+		if (session != null) {
+			logger.info("Logging out User Session : " + session.getId());
+			session.invalidate();
 			status.setStatus(Status.SUCCESS, "Session logged out");
 		} else {
-			logger.error("No Valid session to log out");
-			status.setStatus(Status.FAILED, "No valid session to log out");
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No valid session to log out");
 		}
 		
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
+
+@RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
+public @ResponseBody ResponseEntity<String> changePassword(HttpServletRequest httpServletRequest,@RequestBody UserT user)
+throws Exception {
+	logger.debug("Inside UserDetailsController /user/logout GET");
+	Status status = new Status();
+	String userId = user.getUserId();
+	String currentPassword = user.getTempPassword();
+	String newPassword = user.getNewPassword();
+	//getting session object, if exist 
+	HttpSession session = httpServletRequest.getSession(false);
+	if (session != null) {
+		//valid session
+		UserT dbUser = userService.findByUserIdAndPassword(userId,currentPassword);
+		if(dbUser!=null){
+			dbUser.setTempPassword(newPassword);
+			userService.updateUser(dbUser);
+			status.setStatus(Status.SUCCESS, "Password updated successfully");
+			//invalidate session to force user to re-authenticate with updated password
+			session.invalidate();
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,"User not found");
+		}
+	} else {
+		throw new DestinationException(HttpStatus.UNAUTHORIZED,"User not in a valid session");
+	}
+	
+	return new ResponseEntity<String>
+	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+}
+
 }

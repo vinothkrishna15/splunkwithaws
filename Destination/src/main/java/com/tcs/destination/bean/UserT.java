@@ -358,6 +358,9 @@ public class UserT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "userT2")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs2;
+	
+	@Transient
+	private String newPassword;
 
 	public UserT() {
 	}
@@ -1652,5 +1655,13 @@ public class UserT implements Serializable, Cloneable {
 
 	public UserT clone() throws CloneNotSupportedException {
 		return (UserT) super.clone();
+	}
+
+	public String getNewPassword() {
+		return newPassword;
+	}
+
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
 	}
 }

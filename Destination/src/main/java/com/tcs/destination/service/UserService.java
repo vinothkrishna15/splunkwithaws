@@ -94,4 +94,16 @@ public class UserService {
 		}
 		return loginHistory;
 	}
+	
+	public UserT findByUserIdAndPassword(String userId, String password) throws Exception {
+		logger.info("Inside findByUserIdAndPassword Service");
+	
+		UserT dbUser = userRepository.findByUserIdAndTempPassword(userId, password);
+		
+		return dbUser;
+	}
+	
+	public void updateUser(UserT user){
+		userRepository.save(user);
+	}
 }
