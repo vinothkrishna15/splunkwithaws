@@ -23,7 +23,6 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -32,7 +31,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "taskId")
 @Entity
 @Table(name = "task_t")
 @NamedQuery(name = "TaskT.findAll", query = "SELECT t FROM TaskT t")
@@ -47,11 +46,11 @@ public class TaskT implements Serializable {
 	@Column(name = "collaboration_preference")
 	private String collaborationPreference;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by")
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "modified_by")
+	private String modifiedBy;
 
 	@Column(name = "documents_attached")
 	private String documentsAttached;
@@ -74,10 +73,10 @@ public class TaskT implements Serializable {
 	@OrderBy("updated_datetime DESC")
 	private List<CollaborationCommentT> collaborationCommentTs;
 
-	//bi-directional many-to-one association to CommentsT
-	@OneToMany(mappedBy="taskT")
+	// bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy = "taskT")
 	private List<CommentsT> commentsTs;
-	
+
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "taskT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
@@ -103,8 +102,12 @@ public class TaskT implements Serializable {
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -128,9 +131,14 @@ public class TaskT implements Serializable {
 	@Transient
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList;
 
-	//bi-directional many-to-one association to UserTaggedFollowedT
+	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "taskT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
+
+	// bi-directional many-to-one association to TaskTypeMappingT
+	@ManyToOne
+	@JoinColumn(name = "type")
+	private TaskTypeMappingT taskTypeMappingT;
 
 	public TaskT() {
 	}
@@ -151,20 +159,36 @@ public class TaskT implements Serializable {
 		this.collaborationPreference = collaborationPreference;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+		return createdBy;
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public UserT getCreatedByUser() {
+		return createdByUser;
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
 	}
 
 	public String getDocumentsAttached() {
@@ -350,14 +374,6 @@ public class TaskT implements Serializable {
 		this.taskOwnerT = taskOwnerT;
 	}
 
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
-	}
-
 	public List<UserNotificationsT> getUserNotificationsTs() {
 		return this.userNotificationsTs;
 	}
@@ -437,8 +453,15 @@ public class TaskT implements Serializable {
 			UserTaggedFollowedT userTaggedFollowedT) {
 		getUserTaggedFollowedTs().remove(userTaggedFollowedT);
 		userTaggedFollowedT.setTaskT(null);
-
 		return userTaggedFollowedT;
+	}
+	
+	public TaskTypeMappingT getTaskTypeMappingT() {
+		return this.taskTypeMappingT;
+	}
+
+	public void setTaskTypeMappingT(TaskTypeMappingT taskTypeMappingT) {
+		this.taskTypeMappingT = taskTypeMappingT;
 	}
 
 }

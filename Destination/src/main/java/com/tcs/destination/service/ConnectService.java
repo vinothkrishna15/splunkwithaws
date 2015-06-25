@@ -68,7 +68,7 @@ public class ConnectService {
 
 	@Autowired
 	ConnectTcsAccountContactLinkTRepository connTcsAcctContRepo;
-	
+
 	@Autowired
 	ConnectSecondaryOwnerRepository connSecOwnerRepo;
 
@@ -545,7 +545,7 @@ public class ConnectService {
 						.getDeleteConnectTcsAccountContactLinkTs());
 				logger.debug("ConnectTcsAccountContacts deleted");
 			}
-			
+
 			// Delete ConnectSecondaryOwnerLinkTs
 			if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
 					&& connect.getDeleteConnectSecondaryOwnerLinkTs().size() > 0) {
@@ -598,7 +598,7 @@ public class ConnectService {
 					.getConnectTcsAccountContactLinkId());
 		}
 	}
-	
+
 	private void deleteConnectSecondaryOwnerLinks(
 			List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs) {
 		logger.debug("Inside deleteConnectSecondaryOwnerLink Service");
@@ -622,7 +622,7 @@ public class ConnectService {
 			List<TaskT> taskList) {
 		logger.debug("Inside populateTasks Service");
 		for (TaskT task : taskList) {
-			task.setCreatedModifiedBy(currentUserId);
+			task.setCreatedBy(currentUserId);
 			task.setConnectId(connectId);
 		}
 	}

@@ -30,7 +30,7 @@ import com.tcs.destination.utils.Constants;
 @Entity
 @Table(name = "user_t")
 @NamedQuery(name = "UserT.findAll", query = "SELECT u FROM UserT u")
-public class UserT implements Serializable {
+public class UserT implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	public UserT(UserT user) {
@@ -53,7 +53,6 @@ public class UserT implements Serializable {
 		this.tempPassword = user.tempPassword;
 		this.userEmailId = user.userEmailId;
 		this.userFavoritesTs = user.userFavoritesTs;
-		this.userGeography = user.userGeography;
 		this.userGroupMappingT = user.userGroupMappingT;
 		this.userId = user.userId;
 		this.userName = user.userName;
@@ -61,6 +60,7 @@ public class UserT implements Serializable {
 		this.userRoleMappingT = user.userRoleMappingT;
 		this.userGeneralSettingsT = user.userGeneralSettingsT;
 		this.userTelephone = user.userTelephone;
+		this.baseLocation = user.baseLocation;
 
 	}
 
@@ -80,8 +80,8 @@ public class UserT implements Serializable {
 	@Column(name = "user_email_id")
 	private String userEmailId;
 
-	@Column(name = "user_geography")
-	private String userGeography;
+	@Column(name = "base_location")
+	private String baseLocation;
 
 	@Column(name = "user_name")
 	private String userName;
@@ -111,7 +111,7 @@ public class UserT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "createdUser")
 	private List<FeedbackT> feedbackTs1;
-	
+
 	@JsonIgnore
 	@OneToMany(mappedBy = "modifiedUser")
 	private List<FeedbackT> feedbackTs2;
@@ -194,8 +194,7 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy = "userT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
-	//bi-directional many-to-one association to FeedbackT
-	
+	// bi-directional many-to-one association to FeedbackT
 
 	// bi-directional many-to-one association to
 	// FrequentlySearchedCustomerPartnerT
@@ -305,8 +304,13 @@ public class UserT implements Serializable {
 
 	// bi-directional many-to-one association to TaskT
 	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<TaskT> taskTs2;
+	@OneToMany(mappedBy = "createdByUser")
+	private List<TaskT> createdTaskTs;
+
+	// bi-directional many-to-one association to TaskT
+	@JsonIgnore
+	@OneToMany(mappedBy = "modifiedByUser")
+	private List<TaskT> modifiedTaskTs;
 
 	// bi-directional many-to-one association to UserFavoritesT
 	@JsonIgnore
@@ -355,11 +359,6 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy = "userT2")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs2;
 
-	// bi-directional many-to-one association to GeographyMappingT
-	@ManyToOne
-	@JoinColumn(name = "user_geography", insertable = false, updatable = false)
-	private GeographyMappingT geographyMappingT;
-
 	public UserT() {
 	}
 
@@ -401,14 +400,6 @@ public class UserT implements Serializable {
 
 	public void setUserEmailId(String userEmailId) {
 		this.userEmailId = userEmailId;
-	}
-
-	public String getUserGeography() {
-		return this.userGeography;
-	}
-
-	public void setUserGeography(String userGeography) {
-		this.userGeography = userGeography;
 	}
 
 	public String getUserName() {
@@ -1384,28 +1375,22 @@ public class UserT implements Serializable {
 		return taskT;
 	}
 
-	public List<TaskT> getTaskTs2() {
-		return this.taskTs2;
+	public List<TaskT> getCreatedTaskTs() {
+		return createdTaskTs;
 	}
-
-	public void setTaskTs2(List<TaskT> taskTs2) {
-		this.taskTs2 = taskTs2;
+	
+	public void setCreatedTaskTs(List<TaskT> createdTaskTs) {
+		this.createdTaskTs = createdTaskTs;
 	}
-
-	public TaskT addTaskTs2(TaskT taskTs2) {
-		getTaskTs2().add(taskTs2);
-		taskTs2.setCreatedModifiedByUser(this);
-
-		return taskTs2;
+	
+	public List<TaskT> getModifiedTaskTs() {
+		return modifiedTaskTs;
 	}
-
-	public TaskT removeTaskTs2(TaskT taskTs2) {
-		getTaskTs2().remove(taskTs2);
-		taskTs2.setCreatedModifiedByUser(null);
-
-		return taskTs2;
+	
+	public void setModifiedTaskTs(List<TaskT> modifiedTaskTs) {
+		this.modifiedTaskTs = modifiedTaskTs;
 	}
-
+	
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
 	}
@@ -1620,7 +1605,7 @@ public class UserT implements Serializable {
 	public void setFeedbackTs1(List<FeedbackT> feedbackTs1) {
 		this.feedbackTs1 = feedbackTs1;
 	}
-	
+
 	public List<FeedbackT> getFeedbackTs2() {
 		return feedbackTs2;
 	}
@@ -1628,8 +1613,7 @@ public class UserT implements Serializable {
 	public void setFeedbackTs2(List<FeedbackT> feedbackTs2) {
 		this.feedbackTs2 = feedbackTs2;
 	}
-	
-	
+
 	public FeedbackT addFeedbackT2(FeedbackT feedbackT) {
 		getFeedbackTs2().add(feedbackT);
 		feedbackT.setUserT(this);
@@ -1658,11 +1642,15 @@ public class UserT implements Serializable {
 		return feedbackT;
 	}
 
-	public GeographyMappingT getGeographyMappingT() {
-		return this.geographyMappingT;
+	public String getBaseLocation() {
+		return baseLocation;
 	}
 
-	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
-		this.geographyMappingT = geographyMappingT;
+	public void setBaseLocation(String baseLocation) {
+		this.baseLocation = baseLocation;
+	}
+
+	public UserT clone() throws CloneNotSupportedException {
+		return (UserT) super.clone();
 	}
 }

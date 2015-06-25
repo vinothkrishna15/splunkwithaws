@@ -142,7 +142,7 @@ public class TaskService {
 	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws Exception {
 		logger.debug("Inside findTasksAssignedtoOthersByUser Service");
 		List<TaskT> taskList = 
-			taskRepository.findByCreatedModifiedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
+			taskRepository.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
 		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId");

@@ -14,14 +14,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -78,11 +76,19 @@ public class ConnectT implements Serializable {
 	@Column(name = "time_zone_desc")
 	private String timeZone;
 
-	//bi-directional many-to-one association to TimeZoneMappingT
+	private String location;
+
+	private String place;
+
 	@ManyToOne
-	@JoinColumn(name="time_zone_desc", insertable = false, updatable = false)
+	@JoinColumn(name = "type")
+	private ConnectTypeMappingT connectTypeMappingT;
+
+	// bi-directional many-to-one association to TimeZoneMappingT
+	@ManyToOne
+	@JoinColumn(name = "time_zone_desc", insertable = false, updatable = false)
 	private TimeZoneMappingT timeZoneMappingT;
-	
+
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
 
@@ -91,7 +97,7 @@ public class ConnectT implements Serializable {
 		this.connectCategory = con.connectCategory;
 		this.connectCustomerContactLinkTs = con.connectCustomerContactLinkTs;
 		this.connectId = con.connectId;
-		this.timeZone=con.timeZone;
+		this.timeZone = con.timeZone;
 		this.connectName = con.connectName;
 		this.connectOfferingLinkTs = con.connectOfferingLinkTs;
 		this.connectOpportunityLinkIdTs = con.connectOpportunityLinkIdTs;
@@ -214,7 +220,7 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs;
-	
+
 	@Transient
 	private List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs;
 
@@ -772,5 +778,29 @@ public class ConnectT implements Serializable {
 
 	public void setTimeZoneMappingT(TimeZoneMappingT timeZoneMappingT) {
 		this.timeZoneMappingT = timeZoneMappingT;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
+	public ConnectTypeMappingT getConnectTypeMappingT() {
+		return connectTypeMappingT;
+	}
+
+	public void setConnectTypeMappingT(ConnectTypeMappingT connectTypeMappingT) {
+		this.connectTypeMappingT = connectTypeMappingT;
 	}
 }
