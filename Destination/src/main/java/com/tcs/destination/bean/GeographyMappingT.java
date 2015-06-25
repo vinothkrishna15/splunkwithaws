@@ -59,10 +59,6 @@ public class GeographyMappingT implements Serializable {
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
-	@OneToMany(mappedBy = "geographyMappingT")
-	@JsonIgnore
-	private List<UserT> userTs;
-
 	public GeographyMappingT() {
 	}
 
@@ -182,28 +178,6 @@ public class GeographyMappingT implements Serializable {
 		revenueCustomerMappingT.setGeographyMappingT(null);
 
 		return revenueCustomerMappingT;
-	}
-
-	public List<UserT> getUserTs() {
-		return this.userTs;
-	}
-
-	public void setUserTs(List<UserT> userTs) {
-		this.userTs = userTs;
-	}
-
-	public UserT addUserT(UserT userT) {
-		getUserTs().add(userT);
-		userT.setGeographyMappingT(this);
-
-		return userT;
-	}
-
-	public UserT removeUserT(UserT userT) {
-		getUserTs().remove(userT);
-		userT.setGeographyMappingT(null);
-
-		return userT;
 	}
 
 }
