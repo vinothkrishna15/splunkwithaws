@@ -77,7 +77,7 @@ public class ConnectT implements Serializable {
 	private String timeZone;
 
 	private String location;
-	
+
 	private String place;
 
 	@ManyToOne
@@ -105,9 +105,6 @@ public class ConnectT implements Serializable {
 		this.connectSubSpLinkTs = con.connectSubSpLinkTs;
 		this.connectTcsAccountContactLinkTs = con.connectTcsAccountContactLinkTs;
 		this.country = con.country;
-		this.location = con.location;
-		this.place = con.place;
-		this.connectTypeMappingT = con.connectTypeMappingT;
 		this.createdModifiedBy = con.createdModifiedBy;
 		this.createdModifiedDatetime = con.createdModifiedDatetime;
 		this.customerId = con.customerId;
