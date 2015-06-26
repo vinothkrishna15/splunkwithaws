@@ -76,9 +76,9 @@ public class ConnectT implements Serializable {
 	@Column(name = "time_zone_desc")
 	private String timeZone;
 
-	private String location;
+	//private String location;
 
-	private String place;
+	//private String place;
 
 	@ManyToOne
 	@JoinColumn(name = "type")
@@ -780,21 +780,21 @@ public class ConnectT implements Serializable {
 		this.timeZoneMappingT = timeZoneMappingT;
 	}
 
-	public String getLocation() {
-		return location;
-	}
-
-	public void setLocation(String location) {
-		this.location = location;
-	}
-
-	public String getPlace() {
-		return place;
-	}
-
-	public void setPlace(String place) {
-		this.place = place;
-	}
+//	public String getLocation() {
+//		return location;
+//	}
+//
+//	public void setLocation(String location) {
+//		this.location = location;
+//	}
+//
+//	public String getPlace() {
+//		return place;
+//	}
+//
+//	public void setPlace(String place) {
+//		this.place = place;
+//	}
 
 	public ConnectTypeMappingT getConnectTypeMappingT() {
 		return connectTypeMappingT;
