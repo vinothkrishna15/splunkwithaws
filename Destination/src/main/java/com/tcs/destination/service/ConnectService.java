@@ -36,6 +36,7 @@ import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
+import com.tcs.destination.enums.PlaceType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 
@@ -334,6 +335,23 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Request - Missing PartnerId/CustomerId");
 		}
+		
+		//check for valid place(TCS/CLIENT)
+				String place = connect.getPlace();
+				if (PlaceType.contains(place)) {
+					switch (PlaceType.valueOf(place)) {
+					case TCS:
+						break;
+					case CLIENT:
+						break;
+					default:
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Place is invalid");
+					}
+				} else {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Place is invalid");
+				}
 	}
 
 	private void populateConnectTcsAccountContactLinks(String currentUserId,

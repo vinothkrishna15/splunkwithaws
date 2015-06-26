@@ -76,13 +76,13 @@ public class ConnectT implements Serializable {
 	@Column(name = "time_zone_desc")
 	private String timeZone;
 
-	//private String location;
+	private String location;
 
-	//private String place;
+	private String place;
 
-	//@ManyToOne
-	//@JoinColumn(name = "type")
-	//private ConnectTypeMappingT connectTypeMappingT;
+	@ManyToOne
+	@JoinColumn(name = "type")
+	private ConnectTypeMappingT connectTypeMappingT;
 
 	// bi-directional many-to-one association to TimeZoneMappingT
 	@ManyToOne
@@ -105,6 +105,9 @@ public class ConnectT implements Serializable {
 		this.connectSubSpLinkTs = con.connectSubSpLinkTs;
 		this.connectTcsAccountContactLinkTs = con.connectTcsAccountContactLinkTs;
 		this.country = con.country;
+		this.location = con.location;
+		this.place = con.place;
+		this.connectTypeMappingT = con.connectTypeMappingT;
 		this.createdModifiedBy = con.createdModifiedBy;
 		this.createdModifiedDatetime = con.createdModifiedDatetime;
 		this.customerId = con.customerId;
@@ -780,27 +783,27 @@ public class ConnectT implements Serializable {
 		this.timeZoneMappingT = timeZoneMappingT;
 	}
 
-//	public String getLocation() {
-//		return location;
-//	}
-//
-//	public void setLocation(String location) {
-//		this.location = location;
-//	}
-//
-//	public String getPlace() {
-//		return place;
-//	}
-//
-//	public void setPlace(String place) {
-//		this.place = place;
-//	}
+	public String getLocation() {
+		return location;
+	}
 
-//	public ConnectTypeMappingT getConnectTypeMappingT() {
-//		return connectTypeMappingT;
-//	}
-//
-//	public void setConnectTypeMappingT(ConnectTypeMappingT connectTypeMappingT) {
-//		this.connectTypeMappingT = connectTypeMappingT;
-//	}
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public String getPlace() {
+		return place;
+	}
+
+	public void setPlace(String place) {
+		this.place = place;
+	}
+
+	public ConnectTypeMappingT getConnectTypeMappingT() {
+		return connectTypeMappingT;
+	}
+
+	public void setConnectTypeMappingT(ConnectTypeMappingT connectTypeMappingT) {
+		this.connectTypeMappingT = connectTypeMappingT;
+	}
 }
