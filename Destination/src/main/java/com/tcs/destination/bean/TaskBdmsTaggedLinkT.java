@@ -23,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="taskBdmsTaggedLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "taskBdmsTaggedLinkId")
 @Entity
 @Table(name = "task_bdms_tagged_link_t")
 @NamedQuery(name = "TaskBdmsTaggedLinkT.findAll", query = "SELECT t FROM TaskBdmsTaggedLinkT t")
@@ -35,11 +35,17 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	@Column(name = "task_bdms_tagged_link_id")
 	private String taskBdmsTaggedLinkId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
 
 	@Column(name = "task_id")
 	private String taskId;
@@ -51,8 +57,12 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by",insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -70,20 +80,20 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 		this.taskBdmsTaggedLinkId = taskBdmsTaggedLinkId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+		return createdBy;
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
 	}
 
 	public TaskT getTaskT() {
@@ -102,12 +112,12 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 		this.userT = userT;
 	}
 
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
+	public UserT getCreatedByUser() {
+		return createdByUser;
 	}
 
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
 	}
 
 	public String getTaskId() {
@@ -117,4 +127,29 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
 	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return modifiedDatetime;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+	}
+	
 }

@@ -46,8 +46,14 @@ public class TaskT implements Serializable {
 	@Column(name = "collaboration_preference")
 	private String collaborationPreference;
 
-	@Column(name = "created_by")
+	@Column(name = "created_by", updatable = false)
 	private String createdBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
 
 	@Column(name = "modified_by")
 	private String modifiedBy;
@@ -455,13 +461,29 @@ public class TaskT implements Serializable {
 		userTaggedFollowedT.setTaskT(null);
 		return userTaggedFollowedT;
 	}
-	
+
 	public TaskTypeMappingT getTaskTypeMappingT() {
 		return this.taskTypeMappingT;
 	}
 
 	public void setTaskTypeMappingT(TaskTypeMappingT taskTypeMappingT) {
 		this.taskTypeMappingT = taskTypeMappingT;
+	}
+
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
 	}
 
 }

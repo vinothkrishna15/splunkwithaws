@@ -292,11 +292,6 @@ public class UserT implements Serializable, Cloneable {
 	@OneToMany(mappedBy = "userT")
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs;
 
-	// bi-directional many-to-one association to TaskBdmsTaggedLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs2;
-
 	// bi-directional many-to-one association to TaskT
 	@JsonIgnore
 	@OneToMany(mappedBy = "taskOwnerT")
@@ -1331,30 +1326,6 @@ public class UserT implements Serializable, Cloneable {
 		return taskBdmsTaggedLinkT;
 	}
 
-	public List<TaskBdmsTaggedLinkT> getTaskBdmsTaggedLinkTs2() {
-		return this.taskBdmsTaggedLinkTs2;
-	}
-
-	public void setTaskBdmsTaggedLinkTs2(
-			List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs2) {
-		this.taskBdmsTaggedLinkTs2 = taskBdmsTaggedLinkTs2;
-	}
-
-	public TaskBdmsTaggedLinkT addTaskBdmsTaggedLinkTs2(
-			TaskBdmsTaggedLinkT taskBdmsTaggedLinkTs2) {
-		getTaskBdmsTaggedLinkTs2().add(taskBdmsTaggedLinkTs2);
-		taskBdmsTaggedLinkTs2.setCreatedModifiedByUser(this);
-
-		return taskBdmsTaggedLinkTs2;
-	}
-
-	public TaskBdmsTaggedLinkT removeTaskBdmsTaggedLinkTs2(
-			TaskBdmsTaggedLinkT taskBdmsTaggedLinkTs2) {
-		getTaskBdmsTaggedLinkTs2().remove(taskBdmsTaggedLinkTs2);
-		taskBdmsTaggedLinkTs2.setCreatedModifiedByUser(null);
-
-		return taskBdmsTaggedLinkTs2;
-	}
 
 	public List<TaskT> getTaskTs() {
 		return this.taskTs;
