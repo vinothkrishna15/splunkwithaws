@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -234,6 +235,12 @@ public class TaskService {
 				logger.debug("TaskBdmsTaggedLink NOT NULL");
 				taskBdmsTaggedLinkTs = task.getTaskBdmsTaggedLinkTs();
 				task.setTaskBdmsTaggedLinkTs(null);
+			}
+			
+			if (task.getNotesTs() != null) {
+				for (NotesT notes: task.getNotesTs()) {
+					notes.setTaskId(task.getTaskId());
+				}
 			}
 
 			//Remove all the TaskBdmsTaggedLinkT's marked for remove
