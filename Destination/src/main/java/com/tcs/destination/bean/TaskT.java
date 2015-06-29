@@ -134,6 +134,8 @@ public class TaskT implements Serializable {
 	@Column(name = "opportunity_id")
 	private String opportunityId;
 
+	private String type;
+
 	@Transient
 	private List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkDeletionList;
 
@@ -143,7 +145,7 @@ public class TaskT implements Serializable {
 
 	// bi-directional many-to-one association to TaskTypeMappingT
 	@ManyToOne
-	@JoinColumn(name = "type")
+	@JoinColumn(name = "type", insertable = false, updatable = false)
 	private TaskTypeMappingT taskTypeMappingT;
 
 	public TaskT() {
@@ -484,6 +486,14 @@ public class TaskT implements Serializable {
 
 	public void setModifiedDatetime(Timestamp modifiedDatetime) {
 		this.modifiedDatetime = modifiedDatetime;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 }
