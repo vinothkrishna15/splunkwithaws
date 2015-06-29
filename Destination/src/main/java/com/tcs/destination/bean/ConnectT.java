@@ -80,8 +80,10 @@ public class ConnectT implements Serializable {
 
 	private String place;
 
+	private String type;
+
 	@ManyToOne
-	@JoinColumn(name = "type")
+	@JoinColumn(name = "type", insertable = false, updatable = false)
 	private ConnectTypeMappingT connectTypeMappingT;
 
 	// bi-directional many-to-one association to TimeZoneMappingT
@@ -107,6 +109,7 @@ public class ConnectT implements Serializable {
 		this.country = con.country;
 		this.location = con.location;
 		this.place = con.place;
+		this.type = con.type;
 		this.connectTypeMappingT = con.connectTypeMappingT;
 		this.createdModifiedBy = con.createdModifiedBy;
 		this.createdModifiedDatetime = con.createdModifiedDatetime;
@@ -797,6 +800,14 @@ public class ConnectT implements Serializable {
 
 	public void setPlace(String place) {
 		this.place = place;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public ConnectTypeMappingT getConnectTypeMappingT() {

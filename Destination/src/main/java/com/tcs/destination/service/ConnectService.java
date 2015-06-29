@@ -337,21 +337,11 @@ public class ConnectService {
 		}
 		
 		//check for valid place(TCS/CLIENT)
-				String place = connect.getPlace();
-				if (PlaceType.contains(place)) {
-					switch (PlaceType.valueOf(place)) {
-					case TCS:
-						break;
-					case CLIENT:
-						break;
-					default:
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Place is invalid");
-					}
-				} else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Place is invalid");
-				}
+		String place = connect.getPlace();
+		if (!PlaceType.contains(place)) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Place is invalid");
+		}
 	}
 
 	private void populateConnectTcsAccountContactLinks(String currentUserId,
