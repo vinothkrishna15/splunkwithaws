@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,44 +42,60 @@ public class FeedbackController {
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				feedback);
 	}
-	
-	
+
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFeedback(
 			@RequestBody FeedbackT feedback) throws Exception {
 		logger.debug("Feedback Insert Request Received /feedback POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try{
+		try {
 			if (feedbackService.insertFeedback(feedback)) {
 				status.setStatus(Status.SUCCESS, feedback.getFeedbackId());
-				logger.debug("Feedback created successfully" + feedback.getFeedbackId());
+				logger.debug("Feedback created successfully"
+						+ feedback.getFeedbackId());
 			}
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editFeedback(
 			@RequestBody FeedbackT feedback) throws Exception {
 		logger.debug("Feedback Edit Request Received /feedback PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		try{
+		try {
 			if (feedbackService.editFeedback(feedback)) {
 				status.setStatus(Status.SUCCESS, feedback.getFeedbackId());
-				logger.debug("Feedback updated successfully" + feedback.getFeedbackId());
+				logger.debug("Feedback updated successfully"
+						+ feedback.getFeedbackId());
 			}
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
-	
+
+	@RequestMapping(value = "/all", method = RequestMethod.GET)
+	public @ResponseBody String getAllFeedbacks(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "feedback") String view)
+			throws Exception {
+		logger.debug("Inside getAllFeedbacks service");
+		List<FeedbackT> feedback = feedbackService.findAllFeedbacks();
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				feedback);
+	}
+
 }

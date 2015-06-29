@@ -1,7 +1,8 @@
 package com.tcs.destination.service;
 
-import org.slf4j.Logger;
+import java.util.List;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,8 @@ public class FeedbackService {
 			return feedback;
 		} else {
 			logger.error("NOT_FOUND: feedback record not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Feedback not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Feedback not found");
 		}
 	}
 
@@ -60,19 +62,19 @@ public class FeedbackService {
 	private void validateRequest(FeedbackT feedback, boolean isInsert)
 			throws Exception {
 
-		//Validate Issue Type
+		// Validate Issue Type
 		if (!FeedbackIssueType.contains(feedback.getIssueType())) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Issue Type");
 		}
 
-		//Validate Priority
+		// Validate Priority
 		if (!FeedbackPriority.contains(feedback.getPriority())) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Feedback Priority");
 		}
 
-		//Validate Status
+		// Validate Status
 		if (!FeedbackStatus.contains(feedback.getStatus())) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Feedback Status");
@@ -84,32 +86,41 @@ public class FeedbackService {
 						"UserId is required");
 			}
 
-			if(feedback.getResolutionComments() != null && !(feedback.getResolutionComments().isEmpty())) {
+			if (feedback.getResolutionComments() != null
+					&& !(feedback.getResolutionComments().isEmpty())) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Resolution comments should not be passed while creating Feedback");
 			}
 		} else {
-			if (feedback.getFeedbackId() == null || feedback.getFeedbackId().isEmpty()) {
+			if (feedback.getFeedbackId() == null
+					|| feedback.getFeedbackId().isEmpty()) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"FeedbackId is required");
 			}
-			
-			FeedbackT dbFeedback = feedbackRepository.findOne(feedback.getFeedbackId());
+
+			FeedbackT dbFeedback = feedbackRepository.findOne(feedback
+					.getFeedbackId());
 			if (dbFeedback == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Feedback not found");
 			} else {
-				//CreatedDateTime && CreatedUser should not be updated on update
+				// CreatedDateTime && CreatedUser should not be updated on
+				// update
 				feedback.setCreatedDatetime(dbFeedback.getCreatedDatetime());
 				feedback.setUserId(dbFeedback.getUserId());
 
-				//Validate UpdatedUserId
-				if (feedback.getUpdatedUserId() == null || feedback.getUpdatedUserId().isEmpty()) {
+				// Validate UpdatedUserId
+				if (feedback.getUpdatedUserId() == null
+						|| feedback.getUpdatedUserId().isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Feedback Updated UserId is required");
 				}
 
 			}
 		}
+	}
+
+	public List<FeedbackT> findAllFeedbacks() {
+		return (List<FeedbackT>) feedbackRepository.findAll();
 	}
 }
