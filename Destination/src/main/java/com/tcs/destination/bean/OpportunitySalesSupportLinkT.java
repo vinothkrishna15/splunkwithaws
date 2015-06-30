@@ -35,11 +35,25 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 	@Column(name = "opportunity_sales_support_link_id")
 	private String opportunitySalesSupportLinkId;
 
-	@Column(name = "create_modified_datetime")
-	private Timestamp createModifiedDatetime;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	@Column(name = "sales_support_owner")
 	private String salesSupportOwner;
@@ -51,11 +65,6 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
-
-	// bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -74,20 +83,66 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 		this.opportunitySalesSupportLinkId = opportunitySalesSupportLinkId;
 	}
 
-	public Timestamp getCreateModifiedDatetime() {
-		return this.createModifiedDatetime;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreateModifiedDatetime(Timestamp createModifiedDatetime) {
-		this.createModifiedDatetime = createModifiedDatetime;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public OpportunityT getOpportunityT() {
@@ -112,14 +167,6 @@ public class OpportunitySalesSupportLinkT implements Serializable {
 
 	public String getSalesSupportOwner() {
 		return salesSupportOwner;
-	}
-
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 	public String getOpportunityId() {

@@ -29,14 +29,28 @@ public class OpportunityWinLossFactorsT implements Serializable {
 	@Column(name = "opportunity_win_loss_factors_id")
 	private String opportunityWinLossFactorsId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
-
 	@Column(name = "win_loss_factor")
 	private String winLossFactor;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
+
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	private Integer rank;
 
@@ -45,14 +59,9 @@ public class OpportunityWinLossFactorsT implements Serializable {
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="created_modified_by", insertable = false, updatable = false)
-	private UserT userT;
-	
 	// bi-directional many-to-one association to WinLossFactorMappingT
 	@ManyToOne
-	@JoinColumn(name = "win_loss_factor",insertable=false,updatable=false)
+	@JoinColumn(name = "win_loss_factor", insertable = false, updatable = false)
 	private WinLossFactorMappingT winLossFactorMappingT;
 
 	@Column(name = "opportunity_id")
@@ -70,20 +79,66 @@ public class OpportunityWinLossFactorsT implements Serializable {
 		this.opportunityWinLossFactorsId = opportunityWinLossFactorsId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public Integer getRank() {
@@ -127,11 +182,4 @@ public class OpportunityWinLossFactorsT implements Serializable {
 		this.winLossFactor = winLossFactor;
 	}
 
-	public UserT getUserT() {
-		return userT;
-	}
-
-	public void setUserT(UserT userT) {
-		this.userT = userT;
-	}
 }

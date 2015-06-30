@@ -35,18 +35,32 @@ public class OpportunityCompetitorLinkT implements Serializable {
 	@Column(name = "opportunity_competitor_link_id")
 	private String opportunityCompetitorLinkId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	@Column(name = "competitor_name")
 	private String competitorName;
 
 	@Column(name = "opportunity_id")
 	private String opportunityId;
-	
+
 	// bi-directional many-to-one association to CompetitorMappingT
 	@ManyToOne
 	@JoinColumn(name = "competitor_name", insertable = false, updatable = false)
@@ -54,17 +68,12 @@ public class OpportunityCompetitorLinkT implements Serializable {
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id",insertable=false,updatable=false)
+	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	// bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
-
-	@Column(name="incumbent_flag")
+	@Column(name = "incumbent_flag")
 	private String incumbentFlag;
-	
+
 	public OpportunityCompetitorLinkT() {
 	}
 
@@ -77,20 +86,66 @@ public class OpportunityCompetitorLinkT implements Serializable {
 		this.opportunityCompetitorLinkId = opportunityCompetitorLinkId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public CompetitorMappingT getCompetitorMappingT() {
@@ -109,14 +164,6 @@ public class OpportunityCompetitorLinkT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
-	}
-
 	public String getCompetitorName() {
 		return competitorName;
 	}
@@ -124,11 +171,11 @@ public class OpportunityCompetitorLinkT implements Serializable {
 	public void setCompetitorName(String competitorName) {
 		this.competitorName = competitorName;
 	}
-	
+
 	public String getOpportunityId() {
 		return opportunityId;
 	}
-	
+
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
 	}
@@ -139,4 +186,5 @@ public class OpportunityCompetitorLinkT implements Serializable {
 
 	public void setIncumbentFlag(String incumbentFlag) {
 		this.incumbentFlag = incumbentFlag;
-	}}
+	}
+}
