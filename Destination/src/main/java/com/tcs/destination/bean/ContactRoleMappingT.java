@@ -14,6 +14,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -38,6 +39,7 @@ public class ContactRoleMappingT implements Serializable {
 	private String active;
 
 	//bi-directional many-to-one association to ContactT
+	@JsonIgnore
 	@OneToMany(mappedBy="contactRoleMappingT")
 	private List<ContactT> contactTs;
 
