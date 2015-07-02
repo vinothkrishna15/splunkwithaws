@@ -333,7 +333,6 @@ public class OpportunityService {
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
-		opportunity.setOnHold("NO");
 		saveBaseObject(opportunity);
 		return saveChildObject(opportunity);
 
@@ -481,16 +480,14 @@ public class OpportunityService {
 		baseOpportunityT.setCreatedDatetime(opportunity.getCreatedDatetime());
 
 		baseOpportunityT.setModifiedBy(opportunity.getModifiedBy());
-		baseOpportunityT
-				.setModifiedDatetime(opportunity.getModifiedDatetime());
+		baseOpportunityT.setModifiedDatetime(opportunity.getModifiedDatetime());
 
 		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
 		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
 		baseOpportunityT.setDescriptionForWinLoss(opportunity
 				.getDescriptionForWinLoss());
-		baseOpportunityT
-				.setDigitalDealValue(opportunity.getDigitalDealValue());
+		baseOpportunityT.setDigitalDealValue(opportunity.getDigitalDealValue());
 		baseOpportunityT.setDocumentsAttached(opportunity
 				.getDocumentsAttached());
 		baseOpportunityT.setEngagementDuration(opportunity
@@ -514,8 +511,7 @@ public class OpportunityService {
 		baseOpportunityT.setEngagementDuration(opportunity
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
-		baseOpportunityT
-				.setOpportunityOwner(opportunity.getOpportunityOwner());
+		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
@@ -525,17 +521,7 @@ public class OpportunityService {
 
 	@Transactional
 	public void edit(OpportunityT opportunity) throws Exception {
-
-		OpportunityT dbOpportunity = opportunityRepository.findByOpportunityId(
-				opportunity.getOpportunityId()).clone();
-		if (dbOpportunity != null && dbOpportunity.getOnHold() != null) {
-			if (dbOpportunity.getOnHold().equals("YES")) {
-				throw new DestinationException(HttpStatus.LOCKED,
-						"The Opportunity is put on HOLD. Kindly contact your System Administrator");
-			}
-		}
 		saveOpportunity(opportunity, true);
-
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
