@@ -104,8 +104,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "country")
 	private String country;
 
-	@Column(name = "onhold")
-	private String onHold;
+	@Column(name = "digital_flag")
+	private String digitalFlag;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "opportunity_request_receive_date")
@@ -1097,12 +1097,12 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunityTcsAccountContactLinkTs = deleteOpportunityTcsAccountContactLinkTs;
 	}
 
-	public String getOnHold() {
-		return onHold;
+	public String getDigitalFlag() {
+		return digitalFlag;
 	}
 
-	public void setOnHold(String onHold) {
-		this.onHold = onHold;
+	public void setDigitalFlag(String digitalFlag) {
+		this.digitalFlag = digitalFlag;
 	}
 
 	public OpportunityT clone() throws CloneNotSupportedException {

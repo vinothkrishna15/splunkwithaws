@@ -22,6 +22,9 @@ public class ConnectTypeMappingT implements Serializable {
 
 	@Id
 	private String type;
+	
+	@Column(name="connect_with")
+	private String connectWith;
 
 	private String description;
 
@@ -69,5 +72,15 @@ public class ConnectTypeMappingT implements Serializable {
 
 		return connectT;
 	}
+
+	public String getConnectWith() {
+		return connectWith;
+	}
+
+	public void setConnectWith(String connectWith) {
+		this.connectWith = connectWith;
+	}
+	
+	
 
 }

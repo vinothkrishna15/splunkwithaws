@@ -200,12 +200,12 @@ public class ConnectService {
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
-		UserT currentUser = DestinationUtils.getCurrentUserDetails();
-		String currentUserId = currentUser.getUserId();
-		connect.setCreatedModifiedBy(currentUserId);
-		logger.debug("Connect Insert - user : " + currentUserId);
+//		UserT currentUser = DestinationUtils.getCurrentUserDetails();
+//		String currentUserId = currentUser.getUserId();
+//		connect.setCreatedModifiedBy(currentUserId);
+//		logger.debug("Connect Insert - user : " + currentUserId);
 
-		validateRequest(connect);
+		validateRequest(connect,true);
 
 		ConnectT backupConnect = backup(connect);
 		logger.debug("Copied connect object.");
@@ -228,14 +228,14 @@ public class ConnectService {
 
 				List<NotesT> noteList = connect.getNotesTs();
 				if (noteList != null)
-					populateNotes(currentUserId, customerId, partnerId,
+					populateNotes(customerId, partnerId,
 							categoryUpperCase, connectId, noteList);
 				logger.debug("Notes Populated ");
 
 				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 						.getConnectCustomerContactLinkTs();
 				if (conCustConLinkTList != null) {
-					populateConnectCustomerContactLinks(currentUserId,
+					populateConnectCustomerContactLinks(
 							connectId, conCustConLinkTList);
 					logger.debug("ConnectCustomerContact Populated ");
 				} else {
@@ -246,7 +246,7 @@ public class ConnectService {
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
 						.getConnectOfferingLinkTs();
 				if (conOffLinkTList != null) {
-					populateConnectOfferingLinks(currentUserId, connectId,
+					populateConnectOfferingLinks(connectId,
 							conOffLinkTList);
 					logger.debug("ConnectOffering Populated ");
 				}
@@ -254,7 +254,7 @@ public class ConnectService {
 				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 						.getConnectSubSpLinkTs();
 				if (conSubSpLinkTList != null) {
-					populateConnectSubSpLinks(currentUserId, connectId,
+					populateConnectSubSpLinks(connectId,
 							conSubSpLinkTList);
 					logger.debug("ConnectSubSp Populated ");
 				}
@@ -262,7 +262,7 @@ public class ConnectService {
 				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 						.getConnectSecondaryOwnerLinkTs();
 				if (conSecOwnLinkTList != null) {
-					populateConnectSecondaryOwnerLinks(currentUserId,
+					populateConnectSecondaryOwnerLinks(
 							connectId, conSecOwnLinkTList);
 					logger.debug("ConnectSecondaryOwner Populated ");
 				}
@@ -270,7 +270,7 @@ public class ConnectService {
 				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 						.getConnectTcsAccountContactLinkTs();
 				if (conTcsAccConLinkTList != null) {
-					populateConnectTcsAccountContactLinks(currentUserId,
+					populateConnectTcsAccountContactLinks(
 							connectId, conTcsAccConLinkTList);
 					logger.debug("ConnectTcsAccountContact Populated ");
 				}
@@ -301,7 +301,7 @@ public class ConnectService {
 		return false;
 	}
 
-	private void validateRequest(ConnectT connect) throws Exception {
+	private void validateRequest(ConnectT connect,boolean isInsert) throws Exception {
 		String connectCategory = connect.getConnectCategory();
 
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
@@ -337,75 +337,85 @@ public class ConnectService {
 		}
 		
 		//check for valid place(TCS/CLIENT)
-		String place = connect.getPlace();
-		if (!PlaceType.contains(place)) {
+//		String place = connect.getPlace();
+//		if (!PlaceType.contains(place)) {
+//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+//					"Place is invalid");
+//		}
+		
+		if(isInsert && connect.getCreatedBy()==null){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Place is invalid");
+					"Missing UserCreated");
+		}
+		
+		if(connect.getModifiedBy()==null){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Missing UserModified");
 		}
 	}
 
-	private void populateConnectTcsAccountContactLinks(String currentUserId,
+	private void populateConnectTcsAccountContactLinks(
 			String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
 			throws Exception {
 		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
-			conTcsAccConLink.setCreatedModifiedBy(currentUserId);
+			//conTcsAccConLink.setCreatedModifiedBy(currentUserId);
 			conTcsAccConLink.setConnectId(connectId);
 		}
 
 	}
 
-	private void populateConnectSecondaryOwnerLinks(String currentUserId,
+	private void populateConnectSecondaryOwnerLinks(
 			String connectId,
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
 		logger.debug("Inside populateConnectSecondaryOwnerLinks Service");
 		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
-			conSecOwnLink.setCreatedModifiedBy(currentUserId);
+			//conSecOwnLink.setCreatedModifiedBy(currentUserId);
 			conSecOwnLink.setConnectId(connectId);
 		}
 
 	}
 
-	private void populateConnectSubSpLinks(String currentUserId,
+	private void populateConnectSubSpLinks(
 			String connectId, List<ConnectSubSpLinkT> conSubSpLinkTList) {
 		logger.debug("Inside populateConnectSubSpLinks Service");
 		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
 			conSubSpLink.setConnectId(connectId);
-			conSubSpLink.setCreatedModifiedBy(currentUserId);
+			//conSubSpLink.setCreatedModifiedBy(currentUserId);
 		}
 
 	}
 
-	private void populateConnectOfferingLinks(String currentUserId,
+	private void populateConnectOfferingLinks(
 			String connectId, List<ConnectOfferingLinkT> conOffLinkTList) {
 		logger.debug("Inside populateConnectOfferingLinks Service");
 		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
-			conOffLink.setCreatedModifiedBy(currentUserId);
+			//conOffLink.setCreatedModifiedBy(currentUserId);
 			conOffLink.setConnectId(connectId);
 		}
 
 	}
 
-	private void populateConnectCustomerContactLinks(String currentUserId,
+	private void populateConnectCustomerContactLinks(
 			String connectId,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
 		logger.debug("Inside populateConnectCustomerContactLinks service");
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
-			conCustConLink.setCreatedModifiedBy(currentUserId);
+			//conCustConLink.setCreatedModifiedBy(currentUserId);
 			conCustConLink.setConnectId(connectId);
 		}
 	}
 
-	private void populateNotes(String currentUserId, String customerId,
+	private void populateNotes(String customerId,
 			String partnerId, String categoryUpperCase, String connectId,
 			List<NotesT> noteList) {
 		logger.debug("Inside populateNotes service");
 		for (NotesT note : noteList) {
 			note.setEntityType(categoryUpperCase);
-			UserT user = new UserT();
-			user.setUserId(currentUserId);
-			note.setUserT(user);
+//			UserT user = new UserT();
+//			user.setUserId(currentUserId);
+//			note.setUserT(user);
 			note.setConnectId(connectId);
 
 			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
@@ -453,12 +463,12 @@ public class ConnectService {
 	public boolean editConnect(ConnectT connect) throws Exception {
 		logger.debug("inside editConnect Service");
 
-		UserT currentUser = DestinationUtils.getCurrentUserDetails();
-		String currentUserId = currentUser.getUserId();
-		connect.setCreatedModifiedBy(currentUserId);
-		logger.debug("Connect Edit - user : " + currentUserId);
+//		UserT currentUser = DestinationUtils.getCurrentUserDetails();
+//		String currentUserId = currentUser.getUserId();
+//		connect.setCreatedModifiedBy(currentUserId);
+//		logger.debug("Connect Edit - user : " + currentUserId);
 
-		validateRequest(connect);
+		validateRequest(connect,false);
 
 		try {
 			String categoryUpperCase = connect.getConnectCategory()
@@ -472,54 +482,54 @@ public class ConnectService {
 
 			List<NotesT> noteList = connect.getNotesTs();
 			if (noteList != null)
-				populateNotes(currentUserId, customerId, partnerId,
+				populateNotes(customerId, partnerId,
 						categoryUpperCase, connectId, noteList);
 			logger.debug("Notes Populated");
 
 			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 					.getConnectCustomerContactLinkTs();
 			if (conCustConLinkTList != null)
-				populateConnectCustomerContactLinks(currentUserId, connectId,
+				populateConnectCustomerContactLinks(connectId,
 						conCustConLinkTList);
 			logger.debug("ConnectCustomerContact Populated");
 
 			List<ConnectOfferingLinkT> conOffLinkTList = connect
 					.getConnectOfferingLinkTs();
 			if (conOffLinkTList != null)
-				populateConnectOfferingLinks(currentUserId, connectId,
+				populateConnectOfferingLinks(connectId,
 						conOffLinkTList);
 			logger.debug("ConnectOffering Populated");
 
 			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
 					.getConnectSubSpLinkTs();
 			if (conSubSpLinkTList != null)
-				populateConnectSubSpLinks(currentUserId, connectId,
+				populateConnectSubSpLinks(connectId,
 						conSubSpLinkTList);
 			logger.debug("ConnectSubSp Populated");
 
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
 					.getConnectSecondaryOwnerLinkTs();
 			if (conSecOwnLinkTList != null)
-				populateConnectSecondaryOwnerLinks(currentUserId, connectId,
+				populateConnectSecondaryOwnerLinks(connectId,
 						conSecOwnLinkTList);
 			logger.debug("ConnectSecondaryOwner Populated");
 
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
 					.getConnectTcsAccountContactLinkTs();
 			if (conTcsAccConLinkTList != null)
-				populateConnectTcsAccountContactLinks(currentUserId, connectId,
+				populateConnectTcsAccountContactLinks(connectId,
 						conTcsAccConLinkTList);
 			logger.debug("ConnectTcsAccountContact Populated");
 
 			List<TaskT> taskList = connect.getTaskTs();
 			if (taskList != null)
-				populateTasks(currentUserId, connectId, taskList);
+				populateTasks(connectId, taskList);
 			logger.debug("task Populated");
 
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
 					.getConnectOpportunityLinkIdTs();
 			if (conOppLinkIdTList != null)
-				populateOppLinks(currentUserId, connectId, conOppLinkIdTList);
+				populateOppLinks(connectId, conOppLinkIdTList);
 			logger.debug("ConnectOpportunity Populated");
 
 			if (connect.getConnectSubLinkDeletionList() != null) {
@@ -619,21 +629,21 @@ public class ConnectService {
 		}
 	}
 
-	private void populateOppLinks(String currentUserId, String connectId,
+	private void populateOppLinks(String connectId,
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList) {
 		logger.debug("Inside populateOppLinks Service");
 		for (ConnectOpportunityLinkIdT conOppLinkId : conOppLinkIdTList) {
-			conOppLinkId.setCreatedModifiedBy(currentUserId);
+			//conOppLinkId.setCreatedModifiedBy(currentUserId);
 			conOppLinkId.setConnectId(connectId);
 		}
 
 	}
 
-	private void populateTasks(String currentUserId, String connectId,
+	private void populateTasks(String connectId,
 			List<TaskT> taskList) {
 		logger.debug("Inside populateTasks Service");
 		for (TaskT task : taskList) {
-			task.setCreatedBy(currentUserId);
+			//task.setCreatedBy(currentUserId);
 			task.setConnectId(connectId);
 		}
 	}
