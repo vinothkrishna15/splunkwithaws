@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.ProjectedRevenuesDataT;
 
 @Repository
@@ -82,5 +82,15 @@ public interface ProjectedRevenuesDataTRepository extends
 	public List<Object[]> getRevenuesBySubGeo(String financialYear,
 			String quarter, String customer, String subSp, String iou,
 			String geography);
+
+	@Query(value = "select RCMT.customer_name,PRDT.quarter,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where upper(PRDT.month) in (:monthList) group by RCMT.customer_name,PRDT.quarter", nativeQuery = true)
+	public List<Object[]> getProjectedRevenuesByQuarter(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("monthList") List<String> monthList);
 
 }

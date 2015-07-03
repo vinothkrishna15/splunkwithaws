@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.ConnectSummaryResponse;
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.TargetVsActualDetailed;
 import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -30,7 +31,7 @@ public class ReportsController {
 
 	@Autowired
 	ReportsService reportsService;
-	
+
 	@RequestMapping(value = "/connect", method = RequestMethod.GET)
 	public @ResponseBody String connectDetailedReport(
 			@RequestParam(value = "month", defaultValue = "") String month,
@@ -44,9 +45,8 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ConnectReportController /report/connect GET");
-		List<ConnectT> connects = reportsService
-				.getConnectDetailedReports(month, quarter, year, iou,
-						geography, country, serviceLines);
+		List<ConnectT> connects = reportsService.getConnectDetailedReports(
+				month, quarter, year, iou, geography, country, serviceLines);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				connects);
 
@@ -77,8 +77,8 @@ public class ReportsController {
 	@RequestMapping(value = "/biddetails", method = RequestMethod.GET)
 	public @ResponseBody String report(
 			@RequestParam(value = "year", defaultValue = "") String year,
-			@RequestParam(value="from",defaultValue="")@DateTimeFormat(iso = ISO.DATE) Date fromDate,
-			@RequestParam(value="to",defaultValue="") @DateTimeFormat(iso = ISO.DATE) Date toDate,
+			@RequestParam(value = "from", defaultValue = "") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
+			@RequestParam(value = "to", defaultValue = "") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value = "bidOwner", defaultValue = "") List<String> bidOwner,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
@@ -89,11 +89,32 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside BidReportController /report/biddetails GET");
-		List<BidDetailsT> biddetails = reportsService.getBidDetailedReport(year, fromDate, toDate,bidOwner, currency,
-				iou, geography, country,serviceLines);
+		List<BidDetailsT> biddetails = reportsService.getBidDetailedReport(
+				year, fromDate, toDate, bidOwner, currency, iou, geography,
+				country, serviceLines);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				biddetails);
 
+	}
+
+	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
+	public @ResponseBody String targetVsActual(
+			@RequestParam(value = "from") String fromMonth,
+			@RequestParam(value = "to", defaultValue = "") String toMonth,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geographyList,
+			@RequestParam(value = "iou", defaultValue = "") List<String> iouList,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencyList,
+			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		List<TargetVsActualDetailed> targetVsActualDetailedList = reportsService
+				.getTargetVsActual(geographyList, iouList, serviceLines,
+						fromMonth, toMonth, currencyList);
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				targetVsActualDetailedList);
 	}
 }
