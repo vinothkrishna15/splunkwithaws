@@ -333,7 +333,6 @@ public class OpportunityService {
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
-		opportunity.setOnHold("NO");
 		saveBaseObject(opportunity);
 		return saveChildObject(opportunity);
 
@@ -415,7 +414,7 @@ public class OpportunityService {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
 				logger.debug("Saving Bid Details by "
-						+ bidDetailsT.getCreatedModifiedBy());
+						+ bidDetailsT.getModifiedBy());
 				List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = null;
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
 					bidOfficeOwnerLinkTs = new ArrayList<BidOfficeGroupOwnerLinkT>(
@@ -476,64 +475,53 @@ public class OpportunityService {
 	}
 
 	private void saveBaseObject(OpportunityT opportunity) throws Exception {
-		OpportunityT childOpportunityT = new OpportunityT();
-		childOpportunityT.setCreatedModifiedBy(opportunity
-				.getCreatedModifiedBy());
+		OpportunityT baseOpportunityT = new OpportunityT();
+		baseOpportunityT.setCreatedBy(opportunity.getCreatedBy());
+		baseOpportunityT.setCreatedDatetime(opportunity.getCreatedDatetime());
 
-		childOpportunityT.setCreatedModifiedDatetime(opportunity
-				.getCreatedModifiedDatetime());
-		childOpportunityT.setCrmId(childOpportunityT.getCrmId());
-		childOpportunityT.setCustomerId(opportunity.getCustomerId());
-		childOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
-		childOpportunityT.setDescriptionForWinLoss(opportunity
+		baseOpportunityT.setModifiedBy(opportunity.getModifiedBy());
+		baseOpportunityT.setModifiedDatetime(opportunity.getModifiedDatetime());
+
+		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
+		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
+		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
+		baseOpportunityT.setDescriptionForWinLoss(opportunity
 				.getDescriptionForWinLoss());
-		childOpportunityT
-				.setDigitalDealValue(opportunity.getDigitalDealValue());
-		childOpportunityT.setDocumentsAttached(opportunity
+		baseOpportunityT.setDigitalDealValue(opportunity.getDigitalDealValue());
+		baseOpportunityT.setDocumentsAttached(opportunity
 				.getDocumentsAttached());
-		childOpportunityT.setEngagementDuration(opportunity
+		baseOpportunityT.setEngagementDuration(opportunity
 				.getEngagementDuration());
-		childOpportunityT.setEngagementStartDate(opportunity
+		baseOpportunityT.setEngagementStartDate(opportunity
 				.getEngagementStartDate());
-		childOpportunityT.setNewLogo(opportunity.getNewLogo());
-		childOpportunityT.setOpportunityDescription(opportunity
+		baseOpportunityT.setNewLogo(opportunity.getNewLogo());
+		baseOpportunityT.setOpportunityDescription(opportunity
 				.getOpportunityDescription());
-		childOpportunityT.setOpportunityName(opportunity.getOpportunityName());
-		childOpportunityT.setOpportunityRequestReceiveDate(opportunity
+		baseOpportunityT.setOpportunityName(opportunity.getOpportunityName());
+		baseOpportunityT.setOpportunityRequestReceiveDate(opportunity
 				.getOpportunityRequestReceiveDate());
-		childOpportunityT.setOverallDealSize(opportunity.getOverallDealSize());
-		childOpportunityT.setStrategicInitiative(opportunity
+		baseOpportunityT.setOverallDealSize(opportunity.getOverallDealSize());
+		baseOpportunityT.setStrategicInitiative(opportunity
 				.getStrategicInitiative());
-		childOpportunityT.setDealType(opportunity.getDealType());
-		childOpportunityT.setCountry(opportunity.getCountry());
-		childOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
-		childOpportunityT.setEngagementStartDate(opportunity
+		baseOpportunityT.setDealType(opportunity.getDealType());
+		baseOpportunityT.setCountry(opportunity.getCountry());
+		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
+		baseOpportunityT.setEngagementStartDate(opportunity
 				.getEngagementStartDate());
-		childOpportunityT.setEngagementDuration(opportunity
+		baseOpportunityT.setEngagementDuration(opportunity
 				.getEngagementDuration());
-		childOpportunityT.setOpportunityId(opportunity.getOpportunityId());
-		childOpportunityT
-				.setOpportunityOwner(opportunity.getOpportunityOwner());
-		childOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
+		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
+		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
+		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
 		opportunity.setOpportunityId(opportunityRepository.save(
-				childOpportunityT).getOpportunityId());
-		logger.debug("ID " + childOpportunityT.getOpportunityId());
+				baseOpportunityT).getOpportunityId());
+		logger.debug("ID " + baseOpportunityT.getOpportunityId());
 
 	}
 
 	@Transactional
 	public void edit(OpportunityT opportunity) throws Exception {
-
-		OpportunityT dbOpportunity = opportunityRepository.findByOpportunityId(
-				opportunity.getOpportunityId()).clone();
-		if (dbOpportunity != null && dbOpportunity.getOnHold() != null) {
-			if (dbOpportunity.getOnHold().equals("YES")) {
-				throw new DestinationException(HttpStatus.LOCKED,
-						"The Opportunity is put on HOLD. Kindly contact your System Administrator");
-			}
-		}
 		saveOpportunity(opportunity, true);
-
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {

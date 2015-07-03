@@ -23,7 +23,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="bidOfficeGroupOwnerLinkId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "bidOfficeGroupOwnerLinkId")
 @Entity
 @Table(name = "bid_office_group_owner_link_t")
 @NamedQuery(name = "BidOfficeGroupOwnerLinkT.findAll", query = "SELECT b FROM BidOfficeGroupOwnerLinkT b")
@@ -35,11 +35,25 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 	@Column(name = "bid_office_group_owner_link_id")
 	private String bidOfficeGroupOwnerLinkId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	@Column(name = "bid_office_group_owner")
 	private String bidOfficeGroupOwner;
@@ -54,12 +68,7 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedUser;
-
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="bid_office_group_owner", insertable = false, updatable = false)
+	@JoinColumn(name = "bid_office_group_owner", insertable = false, updatable = false)
 	private UserT bidOfficeGroupOwnerUser;
 
 	public BidOfficeGroupOwnerLinkT() {
@@ -81,14 +90,6 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 		this.bidOfficeGroupOwnerLinkId = bidOfficeGroupOwnerLinkId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
-	}
-
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
-	}
-
 	public UserT getBidOfficeGroupOwnerUser() {
 		return this.bidOfficeGroupOwnerUser;
 	}
@@ -97,12 +98,66 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 		this.bidOfficeGroupOwnerUser = bidOfficeGroupOwnerUser;
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
+	}
+
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public BidDetailsT getBidDetailsT() {
@@ -111,14 +166,6 @@ public class BidOfficeGroupOwnerLinkT implements Serializable {
 
 	public void setBidDetailsT(BidDetailsT bidDetailsT) {
 		this.bidDetailsT = bidDetailsT;
-	}
-
-	public UserT getCreatedModifiedUser() {
-		return this.createdModifiedUser;
-	}
-
-	public void setCreatedModifiedUser(UserT createdModifiedUser) {
-		this.createdModifiedUser = createdModifiedUser;
 	}
 
 	public String getBidOfficeGroupOwner() {

@@ -23,7 +23,6 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -44,11 +43,25 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "opportunity_id")
 	private String opportunityId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	@Column(name = "crm_id")
 	private String crmId;
@@ -91,8 +104,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "country")
 	private String country;
 
-	@Column(name = "onhold")
-	private String onHold;
+	@Column(name = "digital_flag")
+	private String digitalFlag;
 
 	@Temporal(TemporalType.DATE)
 	@Column(name = "opportunity_request_receive_date")
@@ -197,11 +210,6 @@ public class OpportunityT implements Serializable, Cloneable {
 	@JoinColumn(name = "opportunity_owner", insertable = false, updatable = false)
 	private UserT primaryOwnerUser;
 
-	// bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
-
 	// bi-directional many-to-one association to
 	// OpportunityTcsAccountContactLinkT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
@@ -278,20 +286,66 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.opportunityId = opportunityId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public String getCrmId() {
@@ -751,14 +805,6 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	}
 
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
-	}
-
 	public List<OpportunityTcsAccountContactLinkT> getOpportunityTcsAccountContactLinkTs() {
 		return this.opportunityTcsAccountContactLinkTs;
 	}
@@ -1051,12 +1097,12 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deleteOpportunityTcsAccountContactLinkTs = deleteOpportunityTcsAccountContactLinkTs;
 	}
 
-	public String getOnHold() {
-		return onHold;
+	public String getDigitalFlag() {
+		return digitalFlag;
 	}
 
-	public void setOnHold(String onHold) {
-		this.onHold = onHold;
+	public void setDigitalFlag(String digitalFlag) {
+		this.digitalFlag = digitalFlag;
 	}
 
 	public OpportunityT clone() throws CloneNotSupportedException {

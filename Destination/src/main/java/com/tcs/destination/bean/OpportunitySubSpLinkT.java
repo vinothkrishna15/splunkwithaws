@@ -35,11 +35,25 @@ public class OpportunitySubSpLinkT implements Serializable {
 	@Column(name = "opportunity_sub_sp_link_id")
 	private String opportunitySubSpLinkId;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
+	@Column(name = "created_by", updatable = false)
+	private String createdBy;
 
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
+	@Column(name = "created_datetime", updatable = false)
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name = "modified_by")
+	private String modifiedBy;
+
+	@Column(name = "modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
 
 	@Column(name = "opportunity_id")
 	private String opportunityId;
@@ -57,11 +71,6 @@ public class OpportunitySubSpLinkT implements Serializable {
 	@JoinColumn(name = "sub_sp", insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
 
-	// bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
-
 	public OpportunitySubSpLinkT() {
 	}
 
@@ -73,20 +82,66 @@ public class OpportunitySubSpLinkT implements Serializable {
 		this.opportunitySubSpLinkId = opportunitySubSpLinkId;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
+	public String getCreatedBy() {
+
+		return this.createdBy;
+
 	}
 
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
+	public void setCreatedBy(String createdBy) {
+
+		this.createdBy = createdBy;
+
 	}
 
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
+	public Timestamp getCreatedDatetime() {
+
+		return this.createdDatetime;
+
 	}
 
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+
+		this.createdDatetime = createdDatetime;
+
+	}
+
+	public UserT getCreatedByUser() {
+
+		return this.createdByUser;
+
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+
+		this.createdByUser = createdByUser;
+
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+
 	}
 
 	public OpportunityT getOpportunityT() {
@@ -103,14 +158,6 @@ public class OpportunitySubSpLinkT implements Serializable {
 
 	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
 		this.subSpMappingT = subSpMappingT;
-	}
-
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 	public String getSubSp() {

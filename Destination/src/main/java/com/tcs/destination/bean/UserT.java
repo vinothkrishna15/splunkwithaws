@@ -100,11 +100,6 @@ public class UserT implements Serializable, Cloneable {
 	@OneToMany(mappedBy = "userT")
 	private List<BdmTargetT> bdmTargetTs;
 
-	// bi-directional many-to-one association to BidDetailsT
-	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
-	private List<BidDetailsT> bidDetailsTs;
-
 	@OneToMany(mappedBy = "userT")
 	private List<ContactCustomerLinkT> contactCustomerLinkTs;
 
@@ -121,10 +116,6 @@ public class UserT implements Serializable, Cloneable {
 	@OneToMany(mappedBy = "bidOfficeGroupOwnerUser")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
-	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
-	@OneToMany(mappedBy = "createdModifiedUser")
-	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs2;
-
 	// bi-directional many-to-one association to CollaborationCommentT
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
@@ -135,35 +126,30 @@ public class UserT implements Serializable, Cloneable {
 	@OneToMany(mappedBy = "userT")
 	private List<CommentsT> commentsTs;
 
-	// bi-directional many-to-one association to ConnectCustomerContactLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
-
-	// bi-directional many-to-one association to ConnectOfferingLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
-
-	// bi-directional many-to-one association to ConnectOpportunityLinkIdT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs;
+//	// bi-directional many-to-one association to ConnectCustomerContactLinkT
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs;
+//
+//	// bi-directional many-to-one association to ConnectOfferingLinkT
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectOfferingLinkT> connectOfferingLinkTs;
 
 	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs;
 
-	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs2;
+//	// bi-directional many-to-one association to ConnectSecondaryOwnerLinkT
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs2;
 
-	// bi-directional many-to-one association to ConnectSubSpLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
+//	// bi-directional many-to-one association to ConnectSubSpLinkT
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectSubSpLinkT> connectSubSpLinkTs;
 
 	// bi-directional many-to-one association to ConnectT
 	@JsonIgnore
@@ -171,14 +157,14 @@ public class UserT implements Serializable, Cloneable {
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to ConnectT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectT> connectTs2;
-
-	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectT> connectTs2;
+//
+//	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
+//	@JsonIgnore
+//	@OneToMany(mappedBy = "createdModifiedByUser")
+//	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
 
 	// bi-directional many-to-one association to ContactT
 	@JsonIgnore
@@ -212,66 +198,20 @@ public class UserT implements Serializable, Cloneable {
 	@OneToMany(mappedBy = "userT")
 	private List<NotesT> notesTs;
 
-	// bi-directional many-to-one association to OpportunityCompetitorLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs;
-
-	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
-
-	// bi-directional many-to-one association to OpportunityOfferingLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
-
-	// bi-directional many-to-one association to OpportunityPartnerLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
-
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
 	@JsonIgnore
 	@OneToMany(mappedBy = "salesSupportOwnerUser")
 	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs;
-
-	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs2;
-
-	// bi-directional many-to-one association to OpportunitySubSpLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
 	// bi-directional many-to-one association to OpportunityT
 	@JsonIgnore
 	@OneToMany(mappedBy = "primaryOwnerUser")
 	private List<OpportunityT> opportunityTs;
 
-	// bi-directional many-to-one association to OpportunityT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityT> opportunityTs2;
-
-	// bi-directional many-to-one association to
-	// OpportunityTcsAccountContactLinkT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs;
-
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
-
-	// bi-directional many-to-one association to OpportunityWinLossFactorsT
-	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
-	private List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs;
 
 	// bi-directional many-to-one association to PartnerMasterT
 	@JsonIgnore
@@ -353,7 +293,7 @@ public class UserT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "userT2")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs2;
-	
+
 	@Transient
 	private String newPassword;
 
@@ -471,28 +411,6 @@ public class UserT implements Serializable, Cloneable {
 		return contactCustomerLinkT;
 	}
 
-	public List<BidDetailsT> getBidDetailsTs() {
-		return this.bidDetailsTs;
-	}
-
-	public void setBidDetailsTs(List<BidDetailsT> bidDetailsTs) {
-		this.bidDetailsTs = bidDetailsTs;
-	}
-
-	public BidDetailsT addBidDetailsT(BidDetailsT bidDetailsT) {
-		getBidDetailsTs().add(bidDetailsT);
-		bidDetailsT.setUserT(this);
-
-		return bidDetailsT;
-	}
-
-	public BidDetailsT removeBidDetailsT(BidDetailsT bidDetailsT) {
-		getBidDetailsTs().remove(bidDetailsT);
-		bidDetailsT.setUserT(null);
-
-		return bidDetailsT;
-	}
-
 	public List<BidOfficeGroupOwnerLinkT> getBidOfficeGroupOwnerLinkTs() {
 		return this.bidOfficeGroupOwnerLinkTs;
 	}
@@ -516,31 +434,6 @@ public class UserT implements Serializable, Cloneable {
 		bidOfficeGroupOwnerLinkT.setBidOfficeGroupOwnerUser(null);
 
 		return bidOfficeGroupOwnerLinkT;
-	}
-
-	public List<BidOfficeGroupOwnerLinkT> getBidOfficeGroupOwnerLinkTs2() {
-		return this.bidOfficeGroupOwnerLinkTs2;
-	}
-
-	public void setBidOfficeGroupOwnerLinkTs2(
-			List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs2) {
-		this.bidOfficeGroupOwnerLinkTs2 = bidOfficeGroupOwnerLinkTs2;
-	}
-
-	public BidOfficeGroupOwnerLinkT addBidOfficeGroupOwnerLinkTs2(
-			BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkTs2) {
-		getBidOfficeGroupOwnerLinkTs2().add(bidOfficeGroupOwnerLinkTs2);
-		bidOfficeGroupOwnerLinkTs2.setCreatedModifiedUser(this);
-
-		return bidOfficeGroupOwnerLinkTs2;
-	}
-
-	public BidOfficeGroupOwnerLinkT removeBidOfficeGroupOwnerLinkTs2(
-			BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkTs2) {
-		getBidOfficeGroupOwnerLinkTs2().remove(bidOfficeGroupOwnerLinkTs2);
-		bidOfficeGroupOwnerLinkTs2.setCreatedModifiedUser(null);
-
-		return bidOfficeGroupOwnerLinkTs2;
 	}
 
 	public List<CollaborationCommentT> getCollaborationCommentTs() {
@@ -590,80 +483,55 @@ public class UserT implements Serializable, Cloneable {
 		return commentsT;
 	}
 
-	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
-		return this.connectCustomerContactLinkTs;
-	}
+//	public List<ConnectCustomerContactLinkT> getConnectCustomerContactLinkTs() {
+//		return this.connectCustomerContactLinkTs;
+//	}
+//
+//	public void setConnectCustomerContactLinkTs(
+//			List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
+//		this.connectCustomerContactLinkTs = connectCustomerContactLinkTs;
+//	}
+//
+//	public ConnectCustomerContactLinkT addConnectCustomerContactLinkT(
+//			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
+//		getConnectCustomerContactLinkTs().add(connectCustomerContactLinkT);
+//		connectCustomerContactLinkT.setCreatedModifiedByUser(this);
+//
+//		return connectCustomerContactLinkT;
+//	}
 
-	public void setConnectCustomerContactLinkTs(
-			List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
-		this.connectCustomerContactLinkTs = connectCustomerContactLinkTs;
-	}
+//	public ConnectCustomerContactLinkT removeConnectCustomerContactLinkT(
+//			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
+//		getConnectCustomerContactLinkTs().remove(connectCustomerContactLinkT);
+//		connectCustomerContactLinkT.setCreatedModifiedByUser(null);
+//
+//		return connectCustomerContactLinkT;
+//	}
 
-	public ConnectCustomerContactLinkT addConnectCustomerContactLinkT(
-			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
-		getConnectCustomerContactLinkTs().add(connectCustomerContactLinkT);
-		connectCustomerContactLinkT.setCreatedModifiedByUser(this);
+//	public List<ConnectOfferingLinkT> getConnectOfferingLinkTs() {
+//		return this.connectOfferingLinkTs;
+//	}
+//
+//	public void setConnectOfferingLinkTs(
+//			List<ConnectOfferingLinkT> connectOfferingLinkTs) {
+//		this.connectOfferingLinkTs = connectOfferingLinkTs;
+//	}
 
-		return connectCustomerContactLinkT;
-	}
+//	public ConnectOfferingLinkT addConnectOfferingLinkT(
+//			ConnectOfferingLinkT connectOfferingLinkT) {
+//		getConnectOfferingLinkTs().add(connectOfferingLinkT);
+//		connectOfferingLinkT.setCreatedModifiedByUser(this);
+//
+//		return connectOfferingLinkT;
+//	}
 
-	public ConnectCustomerContactLinkT removeConnectCustomerContactLinkT(
-			ConnectCustomerContactLinkT connectCustomerContactLinkT) {
-		getConnectCustomerContactLinkTs().remove(connectCustomerContactLinkT);
-		connectCustomerContactLinkT.setCreatedModifiedByUser(null);
-
-		return connectCustomerContactLinkT;
-	}
-
-	public List<ConnectOfferingLinkT> getConnectOfferingLinkTs() {
-		return this.connectOfferingLinkTs;
-	}
-
-	public void setConnectOfferingLinkTs(
-			List<ConnectOfferingLinkT> connectOfferingLinkTs) {
-		this.connectOfferingLinkTs = connectOfferingLinkTs;
-	}
-
-	public ConnectOfferingLinkT addConnectOfferingLinkT(
-			ConnectOfferingLinkT connectOfferingLinkT) {
-		getConnectOfferingLinkTs().add(connectOfferingLinkT);
-		connectOfferingLinkT.setCreatedModifiedByUser(this);
-
-		return connectOfferingLinkT;
-	}
-
-	public ConnectOfferingLinkT removeConnectOfferingLinkT(
-			ConnectOfferingLinkT connectOfferingLinkT) {
-		getConnectOfferingLinkTs().remove(connectOfferingLinkT);
-		connectOfferingLinkT.setCreatedModifiedByUser(null);
-
-		return connectOfferingLinkT;
-	}
-
-	public List<ConnectOpportunityLinkIdT> getConnectOpportunityLinkIdTs() {
-		return this.connectOpportunityLinkIdTs;
-	}
-
-	public void setConnectOpportunityLinkIdTs(
-			List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs) {
-		this.connectOpportunityLinkIdTs = connectOpportunityLinkIdTs;
-	}
-
-	public ConnectOpportunityLinkIdT addConnectOpportunityLinkIdT(
-			ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
-		getConnectOpportunityLinkIdTs().add(connectOpportunityLinkIdT);
-		connectOpportunityLinkIdT.setCreatedModifiedByUser(this);
-
-		return connectOpportunityLinkIdT;
-	}
-
-	public ConnectOpportunityLinkIdT removeConnectOpportunityLinkIdT(
-			ConnectOpportunityLinkIdT connectOpportunityLinkIdT) {
-		getConnectOpportunityLinkIdTs().remove(connectOpportunityLinkIdT);
-		connectOpportunityLinkIdT.setCreatedModifiedByUser(null);
-
-		return connectOpportunityLinkIdT;
-	}
+//	public ConnectOfferingLinkT removeConnectOfferingLinkT(
+//			ConnectOfferingLinkT connectOfferingLinkT) {
+//		getConnectOfferingLinkTs().remove(connectOfferingLinkT);
+//		connectOfferingLinkT.setCreatedModifiedByUser(null);
+//
+//		return connectOfferingLinkT;
+//	}
 
 	public List<ConnectSecondaryOwnerLinkT> getConnectSecondaryOwnerLinkTs() {
 		return this.connectSecondaryOwnerLinkTs;
@@ -690,55 +558,55 @@ public class UserT implements Serializable, Cloneable {
 		return connectSecondaryOwnerLinkT;
 	}
 
-	public List<ConnectSecondaryOwnerLinkT> getConnectSecondaryOwnerLinkTs2() {
-		return this.connectSecondaryOwnerLinkTs2;
-	}
-
-	public void setConnectSecondaryOwnerLinkTs2(
-			List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs2) {
-		this.connectSecondaryOwnerLinkTs2 = connectSecondaryOwnerLinkTs2;
-	}
-
-	public ConnectSecondaryOwnerLinkT addConnectSecondaryOwnerLinkTs2(
-			ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkTs2) {
-		getConnectSecondaryOwnerLinkTs2().add(connectSecondaryOwnerLinkTs2);
-		connectSecondaryOwnerLinkTs2.setCreatedModifiedByUser(this);
-
-		return connectSecondaryOwnerLinkTs2;
-	}
-
-	public ConnectSecondaryOwnerLinkT removeConnectSecondaryOwnerLinkTs2(
-			ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkTs2) {
-		getConnectSecondaryOwnerLinkTs2().remove(connectSecondaryOwnerLinkTs2);
-		connectSecondaryOwnerLinkTs2.setCreatedModifiedByUser(null);
-
-		return connectSecondaryOwnerLinkTs2;
-	}
-
-	public List<ConnectSubSpLinkT> getConnectSubSpLinkTs() {
-		return this.connectSubSpLinkTs;
-	}
-
-	public void setConnectSubSpLinkTs(List<ConnectSubSpLinkT> connectSubSpLinkTs) {
-		this.connectSubSpLinkTs = connectSubSpLinkTs;
-	}
-
-	public ConnectSubSpLinkT addConnectSubSpLinkT(
-			ConnectSubSpLinkT connectSubSpLinkT) {
-		getConnectSubSpLinkTs().add(connectSubSpLinkT);
-		connectSubSpLinkT.setCreatedModifiedByUser(this);
-
-		return connectSubSpLinkT;
-	}
-
-	public ConnectSubSpLinkT removeConnectSubSpLinkT(
-			ConnectSubSpLinkT connectSubSpLinkT) {
-		getConnectSubSpLinkTs().remove(connectSubSpLinkT);
-		connectSubSpLinkT.setCreatedModifiedByUser(null);
-
-		return connectSubSpLinkT;
-	}
-
+//	public List<ConnectSecondaryOwnerLinkT> getConnectSecondaryOwnerLinkTs2() {
+//		return this.connectSecondaryOwnerLinkTs2;
+//	}
+//
+//	public void setConnectSecondaryOwnerLinkTs2(
+//			List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs2) {
+//		this.connectSecondaryOwnerLinkTs2 = connectSecondaryOwnerLinkTs2;
+//	}
+//
+//	public ConnectSecondaryOwnerLinkT addConnectSecondaryOwnerLinkTs2(
+//			ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkTs2) {
+//		getConnectSecondaryOwnerLinkTs2().add(connectSecondaryOwnerLinkTs2);
+//		connectSecondaryOwnerLinkTs2.setCreatedModifiedByUser(this);
+//
+//		return connectSecondaryOwnerLinkTs2;
+//	}
+//
+//	public ConnectSecondaryOwnerLinkT removeConnectSecondaryOwnerLinkTs2(
+//			ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkTs2) {
+//		getConnectSecondaryOwnerLinkTs2().remove(connectSecondaryOwnerLinkTs2);
+//		connectSecondaryOwnerLinkTs2.setCreatedModifiedByUser(null);
+//
+//		return connectSecondaryOwnerLinkTs2;
+//	}
+//
+//	public List<ConnectSubSpLinkT> getConnectSubSpLinkTs() {
+//		return this.connectSubSpLinkTs;
+//	}
+//
+//	public void setConnectSubSpLinkTs(List<ConnectSubSpLinkT> connectSubSpLinkTs) {
+//		this.connectSubSpLinkTs = connectSubSpLinkTs;
+//	}
+//
+//	public ConnectSubSpLinkT addConnectSubSpLinkT(
+//			ConnectSubSpLinkT connectSubSpLinkT) {
+//		getConnectSubSpLinkTs().add(connectSubSpLinkT);
+//		connectSubSpLinkT.setCreatedModifiedByUser(this);
+//
+//		return connectSubSpLinkT;
+//	}
+//
+//	public ConnectSubSpLinkT removeConnectSubSpLinkT(
+//			ConnectSubSpLinkT connectSubSpLinkT) {
+//		getConnectSubSpLinkTs().remove(connectSubSpLinkT);
+//		connectSubSpLinkT.setCreatedModifiedByUser(null);
+//
+//		return connectSubSpLinkT;
+//	}
+//
 	public List<ConnectT> getConnectTs() {
 		return this.connectTs;
 	}
@@ -761,53 +629,53 @@ public class UserT implements Serializable, Cloneable {
 		return connectT;
 	}
 
-	public List<ConnectT> getConnectTs2() {
-		return this.connectTs2;
-	}
-
-	public void setConnectTs2(List<ConnectT> connectTs2) {
-		this.connectTs2 = connectTs2;
-	}
-
-	public ConnectT addConnectTs2(ConnectT connectTs2) {
-		getConnectTs2().add(connectTs2);
-		connectTs2.setCreatedModifiedByUser(this);
-
-		return connectTs2;
-	}
-
-	public ConnectT removeConnectTs2(ConnectT connectTs2) {
-		getConnectTs2().remove(connectTs2);
-		connectTs2.setCreatedModifiedByUser(null);
-
-		return connectTs2;
-	}
-
-	public List<ConnectTcsAccountContactLinkT> getConnectTcsAccountContactLinkTs() {
-		return this.connectTcsAccountContactLinkTs;
-	}
-
-	public void setConnectTcsAccountContactLinkTs(
-			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
-		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;
-	}
-
-	public ConnectTcsAccountContactLinkT addConnectTcsAccountContactLinkT(
-			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
-		getConnectTcsAccountContactLinkTs().add(connectTcsAccountContactLinkT);
-		connectTcsAccountContactLinkT.setCreatedModifiedByUser(this);
-
-		return connectTcsAccountContactLinkT;
-	}
-
-	public ConnectTcsAccountContactLinkT removeConnectTcsAccountContactLinkT(
-			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
-		getConnectTcsAccountContactLinkTs().remove(
-				connectTcsAccountContactLinkT);
-		connectTcsAccountContactLinkT.setCreatedModifiedByUser(null);
-
-		return connectTcsAccountContactLinkT;
-	}
+//	public List<ConnectT> getConnectTs2() {
+//		return this.connectTs2;
+//	}
+//
+//	public void setConnectTs2(List<ConnectT> connectTs2) {
+//		this.connectTs2 = connectTs2;
+//	}
+//
+//	public ConnectT addConnectTs2(ConnectT connectTs2) {
+//		getConnectTs2().add(connectTs2);
+//		connectTs2.setCreatedModifiedByUser(this);
+//
+//		return connectTs2;
+//	}
+//
+//	public ConnectT removeConnectTs2(ConnectT connectTs2) {
+//		getConnectTs2().remove(connectTs2);
+//		connectTs2.setCreatedModifiedByUser(null);
+//
+//		return connectTs2;
+//	}
+//
+//	public List<ConnectTcsAccountContactLinkT> getConnectTcsAccountContactLinkTs() {
+//		return this.connectTcsAccountContactLinkTs;
+//	}
+//
+//	public void setConnectTcsAccountContactLinkTs(
+//			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
+//		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;
+//	}
+//
+//	public ConnectTcsAccountContactLinkT addConnectTcsAccountContactLinkT(
+//			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
+//		getConnectTcsAccountContactLinkTs().add(connectTcsAccountContactLinkT);
+//		connectTcsAccountContactLinkT.setCreatedModifiedByUser(this);
+//
+//		return connectTcsAccountContactLinkT;
+//	}
+//
+//	public ConnectTcsAccountContactLinkT removeConnectTcsAccountContactLinkT(
+//			ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT) {
+//		getConnectTcsAccountContactLinkTs().remove(
+//				connectTcsAccountContactLinkT);
+//		connectTcsAccountContactLinkT.setCreatedModifiedByUser(null);
+//
+//		return connectTcsAccountContactLinkT;
+//	}
 
 	public List<ContactT> getContactTs() {
 		return this.contactTs;
@@ -949,108 +817,6 @@ public class UserT implements Serializable, Cloneable {
 		return notesT;
 	}
 
-	public List<OpportunityCompetitorLinkT> getOpportunityCompetitorLinkTs() {
-		return this.opportunityCompetitorLinkTs;
-	}
-
-	public void setOpportunityCompetitorLinkTs(
-			List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs) {
-		this.opportunityCompetitorLinkTs = opportunityCompetitorLinkTs;
-	}
-
-	public OpportunityCompetitorLinkT addOpportunityCompetitorLinkT(
-			OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
-		getOpportunityCompetitorLinkTs().add(opportunityCompetitorLinkT);
-		opportunityCompetitorLinkT.setCreatedModifiedByUser(this);
-
-		return opportunityCompetitorLinkT;
-	}
-
-	public OpportunityCompetitorLinkT removeOpportunityCompetitorLinkT(
-			OpportunityCompetitorLinkT opportunityCompetitorLinkT) {
-		getOpportunityCompetitorLinkTs().remove(opportunityCompetitorLinkT);
-		opportunityCompetitorLinkT.setCreatedModifiedByUser(null);
-
-		return opportunityCompetitorLinkT;
-	}
-
-	public List<OpportunityCustomerContactLinkT> getOpportunityCustomerContactLinkTs() {
-		return this.opportunityCustomerContactLinkTs;
-	}
-
-	public void setOpportunityCustomerContactLinkTs(
-			List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs) {
-		this.opportunityCustomerContactLinkTs = opportunityCustomerContactLinkTs;
-	}
-
-	public OpportunityCustomerContactLinkT addOpportunityCustomerContactLinkT(
-			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().add(
-				opportunityCustomerContactLinkT);
-		opportunityCustomerContactLinkT.setCreatedModifiedByUser(this);
-
-		return opportunityCustomerContactLinkT;
-	}
-
-	public OpportunityCustomerContactLinkT removeOpportunityCustomerContactLinkT(
-			OpportunityCustomerContactLinkT opportunityCustomerContactLinkT) {
-		getOpportunityCustomerContactLinkTs().remove(
-				opportunityCustomerContactLinkT);
-		opportunityCustomerContactLinkT.setCreatedModifiedByUser(null);
-
-		return opportunityCustomerContactLinkT;
-	}
-
-	public List<OpportunityOfferingLinkT> getOpportunityOfferingLinkTs() {
-		return this.opportunityOfferingLinkTs;
-	}
-
-	public void setOpportunityOfferingLinkTs(
-			List<OpportunityOfferingLinkT> opportunityOfferingLinkTs) {
-		this.opportunityOfferingLinkTs = opportunityOfferingLinkTs;
-	}
-
-	public OpportunityOfferingLinkT addOpportunityOfferingLinkT(
-			OpportunityOfferingLinkT opportunityOfferingLinkT) {
-		getOpportunityOfferingLinkTs().add(opportunityOfferingLinkT);
-		opportunityOfferingLinkT.setCreatedModifiedByUser(this);
-
-		return opportunityOfferingLinkT;
-	}
-
-	public OpportunityOfferingLinkT removeOpportunityOfferingLinkT(
-			OpportunityOfferingLinkT opportunityOfferingLinkT) {
-		getOpportunityOfferingLinkTs().remove(opportunityOfferingLinkT);
-		opportunityOfferingLinkT.setCreatedModifiedByUser(null);
-
-		return opportunityOfferingLinkT;
-	}
-
-	public List<OpportunityPartnerLinkT> getOpportunityPartnerLinkTs() {
-		return this.opportunityPartnerLinkTs;
-	}
-
-	public void setOpportunityPartnerLinkTs(
-			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
-		this.opportunityPartnerLinkTs = opportunityPartnerLinkTs;
-	}
-
-	public OpportunityPartnerLinkT addOpportunityPartnerLinkT(
-			OpportunityPartnerLinkT opportunityPartnerLinkT) {
-		getOpportunityPartnerLinkTs().add(opportunityPartnerLinkT);
-		opportunityPartnerLinkT.setCreatedModifiedByUser(this);
-
-		return opportunityPartnerLinkT;
-	}
-
-	public OpportunityPartnerLinkT removeOpportunityPartnerLinkT(
-			OpportunityPartnerLinkT opportunityPartnerLinkT) {
-		getOpportunityPartnerLinkTs().remove(opportunityPartnerLinkT);
-		opportunityPartnerLinkT.setCreatedModifiedByUser(null);
-
-		return opportunityPartnerLinkT;
-	}
-
 	public List<OpportunitySalesSupportLinkT> getOpportunitySalesSupportLinkTs() {
 		return this.opportunitySalesSupportLinkTs;
 	}
@@ -1076,57 +842,6 @@ public class UserT implements Serializable, Cloneable {
 		return opportunitySalesSupportLinkT;
 	}
 
-	public List<OpportunitySalesSupportLinkT> getOpportunitySalesSupportLinkTs2() {
-		return this.opportunitySalesSupportLinkTs2;
-	}
-
-	public void setOpportunitySalesSupportLinkTs2(
-			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs2) {
-		this.opportunitySalesSupportLinkTs2 = opportunitySalesSupportLinkTs2;
-	}
-
-	public OpportunitySalesSupportLinkT addOpportunitySalesSupportLinkTs2(
-			OpportunitySalesSupportLinkT opportunitySalesSupportLinkTs2) {
-		getOpportunitySalesSupportLinkTs2().add(opportunitySalesSupportLinkTs2);
-		opportunitySalesSupportLinkTs2.setCreatedModifiedByUser(this);
-
-		return opportunitySalesSupportLinkTs2;
-	}
-
-	public OpportunitySalesSupportLinkT removeOpportunitySalesSupportLinkTs2(
-			OpportunitySalesSupportLinkT opportunitySalesSupportLinkTs2) {
-		getOpportunitySalesSupportLinkTs2().remove(
-				opportunitySalesSupportLinkTs2);
-		opportunitySalesSupportLinkTs2.setCreatedModifiedByUser(null);
-
-		return opportunitySalesSupportLinkTs2;
-	}
-
-	public List<OpportunitySubSpLinkT> getOpportunitySubSpLinkTs() {
-		return this.opportunitySubSpLinkTs;
-	}
-
-	public void setOpportunitySubSpLinkTs(
-			List<OpportunitySubSpLinkT> opportunitySubSpLinkTs) {
-		this.opportunitySubSpLinkTs = opportunitySubSpLinkTs;
-	}
-
-	public OpportunitySubSpLinkT addOpportunitySubSpLinkT(
-			OpportunitySubSpLinkT opportunitySubSpLinkT) {
-		getOpportunitySubSpLinkTs().add(opportunitySubSpLinkT);
-		opportunitySubSpLinkT.setCreatedModifiedByUser(this);
-
-		return opportunitySubSpLinkT;
-	}
-
-	public OpportunitySubSpLinkT removeOpportunitySubSpLinkT(
-			OpportunitySubSpLinkT opportunitySubSpLinkT) {
-		getOpportunitySubSpLinkTs().remove(opportunitySubSpLinkT);
-		opportunitySubSpLinkT.setCreatedModifiedByUser(null);
-
-		return opportunitySubSpLinkT;
-	}
-
 	public List<OpportunityT> getOpportunityTs() {
 		return this.opportunityTs;
 	}
@@ -1147,55 +862,6 @@ public class UserT implements Serializable, Cloneable {
 		opportunityT.setPrimaryOwnerUser(null);
 
 		return opportunityT;
-	}
-
-	public List<OpportunityT> getOpportunityTs2() {
-		return this.opportunityTs2;
-	}
-
-	public void setOpportunityTs2(List<OpportunityT> opportunityTs2) {
-		this.opportunityTs2 = opportunityTs2;
-	}
-
-	public OpportunityT addOpportunityTs2(OpportunityT opportunityTs2) {
-		getOpportunityTs2().add(opportunityTs2);
-		opportunityTs2.setCreatedModifiedByUser(this);
-
-		return opportunityTs2;
-	}
-
-	public OpportunityT removeOpportunityTs2(OpportunityT opportunityTs2) {
-		getOpportunityTs2().remove(opportunityTs2);
-		opportunityTs2.setCreatedModifiedByUser(null);
-
-		return opportunityTs2;
-	}
-
-	public List<OpportunityTcsAccountContactLinkT> getOpportunityTcsAccountContactLinkTs() {
-		return this.opportunityTcsAccountContactLinkTs;
-	}
-
-	public void setOpportunityTcsAccountContactLinkTs(
-			List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs) {
-		this.opportunityTcsAccountContactLinkTs = opportunityTcsAccountContactLinkTs;
-	}
-
-	public OpportunityTcsAccountContactLinkT addOpportunityTcsAccountContactLinkT(
-			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().add(
-				opportunityTcsAccountContactLinkT);
-		opportunityTcsAccountContactLinkT.setCreatedModifiedByUser(this);
-
-		return opportunityTcsAccountContactLinkT;
-	}
-
-	public OpportunityTcsAccountContactLinkT removeOpportunityTcsAccountContactLinkT(
-			OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT) {
-		getOpportunityTcsAccountContactLinkTs().remove(
-				opportunityTcsAccountContactLinkT);
-		opportunityTcsAccountContactLinkT.setCreatedModifiedByUser(null);
-
-		return opportunityTcsAccountContactLinkT;
 	}
 
 	public List<OpportunityTimelineHistoryT> getOpportunityTimelineHistoryTs() {
@@ -1221,31 +887,6 @@ public class UserT implements Serializable, Cloneable {
 		opportunityTimelineHistoryT.setUserT(null);
 
 		return opportunityTimelineHistoryT;
-	}
-
-	public List<OpportunityWinLossFactorsT> getOpportunityWinLossFactorsTs() {
-		return this.opportunityWinLossFactorsTs;
-	}
-
-	public void setOpportunityWinLossFactorsTs(
-			List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
-		this.opportunityWinLossFactorsTs = opportunityWinLossFactorsTs;
-	}
-
-	public OpportunityWinLossFactorsT addOpportunityWinLossFactorsT(
-			OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
-		getOpportunityWinLossFactorsTs().add(opportunityWinLossFactorsT);
-		opportunityWinLossFactorsT.setUserT(this);
-
-		return opportunityWinLossFactorsT;
-	}
-
-	public OpportunityWinLossFactorsT removeOpportunityWinLossFactorsT(
-			OpportunityWinLossFactorsT opportunityWinLossFactorsT) {
-		getOpportunityWinLossFactorsTs().remove(opportunityWinLossFactorsT);
-		opportunityWinLossFactorsT.setUserT(null);
-
-		return opportunityWinLossFactorsT;
 	}
 
 	public List<PartnerMasterT> getPartnerMasterTs() {
@@ -1326,7 +967,6 @@ public class UserT implements Serializable, Cloneable {
 		return taskBdmsTaggedLinkT;
 	}
 
-
 	public List<TaskT> getTaskTs() {
 		return this.taskTs;
 	}
@@ -1352,19 +992,19 @@ public class UserT implements Serializable, Cloneable {
 	public List<TaskT> getCreatedTaskTs() {
 		return createdTaskTs;
 	}
-	
+
 	public void setCreatedTaskTs(List<TaskT> createdTaskTs) {
 		this.createdTaskTs = createdTaskTs;
 	}
-	
+
 	public List<TaskT> getModifiedTaskTs() {
 		return modifiedTaskTs;
 	}
-	
+
 	public void setModifiedTaskTs(List<TaskT> modifiedTaskTs) {
 		this.modifiedTaskTs = modifiedTaskTs;
 	}
-	
+
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
 	}
