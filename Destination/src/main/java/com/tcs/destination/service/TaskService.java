@@ -17,6 +17,7 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
 import com.tcs.destination.data.repository.TaskRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.TaskCollaborationPreference;
 import com.tcs.destination.enums.TaskEntityReference;
 import com.tcs.destination.enums.TaskStatus;
@@ -31,7 +32,7 @@ public class TaskService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 	
-	private static final String STATUS_CLOSED = "Closed";
+	private static final String STATUS_CLOSED = "CLOSED";
 	
 	@Autowired
 	TaskRepository taskRepository;
@@ -44,6 +45,9 @@ public class TaskService {
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
+
+	@Autowired
+	UserRepository userRepository;
 
 	/**
 	 * This method is used to find task details for the given task id.
@@ -358,4 +362,27 @@ public class TaskService {
 			}
 		}
 	}
+
+	/**
+	 * This method is used to find all the team tasks (open & hold) for the given supervisor id.
+	 * 
+	 * @param taskOwner, taskStatus
+	 * @return team tasks for the given supervisor.
+	 */
+	public List<TaskT> findTeamTasks(String supervisorId) throws Exception {
+		logger.debug("Inside findTeamTasks Service");
+		//Get all sub-ordinates user id's
+		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+		//Get all tasks for all sub-ordinates
+		List<TaskT> taskList = 
+				taskRepository.findTeamTasksBySupervisorId(userIds, STATUS_CLOSED);
+
+		if ((taskList == null) || taskList.isEmpty())
+		{
+			logger.error("NOT_FOUND: No team tasks found for the Supervisor");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No team tasks found for the Supervisor");
+		}
+		return taskList;
+	}
+
 }
