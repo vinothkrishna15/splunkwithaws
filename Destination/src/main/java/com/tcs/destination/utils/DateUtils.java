@@ -3,9 +3,11 @@ package com.tcs.destination.utils;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -25,6 +27,8 @@ public class DateUtils {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
+	private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat(
+			"MMM-yy");
 
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
 	static {
@@ -42,15 +46,18 @@ public class DateUtils {
 		monthMap.put("DEC", Calendar.DECEMBER);
 	}
 
+	/**
+	 * 
+	 * @param strDate
+	 *            in yyyy-MM-dd format
+	 * @return Date object of the String
+	 * @throws ParseException
+	 */
 	public static Date convertStringToDate(String strDate)
 			throws ParseException {
 		if (strDate == null)
 			return null;
-		Date date = null;
-		synchronized (dateFormat) {
-			date = dateFormat.parse(strDate);
-		}
-		return date;
+		return dateFormat.parse(strDate);
 	}
 
 	public static String getCurrentFinancialYear() {
@@ -244,7 +251,7 @@ public class DateUtils {
 		cal.set(Calendar.MILLISECOND, 999);
 	}
 
-	public static Date getDate(String month,String quarter,String year,
+	public static Date getDate(String month, String quarter, String year,
 			boolean isStart) throws Exception {
 		if (year.isEmpty() && quarter.isEmpty() && month.isEmpty())
 			year = DateUtils.getCurrentFinancialYear();
@@ -263,4 +270,150 @@ public class DateUtils {
 		return fromDate;
 	}
 
+	public static String getFormattedMonth(Date date) {
+		return dbDateFormat.format(date).toUpperCase();
+	}
+
+	/**
+	 * Gets current month in the format as per database
+	 * 
+	 * @return
+	 */
+	public static String getCurrentMonth() {
+		return getFormattedMonth(new Date());
+	}
+
+	private static Date getDateFromDBFormattedString(String dbFormattedString)
+			throws ParseException {
+		return dbDateFormat.parse(dbFormattedString);
+	}
+
+	public static List<String> getAllMonthsBetween(String fromMonth,
+			String toMonth) throws DestinationException {
+		List<String> monthsList = new ArrayList<String>();
+		// Just a initialisation to prevent NULL values
+		Calendar fromDate = Calendar.getInstance();
+		Calendar toDate = Calendar.getInstance();
+
+		try {
+			fromDate.setTimeInMillis(getDateFromDBFormattedString(fromMonth)
+					.getTime());
+			// Added a millisecond so that End Month is also included
+			toDate.setTimeInMillis(getDateFromDBFormattedString(toMonth)
+					.getTime() + 1);
+
+		} catch (ParseException e) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Month Format for FROM or TO month");
+		}
+		while (fromDate.before(toDate)) {
+			monthsList.add(dbDateFormat.format(fromDate.getTime())
+					.toUpperCase());
+			int month = fromDate.get(Calendar.MONTH) + 1;
+			int year = fromDate.get(Calendar.YEAR) + month / 12;
+			month = month % 12;
+			fromDate.set(Calendar.MONTH, month);
+			fromDate.set(Calendar.YEAR, year);
+		}
+		return monthsList;
+	}
+
+	public static String getQuarterForMonth(String formattedMonth)
+			throws ParseException {
+		String quarter = "";
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(getDateFromDBFormattedString(formattedMonth)
+				.getTime());
+		int year = cal.get(Calendar.YEAR);
+		switch (cal.get(Calendar.MONTH)) {
+		case Calendar.JANUARY:
+		case Calendar.FEBRUARY:
+		case Calendar.MARCH:
+			quarter = "Q4 - " + (year - 1) + "-"
+					+ Integer.toString(year).substring(2);
+			break;
+		case Calendar.APRIL:
+		case Calendar.MAY:
+		case Calendar.JUNE:
+			quarter = "Q1 - " + (year) + "-"
+					+ Integer.toString(year + 1).substring(2);
+			break;
+		case Calendar.JULY:
+		case Calendar.AUGUST:
+		case Calendar.SEPTEMBER:
+			quarter = "Q2 - " + (year) + "-"
+					+ Integer.toString(year + 1).substring(2);
+			break;
+		case Calendar.OCTOBER:
+		case Calendar.NOVEMBER:
+		case Calendar.DECEMBER:
+			quarter = "Q3 - " + (year) + "-"
+					+ Integer.toString(year + 1).substring(2);
+			break;
+		default:
+			break;
+		}
+		return quarter;
+	}
+
+	public static String getFinancialYearForQuarter(String quarter) {
+		return "FY'" + quarter.split(" ")[2];
+	}
+
+	/**
+	 * Method to identify the index of the month of the specific quarter
+	 * 
+	 * @param formattedMonth
+	 *            the month in MMM-yy format (as in DB)
+	 * @return the number n, specifying that it is the nth month of the quarter
+	 * @throws ParseException
+	 *             when the month is not in specified format
+	 */
+	public static int getMonthIndexOnQuarter(String formattedMonth)
+			throws ParseException {
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(getDateFromDBFormattedString(formattedMonth)
+				.getTime());
+		switch (cal.get(Calendar.MONTH)) {
+		case Calendar.JANUARY:
+		case Calendar.APRIL:
+		case Calendar.JULY:
+		case Calendar.OCTOBER:
+			return 1;
+		case Calendar.FEBRUARY:
+		case Calendar.MAY:
+		case Calendar.AUGUST:
+		case Calendar.NOVEMBER:
+			return 2;
+		case Calendar.MARCH:
+		case Calendar.JUNE:
+		case Calendar.SEPTEMBER:
+		case Calendar.DECEMBER:
+			return 3;
+		}
+		return 0;
+	}
+
+	public static List<String> getAllQuartersBetween(String fromQuarter,
+			String toQuarter) {
+		// fromQuarter = Qx - 20xx-xx
+		int fromQuarterNumber = Integer.parseInt(fromQuarter.charAt(1) + "");
+		// Removing the offset of 1-4 to 0-3 for calculation
+		fromQuarterNumber--;
+		String yearStr = fromQuarter.split("-")[1].trim();
+		int startYear = Integer.parseInt(yearStr);
+		List<String> quarters = new ArrayList<String>();
+		quarters.add(fromQuarter);
+		for (; !quarters.get(quarters.size() - 1).equals(toQuarter);) {
+			// Incrementing the Quarters
+			fromQuarterNumber++;
+			// Make the Quarter to range from 0-3 and also change the financial
+			// year when required.
+			if ((fromQuarterNumber %= 4) == 0)
+				startYear++;
+			quarters.add("Q" + (fromQuarterNumber + 1) + " - " + startYear
+					+ "-" + ((startYear % 100) + 1));
+		}
+		return quarters;
+	}
 }
