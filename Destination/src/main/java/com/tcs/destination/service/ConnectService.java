@@ -149,6 +149,7 @@ public class ConnectService {
 			String customerId, String partnerId, boolean isForCount)
 			throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner Service");
+		Timestamp toTimestamp=new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1);
 		if (OwnerType.contains(owner)) {
 			logger.debug("Owner Type Contains owner");
 			List<ConnectT> connects = new ArrayList<ConnectT>();
@@ -158,7 +159,7 @@ public class ConnectService {
 				connects = connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1),
+								toTimestamp,
 								customerId, partnerId);
 				System.out.println("Primary :" + connects.size());
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
@@ -166,21 +167,21 @@ public class ConnectService {
 				connects = connectSecondaryOwnerRepository
 						.findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime()), customerId,
+								toTimestamp, customerId,
 								partnerId);
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner value is ALL");
 				connects.addAll(connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime()), customerId,
+								toTimestamp, customerId,
 								partnerId));
 				if (customerId.equals("") || partnerId.equals("")) {
 					logger.debug("CustomerId or partnerId are empty");
 					connects.addAll(connectSecondaryOwnerRepository
 							.findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
 									userId, new Timestamp(fromDate.getTime()),
-									new Timestamp(toDate.getTime()),
+									toTimestamp,
 									customerId, partnerId));
 				}
 			}
