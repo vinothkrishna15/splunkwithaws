@@ -213,7 +213,7 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
-		try {
+//		try {
 			if (connectRepository.save(connect) != null) {
 				String tempId = connect.getConnectId();
 				backupConnect.setConnectId(tempId);
@@ -293,11 +293,11 @@ public class ConnectService {
 				}
 
 			}
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+//		} catch (Exception e) {
+//			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+//					e.getMessage());
+//		}
 		logger.debug("Connect Details are not Saved successfully");
 		return false;
 	}
@@ -345,10 +345,10 @@ public class ConnectService {
 //		}
 		
 		if(isInsert && connect.getCreatedBy()==null){
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserCreated");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Missing UserCreated in connect");
 		}
-		
+			
 		if(connect.getModifiedBy()==null){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Missing UserModified");
@@ -471,7 +471,7 @@ public class ConnectService {
 
 		validateRequest(connect,false);
 
-		try {
+		//try {
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
 			connect.setConnectCategory(categoryUpperCase);
@@ -580,11 +580,11 @@ public class ConnectService {
 				logger.debug("Connect Edit Success");
 				return true;
 			}
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR:" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+//		} catch (Exception e) {
+//			logger.error("INTERNAL_SERVER_ERROR:" + e.getMessage());
+//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+//					e.getMessage());
+//		}
 		return false;
 	}
 

@@ -156,11 +156,15 @@ public class ConnectController {
 		logger.debug("Connect Edit Request Received /connect PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-
+        try{
 		if (connectService.editConnect(connect)) {
 			status.setStatus(Status.SUCCESS, connect.getConnectId());
 			logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
 		}
+        } catch(Exception e){
+        	throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+        }
 
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
