@@ -12,7 +12,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 public interface CustomerRepository extends
 		CrudRepository<CustomerMasterT, String> {
 
-	List<CustomerMasterT> findByCustomerName(String customerName);
+	CustomerMasterT findByCustomerName(String customerName);
 
 	List<CustomerMasterT> findByCustomerId(String customerid);
 
