@@ -219,4 +219,23 @@ public class TaskController {
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
+	
+	
+	/**
+	 * This method is used to find all tasks for the team for the given supervisor id.
+	 * 
+	 * @param id is the supervisor id.
+	 * @return team tasks for the given supervisor id.
+	 */
+	@RequestMapping(value="/team", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findTeamTasks(
+			@RequestParam(value="id") String supervisorId,
+			@RequestParam(value="fields", defaultValue="all") String fields,
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		logger.debug("Inside TaskController /task/team?id="+supervisorId+" GET");
+		List<TaskT> taskList = taskService.findTeamTasks(supervisorId);
+		return new ResponseEntity<String>
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+	}
 }

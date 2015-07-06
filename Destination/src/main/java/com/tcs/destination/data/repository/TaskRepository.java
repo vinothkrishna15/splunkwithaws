@@ -1,5 +1,6 @@
 package com.tcs.destination.data.repository;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -63,4 +64,12 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	 */
 	List<TaskT> findByTaskOwnerAndTargetDateForCompletionBetween(String userId, Date fromDate, Date toDate);
 
+	/**
+	 * Finds all the team tasks for the given supervisor.
+	 * 
+	 * @param supervisorId, taskStatus
+	 * @return team tasks for the given supervisor.
+	 */
+	@Query(value = "select * from task_t where task_owner in (?1) and UPPER(task_status) != ?2 order by target_date_for_completion asc", nativeQuery=true)
+	List<TaskT> findTeamTasksBySupervisorId(List<String> userIds, String taksStatus);
 }
