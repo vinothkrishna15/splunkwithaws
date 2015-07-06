@@ -1,6 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,9 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.TaskTypeMappingT;
-import com.tcs.destination.service.ConnectTypeService;
 import com.tcs.destination.service.TaskTypeService;
 import com.tcs.destination.utils.ResponseConstructors;
 

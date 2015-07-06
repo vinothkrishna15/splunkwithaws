@@ -102,7 +102,7 @@ public class BidDetailsT implements Serializable {
 	private OpportunityT opportunityT;
 
 	// bi-directional many-to-one association to BidOfficeGroupOwnerLinkT
-	@OneToMany(mappedBy = "bidDetailsT", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "bidDetailsT")
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT

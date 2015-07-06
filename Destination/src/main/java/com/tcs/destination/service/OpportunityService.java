@@ -316,14 +316,9 @@ public class OpportunityService {
 
 	@Transactional
 	public void create(OpportunityT opportunity) throws Exception {
-		try {
-			if (opportunity != null) {
-				opportunity.setOpportunityId(null);
-				saveOpportunity(opportunity, false);
-			}
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+		if (opportunity != null) {
+			opportunity.setOpportunityId(null);
+			saveOpportunity(opportunity, false);
 		}
 	}
 
@@ -433,7 +428,11 @@ public class OpportunityService {
 							.getBidOfficeGroupOwnerLinkTs()) {
 						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
 					}
+					bidOfficeGroupOwnerLinkTRepository
+							.save(bidOfficeOwnerLinkTs);
 				}
+				// As Bid details are already saved,
+				opportunity.setBidDetailsTs(null);
 				if (opportunity.getOpportunityId() != null) {
 					List<OpportunityTimelineHistoryT> savedOpportunityTimelineHistoryTs = opportunityTimelineHistoryTRepository
 							.findByOpportunityId(opportunity.getOpportunityId());
@@ -527,100 +526,61 @@ public class OpportunityService {
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
-			for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
-					.getDeleteConnectOpportunityLinkIdTs()) {
-				connectOpportunityLinkTRepository
-						.delete(connectOpportunityLinkIdT);
-			}
-		}
-
-		if (opportunity.getDeleteNotesTs() != null
-				&& opportunity.getDeleteNotesTs().size() > 0) {
-			for (NotesT noteT : opportunity.getDeleteNotesTs()) {
-				notesTRepository.delete(noteT);
-			}
+			connectOpportunityLinkTRepository.delete(opportunity
+					.getDeleteConnectOpportunityLinkIdTs());
+			opportunity.setDeleteConnectOpportunityLinkIdTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityPartnerLinkTs() != null
 				&& opportunity.getDeleteOpportunityPartnerLinkTs().size() > 0) {
-			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
-					.getDeleteOpportunityPartnerLinkTs()) {
-				opportunityPartnerLinkTRepository
-						.delete(opportunityPartnerLinkT);
-			}
+			opportunityPartnerLinkTRepository.delete(opportunity
+					.getDeleteOpportunityPartnerLinkTs());
+			opportunity.setOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
 				&& opportunity.getDeleteOpportunityCompetitorLinkTs().size() > 0) {
-			for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
-					.getDeleteOpportunityCompetitorLinkTs()) {
-				opportunityCompetitorLinkTRepository
-						.delete(opportunityCompetitorLinkT);
-			}
+			opportunityCompetitorLinkTRepository.delete(opportunity
+					.getDeleteOpportunityCompetitorLinkTs());
+			opportunity.setDeleteOpportunityCompetitorLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCustomerContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityCustomerContactLinkTs()
 						.size() > 0) {
-			for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity
-					.getDeleteOpportunityCustomerContactLinkTs()) {
-				opportunityCustomerContactLinkTRepository
-						.delete(opportunityCustomerContactLinkT);
-			}
+			opportunityCustomerContactLinkTRepository.delete(opportunity
+					.getDeleteOpportunityCustomerContactLinkTs());
 		}
 
 		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
 				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
-			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
-					.getDeleteOpportunityOfferingLinkTs()) {
-				opportunityOfferingLinkTRepository
-						.delete(opportunityOfferingLinkT);
-			}
-		}
-
-		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
-				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
-			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
-					.getDeleteOpportunityOfferingLinkTs()) {
-				opportunityOfferingLinkTRepository
-						.delete(opportunityOfferingLinkT);
-			}
+			opportunityOfferingLinkTRepository.delete(opportunity
+					.getDeleteOpportunityOfferingLinkTs());
 		}
 
 		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
-			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-					.getDeleteOpportunitySalesSupportLinkTs()) {
-				opportunitySalesSupportLinkTRepository
-						.delete(opportunitySalesSupportLinkT);
-			}
+			opportunitySalesSupportLinkTRepository.delete(opportunity
+					.getDeleteOpportunitySalesSupportLinkTs());
 		}
 
 		if (opportunity.getDeleteOpportunitySubSpLinkTs() != null
 				&& opportunity.getDeleteOpportunitySubSpLinkTs().size() > 0) {
-			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
-					.getDeleteOpportunitySubSpLinkTs()) {
-				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT);
-			}
+			opportunitySubSpLinkTRepository.delete(opportunity
+					.getDeleteOpportunitySubSpLinkTs());
 		}
 
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs()
 						.size() > 0) {
-			for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
-					.getDeleteOpportunityTcsAccountContactLinkTs()) {
-				opportunityTcsAccountContactLinkTRepository
-						.delete(opportunityTcsAccountContactLinkT);
-			}
+			opportunityTcsAccountContactLinkTRepository.delete(opportunity
+					.getDeleteOpportunityTcsAccountContactLinkTs());
 		}
 
 		if (opportunity.getDeleteOpportunityWinLossFactorsTs() != null
 				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
-			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-					.getDeleteOpportunityWinLossFactorsTs()) {
-				opportunityWinLossFactorsTRepository
-						.delete(opportunityWinLossFactorsT);
-			}
+			opportunityWinLossFactorsTRepository.delete(opportunity
+					.getDeleteOpportunityWinLossFactorsTs());
 		}
 	}
 

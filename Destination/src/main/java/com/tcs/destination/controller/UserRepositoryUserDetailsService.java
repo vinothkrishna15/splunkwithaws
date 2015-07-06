@@ -65,49 +65,6 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 			return getUserName();
 		}
 
-//		@Override
-//		public String getUserId() {
-//			return tempUserT.getUserId();
-//		}
-//
-//		
-//
-//		@Override
-//		public String getSupervisorUserId() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getSupervisorUserId();
-//		}
-//
-//		@Override
-//		public String getSupervisorUserName() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getSupervisorUserName();
-//		}
-//
-//		@Override
-//		public String getTempPassword() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getTempPassword();
-//		}
-//
-//		@Override
-//		public String getUserEmailId() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getUserEmailId();
-//		}
-//
-//		@Override
-//		public String getUserGeography() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getUserGeography();
-//		}
-//
-//		@Override
-//		public String getUserTelephone() {
-//			// TODO Auto-generated method stub
-//			return tempUserT.getUserTelephone();
-//		}
-
 		@Override
 		public boolean isAccountNonExpired() {
 			return true;
