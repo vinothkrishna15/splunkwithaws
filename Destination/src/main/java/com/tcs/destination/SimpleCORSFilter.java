@@ -21,14 +21,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SimpleCORSFilter implements Filter {
 
-	static Logger logger = Logger.getLogger(SimpleCORSFilter.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleCORSFilter.class);
 	
 	public void doFilter(ServletRequest req, ServletResponse res,
 			FilterChain chain) throws IOException, ServletException {
@@ -48,6 +49,7 @@ public class SimpleCORSFilter implements Filter {
 	private DestinationHttpRequestWrapper logRequest(ServletRequest req) throws ServletException {
 		final HttpServletRequest httpServletRequest = (HttpServletRequest) req;
 		
+		MDC.remove("userId");
 		MDC.remove("sessionId"); 
 
 		logger.info("======REQUEST DETAILS======");

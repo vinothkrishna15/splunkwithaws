@@ -287,7 +287,7 @@ public class TaskService {
 	 * @return
 	 */
 	private void validateTask(TaskT task) throws DestinationException {
-
+		logger.debug("Inside validateTask() method");
 		//Validate Task Entity Reference 
 		if (task.getEntityReference() != null) {
 			logger.debug("Entity Reference NOT NULL");
@@ -373,6 +373,12 @@ public class TaskService {
 		logger.debug("Inside findTeamTasks Service");
 		//Get all sub-ordinates user id's
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+
+		if (userIds == null || userIds.isEmpty()) {
+			logger.error("NOT_FOUND: No subordinates found for supervisor user");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No subordinates found for supervisor user");
+		}
+			
 		//Get all tasks for all sub-ordinates
 		List<TaskT> taskList = 
 				taskRepository.findTeamTasksBySupervisorId(userIds, STATUS_CLOSED);
