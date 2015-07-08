@@ -162,6 +162,7 @@ public class ConnectController {
 			logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
 		}
         } catch(Exception e){
+        	logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
         	throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
         }

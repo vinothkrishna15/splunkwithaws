@@ -89,6 +89,7 @@ public class ConnectService {
 	}
 
 	private void setSearchKeywordTs(ConnectT connect) {
+		logger.debug("Inside setSearchKeywordTs");
 		// Add Search Keywords
 		List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
 				.findByEntityTypeAndEntityId(EntityType.CONNECT.toString(),
@@ -112,9 +113,9 @@ public class ConnectService {
 		}
 
 		if (connectList.isEmpty()) {
-			logger.error("NOT_FOUND: Connection information not available");
+			logger.error("NOT_FOUND: Connects not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connection information not available");
+					"Connects not found");
 		}
 		prepareConnect(connectList);
 		return connectList;
@@ -154,7 +155,7 @@ public class ConnectService {
 			logger.debug("Owner Type Contains owner");
 			List<ConnectT> connects = new ArrayList<ConnectT>();
 			if (owner.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
-				logger.debug("owner is PRIMARY");
+				logger.debug("Owner is PRIMARY");
 				// Exclude the toDate from the date range
 				connects = connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
@@ -170,7 +171,7 @@ public class ConnectService {
 								toTimestamp, customerId,
 								partnerId);
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
-				logger.debug("Owner value is ALL");
+				logger.debug("Owner is ALL");
 				connects.addAll(connectRepository
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
@@ -186,16 +187,16 @@ public class ConnectService {
 				}
 			}
 			if (connects.isEmpty() && !isForCount) {
-				logger.error("NOT_FOUND: No Relevent Data Found in the database");
+				logger.error("NOT_FOUND: Connects not found");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
+						"Connects not found");
 			}
 			prepareConnect(connects);
 			return connects;
 		}
-		logger.error("BAD_REQUEST: No such Owner Type exists. Please ensure your Owner Type.");
+		logger.error("BAD_REQUEST: Invalid Owner Type.");
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
-				"No such Owner Type exists. Please ensure your Owner Type.");
+				"Ivalid Owner Type.");
 	}
 
 	@Transactional
@@ -217,7 +218,7 @@ public class ConnectService {
 			if (connectRepository.save(connect) != null) {
 				String tempId = connect.getConnectId();
 				backupConnect.setConnectId(tempId);
-				logger.debug("Root Object Saved. Id : " + tempId);
+				logger.debug("Parent Object Saved. Id : " + tempId);
 				connect = restore(backupConnect);
 				String categoryUpperCase = connect.getConnectCategory()
 						.toUpperCase();
@@ -240,8 +241,9 @@ public class ConnectService {
 							connectId, conCustConLinkTList);
 					logger.debug("ConnectCustomerContact Populated ");
 				} else {
+					logger.error("Connect Customer Contact List null");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"conCustConLinkTList null");
+							"Connect Customer Contact List null");
 				}
 
 				List<ConnectOfferingLinkT> conOffLinkTList = connect
@@ -298,14 +300,16 @@ public class ConnectService {
 //			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 //					e.getMessage());
 //		}
-		logger.debug("Connect Details are not Saved successfully");
+		logger.debug("Connect not Saved");
 		return false;
 	}
 
 	private void validateRequest(ConnectT connect,boolean isInsert) throws Exception {
+		logger.debug("inside validateRequest");
 		String connectCategory = connect.getConnectCategory();
 
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
+			logger.error("Connect Category is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Connect Category is required");
 		}
@@ -324,17 +328,20 @@ public class ConnectService {
 					isValid = true;
 				break;
 			default:
+				logger.error("Invalid Connect Category");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Connect Category is Invalid");
+						"Invalid Connect Category");
 			}
 		} else {
+			logger.error("Invalid Connect Category");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Connect Category is Invalid");
+					"Invalid Connect Category");
 		}
 
 		if (!isValid) {
+			logger.error("Missing PartnerId/CustomerId");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Request - Missing PartnerId/CustomerId");
+					"Missing PartnerId/CustomerId");
 		}
 		
 		//check for valid place(TCS/CLIENT)
@@ -345,11 +352,13 @@ public class ConnectService {
 //		}
 		
 		if(isInsert && connect.getCreatedBy()==null){
+			logger.error("Missing UserCreated in connect");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Missing UserCreated in connect");
 		}
 			
 		if(connect.getModifiedBy()==null){
+			logger.error("Missing UserModified");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Missing UserModified");
 		}
@@ -420,12 +429,12 @@ public class ConnectService {
 			note.setConnectId(connectId);
 
 			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
-				logger.debug("Category Equals to CUSTOMER");
+				logger.debug("Category is CUSTOMER");
 				CustomerMasterT customer = new CustomerMasterT();
 				customer.setCustomerId(customerId);
 				note.setCustomerMasterT(customer);
 			} else {
-				logger.debug("Category Not Equals to CUSTOMER");
+				logger.debug("Category is not CUSTOMER");
 				PartnerMasterT partner = new PartnerMasterT();
 				partner.setPartnerId(partnerId);
 				note.setPartnerMasterT(partner);
