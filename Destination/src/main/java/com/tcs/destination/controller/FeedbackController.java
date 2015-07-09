@@ -87,15 +87,26 @@ public class FeedbackController {
 						status), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/all", method = RequestMethod.GET)
-	public @ResponseBody String getAllFeedbacks(
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+	@RequestMapping(method = RequestMethod.GET)
+	public @ResponseBody String getFilteredFeedbacks(
+			@RequestParam(value = "titleWith", defaultValue = "") String titleWith,
+			@RequestParam(value = "descriptionWith", defaultValue = "") String descriptionWith,
+			@RequestParam(value = "issueType", defaultValue = "") String issueType,
+			@RequestParam(value = "priority", defaultValue = "") String priority,
+			@RequestParam(value = "status", defaultValue = "") String status,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
+			@RequestParam(value = "module", defaultValue = "") String module,
+			@RequestParam(value = "updatedUserId", defaultValue = "") String updatedUserId,
+			@RequestParam(value = "subModule", defaultValue = "") String subModule,
+			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
 			throws Exception {
-		logger.debug("Inside getAllFeedbacks service");
-		List<FeedbackT> feedback = feedbackService.findAllFeedbacks();
+		logger.debug("Inside getFilteredFeedbacks service");
+		List<FeedbackT> feedbackList = feedbackService.findFeedbacksWith(titleWith,descriptionWith,
+				issueType, priority, status, userId, module, updatedUserId,
+				subModule);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				feedback);
+				feedbackList);
 	}
 
 }

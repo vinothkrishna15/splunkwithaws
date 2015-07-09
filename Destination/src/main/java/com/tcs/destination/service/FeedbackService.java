@@ -5,16 +5,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.FeedbackT;
+import com.tcs.destination.data.repository.FeedbackRepository;
 import com.tcs.destination.enums.FeedbackIssueType;
 import com.tcs.destination.enums.FeedbackPriority;
 import com.tcs.destination.enums.FeedbackStatus;
-import com.tcs.destination.data.repository.FeedbackRepository;
 import com.tcs.destination.exception.DestinationException;
 
 @Component
@@ -121,7 +120,22 @@ public class FeedbackService {
 		}
 	}
 
-	public List<FeedbackT> findAllFeedbacks() {
-		return (List<FeedbackT>) feedbackRepository.findAll(new Sort(Sort.Direction.DESC, "createdDatetime"));
+	public List<FeedbackT> findFeedbacksWith(String titleWith,
+			String descriptionWith, String issueType, String priority,
+			String status, String userId, String module, String updatedUserId,
+			String subModule) throws Exception {
+		logger.debug("IssueType " + issueType + " Priority " + priority
+				+ " Status " + status + " UserId " + userId);
+		List<FeedbackT> feedbackTs = feedbackRepository
+				.findByOptionalIssueTypeAndPriorityAndStatusAndUserIdAndEntityTypeAndUpdatedUserId(
+						"%" + titleWith + "%", "%" + descriptionWith + "%",
+						issueType, priority, status, userId, module,
+						updatedUserId, subModule);
+		if (feedbackTs == null || feedbackTs.isEmpty()) {
+			String message = "No feedback available for the given criteria";
+			logger.error(message);
+			throw new DestinationException(HttpStatus.NOT_FOUND, message);
+		}
+		return feedbackTs;
 	}
 }
