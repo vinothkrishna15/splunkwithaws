@@ -2,6 +2,7 @@ package com.tcs.destination.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * Controller class to handle application exceptions.
@@ -27,7 +29,10 @@ public class GlobalExceptionController {
 	 */
 	@ExceptionHandler(DestinationException.class)
 	public ResponseEntity<Status> handleDestinationException(DestinationException de) {
-		logger.error("DestinationException: " + de.getMessage());
+		if (DestinationUtils.getCurrentUserDetails() != null) 
+			MDC.put("userId", DestinationUtils.getCurrentUserDetails().getUserId());
+		logger.error("DestinationException: Status-" + de.getHttpStatus()
+				+ " Message-" + de.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, de.getMessage());
 		return new ResponseEntity<Status> (status, de.getHttpStatus());
@@ -41,7 +46,10 @@ public class GlobalExceptionController {
 	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Status> handleAllException(Exception e) {
-		logger.error("Exception: " + e.getMessage());
+		if (DestinationUtils.getCurrentUserDetails() != null) 
+			MDC.put("userId", DestinationUtils.getCurrentUserDetails().getUserId());
+		logger.error("Exception: Status-" + HttpStatus.INTERNAL_SERVER_ERROR
+				+ " Message-" + e.getMessage());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, e.getMessage());
 		return new ResponseEntity<Status>(status, HttpStatus.INTERNAL_SERVER_ERROR);

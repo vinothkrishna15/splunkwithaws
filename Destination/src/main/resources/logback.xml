@@ -6,7 +6,7 @@
 	    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     	<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d %-5level %X{sessionId} %logger{5} - %msg%n</pattern>
+			<pattern>%d %-5level %X{userId} %X{sessionId} %logger{5} - %msg%n</pattern>
     	</encoder>
   	</appender>
 
@@ -22,7 +22,7 @@
         </rollingPolicy>
     	<encoder>
     		<charset>UTF-8</charset>
-			<pattern>%d %-5level %X{sessionId} %logger{5} - %msg%n</pattern>
+			<pattern>%d %-5level %X{userId} %X{sessionId} %logger{5} - %msg%n</pattern>
     	</encoder>
   	</appender>
 
