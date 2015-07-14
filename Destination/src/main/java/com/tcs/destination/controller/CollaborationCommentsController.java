@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CollaborationCommentT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.service.CollaborationCommentsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -25,9 +24,6 @@ public class CollaborationCommentsController {
 	
 	@Autowired
 	CollaborationCommentsService commentsService;
-
-	@Autowired
-	CollaborationCommentsRepository commentsRepository;
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertComments(

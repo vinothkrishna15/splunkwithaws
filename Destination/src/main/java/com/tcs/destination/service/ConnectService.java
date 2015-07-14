@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,8 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
-import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
+import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -36,9 +38,8 @@ import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
-import com.tcs.destination.enums.PlaceType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.helper.AutoCommentsHelper;
 
 @Component
 public class ConnectService {
@@ -74,6 +75,17 @@ public class ConnectService {
 
 	@Autowired
 	ConnectSecondaryOwnerRepository connSecOwnerRepo;
+	
+	// Required beans for Auto comments - start
+	@Autowired
+	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
+	
+	@Autowired
+	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
+	
+	@Autowired
+	CollaborationCommentsRepository collaborationCommentsRepository;
+	// Required beans for Auto comments - end
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
@@ -202,10 +214,6 @@ public class ConnectService {
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect Service");
-//		UserT currentUser = DestinationUtils.getCurrentUserDetails();
-//		String currentUserId = currentUser.getUserId();
-//		connect.setCreatedModifiedBy(currentUserId);
-//		logger.debug("Connect Insert - user : " + currentUserId);
 
 		validateRequest(connect,true);
 
@@ -214,7 +222,6 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
-//		try {
 			if (connectRepository.save(connect) != null) {
 				String tempId = connect.getConnectId();
 				backupConnect.setConnectId(tempId);
@@ -291,15 +298,12 @@ public class ConnectService {
 
 				if (connectRepository.save(connect) != null) {
 					logger.debug("Connect Record Inserted - child objects saved");
+					// Invoke Asynchronous Auto Comments Thread
+					processAutoComments(connect.getConnectId(), null);
 					return true;
 				}
 
 			}
-//		} catch (Exception e) {
-//			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					e.getMessage());
-//		}
 		logger.debug("Connect not Saved");
 		return false;
 	}
@@ -343,13 +347,6 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Missing PartnerId/CustomerId");
 		}
-		
-		//check for valid place(TCS/CLIENT)
-//		String place = connect.getPlace();
-//		if (!PlaceType.contains(place)) {
-//			throw new DestinationException(HttpStatus.BAD_REQUEST,
-//					"Place is invalid");
-//		}
 		
 		if(isInsert && connect.getCreatedBy()==null){
 			logger.error("Missing UserCreated in connect");
@@ -423,9 +420,6 @@ public class ConnectService {
 		logger.debug("Inside populateNotes service");
 		for (NotesT note : noteList) {
 			note.setEntityType(categoryUpperCase);
-//			UserT user = new UserT();
-//			user.setUserId(currentUserId);
-//			note.setUserT(user);
 			note.setConnectId(connectId);
 
 			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
@@ -473,14 +467,8 @@ public class ConnectService {
 	public boolean editConnect(ConnectT connect) throws Exception {
 		logger.debug("inside editConnect Service");
 
-//		UserT currentUser = DestinationUtils.getCurrentUserDetails();
-//		String currentUserId = currentUser.getUserId();
-//		connect.setCreatedModifiedBy(currentUserId);
-//		logger.debug("Connect Edit - user : " + currentUserId);
-
 		validateRequest(connect,false);
 
-		//try {
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
 			connect.setConnectCategory(categoryUpperCase);
@@ -589,11 +577,6 @@ public class ConnectService {
 				logger.debug("Connect Edit Success");
 				return true;
 			}
-//		} catch (Exception e) {
-//			logger.error("INTERNAL_SERVER_ERROR:" + e.getMessage());
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					e.getMessage());
-//		}
 		return false;
 	}
 
@@ -685,4 +668,18 @@ public class ConnectService {
 		}
 	}
 
+	// This method is used to invoke asynchronous thread for auto comments
+	private void processAutoComments(String connectId, Object oldObject) throws Exception {
+		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
+		autoCommentsHelper.setEntityId(connectId);
+		autoCommentsHelper.setEntityType(EntityType.CONNECT.name());
+		if (oldObject != null)
+			autoCommentsHelper.setOldObject(oldObject);
+		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		autoCommentsHelper.setCrudRepository(connectRepository);
+		// Invoking Auto Comments Task Executor Thread
+		autoCommentsTaskExecutor.execute(autoCommentsHelper);
+
+	}
 }

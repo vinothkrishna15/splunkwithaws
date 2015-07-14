@@ -67,12 +67,12 @@ public class ConnectT implements Serializable {
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name = "created_by", updatable = false, insertable = false)
-	private UserT userT2;
+	private UserT createdByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name = "modified_by", updatable = false, insertable = false)
-	private UserT userT3;
+	private UserT modifiedByUser;
 	
 	@Column(name = "documents_attached")
 	private String documentsAttached;
@@ -137,10 +137,10 @@ public class ConnectT implements Serializable {
 		//this.createdModifiedDatetime = con.createdModifiedDatetime;
 		
 		this.createdBy = con.createdBy;
-		this.userT2 = con.userT2;
+		this.createdByUser = con.createdByUser;
 		this.createdDatetime = con.createdDatetime;
 		this.modifiedBy = con.modifiedBy;
-		this.userT3 = con.userT3;
+		this.modifiedByUser = con.modifiedByUser;
 		this.modifiedDatetime = con.modifiedDatetime;
 		
 		this.customerId = con.customerId;
@@ -880,20 +880,20 @@ public class ConnectT implements Serializable {
 		this.modifiedBy = modifiedBy;
 	}
 
-	public UserT getUserT2() {
-		return userT2;
+	public UserT getCreatedByUser() {
+		return createdByUser;
 	}
 
-	public void setUserT2(UserT userT2) {
-		this.userT2 = userT2;
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
 	}
 
-	public UserT getUserT3() {
-		return userT3;
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
 	}
 
-	public void setUserT3(UserT userT3) {
-		this.userT3 = userT3;
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
 	}
 	
 }

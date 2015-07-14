@@ -35,8 +35,6 @@
 		<property name="databasePlatform" value="org.hibernate.dialect.PostgreSQLDialect" />
 	</bean>
 	
-	<bean id="documentService" class="com.tcs.destination.service.DocumentService" />
-
 	<bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
 
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
@@ -56,7 +54,13 @@
 	
 	<bean id="eventListenerBean" class="com.tcs.destination.DestinationContextListener" />
 
-<context:property-placeholder location="classpath:application.properties" />
+	<context:property-placeholder location="classpath:application.properties" />
 	<tx:annotation-driven transaction-manager="transactionManager" />
 
+	<bean id="autoCommentsTaskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="10" />
+		<property name="maxPoolSize" value="15" />
+		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+	</bean>
 </beans>

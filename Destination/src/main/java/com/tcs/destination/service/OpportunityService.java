@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +29,10 @@ import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
+import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
@@ -46,6 +49,7 @@ import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.AutoCommentsHelper;
 
 @Component
 public class OpportunityService {
@@ -100,6 +104,17 @@ public class OpportunityService {
 
 	@Autowired
 	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
+	
+	// Required beans for Auto comments - start
+	@Autowired
+	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
+	
+	@Autowired
+	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
+	
+	@Autowired
+	CollaborationCommentsRepository collaborationCommentsRepository;
+	// Required beans for Auto comments - end
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency) throws Exception {
@@ -319,6 +334,8 @@ public class OpportunityService {
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
 			saveOpportunity(opportunity, false);
+			// Invoke Asynchronous Auto Comments Thread
+			processAutoComments(opportunity.getOpportunityId(), null);
 		}
 	}
 
@@ -640,4 +657,18 @@ public class OpportunityService {
 		}
 	}
 
+	// This method is used to invoke asynchronous thread for auto comments
+	private void processAutoComments(String opportunitytId, Object oldObject) throws Exception {
+		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
+		autoCommentsHelper.setEntityId(opportunitytId);
+		autoCommentsHelper.setEntityType(EntityType.OPPORTUNITY.name());
+		if (oldObject != null)
+			autoCommentsHelper.setOldObject(oldObject);
+		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		autoCommentsHelper.setCrudRepository(opportunityRepository);
+		// Invoking Auto Comments Task Executor Thread
+		autoCommentsTaskExecutor.execute(autoCommentsHelper);
+
+	}
 }
