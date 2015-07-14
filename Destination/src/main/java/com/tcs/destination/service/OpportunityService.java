@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
@@ -29,6 +30,7 @@ import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
@@ -50,6 +52,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class OpportunityService {
@@ -111,6 +114,9 @@ public class OpportunityService {
 	
 	@Autowired
 	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
+	
+	@Autowired
+	AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
 	
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
@@ -537,7 +543,15 @@ public class OpportunityService {
 
 	@Transactional
 	public void edit(OpportunityT opportunity) throws Exception {
-		saveOpportunity(opportunity, true);
+		// Check if opportunity exists
+		OpportunityT dbOpportunity = opportunityRepository.findOne(opportunity.getOpportunityId());
+		if (dbOpportunity != null) {
+			// Get a copy of the db object for processing Auto comments
+			OpportunityT oldObject = (OpportunityT) DestinationUtils.copy(dbOpportunity);
+			saveOpportunity(opportunity, true);
+			// Invoke Asynchronous Auto Comments Thread
+			processAutoComments(opportunity.getOpportunityId(), oldObject);
+		}
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
@@ -665,6 +679,7 @@ public class OpportunityService {
 		if (oldObject != null)
 			autoCommentsHelper.setOldObject(oldObject);
 		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(opportunityRepository);
 		// Invoking Auto Comments Task Executor Thread

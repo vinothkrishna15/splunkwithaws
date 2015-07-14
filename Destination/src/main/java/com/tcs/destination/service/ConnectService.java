@@ -26,6 +26,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -40,6 +41,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Component
 public class ConnectService {
@@ -75,14 +77,17 @@ public class ConnectService {
 
 	@Autowired
 	ConnectSecondaryOwnerRepository connSecOwnerRepo;
-	
+
 	// Required beans for Auto comments - start
 	@Autowired
 	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
-	
+
 	@Autowired
 	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
-	
+
+	@Autowired
+	AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
+
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
@@ -137,7 +142,7 @@ public class ConnectService {
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, Date weekStartDate,
 			Date weekEndDate, Date monthStartDate, Date monthEndDate)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside DashBoardConnectsResponse Service");
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
@@ -160,7 +165,7 @@ public class ConnectService {
 	public List<ConnectT> searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, boolean isForCount)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner Service");
 		Timestamp toTimestamp=new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1);
 		if (OwnerType.contains(owner)) {
@@ -222,88 +227,88 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
-			if (connectRepository.save(connect) != null) {
-				String tempId = connect.getConnectId();
-				backupConnect.setConnectId(tempId);
-				logger.debug("Parent Object Saved. Id : " + tempId);
-				connect = restore(backupConnect);
-				String categoryUpperCase = connect.getConnectCategory()
-						.toUpperCase();
-				connect.setConnectCategory(categoryUpperCase);
+		if (connectRepository.save(connect) != null) {
+			String tempId = connect.getConnectId();
+			backupConnect.setConnectId(tempId);
+			logger.debug("Parent Object Saved. Id : " + tempId);
+			connect = restore(backupConnect);
+			String categoryUpperCase = connect.getConnectCategory()
+					.toUpperCase();
+			connect.setConnectCategory(categoryUpperCase);
 
-				String connectId = connect.getConnectId();
-				String customerId = connect.getCustomerId();
-				String partnerId = connect.getPartnerId();
+			String connectId = connect.getConnectId();
+			String customerId = connect.getCustomerId();
+			String partnerId = connect.getPartnerId();
 
-				List<NotesT> noteList = connect.getNotesTs();
-				if (noteList != null)
-					populateNotes(customerId, partnerId,
-							categoryUpperCase, connectId, noteList);
-				logger.debug("Notes Populated ");
+			List<NotesT> noteList = connect.getNotesTs();
+			if (noteList != null)
+				populateNotes(customerId, partnerId,
+						categoryUpperCase, connectId, noteList);
+			logger.debug("Notes Populated ");
 
-				List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
-						.getConnectCustomerContactLinkTs();
-				if (conCustConLinkTList != null) {
-					populateConnectCustomerContactLinks(
-							connectId, conCustConLinkTList);
-					logger.debug("ConnectCustomerContact Populated ");
-				} else {
-					logger.error("Connect Customer Contact List null");
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Connect Customer Contact List null");
-				}
-
-				List<ConnectOfferingLinkT> conOffLinkTList = connect
-						.getConnectOfferingLinkTs();
-				if (conOffLinkTList != null) {
-					populateConnectOfferingLinks(connectId,
-							conOffLinkTList);
-					logger.debug("ConnectOffering Populated ");
-				}
-
-				List<ConnectSubSpLinkT> conSubSpLinkTList = connect
-						.getConnectSubSpLinkTs();
-				if (conSubSpLinkTList != null) {
-					populateConnectSubSpLinks(connectId,
-							conSubSpLinkTList);
-					logger.debug("ConnectSubSp Populated ");
-				}
-
-				List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
-						.getConnectSecondaryOwnerLinkTs();
-				if (conSecOwnLinkTList != null) {
-					populateConnectSecondaryOwnerLinks(
-							connectId, conSecOwnLinkTList);
-					logger.debug("ConnectSecondaryOwner Populated ");
-				}
-
-				List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
-						.getConnectTcsAccountContactLinkTs();
-				if (conTcsAccConLinkTList != null) {
-					populateConnectTcsAccountContactLinks(
-							connectId, conTcsAccConLinkTList);
-					logger.debug("ConnectTcsAccountContact Populated ");
-				}
-
-				// Save Search Keywords
-				if (connect.getSearchKeywordsTs() != null) {
-					for (SearchKeywordsT searchKeywordT : connect
-							.getSearchKeywordsTs()) {
-						searchKeywordT.setEntityType(EntityType.CONNECT
-								.toString());
-						searchKeywordT.setEntityId(connect.getConnectId());
-						searchKeywordsRepository.save(searchKeywordT);
-					}
-				}
-
-				if (connectRepository.save(connect) != null) {
-					logger.debug("Connect Record Inserted - child objects saved");
-					// Invoke Asynchronous Auto Comments Thread
-					processAutoComments(connect.getConnectId(), null);
-					return true;
-				}
-
+			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
+					.getConnectCustomerContactLinkTs();
+			if (conCustConLinkTList != null) {
+				populateConnectCustomerContactLinks(
+						connectId, conCustConLinkTList);
+				logger.debug("ConnectCustomerContact Populated ");
+			} else {
+				logger.error("Connect Customer Contact List null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Connect Customer Contact List null");
 			}
+
+			List<ConnectOfferingLinkT> conOffLinkTList = connect
+					.getConnectOfferingLinkTs();
+			if (conOffLinkTList != null) {
+				populateConnectOfferingLinks(connectId,
+						conOffLinkTList);
+				logger.debug("ConnectOffering Populated ");
+			}
+
+			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
+					.getConnectSubSpLinkTs();
+			if (conSubSpLinkTList != null) {
+				populateConnectSubSpLinks(connectId,
+						conSubSpLinkTList);
+				logger.debug("ConnectSubSp Populated ");
+			}
+
+			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
+					.getConnectSecondaryOwnerLinkTs();
+			if (conSecOwnLinkTList != null) {
+				populateConnectSecondaryOwnerLinks(
+						connectId, conSecOwnLinkTList);
+				logger.debug("ConnectSecondaryOwner Populated ");
+			}
+
+			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
+					.getConnectTcsAccountContactLinkTs();
+			if (conTcsAccConLinkTList != null) {
+				populateConnectTcsAccountContactLinks(
+						connectId, conTcsAccConLinkTList);
+				logger.debug("ConnectTcsAccountContact Populated ");
+			}
+
+			// Save Search Keywords
+			if (connect.getSearchKeywordsTs() != null) {
+				for (SearchKeywordsT searchKeywordT : connect
+						.getSearchKeywordsTs()) {
+					searchKeywordT.setEntityType(EntityType.CONNECT
+							.toString());
+					searchKeywordT.setEntityId(connect.getConnectId());
+					searchKeywordsRepository.save(searchKeywordT);
+				}
+			}
+
+			if (connectRepository.save(connect) != null) {
+				logger.debug("Connect Record Inserted - child objects saved");
+				// Invoke Asynchronous Auto Comments Thread
+				processAutoComments(connect.getConnectId(), null);
+				return true;
+			}
+
+		}
 		logger.debug("Connect not Saved");
 		return false;
 	}
@@ -347,13 +352,13 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Missing PartnerId/CustomerId");
 		}
-		
+
 		if(isInsert && connect.getCreatedBy()==null){
 			logger.error("Missing UserCreated in connect");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Missing UserCreated in connect");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Missing UserCreated in connect");
 		}
-			
+
 		if(connect.getModifiedBy()==null){
 			logger.error("Missing UserModified");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -364,7 +369,7 @@ public class ConnectService {
 	private void populateConnectTcsAccountContactLinks(
 			String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			//conTcsAccConLink.setCreatedModifiedBy(currentUserId);
@@ -460,14 +465,20 @@ public class ConnectService {
 		connect.setPartnerMasterT(null);
 		connect.setUserFavoritesTs(null);
 		connect.setUserNotificationsTs(null);
-		connect.setUserT(null);
+		connect.setPrimaryOwnerUser(null);
 	}
 
 	@Transactional
 	public boolean editConnect(ConnectT connect) throws Exception {
 		logger.debug("inside editConnect Service");
 
-		validateRequest(connect,false);
+		// Check if connect exists
+		ConnectT dbConnect = connectRepository.findOne(connect.getConnectId());
+		if (dbConnect != null) {
+			// Get a copy of the db object for processing Auto comments
+			ConnectT oldObject = (ConnectT) DestinationUtils.copy(dbConnect);
+
+			validateRequest(connect,false);
 
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
@@ -575,8 +586,15 @@ public class ConnectService {
 
 			if (connectRepository.save(connect) != null) {
 				logger.debug("Connect Edit Success");
+				// Invoke Asynchronous Auto Comments Thread
+				processAutoComments(connect.getConnectId(), oldObject);
 				return true;
 			}
+		} else {
+			logger.error("Connect not found: {}", connect.getConnectId());
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid ConnectId: " + connect.getConnectId());
+
+		}
 		return false;
 	}
 
@@ -662,7 +680,7 @@ public class ConnectService {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getOpportunityT()
-							.setConnectOpportunityLinkIdTs(null);
+					.setConnectOpportunityLinkIdTs(null);
 				}
 			}
 		}
@@ -676,6 +694,7 @@ public class ConnectService {
 		if (oldObject != null)
 			autoCommentsHelper.setOldObject(oldObject);
 		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(connectRepository);
 		// Invoking Auto Comments Task Executor Thread

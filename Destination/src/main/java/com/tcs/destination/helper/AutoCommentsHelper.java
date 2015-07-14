@@ -226,6 +226,14 @@ public class AutoCommentsHelper implements Runnable {
 				processTaskUpdate(autoCommentsEntity);
 				break;
 			}
+			case CONNECT: {
+				processConnectUpdate(autoCommentsEntity);
+				break;
+			}
+			case OPPORTUNITY: {
+				processOpportunityUpdate(autoCommentsEntity);
+				break;
+			}
 			default:
 				logger.error("Invalid Entity Type: " + entityType);
 				throw new Exception("Invalid Entity Type: " + entityType);
@@ -239,9 +247,6 @@ public class AutoCommentsHelper implements Runnable {
 		String user = null;
 		String entityName = null;
 		String parentEntityName = null;
-		String msgTemplate = null;
-		Object fromValue = null;
-		Object toValue = null;
 
 		// Get the fields eligible for Auto comments
 		List<AutoCommentsEntityFieldsT> fields = autoCommentsEntityFieldsTRepository.
@@ -254,22 +259,7 @@ public class AutoCommentsHelper implements Runnable {
 				// Iterate auto comments eligible fields and add auto comments
 				for (AutoCommentsEntityFieldsT field: fields) {
 					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-						logger.info("Field: {}", field.getName());
-						fromValue = PropertyUtils.getProperty(oldObject, field.getName());
-						toValue = PropertyUtils.getProperty(task, field.getName());
-						if ((fromValue != null && toValue != null) 
-								&& !fromValue.equals(toValue)) 
-						{
-							logger.info("fromValue: {}", fromValue);
-							logger.info("toValue: {}", toValue);
-							msgTemplate = replaceTokens(field.getUpdateMessageTemplate(), 
-									populateTokens(user, entityName, parentEntityName, fromValue.toString(), toValue.toString()));
-							//Add collaboration comments
-							if (msgTemplate != null) {
-								addCollaborationComments(msgTemplate);
-							}
-						}
-						
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, task);
 					} else {
 						// To-Do for Child Objects
 					}
@@ -282,6 +272,106 @@ public class AutoCommentsHelper implements Runnable {
 			logger.info("No eligible fields for Auto comments, Task :{}", entityId);
 		}
 		logger.debug("Finished processing Auto comments for Update, TaskId: {}", entityId);
+	}
+	
+	// This method is used to process auto comments events for Connect
+	private void processConnectUpdate(AutoCommentsEntityT autoCommentsEntity) throws Exception {
+		logger.debug("Processing Auto comments for Update, ConnectId: {}", entityId);
+		String user = null;
+		String entityName = null;
+		String parentEntityName = null;
+
+		// Get the fields eligible for Auto comments
+		List<AutoCommentsEntityFieldsT> fields = autoCommentsEntityFieldsTRepository.
+				findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(), Constants.Y);
+		if (fields != null && !fields.isEmpty()) {
+			ConnectT connect = ((ConnectRepository) crudRepository).findOne(entityId);
+			if (connect != null) {
+				user = connect.getModifiedByUser().getUserName();
+				entityName = connect.getConnectName();
+				// Iterate auto comments eligible fields and add auto comments
+				for (AutoCommentsEntityFieldsT field: fields) {
+					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, connect);
+					} else {
+						// To-Do for Child Objects
+					}
+				}
+			} else {
+				logger.error("Invalid Connect Id: {}", entityId);
+				throw new Exception("Invalid Connect Id: " + entityId);
+			}
+		} else {
+			logger.info("No eligible fields for Auto comments, Connect :{}", entityId);
+		}
+		logger.debug("Finished processing Auto comments for Update, ConnectId: {}", entityId);
+	}
+
+	// This method is used to process auto comments events for Opportunity
+	private void processOpportunityUpdate(AutoCommentsEntityT autoCommentsEntity) throws Exception {
+		logger.debug("Processing Auto comments for Update, OpportunityId: {}", entityId);
+		String user = null;
+		String entityName = null;
+		String parentEntityName = null;
+
+		// Get the fields eligible for Auto comments
+		List<AutoCommentsEntityFieldsT> fields = autoCommentsEntityFieldsTRepository.
+				findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(), Constants.Y);
+		if (fields != null && !fields.isEmpty()) {
+			OpportunityT opportunity = ((OpportunityRepository) crudRepository).findOne(entityId);
+			if (opportunity != null) {
+				user = opportunity.getModifiedByUser().getUserName();
+				entityName = opportunity.getOpportunityName();
+				// Iterate auto comments eligible fields and add auto comments
+				for (AutoCommentsEntityFieldsT field: fields) {
+					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, opportunity);
+					} else {
+						// To-Do for Child Objects
+					}
+				}
+			} else {
+				logger.error("Invalid Connect Id: {}", entityId);
+				throw new Exception("Invalid Connect Id: " + entityId);
+			}
+		} else {
+			logger.info("No eligible fields for Auto comments, Connect :{}", entityId);
+		}
+		logger.debug("Finished processing Auto comments for Update, ConnectId: {}", entityId);
+	}
+
+	// This method is used to add auto comments for a particular entity field update
+	private void processEntityFieldUpdate(String user, String entityName, String parentEntityName, AutoCommentsEntityFieldsT field, Object newObject)
+			throws Exception {
+		logger.debug("Inside processEntityFieldUpdate() method");;
+		Object fromValue = null;
+		Object toValue = null;
+		String msgTemplate = null;
+
+		if (field != null) {
+			logger.info("Field: {}", field.getName());
+			fromValue = PropertyUtils.getProperty(oldObject, field.getName());
+			toValue = PropertyUtils.getProperty(newObject, field.getName());
+			logger.info("fromValue: {}", fromValue);
+			logger.info("toValue: {}", toValue);
+			// Field value updated in update
+			if (fromValue != null) {
+				if (toValue != null && !fromValue.equals(toValue)) { 
+					msgTemplate = replaceTokens(field.getUpdateMessageTemplate(), 
+						populateTokens(user, entityName, parentEntityName, fromValue.toString(), toValue.toString()));
+				}
+			} else {
+				// Field value add newly in update
+				if (toValue != null) {
+					msgTemplate = replaceTokens(field.getAddMessageTemplate(), 
+						populateTokens(user, entityName, parentEntityName, null, toValue.toString()));
+				}
+			}
+			//Add collaboration comments
+			if (msgTemplate != null) {
+				addCollaborationComments(msgTemplate);
+			}
+		}
 	}
 	
 	// This method is used to populate the replacement tokens in the auto comments message template

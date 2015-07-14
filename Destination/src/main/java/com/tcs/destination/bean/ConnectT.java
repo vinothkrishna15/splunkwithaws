@@ -157,7 +157,7 @@ public class ConnectT implements Serializable {
 		this.taskTs = con.taskTs;
 		this.userFavoritesTs = con.userFavoritesTs;
 		this.userNotificationsTs = con.userNotificationsTs;
-		this.userT = con.userT;
+		this.primaryOwnerUser = con.primaryOwnerUser;
 		this.searchKeywordsTs = con.searchKeywordsTs;
 	}
 
@@ -208,7 +208,7 @@ public class ConnectT implements Serializable {
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name = "primary_owner", insertable = false, updatable = false)
-	private UserT userT;
+	private UserT primaryOwnerUser;
 
 //	@ManyToOne
 //	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
@@ -523,12 +523,12 @@ public class ConnectT implements Serializable {
 		this.partnerMasterT = partnerMasterT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getPrimaryOwnerUser() {
+		return this.primaryOwnerUser;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setPrimaryOwnerUser(UserT primaryOwnerUser) {
+		this.primaryOwnerUser = primaryOwnerUser;
 	}
 
 	public List<ConnectTcsAccountContactLinkT> getConnectTcsAccountContactLinkTs() {
