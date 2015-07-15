@@ -640,4 +640,12 @@ public class OpportunityService {
 		}
 	}
 
+	public List<OpportunityT> findShelvedOpportunities(List<String> currencies) {
+		List<OpportunityT> opportunityTs = opportunityRepository
+				.findBySalesStageCode(12);
+		prepareOpportunity(opportunityTs);
+		return opportunityTs;
+	}
+
+
 }

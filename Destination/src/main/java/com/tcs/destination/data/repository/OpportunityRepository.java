@@ -245,4 +245,7 @@ public interface OpportunityRepository extends
 				  + " order by OPP.digital_deal_value DESC limit ?8"
 				  ,nativeQuery=true)
 		  public List<OpportunityT> getTopOpportunities(String geography,String subSp,String iou,Date dateFrom,Date dateTo,int stageFrom,int stageTo,int count);
+
+		  public List<OpportunityT> findBySalesStageCode(int salesStageCode);
+
 }

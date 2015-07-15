@@ -39,7 +39,7 @@ public class OpportunityController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@RequestParam("nameWith") String nameWith,
-			@RequestParam(value="customerId", defaultValue = "") String customerId,
+			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -47,7 +47,7 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith,customerId,currencies);
+				.findByOpportunityName(nameWith, customerId, currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -61,8 +61,8 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/Id="
 				+ opportunityId + " GET");
-		OpportunityT opportunity = opportunityService
-				.findByOpportunityId(opportunityId,currencies);
+		OpportunityT opportunity = opportunityService.findByOpportunityId(
+				opportunityId, currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunity);
 	}
@@ -77,7 +77,7 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity/recent?customerId="
 				+ customerId + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findRecentOpportunities(customerId,currencies);
+				.findRecentOpportunities(customerId, currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -93,7 +93,8 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
 				+ userId + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,currencies);
+				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,
+						currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -151,6 +152,19 @@ public class OpportunityController {
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
 						status), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/shelved", method = RequestMethod.GET)
+	public @ResponseBody String findShelved(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside OpportunityController /opportunity/shelved GET");
+		List<OpportunityT> opportunities = opportunityService
+				.findShelvedOpportunities(currencies);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				opportunities);
 	}
 
 }
