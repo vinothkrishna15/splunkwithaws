@@ -7,21 +7,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
+import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
+import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.TaskCollaborationPreference;
 import com.tcs.destination.enums.TaskEntityReference;
 import com.tcs.destination.enums.TaskStatus;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * Service class to handle Task module related requests.
@@ -49,6 +56,20 @@ public class TaskService {
 	@Autowired
 	UserRepository userRepository;
 
+	// Required beans for Auto comments - start
+	@Autowired
+	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
+	
+	@Autowired
+	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
+
+	@Autowired
+	AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
+	
+	@Autowired
+	CollaborationCommentsRepository collaborationCommentsRepository;
+	// Required beans for Auto comments - end
+
 	/**
 	 * This method is used to find task details for the given task id.
 	 * 
@@ -60,7 +81,7 @@ public class TaskService {
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null) {
-			logger.error("NOT_FOUND: No task found for the TaskId");
+			logger.error("NOT_FOUND: No task found for the TaskId {}", taskId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No Task found");
 		}
 		return task;
@@ -77,7 +98,7 @@ public class TaskService {
 				findByTaskDescriptionIgnoreCaseContaining(taskDescription);
 
 		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error("NOT_FOUND: No tasks found with the given task description");
+			logger.error("NOT_FOUND: No tasks found with the given task description {}", taskDescription);
 			throw new DestinationException(
 					HttpStatus.NOT_FOUND, "No tasks found with the given task description");
 		}
@@ -96,7 +117,7 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the ConnectId");
+			logger.error("NOT_FOUND: No tasks found for the ConnectId {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId");
 		}
 		return taskList;
@@ -114,7 +135,7 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the OpportunityId");
+			logger.error("NOT_FOUND: No tasks found for the OpportunityId {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId");
 		}
 		return taskList;
@@ -133,7 +154,7 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the UserId");
+			logger.error("NOT_FOUND: No tasks found for the UserId {}", taskOwner);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
 		}
 		return taskList;
@@ -150,7 +171,7 @@ public class TaskService {
 			taskRepository.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
 		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId");
+			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId {}", userId);
 			throw new DestinationException
 				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId");
 		}
@@ -185,6 +206,7 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT createTask(TaskT task) throws Exception {
+
 		logger.debug("Inside createTask Service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
@@ -213,6 +235,10 @@ public class TaskService {
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
 			}
 		}
+		
+		// Invoke Asynchronous Auto Comments Thread
+		processAutoComments(managedTask.getTaskId(), null);
+		
 		return managedTask;
 	}
 
@@ -227,10 +253,13 @@ public class TaskService {
 		logger.debug("Inside editTask Service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null; 
-		TaskT managedTask = null;
+		//TaskT managedTask = null;
 
 		//Check if task exists
-		if (taskRepository.exists(task.getTaskId())) {
+		TaskT dbTask = taskRepository.findOne(task.getTaskId());
+		if (dbTask != null) {
+			// Get a copy of the db object for processing Auto comments
+			TaskT oldObject = (TaskT)  DestinationUtils.copy(dbTask);
 			logger.debug("Task Exists");
 			//Validate input parameters
 			validateTask(task);
@@ -255,14 +284,14 @@ public class TaskService {
 			}
 
 			//Persist task
-			managedTask = taskRepository.save(task);
-
+			dbTask = taskRepository.save(task);
+			
 			//Persist TaskBdmsTaggedLinkT
 			if (taskBdmsTaggedLinkTs != null) {
 				logger.debug("taskBdmsTaggedLinkTs NOT NULL");
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink: taskBdmsTaggedLinkTs) {
-					taskBdmTaggedLink.setTaskT(managedTask);
-					taskBdmTaggedLink.setTaskId(managedTask.getTaskId());
+					taskBdmTaggedLink.setTaskT(dbTask);
+					taskBdmTaggedLink.setTaskId(dbTask.getTaskId());
 				}
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
 				logger.debug("TaskBdmsTaggedLinkTs Saved Successfully");
@@ -273,11 +302,15 @@ public class TaskService {
 				logger.debug("TaskBdmsTaggedLink Removed Successfully");
 				taskBdmsTaggedLinkRepository.delete(removeBdmsTaggedLinkTs);
 			}
+
+			// Invoke Asynchronous Auto Comments Thread
+			processAutoComments(dbTask.getTaskId(), oldObject);
+
 		} else {
 			logger.error("Task not found: {}", task.getTaskId());
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Task Not Found For Update");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid TaskId: " + task.getTaskId());
 		}
-		return managedTask;
+		return dbTask;
 	}
 
 	/**
@@ -326,7 +359,7 @@ public class TaskService {
 					}
 				}
 			} else {
-				logger.error("BAD_REQUEST: Invalid Task Entity Reference");
+				logger.error("BAD_REQUEST: Invalid Task Entity Reference {}", entityRef);
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Entity Reference");
 			}
 		}
@@ -336,7 +369,7 @@ public class TaskService {
 			logger.debug("Task Status NOT NULL");
 			if (!TaskStatus.contains(task.getTaskStatus()))
 			{
-				logger.error("BAD_REQUEST: Invalid Task Status");
+				logger.error("BAD_REQUEST: Invalid Task Status {}", task.getTaskStatus());
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status");
 			}				
 		}
@@ -356,7 +389,7 @@ public class TaskService {
 				}
 				
 			} else {
-				logger.error("BAD_REQUEST: Invalid Task BDM Collaboration Preference");
+				logger.error("BAD_REQUEST: Invalid Task BDM Collaboration Preference {}", collaborationPreference);
 				throw new DestinationException(
 						HttpStatus.BAD_REQUEST, "Invalid Task BDM Collaboration Preference");
 			}
@@ -375,7 +408,7 @@ public class TaskService {
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
 
 		if (userIds == null || userIds.isEmpty()) {
-			logger.error("NOT_FOUND: No subordinates found for supervisor user");
+			logger.error("NOT_FOUND: No subordinates found for supervisor user {}", supervisorId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No subordinates found for supervisor user");
 		}
 			
@@ -385,10 +418,26 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No team tasks found for the Supervisor");
+			logger.error("NOT_FOUND: No team tasks found for the Supervisor {}", supervisorId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No team tasks found for the Supervisor");
 		}
 		return taskList;
 	}
+	
+	// This method is used to invoke asynchronous thread for auto comments
+	private void processAutoComments(String taskId, Object oldObject) throws Exception {
+		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
+		autoCommentsHelper.setEntityId(taskId);
+		autoCommentsHelper.setEntityType(EntityType.TASK.name());
+		if (oldObject != null)
+			autoCommentsHelper.setOldObject(oldObject);
+		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		autoCommentsHelper.setCrudRepository(taskRepository);
+		// Invoking Auto Comments Task Executor Thread
+		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
+	}
+	
 }

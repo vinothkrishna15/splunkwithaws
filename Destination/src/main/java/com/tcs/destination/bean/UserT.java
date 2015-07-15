@@ -153,7 +153,7 @@ public class UserT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to ConnectT
 	@JsonIgnore
-	@OneToMany(mappedBy = "userT")
+	@OneToMany(mappedBy = "primaryOwnerUser")
 	private List<ConnectT> connectTs;
 
 	// bi-directional many-to-one association to ConnectT
@@ -617,14 +617,14 @@ public class UserT implements Serializable, Cloneable {
 
 	public ConnectT addConnectT(ConnectT connectT) {
 		getConnectTs().add(connectT);
-		connectT.setUserT(this);
+		connectT.setPrimaryOwnerUser(this);
 
 		return connectT;
 	}
 
 	public ConnectT removeConnectT(ConnectT connectT) {
 		getConnectTs().remove(connectT);
-		connectT.setUserT(null);
+		connectT.setPrimaryOwnerUser(null);
 
 		return connectT;
 	}
