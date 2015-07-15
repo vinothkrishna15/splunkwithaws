@@ -89,7 +89,7 @@ public interface OpportunityRepository extends
 			+ "(select opportunity_id from opportunity_sales_support_link_t where sales_support_owner = ?2) union "
 			+ "(select opportunity_id from bid_details_t BDT where BDT.bid_id in "
 			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner= ?3))) "
-			+ "order by OPP.created_modified_datetime desc", nativeQuery = true)
+			+ "order by OPP.modified_datetime desc", nativeQuery = true)
 	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner,
 			String salesSupportOwner, String bidOfficeOwner);
 

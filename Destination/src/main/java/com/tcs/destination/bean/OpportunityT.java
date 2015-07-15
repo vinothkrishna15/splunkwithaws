@@ -132,7 +132,7 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to BidDetailsT
 	@OneToMany(mappedBy = "opportunityT")
-	@OrderBy("created_modified_datetime DESC")
+	@OrderBy("modified_datetime DESC")
 	private List<BidDetailsT> bidDetailsTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
