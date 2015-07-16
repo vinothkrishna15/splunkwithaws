@@ -694,4 +694,20 @@ public class OpportunityService {
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
 	}
+	
+	/**
+	 * This is the serives method which deals with the retrieval of all 
+	 * opportunities under a supervisor
+	 * 
+	 * @param supervisorUserId
+	 * @return
+	 */
+	public List<OpportunityT> findOpportunitiesBySupervisorId(String supervisorUserId) {
+		logger.debug("Inside OpportunityService /tasksBySupervisorId?id="+ supervisorUserId + " GET");
+		
+		List<OpportunityT> opportunities = opportunityRepository.findOpportunitiesBySupervisorId(supervisorUserId);
+		
+		return opportunities;
+	}
+
 }

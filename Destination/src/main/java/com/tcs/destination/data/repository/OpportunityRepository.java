@@ -247,5 +247,15 @@ public interface OpportunityRepository extends
 		  public List<OpportunityT> getTopOpportunities(String geography,String subSp,String iou,Date dateFrom,Date dateTo,int stageFrom,int stageTo,int count);
 
 		  public List<OpportunityT> findBySalesStageCode(int salesStageCode);
+		  
+		  /**
+			* This method retrieves all supervisor opportunities using the mentioned query 
+			* 
+			* @param supervisorUserId
+			* @return
+			*/
+		@Query(value="select * from opportunity_t OPP where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) order by OPP.modified_datetime desc", nativeQuery=true)
+		public List<OpportunityT> findOpportunitiesBySupervisorId(String supervisorUserId);
+
 
 }

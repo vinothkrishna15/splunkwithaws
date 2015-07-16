@@ -167,4 +167,27 @@ public class OpportunityController {
 				opportunities);
 	}
 
+	/**
+	 * This method retrieves the opportunities that are associated with a supervisor.
+	 * All the associates' opportunities who comes under the supervisor are retrieved.  
+	 * 
+	 * @param supervisorUserId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */	@RequestMapping(value = "/tasksBySupervisorId", method = RequestMethod.GET)
+	public @ResponseBody String findTasksBySupervisorId(
+			@RequestParam("id") String supervisorUserId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside OpportunityController /tasksBySupervisorId?id="
+				+ supervisorUserId + " GET");
+		
+		List<OpportunityT> opportunities = opportunityService.findOpportunitiesBySupervisorId(supervisorUserId);
+		
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				opportunities);
+	}
 }
