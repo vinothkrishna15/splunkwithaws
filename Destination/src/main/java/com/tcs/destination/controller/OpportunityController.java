@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.TasksBySupervisorIdDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -185,7 +186,7 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /tasksBySupervisorId?id="
 				+ supervisorUserId + " GET");
 		
-		List<OpportunityT> opportunities = opportunityService.findOpportunitiesBySupervisorId(supervisorUserId);
+		List<TasksBySupervisorIdDTO> opportunities = opportunityService.findOpportunitiesBySupervisorId(supervisorUserId);
 		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);

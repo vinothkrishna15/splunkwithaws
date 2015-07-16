@@ -29,6 +29,7 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.TasksBySupervisorIdDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -702,12 +703,28 @@ public class OpportunityService {
 	 * @param supervisorUserId
 	 * @return
 	 */
-	public List<OpportunityT> findOpportunitiesBySupervisorId(String supervisorUserId) {
-		logger.debug("Inside OpportunityService /tasksBySupervisorId?id="+ supervisorUserId + " GET");
-		
-		List<OpportunityT> opportunities = opportunityRepository.findOpportunitiesBySupervisorId(supervisorUserId);
-		
-		return opportunities;
+	public List<TasksBySupervisorIdDTO> findOpportunitiesBySupervisorId(
+			String supervisorUserId) {
+		logger.debug("Inside OpportunityService /tasksBySupervisorId?id="
+				+ supervisorUserId + " GET");
+
+		List<Object[]> opportunities = opportunityRepository
+				.findOpportunitiesBySupervisorId(supervisorUserId);
+
+		List<TasksBySupervisorIdDTO> listOfopportunitiesDTO = new ArrayList<TasksBySupervisorIdDTO>();
+
+		for (Object[] oppDTOArray : opportunities) {
+
+			TasksBySupervisorIdDTO opp = new TasksBySupervisorIdDTO();
+			opp.setDigitalDealValue(oppDTOArray[0].toString());
+			opp.setSalesStageCode(oppDTOArray[1].toString());
+			opp.setSalesCount(oppDTOArray[2].toString());
+			opp.setSalesStageDescription(oppDTOArray[3].toString());
+
+			listOfopportunitiesDTO.add(opp);
+		}
+
+		return listOfopportunitiesDTO;
 	}
 
 }
