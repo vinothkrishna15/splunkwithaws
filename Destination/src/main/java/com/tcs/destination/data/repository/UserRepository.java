@@ -21,4 +21,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 			+ " WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id"
 			+ " ) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc", nativeQuery=true)
 	List<String> getAllSubordinatesIdBySupervisorId(String supervisorId);
+	
+	@Query (value="select user_id from user_t where user_role=?1",nativeQuery=true)
+	List<String> getAllMembersByRole(String role);
+	
 }

@@ -40,6 +40,20 @@ public class UserService {
 		return users;
 	}
 	
+	
+	public List<String> findByUserRole(String role) throws Exception{
+		logger.debug("Inside findByUserRole Service");
+		List<String> users = (List<String>) userRepository.getAllMembersByRole(role);
+		
+		if (users.isEmpty())
+		{
+			logger.error("NOT_FOUND: No matching user found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,"No matching user found");
+		}			
+		
+		return users;
+	}
+	
 	public UserT findUserByName(String userName) throws Exception {
 		logger.debug("Inside findUserByName Service");
 		UserT user = null;
@@ -105,5 +119,10 @@ public class UserService {
 	
 	public void updateUser(UserT user){
 		userRepository.save(user);
+	}
+	
+	public UserT findByUserId(String userId) throws Exception{
+		UserT dbUser = userRepository.findOne(userId);
+		return dbUser;
 	}
 }
