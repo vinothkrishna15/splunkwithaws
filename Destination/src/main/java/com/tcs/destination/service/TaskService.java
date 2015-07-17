@@ -3,6 +3,9 @@ package com.tcs.destination.service;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,10 @@ public class TaskService {
 	
 	private static final String STATUS_CLOSED = "CLOSED";
 	
+	// Required for auto comments
+	@PersistenceContext
+    private EntityManager entityManager;
+
 	@Autowired
 	TaskRepository taskRepository;
 
@@ -77,7 +84,7 @@ public class TaskService {
 	 * @return task details for the given task id.
 	 */
 	public TaskT findTaskById(String taskId) throws Exception {
-		logger.debug("Inside findTaskById Service");
+		logger.debug("Inside findTaskById() service");
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null) {
@@ -93,7 +100,7 @@ public class TaskService {
 	 * @return tasks with the given task description.
 	 */
 	public List<TaskT> findTasksByNameContaining(String taskDescription) throws Exception {
-		logger.debug("Inside findTasksByNameContaining Service");
+		logger.debug("Inside findTasksByNameContaining() service");
 		List<TaskT> taskList = taskRepository.
 				findByTaskDescriptionIgnoreCaseContaining(taskDescription);
 
@@ -112,7 +119,7 @@ public class TaskService {
 	 * @return tasks for the given connect id.
 	 */
 	public List<TaskT> findTasksByConnectId(String connectId) throws Exception {
-		logger.debug("Inside findTasksByConnectId Service");
+		logger.debug("Inside findTasksByConnectId() service");
 		List<TaskT> taskList = taskRepository.findByConnectId(connectId);
 
 		if ((taskList == null) || taskList.isEmpty())
@@ -130,7 +137,7 @@ public class TaskService {
 	 * @return tasks for the given opportunity id.
 	 */
 	public List<TaskT> findTasksByOpportunityId(String opportunityId) throws Exception {
-		logger.debug("Inside findTasksByOpportunityId Service");
+		logger.debug("Inside findTasksByOpportunityId() service");
 		List<TaskT> taskList = taskRepository.findByOpportunityId(opportunityId);
 
 		if ((taskList == null) || taskList.isEmpty())
@@ -148,7 +155,7 @@ public class TaskService {
 	 * @return tasks for the given task owner.
 	 */
 	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws Exception {
-		logger.debug("Inside findTasksByTaskOwner Service");
+		logger.debug("Inside findTasksByTaskOwner() service");
 		List<TaskT> taskList = 
 				taskRepository.findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(taskOwner, STATUS_CLOSED);
 
@@ -166,7 +173,7 @@ public class TaskService {
 	 * @return tasks assigned to others by a given user id.
 	 */
 	public List<TaskT> findTasksAssignedtoOthersByUser(String userId) throws Exception {
-		logger.debug("Inside findTasksAssignedtoOthersByUser Service");
+		logger.debug("Inside findTasksAssignedtoOthersByUser() service");
 		List<TaskT> taskList = 
 			taskRepository.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
@@ -185,7 +192,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByUserAndTargetDate(String userId, Date fromDate, Date toDate) 
 			throws Exception {
-		logger.debug("Inside findTasksByUserAndTargetDate Service");
+		logger.debug("Inside findTasksByUserAndTargetDate() service");
 		List<TaskT> taskList = null;
 		
 		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletionBetween(userId, fromDate, toDate);
@@ -207,7 +214,7 @@ public class TaskService {
 	@Transactional
 	public TaskT createTask(TaskT task) throws Exception {
 
-		logger.debug("Inside createTask Service");
+		logger.debug("Inside createTask() service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		TaskT managedTask = null;
 
@@ -250,17 +257,22 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT editTask(TaskT task) throws Exception {
-		logger.debug("Inside editTask Service");
+		logger.debug("Inside editTask() service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null; 
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null; 
-		//TaskT managedTask = null;
 
+		if (task.getTaskId() == null) {
+			logger.error("TaskId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "TaskId is required for update");
+		}
 		//Check if task exists
 		TaskT dbTask = taskRepository.findOne(task.getTaskId());
 		if (dbTask != null) {
+			logger.debug("Task Exists");
+
 			// Get a copy of the db object for processing Auto comments
 			TaskT oldObject = (TaskT)  DestinationUtils.copy(dbTask);
-			logger.debug("Task Exists");
+
 			//Validate input parameters
 			validateTask(task);
 			
@@ -403,7 +415,7 @@ public class TaskService {
 	 * @return team tasks for the given supervisor.
 	 */
 	public List<TaskT> findTeamTasks(String supervisorId) throws Exception {
-		logger.debug("Inside findTeamTasks Service");
+		logger.debug("Inside findTeamTasks() service");
 		//Get all sub-ordinates user id's
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
 
@@ -426,18 +438,20 @@ public class TaskService {
 	
 	// This method is used to invoke asynchronous thread for auto comments
 	private void processAutoComments(String taskId, Object oldObject) throws Exception {
+		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
 		autoCommentsHelper.setEntityId(taskId);
 		autoCommentsHelper.setEntityType(EntityType.TASK.name());
-		if (oldObject != null)
+		if (oldObject != null) {
 			autoCommentsHelper.setOldObject(oldObject);
+		}
 		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(taskRepository);
+		autoCommentsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
-
 	}
 	
 }

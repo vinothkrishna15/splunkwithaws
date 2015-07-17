@@ -46,12 +46,6 @@ public class ConnectT implements Serializable {
 	@Column(name = "connect_name")
 	private String connectName;
 
-//	@Column(name = "created_modified_by")
-//	private String createdModifiedBy;
-//
-//	@Column(name = "created_modified_datetime")
-//	private Timestamp createdModifiedDatetime;
-	
 	@Column(name="created_datetime",updatable = false)
 	private Timestamp createdDatetime;
 	
@@ -100,8 +94,6 @@ public class ConnectT implements Serializable {
 
 	private String location;
 
-	//private String place;
-
 	private String type;
 
 	@ManyToOne
@@ -130,19 +122,14 @@ public class ConnectT implements Serializable {
 		this.connectTcsAccountContactLinkTs = con.connectTcsAccountContactLinkTs;
 		this.country = con.country;
 		this.location = con.location;
-		//this.place = con.place;
 		this.type = con.type;
 		this.connectTypeMappingT = con.connectTypeMappingT;
-		//this.createdModifiedBy = con.createdModifiedBy;
-		//this.createdModifiedDatetime = con.createdModifiedDatetime;
-		
 		this.createdBy = con.createdBy;
 		this.createdByUser = con.createdByUser;
 		this.createdDatetime = con.createdDatetime;
 		this.modifiedBy = con.modifiedBy;
 		this.modifiedByUser = con.modifiedByUser;
 		this.modifiedDatetime = con.modifiedDatetime;
-		
 		this.customerId = con.customerId;
 		this.customerMasterT = con.customerMasterT;
 		this.documentRepositoryTs = con.documentRepositoryTs;
@@ -210,10 +197,6 @@ public class ConnectT implements Serializable {
 	@JoinColumn(name = "primary_owner", insertable = false, updatable = false)
 	private UserT primaryOwnerUser;
 
-//	@ManyToOne
-//	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-//	private UserT createdModifiedByUser;
-	
 	// bi-directional many-to-one association to ConnectTcsAccountContactLinkT
 	@OneToMany(mappedBy = "connectT", cascade = CascadeType.ALL)
 	private List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs;
@@ -286,22 +269,6 @@ public class ConnectT implements Serializable {
 	public void setConnectName(String connectName) {
 		this.connectName = connectName;
 	}
-
-//	public String getCreatedModifiedBy() {
-//		return this.createdModifiedBy;
-//	}
-//
-//	public void setCreatedModifiedBy(String createdModifiedBy) {
-//		this.createdModifiedBy = createdModifiedBy;
-//	}
-//
-//	public Timestamp getCreatedModifiedDatetime() {
-//		return this.createdModifiedDatetime;
-//	}
-//
-//	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-//		this.createdModifiedDatetime = createdModifiedDatetime;
-//	}
 
 	public String getDocumentsAttached() {
 		return this.documentsAttached;
@@ -732,14 +699,6 @@ public class ConnectT implements Serializable {
 		this.documentsDeletionList = documentsDeletionList;
 	}
 
-//	public UserT getCreatedModifiedByUser() {
-//		return this.createdModifiedByUser;
-//	}
-//
-//	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-//		this.createdModifiedByUser = createdModifiedByUser;
-//	}
-
 	public List<SearchKeywordsT> getSearchKeywordsTs() {
 		return searchKeywordsTs;
 	}
@@ -823,14 +782,6 @@ public class ConnectT implements Serializable {
 	public void setLocation(String location) {
 		this.location = location;
 	}
-
-//	public String getPlace() {
-//		return place;
-//	}
-//
-//	public void setPlace(String place) {
-//		this.place = place;
-//	}
 
 	public String getType() {
 		return type;

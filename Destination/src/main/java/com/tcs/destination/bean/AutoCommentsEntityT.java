@@ -31,7 +31,8 @@ public class AutoCommentsEntityT implements Serializable {
 	private String name;
 
 	//bi-directional many-to-one association to AutoCommentsEntityFieldsT
-	@OneToMany(mappedBy="entity")
+	// Do not remove FetchType.EAGER as it is required for Auto comments
+	@OneToMany(mappedBy="entity", fetch=FetchType.EAGER)
 	private List<AutoCommentsEntityFieldsT> entityFields;
 
 	//bi-directional many-to-one association to AutoCommentsEntityFieldsT

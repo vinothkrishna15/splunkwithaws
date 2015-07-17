@@ -82,7 +82,7 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name = "secondary_owner", insertable = false, updatable = false)
-	private UserT userT;
+	private UserT secondaryOwnerUser;
 
 	public ConnectSecondaryOwnerLinkT() {
 	}
@@ -120,12 +120,12 @@ public class ConnectSecondaryOwnerLinkT implements Serializable {
 		this.connectT = connectT;
 	}
 
-	public UserT getUserT() {
-		return this.userT;
+	public UserT getSecondaryOwnerUser() {
+		return this.secondaryOwnerUser;
 	}
 
-	public void setUserT(UserT userT) {
-		this.userT = userT;
+	public void setSecondaryOwnerUser(UserT secondaryOwnerUser) {
+		this.secondaryOwnerUser = secondaryOwnerUser;
 	}
 
 	public String getSecondaryOwner() {

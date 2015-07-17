@@ -110,7 +110,7 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.create(opportunity);
+			opportunityService.createOpportunity(opportunity);
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -139,12 +139,8 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity PUT");
 		Status status = new Status();
-		if (opportunity.getOpportunityId() == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Cannot update a opportunity without opportunityId");
-		}
 		try {
-			opportunityService.edit(opportunity);
+			opportunityService.updateOpportunity(opportunity);
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
