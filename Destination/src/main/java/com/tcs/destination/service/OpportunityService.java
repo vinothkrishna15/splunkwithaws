@@ -66,7 +66,7 @@ public class OpportunityService {
 
 	// Required for auto comments
 	@PersistenceContext
-    private EntityManager entityManager;
+	private EntityManager entityManager;
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
@@ -115,19 +115,20 @@ public class OpportunityService {
 
 	@Autowired
 	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
-	
+
 	// Required beans for Auto comments - start
 	@Autowired
 	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
-	
+
 	@Autowired
 	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
-	
+
 	@Autowired
 	AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
-	
+
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
+
 	// Required beans for Auto comments - end
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
@@ -552,7 +553,7 @@ public class OpportunityService {
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
 
 	}
-	
+
 	// Method called from controller
 	@Transactional
 	public void updateOpportunity(OpportunityT opportunity) throws Exception {
@@ -560,40 +561,50 @@ public class OpportunityService {
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "OpportunityId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"OpportunityId is required for update");
 
 		}
-		// Check if opportunity exists 
+		// Check if opportunity exists
 		if (!opportunityRepository.exists(opportunityId)) {
 			logger.error("Opportunity not found for update: {}", opportunityId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunity not found for update: " + opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunity not found for update: " + opportunityId);
 		}
-		
-		// Load db object before update with lazy collections populated for auto comments
+
+		// Load db object before update with lazy collections populated for auto
+		// comments
 		OpportunityT beforeOpp = loadDbOpportunityWithLazyCollections(opportunityId);
-		// Copy the db object as the above object is managed by current hibernate session
-		OpportunityT oldObject = (OpportunityT) DestinationUtils.copy(beforeOpp);
-		
+		// Copy the db object as the above object is managed by current
+		// hibernate session
+		OpportunityT oldObject = (OpportunityT) DestinationUtils
+				.copy(beforeOpp);
+
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true);
 		if (afterOpp != null) {
-			logger.info("Opportunity has been updated successfully: " + opportunityId);
+			logger.info("Opportunity has been updated successfully: "
+					+ opportunityId);
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(opportunityId, oldObject);
 		}
 	}
 
-	// This method is used to load database object with auto comments eligible lazy collections populated
-	public OpportunityT loadDbOpportunityWithLazyCollections(String opportunityId) throws Exception {
+	// This method is used to load database object with auto comments eligible
+	// lazy collections populated
+	public OpportunityT loadDbOpportunityWithLazyCollections(
+			String opportunityId) throws Exception {
 		logger.debug("Inside loadDbOpportunityWithLazyCollections() method");
-		OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader.loadLazyCollections(opportunityId, EntityType.OPPORTUNITY.name(), 
-				opportunityRepository, autoCommentsEntityTRepository, null);
+		OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader
+				.loadLazyCollections(opportunityId,
+						EntityType.OPPORTUNITY.name(), opportunityRepository,
+						autoCommentsEntityTRepository, null);
 		return opportunity;
 	}
 
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
 		logger.debug("Inside deleteChildObjects() method");
-		
+
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
 			connectOpportunityLinkTRepository.delete(opportunity
@@ -715,16 +726,23 @@ public class OpportunityService {
 		}
 	}
 
-
-	public List<OpportunityT> findShelvedOpportunities(List<String> currencies) {
-		List<OpportunityT> opportunityTs = opportunityRepository
-				.findBySalesStageCode(12);
+	public List<OpportunityT> findOpportunitiesBySalesStageCode(
+			List<String> currencies, int salesStageCode, String customerId) {
+		List<OpportunityT> opportunityTs = null;
+		if (customerId.equals(""))
+			opportunityTs = opportunityRepository
+					.findBySalesStageCode(salesStageCode);
+		else
+			opportunityTs = opportunityRepository
+					.findBySalesStageCodeAndCustomerId(salesStageCode,
+							customerId);
 		prepareOpportunity(opportunityTs);
 		return opportunityTs;
 	}
 
 	// This method is used to invoke asynchronous thread for auto comments
-	private void processAutoComments(String opportunitytId, Object oldObject) throws Exception {
+	private void processAutoComments(String opportunitytId, Object oldObject)
+			throws Exception {
 		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
 		autoCommentsHelper.setEntityId(opportunitytId);
@@ -732,18 +750,22 @@ public class OpportunityService {
 		if (oldObject != null) {
 			autoCommentsHelper.setOldObject(oldObject);
 		}
-		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
-		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
-		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		autoCommentsHelper
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper
+				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		autoCommentsHelper
+				.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(opportunityRepository);
-		autoCommentsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		autoCommentsHelper.setEntityManagerFactory(entityManager
+				.getEntityManagerFactory());
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
 	}
-	
+
 	/**
-	 * This is the serives method which deals with the retrieval of all 
+	 * This is the serives method which deals with the retrieval of all
 	 * opportunities under a supervisor
 	 * 
 	 * @param supervisorUserId

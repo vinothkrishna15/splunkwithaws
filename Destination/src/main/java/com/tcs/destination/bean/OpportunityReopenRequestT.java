@@ -4,12 +4,16 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 
 /**
  * The persistent class for the opportunity_reopen_request_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @Entity
 @Table(name = "opportunity_reopen_request_t")
 @NamedQuery(name = "OpportunityReopenRequestT.findAll", query = "SELECT o FROM OpportunityReopenRequestT o")
@@ -17,6 +21,7 @@ public class OpportunityReopenRequestT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "opportunity_reopen_request_id")
 	private String opportunityReopenRequestId;
 

@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TasksBySupervisorIdDTO;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -33,6 +35,9 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityService opportunityService;
+	
+	 @Autowired
+		OpportunityReopenRequestService opportunityReopenRequestService;
 
 	// @Autowired
 	// CustomerRepository customerRepository;
@@ -151,15 +156,17 @@ public class OpportunityController {
 						status), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/shelved", method = RequestMethod.GET)
+	@RequestMapping(value = "/salesStage", method = RequestMethod.GET)
 	public @ResponseBody String findShelved(
+			@RequestParam(value = "salesStageCode") int salesStageCode,
+			@RequestParam(value = "customerId",defaultValue="") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/shelved GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findShelvedOpportunities(currencies);
+				.findOpportunitiesBySalesStageCode(currencies,salesStageCode,customerId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -187,4 +194,74 @@ public class OpportunityController {
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
+
+		@RequestMapping(value = "/reopen",method = RequestMethod.GET)
+		public @ResponseBody String findAll(
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+				throws Exception {
+			logger.debug("Inside OpportunityReopenRequestService /reopen GET");
+			List<OpportunityReopenRequestT> opportunityReopenRequestTs = opportunityReopenRequestService
+					.findAll();
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityReopenRequestTs);
+		}
+
+		@RequestMapping(value = "/reopen/{id}", method = RequestMethod.GET)
+		public @ResponseBody String findById(
+				@PathVariable("id") String id,
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+				throws Exception {
+			logger.debug("Inside OpportunityReopenRequestService /reopen/" + id
+					+ " GET");
+			OpportunityReopenRequestT opportunityReopenRequestT = opportunityReopenRequestService
+					.findOne(id);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityReopenRequestT);
+		}
+
+		@RequestMapping(value = "/reopen",method = RequestMethod.POST)
+		public @ResponseBody ResponseEntity<String> addNewReopenRequest(
+				@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+				throws Exception {
+			logger.debug("Inside OpportunityReopenRequestService /reopen POST");
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "Save unsuccessful");
+			try {
+				opportunityReopenRequestService.create(opportunityReopenRequestT);
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						e.getMessage());
+			}
+			status.setStatus(Status.SUCCESS, opportunityReopenRequestT.getOpportunityReopenRequestId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		}
+		
+		@RequestMapping(value = "/reopen",method = RequestMethod.PUT)
+		public @ResponseBody ResponseEntity<String> editReopenRequest(
+				@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+				throws Exception {
+			logger.debug("Inside OpportunityReopenRequestService /reopen PUT");
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "Update unsuccessful");
+			try {
+				opportunityReopenRequestService.edit(opportunityReopenRequestT);
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						e.getMessage());
+			}
+			status.setStatus(Status.SUCCESS, opportunityReopenRequestT.getOpportunityReopenRequestId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		}
+	 
+	 
 }

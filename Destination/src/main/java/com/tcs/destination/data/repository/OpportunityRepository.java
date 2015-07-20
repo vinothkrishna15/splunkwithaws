@@ -17,9 +17,9 @@ public interface OpportunityRepository extends
 
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
-	
+
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
-			String opportunityname,String customerId);
+			String opportunityname, String customerId);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 			String customerId, Date fromDate);
@@ -228,34 +228,38 @@ public interface OpportunityRepository extends
 			@Param("geography") String geography,
 			@Param("currency") String currency,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
-	
-	
-	//list of top opportunities based on digital deal value
-		 @Query(value="select distinct OPP.* from opportunity_t OPP"
-				  + " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
-				  + " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?2 OR ?2 = '')"
-				  + " JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country"
-				  + " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = ?1 OR ?1 = '')"
-				  + " JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id"
-				  + " JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = ?3 OR ?3 = '')"
-				  + " JOIN opportunity_timeline_history_t OTH"
-				  + " 	ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between ?6 and ?7"
-				  + " 	and OTH.updated_datetime between ?4 and ?5)"
-				  + " where OPP.digital_deal_value <> 0"
-				  + " order by OPP.digital_deal_value DESC limit ?8"
-				  ,nativeQuery=true)
-		  public List<OpportunityT> getTopOpportunities(String geography,String subSp,String iou,Date dateFrom,Date dateTo,int stageFrom,int stageTo,int count);
 
-		  public List<OpportunityT> findBySalesStageCode(int salesStageCode);
-		  
-		  /**
-			* This method retrieves all supervisor opportunities using the mentioned query 
-			* 
-			* @param supervisorUserId
-			* @return
-			*/
-		  @Query(value="select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'INR')),OPP.sales_stage_code,count(*),SSM.sales_stage_description from opportunity_t OPP JOIN sales_stage_mapping_t SSM ON OPP.sales_stage_code=SSM.sales_stage_code  where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery=true)
-	  	  public List<Object[]> findOpportunitiesBySupervisorId(String supervisorUserId);
+	// list of top opportunities based on digital deal value
+	@Query(value = "select distinct OPP.* from opportunity_t OPP"
+			+ " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
+			+ " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = ?2 OR ?2 = '')"
+			+ " JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country"
+			+ " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = ?1 OR ?1 = '')"
+			+ " JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id"
+			+ " JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = ?3 OR ?3 = '')"
+			+ " JOIN opportunity_timeline_history_t OTH"
+			+ " 	ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between ?6 and ?7"
+			+ " 	and OTH.updated_datetime between ?4 and ?5)"
+			+ " where OPP.digital_deal_value <> 0"
+			+ " order by OPP.digital_deal_value DESC limit ?8", nativeQuery = true)
+	public List<OpportunityT> getTopOpportunities(String geography,
+			String subSp, String iou, Date dateFrom, Date dateTo,
+			int stageFrom, int stageTo, int count);
 
+	public List<OpportunityT> findBySalesStageCode(int salesStageCode);
+
+	/**
+	 * This method retrieves all supervisor opportunities using the mentioned
+	 * query
+	 * 
+	 * @param supervisorUserId
+	 * @return
+	 */
+	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'INR')),OPP.sales_stage_code,count(*),SSM.sales_stage_description from opportunity_t OPP JOIN sales_stage_mapping_t SSM ON OPP.sales_stage_code=SSM.sales_stage_code  where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery = true)
+	public List<Object[]> findOpportunitiesBySupervisorId(
+			String supervisorUserId);
+
+	List<OpportunityT> findBySalesStageCodeAndCustomerId(int salesStageCode,
+			String customerId);
 
 }
