@@ -1,12 +1,10 @@
 package com.tcs.destination.utils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.velocity.app.VelocityEngine;
@@ -14,14 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.MailParseException;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
@@ -30,10 +24,8 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
-import com.tcs.destination.enums.DestinationEmailTemplate;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -154,11 +146,12 @@ public class DestinationMailUtils {
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
 				helper.setSubject(forgotPasswordSubject);
+				helper.setFrom(senderEmailId);
 				Map model = new HashMap();
 				model.put("user", user);
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,
-						"Template_Forgot_Password.vm", "UTF-8",
+						"./templates/Template_Forgot_Password.vm", "UTF-8",
 						model);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, forgotPasswordSubject, text);
 				//mailSender.send(automatedMIMEMessage);
@@ -298,11 +291,12 @@ public class DestinationMailUtils {
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
 				helper.setSubject(userAccessSubject);
+				helper.setFrom(senderEmailId);
 				Map model = new HashMap();
 				model.put("request", userAccessRequest);
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,
-						"Template_User_Access.vm", "UTF-8",
+						"./templates/Template_User_Access.vm", "UTF-8",
 						model);
 				logMailDetails(recipientMailIdsArray,ccMailIdsArray,bccMailIdsArray,userAccessSubject,text);
 				//mailSender.send(automatedMIMEMessage);
@@ -342,7 +336,7 @@ public class DestinationMailUtils {
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
 				helper.setSubject(reopenOpportunitySubject);
-				
+				helper.setFrom(senderEmailId);
 				Map model = new HashMap();
 				
 				model.put("request", oppReopenRequest);
@@ -350,7 +344,7 @@ public class DestinationMailUtils {
 				model.put("opportunity",opp);
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,
-						"Template_Opportunity_Reopen.vm", "UTF-8",
+						"./templates/Template_Opportunity_Reopen.vm", "UTF-8",
 						model);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, reopenOpportunitySubject, text);
 				//mailSender.send(automatedMIMEMessage);
