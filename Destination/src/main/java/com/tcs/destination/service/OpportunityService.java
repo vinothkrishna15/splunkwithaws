@@ -795,4 +795,8 @@ public class OpportunityService {
 		return listOfopportunitiesDTO;
 	}
 
+	public OpportunityT findOpportunityById(String oppId){
+		return opportunityRepository.findOne(oppId);
+	}
+	
 }
