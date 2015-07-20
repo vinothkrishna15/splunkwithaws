@@ -69,11 +69,6 @@
         </property>
         </bean>
         
-        <bean id="templateMessageForgotPassword" class="org.springframework.mail.SimpleMailMessage">
-			<property name="from" value="badrinaraayanan.m@tcs.com" />
-			<property name="subject" value="Destination : Forgot Password" />
-		</bean>
-
 		<bean id="velocityEngine"
 			class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
 			 <property name="velocityProperties">
