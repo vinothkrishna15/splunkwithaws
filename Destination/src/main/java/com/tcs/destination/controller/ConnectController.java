@@ -172,4 +172,43 @@ public class ConnectController {
 						status), HttpStatus.OK);
 	}
 
+	/**
+	 * This controller retrieves all the connects of users under a supervisor between dates 
+	 * and also gives a count of connects on a weekly and monthly basis
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @param supervisorId
+	 * @param weekStartDate
+	 * @param weekEndDate
+	 * @param monthStartDate
+	 * @param monthEndDate
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/team", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getTeamConnects(
+			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "supervisorId", defaultValue = "") String supervisorId,
+			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
+			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
+			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
+			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
+			throws Exception{
+			
+		logger.debug("Inside ConnectController /connect/team"+ "GET");
+		
+		// Calling the service method
+		DashBoardConnectsResponse dashBoardConnectsResponse = connectService.getTeamConnects(supervisorId, fromDate, toDate, weekStartDate, weekEndDate, monthStartDate, monthEndDate);
+				
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view, dashBoardConnectsResponse), HttpStatus.OK);
+		
+	}
+
 }

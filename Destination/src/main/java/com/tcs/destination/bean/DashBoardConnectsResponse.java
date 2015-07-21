@@ -3,6 +3,10 @@ package com.tcs.destination.bean;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.tcs.destination.utils.Constants;
+
+@JsonFilter(Constants.FILTER)
 public class DashBoardConnectsResponse implements Serializable{
 
 	/**

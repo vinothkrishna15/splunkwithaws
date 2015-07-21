@@ -134,6 +134,22 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 						@Param("geography")List<String> geography,
 						@Param("country") List<String> country,
 						@Param("serviceLines") List<String> serviceLines);
-
+	
+	/**
+	 * This query select the connect_id from connect_T and connect_secondary_owner_link_T 
+	 * and which in turn is used to retrieve the details of the connects under a supervisor
+	 * 
+	 * @param users
+	 * @param startTimestamp
+	 * @param endTimestamp
+	 * @return
+	 */
+	@Query(value = "SELECT * FROM connect_t c2 WHERE ((c2.connect_id "
+			+ "IN ((SELECT c1.connect_id FROM Connect_T c1 WHERE c1.primary_owner IN (:users)) "
+			+ "UNION (SELECT c.connect_id FROM Connect_T c, connect_secondary_owner_link_T cs "
+			+ "WHERE (c.connect_id=cs.connect_id) AND (cs.secondary_owner IN (:users))))) "
+			+ "AND (c2.start_datetime_of_connect between (:startTimestamp) and (:endTimestamp)))"
+			+ "ORDER BY c2.start_datetime_of_connect", nativeQuery = true)
+	List<ConnectT> getTeamConnects(@Param("users") List<String> users, @Param("startTimestamp") Timestamp startTimestamp, @Param("endTimestamp") Timestamp endTimestamp);
 
 }

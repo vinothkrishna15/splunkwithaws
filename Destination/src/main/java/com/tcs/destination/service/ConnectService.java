@@ -37,6 +37,7 @@ import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
@@ -91,6 +92,9 @@ public class ConnectService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
+	
+	@Autowired
+	UserRepository userRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside searchforConnectsById service");
@@ -700,5 +704,41 @@ public class ConnectService {
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
+	}
+	
+	/**
+	 * This service method retrieves all the users under a supervisor, 
+	 * calls for all connects between dates and also provides the 
+	 * count of connects per week and month 
+	 * 
+	 * @param supervisorId
+	 * @param fromDate
+	 * @param toDate
+	 * @param weekStartDate
+	 * @param weekEndDate
+	 * @param monthStartDate
+	 * @param monthEndDate
+	 * @return
+	 */
+	public DashBoardConnectsResponse getTeamConnects(String supervisorId, Date fromDate, Date toDate, Date weekStartDate, Date weekEndDate, Date monthStartDate, Date monthEndDate) {
+		
+		DashBoardConnectsResponse dashBoardConnectsResponse = new DashBoardConnectsResponse();
+		
+		// Get all users under a supervisor
+		List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+		
+		// Get connects between two dates 
+		List<ConnectT> connects = connectRepository.getTeamConnects(users, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		dashBoardConnectsResponse.setConnectTs(connects);
+		
+		// Get weekly Count of connects
+		List<ConnectT> weekConnects = connectRepository.getTeamConnects(users, new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		dashBoardConnectsResponse.setWeekCount(weekConnects.size());
+		
+		// Get monthly Count of connects
+		List<ConnectT> monthConnects = connectRepository.getTeamConnects(users, new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+		
+		return dashBoardConnectsResponse;
 	}
 }
