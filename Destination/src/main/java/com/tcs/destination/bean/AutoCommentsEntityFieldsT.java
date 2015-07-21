@@ -47,6 +47,9 @@ public class AutoCommentsEntityFieldsT implements Serializable {
 	@JoinColumn(name="linked_entity_id", insertable=false, updatable=false)
 	private AutoCommentsEntityT linkedEntity;
 
+	@Column(name="compare_field")
+	private String compareField;
+
 	public AutoCommentsEntityFieldsT() {
 	}
 
@@ -129,4 +132,13 @@ public class AutoCommentsEntityFieldsT implements Serializable {
 	public void setLinkedEntity(AutoCommentsEntityT linkedEntity) {
 		this.linkedEntity = linkedEntity;
 	}
+
+	public String getCompareField() {
+		return compareField;
+	}
+
+	public void setCompareField(String compareField) {
+		this.compareField = compareField;
+	}
+
 }

@@ -5,12 +5,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
@@ -42,9 +45,10 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.helper.AutoCommentsLazyLoader;
 import com.tcs.destination.utils.DestinationUtils;
 
-@Component
+@Service
 public class ConnectService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
@@ -52,6 +56,10 @@ public class ConnectService {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectService.class);
 
+	// Required for auto comments
+	@PersistenceContext
+    private EntityManager entityManager;
+	
 	@Autowired
 	ConnectRepository connectRepository;
 
@@ -97,7 +105,7 @@ public class ConnectService {
 	UserRepository userRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
-		logger.debug("Inside searchforConnectsById service");
+		logger.debug("Inside findConnectById() service");
 		ConnectT connectT = connectRepository.findByConnectId(connectId);
 		if (connectT != null) {
 			prepareConnect(connectT);
@@ -110,7 +118,7 @@ public class ConnectService {
 	}
 
 	private void setSearchKeywordTs(ConnectT connect) {
-		logger.debug("Inside setSearchKeywordTs");
+		logger.debug("Inside setSearchKeywordTs() method");
 		// Add Search Keywords
 		List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
 				.findByEntityTypeAndEntityId(EntityType.CONNECT.toString(),
@@ -122,7 +130,7 @@ public class ConnectService {
 
 	public List<ConnectT> searchforConnectsByNameContaining(String name,
 			String customerId) throws Exception {
-		logger.debug("Inside searchforConnectsByNameContaining service");
+		logger.debug("Inside searchforConnectsByNameContaining() service");
 		List<ConnectT> connectList = null;
 		if (customerId.isEmpty()) {
 			connectList = connectRepository.findByConnectNameIgnoreCaseLike("%"
@@ -147,7 +155,7 @@ public class ConnectService {
 			String customerId, String partnerId, Date weekStartDate,
 			Date weekEndDate, Date monthStartDate, Date monthEndDate)
 					throws Exception {
-		logger.debug("Inside DashBoardConnectsResponse Service");
+		logger.debug("Inside searchDateRangwWithWeekAndMonthCount() service");
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
 				fromDate, toDate, userId, owner, customerId, partnerId, false));
@@ -170,7 +178,7 @@ public class ConnectService {
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, boolean isForCount)
 					throws Exception {
-		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner Service");
+		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner() service");
 		Timestamp toTimestamp=new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1);
 		if (OwnerType.contains(owner)) {
 			logger.debug("Owner Type Contains owner");
@@ -222,7 +230,7 @@ public class ConnectService {
 
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
-		logger.debug("Inside insertConnect Service");
+		logger.debug("Inside insertConnect() service");
 
 		validateRequest(connect,true);
 
@@ -306,7 +314,7 @@ public class ConnectService {
 			}
 
 			if (connectRepository.save(connect) != null) {
-				logger.debug("Connect Record Inserted - child objects saved");
+				logger.info("Connect has been added successfully");
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(connect.getConnectId(), null);
 				return true;
@@ -318,7 +326,7 @@ public class ConnectService {
 	}
 
 	private void validateRequest(ConnectT connect,boolean isInsert) throws Exception {
-		logger.debug("inside validateRequest");
+		logger.debug("Inside validateRequest() method");
 		String connectCategory = connect.getConnectCategory();
 
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
@@ -374,7 +382,7 @@ public class ConnectService {
 			String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
 					throws Exception {
-		logger.debug("Inside populateConnectTcsAccountContactLinks Service");
+		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			//conTcsAccConLink.setCreatedModifiedBy(currentUserId);
 			conTcsAccConLink.setConnectId(connectId);
@@ -385,7 +393,7 @@ public class ConnectService {
 	private void populateConnectSecondaryOwnerLinks(
 			String connectId,
 			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList) {
-		logger.debug("Inside populateConnectSecondaryOwnerLinks Service");
+		logger.debug("Inside populateConnectSecondaryOwnerLinks() method");
 		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
 			//conSecOwnLink.setCreatedModifiedBy(currentUserId);
 			conSecOwnLink.setConnectId(connectId);
@@ -395,7 +403,7 @@ public class ConnectService {
 
 	private void populateConnectSubSpLinks(
 			String connectId, List<ConnectSubSpLinkT> conSubSpLinkTList) {
-		logger.debug("Inside populateConnectSubSpLinks Service");
+		logger.debug("Inside populateConnectSubSpLinks() method");
 		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
 			conSubSpLink.setConnectId(connectId);
 			//conSubSpLink.setCreatedModifiedBy(currentUserId);
@@ -405,7 +413,7 @@ public class ConnectService {
 
 	private void populateConnectOfferingLinks(
 			String connectId, List<ConnectOfferingLinkT> conOffLinkTList) {
-		logger.debug("Inside populateConnectOfferingLinks Service");
+		logger.debug("Inside populateConnectOfferingLinks() method");
 		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
 			//conOffLink.setCreatedModifiedBy(currentUserId);
 			conOffLink.setConnectId(connectId);
@@ -416,7 +424,7 @@ public class ConnectService {
 	private void populateConnectCustomerContactLinks(
 			String connectId,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
-		logger.debug("Inside populateConnectCustomerContactLinks service");
+		logger.debug("Inside populateConnectCustomerContactLinks() method");
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
 			//conCustConLink.setCreatedModifiedBy(currentUserId);
 			conCustConLink.setConnectId(connectId);
@@ -426,7 +434,7 @@ public class ConnectService {
 	private void populateNotes(String customerId,
 			String partnerId, String categoryUpperCase, String connectId,
 			List<NotesT> noteList) {
-		logger.debug("Inside populateNotes service");
+		logger.debug("Inside populateNotes() method");
 		for (NotesT note : noteList) {
 			note.setEntityType(categoryUpperCase);
 			note.setConnectId(connectId);
@@ -455,6 +463,7 @@ public class ConnectService {
 	}
 
 	private void setNullForReferencedObjects(ConnectT connect) {
+		logger.debug("Inside setNullForReferencedObjects() method");
 		connect.setCollaborationCommentTs(null);
 		connect.setConnectCustomerContactLinkTs(null);
 		connect.setConnectOfferingLinkTs(null);
@@ -473,145 +482,165 @@ public class ConnectService {
 	}
 
 	@Transactional
-	public boolean editConnect(ConnectT connect) throws Exception {
-		logger.debug("inside editConnect Service");
-
+	public boolean updateConnect(ConnectT connect) throws Exception {
+		logger.debug("Inside updateConnect() service");
+		String connectId = connect.getConnectId();
+		if (connectId == null) {
+			logger.error("ConnectId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required for update");
+		}
 		// Check if connect exists
-		ConnectT dbConnect = connectRepository.findOne(connect.getConnectId());
-		if (dbConnect != null) {
-			// Get a copy of the db object for processing Auto comments
-			ConnectT oldObject = (ConnectT) DestinationUtils.copy(dbConnect);
+		if (!connectRepository.exists(connectId)) {
+			logger.error("Connect not found for update: {}", connectId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect not found for update: " + connectId);
+		}
+		// Load db object before update with lazy collections populated for auto comments
+		ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
+		// Copy the db object as the above object is managed by current hibernate session
+		ConnectT oldObject = (ConnectT) DestinationUtils.copy(beforeConnect);
+		
+		// Update database
+		ConnectT afterConnect = editConnect(connect);
 
-			validateRequest(connect,false);
-
-			String categoryUpperCase = connect.getConnectCategory()
-					.toUpperCase();
-			connect.setConnectCategory(categoryUpperCase);
-			String connectId = connect.getConnectId();
-			logger.debug("Connect Id : " + connectId);
-
-			String customerId = connect.getCustomerId();
-			String partnerId = connect.getPartnerId();
-
-			List<NotesT> noteList = connect.getNotesTs();
-			if (noteList != null)
-				populateNotes(customerId, partnerId,
-						categoryUpperCase, connectId, noteList);
-			logger.debug("Notes Populated");
-
-			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
-					.getConnectCustomerContactLinkTs();
-			if (conCustConLinkTList != null)
-				populateConnectCustomerContactLinks(connectId,
-						conCustConLinkTList);
-			logger.debug("ConnectCustomerContact Populated");
-
-			List<ConnectOfferingLinkT> conOffLinkTList = connect
-					.getConnectOfferingLinkTs();
-			if (conOffLinkTList != null)
-				populateConnectOfferingLinks(connectId,
-						conOffLinkTList);
-			logger.debug("ConnectOffering Populated");
-
-			List<ConnectSubSpLinkT> conSubSpLinkTList = connect
-					.getConnectSubSpLinkTs();
-			if (conSubSpLinkTList != null)
-				populateConnectSubSpLinks(connectId,
-						conSubSpLinkTList);
-			logger.debug("ConnectSubSp Populated");
-
-			List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
-					.getConnectSecondaryOwnerLinkTs();
-			if (conSecOwnLinkTList != null)
-				populateConnectSecondaryOwnerLinks(connectId,
-						conSecOwnLinkTList);
-			logger.debug("ConnectSecondaryOwner Populated");
-
-			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
-					.getConnectTcsAccountContactLinkTs();
-			if (conTcsAccConLinkTList != null)
-				populateConnectTcsAccountContactLinks(connectId,
-						conTcsAccConLinkTList);
-			logger.debug("ConnectTcsAccountContact Populated");
-
-			List<TaskT> taskList = connect.getTaskTs();
-			if (taskList != null)
-				populateTasks(connectId, taskList);
-			logger.debug("task Populated");
-
-			List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
-					.getConnectOpportunityLinkIdTs();
-			if (conOppLinkIdTList != null)
-				populateOppLinks(connectId, conOppLinkIdTList);
-			logger.debug("ConnectOpportunity Populated");
-
-			if (connect.getConnectSubLinkDeletionList() != null) {
-				deleteSubSps(connect.getConnectSubLinkDeletionList());
-				logger.debug("ConnectCustomerContact deleted");
-			}
-			if (connect.getConnectOfferingLinkDeletionList() != null) {
-				deleteOfferings(connect.getConnectOfferingLinkDeletionList());
-				logger.debug("ConnectOfferingLinks deleted");
-			}
-
-			// Save Search Keywords
-			if (connect.getSearchKeywordsTs() != null) {
-				for (SearchKeywordsT searchKeywordT : connect
-						.getSearchKeywordsTs()) {
-					searchKeywordT.setEntityType(EntityType.CONNECT.toString());
-					searchKeywordT.setEntityId(connect.getConnectId());
-					searchKeywordsRepository.save(searchKeywordT);
-				}
-			}
-
-			// Delete connectCustomerContactLinkTs
-			if (connect.getDeleteConnectCustomerContactLinkTs() != null
-					&& connect.getDeleteConnectCustomerContactLinkTs().size() > 0) {
-				deleteConnectCustomerContacts(connect
-						.getDeleteConnectCustomerContactLinkTs());
-				logger.debug("ConnectCustomerContacts deleted");
-			}
-
-			// Delete connectTcsAccountContactLinkTs
-			if (connect.getDeleteConnectTcsAccountContactLinkTs() != null
-					&& connect.getDeleteConnectTcsAccountContactLinkTs().size() > 0) {
-				deleteConnectTcsAccountContacts(connect
-						.getDeleteConnectTcsAccountContactLinkTs());
-				logger.debug("ConnectTcsAccountContacts deleted");
-			}
-
-			// Delete ConnectSecondaryOwnerLinkTs
-			if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
-					&& connect.getDeleteConnectSecondaryOwnerLinkTs().size() > 0) {
-				deleteConnectSecondaryOwnerLinks(connect
-						.getDeleteConnectSecondaryOwnerLinkTs());
-				logger.debug("ConnectSecondaryOwnerLinks deleted");
-			}
-
-			if (connectRepository.save(connect) != null) {
-				logger.debug("Connect Edit Success");
-				// Invoke Asynchronous Auto Comments Thread
-				processAutoComments(connect.getConnectId(), oldObject);
-				return true;
-			}
-		} else {
-			logger.error("Connect not found: {}", connect.getConnectId());
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid ConnectId: " + connect.getConnectId());
-
+		if (afterConnect != null) {
+			logger.info("Connect has been updated successfully: " + connectId);
+			// Invoke Asynchronous Auto Comments Thread
+			processAutoComments(connectId, oldObject);
+			return true;	
 		}
 		return false;
+	}
+	
+	// This method is used to load database object with auto comments eligible lazy collections populated
+	public ConnectT loadDbConnectWithLazyCollections(String connectId) throws Exception {
+		logger.debug("Inside loadDbConnectWithLazyCollections() method");
+		ConnectT connect = (ConnectT) AutoCommentsLazyLoader.loadLazyCollections(connectId, EntityType.CONNECT.name(), 
+				connectRepository, autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
+		return connect;
+	}
+	
+	public ConnectT editConnect(ConnectT connect) throws Exception {
+		logger.debug("inside editConnect() method");
+
+		// Validate request
+		validateRequest(connect,false);
+
+		String categoryUpperCase = connect.getConnectCategory()
+				.toUpperCase();
+		connect.setConnectCategory(categoryUpperCase);
+		String connectId = connect.getConnectId();
+		logger.debug("Connect Id : " + connectId);
+
+		String customerId = connect.getCustomerId();
+		String partnerId = connect.getPartnerId();
+
+		List<NotesT> noteList = connect.getNotesTs();
+		if (noteList != null)
+			populateNotes(customerId, partnerId,
+					categoryUpperCase, connectId, noteList);
+		logger.debug("Notes Populated");
+
+		List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
+				.getConnectCustomerContactLinkTs();
+		if (conCustConLinkTList != null)
+			populateConnectCustomerContactLinks(connectId,
+					conCustConLinkTList);
+		logger.debug("ConnectCustomerContact Populated");
+
+		List<ConnectOfferingLinkT> conOffLinkTList = connect
+				.getConnectOfferingLinkTs();
+		if (conOffLinkTList != null)
+			populateConnectOfferingLinks(connectId,
+					conOffLinkTList);
+		logger.debug("ConnectOffering Populated");
+
+		List<ConnectSubSpLinkT> conSubSpLinkTList = connect
+				.getConnectSubSpLinkTs();
+		if (conSubSpLinkTList != null)
+			populateConnectSubSpLinks(connectId,
+					conSubSpLinkTList);
+		logger.debug("ConnectSubSp Populated");
+
+		List<ConnectSecondaryOwnerLinkT> conSecOwnLinkTList = connect
+				.getConnectSecondaryOwnerLinkTs();
+		if (conSecOwnLinkTList != null)
+			populateConnectSecondaryOwnerLinks(connectId,
+					conSecOwnLinkTList);
+		logger.debug("ConnectSecondaryOwner Populated");
+
+		List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList = connect
+				.getConnectTcsAccountContactLinkTs();
+		if (conTcsAccConLinkTList != null)
+			populateConnectTcsAccountContactLinks(connectId,
+					conTcsAccConLinkTList);
+		logger.debug("ConnectTcsAccountContact Populated");
+
+		List<TaskT> taskList = connect.getTaskTs();
+		if (taskList != null)
+			populateTasks(connectId, taskList);
+		logger.debug("task Populated");
+
+		List<ConnectOpportunityLinkIdT> conOppLinkIdTList = connect
+				.getConnectOpportunityLinkIdTs();
+		if (conOppLinkIdTList != null)
+			populateOppLinks(connectId, conOppLinkIdTList);
+		logger.debug("ConnectOpportunity Populated");
+
+		if (connect.getConnectSubLinkDeletionList() != null) {
+			deleteSubSps(connect.getConnectSubLinkDeletionList());
+			logger.debug("ConnectCustomerContact deleted");
+		}
+		if (connect.getConnectOfferingLinkDeletionList() != null) {
+			deleteOfferings(connect.getConnectOfferingLinkDeletionList());
+			logger.debug("ConnectOfferingLinks deleted");
+		}
+
+		// Save Search Keywords
+		if (connect.getSearchKeywordsTs() != null) {
+			for (SearchKeywordsT searchKeywordT : connect
+					.getSearchKeywordsTs()) {
+				searchKeywordT.setEntityType(EntityType.CONNECT.toString());
+				searchKeywordT.setEntityId(connect.getConnectId());
+				searchKeywordsRepository.save(searchKeywordT);
+			}
+		}
+
+		// Delete connectCustomerContactLinkTs
+		if (connect.getDeleteConnectCustomerContactLinkTs() != null
+				&& connect.getDeleteConnectCustomerContactLinkTs().size() > 0) {
+			deleteConnectCustomerContacts(connect
+					.getDeleteConnectCustomerContactLinkTs());
+			logger.debug("ConnectCustomerContacts deleted");
+		}
+
+		// Delete connectTcsAccountContactLinkTs
+		if (connect.getDeleteConnectTcsAccountContactLinkTs() != null
+				&& connect.getDeleteConnectTcsAccountContactLinkTs().size() > 0) {
+			deleteConnectTcsAccountContacts(connect
+					.getDeleteConnectTcsAccountContactLinkTs());
+			logger.debug("ConnectTcsAccountContacts deleted");
+		}
+
+		// Delete ConnectSecondaryOwnerLinkTs
+		if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
+				&& connect.getDeleteConnectSecondaryOwnerLinkTs().size() > 0) {
+			deleteConnectSecondaryOwnerLinks(connect
+					.getDeleteConnectSecondaryOwnerLinkTs());
+			logger.debug("ConnectSecondaryOwnerLinks deleted");
+		}
+		return (connectRepository.save(connect));
 	}
 
 	private void deleteOfferings(
 			List<ConnectOfferingLinkT> connectOfferingLinkDeletionList) {
-		logger.debug("Inside deleteOfferings Service");
+		logger.debug("Inside deleteOfferings() method");
 		for (ConnectOfferingLinkT connectOffLink : connectOfferingLinkDeletionList) {
 			connOffLinkRepo.delete(connectOffLink.getConnectOfferingLinkId());
 		}
 	}
 
 	private void deleteSubSps(List<ConnectSubSpLinkT> connectSubLinkDeletionList) {
-		logger.debug("Inside deleteSubSps Service");
+		logger.debug("Inside deleteSubSps() method");
 		for (ConnectSubSpLinkT connectSubSp : connectSubLinkDeletionList) {
 			connSubSpRepo.delete(connectSubSp.getConnectSubSpLinkId());
 		}
@@ -619,7 +648,7 @@ public class ConnectService {
 
 	private void deleteConnectCustomerContacts(
 			List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs) {
-		logger.debug("Inside deleteConnectCustomerContacts Service");
+		logger.debug("Inside deleteConnectCustomerContacts() method");
 		for (ConnectCustomerContactLinkT connectCustomerContact : connectCustomerContactLinkTs) {
 			connCustContRepo.delete(connectCustomerContact
 					.getConnectCustomerContactLinkId());
@@ -628,7 +657,7 @@ public class ConnectService {
 
 	private void deleteConnectTcsAccountContacts(
 			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
-		logger.debug("Inside deleteConnectTcsAccountContacts Service");
+		logger.debug("Inside deleteConnectTcsAccountContacts() method");
 		for (ConnectTcsAccountContactLinkT connectTcsContact : connectTcsAccountContactLinkTs) {
 			connTcsAcctContRepo.delete(connectTcsContact
 					.getConnectTcsAccountContactLinkId());
@@ -637,7 +666,7 @@ public class ConnectService {
 
 	private void deleteConnectSecondaryOwnerLinks(
 			List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs) {
-		logger.debug("Inside deleteConnectSecondaryOwnerLink Service");
+		logger.debug("Inside deleteConnectSecondaryOwnerLink() method");
 		for (ConnectSecondaryOwnerLinkT connectSecondaryOwner : connectSecondaryOwnerLinkTs) {
 			connSecOwnerRepo.delete(connectSecondaryOwner
 					.getConnectSecondaryOwnerLinkId());
@@ -646,7 +675,7 @@ public class ConnectService {
 
 	private void populateOppLinks(String connectId,
 			List<ConnectOpportunityLinkIdT> conOppLinkIdTList) {
-		logger.debug("Inside populateOppLinks Service");
+		logger.debug("Inside populateOppLinks() method");
 		for (ConnectOpportunityLinkIdT conOppLinkId : conOppLinkIdTList) {
 			//conOppLinkId.setCreatedModifiedBy(currentUserId);
 			conOppLinkId.setConnectId(connectId);
@@ -656,7 +685,7 @@ public class ConnectService {
 
 	private void populateTasks(String connectId,
 			List<TaskT> taskList) {
-		logger.debug("Inside populateTasks Service");
+		logger.debug("Inside populateTasks() method");
 		for (TaskT task : taskList) {
 			//task.setCreatedBy(currentUserId);
 			task.setConnectId(connectId);
@@ -664,6 +693,7 @@ public class ConnectService {
 	}
 
 	private void prepareConnect(List<ConnectT> connectTs) {
+		logger.debug("Inside prepareConnect(List<>) method");
 		if (connectTs != null) {
 			for (ConnectT connectT : connectTs) {
 				prepareConnect(connectT);
@@ -672,6 +702,7 @@ public class ConnectService {
 	}
 
 	private void prepareConnect(ConnectT connectT) {
+		logger.debug("Inside prepareConnect() method");
 		if (connectT != null) {
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
@@ -679,6 +710,7 @@ public class ConnectService {
 	}
 
 	private void removeCyclicForLinkedOpportunityTs(ConnectT connectT) {
+		logger.debug("Inside removeCyclicForLinkedOpportunityTs() method");
 		if (connectT != null) {
 			if (connectT.getConnectOpportunityLinkIdTs() != null) {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
@@ -692,18 +724,20 @@ public class ConnectService {
 
 	// This method is used to invoke asynchronous thread for auto comments
 	private void processAutoComments(String connectId, Object oldObject) throws Exception {
+		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
 		autoCommentsHelper.setEntityId(connectId);
 		autoCommentsHelper.setEntityType(EntityType.CONNECT.name());
-		if (oldObject != null)
+		if (oldObject != null) {
 			autoCommentsHelper.setOldObject(oldObject);
+		}
 		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(connectRepository);
+		autoCommentsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
-
 	}
 	
 	/**

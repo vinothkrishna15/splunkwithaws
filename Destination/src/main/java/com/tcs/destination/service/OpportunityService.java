@@ -5,6 +5,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
@@ -53,6 +55,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.helper.AutoCommentsLazyLoader;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Component
@@ -60,6 +63,10 @@ public class OpportunityService {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityService.class);
+
+	// Required for auto comments
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
@@ -108,24 +115,25 @@ public class OpportunityService {
 
 	@Autowired
 	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
-	
+
 	// Required beans for Auto comments - start
 	@Autowired
 	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
-	
+
 	@Autowired
 	AutoCommentsEntityTRepository autoCommentsEntityTRepository;
-	
+
 	@Autowired
 	AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
-	
+
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
+
 	// Required beans for Auto comments - end
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency) throws Exception {
-		logger.debug("Inside findByOpportunityName Service");
+		logger.debug("Inside findByOpportunityName() service");
 		List<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
@@ -149,7 +157,7 @@ public class OpportunityService {
 
 	public List<OpportunityT> findRecentOpportunities(String customerId,
 			List<String> toCurrency) throws Exception {
-		logger.debug("Inside findRecentOpportunities Service");
+		logger.debug("Inside findRecentOpportunities() service");
 		// Date date = new Date(); // Or where ever you get it from
 		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
 		Calendar now = Calendar.getInstance();
@@ -175,7 +183,7 @@ public class OpportunityService {
 	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
 			String opportunityRole, List<String> toCurrency) throws Exception {
 		List<OpportunityT> opportunities = null;
-		logger.debug("Inside findOpportunitiesByOwnerAndRole Service");
+		logger.debug("Inside findOpportunitiesByOwnerAndRole() service");
 		if (OpportunityRole.contains(opportunityRole)) {
 			logger.debug("Opportunity Role is Present");
 			switch (OpportunityRole.valueOf(opportunityRole)) {
@@ -218,7 +226,7 @@ public class OpportunityService {
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
 			String opportunityRole, Date fromDate, Date toDate,
 			List<String> toCurrency) throws Exception {
-		logger.debug("Inside findByTaskOwnerForRole Service");
+		logger.debug("Inside findByTaskOwnerForRole() service");
 		if (OpportunityRole.contains(opportunityRole)) {
 			List<OpportunityT> opportunities = null;
 			logger.debug("Opportunity Role is Present");
@@ -263,7 +271,7 @@ public class OpportunityService {
 	private List<OpportunityT> findForPrimaryOwner(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
-		logger.debug("Inside findForPrimaryOwner Service");
+		logger.debug("Inside findForPrimaryOwner() service");
 		List<OpportunityT> opportunities = opportunityRepository
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
 						fromDate, toDate);
@@ -274,7 +282,7 @@ public class OpportunityService {
 	private List<OpportunityT> validateAndReturnOpportunitesData(
 			List<OpportunityT> opportunities, boolean validate)
 			throws DestinationException {
-		logger.debug("validateAndReturnOpportunitesData");
+		logger.debug("Inside validateAndReturnOpportunitesData() method");
 		if (validate) {
 			if (opportunities.size() > 0) {
 				logger.debug("Opportunity List Is Present");
@@ -291,7 +299,7 @@ public class OpportunityService {
 
 	private List<OpportunityT> findForBidOffice(String userId, boolean isOnly,
 			Date fromDate, Date toDate) throws DestinationException {
-		logger.debug("Inside findForBidOffice Service");
+		logger.debug("Inside findForBidOffice() service");
 		UserT userT = new UserT();
 		userT.setUserId(userId);
 		List<OpportunityT> opportunities = opportunityRepository
@@ -303,7 +311,7 @@ public class OpportunityService {
 	private List<OpportunityT> findForSalesSupport(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
-		logger.debug("Inside findForSalesSupport Service");
+		logger.debug("Inside findForSalesSupport() service");
 		List<OpportunityT> opportunities = opportunityRepository
 				.findOpportunityTForSalesSupportOwnerWithDateBetween(userId,
 						fromDate, toDate);
@@ -312,7 +320,7 @@ public class OpportunityService {
 
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws DestinationException {
-		logger.debug("Inside findByOpportunityId Service");
+		logger.debug("Inside findByOpportunityId() service");
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
 		if (opportunity != null) {
@@ -336,8 +344,10 @@ public class OpportunityService {
 		}
 	}
 
+	// Method called from controller
 	@Transactional
-	public void create(OpportunityT opportunity) throws Exception {
+	public void createOpportunity(OpportunityT opportunity) throws Exception {
+		logger.debug("Inside createOpportunity() service");
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
 			saveOpportunity(opportunity, false);
@@ -348,7 +358,7 @@ public class OpportunityService {
 
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate) throws Exception {
-
+		logger.debug("Inside saveOpportunity() method");
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
@@ -359,6 +369,7 @@ public class OpportunityService {
 
 	private OpportunityT saveChildObject(OpportunityT opportunity)
 			throws Exception {
+		logger.debug("Inside saveChildObject() method");
 
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
@@ -498,6 +509,7 @@ public class OpportunityService {
 	}
 
 	private void saveBaseObject(OpportunityT opportunity) throws Exception {
+		logger.debug("Inside saveBaseObject() method");
 		OpportunityT baseOpportunityT = new OpportunityT();
 		baseOpportunityT.setCreatedBy(opportunity.getCreatedBy());
 		baseOpportunityT.setCreatedDatetime(opportunity.getCreatedDatetime());
@@ -542,20 +554,57 @@ public class OpportunityService {
 
 	}
 
+	// Method called from controller
 	@Transactional
-	public void edit(OpportunityT opportunity) throws Exception {
+	public void updateOpportunity(OpportunityT opportunity) throws Exception {
+		logger.debug("Inside updateOpportunity() service");
+		String opportunityId = opportunity.getOpportunityId();
+		if (opportunityId == null) {
+			logger.error("OpportunityId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"OpportunityId is required for update");
+
+		}
 		// Check if opportunity exists
-		OpportunityT dbOpportunity = opportunityRepository.findOne(opportunity.getOpportunityId());
-		if (dbOpportunity != null) {
-			// Get a copy of the db object for processing Auto comments
-			OpportunityT oldObject = (OpportunityT) DestinationUtils.copy(dbOpportunity);
-			saveOpportunity(opportunity, true);
+		if (!opportunityRepository.exists(opportunityId)) {
+			logger.error("Opportunity not found for update: {}", opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunity not found for update: " + opportunityId);
+		}
+
+		// Load db object before update with lazy collections populated for auto
+		// comments
+		OpportunityT beforeOpp = loadDbOpportunityWithLazyCollections(opportunityId);
+		// Copy the db object as the above object is managed by current
+		// hibernate session
+		OpportunityT oldObject = (OpportunityT) DestinationUtils
+				.copy(beforeOpp);
+
+		// Update database
+		OpportunityT afterOpp = saveOpportunity(opportunity, true);
+		if (afterOpp != null) {
+			logger.info("Opportunity has been updated successfully: "
+					+ opportunityId);
 			// Invoke Asynchronous Auto Comments Thread
-			processAutoComments(opportunity.getOpportunityId(), oldObject);
+			processAutoComments(opportunityId, oldObject);
 		}
 	}
 
+	// This method is used to load database object with auto comments eligible
+	// lazy collections populated
+	public OpportunityT loadDbOpportunityWithLazyCollections(
+			String opportunityId) throws Exception {
+		logger.debug("Inside loadDbOpportunityWithLazyCollections() method");
+		OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader
+				.loadLazyCollections(opportunityId,
+						EntityType.OPPORTUNITY.name(), opportunityRepository,
+						autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
+		return opportunity;
+	}
+
 	private void deleteChildObjects(OpportunityT opportunity) throws Exception {
+		logger.debug("Inside deleteChildObjects() method");
+
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
 			connectOpportunityLinkTRepository.delete(opportunity
@@ -619,6 +668,7 @@ public class OpportunityService {
 	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
 			Date fromDate, Date toDate, List<String> toCurrency)
 			throws Exception {
+		logger.debug("Inside findByOpportunityOwnerAndDate() service");
 		List<OpportunityT> opportunityList = null;
 		opportunityList = opportunityRepository
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
@@ -637,6 +687,7 @@ public class OpportunityService {
 	}
 
 	private void prepareOpportunity(List<OpportunityT> opportunityTs) {
+		logger.debug("Inside prepareOpportunity(List<>) method");
 		if (opportunityTs != null) {
 			for (OpportunityT opportunityT : opportunityTs) {
 				prepareOpportunity(opportunityT);
@@ -645,12 +696,14 @@ public class OpportunityService {
 	}
 
 	private void prepareOpportunity(OpportunityT opportunityT) {
-
+		logger.debug("Inside prepareOpportunity() method");
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
 	}
 
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
+		logger.debug("Inside removeCyclicForLinkedConnects() method");
+
 		if (opportunityT != null) {
 			if (opportunityT.getConnectOpportunityLinkIdTs() != null) {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunityT
@@ -663,6 +716,7 @@ public class OpportunityService {
 	}
 
 	private void setSearchKeywordTs(OpportunityT opportunityT) {
+		logger.debug("Inside setSearchKeywordTs() method");
 		// Add Search Keywords
 		List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
 				.findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.toString(),
@@ -672,32 +726,46 @@ public class OpportunityService {
 		}
 	}
 
-
-	public List<OpportunityT> findShelvedOpportunities(List<String> currencies) {
-		List<OpportunityT> opportunityTs = opportunityRepository
-				.findBySalesStageCode(12);
+	public List<OpportunityT> findOpportunitiesBySalesStageCode(
+			List<String> currencies, int salesStageCode, String customerId) {
+		List<OpportunityT> opportunityTs = null;
+		if (customerId.equals(""))
+			opportunityTs = opportunityRepository
+					.findBySalesStageCode(salesStageCode);
+		else
+			opportunityTs = opportunityRepository
+					.findBySalesStageCodeAndCustomerId(salesStageCode,
+							customerId);
 		prepareOpportunity(opportunityTs);
 		return opportunityTs;
 	}
 
 	// This method is used to invoke asynchronous thread for auto comments
-	private void processAutoComments(String opportunitytId, Object oldObject) throws Exception {
+	private void processAutoComments(String opportunitytId, Object oldObject)
+			throws Exception {
+		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
 		autoCommentsHelper.setEntityId(opportunitytId);
 		autoCommentsHelper.setEntityType(EntityType.OPPORTUNITY.name());
-		if (oldObject != null)
+		if (oldObject != null) {
 			autoCommentsHelper.setOldObject(oldObject);
-		autoCommentsHelper.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
-		autoCommentsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
-		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		}
+		autoCommentsHelper
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		autoCommentsHelper
+				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		autoCommentsHelper
+				.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(opportunityRepository);
+		autoCommentsHelper.setEntityManagerFactory(entityManager
+				.getEntityManagerFactory());
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
 	}
-	
+
 	/**
-	 * This is the serives method which deals with the retrieval of all 
+	 * This is the serives method which deals with the retrieval of all
 	 * opportunities under a supervisor
 	 * 
 	 * @param supervisorUserId
@@ -727,4 +795,8 @@ public class OpportunityService {
 		return listOfopportunitiesDTO;
 	}
 
+	public OpportunityT findOpportunityById(String oppId){
+		return opportunityRepository.findOne(oppId);
+	}
+	
 }

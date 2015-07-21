@@ -21,7 +21,6 @@ public interface BeaconDataTRepository extends
 	List<Object[]> findTargetRevenue(String financialYear, String quarter,
 			String geography, String iou, String customerName);
 
-	// TODO: Change the Query Based on Ajay
 	@Query(value = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "

@@ -23,6 +23,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<String> getAllSubordinatesIdBySupervisorId(String supervisorId);
 	
 	@Query (value="select user_id from user_t where user_role=?1",nativeQuery=true)
-	List<String> getAllMembersByRole(String role);
+	List<String> findUserIdByUserRole(String userRole);
+	
+	List<UserT> findByUserIdAndUserRole(String userId, String userRole);
 	
 }

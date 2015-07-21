@@ -157,9 +157,8 @@ public class ConnectController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
         try{
-		if (connectService.editConnect(connect)) {
+		if (connectService.updateConnect(connect)) {
 			status.setStatus(Status.SUCCESS, connect.getConnectId());
-			logger.debug("CONNECT EDIT SUCCESS" + connect.getConnectId());
 		}
         } catch(Exception e){
         	logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());

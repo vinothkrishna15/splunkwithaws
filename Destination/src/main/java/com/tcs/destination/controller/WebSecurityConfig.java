@@ -3,6 +3,7 @@ package com.tcs.destination.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,8 +23,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(AuthenticationManagerBuilder auth)
 			throws Exception {
 		auth.userDetailsService(userDetailsService);
+		
 	}
-
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		// Instruct Spring Security not to create Session and use session exists already if any
@@ -32,10 +34,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		//http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
 		
 		http.authorizeRequests().
+		antMatchers("/api/useraccess/request").permitAll().
 		antMatchers(HttpMethod.OPTIONS, "/**").permitAll().
 		anyRequest().authenticated().and().httpBasic();
 		
-		// http.authorizeRequests().antMatchers("/login").permitAll().anyRequest()
+		
+		 //http.authorizeRequests().antMatchers("api/newuser/request").permitAll();
 		// .authenticated().and().csrf().disable();
 		// .antMatchers("/login").permitAll()
 		// .anyRequest().authenticated();
