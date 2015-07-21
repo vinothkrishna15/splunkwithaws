@@ -598,7 +598,7 @@ public class OpportunityService {
 		OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader
 				.loadLazyCollections(opportunityId,
 						EntityType.OPPORTUNITY.name(), opportunityRepository,
-						autoCommentsEntityTRepository, null);
+						autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
 		return opportunity;
 	}
 

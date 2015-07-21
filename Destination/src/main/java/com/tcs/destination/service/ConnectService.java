@@ -511,7 +511,7 @@ public class ConnectService {
 	public ConnectT loadDbConnectWithLazyCollections(String connectId) throws Exception {
 		logger.debug("Inside loadDbConnectWithLazyCollections() method");
 		ConnectT connect = (ConnectT) AutoCommentsLazyLoader.loadLazyCollections(connectId, EntityType.CONNECT.name(), 
-				connectRepository, autoCommentsEntityTRepository, null);
+				connectRepository, autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
 		return connect;
 	}
 	

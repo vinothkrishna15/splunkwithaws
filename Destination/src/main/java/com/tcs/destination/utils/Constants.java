@@ -10,6 +10,7 @@ public class Constants {
 	public static final String Y = "Y";
 	public static final String FIELD = "F";
 	public static final String COLLECTION = "C";
+	public static final String ID_FIELD = "I";
 	public static final String SYSTEM_USER = "System";
 
 }
