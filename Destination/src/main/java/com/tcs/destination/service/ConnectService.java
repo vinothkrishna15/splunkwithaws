@@ -763,6 +763,7 @@ public class ConnectService {
 		
 		// Get connects between two dates 
 		List<ConnectT> connects = connectRepository.getTeamConnects(users, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		prepareConnect(connects);
 		dashBoardConnectsResponse.setConnectTs(connects);
 		
 		// Get weekly Count of connects

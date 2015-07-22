@@ -34,5 +34,28 @@ public class DashboardController {
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				chartValues);
 	}
+	
+	/**
+	 * This controller retrieves the details of performance details of all the users under a supervisor
+	 * 
+	 * @param supervisorId
+	 * @param financialYear
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/teamChart", method = RequestMethod.GET)
+	public String teamChart(
+			@RequestParam(value = "supervisorId") String supervisorId,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		PerformaceChartBean chartValues = dashboardService.getTeamChartValues(
+				supervisorId, financialYear);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				chartValues);
+	}
 
 }

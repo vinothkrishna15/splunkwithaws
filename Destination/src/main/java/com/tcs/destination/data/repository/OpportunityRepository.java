@@ -262,4 +262,24 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findBySalesStageCodeAndCustomerId(int salesStageCode,
 			String customerId);
 
+	/**
+	 * This query retrieves pipeline deal value of all users under a supervisor
+	 * 
+	 * @param users
+	 * @param endTime
+	 * @return
+	 */
+	@Query(value = "select digital_deal_value,deal_currency from opportunity_t opp where opp.opportunity_owner in (:users) and  opp.opportunity_id in (select opportunity_id from (select opportunity_id, max(updated_datetime) from opportunity_timeline_history_t where updated_datetime <= (:endTime) and sales_stage_code < 9 group by opportunity_id order by opportunity_id) as opp_pipeline)", nativeQuery = true)
+	List<Object[]> findDealValueForPipelineBySubordinatesPerSupervisor(@Param("users") List<String> users,@Param("endTime") Timestamp endTime);
+	
+	/**
+	 * This query retrieves all the won deals of all users under a supervisor
+	 * 
+	 * @param users
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	@Query(value = "select digital_deal_value,deal_currency from opportunity_t where opportunity_owner in (:users) and (deal_closure_date between (:fromDate) and (:toDate)) and sales_stage_code =9", nativeQuery = true)
+	List<Object[]> findDealValueForWinsBySubordinatesPerSupervisor(@Param("users") List<String> users, @Param("fromDate") Date fromDate,	@Param("toDate") Date toDate);
 }
