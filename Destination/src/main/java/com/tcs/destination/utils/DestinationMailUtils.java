@@ -1,6 +1,10 @@
 package com.tcs.destination.utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +35,21 @@ import com.tcs.destination.service.UserService;
 @Component
 public class DestinationMailUtils {
 	
-	//private String recipient = "badrinaraayanan.m@tcs.com";
+	@Value("${senderEmailId}")
+	private String senderEmailId;
+	
+	@Value("${dateFormat}")
+	private String dateFormatStr;
+	
+	@Value("${forgotPasswordTemplateLoc}")
+	private String forgotPasswordTemplateLoc;
+	
+	@Value("${userAccessTemplateLoc}")
+	private String userAccessTemplateLoc;
+	
+	@Value("${reopenOpportunityTemplateLoc}")
+	private String reopenOpportunityTemplateLoc;
+	
 	@Autowired
 	private UserService userService;
 
@@ -43,18 +61,6 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private VelocityEngine velocityEngine;
-	
-	@Value("${forgotPassword}")
-	private String forgotPasswordSubject;
-	
-	@Value("${userAccess}")
-	private String userAccessSubject;
-	
-	@Value("${senderEmailId}")
-	private String senderEmailId;
-	
-	@Value("${reopenOpportunity}")
-	private String reopenOpportunitySubject;
 	
 	@Autowired
 	UserAccessRequestRepository userAccessRepo;
@@ -68,12 +74,19 @@ public class DestinationMailUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
 	
-	public void sendPasswordAutomatedEmail(String userId) throws Exception {
+	
+	/**
+	 * @param user
+	 * @param requestedDateTime
+	 * @throws Exception
+	 */
+	public void sendPasswordAutomatedEmail(String subject,UserT user, Date requestedDateTime) throws Exception {
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setMessageType("MIME");
+		message.setMessageType(Constants.MIME);
 		
 		List<String> recipientIds = new ArrayList<String>();
-        recipientIds.add(userId);
+        String userId = user.getUserId();
+		recipientIds.add(userId);
         message.setRecipients(recipientIds);
         
 		List<String> ccIds = new ArrayList<String>();
@@ -82,101 +95,214 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
         message.setBccList(bccIds);
         
-        UserT user = userService.findByUserId(userId);
-		sendPasswordMail(message,user);
+        DateFormat df = new SimpleDateFormat(dateFormatStr);
+        String dateStr = df.format(requestedDateTime);
+        message.setSubject(subject);
+        //df.setTimeZone(TimeZone.getTimeZone("GMT+5.30"));  
+		sendPasswordMail(message,user,dateStr);
 	}
 	
-	public void sendUserAccessAutomatedEmail(String reqId) throws Exception {
+	/**
+	 * @param subject - subject of the mail to be sent
+	 * @param reqId - request id for new user access
+	 * @param requestedDateTime - requested timestamp
+	 * @throws Exception
+	 */
+	public void sendUserAccessAutomatedEmail(String subject, String reqId, Date requestedDateTime) throws Exception {
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setMessageType("MIME");
+		message.setMessageType(Constants.MIME);
 		
-		List<String> recipientIds = userService.findByUserRole("System Admin");
-		message.setRecipients(recipientIds);
+		UserAccessRequestT userAccessRequest = userAccessRepo.findOne(reqId);
+		
+		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
+        message.setRecipients(recipientIds);
 		
 		List<String> ccIds = new ArrayList<String>();
+        String supervisorId = userAccessRequest.getSupervisorId();
+        ccIds.add(supervisorId);
 		message.setCcList(ccIds);
 		
 		List<String> bccIds = new ArrayList<String>();
         message.setBccList(bccIds);
         
-		sendUserAccessMail(message,reqId);
+        message.setSubject(subject);
+        
+        DateFormat df = new SimpleDateFormat(dateFormatStr);
+        String requestedDateStr = df.format(requestedDateTime);
+        
+		sendUserAccessMail(message,userAccessRequest,requestedDateStr);
 	}
 	
-	public void sendOpportunityReopenAutomatedEmail(String reqId) throws Exception {
+	/**
+	 * @param subject
+	 * @param reqId 
+	 * @param requestedDateTime
+	 * @throws Exception
+	 */
+	public void sendOpportunityReopenAutomatedEmail(String subject, String reqId, Date requestedDateTime) throws Exception {
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setMessageType("MIME");
+		message.setMessageType(Constants.MIME);
 		
-		List<String> recipientIds = userService.findByUserRole("System Admin");
+		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo.findOne(reqId);
+        UserT user = userService.findByUserId(oppReopenRequest.getRequestedBy());
+        UserT supervisor = userService.findByUserId(user.getSupervisorUserId());
+        OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
+        
+		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
 		message.setRecipients(recipientIds);
 		
 		List<String> ccIds = new ArrayList<String>();
+		ccIds.add(user.getUserId());
+		ccIds.add(supervisor.getUserId());
 		message.setCcList(ccIds);
 		
 		List<String> bccIds = new ArrayList<String>();
         message.setBccList(bccIds);
         
-		sendOpportunityReopenMail(message,reqId);
+        DateFormat df = new SimpleDateFormat(dateFormatStr);
+        String dateStr = df.format(requestedDateTime);
+        message.setSubject(subject);
+		sendOpportunityReopenMail(message,oppReopenRequest,user,opp,dateStr);
 	}
 	
-	
-	public void sendPasswordMail(DestinationMailMessage message, UserT user) throws Exception{
+	/**
+	 * @param message
+	 * @param user
+	 * @param dateStr
+	 * @throws Exception
+	 */
+	private void sendPasswordMail(DestinationMailMessage message, UserT user, String dateStr) throws Exception{
 		
 		List<String> recipientIdList = message.getRecipients();
 	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
+	    String[] bccMailIdsArray =getMailAddressArr(message.getBccList());
 		
-	    List<String> ccIdList = message.getCcList();
-	    String[] ccMailIdsArray=new String[0];
-	    if(ccIdList!=null)
-	    ccMailIdsArray = getMailIdsFromUserIds(ccIdList);
-		
-	    List<String> bccIdList = message.getBccList();
-	    String[] bccMailIdsArray=new String[0];
-	    if(bccIdList!=null)
-	    bccMailIdsArray = getMailIdsFromUserIds(bccIdList);
-		
-	    if(message.getMessageType().equals("MIME")){
+	    if(message.getMessageType().equals(Constants.MIME)){
 			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
 			try{
 				MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
-				helper.setSubject(forgotPasswordSubject);
+				String subject = message.getSubject();
+				helper.setSubject(subject);
 				helper.setFrom(senderEmailId);
-				Map model = new HashMap();
-				model.put("user", user);
+				Map forgotPasswordTemplateDataModel = new HashMap();
+				forgotPasswordTemplateDataModel.put("user", user);
+				forgotPasswordTemplateDataModel.put("date", dateStr);
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine,
-						"./templates/Template_Forgot_Password.vm", "UTF-8",
-						model);
-				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, forgotPasswordSubject, text);
+						velocityEngine,forgotPasswordTemplateLoc, Constants.UTF8,forgotPasswordTemplateDataModel);
+				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
+				//mailSender.send(automatedMIMEMessage);
+			} catch(Exception e){
+			 System.out.println(e.getMessage());
+			}
+		}
+			}
+	
+	/**
+	 * @param message
+	 * @param userAccessRequest
+	 * @param dateStr
+	 * @throws Exception
+	 */
+	private void sendUserAccessMail(DestinationMailMessage message, UserAccessRequestT userAccessRequest, String dateStr) throws Exception {
+		// TODO Auto-generated method stub
+		List<String> recipientIdList = message.getRecipients();
+	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
+	    //shuffling the order of Ids
+	    int size = ccMailIdsArray.length;
+        ccMailIdsArray = Arrays.copyOf(ccMailIdsArray, size + 1);
+        ccMailIdsArray[1] = ccMailIdsArray[0];
+        ccMailIdsArray[0] = userAccessRequest.getUserEmailId(); 
+	    String[] bccMailIdsArray=getMailAddressArr(message.getBccList());
+	    
+	    if(message.getMessageType().equals(Constants.MIME)){
+			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+			try{
+				MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
+				helper.setTo(recipientMailIdsArray);
+				helper.setCc(ccMailIdsArray);
+				helper.setBcc(bccMailIdsArray);
+				String subject = message.getSubject();
+				helper.setSubject(subject);
+				helper.setFrom(senderEmailId);
+				Map userAccessTemplateDataModel = new HashMap();
+				userAccessTemplateDataModel.put("request", userAccessRequest);
+				userAccessTemplateDataModel.put("date", dateStr);
+				String text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine,userAccessTemplateLoc, Constants.UTF8,userAccessTemplateDataModel);
+				logMailDetails(recipientMailIdsArray,ccMailIdsArray,bccMailIdsArray,subject,text);
+				//mailSender.send(automatedMIMEMessage);
+			} catch(Exception e){
+			 System.out.println(e.getMessage());
+			}
+		}
+	    
+	}
+
+	/**
+	 * This method initializes the actual mime message that will be sent
+	 * @param message - object containing recipients, message type, 
+	 * @param oppReopenRequest
+	 * @param user
+	 * @param opp
+	 * @param dateStr
+	 * @throws Exception
+	 */
+	private void sendOpportunityReopenMail(DestinationMailMessage message,
+			OpportunityReopenRequestT oppReopenRequest, UserT user, OpportunityT opp,String dateStr) throws Exception {
+		List<String> recipientIdList = message.getRecipients();
+	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
+	    String[] bccMailIdsArray=getMailAddressArr(message.getBccList());
+	    
+	    if(message.getMessageType().equals(Constants.MIME)){
+			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+			try{
+				MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
+				helper.setTo(recipientMailIdsArray);
+				helper.setCc(ccMailIdsArray);
+				helper.setBcc(bccMailIdsArray);
+				String subject = message.getSubject();
+				helper.setSubject(subject);
+				helper.setFrom(senderEmailId);
+				Map reopenOppTemplateDataModel = new HashMap();
+				
+				reopenOppTemplateDataModel.put("request", oppReopenRequest);
+				reopenOppTemplateDataModel.put("user",user);
+				reopenOppTemplateDataModel.put("opportunity",opp);
+				reopenOppTemplateDataModel.put("date",dateStr);
+				String text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine,reopenOpportunityTemplateLoc, Constants.UTF8,reopenOppTemplateDataModel);
+				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
 				//mailSender.send(automatedMIMEMessage);
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
 			}
 		}
 		
-		
-		
-		
-//		    String result="";
-//		    
-//			if(message.getMessageType().equals("TEXT")){
-//				SimpleMailMessage msg = new SimpleMailMessage(templateMessage);
-//				msg.setTo(recipientMailIdsArray);
-//				msg.setSubject(message.getSubject());
-//				msg.setText(message.getMessage());
-//				msg.setFrom(message.getSenderEmail());
-//				result = sendTextMail(msg);
-//			} else {
-//				List<UserT> users = getUsers(recipientIdList);
-//				for(UserT user : users){
-//					sendConfirmationEmail(user);
-//				}
-//			}
-//			return result;
-			}
+	}
 
+	/**
+	 * @param idList
+	 * @return
+	 * @throws Exception
+	 */
+	private String[] getMailAddressArr(List<String> idList) throws Exception{
+	    String[] mailIdsArray=new String[0];
+	    if(idList!=null)
+	    	mailIdsArray = getMailIdsFromUserIds(idList);
+	    return mailIdsArray;
+	}
+	
+	/**
+	 * @param recipientIdList
+	 * @return
+	 * @throws Exception
+	 */
 	private String[] getMailIdsFromUserIds(List<String> recipientIdList)
 			throws Exception {
 		List<String> recipientMailIds = new ArrayList<String>();
@@ -188,169 +314,15 @@ public class DestinationMailUtils {
 		}
 		String[] recipientMailIdsArray = recipientMailIds.toArray(new String[recipientMailIds.size()]);
 		return recipientMailIdsArray;
-	} 
-	
-//	private List<UserT> getUsers(List<String> recipientIdList) throws Exception{
-//		List<UserT> userList = new ArrayList<UserT>();
-//		
-//		for(String recipientId : recipientIdList){
-//		  UserT recipient = userService.findByUserId(recipientId);
-//		  userList.add(recipient);
-//		}
-//		return userList;
-//	}
-
-//	private String sendMIMEMail(DestinationMailMessage message) {
-//		// TODO Auto-generated method stub
-//		
-//	}
-
-//	private String sendTextMail(SimpleMailMessage msg) {
-//		// TODO Auto-generated method stub
-//		try {
-//		//	this.mailSender.send(msg);
-//			System.out.println("Success !! Text Mail Sent !! ");
-//			return "Success !! Text Mail sent !! ";
-//		} catch (Exception ex) {
-//			System.err.println(ex.getMessage());
-//			return "Failure !! Text Mail not sent !!";
-//		}
-//	}
-//	
-//	private void sendConfirmationEmail(final UserT user) {
-//		
-//		MimeMessage message = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-//		 
-//		   try{
-//			MimeMessageHelper helper = new MimeMessageHelper(message, true);
-//	 
-//			helper.setFrom("badrinaraayanan.m@tcs.com");
-//			helper.setTo(user.getUserEmailId());
-//			helper.setSubject("MIME message");
-//			helper.setText("MIME TEXT");
-//
-//			Map model = new HashMap();
-//			model.put("user", user);
-//			String text = VelocityEngineUtils.mergeTemplateIntoString(
-//					velocityEngine,
-//					"Sample_HTML_Template.vm", "UTF-8",
-//					model);
-//			FileSystemResource res = new FileSystemResource(new File("/Users/bnpp/Desktop/Naveen Khanna.png"));
-//			helper.addInline("identifier1234", res);
-//			helper.setText(text, true);			
-//	 
-//		     }catch (MessagingException e) {
-//			throw new MailParseException(e);
-//		     }
-//		    // mailSender.send(message);
-//		
-//		
-//		
-////        MimeMessagePreparator preparator = new MimeMessagePreparator() {
-////        	@Override
-////            public void prepare(MimeMessage mimeMessage) throws Exception {
-////                MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
-////                message.setTo(user.getUserEmailId());
-////                message.setFrom(""); // could be parameterized...
-////                Map model = new HashMap();
-////                model.put("user", user);
-////                String text = VelocityEngineUtils.mergeTemplateIntoString(
-////                        velocityEngine, "com/dns/registration-confirmation.vm", model);
-////                message.setText(text, true);
-////            }
-////
-////        };
-////     mailSender.send(preparator);
-//    }
-
-	public void sendUserAccessMail(DestinationMailMessage message, String reqId) throws Exception {
-		// TODO Auto-generated method stub
-		List<String> recipientIdList = message.getRecipients();
-		
-		UserAccessRequestT userAccessRequest = userAccessRepo.findOne(reqId);
-		String supervisorId = userAccessRequest.getSupervisorId();
-		recipientIdList.add(supervisorId);
-	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
-	    
-	    String[] ccMailIdsArray={userAccessRequest.getUserEmailId()};
-		
-	    List<String> bccIdList = message.getBccList();
-	    String[] bccMailIdsArray=new String[0];
-	    if(bccIdList!=null)
-	    bccMailIdsArray = getMailIdsFromUserIds(bccIdList);
-	    
-	    if(message.getMessageType().equals("MIME")){
-			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-			try{
-				MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
-				helper.setTo(recipientMailIdsArray);
-				helper.setCc(ccMailIdsArray);
-				helper.setBcc(bccMailIdsArray);
-				helper.setSubject(userAccessSubject);
-				helper.setFrom(senderEmailId);
-				Map model = new HashMap();
-				model.put("request", userAccessRequest);
-				String text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine,
-						"./templates/Template_User_Access.vm", "UTF-8",
-						model);
-				logMailDetails(recipientMailIdsArray,ccMailIdsArray,bccMailIdsArray,userAccessSubject,text);
-				//mailSender.send(automatedMIMEMessage);
-			} catch(Exception e){
-			 System.out.println(e.getMessage());
-			}
-		}
-	    
 	}
 
-	public void sendOpportunityReopenMail(DestinationMailMessage message,
-			String reqId) throws Exception {
-		List<String> recipientIdList = message.getRecipients();
-		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo.findOne(reqId);
-        UserT user = userService.findByUserId(oppReopenRequest.getRequestedBy());
-        UserT supervisor = userService.findByUserId(user.getSupervisorUserId());
-        recipientIdList.add(supervisor.getUserId());
-        
-        OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
-	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
-	    
-	    List<String> ccIdList=message.getCcList();
-	    String[] ccMailIdsArray=new String[0];
-	    if(ccIdList!=null)
-	    ccMailIdsArray = getMailIdsFromUserIds(ccIdList);
-		
-	    List<String> bccIdList = message.getBccList();
-	    String[] bccMailIdsArray=new String[0];
-	    if(bccIdList!=null)
-	    bccMailIdsArray = getMailIdsFromUserIds(bccIdList);
-	    
-	    if(message.getMessageType().equals("MIME")){
-			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-			try{
-				MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
-				helper.setTo(recipientMailIdsArray);
-				helper.setCc(ccMailIdsArray);
-				helper.setBcc(bccMailIdsArray);
-				helper.setSubject(reopenOpportunitySubject);
-				helper.setFrom(senderEmailId);
-				Map model = new HashMap();
-				
-				model.put("request", oppReopenRequest);
-				model.put("user",user);
-				model.put("opportunity",opp);
-				String text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine,
-						"./templates/Template_Opportunity_Reopen.vm", "UTF-8",
-						model);
-				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, reopenOpportunitySubject, text);
-				//mailSender.send(automatedMIMEMessage);
-			} catch(Exception e){
-			 System.out.println(e.getMessage());
-			}
-		}
-		
-	}
-	
+	/**
+	 * @param recipientMailIdsArray
+	 * @param ccMailIdsArray
+	 * @param bccMailIdsArray
+	 * @param subject
+	 * @param content
+	 */
 	private void logMailDetails(String[] recipientMailIdsArray,
 			String[] ccMailIdsArray, String[] bccMailIdsArray,
 			String subject, String content) {
@@ -363,10 +335,15 @@ public class DestinationMailUtils {
 		System.out.println(content);
 	}
 
+	/**
+	 * @param recipientType
+	 * @param mailIdsArray
+	 */
 	private void logMailIds(String recipientType,String[] mailIdsArray) {
 		logger.info(recipientType + "Mail Ids : " );
 		for(String id : mailIdsArray){
 			logger.info(id);
 		}
 	}
+
 }

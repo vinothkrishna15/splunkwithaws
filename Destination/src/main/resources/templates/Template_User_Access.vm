@@ -2,17 +2,12 @@
 	<body>
 		<h3>Dear Admin,</h3>
 		<p>
-		 ${request.userId} has requested access for Destination.
+		 ${request.userId} has requested for access to Destination portal on ${date}.Please find more information below and approve/reject in system on consulting with supervisor.
 		</p>
 		<p>
 		  Please find the details below:
 		</p>
 		<table border="0">
-  			<tr>
-    			<td>Request Id</td>
-    			<td>:</td>
-   				<td>${request.requestId}</td>
-  			</tr>
   			<tr>
     			<td>User Id</td>
     			<td>:</td>
@@ -38,15 +33,14 @@
     			<td>:</td>
     			<td>${request.reasonForRequest}</td>
   			</tr>
-  			<tr>
-    			<td>Requested Date/Time</td>
-    			<td>:</td>
-    			<td>${request.requestReceivedDateTime}</td>
-  			</tr>
 		</table>
-		<br>
-		<br>
+		<p>
 		Regards,<br>
 		Destination Team.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
 	</body>
 </html>

@@ -2,34 +2,27 @@
 	<body>
 		<h3>Dear Admin,</h3>
 		<p>
-			${user.userName}($user.userId) has requested to reopen the opportunity.<br>
-			Please find below the details,
+			${user.userName} has requested to reopen the opportunity on ${date}. Please find more information below and approve/reject in system.
 		</p>
 		<table border="0">
-  			<tr>
-    			<td>Request Id</td>
-    			<td>:</td>
-    			<td>${request.opportunityReopenRequestId}</td>
-  			</tr>
   			<tr>
     			<td>Opportunity Name</td>
     			<td>:</td>
     			<td>${opportunity.opportunityName}</td>
   			</tr>
   			<tr>
-    			<td>Reason</td>
+    			<td>Reopen Reason/comments</td>
     			<td>:</td>
     			<td>${request.reasonForReopen}</td>
   			</tr>
-  			<tr>
-    			<td>Requested Date/Time</td>
-    			<td>:</td>
-    			<td>${request.requestReceivedDatetime}</td>
-  			</tr>
 		</table>		
-		<br>
-		<br>
+		<p>
 		Regards,<br>
 		Destination Team.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
 	</body>
 </html>
