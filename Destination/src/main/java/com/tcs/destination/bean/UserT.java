@@ -98,6 +98,9 @@ public class UserT implements Serializable, Cloneable {
 
 	@Transient
 	private Timestamp lastLogin;
+	
+	@OneToMany(mappedBy="userT")
+	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	// bi-directional many-to-one association to BdmTargetT
 	@JsonIgnore
@@ -1292,5 +1295,26 @@ public class UserT implements Serializable, Cloneable {
 
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
+	}
+
+	public List<UserAccessPrivilegesT> getUserAccessPrivilegesTs() {
+		return userAccessPrivilegesTs;
+	}
+
+	public void setUserAccessPrivilegesTs(
+			List<UserAccessPrivilegesT> userAccessPrivilegesTs) {
+		this.userAccessPrivilegesTs = userAccessPrivilegesTs;
+	}
+	
+	public UserAccessPrivilegesT addUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
+		getUserAccessPrivilegesTs().add(userAccessPrivilegesT);
+		userAccessPrivilegesT.setUserT(this);
+		return userAccessPrivilegesT;
+	}
+
+	public UserAccessPrivilegesT removeUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
+		getUserAccessPrivilegesTs().remove(userAccessPrivilegesT);
+		userAccessPrivilegesT.setUserT(null);
+		return userAccessPrivilegesT;
 	}
 }

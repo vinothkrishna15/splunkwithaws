@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,15 +21,24 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
+import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
+import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
+import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
+import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.DestinationEmailTemplate;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationMailUtils;
+//import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -51,6 +61,7 @@ public class UserDetailsController {
 
 	@Autowired
 	ApplicationSettingsRepository applicationSettingsRepository;
+	
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -59,6 +70,7 @@ public class UserDetailsController {
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
 			throws Exception {
 		logger.debug("Inside UserDetailsController /user GET");
+		
 		if (nameWith.equals("")) {
 			logger.debug("nameWith is EMPTY");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -68,7 +80,12 @@ public class UserDetailsController {
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, user);
 		}
+		
 	}
+
+	
+	
+	
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> userLogin(
@@ -190,9 +207,12 @@ public class UserDetailsController {
 @RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
 public @ResponseBody ResponseEntity<String> changePassword(HttpServletRequest httpServletRequest,@RequestBody UserT user)
 throws Exception {
-	logger.debug("Inside UserDetailsController /user/logout GET");
+	logger.debug("Inside UserDetailsController /user/changepwd PUT");
 	Status status = new Status();
 	String userId = user.getUserId();
+	
+	String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails().getUserId();
+	if(currentlyLoggedInUser.equals(userId)){
 	String currentPassword = user.getTempPassword();
 	String newPassword = user.getNewPassword();
 	//getting session object, if exist 
@@ -203,7 +223,7 @@ throws Exception {
 		if(dbUser!=null){
 			dbUser.setTempPassword(newPassword);
 			userService.updateUser(dbUser);
-			status.setStatus(Status.SUCCESS, "Password updated successfully");
+			status.setStatus(Status.SUCCESS, "Password has been updated successfully");
 			//invalidate session to force user to re-authenticate with updated password
 			session.invalidate();
 		} else {
@@ -216,5 +236,45 @@ throws Exception {
 	return new ResponseEntity<String>
 	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 }
+else {
+	throw new DestinationException(HttpStatus.UNAUTHORIZED,"Not authorized to make changes");
+}
+}
+
+@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
+public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT user) throws Exception{
+	logger.debug("Inside UserDetailsController /user/forgotpwd POST");
+	Status status = new Status();
+	
+	String userId = user.getUserId();
+	String userEmailId = user.getUserEmailId();
+	
+	userService.forgotPassword(userId,userEmailId);
+	status.setStatus(Status.SUCCESS, "Password has been sent to the email address");
+	
+	return new ResponseEntity<String>
+	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+}
+
+@RequestMapping(value="/privileges",method=RequestMethod.GET)
+public @ResponseBody ResponseEntity<String> getPrivileges(
+		HttpServletRequest httpServletRequest,
+		@RequestParam(value = "userId") String userId,
+		@RequestParam(value = "fields", defaultValue = "all") String fields,
+		@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+	logger.debug("Inside UserDetailsController /user/privileges GET");
+	Status status = new Status();
+    	
+	List<UserAccessPrivilegesT> userPrivilegesList = userService.getAllPrivilegesByUserId(userId);
+    if(userPrivilegesList!=null && userPrivilegesList.isEmpty()){
+    	status.setStatus(Status.FAILED, "Invalid userId");
+    	return new ResponseEntity<String>
+    	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+    } else {
+    	return new ResponseEntity<String>
+    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
+    }
+}
+
 
 }

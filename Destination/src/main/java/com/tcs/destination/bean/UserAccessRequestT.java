@@ -19,7 +19,7 @@ import java.sql.Timestamp;
  */
 @Entity
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "reqId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "requestId")
 @Table(name="user_access_request_t")
 @NamedQuery(name="UserAccessRequestT.findAll", query="SELECT u FROM UserAccessRequestT u")
 public class UserAccessRequestT implements Serializable {

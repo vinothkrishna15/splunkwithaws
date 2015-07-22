@@ -12,5 +12,8 @@ public class Constants {
 	public static final String COLLECTION = "C";
 	public static final String ID_FIELD = "I";
 	public static final String SYSTEM_USER = "System";
+	public static final String SYSTEM_ADMIN = "System Admin";
+	public static final String MIME = "MIME";
+	public static final String UTF8 = "UTF-8";
 
 }

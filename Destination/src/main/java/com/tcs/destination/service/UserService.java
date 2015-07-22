@@ -1,25 +1,28 @@
 package com.tcs.destination.service;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.UserDetailsController;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 
-;
 
-@Component
+@Service
 public class UserService {
 
 	private static final Logger logger = LoggerFactory
@@ -30,6 +33,15 @@ public class UserService {
 
 	@Autowired
 	LoginHistoryRepository loginHistoryRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
+	
+	@Autowired
+	DestinationMailUtils mailUtils;
+	
+	@Value("${forgotPassword}")
+	private String forgotPasswordSubject;
 
 	public List<UserT> findByUserName(String nameWith) throws Exception {
 		logger.debug("Inside findByUserName Service");
@@ -148,4 +160,33 @@ public class UserService {
 		return !(userRepository.findByUserIdAndUserRole(userId, userRole)
 				.isEmpty());
 	}
+
+	
+	/**
+	 * Service Method that handles forgot password
+	 * @param userId
+	 * @param userEmailId
+	 * @throws Exception
+	 */
+	public void forgotPassword(String userId, String userEmailId) throws Exception {
+		UserT user = userRepository.findOne(userId);
+		if(user != null){
+			String retrievedMailId = user.getUserEmailId();
+			if(retrievedMailId.equals(userEmailId)){
+				mailUtils.sendPasswordAutomatedEmail(forgotPasswordSubject,user,new Date());
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"UserId and Mail Address do not match");
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found");
+		}
+	}
+	
+	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId){
+		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserId(userId);
+		return userPrivilegesList;
+	}
+
 }

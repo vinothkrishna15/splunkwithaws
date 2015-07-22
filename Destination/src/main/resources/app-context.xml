@@ -87,7 +87,14 @@
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<property name="corePoolSize" value="10" />
 		<property name="maxPoolSize" value="15" />
-		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+		<property name="queueCapacity" value="50" />
+	</bean>
+	
+	<bean id="mailTaskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="10" />
+		<property name="queueCapacity" value="25" />
 	</bean>
 	
 </beans>

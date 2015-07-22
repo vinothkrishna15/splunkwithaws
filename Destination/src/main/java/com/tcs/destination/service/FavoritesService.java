@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.FavoritesResponse;
 import com.tcs.destination.bean.UserFavoritesT;
@@ -16,7 +16,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
 
-@Component
+@Service
 public class FavoritesService {
 
 	private static final Logger logger = LoggerFactory

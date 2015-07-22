@@ -3,17 +3,16 @@ package com.tcs.destination.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.GeographyCountryMappingT;
-import com.tcs.destination.controller.CountryController;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.tcs.destination.data.repository.CountryRepository;
 
-@Component
+@Service
 public class CountryService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CountryService.class);

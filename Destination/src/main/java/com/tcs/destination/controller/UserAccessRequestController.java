@@ -30,7 +30,7 @@ public class UserAccessRequestController {
 
 	@Autowired
 	UserAccessRequestService userAccessRequestService;
-
+	
 	@RequestMapping(value = "/{reqid}", method = RequestMethod.GET)
 	public @ResponseBody String getRequest(
 			@PathVariable("reqid") String reqId,
