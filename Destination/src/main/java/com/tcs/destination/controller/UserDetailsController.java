@@ -25,6 +25,7 @@ import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
@@ -253,6 +254,26 @@ public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT us
 	
 	return new ResponseEntity<String>
 	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+}
+
+@RequestMapping(value="/privileges",method=RequestMethod.GET)
+public @ResponseBody ResponseEntity<String> getPrivileges(
+		HttpServletRequest httpServletRequest,
+		@RequestParam(value = "userId") String userId,
+		@RequestParam(value = "fields", defaultValue = "all") String fields,
+		@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+	logger.debug("Inside UserDetailsController /user/privileges GET");
+	Status status = new Status();
+    	
+	List<UserAccessPrivilegesT> userPrivilegesList = userService.getAllPrivilegesByUserId(userId);
+    if(userPrivilegesList!=null && userPrivilegesList.isEmpty()){
+    	status.setStatus(Status.FAILED, "Invalid userId");
+    	return new ResponseEntity<String>
+    	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+    } else {
+    	return new ResponseEntity<String>
+    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
+    }
 }
 
 

@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -31,6 +33,9 @@ public class UserService {
 
 	@Autowired
 	LoginHistoryRepository loginHistoryRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 	
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -178,4 +183,10 @@ public class UserService {
 					"User not found");
 		}
 	}
+	
+	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId){
+		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserId(userId);
+		return userPrivilegesList;
+	}
+
 }
