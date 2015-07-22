@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 
-@Component
+@Service
 public class ConnectTypeService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConnectTypeService.class);

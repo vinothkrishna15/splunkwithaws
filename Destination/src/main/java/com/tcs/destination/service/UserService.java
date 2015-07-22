@@ -9,24 +9,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 
-;
 
-/**
- * @author bnpp
- *
- */
-@Component
+@Service
 public class UserService {
 
 	private static final Logger logger = LoggerFactory
