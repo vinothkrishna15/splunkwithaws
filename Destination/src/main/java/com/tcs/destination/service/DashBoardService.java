@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.data.repository.BdmTargetTRepository;
@@ -18,7 +18,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 
-@Component
+@Service
 public class DashBoardService {
 
 	private static final Logger logger = LoggerFactory

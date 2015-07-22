@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.FollowedRepository;
@@ -14,7 +14,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 
-@Component
+@Service
 public class FollowedService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FollowedService.class);

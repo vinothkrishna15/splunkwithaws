@@ -6,18 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.UserNotificationSettingsConditionsT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
-import com.tcs.destination.bean.UserT;
-import com.tcs.destination.controller.UserDetailsController;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
-import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
 
-@Component
+@Service
 public class UserNotificationSettingsService {
 
 	private static final Logger logger = LoggerFactory

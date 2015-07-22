@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.NotesT;
@@ -37,7 +37,7 @@ import com.tcs.destination.utils.DestinationUtils;
  * Service class to handle Task module related requests.
  * 
  */
-@Component
+@Service
 public class TaskService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
