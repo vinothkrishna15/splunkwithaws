@@ -1,7 +1,6 @@
 package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,24 +20,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
-import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.LoginHistoryT;
-import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
-import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
-import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
-import com.tcs.destination.data.repository.UserAccessRequestRepository;
-import com.tcs.destination.data.repository.UserRepository;
-import com.tcs.destination.enums.DestinationEmailTemplate;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DestinationMailUtils;
-//import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
