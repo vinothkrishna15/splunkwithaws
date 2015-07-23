@@ -51,6 +51,7 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
@@ -130,6 +131,8 @@ public class OpportunityService {
 	CollaborationCommentsRepository collaborationCommentsRepository;
 
 	// Required beans for Auto comments - end
+	@Autowired
+	UserRepository userRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency) throws Exception {
@@ -773,24 +776,38 @@ public class OpportunityService {
 	 * @return
 	 */
 	public List<TasksBySupervisorIdDTO> findOpportunitiesBySupervisorId(
-			String supervisorUserId) {
+			String supervisorUserId) throws Exception {
 		logger.debug("Inside OpportunityService /tasksBySupervisorId?id="
 				+ supervisorUserId + " GET");
 
-		List<Object[]> opportunities = opportunityRepository
-				.findOpportunitiesBySupervisorId(supervisorUserId);
+		List<TasksBySupervisorIdDTO> listOfopportunitiesDTO = null;
+		
+		// Get all users under a supervisor
+		List<String> users = userRepository
+				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
 
-		List<TasksBySupervisorIdDTO> listOfopportunitiesDTO = new ArrayList<TasksBySupervisorIdDTO>();
+		if ((users != null) && (users.size() > 0)) {
 
-		for (Object[] oppDTOArray : opportunities) {
+			listOfopportunitiesDTO = new ArrayList<TasksBySupervisorIdDTO>();
 
-			TasksBySupervisorIdDTO opp = new TasksBySupervisorIdDTO();
-			opp.setDigitalDealValue(oppDTOArray[0].toString());
-			opp.setSalesStageCode(oppDTOArray[1].toString());
-			opp.setSalesCount(oppDTOArray[2].toString());
-			opp.setSalesStageDescription(oppDTOArray[3].toString());
+			List<Object[]> opportunities = opportunityRepository
+					.findOpportunitiesBySupervisorId(users);
 
-			listOfopportunitiesDTO.add(opp);
+			for (Object[] oppDTOArray : opportunities) {
+				if (oppDTOArray[0] != null && oppDTOArray[1] != null
+						&& oppDTOArray[2] != null && oppDTOArray[3] != null) {
+					TasksBySupervisorIdDTO opp = new TasksBySupervisorIdDTO();
+					opp.setDigitalDealValue(oppDTOArray[0].toString());
+					opp.setSalesStageCode(oppDTOArray[1].toString());
+					opp.setSalesCount(oppDTOArray[2].toString());
+					opp.setSalesStageDescription(oppDTOArray[3].toString());
+
+					listOfopportunitiesDTO.add(opp);
+				}
+			}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Not Data found");
 		}
 
 		return listOfopportunitiesDTO;

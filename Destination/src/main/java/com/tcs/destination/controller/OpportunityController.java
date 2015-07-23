@@ -188,9 +188,14 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /tasksBySupervisorId?id="
 				+ supervisorUserId + " GET");
-		
-		List<TasksBySupervisorIdDTO> opportunities = opportunityService.findOpportunitiesBySupervisorId(supervisorUserId);
-		
+		List<TasksBySupervisorIdDTO> opportunities = null;
+		try {
+			opportunities = opportunityService
+					.findOpportunitiesBySupervisorId(supervisorUserId);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
