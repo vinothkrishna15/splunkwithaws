@@ -144,9 +144,9 @@ public class OpportunityService {
 							+ nameWith + "%", customerId);
 		}
 		if (opportunities.isEmpty()) {
-			logger.error("NOT_FOUND: No Opportunities Found");
+			logger.error("NOT_FOUND: Opportunities not found with the given name: {}", nameWith);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Opportunities Found");
+					"Opportunities not found with the given name: " + nameWith);
 		}
 
 		beaconConverterService.convertOpportunityCurrency(opportunities,
@@ -167,9 +167,9 @@ public class OpportunityService {
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 						customerId, fromDate);
 		if (opportunities.isEmpty()) {
-			logger.error("NOT_FOUND: No Data Found in the database");
+			logger.error("NOT_FOUND: Recent opportunities not found for CustomerId: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Data Found");
+					"Recent opportunities not found for CustomerId: " + customerId);
 		}
 
 		beaconConverterService.convertOpportunityCurrency(opportunities,
@@ -209,9 +209,9 @@ public class OpportunityService {
 				break;
 			}
 		} else {
-			logger.error("BAD_REQUEST: Invalid Opportunity Role");
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}", opportunityRole);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Oppurtunity Role");
+					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 		opportunities = validateAndReturnOpportunitesData(opportunities, true);
 		beaconConverterService.convertOpportunityCurrency(opportunities,
@@ -262,9 +262,9 @@ public class OpportunityService {
 
 			return opportunities;
 		} else {
-			logger.error("BAD_REQUEST: Invalid Opportunity Role");
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}", opportunityRole);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Oppurtunity Role");
+					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 	}
 
@@ -288,9 +288,9 @@ public class OpportunityService {
 				logger.debug("Opportunity List Is Present");
 				return opportunities;
 			} else {
-				logger.error("NOT_FOUND: No Opportunities Found");
+				logger.error("NOT_FOUND: Opportunities not found");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Opportunities Found");
+						"Opportunities not found");
 			}
 		} else {
 			return opportunities;
@@ -339,8 +339,9 @@ public class OpportunityService {
 
 			return opportunity;
 		} else {
+			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Opportuinty Id " + opportunityId + " Not Found");
+					"Opportuinty not found: " + opportunityId);
 		}
 	}
 
@@ -674,9 +675,9 @@ public class OpportunityService {
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
 						fromDate, toDate);
 		if ((opportunityList == null) || opportunityList.isEmpty()) {
-			logger.error("NOT_FOUND: No Opportunity found for the UserId and Target Bid Submission date");
+			logger.error("NOT_FOUND: No Opportunity found for the UserId:{} and Target Bid Submission date:{}, {}", userId, fromDate, toDate);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Opportunity found for the UserId and Target Bid Submission date");
+					"No Opportunity found for the UserId: " + userId +" and Target Bid Submission date: " + fromDate + ", " + toDate);
 		}
 		beaconConverterService.convertOpportunityCurrency(opportunityList,
 				toCurrency);
@@ -765,7 +766,7 @@ public class OpportunityService {
 	}
 
 	/**
-	 * This is the serives method which deals with the retrieval of all
+	 * This is the service method which deals with the retrieval of all
 	 * opportunities under a supervisor
 	 * 
 	 * @param supervisorUserId

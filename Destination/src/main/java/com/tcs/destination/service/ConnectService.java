@@ -110,9 +110,9 @@ public class ConnectService {
 		if (connectT != null) {
 			prepareConnect(connectT);
 		} else {
-			logger.error("NOT_FOUND: Connect not found");
+			logger.error("NOT_FOUND: Connect not found: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connect not found");
+					"Connect not found: " + connectId);
 		}
 		return connectT;
 	}
@@ -142,9 +142,9 @@ public class ConnectService {
 		}
 
 		if (connectList.isEmpty()) {
-			logger.error("NOT_FOUND: Connects not found");
+			logger.error("NOT_FOUND: Connects not found with the given name: {}", name);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connects not found");
+					"Connects not found with the given name: " + name);
 		}
 		prepareConnect(connectList);
 		return connectList;
@@ -191,7 +191,6 @@ public class ConnectService {
 								userId, new Timestamp(fromDate.getTime()),
 								toTimestamp,
 								customerId, partnerId);
-				System.out.println("Primary :" + connects.size());
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
 				connects = connectSecondaryOwnerRepository
@@ -223,9 +222,9 @@ public class ConnectService {
 			prepareConnect(connects);
 			return connects;
 		}
-		logger.error("BAD_REQUEST: Invalid Owner Type.");
+		logger.error("BAD_REQUEST: Invalid Owner Type: {}", owner);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
-				"Ivalid Owner Type.");
+				"Ivalid Owner Type: " + owner);
 	}
 
 	@Transactional
@@ -265,9 +264,9 @@ public class ConnectService {
 						connectId, conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
 			} else {
-				logger.error("Connect Customer Contact List null");
+				logger.error("BAD_REQUEST: Connect Customer Contact is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Connect Customer Contact List null");
+						"Connect Customer Contact is required");
 			}
 
 			List<ConnectOfferingLinkT> conOffLinkTList = connect
@@ -330,7 +329,7 @@ public class ConnectService {
 		String connectCategory = connect.getConnectCategory();
 
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
-			logger.error("Connect Category is required");
+			logger.error("BAD_REQUEST: Connect Category is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Connect Category is required");
 		}
@@ -349,32 +348,32 @@ public class ConnectService {
 					isValid = true;
 				break;
 			default:
-				logger.error("Invalid Connect Category");
+				logger.error("BAD_REQUEST: Invalid Connect Category: {}", connectCategory);
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid Connect Category");
+						"Invalid Connect Category: " + connectCategory);
 			}
 		} else {
-			logger.error("Invalid Connect Category");
+			logger.error("BAD_REQUEST: Invalid Connect Category: {}", connectCategory);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Connect Category");
+					"Invalid Connect Category: " + connectCategory);
 		}
 
 		if (!isValid) {
-			logger.error("Missing PartnerId/CustomerId");
+			logger.error("BAD_REQUEST: CustomerId / PartnetId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing PartnerId/CustomerId");
+					"CustomerId / PartnetId is required");
 		}
 
 		if(isInsert && connect.getCreatedBy()==null){
-			logger.error("Missing UserCreated in connect");
+			logger.error("BAD_REQUEST: CreatedBy is requried");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserCreated in connect");
+					"CreatedBy is required");
 		}
 
 		if(connect.getModifiedBy()==null){
-			logger.error("Missing UserModified");
+			logger.error("BAD_REQUEST: ModifiedBy is requried");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserModified");
+					"ModifiedBy is requried");
 		}
 	}
 
@@ -486,12 +485,12 @@ public class ConnectService {
 		logger.debug("Inside updateConnect() service");
 		String connectId = connect.getConnectId();
 		if (connectId == null) {
-			logger.error("ConnectId is required for update");
+			logger.error("BAD_REQUEST: ConnectId is required for update");
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required for update");
 		}
 		// Check if connect exists
 		if (!connectRepository.exists(connectId)) {
-			logger.error("Connect not found for update: {}", connectId);
+			logger.error("NOT_FOUND: Connect not found for update: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect not found for update: " + connectId);
 		}
 		// Load db object before update with lazy collections populated for auto comments
@@ -754,26 +753,30 @@ public class ConnectService {
 	 * @param monthEndDate
 	 * @return
 	 */
-	public DashBoardConnectsResponse getTeamConnects(String supervisorId, Date fromDate, Date toDate, Date weekStartDate, Date weekEndDate, Date monthStartDate, Date monthEndDate) {
-		
+	public DashBoardConnectsResponse getTeamConnects(String supervisorId, Date fromDate, Date toDate, 
+			Date weekStartDate, Date weekEndDate, Date monthStartDate, Date monthEndDate) {
+
 		DashBoardConnectsResponse dashBoardConnectsResponse = new DashBoardConnectsResponse();
-		
+
 		// Get all users under a supervisor
 		List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
-		
+
 		// Get connects between two dates 
-		List<ConnectT> connects = connectRepository.getTeamConnects(users, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		List<ConnectT> connects = 
+				connectRepository.getTeamConnects(users, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
 		prepareConnect(connects);
 		dashBoardConnectsResponse.setConnectTs(connects);
-		
+
 		// Get weekly Count of connects
-		List<ConnectT> weekConnects = connectRepository.getTeamConnects(users, new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		List<ConnectT> weekConnects = 
+				connectRepository.getTeamConnects(users, new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
 		dashBoardConnectsResponse.setWeekCount(weekConnects.size());
-		
+
 		// Get monthly Count of connects
-		List<ConnectT> monthConnects = connectRepository.getTeamConnects(users, new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+		List<ConnectT> monthConnects = 
+				connectRepository.getTeamConnects(users, new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
 		dashBoardConnectsResponse.setMonthCount(monthConnects.size());
-		
+
 		return dashBoardConnectsResponse;
 	}
 }
