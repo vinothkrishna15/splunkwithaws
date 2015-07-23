@@ -111,65 +111,74 @@ public class DashBoardService {
 
 		boolean hasValues = false;
 
-		PerformaceChartBean performanceBean = new PerformaceChartBean();
-		
+		PerformaceChartBean performanceBean = null;
+
 		// Get all users under a supervisor
-		List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+		List<String> users = userRepository
+				.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-		// Get the financial year if parameter is empty
-		financialYear = financialYear.equals("") ? DateUtils
-				.getCurrentFinancialYear() : financialYear;
-		
-		// Get the sum of targets		
-		List<BigDecimal> targetList = bdmTargetRepository
-				.findSumOfTargetBySubordinatesPerSupervisorAndYear(users, financialYear);
-		if (targetList != null && !targetList.isEmpty()) {
-			performanceBean.setTarget(targetList.get(0));
-			if (targetList.get(0) != null)
-				hasValues = true;
-		}
-		
-		// Manipulate fromDate and toDate
-		String year = financialYear.substring(3, 7);
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.YEAR, Integer.parseInt(year));
-		cal.set(Calendar.MONTH, Calendar.APRIL);
-		cal.set(Calendar.DATE, 1);
-		Date fromDate = new Date(cal.getTimeInMillis());
-		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
-		Date toDate = new Date(cal.getTimeInMillis());
+		if ((users != null) && (users.size() > 0)) {
 
-		// Get the opportunities which are in the pipeline and find the sum in USD
-		List<Object[]> pipelineList = opportunityRepository
-				.findDealValueForPipelineBySubordinatesPerSupervisor(users,
-						new Timestamp(toDate.getTime()));
+			performanceBean = new PerformaceChartBean();
 
-		BigDecimal pipelineSum = new BigDecimal(0);
+			// Get the financial year if parameter is empty
+			financialYear = financialYear.equals("") ? DateUtils
+					.getCurrentFinancialYear() : financialYear;
 
-		for (Object[] pipeline : pipelineList) {
-			if (pipeline[1] != null && pipeline[0] != null) {
-				pipelineSum = pipelineSum.add(beaconService.convert(
-						pipeline[1].toString(), "USD",
-						((Integer) pipeline[0]).doubleValue()));
+			// Get the sum of targets
+			List<BigDecimal> targetList = bdmTargetRepository
+					.findSumOfTargetBySubordinatesPerSupervisorAndYear(users,
+							financialYear);
+			if (targetList != null && !targetList.isEmpty()) {
+				performanceBean.setTarget(targetList.get(0));
+				if (targetList.get(0) != null)
+					hasValues = true;
+			}
+
+			// Manipulate fromDate and toDate
+			String year = financialYear.substring(3, 7);
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.YEAR, Integer.parseInt(year));
+			cal.set(Calendar.MONTH, Calendar.APRIL);
+			cal.set(Calendar.DATE, 1);
+			Date fromDate = new Date(cal.getTimeInMillis());
+			cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
+			Date toDate = new Date(cal.getTimeInMillis());
+
+			// Get the opportunities which are in the pipeline and find the sum
+			// in USD
+			List<Object[]> pipelineList = opportunityRepository
+					.findDealValueForPipelineBySubordinatesPerSupervisor(users,
+							new Timestamp(toDate.getTime()));
+
+			BigDecimal pipelineSum = new BigDecimal(0);
+
+			for (Object[] pipeline : pipelineList) {
+				if (pipeline[1] != null && pipeline[0] != null) {
+					pipelineSum = pipelineSum.add(beaconService.convert(
+							pipeline[1].toString(), "USD",
+							((Integer) pipeline[0]).doubleValue()));
+					hasValues = true;
+				}
+
+			}
+			performanceBean.setPipelineSum(pipelineSum);
+
+			// Get the opportunities which have been won and find the sum in USD
+			List<Object[]> winList = opportunityRepository
+					.findDealValueForWinsBySubordinatesPerSupervisor(users,
+							fromDate, toDate);
+			BigDecimal winSum = new BigDecimal(0);
+			for (Object[] win : winList) {
+				if (win[1] != null && win[0] != null)
+					winSum = winSum.add(beaconService.convert(
+							win[1].toString(), "USD",
+							((Integer) win[0]).doubleValue()));
 				hasValues = true;
 			}
 
+			performanceBean.setWinSum(winSum);
 		}
-		performanceBean.setPipelineSum(pipelineSum);
-
-		// Get the opportunities which have been won and find the sum in USD
-		List<Object[]> winList = opportunityRepository.findDealValueForWinsBySubordinatesPerSupervisor(
-				users, fromDate, toDate);
-		BigDecimal winSum = new BigDecimal(0);
-		for (Object[] win : winList) {
-			if (win[1] != null && win[0] != null)
-				winSum = winSum.add(beaconService.convert(win[1].toString(),
-						"USD", ((Integer) win[0]).doubleValue()));
-			hasValues = true;
-		}
-
-		performanceBean.setWinSum(winSum);
-
 		if (!hasValues) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found for the performance Chart");

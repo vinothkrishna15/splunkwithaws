@@ -779,6 +779,8 @@ public class ConnectService {
 					new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS
 							- 1));
 			dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+			
+			prepareConnect(connects);
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found");
