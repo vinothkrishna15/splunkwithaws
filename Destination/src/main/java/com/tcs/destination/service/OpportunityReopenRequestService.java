@@ -82,9 +82,16 @@ public class OpportunityReopenRequestService {
 				|| opportunityReopenRequestT.getApprovedRejectedDatetime() != null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot create a request with approval details");
+		String oppId = opportunityReopenRequestT.getOpportunityId();
+		List<OpportunityReopenRequestT> oppReopenRequestList = opportunityReopenRequestRepository.findByOpportunityId(oppId);
+		if(oppReopenRequestList!=null && !oppReopenRequestList.isEmpty()){
+			logger.error("Reopen request already exists for this opportunity.");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Reopen request already exists for this opportunity.");
+		} else {
 		boolean canUpdate = false;
 		OpportunityT opportunityT = opportunityRepository
-				.findOne(opportunityReopenRequestT.getOpportunityId());
+				.findOne(oppId);
 		if (opportunityT != null) {
 			if (opportunityT.getSalesStageCode() != 12) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -109,8 +116,11 @@ public class OpportunityReopenRequestService {
 		logger.error("Can update? " + canUpdate);
 		try {
 			if (canUpdate){
+				
+				
 				opportunityReopenRequestRepository
 						.save(opportunityReopenRequestT);
+				
 				//mail notification to admin, supervisor and user regarding the request
 				sendEmailNotification(opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
 				//mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject,opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
@@ -123,10 +133,12 @@ public class OpportunityReopenRequestService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
+		}
 	}
 
 	public void edit(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		
 		if (opportunityReopenRequestT.getOpportunityReopenRequestId() == null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot edit a request without request id");
