@@ -198,16 +198,24 @@ public class ConnectController {
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
-			throws Exception{
-			
-		logger.debug("Inside ConnectController /connect/team"+ "GET");
-		
-		// Calling the service method
-		DashBoardConnectsResponse dashBoardConnectsResponse = connectService.getTeamConnects(supervisorId, fromDate, toDate, weekStartDate, weekEndDate, monthStartDate, monthEndDate);
-				
+			throws Exception {
+
+		logger.debug("Inside ConnectController /connect/team" + "GET");
+		DashBoardConnectsResponse dashBoardConnectsResponse = null;
+		try {
+			// Calling the service method
+			dashBoardConnectsResponse = connectService.getTeamConnects(
+					supervisorId, fromDate, toDate, weekStartDate, weekEndDate,
+					monthStartDate, monthEndDate);
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view, dashBoardConnectsResponse), HttpStatus.OK);
-		
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						dashBoardConnectsResponse), HttpStatus.OK);
+
 	}
 
 }

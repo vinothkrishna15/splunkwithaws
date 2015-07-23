@@ -747,28 +747,42 @@ public class ConnectService {
 	 * @return
 	 */
 	public DashBoardConnectsResponse getTeamConnects(String supervisorId, Date fromDate, Date toDate, 
-			Date weekStartDate, Date weekEndDate, Date monthStartDate, Date monthEndDate) {
+ Date weekStartDate, Date weekEndDate,
+			Date monthStartDate, Date monthEndDate) throws Exception {
 
 		DashBoardConnectsResponse dashBoardConnectsResponse = new DashBoardConnectsResponse();
 
 		// Get all users under a supervisor
-		List<String> users = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+		List<String> users = userRepository
+				.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-		// Get connects between two dates 
-		List<ConnectT> connects = 
-				connectRepository.getTeamConnects(users, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
-		prepareConnect(connects);
-		dashBoardConnectsResponse.setConnectTs(connects);
+		if ((users != null) && (users.size() > 0)) {
 
-		// Get weekly Count of connects
-		List<ConnectT> weekConnects = 
-				connectRepository.getTeamConnects(users, new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
-		dashBoardConnectsResponse.setWeekCount(weekConnects.size());
+			// Get connects between two dates
+			List<ConnectT> connects = connectRepository.getTeamConnects(users,
+					new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime() + ONE_DAY_IN_MILLIS - 1));
+			prepareConnect(connects);
+			dashBoardConnectsResponse.setConnectTs(connects);
 
-		// Get monthly Count of connects
-		List<ConnectT> monthConnects = 
-				connectRepository.getTeamConnects(users, new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS - 1));
-		dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+			// Get weekly Count of connects
+			List<ConnectT> weekConnects = connectRepository
+					.getTeamConnects(users,
+							new Timestamp(weekStartDate.getTime()),
+							new Timestamp(weekEndDate.getTime()
+									+ ONE_DAY_IN_MILLIS - 1));
+			dashBoardConnectsResponse.setWeekCount(weekConnects.size());
+
+			// Get monthly Count of connects
+			List<ConnectT> monthConnects = connectRepository.getTeamConnects(
+					users, new Timestamp(monthStartDate.getTime()),
+					new Timestamp(monthEndDate.getTime() + ONE_DAY_IN_MILLIS
+							- 1));
+			dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Not Data found");
+		}
 
 		return dashBoardConnectsResponse;
 	}
