@@ -230,19 +230,20 @@ public class ConnectService {
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect() service");
-
+		// Validate request 
 		validateRequest(connect,true);
-
-		ConnectT backupConnect = backup(connect);
+		// Take a copy to keep child objects 
+		ConnectT requestConnect = (ConnectT) DestinationUtils.copy(connect);
 		logger.debug("Copied connect object.");
+		// Set null for all child objects
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
 		if (connectRepository.save(connect) != null) {
-			String tempId = connect.getConnectId();
-			backupConnect.setConnectId(tempId);
-			logger.debug("Parent Object Saved. Id : " + tempId);
-			connect = restore(backupConnect);
+			requestConnect.setConnectId(connect.getConnectId());
+			logger.debug("Parent Object Saved, ConnectId: {}", connect.getConnectId());
+			// Re-attach request connect
+			connect = requestConnect;
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
 			connect.setConnectCategory(categoryUpperCase);
@@ -435,15 +436,14 @@ public class ConnectService {
 			List<NotesT> noteList) {
 		logger.debug("Inside populateNotes() method");
 		for (NotesT note : noteList) {
-			note.setEntityType(categoryUpperCase);
+			note.setEntityType(EntityType.CONNECT.name());
 			note.setConnectId(connectId);
-
-			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
+			if (categoryUpperCase.equalsIgnoreCase(EntityType.CUSTOMER.name())) {
 				logger.debug("Category is CUSTOMER");
 				CustomerMasterT customer = new CustomerMasterT();
 				customer.setCustomerId(customerId);
 				note.setCustomerMasterT(customer);
-			} else {
+			} else if (categoryUpperCase.equalsIgnoreCase(EntityType.PARTNER.name())) {
 				logger.debug("Category is not CUSTOMER");
 				PartnerMasterT partner = new PartnerMasterT();
 				partner.setPartnerId(partnerId);
@@ -453,14 +453,7 @@ public class ConnectService {
 
 	}
 
-	private ConnectT restore(ConnectT backupConnect) {
-		return backupConnect;
-	}
-
-	private ConnectT backup(ConnectT connect) {
-		return new ConnectT(connect);
-	}
-
+	// This method is used to set null for child objects
 	private void setNullForReferencedObjects(ConnectT connect) {
 		logger.debug("Inside setNullForReferencedObjects() method");
 		connect.setCollaborationCommentTs(null);
