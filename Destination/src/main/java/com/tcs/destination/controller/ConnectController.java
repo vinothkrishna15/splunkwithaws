@@ -200,7 +200,8 @@ public class ConnectController {
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
 			throws Exception {
 
-		logger.debug("Inside ConnectController /connect/team" + "GET");
+		logger.debug("Inside ConnectController /connect/team?from=" + fromDate
+				+ "&to=" + toDate + "&supervisorId "+ supervisorId + "GET");
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 		try {
 			// Calling the service method
