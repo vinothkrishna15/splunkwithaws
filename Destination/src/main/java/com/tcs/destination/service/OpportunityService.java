@@ -20,6 +20,7 @@ import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
@@ -31,7 +32,6 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
-import com.tcs.destination.bean.TasksBySupervisorIdDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -775,39 +775,51 @@ public class OpportunityService {
 	 * @param supervisorUserId
 	 * @return
 	 */
-	public List<TasksBySupervisorIdDTO> findOpportunitiesBySupervisorId(
+	public List<OpportunitiesBySupervisorIdDTO> findOpportunitiesBySupervisorId(
 			String supervisorUserId) throws Exception {
-		logger.debug("Inside OpportunityService /tasksBySupervisorId?id="
-				+ supervisorUserId + " GET");
+		logger.debug("Inside findOpportunitiesBySupervisorId() service for opportunitiesBySupervisorId");
 
-		List<TasksBySupervisorIdDTO> listOfopportunitiesDTO = null;
-		
+		List<OpportunitiesBySupervisorIdDTO> listOfopportunitiesDTO = null;
+
 		// Get all users under a supervisor
 		List<String> users = userRepository
 				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
 
 		if ((users != null) && (users.size() > 0)) {
 
-			listOfopportunitiesDTO = new ArrayList<TasksBySupervisorIdDTO>();
-
+			// Get all opportunities for the users under supervisor
 			List<Object[]> opportunities = opportunityRepository
 					.findOpportunitiesBySupervisorId(users);
 
-			for (Object[] oppDTOArray : opportunities) {
-				if (oppDTOArray[0] != null && oppDTOArray[1] != null
-						&& oppDTOArray[2] != null && oppDTOArray[3] != null) {
-					TasksBySupervisorIdDTO opp = new TasksBySupervisorIdDTO();
-					opp.setDigitalDealValue(oppDTOArray[0].toString());
-					opp.setSalesStageCode(oppDTOArray[1].toString());
-					opp.setSalesCount(oppDTOArray[2].toString());
-					opp.setSalesStageDescription(oppDTOArray[3].toString());
+			if ((opportunities != null) && (opportunities.size() > 0)) {
+				
+				listOfopportunitiesDTO = new ArrayList<OpportunitiesBySupervisorIdDTO>();
 
-					listOfopportunitiesDTO.add(opp);
+				// Iterate the result and set the response object
+				for (Object[] oppDTOArray : opportunities) {
+					if (oppDTOArray[0] != null && oppDTOArray[1] != null
+							&& oppDTOArray[2] != null && oppDTOArray[3] != null) {
+						
+						OpportunitiesBySupervisorIdDTO opp = new OpportunitiesBySupervisorIdDTO();
+						
+						opp.setDigitalDealValue(oppDTOArray[0].toString());
+						opp.setSalesStageCode(oppDTOArray[1].toString());
+						opp.setSalesCount(oppDTOArray[2].toString());
+						opp.setSalesStageDescription(oppDTOArray[3].toString());
+
+						listOfopportunitiesDTO.add(opp);
+					}
 				}
 			}
+			else {
+				logger.error("NOT_FOUND: No Opportunity found for supervisor id : {}", supervisorUserId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No opportunity found for supervisor id : "+supervisorUserId);
+			}
 		} else {
+			logger.error("NOT_FOUND: No subordinate found for supervisor id : {}", supervisorUserId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Not Data found");
+					"No subordinate found for supervisor id "+supervisorUserId);
 		}
 
 		return listOfopportunitiesDTO;

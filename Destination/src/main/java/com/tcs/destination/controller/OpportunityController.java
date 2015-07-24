@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.TasksBySupervisorIdDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
@@ -173,22 +173,22 @@ public class OpportunityController {
 
 	/**
 	 * This method retrieves the opportunities that are associated with a supervisor.
-	 * All the associates' opportunities who comes under the supervisor are retrieved.  
+	 * All the associates' opportunities under the supervisor are retrieved.  
 	 * 
 	 * @param supervisorUserId
 	 * @param fields
 	 * @param view
 	 * @return
 	 * @throws Exception
-	 */	@RequestMapping(value = "/tasksBySupervisorId", method = RequestMethod.GET)
-	public @ResponseBody String findTasksBySupervisorId(
+	 */	@RequestMapping(value = "/opportunitiesBySupervisorId", method = RequestMethod.GET)
+	public @ResponseBody String findOpportunitiesBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside OpportunityController /tasksBySupervisorId?id="
+		logger.debug("Inside OpportunityController /opportunity/opportunitiesBySupervisorId?id="
 				+ supervisorUserId + " GET");
-		List<TasksBySupervisorIdDTO> opportunities = null;
+		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
 		try {
 			opportunities = opportunityService
 					.findOpportunitiesBySupervisorId(supervisorUserId);
