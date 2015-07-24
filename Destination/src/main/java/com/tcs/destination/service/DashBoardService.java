@@ -109,6 +109,8 @@ public class DashBoardService {
 	public PerformaceChartBean getTeamChartValues(String supervisorId,
 			String financialYear) throws Exception {
 
+		logger.debug("Inside getTeamChartValues() service");
+		
 		boolean hasValues = false;
 
 		PerformaceChartBean performanceBean = null;
@@ -178,11 +180,20 @@ public class DashBoardService {
 			}
 
 			performanceBean.setWinSum(winSum);
-		}
-		if (!hasValues) {
+			
+			if (!hasValues) {
+				logger.error("NOT FOUND : No Data found for Team Performance Chart with supervisor Id {}"+supervisorId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Data found for Team Performance Chart with supervisor Id "+supervisorId);
+			}
+		} else {
+			logger.error(
+					"NOT_FOUND: No subordinate found for supervisor id : {}",
+					supervisorId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Not Data found for the performance Chart");
+					"No subordinate found for supervisor id " + supervisorId);
 		}
+		
 		return performanceBean;
 	}
 

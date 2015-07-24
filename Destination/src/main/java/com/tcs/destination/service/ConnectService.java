@@ -766,7 +766,7 @@ public class ConnectService {
 					fromDateTs, toDateTs);
 			prepareConnect(connects);
 			dashBoardConnectsResponse.setConnectTs(connects);
-
+			
 			// Get weekly count of connects
 			Timestamp weekStartDateTs = new Timestamp(weekStartDate.getTime());
 			Timestamp weekEndDateTs = new Timestamp(weekEndDate.getTime()
