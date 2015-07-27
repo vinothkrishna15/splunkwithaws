@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,6 +12,9 @@ import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,7 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -58,6 +63,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PaginationUtils;
 
 @Service
 public class OpportunityService {
@@ -769,15 +775,15 @@ public class OpportunityService {
 	}
 
 	/**
-	 * This is the service method which deals with the retrieval of all
-	 * opportunities under a supervisor
+	 * This is the service method which deals with the retrieval of deal values 
+	 * of opportunities of subordinates under a supervisor
 	 * 
 	 * @param supervisorUserId
 	 * @return
 	 */
-	public List<OpportunitiesBySupervisorIdDTO> findOpportunitiesBySupervisorId(
+	public List<OpportunitiesBySupervisorIdDTO> findDealValueOfOpportunitiesBySupervisorId(
 			String supervisorUserId) throws Exception {
-		logger.debug("Inside findOpportunitiesBySupervisorId() service for opportunitiesBySupervisorId");
+		logger.debug("Inside findDealValueOfOpportunitiesBySupervisorId() service");
 
 		List<OpportunitiesBySupervisorIdDTO> listOfopportunitiesDTO = null;
 
@@ -789,7 +795,7 @@ public class OpportunityService {
 
 			// Get all opportunities for the users under supervisor
 			List<Object[]> opportunities = opportunityRepository
-					.findOpportunitiesBySupervisorId(users);
+					.findDealValueOfOpportunitiesBySupervisorId(users);
 
 			if ((opportunities != null) && (opportunities.size() > 0)) {
 				
@@ -827,6 +833,91 @@ public class OpportunityService {
 
 	public OpportunityT findOpportunityById(String oppId){
 		return opportunityRepository.findOne(oppId);
+	}
+	
+	/**
+	 * This service retrieves the users based on the supervisorUserId and retrieves the 
+	 * Team Opportunity Details  
+	 * 
+	 * @param supervisorUserId
+	 * @return
+	 * @throws Exception
+	 */
+	public List<TeamOpportunityDetailsDTO> findTeamOpportunityDetailsBySupervisorId(String supervisorUserId, int page, int count)
+ throws Exception {
+
+		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
+
+		List<TeamOpportunityDetailsDTO> listOfTeamOpportunityDetails = null;
+		List<OpportunityT> opportunities = null;
+		List<OpportunityT> opportunitiesSubList = null;
+
+		// Get all users under a supervisor
+		List<String> users = userRepository
+				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+
+		if ((users != null) && (users.size() > 0)) {
+
+			// Retrieve opportunities from users
+			opportunities = opportunityRepository
+					.findTeamOpportunityDetailsBySupervisorId(users);
+
+			if ((opportunities != null) && (!opportunities.isEmpty())) {
+
+				int oppSize = opportunities.size();
+
+				if (PaginationUtils.isValidPagination(page, count, oppSize)) {
+
+					int fromIndex = PaginationUtils.getStartIndex(page, count,
+							oppSize);
+					int toIndex = PaginationUtils.getEndIndex(page, count,
+							oppSize) + 1;
+
+					opportunitiesSubList = new ArrayList<OpportunityT>(
+							opportunities.subList(fromIndex, toIndex));
+
+					listOfTeamOpportunityDetails = new ArrayList<TeamOpportunityDetailsDTO>();
+
+					for (OpportunityT opportunity : opportunitiesSubList) {
+
+						TeamOpportunityDetailsDTO teamDetails = new TeamOpportunityDetailsDTO();
+						teamDetails.setOpportunityName(opportunity
+								.getOpportunityName());
+						teamDetails.setCustomerName(opportunity
+								.getCustomerMasterT().getCustomerName());
+						teamDetails.setGeography(opportunity
+								.getGeographyCountryMappingT().getGeography());
+						teamDetails.setOwner(opportunity.getPrimaryOwnerUser()
+								.getUserName());
+						teamDetails.setSalesStageCode(opportunity
+								.getSalesStageCode());
+						teamDetails.setCreatedDate(new SimpleDateFormat(
+								"dd-MMM-yyyy").format(opportunity
+								.getCreatedDatetime()));
+
+						listOfTeamOpportunityDetails.add(teamDetails);
+					}
+				}
+
+			} else {
+				logger.error(
+						"NOT_FOUND: No Opportunity Details found for supervisor id : {}",
+						supervisorUserId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Opportunity Details found for supervisor id : "
+								+ supervisorUserId);
+			}
+
+		} else {
+			logger.error(
+					"NOT_FOUND: No subordinate found for supervisor id : {}",
+					supervisorUserId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No subordinate found for supervisor id "
+							+ supervisorUserId);
+		}
+
+		return listOfTeamOpportunityDetails;
 	}
 	
 }

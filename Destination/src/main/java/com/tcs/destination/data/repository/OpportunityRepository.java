@@ -4,8 +4,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +15,7 @@ import com.tcs.destination.bean.OpportunityT;
 
 @Repository
 public interface OpportunityRepository extends
-		CrudRepository<OpportunityT, String> {
+		JpaRepository<OpportunityT, String> {
 
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
@@ -249,10 +251,9 @@ public interface OpportunityRepository extends
 	public List<OpportunityT> findBySalesStageCode(int salesStageCode);
 
 	/**
-	 * This method retrieves all supervisor opportunities using the mentioned
-	 * query
+	 * This method retrieves deal values of opportunities of users 
 	 * 
-	 * @param supervisorUserId
+	 * @param users
 	 * @return
 	 */
 	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) "
@@ -262,7 +263,7 @@ public interface OpportunityRepository extends
 			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
 			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t "
 			+ "where bid_office_group_owner in (:users)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery = true)
-	public List<Object[]> findOpportunitiesBySupervisorId(@Param("users") List<String> users);
+	public List<Object[]> findDealValueOfOpportunitiesBySupervisorId(@Param("users") List<String> users);
 
 	List<OpportunityT> findBySalesStageCodeAndCustomerId(int salesStageCode,
 			String customerId);
@@ -290,4 +291,16 @@ public interface OpportunityRepository extends
 	@Query(value = "select digital_deal_value,deal_currency from opportunity_t where opportunity_owner in (:users) "
 			+ "and (deal_closure_date between (:fromDate) and (:toDate)) and sales_stage_code =9", nativeQuery = true)
 	List<Object[]> findDealValueForWinsBySubordinatesPerSupervisor(@Param("users") List<String> users, @Param("fromDate") Date fromDate,	@Param("toDate") Date toDate);
+	
+	/**
+	 * This query retrieves the opportunities for the users in the tables opportunity_t, opportunity_sales_support_link_t and bid_details_t
+	 * 
+	 * @param users
+	 * @return
+	 */
+	@Query(value="select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) order by OPP.created_datetime desc", nativeQuery=true)
+	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(@Param("users") List<String> users);
 }

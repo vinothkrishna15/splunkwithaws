@@ -191,9 +191,9 @@ public class ConnectController {
 	public @ResponseBody ResponseEntity<String> getTeamConnects(
 			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam("supervisorId") String supervisorId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "supervisorId", defaultValue = "") String supervisorId,
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,

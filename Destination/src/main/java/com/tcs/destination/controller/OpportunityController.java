@@ -19,6 +19,7 @@ import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
@@ -172,7 +173,7 @@ public class OpportunityController {
 	}
 
 	/**
-	 * This method retrieves the opportunities that are associated with a supervisor.
+	 * This method retrieves the Deal Value of Opportunities that are associated with a supervisor.
 	 * All the associates' opportunities under the supervisor are retrieved.  
 	 * 
 	 * @param supervisorUserId
@@ -180,18 +181,18 @@ public class OpportunityController {
 	 * @param view
 	 * @return
 	 * @throws Exception
-	 */	@RequestMapping(value = "/opportunitiesBySupervisorId", method = RequestMethod.GET)
-	public @ResponseBody String findOpportunitiesBySupervisorId(
+	 */	@RequestMapping(value = "/team/oppDealValue", method = RequestMethod.GET)
+	public @ResponseBody String findDealValueOfOpportunitiesBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside OpportunityController /opportunity/opportunitiesBySupervisorId?id="
+		logger.debug("Inside OpportunityController /opportunity/team/oppDealValue?id="
 				+ supervisorUserId + " GET");
 		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
 		try {
 			opportunities = opportunityService
-					.findOpportunitiesBySupervisorId(supervisorUserId);
+					.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -267,6 +268,47 @@ public class OpportunityController {
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
 		}
+		
+		/**
+		 * This Controller retrieves the Team Opportunity Details of all Users specific to a Supervisor 
+		 * 
+		 * @param supervisorUserId
+		 * @param fields
+		 * @param view
+		 * @return
+		 * @throws Exception
+		 */
+		@RequestMapping(value = "/team/oppDetails", method = RequestMethod.GET)
+		public @ResponseBody String findTeamOpportunityDetailsBySupervisorId(
+				@RequestParam("id") String supervisorUserId,
+				@RequestParam(value = "page", defaultValue = "0") int page,
+				@RequestParam(value = "count", defaultValue = "5") int count,
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		logger.debug("Inside OpportunityController /opportunity/team/oppDetails?id="
+				+ supervisorUserId + " GET");
+
+		if ((page < 0) || (count < 0)) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid pagination request");
+		}
+
+		List<TeamOpportunityDetailsDTO> listOfOpportunityDetails = null;
+
+		try {
+			listOfOpportunityDetails = opportunityService
+					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
+							page, count);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				listOfOpportunityDetails);
+	}
 	 
 	 
 }
