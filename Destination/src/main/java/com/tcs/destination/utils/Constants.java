@@ -15,5 +15,5 @@ public class Constants {
 	public static final String SYSTEM_ADMIN = "System Admin";
 	public static final String MIME = "MIME";
 	public static final String UTF8 = "UTF-8";
-
+	public static final String LOGIN_APP_VERSION = "APP_VERSION";
 }

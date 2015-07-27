@@ -59,6 +59,9 @@ public class LoginHistoryT implements Serializable {
 	@JoinColumn(name="user_id",insertable=false, updatable=false)
 	private UserT userT;
 
+	@Column(name="app_version")
+	private String appVersion;
+
 	public LoginHistoryT() {
 	}
 
@@ -133,7 +136,6 @@ public class LoginHistoryT implements Serializable {
 		this.userId = userId;
 	}
 	
-	
 	public UserT getUserT() {
 		return this.userT;
 	}
@@ -142,4 +144,11 @@ public class LoginHistoryT implements Serializable {
 		this.userT = userT;
 	}
 
+	public String getAppVersion() {
+		return appVersion;
+	}
+
+	public void setAppVersion(String appVersion) {
+		this.appVersion = appVersion;
+	}
 }

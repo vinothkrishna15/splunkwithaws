@@ -51,7 +51,6 @@ public class UserDetailsController {
 
 	@Autowired
 	ApplicationSettingsRepository applicationSettingsRepository;
-	
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -73,10 +72,12 @@ public class UserDetailsController {
 		
 	}
 
-	
-	
-	
-
+	/**
+	 * This method is used to validate User Login
+	 * Also saves Login SessionId, Date Time, Device, Browser details
+	 * @param userName is the login user name.
+	 * @return Login response.
+	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> userLogin(
 			HttpServletRequest httpServletRequest,
@@ -89,7 +90,7 @@ public class UserDetailsController {
 		UserT user = userService.findUserByName(userName);
 		if (user != null) {
 			// Log Username for debugging
-			logger.info("Username : " + userName);
+			logger.info("Username: {}", userName);
 
 			HttpSession session = httpServletRequest.getSession(false);
 			if (session == null) {
@@ -97,7 +98,7 @@ public class UserDetailsController {
 				session = httpServletRequest.getSession();
 
 			}
-			logger.info("sessionId = " + session.getId());
+			logger.info("sessionId: {}", session.getId());
 
 			// Check if the User has already logged in with the same session
 			if (userService.findByUserIdAndSessionId(user.getUserId(),
@@ -109,10 +110,10 @@ public class UserDetailsController {
 			// Set the custom TimeOut
 			ApplicationSettingsT appSettings = applicationSettingsRepository
 					.findOne(Constants.TIME_OUT);
-			logger.debug("Time_Out Interval : " + appSettings.getValue());
+			logger.debug("Time_Out Interval: {}", appSettings.getValue());
 			session.setMaxInactiveInterval(Integer.parseInt(appSettings
 					.getValue()) * 60);
-			logger.debug("Session Timeout : " + session.getMaxInactiveInterval());
+			logger.debug("Session Timeout: {}", session.getMaxInactiveInterval());
 
 			// Get Last Login Time
 			Timestamp lastLogin = userService
@@ -129,19 +130,18 @@ public class UserDetailsController {
 			Browser browser = userAgent.getBrowser();
 			String browserName = browser.getName();
 			String browserVersion = userAgent.getBrowserVersion().getVersion();
-			logger.info("Browser : " + browserName + " Version : "
-					+ browserVersion);
+			logger.info("Browser: {}, Version: {}", browserName, browserVersion);
 
 			// Get OS details
 			OperatingSystem os = userAgent.getOperatingSystem();
 			String osName = os.getName();
 
 			short osVersion = os.getId();
-			logger.info("OS : " + os + " Version : " + (byte) osVersion);
+			logger.info("OS: {}, Version: {}", os, (byte) osVersion);
 
 			// Get Device details
 			String device = os.getDeviceType().getName();
-			logger.info("Device :" + device);
+			logger.info("Device: {}", device);
 
 			// Save current login session
 			LoginHistoryT loginHistory = new LoginHistoryT();
@@ -152,7 +152,11 @@ public class UserDetailsController {
 			loginHistory.setOs(osName);
 			loginHistory.setOsVersion(Integer.toString((byte) osVersion));
 			loginHistory.setDevice(device);
-
+			if (httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION) != null) {
+				logger.info("App Version: {}", httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION));
+				loginHistory.setAppVersion((String) httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION));
+			}
+				
 			if (!userService.addLoginHistory(loginHistory)) {
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR,
@@ -183,7 +187,7 @@ public class UserDetailsController {
 		Status status = new Status();
 		HttpSession session = httpServletRequest.getSession(false);
 		if (session != null) {
-			logger.info("Logging out User Session : " + session.getId());
+			logger.info("Logging out User Session: {}", session.getId());
 			session.invalidate();
 			status.setStatus(Status.SUCCESS, "Session logged out");
 		} else {
@@ -194,77 +198,77 @@ public class UserDetailsController {
 			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
 
-@RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
-public @ResponseBody ResponseEntity<String> changePassword(HttpServletRequest httpServletRequest,@RequestBody UserT user)
-throws Exception {
-	logger.debug("Inside UserDetailsController /user/changepwd PUT");
-	Status status = new Status();
-	String userId = user.getUserId();
-	
-	String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails().getUserId();
-	if(currentlyLoggedInUser.equals(userId)){
-	String currentPassword = user.getTempPassword();
-	String newPassword = user.getNewPassword();
-	//getting session object, if exist 
-	HttpSession session = httpServletRequest.getSession(false);
-	if (session != null) {
-		//valid session
-		UserT dbUser = userService.findByUserIdAndPassword(userId,currentPassword);
-		if(dbUser!=null){
-			dbUser.setTempPassword(newPassword);
-			userService.updateUser(dbUser);
-			status.setStatus(Status.SUCCESS, "Password has been updated successfully");
-			//invalidate session to force user to re-authenticate with updated password
-			session.invalidate();
+	@RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> changePassword(HttpServletRequest httpServletRequest,@RequestBody UserT user)
+	throws Exception {
+		logger.debug("Inside UserDetailsController /user/changepwd PUT");
+		Status status = new Status();
+		String userId = user.getUserId();
+		
+		String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails().getUserId();
+		if(currentlyLoggedInUser.equals(userId)){
+		String currentPassword = user.getTempPassword();
+		String newPassword = user.getNewPassword();
+		//getting session object, if exist 
+		HttpSession session = httpServletRequest.getSession(false);
+		if (session != null) {
+			//valid session
+			UserT dbUser = userService.findByUserIdAndPassword(userId,currentPassword);
+			if(dbUser!=null){
+				dbUser.setTempPassword(newPassword);
+				userService.updateUser(dbUser);
+				status.setStatus(Status.SUCCESS, "Password has been updated successfully");
+				//invalidate session to force user to re-authenticate with updated password
+				session.invalidate();
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,"User not found");
+			}
 		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND,"User not found");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,"User not in a valid session");
 		}
-	} else {
-		throw new DestinationException(HttpStatus.UNAUTHORIZED,"User not in a valid session");
+		
+		return new ResponseEntity<String>
+		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+	}
+	else {
+		throw new DestinationException(HttpStatus.UNAUTHORIZED,"Not authorized to make changes");
+	}
 	}
 	
-	return new ResponseEntity<String>
-	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
-}
-else {
-	throw new DestinationException(HttpStatus.UNAUTHORIZED,"Not authorized to make changes");
-}
-}
-
-@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
-public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT user) throws Exception{
-	logger.debug("Inside UserDetailsController /user/forgotpwd POST");
-	Status status = new Status();
+	@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT user) throws Exception{
+		logger.debug("Inside UserDetailsController /user/forgotpwd POST");
+		Status status = new Status();
+		
+		String userId = user.getUserId();
+		String userEmailId = user.getUserEmailId();
+		
+		userService.forgotPassword(userId,userEmailId);
+		status.setStatus(Status.SUCCESS, "Password has been sent to the email address");
+		
+		return new ResponseEntity<String>
+		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+	}
 	
-	String userId = user.getUserId();
-	String userEmailId = user.getUserEmailId();
-	
-	userService.forgotPassword(userId,userEmailId);
-	status.setStatus(Status.SUCCESS, "Password has been sent to the email address");
-	
-	return new ResponseEntity<String>
-	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
-}
-
-@RequestMapping(value="/privileges",method=RequestMethod.GET)
-public @ResponseBody ResponseEntity<String> getPrivileges(
-		HttpServletRequest httpServletRequest,
-		@RequestParam(value = "userId") String userId,
-		@RequestParam(value = "fields", defaultValue = "all") String fields,
-		@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-	logger.debug("Inside UserDetailsController /user/privileges GET");
-	Status status = new Status();
-    	
-	List<UserAccessPrivilegesT> userPrivilegesList = userService.getAllPrivilegesByUserId(userId);
-    if(userPrivilegesList!=null && userPrivilegesList.isEmpty()){
-    	status.setStatus(Status.FAILED, "Invalid userId");
-    	return new ResponseEntity<String>
-    	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
-    } else {
-    	return new ResponseEntity<String>
-    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
-    }
-}
+	@RequestMapping(value="/privileges",method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getPrivileges(
+			HttpServletRequest httpServletRequest,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Inside UserDetailsController /user/privileges GET");
+		Status status = new Status();
+	    	
+		List<UserAccessPrivilegesT> userPrivilegesList = userService.getAllPrivilegesByUserId(userId);
+	    if(userPrivilegesList!=null && userPrivilegesList.isEmpty()){
+	    	status.setStatus(Status.FAILED, "Invalid userId");
+	    	return new ResponseEntity<String>
+	    	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+	    } else {
+	    	return new ResponseEntity<String>
+	    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
+	    }
+	}
 
 
 }
