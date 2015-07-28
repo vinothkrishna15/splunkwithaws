@@ -89,7 +89,7 @@ public class OpportunityController {
 				opportunities);
 	}
 
-	@RequestMapping(value = "/taskOwner", method = RequestMethod.GET)
+	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
 			@RequestParam("id") String userId,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
@@ -97,7 +97,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
+		logger.debug("Inside OpportunityController /opportunity/taskowner?id="
 				+ userId + " GET");
 		List<OpportunityT> opportunities = opportunityService
 				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,
@@ -181,7 +181,7 @@ public class OpportunityController {
 	 * @param view
 	 * @return
 	 * @throws Exception
-	 */	@RequestMapping(value = "/team/oppDealValue", method = RequestMethod.GET)
+	 */	@RequestMapping(value = "/team/oppdealvalue", method = RequestMethod.GET)
 	public @ResponseBody String findDealValueOfOpportunitiesBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -278,7 +278,7 @@ public class OpportunityController {
 		 * @return
 		 * @throws Exception
 		 */
-		@RequestMapping(value = "/team/oppDetails", method = RequestMethod.GET)
+		@RequestMapping(value = "/team/oppdetails", method = RequestMethod.GET)
 		public @ResponseBody String findTeamOpportunityDetailsBySupervisorId(
 				@RequestParam("id") String supervisorUserId,
 				@RequestParam(value = "page", defaultValue = "0") int page,
@@ -295,10 +295,10 @@ public class OpportunityController {
 					"Invalid pagination request");
 		}
 
-		List<TeamOpportunityDetailsDTO> listOfOpportunityDetails = null;
+		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
 		try {
-			listOfOpportunityDetails = opportunityService
+			teamOpportunityDetails = opportunityService
 					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
 							page, count);
 		} catch (Exception e) {
@@ -307,7 +307,7 @@ public class OpportunityController {
 		}
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				listOfOpportunityDetails);
+				teamOpportunityDetails);
 	}
 	 
 	 

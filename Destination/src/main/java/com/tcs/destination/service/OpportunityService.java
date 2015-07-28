@@ -27,6 +27,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
@@ -843,14 +844,15 @@ public class OpportunityService {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<TeamOpportunityDetailsDTO> findTeamOpportunityDetailsBySupervisorId(String supervisorUserId, int page, int count)
+	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(String supervisorUserId, int page, int count)
  throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
-		List<TeamOpportunityDetailsDTO> listOfTeamOpportunityDetails = null;
+		List<OpportunityDetailsDTO> listOfOpportunityDetails = null;
 		List<OpportunityT> opportunities = null;
 		List<OpportunityT> opportunitiesSubList = null;
+		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
 		// Get all users under a supervisor
 		List<String> users = userRepository
@@ -865,22 +867,27 @@ public class OpportunityService {
 			if ((opportunities != null) && (!opportunities.isEmpty())) {
 
 				int oppSize = opportunities.size();
+				teamOpportunityDetails = new TeamOpportunityDetailsDTO();
+				teamOpportunityDetails.setSizeOfOpportunityDetails(oppSize);
 
 				if (PaginationUtils.isValidPagination(page, count, oppSize)) {
 
 					int fromIndex = PaginationUtils.getStartIndex(page, count,
 							oppSize);
+					
+					// toIndex is incremented by 1 because subList toIndex position 
+					// is excluded while constructing the sub ArrayList
 					int toIndex = PaginationUtils.getEndIndex(page, count,
 							oppSize) + 1;
 
 					opportunitiesSubList = new ArrayList<OpportunityT>(
 							opportunities.subList(fromIndex, toIndex));
 
-					listOfTeamOpportunityDetails = new ArrayList<TeamOpportunityDetailsDTO>();
+					listOfOpportunityDetails = new ArrayList<OpportunityDetailsDTO>();
 
 					for (OpportunityT opportunity : opportunitiesSubList) {
 
-						TeamOpportunityDetailsDTO teamDetails = new TeamOpportunityDetailsDTO();
+						OpportunityDetailsDTO teamDetails = new OpportunityDetailsDTO();
 						teamDetails.setOpportunityName(opportunity
 								.getOpportunityName());
 						teamDetails.setCustomerName(opportunity
@@ -895,8 +902,11 @@ public class OpportunityService {
 								"dd-MMM-yyyy").format(opportunity
 								.getCreatedDatetime()));
 
-						listOfTeamOpportunityDetails.add(teamDetails);
+						listOfOpportunityDetails.add(teamDetails);
 					}
+
+					teamOpportunityDetails
+							.setOpportunityDetails(listOfOpportunityDetails);
 				}
 
 			} else {
@@ -917,7 +927,7 @@ public class OpportunityService {
 							+ supervisorUserId);
 		}
 
-		return listOfTeamOpportunityDetails;
+		return teamOpportunityDetails;
 	}
 	
 }

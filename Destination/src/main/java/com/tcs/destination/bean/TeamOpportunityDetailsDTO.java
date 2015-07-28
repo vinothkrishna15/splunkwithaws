@@ -1,73 +1,45 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+import java.util.List;
+
+
+
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
 
+/**
+ * This DTO holds a list of Opportunity Details and 
+ * count of the opportunity details 
+ * 
+ * @author bnpp
+ *
+ */
 @JsonFilter(Constants.FILTER)
 public class TeamOpportunityDetailsDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String opportunityName;
+	private int sizeOfOpportunityDetails;
 	
-	private String customerName;
+	private List<OpportunityDetailsDTO> opportunityDetails;
+
+	public int getSizeOfOpportunityDetails() {
+		return sizeOfOpportunityDetails;
+	}
+
+	public void setSizeOfOpportunityDetails(int sizeOfOpportunityDetails) {
+		this.sizeOfOpportunityDetails = sizeOfOpportunityDetails;
+	}
+
+	public List<OpportunityDetailsDTO> getOpportunityDetails() {
+		return opportunityDetails;
+	}
+
+	public void setOpportunityDetails(List<OpportunityDetailsDTO> opportunityDetails) {
+		this.opportunityDetails = opportunityDetails;
+	}
 	
-	private String geography;
-	
-	private String owner;
-	
-	private int salesStageCode;
-	
-	private String createdDate;
-
-	public String getOpportunityName() {
-		return opportunityName;
-	}
-
-	public void setOpportunityName(String opportunityName) {
-		this.opportunityName = opportunityName;
-	}
-
-	public String getCustomerName() {
-		return customerName;
-	}
-
-	public void setCustomerName(String customerName) {
-		this.customerName = customerName;
-	}
-
-	public String getGeography() {
-		return geography;
-	}
-
-	public void setGeography(String geography) {
-		this.geography = geography;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-
-	public int getSalesStageCode() {
-		return salesStageCode;
-	}
-
-	public void setSalesStageCode(int salesStageCode) {
-		this.salesStageCode = salesStageCode;
-	}
-
-	public String getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(String createdDate) {
-		this.createdDate = createdDate;
-	}
 
 }
