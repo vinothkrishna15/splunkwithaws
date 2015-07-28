@@ -194,6 +194,7 @@ public class ConnectController {
 			@RequestParam("supervisorId") String supervisorId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "role", defaultValue = "all") String role,
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
@@ -201,13 +202,13 @@ public class ConnectController {
 			throws Exception {
 
 		logger.debug("Inside ConnectController /connect/team?from=" + fromDate
-				+ "&to=" + toDate + "&supervisorId "+ supervisorId + "GET");
+				+ "&to=" + toDate + "&supervisorId " + supervisorId + "GET");
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 		try {
 			// Calling the service method
 			dashBoardConnectsResponse = connectService.getTeamConnects(
-					supervisorId, fromDate, toDate, weekStartDate, weekEndDate,
-					monthStartDate, monthEndDate);
+					supervisorId, fromDate, toDate, role, weekStartDate,
+					weekEndDate, monthStartDate, monthEndDate);
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

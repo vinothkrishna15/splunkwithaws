@@ -746,72 +746,135 @@ public class ConnectService {
 	 * @param monthEndDate
 	 * @return
 	 */
-	public DashBoardConnectsResponse getTeamConnects(String supervisorId, Date fromDate, Date toDate, 
- Date weekStartDate, Date weekEndDate,
-			Date monthStartDate, Date monthEndDate) throws Exception {
-		logger.debug("Inside getTeamConnects service");
-		DashBoardConnectsResponse dashBoardConnectsResponse = new DashBoardConnectsResponse();
+	public DashBoardConnectsResponse getTeamConnects(String supervisorId,
+			Date fromDate, Date toDate, String role, Date weekStartDate,
+			Date weekEndDate, Date monthStartDate, Date monthEndDate)
+	    throws Exception {
+	logger.debug("Inside getTeamConnects service");
+	DashBoardConnectsResponse dashBoardConnectsResponse = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorId);
+	// Get all users under a supervisor
+	List<String> users = userRepository
+		.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-		if ((users != null) && (users.size() > 0)) {
+	if ((users != null) && (users.size() > 0)) {
+	    
+	    dashBoardConnectsResponse = new DashBoardConnectsResponse();
 
-			// Get connects between two dates
-			Timestamp fromDateTs = new Timestamp(fromDate.getTime());
-			Timestamp toDateTs = new Timestamp(toDate.getTime()
-					+ ONE_DAY_IN_MILLIS - 1);
-			List<ConnectT> connects = connectRepository.getTeamConnects(users,
-					fromDateTs, toDateTs);
-			prepareConnect(connects);
-			dashBoardConnectsResponse.setConnectTs(connects);
-			
-			// Get weekly count of connects
-			Timestamp weekStartDateTs = new Timestamp(weekStartDate.getTime());
-			Timestamp weekEndDateTs = new Timestamp(weekEndDate.getTime()
-					+ ONE_DAY_IN_MILLIS - 1);
-			List<ConnectT> weekConnects = connectRepository.getTeamConnects(
-					users, weekStartDateTs, weekEndDateTs);
-			prepareConnect(weekConnects);
-			dashBoardConnectsResponse.setWeekCount(weekConnects.size());
+	    Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+	    Timestamp toDateTs = new Timestamp(toDate.getTime()
+		    + ONE_DAY_IN_MILLIS - 1);
 
-			// Get monthly count of connects
-			Timestamp monthStartDateTs = new Timestamp(monthStartDate.getTime());
-			Timestamp monthEndDateTs = new Timestamp(monthEndDate.getTime()
-					+ ONE_DAY_IN_MILLIS - 1);
-			List<ConnectT> monthConnects = connectRepository.getTeamConnects(
-					users, monthStartDateTs, monthEndDateTs);
-			prepareConnect(monthConnects);
-			dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+	    // If ROLE is ALL
+	    if (role.equalsIgnoreCase(OwnerType.ALL.toString())) {
+		// Get connects between two dates
+		List<ConnectT> connects = connectRepository.getTeamConnects(
+			users, fromDateTs, toDateTs);
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
 
-			// throw an exception if connects is empty and size of monthConnects and weekConnects are zero 
-			if (((connects != null) && (connects.isEmpty()))
-					&& ((weekConnects != null) && (weekConnects.size() == 0))
-					&& ((monthConnects != null) && (monthConnects.size() == 0))) {
-				logger.error(
-						"NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
-						+ "days of week between {} and {}, days of month between {} and {}",
-						supervisorId, fromDateTs, toDateTs, weekStartDateTs,
-						weekEndDateTs, monthStartDateTs, monthEndDateTs);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Connects found for supervisor with id "
-								+ supervisorId + " for days between "
-								+ fromDateTs + " and " + toDateTs
-								+ ", days of week between " + weekStartDateTs
-								+ " and " + weekEndDateTs
-								+ ", days of month between "
-								+ monthStartDateTs + " and " + monthEndDateTs);
-			}
+		// Get weekly count of connects
+		Timestamp weekStartDateTs = new Timestamp(
+			weekStartDate.getTime());
+		Timestamp weekEndDateTs = new Timestamp(weekEndDate.getTime()
+			+ ONE_DAY_IN_MILLIS - 1);
+		List<ConnectT> weekConnects = connectRepository
+			.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
+		prepareConnect(weekConnects);
+		dashBoardConnectsResponse.setWeekCount(weekConnects.size());
 
-		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id " + supervisorId);
+		// Get monthly count of connects
+		Timestamp monthStartDateTs = new Timestamp(
+			monthStartDate.getTime());
+		Timestamp monthEndDateTs = new Timestamp(monthEndDate.getTime()
+			+ ONE_DAY_IN_MILLIS - 1);
+		List<ConnectT> monthConnects = connectRepository
+			.getTeamConnects(users, monthStartDateTs,
+				monthEndDateTs);
+		prepareConnect(monthConnects);
+		dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+
+		// throw an exception if connects is empty and
+		// size of monthConnects and weekConnects are zero
+		if (((connects != null) && (connects.isEmpty()))
+			&& ((weekConnects != null) && (weekConnects.size() == 0))
+			&& ((monthConnects != null) && (monthConnects.size() == 0))) {
+		    logger.error(
+			    "NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
+				    + "days of week between {} and {}, days of month between {} and {}",
+			    supervisorId, fromDateTs, toDateTs,
+			    weekStartDateTs, weekEndDateTs, monthStartDateTs,
+			    monthEndDateTs);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found for supervisor with id "
+				    + supervisorId + " for days between "
+				    + fromDateTs + " and " + toDateTs
+				    + ", days of week between "
+				    + weekStartDateTs + " and " + weekEndDateTs
+				    + ", days of month between "
+				    + monthStartDateTs + " and "
+				    + monthEndDateTs);
 		}
 
-		return dashBoardConnectsResponse;
+	    }
+
+	    // If ROLE is PRIMARY
+	    else if (role.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
+
+		List<ConnectT> connects = connectRepository
+			.findByPrimaryOwnerInAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectAsc(
+				users, fromDateTs, toDateTs);
+
+		if ((connects != null) && (connects.isEmpty())) {
+		    logger.error(
+			    "NOT FOUND : No Connects found with role PRIMARY for supervisor Id : {}",
+			    supervisorId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found with role PRIMARY for supervisor Id : "
+				    + supervisorId);
+		}
+
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
+	    }
+
+	    // If ROLE is SECONDARY
+	    else if (role.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
+
+		List<ConnectT> connects = connectRepository
+			.findTeamConnectsBySecondaryowner(users, fromDateTs,
+				toDateTs);
+
+		if ((connects != null) && (connects.isEmpty())) {
+		    logger.error(
+			    "NOT FOUND : No Connects found with role SECONDARY for supervisor Id : {}",
+			    supervisorId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found with role SECONDARY for supervisor Id : "
+				    + supervisorId);
+		}
+
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
+
+	    }
+
+	    else {
+
+		logger.error("NOT_FOUND: Invalid Role", supervisorId);
+		throw new DestinationException(HttpStatus.NOT_FOUND,
+			"invalid Role");
+
+	    }
+
+	} else {
+	    logger.error(
+		    "NOT_FOUND: No subordinate found for supervisor id : {}",
+		    supervisorId);
+	    throw new DestinationException(HttpStatus.NOT_FOUND,
+		    "No subordinate found for supervisor id " + supervisorId);
 	}
+
+	return dashBoardConnectsResponse;
+    }
 }

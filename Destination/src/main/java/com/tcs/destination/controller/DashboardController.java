@@ -47,14 +47,14 @@ public class DashboardController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/teamChart", method = RequestMethod.GET)
+	@RequestMapping(value = "/teamchart", method = RequestMethod.GET)
 	public String teamChart(
 			@RequestParam(value = "supervisorId") String supervisorId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside ConnectController /connect/teamChart" + "GET");
+		logger.debug("Inside ConnectController /connect/teamchart" + "GET");
 		PerformaceChartBean chartValues = null;
 		try {
 			chartValues = dashboardService.getTeamChartValues(supervisorId,
