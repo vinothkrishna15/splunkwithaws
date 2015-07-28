@@ -908,6 +908,13 @@ public class OpportunityService {
 					teamOpportunityDetails
 							.setOpportunityDetails(listOfOpportunityDetails);
 				}
+				else {
+					logger.error(
+							"BAD_REQUEST: Invalid Pagination Error",
+							supervisorUserId);
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Invalid Pagination Error");
+				}
 
 			} else {
 				logger.error(
