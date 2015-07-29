@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
@@ -53,5 +54,8 @@ public interface CustomerRepository extends
 			+ "and (CMT.customer_id = (?6) OR (?6) ='')) group by ART.QUARTER", nativeQuery = true)
 	List<Object[]> findActualRevenue(String financialYear, String quarter,
 			String geography, String serviceLine, String iou, String customerId);
+	
+	@Query(value = "select * from customer_master_t where customer_id in (:custIds)",nativeQuery=true)
+	List<CustomerMasterT> getCustomersByIds(@Param("custIds") List<String> customerIds);
 
 }

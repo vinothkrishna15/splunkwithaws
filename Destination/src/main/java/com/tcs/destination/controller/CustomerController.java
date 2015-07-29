@@ -90,13 +90,13 @@ public class CustomerController {
 	public @ResponseBody String findTopRevenue(
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside CustomerController /customer/topRevenue GET");
 		List<CustomerMasterT> topRevenueCustomers = customerService
-				.findTopRevenue(count, financialYear);
-
+				.findTopRevenue(count, financialYear,userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, topRevenueCustomers);
 	}
