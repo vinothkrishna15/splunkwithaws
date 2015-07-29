@@ -2,7 +2,7 @@ package com.tcs.destination.enums;
 
 public enum UserGroup {
 	BDM("BDM"), BDM_SUPERVISOR("BDM Supervisor"), BID_OFFICE(
-			"Bid Office"), GEO_HEADS("GEO Heads"),STRATEGIC_INITIATIVES("Strategic Initiatives"),
+			"Bid Office"), GEO_HEADS("GEO Heads"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
 			SYSTEM("System");
 
 	private final String value;
@@ -20,19 +20,17 @@ public enum UserGroup {
 	}
 
 	public static boolean contains(String otherValue) {
-
 		for (UserGroup c : UserGroup.values()) {
 			if (c.getValue().equals(otherValue)) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 	
-	public static String getEnum(String value){
-		for(UserGroup c : UserGroup.values()){
-			if(c.getValue().equals(value)){
+	public static String getName(String value){
+		for (UserGroup c : UserGroup.values()) {
+			if (c.getValue().equals(value)) {
 				return c.name();
 			}
 		}
@@ -42,5 +40,4 @@ public enum UserGroup {
 	public String getValue() {
 		return value;
 	}
-
 }

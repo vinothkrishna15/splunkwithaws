@@ -13,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerService;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * Controller to handle Customer module related requests.
+ * 
+ */
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
@@ -86,17 +86,23 @@ public class CustomerController {
 				tarVsAct);
 	}
 
+	/**
+	 * Controller method to find Top revenue customers based on user's access privileges.
+	 * 
+	 * @param userId, year, count.
+	 * @return Top revenue customers.
+	 */
 	@RequestMapping(value = "/topRevenue", method = RequestMethod.GET)
 	public @ResponseBody String findTopRevenue(
-			@RequestParam(value = "count", defaultValue = "5") int count,
-			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
+			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside CustomerController /customer/topRevenue GET");
 		List<CustomerMasterT> topRevenueCustomers = customerService
-				.findTopRevenue(count, financialYear,userId);
+				.findTopRevenue(userId, financialYear, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, topRevenueCustomers);
 	}

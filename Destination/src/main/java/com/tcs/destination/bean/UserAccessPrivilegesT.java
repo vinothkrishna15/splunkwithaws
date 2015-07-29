@@ -22,7 +22,6 @@ import java.util.List;
 @Entity
 @Table(name="user_access_privileges_t")
 @NamedQuery(name="UserAccessPrivilegesT.findAll", query="SELECT u FROM UserAccessPrivilegesT u")
-//@NamedQuery(name="UserAccessPrivilegesT.findByUserId", query="SELECT u FROM UserAccessPrivilegesT u where u.isactive='Y'")
 public class UserAccessPrivilegesT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -39,18 +38,20 @@ public class UserAccessPrivilegesT implements Serializable {
 
 	//bi-directional many-to-one association to UserAccessPrivilegesT
 	@ManyToOne
-	@JoinColumn(name="parent_privilege_id")
+	@JoinColumn(name="parent_privilege_id", insertable=false ,updatable=false)
 	private UserAccessPrivilegesT userAccessPrivilegesT;
+
+	@Column(name="parent_privilege_id")
+	private String parentPrivilegeId;
 
 	//bi-directional many-to-one association to UserAccessPrivilegesT
 	@OneToMany(mappedBy="userAccessPrivilegesT",fetch=FetchType.EAGER)
-	//@Filter(name="isActiveYes", condition=":isactive==\"Y\"")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	//bi-directional many-to-one association to UserT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name="user_id",insertable=false,updatable=false)
+	@JoinColumn(name="user_id", insertable=false, updatable=false)
 	private UserT userT;
 	
 	@Column(name="user_id")
@@ -128,4 +129,11 @@ public class UserAccessPrivilegesT implements Serializable {
 		this.userId = userId;
 	}
 
+	public String getParentPrivilegeId() {
+		return parentPrivilegeId;
+	}
+
+	public void setParentPrivilegeId(String parentPrivilegeId) {
+		this.parentPrivilegeId = parentPrivilegeId;
+	}
 }

@@ -1,6 +1,5 @@
 package com.tcs.destination.utils;
 
-
 public class PrivilegeGroup {
 	
 	private StringBuffer geographyBuffer;

@@ -123,7 +123,7 @@ public class UserService {
 	 */
 	public LoginHistoryT findByUserIdAndSessionId(String userId,
 			String sessionId) throws Exception {
-		logger.info("Inside findByuserIdAndSessionId Service");
+		logger.debug("Inside findByUserIdAndSessionId() service");
 		LoginHistoryT loginHistory = null;
 		if (userId != null && sessionId != null) {
 			loginHistory = loginHistoryRepository.findByUserIdAndSessionId(
@@ -134,12 +134,9 @@ public class UserService {
 
 	public UserT findByUserIdAndPassword(String userId, String password)
 			throws Exception {
-		logger.info("Inside findByUserIdAndPassword Service");
-
-		UserT dbUser = userRepository.findByUserIdAndTempPassword(userId,
-				password);
-
-		return dbUser;
+		logger.debug("Inside findByUserIdAndPassword() service");
+		return (userRepository.findByUserIdAndTempPassword(userId,
+				password));
 	}
 
 	public void updateUser(UserT user) {
@@ -163,30 +160,39 @@ public class UserService {
 
 	
 	/**
-	 * Service Method that handles forgot password
+	 * This is the service method for forgot password service
 	 * @param userId
 	 * @param userEmailId
 	 * @throws Exception
 	 */
 	public void forgotPassword(String userId, String userEmailId) throws Exception {
+		logger.debug("Inside forgotPassword() service");
 		UserT user = userRepository.findOne(userId);
 		if(user != null){
 			String retrievedMailId = user.getUserEmailId();
 			if(retrievedMailId.equals(userEmailId)){
 				mailUtils.sendPasswordAutomatedEmail(forgotPasswordSubject,user,new Date());
 			} else {
+				logger.error("UserId and E-Mail address do not match");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"UserId and Mail Address do not match");
+						"UserId and E-Mail address do not match");
 			}
 		} else {
+			logger.error("NOT_FOUND: User not found: {}", userId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found");
+					"User not found: " + userId);
 		}
 	}
 	
-	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId){
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserId(userId);
-		return userPrivilegesList;
+	/**
+	 * This service is used to get all the access privileges for a user
+	 * @param userId
+	 * @return List of user access privileges
+	 * @throws Exception
+	 */
+	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId) throws Exception {
+		logger.debug("Inside getAllPrivilegesByUserId() service");
+		return (userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNull(userId));
 	}
 
 }
