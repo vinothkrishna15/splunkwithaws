@@ -54,7 +54,7 @@ public class DashboardController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside ConnectController /connect/teamchart" + "GET");
+		logger.debug("Inside ConnectController /dashboard/teamchart" + "GET");
 		PerformaceChartBean chartValues = null;
 		try {
 			chartValues = dashboardService.getTeamChartValues(supervisorId,
