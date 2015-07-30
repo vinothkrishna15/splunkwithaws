@@ -1,4 +1,4 @@
-package com.tcs.destination.utils;
+package com.tcs.destination.bean;
 
 public class PrivilegeGroup {
 	

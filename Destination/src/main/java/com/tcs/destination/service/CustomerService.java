@@ -1,9 +1,9 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
-
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -20,16 +20,15 @@ import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchCurrencyException;
+import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
-import com.tcs.destination.utils.TopRevenueQueryBuilder;
 
 @Service
 public class CustomerService {
@@ -44,13 +43,15 @@ public class CustomerService {
 			"where ART.finance_customer_name = RCMT.finance_customer_name and "+
 			"ART.finance_geography = RCMT.customer_geography and "+
 			"ART.finance_iou = ICMT.iou and "+
-			"ART.sub_sp = SSMT.actual_sub_sp and ";
+			"ART.sub_sp = SSMT.actual_sub_sp";
 	
 	private static final String TOP_REVENUE_QUERY_SUFFIX = ") as RV where RV.customer_name=CMT.customer_name order by RV.sum desc";
-	
 	private static final String TOP_REVENUE_QUERY_YEAR = " and financial_year = ";
-	
 	private static final String TOP_REVENUE_QUERY_GROUP_BY = " group by RCMT.customer_name order by sum desc limit ";
+	private static final String TOP_REVENUE_GEO_COND_PREFIX = "RCMT.customer_geography in (";
+	private static final String TOP_REVENUE_SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
+	private static final String TOP_REVENUE_IOU_COND_PREFIX = "ICMT.display_iou in (";
+	private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -65,7 +66,7 @@ public class CustomerService {
 	UserService userService;
 	
 	@Autowired
-	TopRevenueQueryBuilder revenueQueryBuilder;
+	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
 	public CustomerMasterT findById(String customerId) throws Exception {
 		logger.debug("Inside findById() service");
@@ -129,12 +130,10 @@ public class CustomerService {
 	 */
 	private List<CustomerMasterT> getTopRevenuesBasedOnUserPrivileges(String userId, 
 			String financialYear, int count) throws Exception {
-		logger.debug("Inside handleOtherUserGroups() method");
-		// Get the user's access privileges
-		List<UserAccessPrivilegesT> privileges = userService.getAllPrivilegesByUserId(userId);
+		logger.debug("Inside getTopRevenuesBasedOnUserPrivileges() method");
 		// Form the native top revenue query string
-		String queryString = getRevenueQueryString(count, financialYear, privileges);
-		logger.debug("Query string: {}", queryString);
+		String queryString = getRevenueQueryString(userId, count, financialYear);
+		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query topRevenueQuery = entityManager.createNativeQuery(queryString);
 		List<Object> resultList = topRevenueQuery.getResultList();
@@ -166,18 +165,24 @@ public class CustomerService {
 	 * @return
 	 * @throws DestinationException
 	 */
-	private String getRevenueQueryString(int count, String financialYear,
-			List<UserAccessPrivilegesT> privileges) throws Exception {
-		logger.debug("Inside getQueryString() method" );
+	private String getRevenueQueryString(String userId, int count, String financialYear) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method" );
 		StringBuffer queryBuffer = new StringBuffer(TOP_REVENUE_QUERY_PREFIX);
-		String queryClause = revenueQueryBuilder.getTopRevenueQueryClause(privileges);
-		queryBuffer.append(queryClause);
+		// Get user access privilege groups 
+		HashMap<String, String> queryPrefixMap = 
+				userAccessPrivilegeQueryBuilder.getQueryPrefixMap(TOP_REVENUE_GEO_COND_PREFIX, TOP_REVENUE_SUBSP_COND_PREFIX, 
+						TOP_REVENUE_IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) { 
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
 		financialYear = financialYear.replace(Constants.SINGLE_QUOTE, Constants.DOUBLE_SINGLE_QUOTE);
 		queryBuffer.append(TOP_REVENUE_QUERY_YEAR + Constants.SINGLE_QUOTE 
 				+ financialYear + Constants.SINGLE_QUOTE);
 		queryBuffer.append(TOP_REVENUE_QUERY_GROUP_BY + count);
 		queryBuffer.append(TOP_REVENUE_QUERY_SUFFIX);
-		logger.info("Condition clause formed: " + queryClause);
+
 		return queryBuffer.toString();
 	}
 

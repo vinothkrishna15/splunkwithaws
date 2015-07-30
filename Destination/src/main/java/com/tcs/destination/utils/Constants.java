@@ -22,5 +22,7 @@ public class Constants {
 	public static final String COMMA = ",";
 	public static final String RIGHT_PARANTHESIS = ")";
 	public static final String LEFT_PARANTHESIS = "(";
+	public static final String AND_CLAUSE = " and ";
+	public static final String OR_CLAUSE = " or ";
 
 }
