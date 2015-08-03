@@ -937,4 +937,52 @@ public class OpportunityService {
 		return teamOpportunityDetails;
 	}
 	
+	public List<OpportunityT> getByOpportunities(String customerName,
+			String groupCustomerName, String iou, String geography,
+			String country, String opportunityName, String opportunityOwner,
+			String connectName, String partnerName, String offering,
+			String competitorName, String subSp, String bidRequestType,
+			String newLogo, String strategicInitiative, int minSalesStage,
+			int maxSalesStage, int minDigitalDealValue, int maxDigitalDealValue)
+			throws DestinationException {
+		String opportunityOwnerId = "";
+		UserT userT = userRepository.findByUserName(opportunityOwner);
+		if (userT != null) {
+			opportunityOwnerId = userT.getUserId();
+		}
+		customerName = customerName.equals("") ? customerName : "%"
+				+ customerName + "%";
+		groupCustomerName = groupCustomerName.equals("") ? groupCustomerName
+				: "%" + groupCustomerName + "%";
+		iou = iou.equals("") ? iou : "%" + iou + "%";
+		opportunityName = opportunityName.equals("") ? opportunityName : "%"
+				+ opportunityName + "%";
+		connectName = connectName.equals("") ? connectName : "%" + connectName
+				+ "%";
+		partnerName = partnerName.equals("") ? partnerName : "%" + partnerName
+				+ "%";
+		offering = offering.equals("") ? offering : "%" + offering + "%";
+		competitorName = competitorName.equals("") ? competitorName : "%"
+				+ competitorName + "%";
+		subSp = subSp.equals("") ? subSp : "%" + subSp + "%";
+		bidRequestType = bidRequestType.equals("") ? bidRequestType : "%"
+				+ bidRequestType + "%";
+		List<OpportunityT> opportunity = opportunityRepository
+				.findByOpportunitiesIgnoreCaseLike(customerName.toUpperCase(),
+						groupCustomerName.toUpperCase(), iou.toUpperCase(),
+						geography.toUpperCase(), country.toUpperCase(),
+						opportunityName.toUpperCase(), opportunityOwnerId,
+						connectName.toUpperCase(), partnerName.toUpperCase(),
+						offering.toUpperCase(), competitorName.toUpperCase(),
+						subSp.toUpperCase(), bidRequestType.toUpperCase(),
+						newLogo.toUpperCase(),
+						strategicInitiative.toUpperCase(), minSalesStage,
+						maxSalesStage, minDigitalDealValue, maxDigitalDealValue);
+		if (opportunity.isEmpty()) {
+			logger.error("NOT_FOUND: No Opportunities found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Opportunities Found.");
+		}
+		return opportunity;
+	}
 }

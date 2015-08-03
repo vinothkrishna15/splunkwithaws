@@ -310,5 +310,39 @@ public class OpportunityController {
 				teamOpportunityDetails);
 	}
 	 
-	 
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String SearchOpportunities(
+			@RequestParam(value = "customerName", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomerName", defaultValue = "") String groupCustomerName,
+			@RequestParam(value = "iou", defaultValue = "") String iou,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "country", defaultValue = "") String country,
+			@RequestParam(value = "opportunityName", defaultValue = "") String opportunityName,
+			@RequestParam(value = "opportunityOwner", defaultValue = "") String opportunityOwner,
+			@RequestParam(value = "connectName", defaultValue = "") String connectName,
+			@RequestParam(value = "partnerName", defaultValue = "") String partnerName,
+			@RequestParam(value = "offering", defaultValue = "") String offering,
+			@RequestParam(value = "competitorName", defaultValue = "") String competitorName,
+			@RequestParam(value = "subSp", defaultValue = "") String subSp,
+			@RequestParam(value = "bidRequestType", defaultValue = "") String bidRequestType,
+			@RequestParam(value = "newLogo", defaultValue = "") String newLogo,
+			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
+			@RequestParam(value = "minSalesStageCode", defaultValue = "0") int minSalesStageCode,
+			@RequestParam(value = "maxSalesStageCode", defaultValue = "14") int maxSalesStageCode,
+			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") int minDigitalDealValue,
+			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
+					+ Integer.MAX_VALUE) int maxDigitalDealValue,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		List<OpportunityT> opportunity = opportunityService.getByOpportunities(
+				customerName, groupCustomerName, iou, geography, country,
+				opportunityName, opportunityOwner, connectName, partnerName,
+				offering, competitorName, subSp, bidRequestType, newLogo,
+				strategicInitiative, minSalesStageCode, maxSalesStageCode,
+				minDigitalDealValue, maxDigitalDealValue);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				opportunity);
+	}
+
 }
