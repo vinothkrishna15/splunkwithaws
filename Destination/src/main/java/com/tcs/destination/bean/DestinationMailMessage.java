@@ -2,8 +2,6 @@ package com.tcs.destination.bean;
 
 import java.util.List;
 
-import com.tcs.destination.enums.DestinationEmailTemplate;
-
 public class DestinationMailMessage {
 
 	private List<String> recipientIdList;

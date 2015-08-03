@@ -4,8 +4,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +15,7 @@ import com.tcs.destination.bean.OpportunityT;
 
 @Repository
 public interface OpportunityRepository extends
-		CrudRepository<OpportunityT, String> {
+		JpaRepository<OpportunityT, String> {
 
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
@@ -249,17 +251,83 @@ public interface OpportunityRepository extends
 	public List<OpportunityT> findBySalesStageCode(int salesStageCode);
 
 	/**
-	 * This method retrieves all supervisor opportunities using the mentioned
-	 * query
+	 * This method retrieves deal values of opportunities of users 
 	 * 
-	 * @param supervisorUserId
+	 * @param users
 	 * @return
 	 */
-	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'INR')),OPP.sales_stage_code,count(*),SSM.sales_stage_description from opportunity_t OPP JOIN sales_stage_mapping_t SSM ON OPP.sales_stage_code=SSM.sales_stage_code  where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery = true)
-	public List<Object[]> findOpportunitiesBySupervisorId(
-			String supervisorUserId);
+	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) "
+			+ "/ (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'INR')),OPP.sales_stage_code,count(*),SSM.sales_stage_description "
+			+ "from opportunity_t OPP JOIN sales_stage_mapping_t SSM ON OPP.sales_stage_code=SSM.sales_stage_code "
+			+ "where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t "
+			+ "where bid_office_group_owner in (:users)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery = true)
+	public List<Object[]> findDealValueOfOpportunitiesBySupervisorId(@Param("users") List<String> users);
 
 	List<OpportunityT> findBySalesStageCodeAndCustomerId(int salesStageCode,
 			String customerId);
 
+	/**
+	 * This query retrieves pipeline deal value of all users under a supervisor
+	 * 
+	 * @param users
+	 * @param endTime
+	 * @return
+	 */
+	@Query(value = "select digital_deal_value,deal_currency from opportunity_t opp where opp.opportunity_owner in (:users) "
+			+ "and  opp.opportunity_id in (select opportunity_id from (select opportunity_id, max(updated_datetime) from opportunity_timeline_history_t "
+			+ "where updated_datetime <= (:endTime) and sales_stage_code < 9 group by opportunity_id order by opportunity_id) as opp_pipeline)", nativeQuery = true)
+	List<Object[]> findDealValueForPipelineBySubordinatesPerSupervisor(@Param("users") List<String> users,@Param("endTime") Timestamp endTime);
+	
+	/**
+	 * This query retrieves all the won deals of all users under a supervisor
+	 * 
+	 * @param users
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	@Query(value = "select digital_deal_value,deal_currency from opportunity_t where opportunity_owner in (:users) "
+			+ "and (deal_closure_date between (:fromDate) and (:toDate)) and sales_stage_code =9", nativeQuery = true)
+	List<Object[]> findDealValueForWinsBySubordinatesPerSupervisor(@Param("users") List<String> users, @Param("fromDate") Date fromDate,	@Param("toDate") Date toDate);
+	
+	/**
+	 * This query retrieves the opportunities for the users in the tables opportunity_t, opportunity_sales_support_link_t and bid_details_t
+	 * 
+	 * @param users
+	 * @return
+	 */
+	@Query(value="select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) order by OPP.created_datetime desc", nativeQuery=true)
+	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(@Param("users") List<String> users);
+	
+	@Query(value = " select * from opportunity_t o where "
+			+ " ((o.opportunity_id in (select opportunity_id from  bid_details_t bdt where bdt.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner=?7 OR ?7='')) OR"
+			+ " o.opportunity_id IN (select opportunity_id from opportunity_t where opportunity_owner=?7 OR ?7='') "
+			+ "OR o.opportunity_id IN (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner=?7 OR ?7='')) AND"
+			+ " (o.customer_id in  (select customer_id from customer_master_t where (UPPER(customer_name) like ?1 OR ?1 = '') "
+			+ "AND (UPPER(group_customer_name) like ?2 OR ?2='') AND (UPPER(iou) like ?3 OR ?3='') AND (UPPER(geography)=?4 OR ?4=''))) AND"
+			+ " ((o.opportunity_id in (select opportunity_id from opportunity_sub_sp_link_t where UPPER(sub_sp) like ?12)) OR (?12='')) AND"
+			+ " ((o.opportunity_id in (select opportunity_id from opportunity_offering_link_t where UPPER(offering) like ?10)) OR (?10='')) AND"
+			+ " ((o.opportunity_id in (select opportunity_id from opportunity_competitor_link_t where UPPER(competitor_name) like ?11)) OR (?11='')) AND"
+			+ " (o.opportunity_id in (select opportunity_id from opportunity_partner_link_t  "
+			+ " where partner_id in (select partner_id from partner_master_t where UPPER(partner_name) like ?9)) OR (?9='')) AND"
+			+ " (o.opportunity_id in (select opportunity_id from connect_opportunity_link_id_t  "
+			+ " where connect_id in (select connect_id from connect_t where UPPER(connect_name) like ?8)) OR (?8='')) AND "
+			+ " ((o.opportunity_id in (select opportunity_id from bid_details_t where UPPER(bid_request_type) like ?13)) OR (?13=''))) AND"
+			+ " ((UPPER(opportunity_name) LIKE ?6 OR ?6='') OR (o.opportunity_id in (select entity_id from search_keywords_t where UPPER(search_keywords) like ?6 OR ?6='')))"
+			+ "AND (UPPER(country)=?5 OR ?5='') AND (UPPER(new_logo)=?14 OR ?14='') AND (UPPER(strategic_initiative)=?15 OR ?15='') "
+			+ " AND (sales_stage_code BETWEEN ?16 AND ?17) AND (digital_deal_value BETWEEN ?18 AND ?19)", nativeQuery = true)
+	List<OpportunityT> findByOpportunitiesIgnoreCaseLike(String customerName,
+			String groupCustomerName, String iou, String geography,
+			String country, String opportunityName, String opportunityOwner,
+			String connectName, String partnerName, String offering,
+			String competitorName, String subSp, String bidRequestType,
+			String newLogo, String strategicInitiative, int minSalesStageCode,
+			int maxSalesStageCode, int minDigitalDealValue,
+			int maxDigitalDealValue);
 }

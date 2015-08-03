@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.OpportunityDealValue;
@@ -16,7 +16,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.exception.DestinationException;
 
-@Component
+@Service
 public class BeaconConverterService {
 
 	public static final String ACTUALS_REVENUE_CURRENCY = "INR";

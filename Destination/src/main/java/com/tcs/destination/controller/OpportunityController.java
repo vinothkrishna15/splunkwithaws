@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.TasksBySupervisorIdDTO;
+import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
@@ -88,7 +89,7 @@ public class OpportunityController {
 				opportunities);
 	}
 
-	@RequestMapping(value = "/taskOwner", method = RequestMethod.GET)
+	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
 			@RequestParam("id") String userId,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
@@ -96,7 +97,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside OpportunityController /opportunity/taskOwner?id="
+		logger.debug("Inside OpportunityController /opportunity/taskowner?id="
 				+ userId + " GET");
 		List<OpportunityT> opportunities = opportunityService
 				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,
@@ -172,25 +173,30 @@ public class OpportunityController {
 	}
 
 	/**
-	 * This method retrieves the opportunities that are associated with a supervisor.
-	 * All the associates' opportunities who comes under the supervisor are retrieved.  
+	 * This method retrieves the Deal Value of Opportunities that are associated with a supervisor.
+	 * All the associates' opportunities under the supervisor are retrieved.  
 	 * 
 	 * @param supervisorUserId
 	 * @param fields
 	 * @param view
 	 * @return
 	 * @throws Exception
-	 */	@RequestMapping(value = "/tasksBySupervisorId", method = RequestMethod.GET)
-	public @ResponseBody String findTasksBySupervisorId(
+	 */	@RequestMapping(value = "/team/oppdealvalue", method = RequestMethod.GET)
+	public @ResponseBody String findDealValueOfOpportunitiesBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside OpportunityController /tasksBySupervisorId?id="
+		logger.debug("Inside OpportunityController /opportunity/team/oppDealValue?id="
 				+ supervisorUserId + " GET");
-		
-		List<TasksBySupervisorIdDTO> opportunities = opportunityService.findOpportunitiesBySupervisorId(supervisorUserId);
-		
+		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
+		try {
+			opportunities = opportunityService
+					.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -262,6 +268,81 @@ public class OpportunityController {
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
 		}
+		
+		/**
+		 * This Controller retrieves the Team Opportunity Details of all Users specific to a Supervisor 
+		 * 
+		 * @param supervisorUserId
+		 * @param fields
+		 * @param view
+		 * @return
+		 * @throws Exception
+		 */
+		@RequestMapping(value = "/team/oppdetails", method = RequestMethod.GET)
+		public @ResponseBody String findTeamOpportunityDetailsBySupervisorId(
+				@RequestParam("id") String supervisorUserId,
+				@RequestParam(value = "page", defaultValue = "0") int page,
+				@RequestParam(value = "count", defaultValue = "5") int count,
+				@RequestParam(value = "fields", defaultValue = "all") String fields,
+				@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		logger.debug("Inside OpportunityController /opportunity/team/oppDetails?id="
+				+ supervisorUserId + " GET");
+
+		if ((page < 0) || (count < 0)) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid pagination request");
+		}
+
+		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
+
+		try {
+			teamOpportunityDetails = opportunityService
+					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
+							page, count);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				teamOpportunityDetails);
+	}
 	 
-	 
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String SearchOpportunities(
+			@RequestParam(value = "customerName", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomerName", defaultValue = "") String groupCustomerName,
+			@RequestParam(value = "iou", defaultValue = "") String iou,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "country", defaultValue = "") String country,
+			@RequestParam(value = "opportunityName", defaultValue = "") String opportunityName,
+			@RequestParam(value = "opportunityOwner", defaultValue = "") String opportunityOwner,
+			@RequestParam(value = "connectName", defaultValue = "") String connectName,
+			@RequestParam(value = "partnerName", defaultValue = "") String partnerName,
+			@RequestParam(value = "offering", defaultValue = "") String offering,
+			@RequestParam(value = "competitorName", defaultValue = "") String competitorName,
+			@RequestParam(value = "subSp", defaultValue = "") String subSp,
+			@RequestParam(value = "bidRequestType", defaultValue = "") String bidRequestType,
+			@RequestParam(value = "newLogo", defaultValue = "") String newLogo,
+			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
+			@RequestParam(value = "minSalesStageCode", defaultValue = "0") int minSalesStageCode,
+			@RequestParam(value = "maxSalesStageCode", defaultValue = "14") int maxSalesStageCode,
+			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") int minDigitalDealValue,
+			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
+					+ Integer.MAX_VALUE) int maxDigitalDealValue,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		List<OpportunityT> opportunity = opportunityService.getByOpportunities(
+				customerName, groupCustomerName, iou, geography, country,
+				opportunityName, opportunityOwner, connectName, partnerName,
+				offering, competitorName, subSp, bidRequestType, newLogo,
+				strategicInitiative, minSalesStageCode, maxSalesStageCode,
+				minDigitalDealValue, maxDigitalDealValue);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				opportunity);
+	}
+
 }

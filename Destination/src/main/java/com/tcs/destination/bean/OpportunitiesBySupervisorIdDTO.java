@@ -11,7 +11,7 @@ import com.tcs.destination.utils.Constants;
  *
  */
 @JsonFilter(Constants.FILTER)
-public class TasksBySupervisorIdDTO implements Serializable{
+public class OpportunitiesBySupervisorIdDTO implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 

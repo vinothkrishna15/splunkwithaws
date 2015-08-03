@@ -105,7 +105,7 @@ public class AutoCommentsHelper implements Runnable {
 	@Override
 	public void run() {
 		logger.debug("Inside processAutoComments() method");
-		logger.info("Processing Auto comments events for entity: {}", entityId);
+		logger.info("Processing Auto comments events for entity: {}: {}", entityType, entityId);
 		AutoCommentsEntityT autoCommentsEntity = null;
 
 		try {
@@ -126,7 +126,7 @@ public class AutoCommentsHelper implements Runnable {
 			logger.error("Error occurred while processing auto comments " + e.getMessage());
 			e.printStackTrace();
 		}
-		logger.info("Finished processing Auto comments events for entity: {}", entityId);
+		logger.info("Finished processing Auto comments events for entity: {}: {}", entityType, entityId);
 	}
 
 	// This method is used to get AutoCommentsEntityT details for the given EntityType
@@ -147,7 +147,7 @@ public class AutoCommentsHelper implements Runnable {
 		if (EntityType.contains(entityType)) {
 			switch (EntityType.valueOf(entityType)) {
 			case TASK: {
-				logger.info("Processing Auto comments for Add, TaskId: {}", entityId);
+				logger.debug("Processing Auto comments for Add, TaskId: {}", entityId);
 				TaskT task = ((TaskRepository) crudRepository).findOne(entityId);
 				if (task != null) {
 					user = task.getModifiedByUser().getUserName();
@@ -169,7 +169,7 @@ public class AutoCommentsHelper implements Runnable {
 				break;
 			}
 			case CONNECT: {
-				logger.info("Processing Auto comments for Add, ConnectId: {}", entityId);
+				logger.debug("Processing Auto comments for Add, ConnectId: {}", entityId);
 				ConnectT connect = ((ConnectRepository) crudRepository).findOne(entityId);
 				if (connect != null) {
 					user = connect.getModifiedByUser().getUserName();
@@ -191,7 +191,7 @@ public class AutoCommentsHelper implements Runnable {
 				break;
 			}
 			case OPPORTUNITY: {
-				logger.info("Processing Auto comments for Add, OpportunityId: {}", entityId);
+				logger.debug("Processing Auto comments for Add, OpportunityId: {}", entityId);
 				OpportunityT opportunity = ((OpportunityRepository) crudRepository).findOne(entityId);
 				if (opportunity != null) {
 					user = opportunity.getModifiedByUser().getUserName();
@@ -267,7 +267,7 @@ public class AutoCommentsHelper implements Runnable {
 				// Iterate auto comments eligible fields and add auto comments
 				for (AutoCommentsEntityFieldsT field: fields) {
 					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-						processEntityFieldUpdate(user, entityName, parentEntityName, field, task);
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, oldObject, task);
 					} else {
 						// To-Do for Child Objects
 					}
@@ -277,14 +277,14 @@ public class AutoCommentsHelper implements Runnable {
 				throw new Exception("Invalid Task Id: " + entityId);
 			}
 		} else {
-			logger.info("No eligible fields for Auto comments, Task :{}", entityId);
+			logger.info("No eligible fields for Auto comments, TaskId :{}", entityId);
 		}
 		logger.debug("Finished processing Auto comments for Update, TaskId: {}", entityId);
 	}
 
 	// This method is used to process auto comments events for Connect
 	public void processConnectUpdate(AutoCommentsEntityT autoCommentsEntity) throws Exception {
-		logger.debug("Processing Auto comments for Update, ConnectId: {}", entityId);
+		logger.info("Processing Auto comments for Update, ConnectId: {}", entityId);
 		String user = null;
 		String entityName = null;
 		String parentEntityName = null;
@@ -295,17 +295,17 @@ public class AutoCommentsHelper implements Runnable {
 		if (fields != null && !fields.isEmpty()) {
 			// Load object with auto comments eligible lazy collections
 			ConnectT connect = (ConnectT) AutoCommentsLazyLoader.loadLazyCollections(entityId, EntityType.CONNECT.name(), 
-					crudRepository, autoCommentsEntityTRepository, entityManagerFactory);
+					crudRepository, autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, entityManagerFactory);
 			if (connect != null) {
 				user = connect.getModifiedByUser().getUserName();
 				entityName = connect.getConnectName();
 				// Iterate auto comments eligible fields and add auto comments
 				for (AutoCommentsEntityFieldsT field: fields) {
 					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-						processEntityFieldUpdate(user, entityName, parentEntityName, field, connect);
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, oldObject, connect);
 					} else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)){
 						// Handle Collections Objects
-						processCollections(user, entityName, entityName, field, connect);
+						processCollections(user, entityName, entityName, field, oldObject, connect);
 					} else {
 						logger.error("Invalid Field Type: {}", field.getType());
 						throw new Exception("Invalid Field Type: " + field.getType());
@@ -316,14 +316,14 @@ public class AutoCommentsHelper implements Runnable {
 				throw new Exception("Invalid Connect Id: " + entityId);
 			}
 		} else {
-			logger.info("No eligible fields for Auto comments, Connect :{}", entityId);
+			logger.info("No eligible fields for Auto comments, ConnectId :{}", entityId);
 		}
 		logger.debug("Finished processing Auto comments for Update, ConnectId: {}", entityId);
 	}
 
 	// This method is used to process auto comments events for Opportunity
 	private void processOpportunityUpdate(AutoCommentsEntityT autoCommentsEntity) throws Exception {
-		logger.debug("Processing Auto comments for Update, OpportunityId: {}", entityId);
+		logger.info("Processing Auto comments for Update, OpportunityId: {}", entityId);
 		String user = null;
 		String entityName = null;
 		String parentEntityName = null;
@@ -332,30 +332,35 @@ public class AutoCommentsHelper implements Runnable {
 		List<AutoCommentsEntityFieldsT> fields = autoCommentsEntityFieldsTRepository.
 				findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(), Constants.Y);
 		if (fields != null && !fields.isEmpty()) {
-			OpportunityT opportunity = ((OpportunityRepository) crudRepository).findOne(entityId);
+			OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader.loadLazyCollections(entityId, EntityType.OPPORTUNITY.name(), 
+					crudRepository, autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, entityManagerFactory);
 			if (opportunity != null) {
 				user = opportunity.getModifiedByUser().getUserName();
 				entityName = opportunity.getOpportunityName();
 				// Iterate auto comments eligible fields and add auto comments
 				for (AutoCommentsEntityFieldsT field: fields) {
 					if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-						processEntityFieldUpdate(user, entityName, parentEntityName, field, opportunity);
+						processEntityFieldUpdate(user, entityName, parentEntityName, field, oldObject, opportunity);
+					} else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)){
+						// Handle Collections Objects
+						processCollections(user, entityName, entityName, field, oldObject, opportunity);
 					} else {
-						// To-Do for Child Objects
+						logger.error("Invalid Field Type: {}", field.getType());
+						throw new Exception("Invalid Field Type: " + field.getType());
 					}
 				}
 			} else {
-				logger.error("Invalid Connect Id: {}", entityId);
-				throw new Exception("Invalid Connect Id: " + entityId);
+				logger.error("Invalid Opportunity Id: {}", entityId);
+				throw new Exception("Invalid Opportunity Id: " + entityId);
 			}
 		} else {
-			logger.info("No eligible fields for Auto comments, Connect :{}", entityId);
+			logger.info("No eligible fields for Auto comments, OpportunityId :{}", entityId);
 		}
-		logger.debug("Finished processing Auto comments for Update, ConnectId: {}", entityId);
+		logger.debug("Finished processing Auto comments for Update, OpportunityId: {}", entityId);
 	}
 
 	// This method is used to add auto comments for a particular entity field update
-	private void processEntityFieldUpdate(String user, String entityName, String parentEntityName, AutoCommentsEntityFieldsT field, Object newEntity)
+	private void processEntityFieldUpdate(String user, String entityName, String parentEntityName, AutoCommentsEntityFieldsT field, Object oldEntity, Object newEntity)
 			throws Exception {
 		logger.debug("Inside processEntityFieldUpdate() method");;
 		Object fromValue = null;
@@ -363,11 +368,11 @@ public class AutoCommentsHelper implements Runnable {
 		String msgTemplate = null;
 
 		if (field != null) {
-			logger.info("Field: {}", field.getName());
-			fromValue = PropertyUtils.getProperty(oldObject, field.getName());
+			logger.debug("Field: {}", field.getName());
+			fromValue = PropertyUtils.getProperty(oldEntity, field.getName());
 			toValue = PropertyUtils.getProperty(newEntity, field.getName());
-			logger.info("fromValue: {}", fromValue);
-			logger.info("toValue: {}", toValue);
+			logger.debug("fromValue: {}", fromValue);
+			logger.debug("toValue: {}", toValue);
 			// Field value updated in update
 			if (fromValue != null) {
 				if (toValue != null && !fromValue.equals(toValue)) { 
@@ -389,16 +394,16 @@ public class AutoCommentsHelper implements Runnable {
 	}
 
 	// This method is used to add auto comments for collections objects
-	public void processCollections(String user, String entityName, String parentEntityName, AutoCommentsEntityFieldsT field, Object newEntity) 
+	public void processCollections(String user, String entityName, String parentEntityName, AutoCommentsEntityFieldsT entityField, Object oldEntity, Object newEntity) 
 			throws Exception {
 		logger.debug("Inside processCollections() method");;
 		Object beforeUpdate = null;
 		Object afterUpdate = null;
 
-		if (field != null) {
-			logger.info("Field: {}", field.getName());
-			beforeUpdate = PropertyUtils.getProperty(oldObject, field.getName());
-			afterUpdate = PropertyUtils.getProperty(newEntity, field.getName());
+		if (entityField != null) {
+			logger.debug("Field: {}", entityField.getName());
+			beforeUpdate = PropertyUtils.getProperty(oldEntity, entityField.getName());
+			afterUpdate = PropertyUtils.getProperty(newEntity, entityField.getName());
 
 			// Handle empty collections
 			if (beforeUpdate != null && (beforeUpdate instanceof List)) {
@@ -413,99 +418,146 @@ public class AutoCommentsHelper implements Runnable {
 			if (beforeUpdate == null) {
 				// No add or update during update
 				if (afterUpdate == null) {
-					logger.info("No values before and after update");
+					logger.debug("No values before and after update");
 					return;
 				}
 			} else {
 				// All db values were deleted during update 
 				if (afterUpdate == null) {
-					logger.info("All db values before update were deleted during update");
+					logger.debug("All db values before update were deleted during update");
 					return;
 				}
 			}
 			
 			// Linked entity is required
-			if (field.getLinkedEntity() == null) {
-				logger.error("Missing Linked Entity for field: {}", field.getName());
-				throw new Exception("Missing Linked Entity for field: " + field.getName());
+			AutoCommentsEntityT linkedEntity = null;
+			if (entityField.getLinkedEntity() != null) {
+				linkedEntity = entityField.getLinkedEntity();
+			}
+			if (linkedEntity == null) {
+				logger.error("Missing Linked Entity for field: {}", entityField.getName());
+				throw new Exception("Missing Linked Entity for field: " + entityField.getName());
 			}
 
+			// Get the fields for linkedEntity
+			List<AutoCommentsEntityFieldsT> linkedEntityFields = autoCommentsEntityFieldsTRepository.
+					findByEntityIdAndIsactiveOrderByTypeAsc(linkedEntity.getEntityId(), Constants.Y);
+			
 			// Linked entity should have fields to compare
-			if (field.getLinkedEntity().getEntityFields() == null) {
-				logger.error("Missing Linked Entity Fields for field: {}", field.getName());
-				throw new Exception("Missing Linked Entity Fields for field: " + field.getName());
+			// It must have a record with type as I (Objects Identifier) with compare field  
+			if ((linkedEntityFields == null) 
+					|| (linkedEntityFields.size() == 0)) {
+				logger.error("Missing Linked Entity Fields for field: {}", entityField.getName());
+				throw new Exception("Missing Linked Entity Fields for field: " + entityField.getName());
 			}
 
-			// Linked entity should only have one element
-			AutoCommentsEntityFieldsT linkedEntityField = field.getLinkedEntity().getEntityFields().get(0);
-			logger.info("Linked Entity Field: {}" , linkedEntityField.getName());
-			if (linkedEntityField.getCompareField() == null) {
-				logger.error("Missing Compare Field for Linked Entity Field: {}", linkedEntityField.getName());
-				throw new Exception("Missing Compare Field for Linked Entity Field: " + linkedEntityField.getName());
-			}
-			logger.info("Linked Entity Compare Field: {}" , linkedEntityField.getCompareField());
-
-			// Create a map for comparison
-			HashMap<String, String> fieldMap = null;
-			String key = null;
-			String value = null;	
-			if (beforeUpdate != null) {
-				fieldMap = new HashMap<String, String>();
-				List<Object> fromObjectList = (List<Object>) beforeUpdate;
-				logger.info("fromObjectList collection size: {}", fromObjectList.size());
-				for (Object object: fromObjectList) {
-					key = PropertyUtils.getProperty(object, linkedEntityField.getName()).toString();
-					value = PropertyUtils.getProperty(object, linkedEntityField.getCompareField()).toString();
-					logger.info("Key: {}, Value: {}", key, value);
-					fieldMap.put(key, value);
+			// Get the entity field record with Identifier
+			AutoCommentsEntityFieldsT keyIdField = null;
+			for (AutoCommentsEntityFieldsT field: linkedEntityFields) {
+				if (field.getType().equalsIgnoreCase(Constants.ID_FIELD)) {
+					keyIdField = field;
+					logger.debug("Key ID Entity Field: {}" , keyIdField.getName());
+					break;
 				}
-				logger.info("FieldMap size: {}", fieldMap.size());
 			}
 
+			// Key ID field is required for HashMap comparison
+			if (keyIdField == null) {
+				logger.error("Missing Key ID Entity Field for field: {}", entityField.getName());
+				throw new Exception("Missing Key ID Entity Field for field: " + entityField.getName());
+			}
+			
+			// Compare field is also required for Key ID field
+			if (keyIdField.getCompareField() == null) {
+				logger.error("Missing Compare Field for Linked Entity Field: {}", keyIdField.getName());
+				throw new Exception("Missing Compare Field for Linked Entity Field: " + keyIdField.getName());
+			}
+			logger.debug("Key ID Entity Compare Field: {}" , keyIdField.getCompareField());
+
+			// Create a map with db objects before update for comparison
+			HashMap<String, Object> beforeObjectMap = null;
+			if (beforeUpdate != null) {
+				String key = null;
+				beforeObjectMap = new HashMap<String, Object>();
+				List<Object> beforeUpdateObjectList = (List<Object>) beforeUpdate;
+				logger.debug("fromObjectList collection size: {}", beforeUpdateObjectList.size());
+				for (Object beforeUpdateObject: beforeUpdateObjectList) {
+					key = PropertyUtils.getProperty(beforeUpdateObject, keyIdField.getName()).toString();
+					logger.info("Key ID: {}", key);
+					beforeObjectMap.put(key, beforeUpdateObject);
+				}
+				logger.debug("beforeObjectMap size: {}", beforeObjectMap.size());
+			}
+			
+			// Process db objects after update
 			if (afterUpdate != null) {
-				List<Object> toObjectList = (List<Object>) afterUpdate;
-				logger.info("toObjectList collection size: {}", toObjectList.size());
-				StringBuffer values = new StringBuffer();
-				for (Object object: toObjectList) {
-					key = PropertyUtils.getProperty(object, linkedEntityField.getName()).toString();
-					value = PropertyUtils.getProperty(object, linkedEntityField.getCompareField()).toString();
-					logger.info("Key: {}, Value: {}", key, value);
-					if (fieldMap != null) {
-						// Same key 
-						if (fieldMap.containsKey(key)) {
+				List<Object> afterUpdateObjectList = (List<Object>) afterUpdate;
+				logger.debug("toObjectList collection size: {}", afterUpdateObjectList.size());
+				// Process Key ID compare field first
+				// Remove the Key ID field from the list as it is processed first 
+				linkedEntityFields.remove(keyIdField);
+
+				StringBuffer newAdds = new StringBuffer();
+				String key = null;
+				String newValue = null;
+				String oldValue = null;
+				for (Object afterUpdateObject: afterUpdateObjectList) {
+					key = PropertyUtils.getProperty(afterUpdateObject, keyIdField.getName()).toString();
+					newValue = PropertyUtils.getProperty(afterUpdateObject, keyIdField.getCompareField()).toString();
+					if (beforeObjectMap != null) {
+						// Check if the Key ID already exists before update in db
+						// Same Key ID 
+						if (beforeObjectMap.containsKey(key)) {
+							oldValue = PropertyUtils.getProperty(beforeObjectMap.get(key), keyIdField.getCompareField()).toString();
 							// Value not changed
-							if (fieldMap.get(key).equalsIgnoreCase(value)) {
-								logger.debug("Value not changed for Key: {}", key);
-								continue;
+							if (oldValue.equalsIgnoreCase(newValue)) {
+								logger.debug("Value not changed for Key ID: {}, Value: {}", key, newValue);
+								// continue;
 							} else {
-								logger.debug("Value changed for Key: {}, adding auto comments", key);
 								// Value changed, add auto comments
-								String msgTemplate = replaceTokens(linkedEntityField.getUpdateMessageTemplate(), 
-										populateTokens(user, entityName, parentEntityName, fieldMap.get(key), value));
+								logger.debug("Value changed for Key ID: {}, adding auto comments", key);
+								logger.debug("Old Value: {}, New Value: {}", oldValue, newValue);
+								String msgTemplate = replaceTokens(keyIdField.getUpdateMessageTemplate(), 
+										populateTokens(user, entityName, parentEntityName, oldValue, newValue));
 								//Add auto comments
 								if (msgTemplate != null) {
 									addCollaborationComments(msgTemplate);
 								}
 							}
+
+							// Process other fields in the collection object eligible for auto comments after removing Key ID field
+							if (linkedEntityFields.size() > 0) {
+								logger.debug("Linked Entity has more fields eligible for auto comments");	
+								for (AutoCommentsEntityFieldsT field: linkedEntityFields) {
+									if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
+										processEntityFieldUpdate(user, entityName, parentEntityName, field, beforeObjectMap.get(key), afterUpdateObject);
+									} else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)) {
+										// Handle Collections Objects
+										processCollections(user, entityName, parentEntityName, field, beforeObjectMap.get(key), afterUpdateObject);
+									} else {
+										logger.error("Invalid Field Type: {}", field.getType());
+										throw new Exception("Invalid Field Type: " + field.getType());
+									}
+								}
+							}
 						} else {
 							logger.debug("Inside new adds during update");
 							// New add during update
-							values.append(value).append(",");
+							newAdds.append(newValue).append(",");
 						}
-
 					} else {
 						logger.debug("Only new adds during update");
 						// beforeImage did not have any objects
 						// Only new adds during update
-						values.append(value).append(",");
+						newAdds.append(newValue).append(",");
 					}
 				}
-
+				
 				// Add auto comments for new Adds during update
-				if (values.length() > 0) {
+				if (newAdds.length() > 0) {
 					logger.debug("Adding auto comments for new Adds during update");
-					String entityValues = values.substring(0, values.length()-1);
-					String msgTemplate = replaceTokens(linkedEntityField.getAddMessageTemplate(), 
+					String entityValues = newAdds.substring(0, newAdds.length()-1);
+					String msgTemplate = replaceTokens(keyIdField.getAddMessageTemplate(), 
 							populateTokens(user, entityValues, parentEntityName, null, null));
 					//Add auto comments
 					if (msgTemplate != null) {

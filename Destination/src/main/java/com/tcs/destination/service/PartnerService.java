@@ -4,16 +4,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoSuchPartnerException;
 
-@Component
+@Service
 public class PartnerService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PartnerService.class);

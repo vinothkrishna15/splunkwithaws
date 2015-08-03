@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -20,6 +21,9 @@ public class DestinationUtils {
 	public static UserT getCurrentUserDetails() {
 		Authentication a = SecurityContextHolder.getContext()
 				.getAuthentication();
+		if(a instanceof AnonymousAuthenticationToken){
+			return null;
+		}
 		return ((UserRepositoryUserDetails) a.getPrincipal());
 	}
 

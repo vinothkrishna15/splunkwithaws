@@ -34,7 +34,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		//http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
 		
 		http.authorizeRequests().
-		antMatchers("/api/useraccess/request").permitAll().
+		antMatchers(HttpMethod.POST,"/api/useraccess/request").permitAll().
+		antMatchers(HttpMethod.POST,"/api/user/forgotpwd").permitAll().
 		antMatchers(HttpMethod.OPTIONS, "/**").permitAll().
 		anyRequest().authenticated().and().httpBasic();
 		

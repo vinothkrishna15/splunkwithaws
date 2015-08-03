@@ -1,7 +1,9 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
 import java.util.List;
 
 
@@ -31,8 +33,9 @@ public class AutoCommentsEntityT implements Serializable {
 	private String name;
 
 	//bi-directional many-to-one association to AutoCommentsEntityFieldsT
-	// Do not remove FetchType.EAGER as it is required for Auto comments
+	//Do not remove FetchType.EAGER as it is required for Auto comments
 	@OneToMany(mappedBy="entity", fetch=FetchType.EAGER)
+	@OrderBy("type ASC")
 	private List<AutoCommentsEntityFieldsT> entityFields;
 
 	//bi-directional many-to-one association to AutoCommentsEntityFieldsT

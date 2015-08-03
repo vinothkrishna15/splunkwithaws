@@ -5,9 +5,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.FrequentlySearchedResponse;
@@ -20,7 +21,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
-@Component
+@Service
 public class FrequentlySearchedService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FrequentlySearchedService.class);
@@ -36,16 +37,8 @@ public class FrequentlySearchedService {
 
 	public List<FrequentlySearchedResponse> findFrequent(String entityType,
 			int count) throws Exception {
-//<<<<<<< HEAD
-//		logger.debug("Inside findFrequent Service");
-//		entity = entity.toUpperCase();
-//
-//		if (EntityType.contains(entity)) {
-//			logger.debug("Entity is present");
-//=======
 		if (EntityType.contains(entityType)) {
 			logger.debug("Entity is present");
-//>>>>>>> 2e608ca3023dc288d7e7291656f680f7d028fbdc
 			List<Object[]> frequentMapping = frequentRepository
 					.findFrequentEntities(entityType, count);
 
@@ -92,10 +85,6 @@ public class FrequentlySearchedService {
 			{
 				logger.error("BAD_REQUEST: Please ensure your entity type.");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-//<<<<<<< HEAD
-//						"Please ensure your entity type.");
-//			}
-//=======
 						"This Feature is unavailable for " + entityType);
 
 			}
@@ -106,29 +95,6 @@ public class FrequentlySearchedService {
 		}
 	}
 
-//<<<<<<< HEAD
-//	public boolean insertFrequent(FrequentlySearchedCustomerPartnerT frequent) throws Exception {
-//		logger.debug("Inside insertFrequent Service");
-//		if (Constants.EntityType.contains(frequent.getEntityType())) {
-//			logger.debug("EntityType is present");
-//			if(frequent.getEntityId()==null)
-//			{
-//				logger.error("BAD_REQUEST: Entity ID can not be empty");
-//				throw new DestinationException(HttpStatus.BAD_REQUEST,"Entity ID can not be empty");
-//			}
-//			if(frequent.getUserId() == null){
-//				logger.error("BAD_REQUEST: User ID can not be empty");
-//				throw new DestinationException(HttpStatus.BAD_REQUEST,"User ID can not be empty");
-//			}
-//				frequent.setSearchDatetime(Constants.getCurrentTimeStamp());
-//				logger.debug("Frequent detail is saving");
-//					return frequentRepository.save(frequent)!=null;
-//	}
-//		logger.error("BAD_REQUEST: Invalid Entity Type");
-//		throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Entity Type");
-//=======
-		
-	
 	public boolean insertFrequent(FrequentlySearchedCustomerPartnerT frequent)	throws Exception {
 	    logger.debug("Inside insertFrequent Service");
 		if (EntityType.contains(frequent.getEntityType())) {
@@ -150,7 +116,6 @@ public class FrequentlySearchedService {
 		logger.error("BAD_REQUEST: Invalid Entity Type");
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
-//>>>>>>> 2e608ca3023dc288d7e7291656f680f7d028fbdc
 	}
 
 }

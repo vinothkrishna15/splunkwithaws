@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.NotesT;
@@ -37,7 +37,7 @@ import com.tcs.destination.utils.DestinationUtils;
  * Service class to handle Task module related requests.
  * 
  */
-@Component
+@Service
 public class TaskService {
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
@@ -88,8 +88,8 @@ public class TaskService {
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null) {
-			logger.error("NOT_FOUND: No task found for the TaskId {}", taskId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Task found");
+			logger.error("NOT_FOUND: No task found for the TaskId: {}", taskId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No task found for the TaskId:" + taskId);
 		}
 		return task;
 	}
@@ -105,9 +105,9 @@ public class TaskService {
 				findByTaskDescriptionIgnoreCaseContaining(taskDescription);
 
 		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error("NOT_FOUND: No tasks found with the given task description {}", taskDescription);
+			logger.error("NOT_FOUND: No tasks found with the given task description: {}", taskDescription);
 			throw new DestinationException(
-					HttpStatus.NOT_FOUND, "No tasks found with the given task description");
+					HttpStatus.NOT_FOUND, "No tasks found with the given task description: " + taskDescription);
 		}
 		return taskList;
 	}
@@ -124,8 +124,8 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the ConnectId {}", connectId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId");
+			logger.error("NOT_FOUND: No tasks found for the ConnectId: {}", connectId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId: " + connectId);
 		}
 		return taskList;
 	}
@@ -142,8 +142,8 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the OpportunityId {}", opportunityId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId");
+			logger.error("NOT_FOUND: No tasks found for the OpportunityId: {}", opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId: " + opportunityId);
 		}
 		return taskList;
 	}
@@ -161,8 +161,8 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No tasks found for the UserId {}", taskOwner);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the UserId");
+			logger.error("NOT_FOUND: No tasks found for the Task Owner: {}", taskOwner);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the Task Owner: " + taskOwner);
 		}
 		return taskList;
 	}
@@ -178,9 +178,9 @@ public class TaskService {
 			taskRepository.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId, userId);
 
 		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId {}", userId);
+			logger.error("NOT_FOUND: No assigned to others tasks found for the UserId: {}", userId);
 			throw new DestinationException
-				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId");
+				(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the UserId: " + userId);
 		}
 		return taskList;
 	}
@@ -198,9 +198,10 @@ public class TaskService {
 		taskList = taskRepository.findByTaskOwnerAndTargetDateForCompletionBetween(userId, fromDate, toDate);
 		
 		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error("NOT_FOUND: No tasks found for the UserId and Target completion date");
+			logger.error("NOT_FOUND: No tasks found for the UserId:{} and Target completion date:{} {}", userId, fromDate, toDate);
 			throw new DestinationException(
-				HttpStatus.NOT_FOUND, "No tasks found for the UserId and Target completion date");
+				HttpStatus.NOT_FOUND, "No tasks found for the UserId:" + userId + 
+					"and Target completion date: " + fromDate + ", " + toDate);
 		}
 		return taskList;
 	}
@@ -319,8 +320,8 @@ public class TaskService {
 			processAutoComments(dbTask.getTaskId(), oldObject);
 
 		} else {
-			logger.error("Task not found: {}", task.getTaskId());
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid TaskId: " + task.getTaskId());
+			logger.error("NOT_FOUND: Task not found for update: {}", task.getTaskId());
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Task not found for update: " + task.getTaskId());
 		}
 		return dbTask;
 	}
@@ -371,8 +372,8 @@ public class TaskService {
 					}
 				}
 			} else {
-				logger.error("BAD_REQUEST: Invalid Task Entity Reference {}", entityRef);
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Entity Reference");
+				logger.error("BAD_REQUEST: Invalid Task Entity Reference: {}", entityRef);
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Entity Reference: " + entityRef);
 			}
 		}
 		
@@ -381,8 +382,8 @@ public class TaskService {
 			logger.debug("Task Status NOT NULL");
 			if (!TaskStatus.contains(task.getTaskStatus()))
 			{
-				logger.error("BAD_REQUEST: Invalid Task Status {}", task.getTaskStatus());
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status");
+				logger.error("BAD_REQUEST: Invalid Task Status: {}", task.getTaskStatus());
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status: " + task.getTaskStatus());
 			}				
 		}
 		
@@ -401,9 +402,9 @@ public class TaskService {
 				}
 				
 			} else {
-				logger.error("BAD_REQUEST: Invalid Task BDM Collaboration Preference {}", collaborationPreference);
+				logger.error("BAD_REQUEST: Invalid Task BDM Collaboration Preference: {}", collaborationPreference);
 				throw new DestinationException(
-						HttpStatus.BAD_REQUEST, "Invalid Task BDM Collaboration Preference");
+						HttpStatus.BAD_REQUEST, "Invalid Task BDM Collaboration Preference: " + collaborationPreference);
 			}
 		}
 	}
@@ -420,8 +421,8 @@ public class TaskService {
 		List<String> userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
 
 		if (userIds == null || userIds.isEmpty()) {
-			logger.error("NOT_FOUND: No subordinates found for supervisor user {}", supervisorId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No subordinates found for supervisor user");
+			logger.error("NOT_FOUND: No subordinates found for Supervisor user: {}", supervisorId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No subordinates found for supervisor user: " + supervisorId);
 		}
 			
 		//Get all tasks for all sub-ordinates
@@ -430,8 +431,8 @@ public class TaskService {
 
 		if ((taskList == null) || taskList.isEmpty())
 		{
-			logger.error("NOT_FOUND: No team tasks found for the Supervisor {}", supervisorId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No team tasks found for the Supervisor");
+			logger.error("NOT_FOUND: No team tasks found for the Supervisor: {}", supervisorId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No team tasks found for the Supervisor user: " + supervisorId);
 		}
 		return taskList;
 	}

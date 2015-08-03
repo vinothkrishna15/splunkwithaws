@@ -108,46 +108,6 @@ public class ConnectT implements Serializable {
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
 
-	public ConnectT(ConnectT con) {
-		this.collaborationCommentTs = con.collaborationCommentTs;
-		this.connectCategory = con.connectCategory;
-		this.connectCustomerContactLinkTs = con.connectCustomerContactLinkTs;
-		this.connectId = con.connectId;
-		this.timeZone = con.timeZone;
-		this.connectName = con.connectName;
-		this.connectOfferingLinkTs = con.connectOfferingLinkTs;
-		this.connectOpportunityLinkIdTs = con.connectOpportunityLinkIdTs;
-		this.connectSecondaryOwnerLinkTs = con.connectSecondaryOwnerLinkTs;
-		this.connectSubSpLinkTs = con.connectSubSpLinkTs;
-		this.connectTcsAccountContactLinkTs = con.connectTcsAccountContactLinkTs;
-		this.country = con.country;
-		this.location = con.location;
-		this.type = con.type;
-		this.connectTypeMappingT = con.connectTypeMappingT;
-		this.createdBy = con.createdBy;
-		this.createdByUser = con.createdByUser;
-		this.createdDatetime = con.createdDatetime;
-		this.modifiedBy = con.modifiedBy;
-		this.modifiedByUser = con.modifiedByUser;
-		this.modifiedDatetime = con.modifiedDatetime;
-		this.customerId = con.customerId;
-		this.customerMasterT = con.customerMasterT;
-		this.documentRepositoryTs = con.documentRepositoryTs;
-		this.documentsAttached = con.documentsAttached;
-		this.endDatetimeOfConnect = con.endDatetimeOfConnect;
-		this.geographyCountryMappingT = con.geographyCountryMappingT;
-		this.notesTs = con.notesTs;
-		this.partnerId = con.partnerId;
-		this.partnerMasterT = con.partnerMasterT;
-		this.primaryOwner = con.primaryOwner;
-		this.startDatetimeOfConnect = con.startDatetimeOfConnect;
-		this.taskTs = con.taskTs;
-		this.userFavoritesTs = con.userFavoritesTs;
-		this.userNotificationsTs = con.userNotificationsTs;
-		this.primaryOwnerUser = con.primaryOwnerUser;
-		this.searchKeywordsTs = con.searchKeywordsTs;
-	}
-
 	// bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy = "connectT")
 	@OrderBy("updated_datetime DESC")
@@ -242,9 +202,6 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs;
-
-	public ConnectT() {
-	}
 
 	public String getConnectId() {
 		return this.connectId;

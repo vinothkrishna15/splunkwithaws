@@ -1,20 +1,26 @@
 package com.tcs.destination.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationMailUtils;
 
-@Component
+@Service
 public class UserAccessRequestService {
 
 	private static final Logger logger = LoggerFactory
@@ -22,6 +28,15 @@ public class UserAccessRequestService {
 
 	@Autowired
 	UserAccessRequestRepository userAccessReqRepo;
+	
+	@Autowired
+	DestinationMailUtils mailUtils;
+	
+	@Value("${userAccess}")
+	private String userAccessSubject;
+	
+	@Autowired
+	ThreadPoolTaskExecutor mailTaskExecutor;
 
 	public UserAccessRequestT findUserRequestById(String reqId) throws Exception {
 		logger.debug("Inside searchforfeedbacksById service");
@@ -41,11 +56,38 @@ public class UserAccessRequestService {
 		validateRequest(userAccessRequest,false);
 		if (userAccessReqRepo.save(userAccessRequest) != null) {
 			logger.debug("User Request Record Inserted");
+			//send notification to admin,supervisor and user on saving the request
+			sendEmailNotification(userAccessRequest.getRequestId(),new Date());
 			return true;
 		}
 		return false;
 	}
 
+	private void sendEmailNotification(String requestId, Date date) throws Exception {
+		class UserAccessNotificationRunnable implements Runnable{
+			 String requestId;
+			 Date date;
+			 UserAccessNotificationRunnable(String requestId,Date date) {
+				 this.requestId = requestId; 
+				 this.date=date;
+		     }
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					mailUtils.sendUserAccessAutomatedEmail(userAccessSubject,requestId,date);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					logger.error(e.getMessage()); 
+				}
+			}
+			
+		}
+		UserAccessNotificationRunnable userAccessNotificationRunnable = new UserAccessNotificationRunnable(requestId,date);
+		mailTaskExecutor.execute(userAccessNotificationRunnable);
+	}
+	
 	private void validateRequest(UserAccessRequestT userAccessRequest,boolean isUpdate)
 			throws Exception {
 

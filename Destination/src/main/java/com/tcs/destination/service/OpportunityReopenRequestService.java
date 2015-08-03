@@ -1,12 +1,15 @@
 package com.tcs.destination.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -16,9 +19,10 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 
-@Component
+@Service
 public class OpportunityReopenRequestService {
 
 	private static final Logger logger = LoggerFactory
@@ -34,6 +38,15 @@ public class OpportunityReopenRequestService {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	DestinationMailUtils mailUtils;
+	
+	@Value("${reopenOpportunity}")
+	private String reopenOpportunitySubject;
+	
+	@Autowired
+	ThreadPoolTaskExecutor mailTaskExecutor;
 
 	public List<OpportunityReopenRequestT> findAll()
 			throws DestinationException {
@@ -69,9 +82,16 @@ public class OpportunityReopenRequestService {
 				|| opportunityReopenRequestT.getApprovedRejectedDatetime() != null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot create a request with approval details");
+		String oppId = opportunityReopenRequestT.getOpportunityId();
+		List<OpportunityReopenRequestT> oppReopenRequestList = opportunityReopenRequestRepository.findByOpportunityId(oppId);
+		if(oppReopenRequestList!=null && !oppReopenRequestList.isEmpty()){
+			logger.error("Reopen request already exists for this opportunity.");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Reopen request already exists for this opportunity.");
+		} else {
 		boolean canUpdate = false;
 		OpportunityT opportunityT = opportunityRepository
-				.findOne(opportunityReopenRequestT.getOpportunityId());
+				.findOne(oppId);
 		if (opportunityT != null) {
 			if (opportunityT.getSalesStageCode() != 12) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -95,9 +115,16 @@ public class OpportunityReopenRequestService {
 		}
 		logger.error("Can update? " + canUpdate);
 		try {
-			if (canUpdate)
+			if (canUpdate){
+				
+				
 				opportunityReopenRequestRepository
 						.save(opportunityReopenRequestT);
+				
+				//mail notification to admin, supervisor and user regarding the request
+				sendEmailNotification(opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
+				//mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject,opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
+			}
 			else
 				throw new DestinationException(
 						HttpStatus.UNAUTHORIZED,
@@ -106,10 +133,12 @@ public class OpportunityReopenRequestService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
+		}
 	}
 
 	public void edit(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		
 		if (opportunityReopenRequestT.getOpportunityReopenRequestId() == null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot edit a request without request id");
@@ -121,6 +150,31 @@ public class OpportunityReopenRequestService {
 
 		}
 
+	}
+	
+	private void sendEmailNotification(String requestId, Date date) throws Exception {
+		class OpportunityReopenNotificationRunnable implements Runnable{
+			 String requestId;
+			 Date date;
+			 OpportunityReopenNotificationRunnable(String requestId,Date date) {
+				 this.requestId = requestId; 
+				 this.date=date;
+		     }
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject, requestId, date);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					logger.error(e.getMessage()); 
+				}
+			}
+			
+		}
+		OpportunityReopenNotificationRunnable opportunityReopenNotificationRunnable = new OpportunityReopenNotificationRunnable(requestId,date);
+		mailTaskExecutor.execute(opportunityReopenNotificationRunnable);
 	}
 
 }

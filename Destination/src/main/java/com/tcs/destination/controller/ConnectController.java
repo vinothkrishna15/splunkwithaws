@@ -171,4 +171,53 @@ public class ConnectController {
 						status), HttpStatus.OK);
 	}
 
+	/**
+	 * This controller retrieves all the connects of users under a supervisor between dates 
+	 * and also gives a count of connects on a weekly and monthly basis
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @param supervisorId
+	 * @param weekStartDate
+	 * @param weekEndDate
+	 * @param monthStartDate
+	 * @param monthEndDate
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/team", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getTeamConnects(
+			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam("supervisorId") String supervisorId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "role", defaultValue = "all") String role,
+			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
+			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
+			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
+			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
+			throws Exception {
+
+		logger.debug("Inside ConnectController /connect/team?from=" + fromDate
+				+ "&to=" + toDate + "&supervisorId " + supervisorId + "GET");
+		DashBoardConnectsResponse dashBoardConnectsResponse = null;
+		try {
+			// Calling the service method
+			dashBoardConnectsResponse = connectService.getTeamConnects(
+					supervisorId, fromDate, toDate, role, weekStartDate,
+					weekEndDate, monthStartDate, monthEndDate);
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						dashBoardConnectsResponse), HttpStatus.OK);
+
+	}
+
 }

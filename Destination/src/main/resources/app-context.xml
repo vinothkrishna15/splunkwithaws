@@ -55,10 +55,10 @@
 	<bean id="eventListenerBean" class="com.tcs.destination.DestinationContextListener" />
 	
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-	 <property name="host" value="smtp.gmail.com" />
-        <property name="port" value="587" />
-        <property name="username" value="youremail" />
-        <property name="password" value="yourpassword" />
+	 	<property name="host" value="${smtpHost}" />
+        <property name="port" value="${smtpPort}" />
+        <property name="username" value="${senderEmailId}" />
+        <property name="password" value="${senderPassword}" />
         
         <property name="javaMailProperties">
             <props>
@@ -87,7 +87,14 @@
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<property name="corePoolSize" value="10" />
 		<property name="maxPoolSize" value="15" />
-		<property name="WaitForTasksToCompleteOnShutdown" value="true" />
+		<property name="queueCapacity" value="50" />
+	</bean>
+	
+	<bean id="mailTaskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="5" />
+		<property name="maxPoolSize" value="10" />
+		<property name="queueCapacity" value="25" />
 	</bean>
 	
 </beans>

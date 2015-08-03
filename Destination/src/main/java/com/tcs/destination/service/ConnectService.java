@@ -40,6 +40,7 @@ import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
@@ -99,6 +100,9 @@ public class ConnectService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
+	
+	@Autowired
+	UserRepository userRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -106,9 +110,9 @@ public class ConnectService {
 		if (connectT != null) {
 			prepareConnect(connectT);
 		} else {
-			logger.error("NOT_FOUND: Connect not found");
+			logger.error("NOT_FOUND: Connect not found: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connect not found");
+					"Connect not found: " + connectId);
 		}
 		return connectT;
 	}
@@ -138,9 +142,9 @@ public class ConnectService {
 		}
 
 		if (connectList.isEmpty()) {
-			logger.error("NOT_FOUND: Connects not found");
+			logger.error("NOT_FOUND: Connects not found with the given name: {}", name);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connects not found");
+					"Connects not found with the given name: " + name);
 		}
 		prepareConnect(connectList);
 		return connectList;
@@ -187,7 +191,6 @@ public class ConnectService {
 								userId, new Timestamp(fromDate.getTime()),
 								toTimestamp,
 								customerId, partnerId);
-				System.out.println("Primary :" + connects.size());
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
 				connects = connectSecondaryOwnerRepository
@@ -219,27 +222,28 @@ public class ConnectService {
 			prepareConnect(connects);
 			return connects;
 		}
-		logger.error("BAD_REQUEST: Invalid Owner Type.");
+		logger.error("BAD_REQUEST: Invalid Owner Type: {}", owner);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
-				"Ivalid Owner Type.");
+				"Ivalid Owner Type: " + owner);
 	}
 
 	@Transactional
 	public boolean insertConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside insertConnect() service");
-
+		// Validate request 
 		validateRequest(connect,true);
-
-		ConnectT backupConnect = backup(connect);
+		// Take a copy to keep child objects 
+		ConnectT requestConnect = (ConnectT) DestinationUtils.copy(connect);
 		logger.debug("Copied connect object.");
+		// Set null for all child objects
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
 		if (connectRepository.save(connect) != null) {
-			String tempId = connect.getConnectId();
-			backupConnect.setConnectId(tempId);
-			logger.debug("Parent Object Saved. Id : " + tempId);
-			connect = restore(backupConnect);
+			requestConnect.setConnectId(connect.getConnectId());
+			logger.debug("Parent Object Saved, ConnectId: {}", connect.getConnectId());
+			// Re-attach request connect
+			connect = requestConnect;
 			String categoryUpperCase = connect.getConnectCategory()
 					.toUpperCase();
 			connect.setConnectCategory(categoryUpperCase);
@@ -261,9 +265,9 @@ public class ConnectService {
 						connectId, conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
 			} else {
-				logger.error("Connect Customer Contact List null");
+				logger.error("BAD_REQUEST: Connect Customer Contact is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Connect Customer Contact List null");
+						"Connect Customer Contact is required");
 			}
 
 			List<ConnectOfferingLinkT> conOffLinkTList = connect
@@ -326,7 +330,7 @@ public class ConnectService {
 		String connectCategory = connect.getConnectCategory();
 
 		if (connectCategory == null || connectCategory.trim().isEmpty()) {
-			logger.error("Connect Category is required");
+			logger.error("BAD_REQUEST: Connect Category is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Connect Category is required");
 		}
@@ -345,32 +349,32 @@ public class ConnectService {
 					isValid = true;
 				break;
 			default:
-				logger.error("Invalid Connect Category");
+				logger.error("BAD_REQUEST: Invalid Connect Category: {}", connectCategory);
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid Connect Category");
+						"Invalid Connect Category: " + connectCategory);
 			}
 		} else {
-			logger.error("Invalid Connect Category");
+			logger.error("BAD_REQUEST: Invalid Connect Category: {}", connectCategory);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid Connect Category");
+					"Invalid Connect Category: " + connectCategory);
 		}
 
 		if (!isValid) {
-			logger.error("Missing PartnerId/CustomerId");
+			logger.error("BAD_REQUEST: CustomerId / PartnetId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing PartnerId/CustomerId");
+					"CustomerId / PartnetId is required");
 		}
 
 		if(isInsert && connect.getCreatedBy()==null){
-			logger.error("Missing UserCreated in connect");
+			logger.error("BAD_REQUEST: CreatedBy is requried");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserCreated in connect");
+					"CreatedBy is required");
 		}
 
 		if(connect.getModifiedBy()==null){
-			logger.error("Missing UserModified");
+			logger.error("BAD_REQUEST: ModifiedBy is requried");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserModified");
+					"ModifiedBy is requried");
 		}
 	}
 
@@ -432,15 +436,14 @@ public class ConnectService {
 			List<NotesT> noteList) {
 		logger.debug("Inside populateNotes() method");
 		for (NotesT note : noteList) {
-			note.setEntityType(categoryUpperCase);
+			note.setEntityType(EntityType.CONNECT.name());
 			note.setConnectId(connectId);
-
-			if (categoryUpperCase.equalsIgnoreCase("CUSTOMER")) {
+			if (categoryUpperCase.equalsIgnoreCase(EntityType.CUSTOMER.name())) {
 				logger.debug("Category is CUSTOMER");
 				CustomerMasterT customer = new CustomerMasterT();
 				customer.setCustomerId(customerId);
 				note.setCustomerMasterT(customer);
-			} else {
+			} else if (categoryUpperCase.equalsIgnoreCase(EntityType.PARTNER.name())) {
 				logger.debug("Category is not CUSTOMER");
 				PartnerMasterT partner = new PartnerMasterT();
 				partner.setPartnerId(partnerId);
@@ -450,14 +453,7 @@ public class ConnectService {
 
 	}
 
-	private ConnectT restore(ConnectT backupConnect) {
-		return backupConnect;
-	}
-
-	private ConnectT backup(ConnectT connect) {
-		return new ConnectT(connect);
-	}
-
+	// This method is used to set null for child objects
 	private void setNullForReferencedObjects(ConnectT connect) {
 		logger.debug("Inside setNullForReferencedObjects() method");
 		connect.setCollaborationCommentTs(null);
@@ -482,12 +478,12 @@ public class ConnectService {
 		logger.debug("Inside updateConnect() service");
 		String connectId = connect.getConnectId();
 		if (connectId == null) {
-			logger.error("ConnectId is required for update");
+			logger.error("BAD_REQUEST: ConnectId is required for update");
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "ConnectId is required for update");
 		}
 		// Check if connect exists
 		if (!connectRepository.exists(connectId)) {
-			logger.error("Connect not found for update: {}", connectId);
+			logger.error("NOT_FOUND: Connect not found for update: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect not found for update: " + connectId);
 		}
 		// Load db object before update with lazy collections populated for auto comments
@@ -511,7 +507,7 @@ public class ConnectService {
 	public ConnectT loadDbConnectWithLazyCollections(String connectId) throws Exception {
 		logger.debug("Inside loadDbConnectWithLazyCollections() method");
 		ConnectT connect = (ConnectT) AutoCommentsLazyLoader.loadLazyCollections(connectId, EntityType.CONNECT.name(), 
-				connectRepository, autoCommentsEntityTRepository, null);
+				connectRepository, autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
 		return connect;
 	}
 	
@@ -735,4 +731,150 @@ public class ConnectService {
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 	}
+	
+	/**
+	 * This service method retrieves all the users under a supervisor, 
+	 * calls for all connects between dates and also provides the 
+	 * count of connects per week and month 
+	 * 
+	 * @param supervisorId
+	 * @param fromDate
+	 * @param toDate
+	 * @param weekStartDate
+	 * @param weekEndDate
+	 * @param monthStartDate
+	 * @param monthEndDate
+	 * @return
+	 */
+	public DashBoardConnectsResponse getTeamConnects(String supervisorId,
+			Date fromDate, Date toDate, String role, Date weekStartDate,
+			Date weekEndDate, Date monthStartDate, Date monthEndDate)
+	    throws Exception {
+	logger.debug("Inside getTeamConnects service");
+	DashBoardConnectsResponse dashBoardConnectsResponse = null;
+
+	// Get all users under a supervisor
+	List<String> users = userRepository
+		.getAllSubordinatesIdBySupervisorId(supervisorId);
+
+	if ((users != null) && (users.size() > 0)) {
+	    
+	    dashBoardConnectsResponse = new DashBoardConnectsResponse();
+
+	    Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+	    Timestamp toDateTs = new Timestamp(toDate.getTime()
+		    + ONE_DAY_IN_MILLIS - 1);
+
+	    // If ROLE is ALL
+	    if (role.equalsIgnoreCase(OwnerType.ALL.toString())) {
+		// Get connects between two dates
+		List<ConnectT> connects = connectRepository.getTeamConnects(
+			users, fromDateTs, toDateTs);
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
+
+		// Get weekly count of connects
+		Timestamp weekStartDateTs = new Timestamp(
+			weekStartDate.getTime());
+		Timestamp weekEndDateTs = new Timestamp(weekEndDate.getTime()
+			+ ONE_DAY_IN_MILLIS - 1);
+		List<ConnectT> weekConnects = connectRepository
+			.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
+		prepareConnect(weekConnects);
+		dashBoardConnectsResponse.setWeekCount(weekConnects.size());
+
+		// Get monthly count of connects
+		Timestamp monthStartDateTs = new Timestamp(
+			monthStartDate.getTime());
+		Timestamp monthEndDateTs = new Timestamp(monthEndDate.getTime()
+			+ ONE_DAY_IN_MILLIS - 1);
+		List<ConnectT> monthConnects = connectRepository
+			.getTeamConnects(users, monthStartDateTs,
+				monthEndDateTs);
+		prepareConnect(monthConnects);
+		dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+
+		// throw an exception if connects is empty and
+		// size of monthConnects and weekConnects are zero
+		if (((connects != null) && (connects.isEmpty()))
+			&& ((weekConnects != null) && (weekConnects.size() == 0))
+			&& ((monthConnects != null) && (monthConnects.size() == 0))) {
+		    logger.error(
+			    "NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
+				    + "days of week between {} and {}, days of month between {} and {}",
+			    supervisorId, fromDateTs, toDateTs,
+			    weekStartDateTs, weekEndDateTs, monthStartDateTs,
+			    monthEndDateTs);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found for supervisor with id "
+				    + supervisorId + " for days between "
+				    + fromDateTs + " and " + toDateTs
+				    + ", days of week between "
+				    + weekStartDateTs + " and " + weekEndDateTs
+				    + ", days of month between "
+				    + monthStartDateTs + " and "
+				    + monthEndDateTs);
+		}
+
+	    }
+
+	    // If ROLE is PRIMARY
+	    else if (role.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
+
+		List<ConnectT> connects = connectRepository
+			.findByPrimaryOwnerInAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectAsc(
+				users, fromDateTs, toDateTs);
+
+		if ((connects != null) && (connects.isEmpty())) {
+		    logger.error(
+			    "NOT FOUND : No Connects found with role PRIMARY for supervisor Id : {}",
+			    supervisorId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found with role PRIMARY for supervisor Id : "
+				    + supervisorId);
+		}
+
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
+	    }
+
+	    // If ROLE is SECONDARY
+	    else if (role.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
+
+		List<ConnectT> connects = connectRepository
+			.findTeamConnectsBySecondaryowner(users, fromDateTs,
+				toDateTs);
+
+		if ((connects != null) && (connects.isEmpty())) {
+		    logger.error(
+			    "NOT FOUND : No Connects found with role SECONDARY for supervisor Id : {}",
+			    supervisorId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "No Connects found with role SECONDARY for supervisor Id : "
+				    + supervisorId);
+		}
+
+		prepareConnect(connects);
+		dashBoardConnectsResponse.setConnectTs(connects);
+
+	    }
+
+	    else {
+
+		logger.error("NOT_FOUND: Invalid Role", supervisorId);
+		throw new DestinationException(HttpStatus.NOT_FOUND,
+			"invalid Role");
+
+	    }
+
+	} else {
+	    logger.error(
+		    "NOT_FOUND: No subordinate found for supervisor id : {}",
+		    supervisorId);
+	    throw new DestinationException(HttpStatus.NOT_FOUND,
+		    "No subordinate found for supervisor id " + supervisorId);
+	}
+
+	return dashBoardConnectsResponse;
+    }
 }

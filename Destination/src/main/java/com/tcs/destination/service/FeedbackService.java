@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.FeedbackT;
@@ -16,7 +16,7 @@ import com.tcs.destination.enums.FeedbackPriority;
 import com.tcs.destination.enums.FeedbackStatus;
 import com.tcs.destination.exception.DestinationException;
 
-@Component
+@Service
 public class FeedbackService {
 
 	private static final Logger logger = LoggerFactory

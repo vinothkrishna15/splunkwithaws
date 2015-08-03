@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +24,7 @@ import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 
-@Component
+@Service
 public class DocumentService {
 
 	@Autowired 
