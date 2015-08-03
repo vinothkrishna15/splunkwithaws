@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import scala.Array;
+
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
@@ -142,8 +144,19 @@ public class CustomerService {
 
 	public List<CustomerMasterT> findByNameStarting(String startsWith)
 			throws Exception {
-		List<CustomerMasterT> custList = customerRepository
-				.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(startsWith);
+		logger.error("Starts With" + startsWith);
+		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
+		if (!startsWith.equals("@"))
+			custList.addAll(customerRepository
+					.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(startsWith));
+		else
+			for (int i = 0; i <= 9; i++) {
+				List<CustomerMasterT> customerMasterTs = customerRepository
+						.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(i
+								+ "");
+				custList.addAll(customerMasterTs);
+			}
+
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: No such Customer");
 			throw new DestinationException(HttpStatus.NOT_FOUND,

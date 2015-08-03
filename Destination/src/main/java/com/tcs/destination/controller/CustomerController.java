@@ -13,14 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerService;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
