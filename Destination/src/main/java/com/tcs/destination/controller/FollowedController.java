@@ -60,4 +60,21 @@ public class FollowedController {
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
 	}
+	
+	@RequestMapping(method = RequestMethod.DELETE)
+	public @ResponseBody String unFollow(
+			@RequestParam(value = "userTaggedFollowedId") String userTaggedFollowedId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside FollowedController /follow?userTaggedFollowedId="
+				+ userTaggedFollowedId + " DELETE");
+		Status status = new Status();
+		followedService.unFollow(userTaggedFollowedId);
+		status.setStatus(Status.SUCCESS, userTaggedFollowedId);
+		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+				status);
+
+	}
+
 }
