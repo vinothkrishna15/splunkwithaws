@@ -20,6 +20,7 @@ import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -103,6 +104,7 @@ public class BidDetailsT implements Serializable {
 	private List<BidOfficeGroupOwnerLinkT> bidOfficeGroupOwnerLinkTs;
 
 	// bi-directional many-to-one association to OpportunityTimelineHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy = "bidDetailsT")
 	private List<OpportunityTimelineHistoryT> opportunityTimelineHistoryTs;
 
