@@ -177,4 +177,13 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "AND (c2.start_datetime_of_connect between (:startTimestamp) and (:endTimestamp)) "
 			+ "ORDER BY c2.start_datetime_of_connect", nativeQuery = true)
 	List<ConnectT> findTeamConnectsBySecondaryowner(@Param("users") List<String> users, @Param("startTimestamp") Timestamp startTimestamp, @Param("endTimestamp") Timestamp endTimestamp);
+	
+	/**
+	 * This query returns the Connects based on the list of Connect Ids provided
+	 * 
+	 * @param connects
+	 * @return
+	 */
+	List<ConnectT> findByConnectIdInOrderByLocationAsc(List<String> connects);
+
 }

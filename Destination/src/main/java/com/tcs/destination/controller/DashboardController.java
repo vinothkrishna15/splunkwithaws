@@ -1,14 +1,18 @@
 package com.tcs.destination.controller;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
@@ -66,6 +70,41 @@ public class DashboardController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				chartValues);
+	}
+	
+	/**
+	 * This Controller retrieves a list of Connects based on the user (SI, Geo Heads, IOU Heads)
+	 * 
+	 * @param userId
+	 * @param geography
+	 * @param fromDate
+	 * @param toDate
+	 * @param includeFields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/leadership/connect", method = RequestMethod.GET)
+	public String getTeamConnectsByGeography(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside CustomerController /dashboard/leadership/connect GET");
+		LeadershipConnectsDTO connects = null;
+		try {
+		connects = dashboardService.getTeamConnectsByGeography(userId, fromDate, toDate, geography);
+		}
+		catch(Exception e){
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
+				view, connects);
 	}
 
 }
