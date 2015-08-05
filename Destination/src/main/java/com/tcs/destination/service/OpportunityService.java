@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -63,6 +66,7 @@ import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
@@ -154,7 +158,9 @@ public class OpportunityService {
 							+ nameWith + "%", customerId);
 		}
 		if (opportunities.isEmpty()) {
-			logger.error("NOT_FOUND: Opportunities not found with the given name: {}", nameWith);
+			logger.error(
+					"NOT_FOUND: Opportunities not found with the given name: {}",
+					nameWith);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportunities not found with the given name: " + nameWith);
 		}
@@ -177,9 +183,12 @@ public class OpportunityService {
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 						customerId, fromDate);
 		if (opportunities.isEmpty()) {
-			logger.error("NOT_FOUND: Recent opportunities not found for CustomerId: {}", customerId);
+			logger.error(
+					"NOT_FOUND: Recent opportunities not found for CustomerId: {}",
+					customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Recent opportunities not found for CustomerId: " + customerId);
+					"Recent opportunities not found for CustomerId: "
+							+ customerId);
 		}
 
 		beaconConverterService.convertOpportunityCurrency(opportunities,
@@ -219,7 +228,8 @@ public class OpportunityService {
 				break;
 			}
 		} else {
-			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}", opportunityRole);
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}",
+					opportunityRole);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
@@ -272,7 +282,8 @@ public class OpportunityService {
 
 			return opportunities;
 		} else {
-			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}", opportunityRole);
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}",
+					opportunityRole);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
@@ -609,7 +620,8 @@ public class OpportunityService {
 		OpportunityT opportunity = (OpportunityT) AutoCommentsLazyLoader
 				.loadLazyCollections(opportunityId,
 						EntityType.OPPORTUNITY.name(), opportunityRepository,
-						autoCommentsEntityTRepository, autoCommentsEntityFieldsTRepository, null);
+						autoCommentsEntityTRepository,
+						autoCommentsEntityFieldsTRepository, null);
 		return opportunity;
 	}
 
@@ -685,9 +697,13 @@ public class OpportunityService {
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
 						fromDate, toDate);
 		if ((opportunityList == null) || opportunityList.isEmpty()) {
-			logger.error("NOT_FOUND: No Opportunity found for the UserId:{} and Target Bid Submission date:{}, {}", userId, fromDate, toDate);
+			logger.error(
+					"NOT_FOUND: No Opportunity found for the UserId:{} and Target Bid Submission date:{}, {}",
+					userId, fromDate, toDate);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Opportunity found for the UserId: " + userId +" and Target Bid Submission date: " + fromDate + ", " + toDate);
+					"No Opportunity found for the UserId: " + userId
+							+ " and Target Bid Submission date: " + fromDate
+							+ ", " + toDate);
 		}
 		beaconConverterService.convertOpportunityCurrency(opportunityList,
 				toCurrency);
@@ -776,7 +792,7 @@ public class OpportunityService {
 	}
 
 	/**
-	 * This is the service method which deals with the retrieval of deal values 
+	 * This is the service method which deals with the retrieval of deal values
 	 * of opportunities of subordinates under a supervisor
 	 * 
 	 * @param supervisorUserId
@@ -799,16 +815,16 @@ public class OpportunityService {
 					.findDealValueOfOpportunitiesBySupervisorId(users);
 
 			if ((opportunities != null) && (opportunities.size() > 0)) {
-				
+
 				listOfopportunitiesDTO = new ArrayList<OpportunitiesBySupervisorIdDTO>();
 
 				// Iterate the result and set the response object
 				for (Object[] oppDTOArray : opportunities) {
 					if (oppDTOArray[0] != null && oppDTOArray[1] != null
 							&& oppDTOArray[2] != null && oppDTOArray[3] != null) {
-						
+
 						OpportunitiesBySupervisorIdDTO opp = new OpportunitiesBySupervisorIdDTO();
-						
+
 						opp.setDigitalDealValue(oppDTOArray[0].toString());
 						opp.setSalesStageCode(oppDTOArray[1].toString());
 						opp.setSalesCount(oppDTOArray[2].toString());
@@ -817,35 +833,40 @@ public class OpportunityService {
 						listOfopportunitiesDTO.add(opp);
 					}
 				}
-			}
-			else {
-				logger.error("NOT_FOUND: No Opportunity found for supervisor id : {}", supervisorUserId);
+			} else {
+				logger.error(
+						"NOT_FOUND: No Opportunity found for supervisor id : {}",
+						supervisorUserId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No opportunity found for supervisor id : "+supervisorUserId);
+						"No opportunity found for supervisor id : "
+								+ supervisorUserId);
 			}
 		} else {
-			logger.error("NOT_FOUND: No subordinate found for supervisor id : {}", supervisorUserId);
+			logger.error(
+					"NOT_FOUND: No subordinate found for supervisor id : {}",
+					supervisorUserId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id "+supervisorUserId);
+					"No subordinate found for supervisor id "
+							+ supervisorUserId);
 		}
 
 		return listOfopportunitiesDTO;
 	}
 
-	public OpportunityT findOpportunityById(String oppId){
+	public OpportunityT findOpportunityById(String oppId) {
 		return opportunityRepository.findOne(oppId);
 	}
-	
+
 	/**
-	 * This service retrieves the users based on the supervisorUserId and retrieves the 
-	 * Team Opportunity Details  
+	 * This service retrieves the users based on the supervisorUserId and
+	 * retrieves the Team Opportunity Details
 	 * 
 	 * @param supervisorUserId
 	 * @return
 	 * @throws Exception
 	 */
-	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(String supervisorUserId, int page, int count)
- throws Exception {
+	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(
+			String supervisorUserId, int page, int count) throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
@@ -874,8 +895,9 @@ public class OpportunityService {
 
 					int fromIndex = PaginationUtils.getStartIndex(page, count,
 							oppSize);
-					
-					// toIndex is incremented by 1 because subList toIndex position 
+
+					// toIndex is incremented by 1 because subList toIndex
+					// position
 					// is excluded while constructing the sub ArrayList
 					int toIndex = PaginationUtils.getEndIndex(page, count,
 							oppSize) + 1;
@@ -907,10 +929,8 @@ public class OpportunityService {
 
 					teamOpportunityDetails
 							.setOpportunityDetails(listOfOpportunityDetails);
-				}
-				else {
-					logger.error(
-							"BAD_REQUEST: Invalid Pagination Error",
+				} else {
+					logger.error("BAD_REQUEST: Invalid Pagination Error",
 							supervisorUserId);
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Invalid Pagination Error");
@@ -936,7 +956,7 @@ public class OpportunityService {
 
 		return teamOpportunityDetails;
 	}
-	
+
 	public List<OpportunityT> getByOpportunities(String customerName,
 			String groupCustomerName, String iou, String geography,
 			String country, String opportunityName, String opportunityOwner,
@@ -984,5 +1004,96 @@ public class OpportunityService {
 					"No Opportunities Found.");
 		}
 		return opportunity;
+	}
+
+	public List<OpportunityT> findAll(String sortBy, String order,
+			Boolean isCurrentFinancialYear, int page, int count)
+			throws DestinationException {
+
+		List<OpportunityT> opportunityTs = null;
+		try {
+			if (isCurrentFinancialYear) {
+
+				// Create the query and execute
+				String queryString = "select OPP from OpportunityT OPP where OPP.salesStageCode < 9 or (OPP.dealClosureDate > ?1 ) order by "
+						+ sortBy + " " + order;
+				Query query = entityManager.createQuery(queryString)
+						.setParameter(
+								1,
+								DateUtils.getDateFromFinancialYear(
+										DateUtils.getCurrentFinancialYear(),
+										true));
+				opportunityTs = (List<OpportunityT>) query.getResultList();
+
+				// Code for pagination
+				if (PaginationUtils.isValidPagination(page, count,
+						opportunityTs.size())) {
+					int fromIndex = PaginationUtils.getStartIndex(page, count,
+							opportunityTs.size());
+					int toIndex = PaginationUtils.getEndIndex(page, count,
+							opportunityTs.size()) + 1;
+					opportunityTs = opportunityTs.subList(fromIndex, toIndex);
+					logger.error("OpportunityT  after pagination size is "
+							+ opportunityTs.size());
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Opportunity available for the specified page");
+				}
+			} else {
+				// Page the opportunities for all financial year
+				Page<OpportunityT> opportunityPagable = opportunityRepository
+						.findAll(constructPageSpecification(page, count,
+								sortBy, order));
+				opportunityTs = new ArrayList<OpportunityT>();
+				for (OpportunityT opportunityT : opportunityPagable) {
+					opportunityTs.add(opportunityT);
+				}
+			}
+		} catch (Exception e) {
+			// Throw exceptions where Order by parameter is invalid
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+
+		if (opportunityTs == null || opportunityTs.size() == 0)
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Opportunities found");
+		prepareOpportunity(opportunityTs);
+		return opportunityTs;
+	}
+
+	/**
+	 * Returns a Sort object which sorts in ascending order by using the
+	 * parameter specified.
+	 * 
+	 * @param order
+	 * 
+	 * @return
+	 */
+	private Sort sortBy(String sortBy, String order) {
+		if (order.equals("ASC"))
+			return new Sort(Sort.Direction.ASC, sortBy);
+		else
+			return new Sort(Sort.Direction.DESC, sortBy);
+	}
+
+	/**
+	 * Create paging for the Parameter specified. Along with order by
+	 * 
+	 * @param pageIndex
+	 *            the pageIndex (starting from 0)
+	 * @param count
+	 *            The size of the page
+	 * @param sortBy
+	 *            The column to sort
+	 * @param order
+	 *            Specify ascending ASC or descending order DESC
+	 * @return The Pagable that is plugged into repository method
+	 */
+	private Pageable constructPageSpecification(int pageIndex, int count,
+			String sortBy, String order) {
+		Pageable pageSpecification = new PageRequest(pageIndex, count, sortBy(
+				sortBy, order));
+		return pageSpecification;
 	}
 }

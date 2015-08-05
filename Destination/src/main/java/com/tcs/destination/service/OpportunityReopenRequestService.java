@@ -48,7 +48,7 @@ public class OpportunityReopenRequestService {
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
 
-	public List<OpportunityReopenRequestT> findAll()
+	public List<OpportunityReopenRequestT> findAllReOpenRequests()
 			throws DestinationException {
 		UserT loggedUser = DestinationUtils.getCurrentUserDetails();
 		if (userService.isSystemAdmin(loggedUser.getUserId()))
