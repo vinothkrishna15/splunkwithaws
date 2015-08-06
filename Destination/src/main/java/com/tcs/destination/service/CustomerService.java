@@ -48,7 +48,7 @@ public class CustomerService {
 			"ART.sub_sp = SSMT.actual_sub_sp";
 	
 	private static final String TOP_REVENUE_QUERY_SUFFIX = ") as RV where RV.customer_name=CMT.customer_name order by RV.sum desc";
-	private static final String TOP_REVENUE_QUERY_YEAR = " and financial_year = ";
+	private static final String TOP_REVENUE_QUERY_YEAR = " and ART.financial_year = ";
 	private static final String TOP_REVENUE_QUERY_GROUP_BY = " group by RCMT.customer_name order by sum desc limit ";
 	private static final String TOP_REVENUE_GEO_COND_PREFIX = "RCMT.customer_geography in (";
 	private static final String TOP_REVENUE_SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
@@ -104,7 +104,7 @@ public class CustomerService {
 					case BDM: 
 					case BDM_SUPERVISOR:
 						logger.error("User is not authorized to access this service");
-						throw new DestinationException(HttpStatus.UNAUTHORIZED, "User is not authorised to access this service");
+						throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
 					default: 	
 						// Validate financial year and set default value
 						if (financialYear.isEmpty()) {
