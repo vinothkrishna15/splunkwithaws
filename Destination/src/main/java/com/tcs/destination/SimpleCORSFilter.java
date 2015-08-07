@@ -38,7 +38,7 @@ public class SimpleCORSFilter implements Filter {
 		response.setHeader("Access-Control-Allow-Methods",
 				"POST, GET, OPTIONS, DELETE, PUT");
 		response.setHeader("Access-Control-Max-Age", "3600");
-		response.setHeader("Access-Control-Allow-Headers", "accept,authorization,x-requested-with,Content-Type");
+		response.setHeader("Access-Control-Allow-Headers", "accept,authorization,x-requested-with,Content-Type,APP_VERSION");
 		DestinationHttpRequestWrapper myRequestWrapper = logRequest(req);
 		if(myRequestWrapper!=null)
 			chain.doFilter(myRequestWrapper, res);
