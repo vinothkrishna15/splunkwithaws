@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.LeadershipConnectsDTO;
+import com.tcs.destination.bean.LeadershipOverallWinsDTO;
+import com.tcs.destination.bean.LeadershipWinsDTO;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
@@ -81,11 +84,11 @@ public class DashboardController {
 	 * @param toDate
 	 * @param includeFields
 	 * @param view
-	 * @return
+	 * @return String
 	 * @throws Exception
 	 */
 	@RequestMapping(value = "/leadership/connect", method = RequestMethod.GET)
-	public String getTeamConnectsByGeography(
+	public String getLeadershipConnectsByGeography(
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
@@ -96,7 +99,7 @@ public class DashboardController {
 		logger.debug("Inside CustomerController /dashboard/leadership/connect GET");
 		LeadershipConnectsDTO connects = null;
 		try {
-		connects = dashboardService.getTeamConnectsByGeography(userId, fromDate, toDate, geography);
+		connects = dashboardService.getLeadershipConnectsByGeography(userId, fromDate, toDate, geography);
 		}
 		catch(Exception e){
 		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
@@ -105,6 +108,41 @@ public class DashboardController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, connects);
+	}
+	
+	/**
+	 * This Controller retrieves Opportunities Won based on the user (SI, Geo Heads, IOU Heads)
+	 * 
+	 * @param userId
+	 * @param geography
+	 * @param fromDate
+	 * @param toDate
+	 * @param includeFields
+	 * @param view
+	 * @return String
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/leadership/wins", method = RequestMethod.GET)
+	public String getLeadershipWinsByGeography(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside CustomerController /dashboard/leadership/wins GET");
+		LeadershipOverallWinsDTO wins = null;
+		try {
+		    wins = dashboardService.getLeadershipWinsByGeography(userId, fromDate, toDate, geography);
+		}
+		catch(Exception e){
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
+				view, wins);
 	}
 
 }

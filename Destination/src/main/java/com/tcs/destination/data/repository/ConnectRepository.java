@@ -182,7 +182,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * This query returns the Connects based on the list of Connect Ids provided
 	 * 
 	 * @param connects
-	 * @return
+	 * @return list of ConnectT
 	 */
 	List<ConnectT> findByConnectIdInOrderByLocationAsc(List<String> connects);
 

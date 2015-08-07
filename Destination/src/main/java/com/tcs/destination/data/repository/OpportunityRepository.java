@@ -16,7 +16,9 @@ import com.tcs.destination.bean.OpportunityT;
 @Repository
 public interface OpportunityRepository extends
 		JpaRepository<OpportunityT, String> {
-
+    
+    	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(List<String> opportunityId);
+    
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
 
@@ -330,4 +332,13 @@ public interface OpportunityRepository extends
 			String newLogo, String strategicInitiative, int minSalesStageCode,
 			int maxSalesStageCode, int minDigitalDealValue,
 			int maxDigitalDealValue);
+	
+	/**
+	 * This query returns the sum of digital deal values for the given list of opportunity Ids 
+	 * 
+	 * @param opportunityId
+	 * @return Sum of digital deal values - Integer
+	 */
+	@Query(value="select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) from opportunity_t OPP where OPP.opportunity_id in (:opportunityId)", nativeQuery = true)
+	Integer findDigitalDealValueByOpportunityIdIn(@Param("opportunityId") List<String> opportunityId);
 }

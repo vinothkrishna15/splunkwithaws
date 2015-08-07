@@ -2,9 +2,9 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,8 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
+import com.tcs.destination.bean.LeadershipOverallWinsDTO;
+import com.tcs.destination.bean.LeadershipWinsDTO;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BdmTargetTRepository;
@@ -84,9 +86,25 @@ public class DashBoardService {
 	    private static final String TEAM_CONNECTS_QUERY_PART6 = "' OR '";
 
 	    private static final String TEAM_CONNECTS_QUERY_PART7 = "' = '')";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART1 = "select DISTINCT (OPP.opportunity_id) from opportunity_t OPP JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography JOIN customer_master_t CMT ON CMT.geography=GMT.geography JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN revenue_customer_mapping_t RCMT ON GMT.geography=RCMT.customer_geography  and GMT.display_geography = '";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART2 = "'where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART3 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
 
-	    private static final String TEAM_CONNECTS_SUFFIX = " ORDER By c2.location";
-
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART4 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART5 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) and (OPP.digital_deal_value <> 0) and (OPP.sales_stage_code=9) and OPP.deal_closure_date between '";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART6 = TEAM_CONNECTS_QUERY_PART4;
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART7 = Constants.SINGLE_QUOTE;
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_FIVE_MILLIONS = "and (((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) > 5000000)";
+	    
+	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_ONE_MILLION = "and (((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) > 1000000)";
+	    
 	public PerformaceChartBean getChartValues(String userId,
 			String financialYear) throws Exception {
 
@@ -257,9 +275,9 @@ public class DashBoardService {
 	     * @return
 	     * @throws Exception
 	     */
-	    public LeadershipConnectsDTO getTeamConnectsByGeography(String userId,
+	    public LeadershipConnectsDTO getLeadershipConnectsByGeography(String userId,
 		    Date fromDate, Date toDate, String geography) throws Exception {
-		logger.debug("Inside getTeamConnectsByGeography()");
+		logger.debug("Inside getLeadershipConnectsByGeography()");
 
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
 		UserT user = userService.findByUserId(userId);
@@ -267,7 +285,6 @@ public class DashBoardService {
 		if (user != null) {
 
 		    String userGroup = user.getUserGroupMappingT().getUserGroup();
-		    System.out.println("userGroup : " + userGroup);
 
 		    if (UserGroup.contains(userGroup)) {
 			// Validate user group, BDM's & BDM supervisor's are not
@@ -279,7 +296,6 @@ public class DashBoardService {
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED,
 				    "User is not authorised to access this service");
 			default:
-			    // Validate financial year and set default value
 			    leadershipConnectsDTO = getTeamConnectsBasedOnUserPrivileges(
 				    userId, fromDate, toDate, geography);
 			}
@@ -316,11 +332,15 @@ public class DashBoardService {
 		Timestamp fromDateTs = new Timestamp(startDate.getTime());
 		Timestamp toDateTs = new Timestamp(endDate.getTime()
 			+ Constants.ONE_DAY_IN_MILLIS - 1);
-		Timestamp nowTs = new Timestamp(new Date().getTime()); // Get the current timestamp
+		Calendar c1 = GregorianCalendar.getInstance();
+		c1.set(2014, Calendar.JANUARY, 30);  //January 30th 2000
+		Date sDate = c1.getTime();
+		Timestamp nowTs = new Timestamp(sDate.getTime());
+//		Timestamp nowTs = new Timestamp(new Date().getTime()); // Get the current timestamp
 
 		// Construct the Query for Past Connects 
 		StringBuffer queryBufferForPastConnects = new StringBuffer();
-		queryBufferForPastConnects.append(constructQueryForLeadershipDashboard(
+		queryBufferForPastConnects.append(constructQueryForLeadershipDashboardTeamConnects(
 			supervisorId, geography, fromDateTs, nowTs));
 
 		// Get the privileges for the user and append to the query constructed above
@@ -330,23 +350,10 @@ public class DashBoardService {
 		// Get the connects using the constructed query
 		List<ConnectT> listOfPastConnects = getConnectsFromQueryBuffer(queryBufferForPastConnects);
 
-		System.out.println("*************************");
-
-		System.out.println(queryBufferForPastConnects);
-
-		if (listOfPastConnects != null) {
-		    for (ConnectT res : listOfPastConnects) {
-			System.out.println(res.getConnectId() + " "
-				+ res.getConnectName());
-		    }
-		}
-
-		System.out.println("*************************");
-
 		// Construct the Query for Upcoming Connects 
 		StringBuffer queryBufferForUpcomingConnects = new StringBuffer();
 		queryBufferForUpcomingConnects
-			.append(constructQueryForLeadershipDashboard(supervisorId,
+			.append(constructQueryForLeadershipDashboardTeamConnects(supervisorId,
 				geography, nowTs, toDateTs));
 
 		// Append privileges obtained above
@@ -354,22 +361,7 @@ public class DashBoardService {
 		
 		// Get the Connects using the constructed query 
 		List<ConnectT> listOfUpcomingConnects = getConnectsFromQueryBuffer(queryBufferForUpcomingConnects);
-		System.out.println();
-		System.out.println();
-
-		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
-		System.out.println(queryBufferForUpcomingConnects.toString());
-
-		if (listOfUpcomingConnects != null) {
-		    for (ConnectT res : listOfUpcomingConnects) {
-			System.out.println(res.getConnectId() + " "
-				+ res.getConnectName());
-		    }
-		}
-
-		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-
+	
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
 		    logger.error("NOT_FOUND: Connects not found for user : {}"
@@ -436,7 +428,7 @@ public class DashBoardService {
 		String whereClause = userAccessPrivilegeQueryBuilder
 			.getUserAccessPrivilegeWhereConditionClause(supervisorId,
 				queryPrefixMap);
-		System.out.println("whereClause " + whereClause);
+
 		if (whereClause != null && !whereClause.isEmpty()) {
 		    privilegesQuery = Constants.AND_CLAUSE + whereClause;
 		}
@@ -453,7 +445,7 @@ public class DashBoardService {
 	     * @param toDateTs
 	     * @return
 	     */
-	    private StringBuffer constructQueryForLeadershipDashboard(
+	    private StringBuffer constructQueryForLeadershipDashboardTeamConnects(
 		    String supervisorId, String geography, Timestamp fromDateTs,
 		    Timestamp toDateTs) throws Exception{
 
@@ -484,6 +476,222 @@ public class DashBoardService {
 		queryBuffer.append(TEAM_CONNECTS_QUERY_PART7);
 
 		return queryBuffer;
+	    }
+	    
+	    /**
+	     * This service retrieves the WON opportunities of all users under a supervisor based on his access privileges. 
+	     * This module is for Strategic Initiatives/GEO Heads/IOU Heads
+	     *  
+	     * @param userId
+	     * @param fromDate
+	     * @param toDate
+	     * @param geography
+	     * @return LeadershipOverallWinsDTO
+	     * @throws Exception
+	     */
+	    public LeadershipOverallWinsDTO getLeadershipWinsByGeography(String userId,
+		    Date fromDate, Date toDate, String geography) throws Exception {
+		logger.debug("Inside getLeadershipWinsByGeography()");
+
+		LeadershipOverallWinsDTO leadershipOverallWinsDTO = null;
+		UserT user = userService.findByUserId(userId);
+
+		if (user != null) {
+
+		    String userGroup = user.getUserGroupMappingT().getUserGroup();
+
+		    if (UserGroup.contains(userGroup)) {
+			// Validate user group, BDM's & BDM supervisor's are not
+			// authorized for this service
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case BDM_SUPERVISOR:
+			    logger.error("User is not authorized to access this service");
+			    throw new DestinationException(HttpStatus.UNAUTHORIZED,
+				    "User is not authorised to access this service");
+			default:
+			    leadershipOverallWinsDTO = getLeadershipWinsByUserPrivileges(
+				    userId, fromDate, toDate, geography);
+			}
+		    }
+
+		} else {
+		    logger.error("NOT_FOUND: User not found: {}", userId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,
+			    "User not found: " + userId);
+		}
+
+		return leadershipOverallWinsDTO;
+
+	    }
+
+	    /**
+	     * This method returns the WON opportunities of all users under a supervisor based on his access privileges. 
+	     * 
+	     * @param userId
+	     * @param fromDate
+	     * @param toDate
+	     * @param geography
+	     * @return LeadershipOverallWinsDTO
+	     * @throws Exception
+	     */
+	    private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
+	    String userId, Date fromDate, Date toDate, String geography)
+	    throws Exception {
+
+	String privilegesQuery = "";
+	LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
+
+	Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+	Timestamp toDateTs = new Timestamp(toDate.getTime()
+		+ Constants.ONE_DAY_IN_MILLIS - 1);
+
+	// Get the privileges for the user and append to the query constructed
+	// above
+	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
+
+	// Construct the Query for Wins
+	StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
+		userId, geography, fromDateTs, toDateTs, privilegesQuery, null);
+	// Get wins using the constructed query
+	LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(queryBufferForWins);
+
+	// Construct the Query for Wins Above 5M
+	StringBuffer queryBufferForWinsAboveFiveMillions = constructQueryForLeadershipDashboardWinsWithPrivileges(
+		userId, geography, fromDateTs, toDateTs, privilegesQuery,
+		TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_FIVE_MILLIONS);
+	// Get Wins Above 5M using the constructed query
+	LeadershipWinsDTO leadershipWinsAboveFiveMillions = getWinsFromQueryBuffer(queryBufferForWinsAboveFiveMillions);
+
+	// Construct the Query for Wins Above 1M
+	StringBuffer queryBufferForWinsAboveOneMillion = constructQueryForLeadershipDashboardWinsWithPrivileges(
+		userId, geography, fromDateTs, toDateTs, privilegesQuery,
+		TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_ONE_MILLION);
+	// Get Wins Above 1M using the constructed query
+	LeadershipWinsDTO leadershipWinsAboveOneMillion = getWinsFromQueryBuffer(queryBufferForWinsAboveOneMillion);
+
+	// Throw Exception if both list are null else populate the bean
+	if ((leadershipWins == null)
+		&& (leadershipWinsAboveFiveMillions == null)
+		&& (leadershipWinsAboveOneMillion == null)) {
+	    logger.error("NOT_FOUND: Connects not found for user : {}" + userId);
+	    throw new DestinationException(HttpStatus.NOT_FOUND,
+		    "Connects not found for user : " + userId);
+	} else {
+	    leadershipTotalWinsDTO = new LeadershipOverallWinsDTO();
+	    if (leadershipWins != null) {
+		leadershipTotalWinsDTO.setLeadershipWins(leadershipWins);
+	    }
+	    if (leadershipWinsAboveFiveMillions != null) {
+		leadershipTotalWinsDTO
+			.setLeadershipWinsAboveFiveMillions(leadershipWinsAboveFiveMillions);
+	    }
+	    if (leadershipWinsAboveOneMillion != null) {
+		leadershipTotalWinsDTO
+			.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
+	    }
+	}
+
+	return leadershipTotalWinsDTO;
+    }
+
+	    /**
+	     * This method constructs the queries dynamically and provides the output
+	     * 
+	     * @param userId
+	     * @param geography
+	     * @param fromDateTs
+	     * @param toDateTs
+	     * @param privileges
+	     * @param dealValueFilter
+	     * @return StringBuffer
+	     * @throws Exception
+	     */
+	    private StringBuffer constructQueryForLeadershipDashboardWinsWithPrivileges(
+		    String userId, String geography, Timestamp fromDateTs,
+		    Timestamp toDateTs,String privileges, String dealValueFilter) throws Exception{
+		
+		StringBuffer query = new StringBuffer();
+		
+		query.append(constructQueryForLeadershipDashboardWins(userId, geography, fromDateTs, toDateTs));
+		if(dealValueFilter!=null){
+		    query.append(dealValueFilter);
+		}
+		query.append(privileges);
+
+		return query;
+		
+	    }
+	    
+	    /**
+	     * This method performs operations to retrieve values from the database
+	     * 
+	     * @param queryBuffer
+	     * @return LeadershipWinsDTO
+	     */
+	    private LeadershipWinsDTO getWinsFromQueryBuffer(
+		    StringBuffer queryBuffer) {
+
+		List<String> resultList = null;
+		LeadershipWinsDTO leadershipWinsDTO = null;
+				
+		Query teamWins = entityManager.createNativeQuery(queryBuffer.toString());
+		
+		if((teamWins!=null)&&!(teamWins.getResultList().isEmpty())){
+		    leadershipWinsDTO = new LeadershipWinsDTO();
+		    resultList = teamWins.getResultList();
+		    
+		    leadershipWinsDTO.setSizeOfWins(resultList.size());
+		    leadershipWinsDTO.setDigitalDealValueSum(opportunityRepository.findDigitalDealValueByOpportunityIdIn(resultList));
+		    leadershipWinsDTO.setListOfWins(opportunityRepository.findByOpportunityIdInOrderByCountryAsc(resultList));
+		    
+		}
+		
+		return leadershipWinsDTO;
+	    }
+
+	    /**
+	     * This method returns the dynamically generated query
+	     * 
+	     * @param userId
+	     * @param geography
+	     * @param fromDateTs
+	     * @param toDateTs
+	     * @return StringBuffer
+	     */
+	    private StringBuffer constructQueryForLeadershipDashboardWins(
+		    String userId, String geography, Timestamp fromDateTs,
+		    Timestamp toDateTs) {
+
+		StringBuffer queryBuffer = new StringBuffer(TEAM_OPPORTUNITY_WIN_QUERY_PART1);
+
+		queryBuffer.append(geography);
+
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
+
+		queryBuffer.append(userId);
+
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
+
+		queryBuffer.append(userId);
+		
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
+		
+		queryBuffer.append(userId);
+		
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
+		
+		queryBuffer.append(fromDateTs);
+		
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART6);
+		
+		queryBuffer.append(toDateTs);
+		
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART7);
+
+		return queryBuffer;
+	    
+		
 	    }
 
 }
