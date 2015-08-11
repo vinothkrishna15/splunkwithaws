@@ -115,16 +115,18 @@ public class TaskController {
 	 * This method is used to find all the tasks for the given owner id.
 	 * 
 	 * @param id is the owner id.
+	 * @param status is the task status
 	 * @return tasks for the given owner id.
 	 */
 	@RequestMapping(value="/findByOwner", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksByTaskOwner(
 			@RequestParam(value="id") String taskOwner,
+			@RequestParam(value="status", defaultValue="all") String taskStatus,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
 		logger.debug("Inside TaskController /task/findByOwner?id="+taskOwner+" GET");
-		List<TaskT> taskList = taskService.findTasksByTaskOwner(taskOwner);
+		List<TaskT> taskList = taskService.findTasksByTaskOwnerAndStatus(taskOwner, taskStatus);
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}

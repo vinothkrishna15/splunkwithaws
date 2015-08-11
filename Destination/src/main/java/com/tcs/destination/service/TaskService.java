@@ -122,8 +122,7 @@ public class TaskService {
 		logger.debug("Inside findTasksByConnectId() service");
 		List<TaskT> taskList = taskRepository.findByConnectId(connectId);
 
-		if ((taskList == null) || taskList.isEmpty())
-		{
+		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No tasks found for the ConnectId: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the ConnectId: " + connectId);
 		}
@@ -140,8 +139,7 @@ public class TaskService {
 		logger.debug("Inside findTasksByOpportunityId() service");
 		List<TaskT> taskList = taskRepository.findByOpportunityId(opportunityId);
 
-		if ((taskList == null) || taskList.isEmpty())
-		{
+		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No tasks found for the OpportunityId: {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the OpportunityId: " + opportunityId);
 		}
@@ -154,13 +152,27 @@ public class TaskService {
 	 * @param taskOwner, taskStatus
 	 * @return tasks for the given task owner.
 	 */
-	public List<TaskT> findTasksByTaskOwner(String taskOwner) throws Exception {
-		logger.debug("Inside findTasksByTaskOwner() service");
-		List<TaskT> taskList = 
-				taskRepository.findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(taskOwner, STATUS_CLOSED);
+	public List<TaskT> findTasksByTaskOwnerAndStatus(String taskOwner, String taskStatus) throws Exception {
+		logger.debug("Inside findTasksByTaskOwnerAndStatus() service");
+		
+		List<TaskT> taskList = null;
+		if (!taskStatus.isEmpty()) {
+			if (!taskStatus.equalsIgnoreCase("all")) {
+				//Validate Task Status
+				if (!TaskStatus.contains(taskStatus)) {
+					logger.error("BAD_REQUEST: Invalid Task Status: {}", taskStatus);
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Task Status: " + taskStatus);
+				}
+				taskList = 
+						taskRepository.findByTaskOwnerAndTaskStatusOrderByTargetDateForCompletionAsc(taskOwner, taskStatus);
+			} else {
+				// Get all tasks with OPEN & HOLD status
+				taskList = 
+						taskRepository.findByTaskOwnerAndTaskStatusNotOrderByTargetDateForCompletionAsc(taskOwner, STATUS_CLOSED);
+			}
+		}
 
-		if ((taskList == null) || taskList.isEmpty())
-		{
+		if ((taskList == null) || taskList.isEmpty()) {
 			logger.error("NOT_FOUND: No tasks found for the Task Owner: {}", taskOwner);
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No tasks found for the Task Owner: " + taskOwner);
 		}
