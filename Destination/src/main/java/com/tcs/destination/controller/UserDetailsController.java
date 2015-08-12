@@ -131,7 +131,7 @@ public class UserDetailsController {
 			String browserName = browser.getName();
 			String browserVersion = userAgent.getBrowserVersion().getVersion();
 			logger.info("Browser: {}, Version: {}", browserName, browserVersion);
-
+			
 			// Get OS details
 			OperatingSystem os = userAgent.getOperatingSystem();
 			String osName = os.getName();
@@ -237,12 +237,12 @@ public class UserDetailsController {
 	
 	@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT user) throws Exception{
-		logger.debug("Inside UserDetailsController /user/forgotpwd POST");
+		logger.info("Inside UserDetailsController /user/forgotpwd POST");
 		Status status = new Status();
 		
 		String userId = user.getUserId();
 		String userEmailId = user.getUserEmailId();
-		
+		logger.info("userId : " + userId + ", userEmailId : " + userEmailId);
 		userService.forgotPassword(userId,userEmailId);
 		status.setStatus(Status.SUCCESS, "Password has been sent to the email address");
 		

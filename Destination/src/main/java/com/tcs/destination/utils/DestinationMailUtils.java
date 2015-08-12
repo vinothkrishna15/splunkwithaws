@@ -81,6 +81,7 @@ public class DestinationMailUtils {
 	 * @throws Exception
 	 */
 	public void sendPasswordAutomatedEmail(String subject,UserT user, Date requestedDateTime) throws Exception {
+		logger.info("inside sendPasswordAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setMessageType(Constants.MIME);
 		
@@ -98,6 +99,7 @@ public class DestinationMailUtils {
         DateFormat df = new SimpleDateFormat(dateFormatStr);
         String dateStr = df.format(requestedDateTime);
         message.setSubject(subject);
+        logger.info("Subject : " + subject);
         //df.setTimeZone(TimeZone.getTimeZone("GMT+5.30"));  
 		sendPasswordMail(message,user,dateStr);
 	}
@@ -109,6 +111,7 @@ public class DestinationMailUtils {
 	 * @throws Exception
 	 */
 	public void sendUserAccessAutomatedEmail(String subject, String reqId, Date requestedDateTime) throws Exception {
+		logger.info("inside sendUserAccessAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setMessageType(Constants.MIME);
 		
@@ -140,6 +143,7 @@ public class DestinationMailUtils {
 	 * @throws Exception
 	 */
 	public void sendOpportunityReopenAutomatedEmail(String subject, String reqId, Date requestedDateTime) throws Exception {
+		logger.info("inside sendUserAccessAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setMessageType(Constants.MIME);
 		
@@ -172,7 +176,7 @@ public class DestinationMailUtils {
 	 * @throws Exception
 	 */
 	private void sendPasswordMail(DestinationMailMessage message, UserT user, String dateStr) throws Exception{
-		
+		logger.info("Inside sendPasswordMail method");
 		List<String> recipientIdList = message.getRecipients();
 	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
 	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
@@ -187,6 +191,8 @@ public class DestinationMailUtils {
 				helper.setBcc(bccMailIdsArray);
 				String subject = message.getSubject();
 				helper.setSubject(subject);
+				logger.info("Sender : " + senderEmailId);
+				logger.info("date : " + dateStr);
 				helper.setFrom(senderEmailId);
 				Map forgotPasswordTemplateDataModel = new HashMap();
 				forgotPasswordTemplateDataModel.put("user", user);
@@ -194,7 +200,7 @@ public class DestinationMailUtils {
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,forgotPasswordTemplateLoc, Constants.UTF8,forgotPasswordTemplateDataModel);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
-				//mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
 			}
@@ -208,7 +214,7 @@ public class DestinationMailUtils {
 	 * @throws Exception
 	 */
 	private void sendUserAccessMail(DestinationMailMessage message, UserAccessRequestT userAccessRequest, String dateStr) throws Exception {
-		// TODO Auto-generated method stub
+		logger.info("Inside sendUserAccessMail method");
 		List<String> recipientIdList = message.getRecipients();
 	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
 	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
@@ -235,7 +241,7 @@ public class DestinationMailUtils {
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,userAccessTemplateLoc, Constants.UTF8,userAccessTemplateDataModel);
 				logMailDetails(recipientMailIdsArray,ccMailIdsArray,bccMailIdsArray,subject,text);
-				//mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
 			}
@@ -254,6 +260,7 @@ public class DestinationMailUtils {
 	 */
 	private void sendOpportunityReopenMail(DestinationMailMessage message,
 			OpportunityReopenRequestT oppReopenRequest, UserT user, OpportunityT opp,String dateStr) throws Exception {
+		logger.info("Inside sendOpportunityReopenMail method");
 		List<String> recipientIdList = message.getRecipients();
 	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
 	    String[] ccMailIdsArray=getMailAddressArr(message.getCcList());
@@ -278,7 +285,7 @@ public class DestinationMailUtils {
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine,reopenOpportunityTemplateLoc, Constants.UTF8,reopenOppTemplateDataModel);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
-				//mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
 			}
