@@ -334,7 +334,7 @@ public class OpportunityController {
 			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
 			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") double minDigitalDealValue,
 			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
-					+ Integer.MAX_VALUE) double maxDigitalDealValue,
+					+ Double.MAX_VALUE) double maxDigitalDealValue,
 			@RequestParam(value = "dealCurrency", defaultValue = "USD") String dealCurrency,
 			@RequestParam(value = "userId", defaultValue = "") List<String> userId,
 			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,
