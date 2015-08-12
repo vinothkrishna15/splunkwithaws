@@ -318,35 +318,35 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String SearchOpportunities(
-			@RequestParam(value = "customerName", defaultValue = "") String customerName,
-			@RequestParam(value = "groupCustomerName", defaultValue = "") String groupCustomerName,
-			@RequestParam(value = "iou", defaultValue = "") String iou,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
-			@RequestParam(value = "country", defaultValue = "") String country,
-			@RequestParam(value = "opportunityName", defaultValue = "") String opportunityName,
-			@RequestParam(value = "opportunityOwner", defaultValue = "") String opportunityOwner,
-			@RequestParam(value = "connectName", defaultValue = "") String connectName,
-			@RequestParam(value = "partnerName", defaultValue = "") String partnerName,
-			@RequestParam(value = "offering", defaultValue = "") String offering,
-			@RequestParam(value = "competitorName", defaultValue = "") String competitorName,
-			@RequestParam(value = "subSp", defaultValue = "") String subSp,
-			@RequestParam(value = "bidRequestType", defaultValue = "") String bidRequestType,
+			@RequestParam(value = "customerIdList", defaultValue = "") List<String> customerIdList,
+			@RequestParam(value = "displayIou", defaultValue = "") List<String> displayIou,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "") List<String> country,
+			@RequestParam(value = "opportunityName", defaultValue = "") List<String> opportunityName,
+			@RequestParam(value = "partnerId", defaultValue = "") List<String> partnerId,
+			@RequestParam(value = "offering", defaultValue = "") List<String> offering,
+			@RequestParam(value = "competitorName", defaultValue = "") List<String> competitorName,
+			@RequestParam(value = "displaySubSp", defaultValue = "") List<String> displaySubSp,
+			@RequestParam(value = "bidRequestType", defaultValue = "") List<String> bidRequestType,
 			@RequestParam(value = "newLogo", defaultValue = "") String newLogo,
 			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
-			@RequestParam(value = "minSalesStageCode", defaultValue = "0") int minSalesStageCode,
-			@RequestParam(value = "maxSalesStageCode", defaultValue = "14") int maxSalesStageCode,
+			@RequestParam(value = "salesStageCode", defaultValue = "") List<Integer> salesStageCode,
+			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
 			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") int minDigitalDealValue,
 			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
 					+ Integer.MAX_VALUE) int maxDigitalDealValue,
+			@RequestParam(value = "dealCurrency", defaultValue = "USD") String dealCurrency,
+			@RequestParam(value = "userId", defaultValue = "") List<String> userId,
+			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		List<OpportunityT> opportunity = opportunityService.getByOpportunities(
-				customerName, groupCustomerName, iou, geography, country,
-				opportunityName, opportunityOwner, connectName, partnerName,
-				offering, competitorName, subSp, bidRequestType, newLogo,
-				strategicInitiative, minSalesStageCode, maxSalesStageCode,
-				minDigitalDealValue, maxDigitalDealValue);
+				customerIdList, salesStageCode, strategicInitiative, newLogo,
+				minDigitalDealValue, maxDigitalDealValue, dealCurrency,
+				digitalFlag, displayIou, country, partnerId, competitorName,
+				searchKeywords, bidRequestType, offering, displaySubSp,
+				opportunityName, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunity);
 	}

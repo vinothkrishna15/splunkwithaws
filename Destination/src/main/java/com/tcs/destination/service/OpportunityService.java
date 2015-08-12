@@ -957,53 +957,68 @@ public class OpportunityService {
 		return teamOpportunityDetails;
 	}
 
-	public List<OpportunityT> getByOpportunities(String customerName,
-			String groupCustomerName, String iou, String geography,
-			String country, String opportunityName, String opportunityOwner,
-			String connectName, String partnerName, String offering,
-			String competitorName, String subSp, String bidRequestType,
-			String newLogo, String strategicInitiative, int minSalesStage,
-			int maxSalesStage, int minDigitalDealValue, int maxDigitalDealValue)
-			throws DestinationException {
-		String opportunityOwnerId = "";
-		UserT userT = userRepository.findByUserName(opportunityOwner);
-		if (userT != null) {
-			opportunityOwnerId = userT.getUserId();
-		}
-		customerName = customerName.equals("") ? customerName : "%"
-				+ customerName + "%";
-		groupCustomerName = groupCustomerName.equals("") ? groupCustomerName
-				: "%" + groupCustomerName + "%";
-		iou = iou.equals("") ? iou : "%" + iou + "%";
-		opportunityName = opportunityName.equals("") ? opportunityName : "%"
-				+ opportunityName + "%";
-		connectName = connectName.equals("") ? connectName : "%" + connectName
-				+ "%";
-		partnerName = partnerName.equals("") ? partnerName : "%" + partnerName
-				+ "%";
-		offering = offering.equals("") ? offering : "%" + offering + "%";
-		competitorName = competitorName.equals("") ? competitorName : "%"
-				+ competitorName + "%";
-		subSp = subSp.equals("") ? subSp : "%" + subSp + "%";
-		bidRequestType = bidRequestType.equals("") ? bidRequestType : "%"
-				+ bidRequestType + "%";
+	public List<OpportunityT> getByOpportunities(List<String> customerIdList,
+			List<Integer> salesStageCode, String strategicInitiative,
+			String newLogo, int minDigitalDealValue, int maxDigitalDealValue,
+			String dealCurrency, String digitalFlag, List<String> displayIou,
+			List<String> country, List<String> partnerId,
+			List<String> competitorName, List<String> searchKeywords,
+			List<String> bidRequestType, List<String> offering,
+			List<String> displaySubSp, List<String> opportunityName,
+			List<String> userId) throws DestinationException {
+		String searchKeywordString = searchForContaining(searchKeywords);
+		String opportunityNameString = searchForContaining(opportunityName);
+		customerIdList = fillIfEmpty(customerIdList);
+		userId = fillIfEmpty(userId);
+		displaySubSp = fillIfEmpty(displaySubSp);
+		offering = fillIfEmpty(offering);
+		bidRequestType = fillIfEmpty(bidRequestType);
+		competitorName = fillIfEmpty(competitorName);
+		partnerId = fillIfEmpty(partnerId);
+		country = fillIfEmpty(country);
+		displayIou = fillIfEmpty(displayIou);
+		if (salesStageCode.isEmpty())
+			salesStageCode.add(-1);
+		String defaultDealRange = "NO";
+		if (minDigitalDealValue == 0
+				&& maxDigitalDealValue == Integer.MAX_VALUE)
+			defaultDealRange = "YES";
 		List<OpportunityT> opportunity = opportunityRepository
-				.findByOpportunitiesIgnoreCaseLike(customerName.toUpperCase(),
-						groupCustomerName.toUpperCase(), iou.toUpperCase(),
-						geography.toUpperCase(), country.toUpperCase(),
-						opportunityName.toUpperCase(), opportunityOwnerId,
-						connectName.toUpperCase(), partnerName.toUpperCase(),
-						offering.toUpperCase(), competitorName.toUpperCase(),
-						subSp.toUpperCase(), bidRequestType.toUpperCase(),
-						newLogo.toUpperCase(),
-						strategicInitiative.toUpperCase(), minSalesStage,
-						maxSalesStage, minDigitalDealValue, maxDigitalDealValue);
+				.findByOpportunitiesIgnoreCaseLike(customerIdList,
+						salesStageCode, strategicInitiative, newLogo,
+						defaultDealRange, minDigitalDealValue,
+						maxDigitalDealValue, dealCurrency, digitalFlag,
+						displayIou, country, partnerId, competitorName,
+						searchKeywordString, bidRequestType, offering,
+						displaySubSp, opportunityNameString, userId);
+
 		if (opportunity.isEmpty()) {
 			logger.error("NOT_FOUND: No Opportunities found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities Found.");
 		}
 		return opportunity;
+	}
+
+	private String searchForContaining(List<String> containingWords) {
+		String actualWords = "";
+		if (containingWords != null)
+			for (String containgWord : containingWords) {
+				containgWord = "%" + containgWord.toUpperCase() + "%";
+				actualWords += containgWord + "|";
+			}
+		if (actualWords.length() > 2)
+			actualWords = actualWords.substring(0, actualWords.length() - 1);
+		return actualWords;
+	}
+
+	private List<String> fillIfEmpty(List<String> stringList) {
+		if (stringList == null)
+			stringList = new ArrayList<String>();
+		if (stringList.isEmpty())
+			stringList.add("");
+		return stringList;
+
 	}
 
 	public List<OpportunityT> findAll(String sortBy, String order,

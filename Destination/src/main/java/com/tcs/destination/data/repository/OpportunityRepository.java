@@ -4,8 +4,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,9 +14,10 @@ import com.tcs.destination.bean.OpportunityT;
 @Repository
 public interface OpportunityRepository extends
 		JpaRepository<OpportunityT, String> {
-    
-    	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(List<String> opportunityId);
-    
+
+	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(
+			List<String> opportunityId);
+
 	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
 			String opportunityname);
 
@@ -313,42 +312,58 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(
 			@Param("users") List<String> users);
 
-	@Query(value = "select * from opportunity_t o where ((o.opportunity_id in (select opportunity_id from bid_details_t bdt where bdt.bid_id in "
-			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner=?7 OR ?7='')) OR o.opportunity_id IN "
-			+ "(select opportunity_id from opportunity_t where opportunity_owner=?7 OR ?7 ='') OR o.opportunity_id IN "
-			+ "(select opportunity_id from opportunity_sales_support_link_t where (sales_support_owner= ?7 OR ?7 ='') "
-			+ "AND (o.customer_id in (select customer_id from customer_master_t cus where (customer_name like ?1 OR ?1 = '') "
-			+ "AND (group_customer_name like ?2 OR '?2 ='') AND (cus.iou in "
-			+ "(select iou from iou_customer_mapping_t icmt where icmt.display_iou like ?3 OR ?3 ='')) "
-			+ "and (cus.geography in (select geography from geography_mapping_t where display_geography =?4) OR ?4='')) "
-			+ "AND ((o.opportunity_id in (select opportunity_id from opportunity_sub_sp_link_t oppSubSp where oppSubSp.sub_sp in "
-			+ "(select ssm.sub_sp from sub_sp_mapping_t ssm where ssm.display_sub_sp like ?12)) OR ?12='')) )  AND ((o.opportunity_id in "
-			+ "(select opportunity_id from opportunity_offering_link_t where offering like ?10)) OR (?10='')) AND ((o.opportunity_id in "
-			+ "(select opportunity_id from opportunity_competitor_link_t where competitor_name like ?11)) OR (?11=''))AND "
-			+ "(o.opportunity_id in (select opportunity_id from opportunity_partner_link_t where partner_id in "
-			+ "(select partner_id from partner_master_t where partner_name like ?9)) OR (?9='')) AND "
-			+ "(o.opportunity_id in (select opportunity_id from connect_opportunity_link_id_t where connect_id in "
-			+ "(select connect_id from connect_t where connect_name like ?8)) OR (?8='')) AND ((o.opportunity_id in "
-			+ "(select opportunity_id from bid_details_t where bid_request_type like ?13)) OR (?13='')))) AND "
-			+ "(opportunity_name LIKE ?6 OR ?6='') OR (o.opportunity_id in	(select entity_id from search_keywords_t where search_keywords like ?6 OR ?6='')) "
-			+ "AND (country=?5 OR ?5='') AND (new_logo=?14 OR ?14='') AND (strategic_initiative=?15 OR ?15='')) "
-			+ "AND (sales_stage_code BETWEEN ?16 AND ?17) AND (digital_deal_value BETWEEN ?18 AND ?19)", nativeQuery = true)
-	List<OpportunityT> findByOpportunitiesIgnoreCaseLike(String customerName,
-			String groupCustomerName, String iou, String geography,
-			String country, String opportunityName, String opportunityOwner,
-			String connectName, String partnerName, String offering,
-			String competitorName, String subSp, String bidRequestType,
-			String newLogo, String strategicInitiative, int minSalesStageCode,
-			int maxSalesStageCode, int minDigitalDealValue,
-			int maxDigitalDealValue);
-	
+	@Query(value = "select distinct(OPP.*) from opportunity_t OPP,customer_master_t CMT "
+			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) "
+			+ "and (OPP.sales_stage_code in (:salesStageCode) or (-1) in (:salesStageCode)) "
+			+ "and (OPP.strategic_initiative=(:strategicInitiative) or  (:strategicInitiative)='' ) "
+			+ "and (OPP.new_logo = (:newLogo) or (:newLogo) ='' ) "
+			+ "and (((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:dealCurrency)) between (:minDigitalDealValue) and (:maxDigitalDealValue) ) or (:defaultDealRange)='YES') "
+			+ "and (OPP.digital_flag=(:digitalFlag) or (:digitalFlag)='' ) "
+			+ "and (CMT.iou in (select iou from iou_customer_mapping_t where display_iou in (:displayIou)) or ('') in (:displayIou)) "
+			+ "and (OPP.country in (:country) or ('') in (:country)) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_partner_link_t where partner_id in (:partnerId)) or ('') in (:partnerId))"
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_competitor_link_t where competitor_name in (:competitorName)) or ('') in (:competitorName))"
+			+ "and (OPP.opportunity_id in (select entity_id from search_keywords_t where UPPER(search_keywords) similar to (:searchKeywords)) or (:searchKeywords)='') "
+			+ "and (OPP.opportunity_id in (select opportunity_id from bid_details_t where bid_request_type in (:bidRequestType)) or ('') in (:bidRequestType))"
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_offering_link_t where offering in (:offering)) or ('') in (:offering)) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_sub_sp_link_t where sub_sp in "
+			+ "(select sub_sp from sub_sp_mapping_t where display_sub_sp in (:displaySubSp))) or ('') in (:displaySubSp)) "
+			+ "and (UPPER(OPP.opportunity_name) similar to (:opportunityName) or (:opportunityName) = '') "
+			+ "and (OPP.opportunity_owner in (:userId) or OPP.opportunity_id in "
+			+ "(select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:userId)) "
+			+ "or OPP.opportunity_id in (select BDT.opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:userId))) or ('') in (:userId))"
+			+ "and CMT.customer_id=OPP.customer_id", nativeQuery = true)
+	List<OpportunityT> findByOpportunitiesIgnoreCaseLike(
+			@Param("customerIdList") List<String> customerIdList,
+			@Param("salesStageCode") List<Integer> salesStageCode,
+			@Param("strategicInitiative") String strategicInitiative,
+			@Param("newLogo") String newLogo,
+			@Param("defaultDealRange") String defaultDealRange,
+			@Param("minDigitalDealValue") int minDigitalDealValue,
+			@Param("maxDigitalDealValue") int maxDigitalDealValue,
+			@Param("dealCurrency") String dealCurrency,
+			@Param("digitalFlag") String digitalFlag,
+			@Param("displayIou") List<String> displayIou,
+			@Param("country") List<String> country,
+			@Param("partnerId") List<String> partnerId,
+			@Param("competitorName") List<String> competitorName,
+			@Param("searchKeywords") String searchKeywords,
+			@Param("bidRequestType") List<String> bidRequestType,
+			@Param("offering") List<String> offering,
+			@Param("displaySubSp") List<String> displaySubSp,
+			@Param("opportunityName") String opportunityName,
+			@Param("userId") List<String> userId);
+
 	/**
-	 * This query returns the sum of digital deal values for the given list of opportunity Ids 
+	 * This query returns the sum of digital deal values for the given list of
+	 * opportunity Ids
 	 * 
 	 * @param opportunityId
 	 * @return Sum of digital deal values - Integer
 	 */
-	@Query(value="select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) from opportunity_t OPP where OPP.opportunity_id in (:opportunityId)", nativeQuery = true)
-	Integer findDigitalDealValueByOpportunityIdIn(@Param("opportunityId") List<String> opportunityId);
+	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) from opportunity_t OPP where OPP.opportunity_id in (:opportunityId)", nativeQuery = true)
+	Integer findDigitalDealValueByOpportunityIdIn(
+			@Param("opportunityId") List<String> opportunityId);
 
 }
