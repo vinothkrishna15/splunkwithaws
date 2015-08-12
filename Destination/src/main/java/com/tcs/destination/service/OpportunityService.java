@@ -959,7 +959,7 @@ public class OpportunityService {
 
 	public List<OpportunityT> getByOpportunities(List<String> customerIdList,
 			List<Integer> salesStageCode, String strategicInitiative,
-			String newLogo, int minDigitalDealValue, int maxDigitalDealValue,
+			String newLogo, double minDigitalDealValue, double maxDigitalDealValue,
 			String dealCurrency, String digitalFlag, List<String> displayIou,
 			List<String> country, List<String> partnerId,
 			List<String> competitorName, List<String> searchKeywords,

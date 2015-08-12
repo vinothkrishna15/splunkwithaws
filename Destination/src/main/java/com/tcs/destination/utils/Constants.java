@@ -25,5 +25,8 @@ public class Constants {
 	public static final String AND_CLAUSE = " and ";
 	public static final String OR_CLAUSE = " or ";
 	public static final int ONE_DAY_IN_MILLIS = 86400000;
+	public static final Double FIVE_MILLION = 5000000.0;
+	public static final Double ONE_MILLION = 1000000.0;
+	public static final String USD = "USD";
 
 }

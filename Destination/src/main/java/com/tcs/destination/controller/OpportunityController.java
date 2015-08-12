@@ -332,9 +332,9 @@ public class OpportunityController {
 			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
 			@RequestParam(value = "salesStageCode", defaultValue = "") List<Integer> salesStageCode,
 			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
-			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") int minDigitalDealValue,
+			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") double minDigitalDealValue,
 			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
-					+ Integer.MAX_VALUE) int maxDigitalDealValue,
+					+ Integer.MAX_VALUE) double maxDigitalDealValue,
 			@RequestParam(value = "dealCurrency", defaultValue = "USD") String dealCurrency,
 			@RequestParam(value = "userId", defaultValue = "") List<String> userId,
 			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,

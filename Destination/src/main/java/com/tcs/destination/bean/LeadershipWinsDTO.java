@@ -6,7 +6,6 @@ import java.util.List;
 /**
  * This DTO holds the response for WINS module in Leadership Dashboard 
  * 
- * @author bnpp
  *
  */
 
@@ -16,7 +15,7 @@ public class LeadershipWinsDTO implements Serializable {
 
     private Integer sizeOfWins;
 
-    private Integer digitalDealValueSum;
+    private Double sumOfdigitalDealValue;
 
     private List<OpportunityT> listOfWins;
 
@@ -28,12 +27,12 @@ public class LeadershipWinsDTO implements Serializable {
 	this.sizeOfWins = sizeOfWins;
     }
 
-    public Integer getDigitalDealValueSum() {
-	return digitalDealValueSum;
+    public Double getSumOfdigitalDealValue() {
+        return sumOfdigitalDealValue;
     }
 
-    public void setDigitalDealValueSum(Integer digitalDealValueSum) {
-	this.digitalDealValueSum = digitalDealValueSum;
+    public void setSumOfdigitalDealValue(Double sumOfdigitalDealValue) {
+        this.sumOfdigitalDealValue = sumOfdigitalDealValue;
     }
 
     public List<OpportunityT> getListOfWins() {
