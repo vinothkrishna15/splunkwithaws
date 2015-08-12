@@ -43,6 +43,11 @@ public class RevenueCustomerMappingT implements Serializable {
 	@OneToMany(mappedBy = "revenueCustomerMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
+	//bi-directional many-to-one association to ProjectedRevenuesDataT
+	@JsonIgnore
+	@OneToMany(mappedBy="revenueCustomerMappingT")
+	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
+	
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
 	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
@@ -52,7 +57,12 @@ public class RevenueCustomerMappingT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="customer_geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
-	
+
+	//bi-directional many-to-one association to IouCustomerMappingT
+	@ManyToOne
+	@JoinColumn(name="finance_iou", insertable = false, updatable = false)
+	private IouCustomerMappingT iouCustomerMappingT;
+
 	public RevenueCustomerMappingT() {
 	}
 
@@ -105,6 +115,28 @@ public class RevenueCustomerMappingT implements Serializable {
 		return actualRevenuesDataT;
 	}
 
+	public List<ProjectedRevenuesDataT> getProjectedRevenuesDataTs() {
+		return this.projectedRevenuesDataTs;
+	}
+
+	public void setProjectedRevenuesDataTs(List<ProjectedRevenuesDataT> projectedRevenuesDataTs) {
+		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
+	}
+
+	public ProjectedRevenuesDataT addProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().add(projectedRevenuesDataT);
+		projectedRevenuesDataT.setRevenueCustomerMappingT(this);
+
+		return projectedRevenuesDataT;
+	}
+
+	public ProjectedRevenuesDataT removeProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().remove(projectedRevenuesDataT);
+		projectedRevenuesDataT.setRevenueCustomerMappingT(null);
+
+		return projectedRevenuesDataT;
+	}
+
 	public CustomerMasterT getCustomerMasterT() {
 		return this.customerMasterT;
 	}
@@ -119,6 +151,14 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
 		this.geographyMappingT = geographyMappingT;
+	}
+
+	public IouCustomerMappingT getIouCustomerMappingT() {
+		return this.iouCustomerMappingT;
+	}
+
+	public void setIouCustomerMappingT(IouCustomerMappingT iouCustomerMappingT) {
+		this.iouCustomerMappingT = iouCustomerMappingT;
 	}
 
 }

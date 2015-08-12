@@ -66,7 +66,10 @@ public class ActualRevenuesDataT implements Serializable {
 	@ManyToOne
 	@JoinColumns(value = {
 			@JoinColumn(name = "finance_customer_name", referencedColumnName = "finance_customer_name", insertable = false, updatable = false),
-			@JoinColumn(name = "finance_geography", referencedColumnName = "customer_geography", insertable = false, updatable = false) })
+			@JoinColumn(name = "finance_geography", referencedColumnName = "customer_geography", insertable = false, updatable = false), 
+			@JoinColumn(name = "finance_iou", referencedColumnName = "finance_iou", insertable = false, updatable = false)
+			})
+
 	private RevenueCustomerMappingT revenueCustomerMappingT;
 
 	// bi-directional many-to-one association to SubSpMappingT

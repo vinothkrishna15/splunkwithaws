@@ -11,9 +11,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -51,6 +49,7 @@ public class SubSpMappingT implements Serializable {
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
+	// bi-directional many-to-one association to ProjectedRevenuesDataT
 	@JsonIgnore
 	@OneToMany(mappedBy = "subSpMappingT")
 	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
@@ -191,10 +190,23 @@ public class SubSpMappingT implements Serializable {
 		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
 	}
 
+	public ProjectedRevenuesDataT addProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().add(projectedRevenuesDataT);
+		projectedRevenuesDataT.setSubSpMappingT(this);
+
+		return projectedRevenuesDataT;
+	}
+
+	public ProjectedRevenuesDataT removeProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().remove(projectedRevenuesDataT);
+		projectedRevenuesDataT.setSubSpMappingT(null);
+
+		return projectedRevenuesDataT;
+	}
+
 	public String getActualSubSp() {
 		return actualSubSp;
 	}
-
 	public void setActualSubSp(String actualSubSp) {
 		this.actualSubSp = actualSubSp;
 	}

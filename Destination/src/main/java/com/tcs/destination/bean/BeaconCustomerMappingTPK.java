@@ -21,6 +21,9 @@ public class BeaconCustomerMappingTPK implements Serializable {
 	@Column(name = "beacon_customer_name")
 	private String beaconCustomerName;
 
+	@Column(name="beacon_iou", insertable=false, updatable=false)
+	private String beaconIou;
+	
 	@Column(name="customer_geography", insertable=false, updatable=false)
 	private String customerGeography;
 
@@ -34,11 +37,16 @@ public class BeaconCustomerMappingTPK implements Serializable {
 	public void setBeaconCustomerName(String beaconCustomerName) {
 		this.beaconCustomerName = beaconCustomerName;
 	}
-
+	public String getBeaconIou() {
+		return this.beaconIou;
+	}
+	public void setBeaconIou(String beaconIou) {
+		this.beaconIou = beaconIou;
+	}
 	public String getCustomerGeography() {
 		return this.customerGeography;
 	}
-
+	
 	public void setCustomerGeography(String customerGeography) {
 		this.customerGeography = customerGeography;
 	}
@@ -53,6 +61,7 @@ public class BeaconCustomerMappingTPK implements Serializable {
 		BeaconCustomerMappingTPK castOther = (BeaconCustomerMappingTPK)other;
 		return 
 			this.beaconCustomerName.equals(castOther.beaconCustomerName)
+			&& this.beaconIou.equals(castOther.beaconIou)
 			&& this.customerGeography.equals(castOther.customerGeography);
 	}
 
@@ -60,6 +69,7 @@ public class BeaconCustomerMappingTPK implements Serializable {
 		final int prime = 31;
 		int hash = 17;
 		hash = hash * prime + this.beaconCustomerName.hashCode();
+		hash = hash * prime + this.beaconIou.hashCode();
 		hash = hash * prime + this.customerGeography.hashCode();
 
 		return hash;

@@ -57,7 +57,8 @@ public class BeaconDataT implements Serializable {
 	@ManyToOne
 	@JoinColumns({
 		@JoinColumn(name="beacon_customer_name", referencedColumnName="beacon_customer_name", insertable = false, updatable = false),
-		@JoinColumn(name="beacon_geography", referencedColumnName="customer_geography", insertable = false, updatable = false)
+		@JoinColumn(name="beacon_geography", referencedColumnName="customer_geography", insertable = false, updatable = false),
+		@JoinColumn(name="beacon_iou", referencedColumnName="beacon_iou", insertable = false, updatable = false)
 		})
 	private BeaconCustomerMappingT beaconCustomerMappingT;
 

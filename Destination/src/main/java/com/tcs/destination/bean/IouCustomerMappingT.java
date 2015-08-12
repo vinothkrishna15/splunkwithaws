@@ -13,9 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -46,6 +44,15 @@ public class IouCustomerMappingT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
+
+	//bi-directional many-to-one association to ProjectedRevenuesDataT
+	@JsonIgnore
+	@OneToMany(mappedBy="iouCustomerMappingT")
+	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
+
+	//bi-directional many-to-one association to RevenueCustomerMappingT
+	@OneToMany(mappedBy="iouCustomerMappingT")
+	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
 	public IouCustomerMappingT() {
 	}
@@ -108,6 +115,50 @@ public class IouCustomerMappingT implements Serializable {
 		customerMasterT.setIouCustomerMappingT(null);
 
 		return customerMasterT;
+	}
+
+	public List<ProjectedRevenuesDataT> getProjectedRevenuesDataTs() {
+		return this.projectedRevenuesDataTs;
+	}
+
+	public void setProjectedRevenuesDataTs(List<ProjectedRevenuesDataT> projectedRevenuesDataTs) {
+		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
+	}
+
+	public ProjectedRevenuesDataT addProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().add(projectedRevenuesDataT);
+		projectedRevenuesDataT.setIouCustomerMappingT(this);
+
+		return projectedRevenuesDataT;
+	}
+
+	public ProjectedRevenuesDataT removeProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
+		getProjectedRevenuesDataTs().remove(projectedRevenuesDataT);
+		projectedRevenuesDataT.setIouCustomerMappingT(null);
+
+		return projectedRevenuesDataT;
+	}
+
+	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {
+		return this.revenueCustomerMappingTs;
+	}
+
+	public void setRevenueCustomerMappingTs(List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
+	}
+
+	public RevenueCustomerMappingT addRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().add(revenueCustomerMappingT);
+		revenueCustomerMappingT.setIouCustomerMappingT(this);
+
+		return revenueCustomerMappingT;
+	}
+
+	public RevenueCustomerMappingT removeRevenueCustomerMappingT(RevenueCustomerMappingT revenueCustomerMappingT) {
+		getRevenueCustomerMappingTs().remove(revenueCustomerMappingT);
+		revenueCustomerMappingT.setIouCustomerMappingT(null);
+
+		return revenueCustomerMappingT;
 	}
 
 }

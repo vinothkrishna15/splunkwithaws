@@ -21,6 +21,9 @@ public class RevenueCustomerMappingTPK implements Serializable {
 	@Column(name="finance_customer_name", insertable = false, updatable = false)
 	private String financeCustomerName;
 
+	@Column(name="finance_iou", insertable=false, updatable=false)
+	private String financeIou;
+
 	@Column(name="customer_geography", insertable = false, updatable = false)
 	private String customerGeography;
 
@@ -31,6 +34,12 @@ public class RevenueCustomerMappingTPK implements Serializable {
 	}
 	public void setFinanceCustomerName(String financeCustomerName) {
 		this.financeCustomerName = financeCustomerName;
+	}
+	public String getFinanceIou() {
+		return this.financeIou;
+	}
+	public void setFinanceIou(String financeIou) {
+		this.financeIou = financeIou;
 	}
 	public String getCustomerGeography() {
 		return this.customerGeography;
@@ -49,6 +58,7 @@ public class RevenueCustomerMappingTPK implements Serializable {
 		RevenueCustomerMappingTPK castOther = (RevenueCustomerMappingTPK)other;
 		return 
 			this.financeCustomerName.equals(castOther.financeCustomerName)
+			&& this.financeIou.equals(castOther.financeIou)
 			&& this.customerGeography.equals(castOther.customerGeography);
 	}
 
@@ -56,6 +66,7 @@ public class RevenueCustomerMappingTPK implements Serializable {
 		final int prime = 31;
 		int hash = 17;
 		hash = hash * prime + this.financeCustomerName.hashCode();
+		hash = hash * prime + this.financeIou.hashCode();
 		hash = hash * prime + this.customerGeography.hashCode();
 		
 		return hash;
