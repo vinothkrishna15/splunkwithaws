@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.LeadershipConnectsDTO;
+import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.bean.LeadershipWinsDTO;
 import com.tcs.destination.bean.OpportunityT;
@@ -143,6 +144,41 @@ public class DashboardController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, wins);
+	}
+	
+	/**
+	 * This Controller retrieves Opportunities Won based on the user (SI, Geo Heads, IOU Heads)
+	 * 
+	 * @param userId
+	 * @param geography
+	 * @param fromDate
+	 * @param toDate
+	 * @param includeFields
+	 * @param view
+	 * @return String
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/leadership/opp", method = RequestMethod.GET)
+	public String getLeadershipOpportunitiesByGeography(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "toDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside CustomerController /dashboard/leadership/opp GET");
+		LeadershipOpportunitiesDTO opportunities = null;
+		try {
+		    opportunities = dashboardService.getLeadershipOpportunitiesByGeography(userId, fromDate, toDate, geography);
+		}
+		catch(Exception e){
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
+				view, opportunities);
 	}
 
 }

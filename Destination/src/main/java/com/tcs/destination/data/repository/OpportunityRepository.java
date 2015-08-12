@@ -349,6 +349,6 @@ public interface OpportunityRepository extends
 	 * @return Sum of digital deal values - Integer
 	 */
 	@Query(value="select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) from opportunity_t OPP where OPP.opportunity_id in (:opportunityId)", nativeQuery = true)
-	Integer findDigitalDealValueByOpportunityIdIn(@Param("opportunityId") List<String> opportunityId);
+	Double findDigitalDealValueByOpportunityIdIn(@Param("opportunityId") List<String> opportunityId);
 
 }

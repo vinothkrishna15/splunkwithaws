@@ -9,7 +9,6 @@ import com.tcs.destination.utils.Constants;
 /**
  * This DTO holds the output data required for Leadership Connects in Dashboard
  * 
- * @author bnpp
  *
  */
 @JsonFilter(Constants.FILTER)
@@ -19,7 +18,27 @@ private static final long serialVersionUID = 1L;
     
     private List<ConnectT> pastConnects;
     
+    private int sizeOfPastConnects;
+    
     private List<ConnectT> upcomingConnects;
+    
+    private int sizeOfUpcomingConnects;
+
+    public int getSizeOfPastConnects() {
+        return sizeOfPastConnects;
+    }
+
+    public void setSizeOfPastConnects(int sizeOfPastConnects) {
+        this.sizeOfPastConnects = sizeOfPastConnects;
+    }
+
+    public int getSizeOfUpcomingConnects() {
+        return sizeOfUpcomingConnects;
+    }
+
+    public void setSizeOfUpcomingConnects(int sizeOfUpcomingConnects) {
+        this.sizeOfUpcomingConnects = sizeOfUpcomingConnects;
+    }
 
     public List<ConnectT> getPastConnects() {
         return pastConnects;

@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -11,6 +12,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.LeadershipAllOpportunityDTO;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
+import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
+import com.tcs.destination.bean.LeadershipOpportunityBySalesStageCodeDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.bean.LeadershipWinsDTO;
 import com.tcs.destination.bean.OpportunityT;
@@ -34,6 +39,8 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+
+import static com.tcs.destination.utils.LeadershipQueryConstants.*;
 
 @Service
 public class DashBoardService {
@@ -65,45 +72,8 @@ public class DashBoardService {
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 	
-	private static final String TEAM_CONNECTS_GEO_COND_PREFIX = "RCMT.customer_geography in (";
-	    
-	    private static final String TEAM_CONNECTS_IOU_COND_PREFIX = "ICMT.display_iou in (";
-	    
-	    private static final String TEAM_CONNECTS_SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
-	    
-	    private static final String TEAM_CONNECTS_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART1 = "SELECT DISTINCT c2.connect_id FROM connect_t c2 JOIN geography_country_mapping_t GCMT ON GCMT.country=c2.country JOIN geography_mapping_t GMT ON GCMT.geography=GMT.geography JOIN customer_master_t CMT ON CMT.geography=GMT.geography JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN revenue_customer_mapping_t RCMT ON GMT.geography=RCMT.customer_geography JOIN connect_sub_sp_link_t CSL ON c2.connect_id=CSL.connect_id JOIN sub_sp_mapping_t SSMT ON CSL.sub_sp=SSMT.sub_sp WHERE (((c2.connect_id IN ((SELECT c1.connect_id FROM Connect_T c1 WHERE c1.primary_owner IN (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
-	    
-	    private static final String TEAM_CONNECTS_QUERY_PART2 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) UNION (SELECT c.connect_id FROM Connect_T c, connect_secondary_owner_link_T cs WHERE (c.connect_id=cs.connect_id) AND (cs.secondary_owner IN (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART3 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))))) AND (c2.start_datetime_of_connect between '";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART4 = "' AND '";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART5 = "' )) AND (GMT.display_geography='";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART6 = "' OR '";
-
-	    private static final String TEAM_CONNECTS_QUERY_PART7 = "' = '')";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART1 = "select DISTINCT (OPP.opportunity_id) from opportunity_t OPP JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography JOIN customer_master_t CMT ON CMT.geography=GMT.geography JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN revenue_customer_mapping_t RCMT ON GMT.geography=RCMT.customer_geography  and GMT.display_geography = '";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART2 = "'where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART3 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
-
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART4 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)) union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = '";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART5 = "' UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc)))) and (OPP.digital_deal_value <> 0) and (OPP.sales_stage_code=9) and OPP.deal_closure_date between '";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART6 = TEAM_CONNECTS_QUERY_PART4;
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_PART7 = Constants.SINGLE_QUOTE;
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_FIVE_MILLIONS = "and (((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) > 5000000)";
-	    
-	    private static final String TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_ONE_MILLION = "and (((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')) > 1000000)";
+	@Autowired
+	BeaconConverterService beaconConverterService;
 	    
 	public PerformaceChartBean getChartValues(String userId,
 			String financialYear) throws Exception {
@@ -332,12 +302,10 @@ public class DashBoardService {
 		Timestamp fromDateTs = new Timestamp(startDate.getTime());
 		Timestamp toDateTs = new Timestamp(endDate.getTime()
 			+ Constants.ONE_DAY_IN_MILLIS - 1);
-		Calendar c1 = GregorianCalendar.getInstance();
-		c1.set(2014, Calendar.JANUARY, 30);  //January 30th 2000
-		Date sDate = c1.getTime();
-		Timestamp nowTs = new Timestamp(sDate.getTime());
-//		Timestamp nowTs = new Timestamp(new Date().getTime()); // Get the current timestamp
-
+		Date now = new Date(); // Get current DateTime
+		Timestamp nowTs = new Timestamp(now.getTime()); // Get the current timestamp
+		Timestamp nowNextMsTs = new Timestamp(now.getTime()+1); // Get the next millisecond's timestamp w.r.t now
+		
 		// Construct the Query for Past Connects 
 		StringBuffer queryBufferForPastConnects = new StringBuffer();
 		queryBufferForPastConnects.append(constructQueryForLeadershipDashboardTeamConnects(
@@ -348,19 +316,19 @@ public class DashBoardService {
 		queryBufferForPastConnects.append(privilegesQuery);
 		
 		// Get the connects using the constructed query
-		List<ConnectT> listOfPastConnects = getConnectsFromQueryBuffer(queryBufferForPastConnects);
+		List<ConnectT> listOfPastConnects = getConnectsFromQueryBuffer(queryBufferForPastConnects, supervisorId);
 
 		// Construct the Query for Upcoming Connects 
 		StringBuffer queryBufferForUpcomingConnects = new StringBuffer();
 		queryBufferForUpcomingConnects
 			.append(constructQueryForLeadershipDashboardTeamConnects(supervisorId,
-				geography, nowTs, toDateTs));
+				geography, nowNextMsTs, toDateTs));
 
 		// Append privileges obtained above
 		queryBufferForUpcomingConnects.append(privilegesQuery);
 		
 		// Get the Connects using the constructed query 
-		List<ConnectT> listOfUpcomingConnects = getConnectsFromQueryBuffer(queryBufferForUpcomingConnects);
+		List<ConnectT> listOfUpcomingConnects = getConnectsFromQueryBuffer(queryBufferForUpcomingConnects, supervisorId);
 	
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
@@ -372,10 +340,12 @@ public class DashBoardService {
 		    leadershipConnectsDTO = new LeadershipConnectsDTO();
 		    if (listOfPastConnects != null) {
 			leadershipConnectsDTO.setPastConnects(listOfPastConnects);
+			leadershipConnectsDTO.setSizeOfPastConnects(listOfPastConnects.size());
 		    }
 		    if (listOfUpcomingConnects != null) {
 			leadershipConnectsDTO
 				.setUpcomingConnects(listOfUpcomingConnects);
+			leadershipConnectsDTO.setSizeOfUpcomingConnects(listOfUpcomingConnects.size());
 		    }
 		}
 
@@ -388,10 +358,11 @@ public class DashBoardService {
 	     * @param queryBuffer
 	     * @return
 	     */
-	    private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer) throws Exception{
+	    private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer, String userId) throws Exception{
 		List<String> resultList = null;
 		List<ConnectT> listOfConnects = null;
 
+		try {
 		// Get the Connect Ids 
 		Query teamConnects = entityManager.createNativeQuery(queryBuffer
 			.toString());
@@ -403,6 +374,10 @@ public class DashBoardService {
 			listOfConnects = connectRepository
 				.findByConnectIdInOrderByLocationAsc(resultList);
 		    }
+		}
+		} catch(Exception e){
+		    logger.error("NOT_FOUND: An Internal Error has occured while processing request for {} : ", userId);
+		    throw new DestinationException(HttpStatus.NOT_FOUND,  "An Internal Error has occured while processing request for userId "+userId);
 		}
 		return listOfConnects;
 	    }
@@ -525,173 +500,585 @@ public class DashBoardService {
 
 	    }
 
-	    /**
-	     * This method returns the WON opportunities of all users under a supervisor based on his access privileges. 
-	     * 
-	     * @param userId
-	     * @param fromDate
-	     * @param toDate
-	     * @param geography
-	     * @return LeadershipOverallWinsDTO
-	     * @throws Exception
-	     */
-	    private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
-	    String userId, Date fromDate, Date toDate, String geography)
-	    throws Exception {
-
-	String privilegesQuery = "";
-	LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
-
-	Timestamp fromDateTs = new Timestamp(fromDate.getTime());
-	Timestamp toDateTs = new Timestamp(toDate.getTime()
-		+ Constants.ONE_DAY_IN_MILLIS - 1);
-
-	// Get the privileges for the user and append to the query constructed
-	// above
-	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
-
-	// Construct the Query for Wins
-	StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
-		userId, geography, fromDateTs, toDateTs, privilegesQuery, null);
-	// Get wins using the constructed query
-	LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(queryBufferForWins);
-
-	// Construct the Query for Wins Above 5M
-	StringBuffer queryBufferForWinsAboveFiveMillions = constructQueryForLeadershipDashboardWinsWithPrivileges(
-		userId, geography, fromDateTs, toDateTs, privilegesQuery,
-		TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_FIVE_MILLIONS);
-	// Get Wins Above 5M using the constructed query
-	LeadershipWinsDTO leadershipWinsAboveFiveMillions = getWinsFromQueryBuffer(queryBufferForWinsAboveFiveMillions);
-
-	// Construct the Query for Wins Above 1M
-	StringBuffer queryBufferForWinsAboveOneMillion = constructQueryForLeadershipDashboardWinsWithPrivileges(
-		userId, geography, fromDateTs, toDateTs, privilegesQuery,
-		TEAM_OPPORTUNITY_WIN_QUERY_ABOVE_ONE_MILLION);
-	// Get Wins Above 1M using the constructed query
-	LeadershipWinsDTO leadershipWinsAboveOneMillion = getWinsFromQueryBuffer(queryBufferForWinsAboveOneMillion);
-
-	// Throw Exception if both list are null else populate the bean
-	if ((leadershipWins == null)
-		&& (leadershipWinsAboveFiveMillions == null)
-		&& (leadershipWinsAboveOneMillion == null)) {
-	    logger.error("NOT_FOUND: Connects not found for user : {}" + userId);
-	    throw new DestinationException(HttpStatus.NOT_FOUND,
-		    "Connects not found for user : " + userId);
-	} else {
-	    leadershipTotalWinsDTO = new LeadershipOverallWinsDTO();
-	    if (leadershipWins != null) {
-		leadershipTotalWinsDTO.setLeadershipWins(leadershipWins);
-	    }
-	    if (leadershipWinsAboveFiveMillions != null) {
-		leadershipTotalWinsDTO
-			.setLeadershipWinsAboveFiveMillions(leadershipWinsAboveFiveMillions);
-	    }
-	    if (leadershipWinsAboveOneMillion != null) {
-		leadershipTotalWinsDTO
-			.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
-	    }
-	}
-
-	return leadershipTotalWinsDTO;
-    }
-
-	    /**
-	     * This method constructs the queries dynamically and provides the output
-	     * 
-	     * @param userId
-	     * @param geography
-	     * @param fromDateTs
-	     * @param toDateTs
-	     * @param privileges
-	     * @param dealValueFilter
-	     * @return StringBuffer
-	     * @throws Exception
-	     */
-	    private StringBuffer constructQueryForLeadershipDashboardWinsWithPrivileges(
-		    String userId, String geography, Timestamp fromDateTs,
-		    Timestamp toDateTs,String privileges, String dealValueFilter) throws Exception{
-		
-		StringBuffer query = new StringBuffer();
-		
-		query.append(constructQueryForLeadershipDashboardWins(userId, geography, fromDateTs, toDateTs));
-		if(dealValueFilter!=null){
-		    query.append(dealValueFilter);
-		}
-		query.append(privileges);
-
-		return query;
-		
-	    }
-	    
-	    /**
-	     * This method performs operations to retrieve values from the database
-	     * 
-	     * @param queryBuffer
-	     * @return LeadershipWinsDTO
-	     */
-	    private LeadershipWinsDTO getWinsFromQueryBuffer(
-		    StringBuffer queryBuffer) {
-
-		List<String> resultList = null;
-		LeadershipWinsDTO leadershipWinsDTO = null;
-				
-		Query teamWins = entityManager.createNativeQuery(queryBuffer.toString());
-		
-		if((teamWins!=null)&&!(teamWins.getResultList().isEmpty())){
-		    leadershipWinsDTO = new LeadershipWinsDTO();
-		    resultList = teamWins.getResultList();
-		    
-		    leadershipWinsDTO.setSizeOfWins(resultList.size());
-		    leadershipWinsDTO.setDigitalDealValueSum(opportunityRepository.findDigitalDealValueByOpportunityIdIn(resultList));
-		    leadershipWinsDTO.setListOfWins(opportunityRepository.findByOpportunityIdInOrderByCountryAsc(resultList));
-		    
-		}
-		
-		return leadershipWinsDTO;
-	    }
-
-	    /**
-	     * This method returns the dynamically generated query
-	     * 
-	     * @param userId
-	     * @param geography
-	     * @param fromDateTs
-	     * @param toDateTs
-	     * @return StringBuffer
-	     */
-	    private StringBuffer constructQueryForLeadershipDashboardWins(
-		    String userId, String geography, Timestamp fromDateTs,
-		    Timestamp toDateTs) {
-
-		StringBuffer queryBuffer = new StringBuffer(TEAM_OPPORTUNITY_WIN_QUERY_PART1);
-
-		queryBuffer.append(geography);
-
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
-
-		queryBuffer.append(userId);
-
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
-
-		queryBuffer.append(userId);
-		
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
-		
-		queryBuffer.append(userId);
-		
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
-		
-		queryBuffer.append(fromDateTs);
-		
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART6);
-		
-		queryBuffer.append(toDateTs);
-		
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART7);
-
-		return queryBuffer;
-	    
-		
-	    }
-
+            /**
+             * This method returns the WON opportunities of all users under a supervisor
+             * based on his access privileges.
+             * 
+             * @param userId
+             * @param fromDate
+             * @param toDate
+             * @param geography
+             * @return LeadershipOverallWinsDTO
+             * @throws Exception
+             */
+            private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
+        	    String userId, Date fromDate, Date toDate, String geography)
+        	    throws Exception {
+        
+        	String privilegesQuery = "";
+        	LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
+        
+        	Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+        	Timestamp toDateTs = new Timestamp(toDate.getTime()
+        		+ Constants.ONE_DAY_IN_MILLIS - 1);
+        
+        	// Get the privileges for the user and append to the query constructed
+        	// above
+        	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
+        
+        	// Construct the Query for Wins
+        	StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
+        		userId, geography, fromDateTs, toDateTs, privilegesQuery);
+        	// Get wins using the constructed query
+        	LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(
+        		queryBufferForWins, userId);
+        
+        	// Get Wins Greater than 5 Million and 1 Million
+        	List<OpportunityT> oppWinsFiveMillion = null;
+        	List<OpportunityT> oppWinsOneMillion = null;
+        	Double sumOfDigitalDealValueFiveMillion = null;
+        	Double sumOfDigitalDealValueOneMillion = null;
+        	LeadershipWinsDTO leadershipWinsAboveFiveMillion = null;
+        	LeadershipWinsDTO leadershipWinsAboveOneMillion = null;
+        
+        	if ((leadershipWins != null)
+        		&& (!leadershipWins.getListOfWins().isEmpty())) {
+        	    oppWinsFiveMillion = new ArrayList<OpportunityT>();
+        	    oppWinsOneMillion = new ArrayList<OpportunityT>();
+        	    sumOfDigitalDealValueFiveMillion = 0.0;
+        	    sumOfDigitalDealValueOneMillion = 0.0;
+        
+        	    // Loop through the win list and get the digital deal value greater
+        	    // than 1M and 5M
+        	    for (OpportunityT oppWins : leadershipWins.getListOfWins()) {
+        		if ((oppWins.getDealCurrency() != null)
+        			&& (oppWins.getDigitalDealValue() != null)) {
+        		    // use beaconConverterService service to convert the
+        		    // existing value of digital deal value to USD
+        		    Double convertedDigitalDealValue = beaconConverterService
+        			    .convert(oppWins.getDealCurrency(), Constants.USD,
+        				    oppWins.getDigitalDealValue())
+        			    .doubleValue();
+        
+        		    if (convertedDigitalDealValue >= Constants.FIVE_MILLION) {
+        			if (leadershipWinsAboveFiveMillion == null) {
+        			    leadershipWinsAboveFiveMillion = new LeadershipWinsDTO();
+        			}
+        			sumOfDigitalDealValueFiveMillion = sumOfDigitalDealValueFiveMillion
+        				+ convertedDigitalDealValue;
+        			oppWinsFiveMillion.add(oppWins);
+        
+        		    }
+        		    if (convertedDigitalDealValue >= Constants.ONE_MILLION) {
+        			if (leadershipWinsAboveOneMillion == null) {
+        			    leadershipWinsAboveOneMillion = new LeadershipWinsDTO();
+        			}
+        			sumOfDigitalDealValueOneMillion = sumOfDigitalDealValueOneMillion
+        				+ convertedDigitalDealValue;
+        			oppWinsOneMillion.add(oppWins);
+        
+        		    }
+        		}
+        	    }
+        	    // Populate the bean if not empty
+        	    if ((leadershipWinsAboveFiveMillion != null)
+        		    && (!oppWinsFiveMillion.isEmpty())) {
+        		leadershipWinsAboveFiveMillion
+        			.setListOfWins(oppWinsFiveMillion);
+        		leadershipWinsAboveFiveMillion.setSizeOfWins(oppWinsFiveMillion
+        			.size());
+        		leadershipWinsAboveFiveMillion
+        			.setSumOfdigitalDealValue(sumOfDigitalDealValueFiveMillion);
+        	    }
+        	    if ((leadershipWinsAboveOneMillion != null)
+        		    && (!oppWinsOneMillion.isEmpty())) {
+        		leadershipWinsAboveOneMillion.setListOfWins(oppWinsOneMillion);
+        		leadershipWinsAboveOneMillion.setSizeOfWins(oppWinsOneMillion
+        			.size());
+        		leadershipWinsAboveOneMillion
+        			.setSumOfdigitalDealValue(sumOfDigitalDealValueOneMillion);
+        	    }
+        	}
+        
+        	// Throw Exception if both list are null else populate the bean
+        	if ((leadershipWins == null)
+        		&& (leadershipWinsAboveFiveMillion == null)
+        		&& (leadershipWinsAboveOneMillion == null)) {
+        	    logger.error("NOT_FOUND: Connects not found for user : {}" + userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "Connects not found for user : " + userId);
+        	} else {
+        	    leadershipTotalWinsDTO = new LeadershipOverallWinsDTO();
+        	    if (leadershipWins != null) {
+        		leadershipTotalWinsDTO.setLeadershipWins(leadershipWins);
+        	    }
+        	    if (leadershipWinsAboveFiveMillion != null) {
+        		leadershipTotalWinsDTO
+        			.setLeadershipWinsAboveFiveMillions(leadershipWinsAboveFiveMillion);
+        	    }
+        	    if (leadershipWinsAboveOneMillion != null) {
+        		leadershipTotalWinsDTO
+        			.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
+        	    }
+        	}
+        
+        	return leadershipTotalWinsDTO;
+            }
+        
+            /**
+             * This method constructs the queries dynamically and provides the output
+             * 
+             * @param userId
+             * @param geography
+             * @param fromDateTs
+             * @param toDateTs
+             * @param privileges
+             * @param dealValueFilter
+             * @return StringBuffer
+             * @throws Exception
+             */
+            private StringBuffer constructQueryForLeadershipDashboardWinsWithPrivileges(
+        	    String userId, String geography, Timestamp fromDateTs,
+        	    Timestamp toDateTs, String privileges) throws Exception {
+        
+        	StringBuffer query = new StringBuffer();
+        
+        	query.append(constructQueryForLeadershipDashboardWins(userId,
+        		geography, fromDateTs, toDateTs));
+        
+        	query.append(privileges);
+        
+        	return query;
+        
+            }
+        
+            /**
+             * This method performs operations to retrieve values from the database
+             * 
+             * @param queryBuffer
+             * @return LeadershipWinsDTO
+             * @throws Exception
+             */
+            private LeadershipWinsDTO getWinsFromQueryBuffer(StringBuffer queryBuffer,
+        	    String userId) throws Exception {
+        
+        	List<String> resultList = null;
+        	LeadershipWinsDTO leadershipWinsDTO = null;
+        	List<OpportunityT> opportunityList = new ArrayList<OpportunityT>();
+        	try {
+        	    Query teamWins = entityManager.createNativeQuery(queryBuffer
+        		    .toString());
+        
+        	    if ((teamWins != null) && !(teamWins.getResultList().isEmpty())) {
+        		leadershipWinsDTO = new LeadershipWinsDTO();
+        		resultList = teamWins.getResultList();
+        
+        		leadershipWinsDTO.setSizeOfWins(resultList.size());
+        		leadershipWinsDTO
+        			.setSumOfdigitalDealValue(opportunityRepository
+        				.findDigitalDealValueByOpportunityIdIn(resultList));
+        		opportunityList = opportunityRepository
+        			.findByOpportunityIdInOrderByCountryAsc(resultList);
+        		leadershipWinsDTO.setListOfWins(opportunityList);
+        	    }
+        	} catch (Exception e) {
+        	    logger.error(
+        		    "NOT_FOUND: An Internal Error has occured while processing request for {} : ",
+        		    userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "An Internal Error has occured while processing request for userId "
+        			    + userId);
+        	}
+        
+        	return leadershipWinsDTO;
+            }
+        
+            /**
+             * This method returns the dynamically generated query
+             * 
+             * @param userId
+             * @param geography
+             * @param fromDateTs
+             * @param toDateTs
+             * @return StringBuffer
+             */
+            private StringBuffer constructQueryForLeadershipDashboardWins(
+        	    String userId, String geography, Timestamp fromDateTs,
+        	    Timestamp toDateTs) throws Exception {
+        
+        	StringBuffer queryBuffer = new StringBuffer(
+        		TEAM_OPPORTUNITY_WIN_QUERY_PART1);
+        
+        	queryBuffer.append(geography);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
+        
+        	queryBuffer.append(fromDateTs);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART6);
+        
+        	queryBuffer.append(toDateTs);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART7);
+        
+        	return queryBuffer;
+        
+            }
+        
+            /**
+             * This service gives the Opportunities under a supervisor with stages such
+             * as Prospects, Qualified Pipeline, Won, Lost and shelved
+             * 
+             * @param userId
+             * @param fromDate
+             * @param toDate
+             * @param geography
+             * @return LeadershipOpportunitiesDTO
+             * @throws Exception
+             */
+            public LeadershipOpportunitiesDTO getLeadershipOpportunitiesByGeography(
+        	    String userId, Date fromDate, Date toDate, String geography)
+        	    throws Exception {
+        
+        	logger.debug("Inside getLeadershipOpportunitiesByGeography()");
+        
+        	LeadershipOpportunitiesDTO listOfOppportunities = null;
+        	UserT user = userService.findByUserId(userId);
+        
+        	if (user != null) {
+        
+        	    String userGroup = user.getUserGroupMappingT().getUserGroup();
+        
+        	    if (UserGroup.contains(userGroup)) {
+        		// Validate user group, BDM's & BDM supervisor's are not
+        		// authorized for this service
+        		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+        		case BDM:
+        		case BDM_SUPERVISOR:
+        		    logger.error("User is not authorized to access this service");
+        		    throw new DestinationException(HttpStatus.UNAUTHORIZED,
+        			    "User is not authorised to access this service");
+        		default:
+        		    listOfOppportunities = getLeadershipOpportunitiesByUserPrivileges(
+        			    userId, fromDate, toDate, geography);
+        		}
+        	    }
+        
+        	} else {
+        	    logger.error("NOT_FOUND: User not found: {}", userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "User not found: " + userId);
+        	}
+        
+        	return listOfOppportunities;
+        
+            }
+        
+            /**
+             * This method returns the Leadership Opportunities Details
+             * 
+             * @param userId
+             * @param fromDate
+             * @param toDate
+             * @param geography
+             * @return LeadershipOpportunitiesDTO
+             * @throws Exception
+             */
+            private LeadershipOpportunitiesDTO getLeadershipOpportunitiesByUserPrivileges(
+        	    String userId, Date fromDate, Date toDate, String geography)
+        	    throws Exception {
+        
+        	LeadershipOpportunitiesDTO listOfOppportunities = null;
+        
+        	List<LeadershipAllOpportunityDTO> listOfOpportunitiesBySalesCode = null;
+        	String privilegesQuery = "";
+        
+        	Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+        	Timestamp toDateTs = new Timestamp(toDate.getTime()
+        		+ Constants.ONE_DAY_IN_MILLIS - 1);
+        
+        	// Get the privileges for the user and append to the query constructed
+        	// above
+        	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
+        
+        	// Get the query constructed
+        	StringBuffer query = constructQueryForLeadershipDashboardOpportunitiesWithPrivileges(
+        		userId, geography, fromDateTs, toDateTs, privilegesQuery);
+        
+        	// Get Opportunity_id, Digital Deal Value and Sales Stage Code for given
+        	// supervisorId
+        	listOfOpportunitiesBySalesCode = getAllOpportunitiesUsingQuery(query,
+        		userId);
+        
+        	// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
+        	// i.e. 1(Prospecting), 4-8(Qualified Pipeline), 9(won), 10(lost),
+        	// 12(shelved)
+        	listOfOppportunities = getOpportunitiesBySalesStageCode(
+        		listOfOpportunitiesBySalesCode, userId);
+        
+        	return listOfOppportunities;
+        
+            }
+        
+            /**
+             * This method provides the opportunities based on sales stage code
+             * 
+             * @param listOfOpportunitiesBySalesCode
+             * @return LeadershipOpportunitiesDTO
+             * @throws Exception
+             */
+            private LeadershipOpportunitiesDTO getOpportunitiesBySalesStageCode(
+        	    List<LeadershipAllOpportunityDTO> listOfOpportunitiesBySalesCode,
+        	    String userId) throws Exception {
+        
+        	LeadershipOpportunitiesDTO leadershipOpportunitiesDTO = null;
+        	boolean checkOppExists = false;
+        	List<String> oppIdProspects = null;
+        	List<String> oppIdPipeline = null;
+        	List<String> oppIdWon = null;
+        	List<String> oppIdLost = null;
+        	List<String> oppIdShelved = null;
+        	Double sumOfDealValueProspects = new Double(0);
+        	Double sumOfDealValuePipeline = new Double(0);
+        	Double sumOfDealValueWon = new Double(0);
+        	Double sumOfDealValueLost = new Double(0);
+        	Double sumOfDealValueShelved = new Double(0);
+        
+        	if ((listOfOpportunitiesBySalesCode != null)
+        		&& (!listOfOpportunitiesBySalesCode.isEmpty())) {
+        
+        	    oppIdProspects = new ArrayList<String>();
+        	    oppIdPipeline = new ArrayList<String>();
+        	    oppIdWon = new ArrayList<String>();
+        	    oppIdLost = new ArrayList<String>();
+        	    oppIdShelved = new ArrayList<String>();
+        
+        	    leadershipOpportunitiesDTO = new LeadershipOpportunitiesDTO();
+        
+        	    for (LeadershipAllOpportunityDTO opp : listOfOpportunitiesBySalesCode) {
+        		if (opp.getSalesStageCode() != null) {
+        		    if (opp.getSalesStageCode() == 1) { // For Prospects
+        
+        			oppIdProspects.add(opp.getOpportunityId());
+        			if (opp.getDigitalDealValue() != null) {
+        			    sumOfDealValueProspects = sumOfDealValueProspects
+        				    + opp.getDigitalDealValue().doubleValue();
+        			}
+        		    } else if ((opp.getSalesStageCode() == 4)
+        			    || (opp.getSalesStageCode() == 5)
+        			    || (opp.getSalesStageCode() == 6)
+        			    || (opp.getSalesStageCode() == 7)
+        			    || (opp.getSalesStageCode() == 8)) { // For Pipeline
+        
+        			oppIdPipeline.add(opp.getOpportunityId());
+        			if (opp.getDigitalDealValue() != null) {
+        			    sumOfDealValuePipeline = sumOfDealValuePipeline
+        				    + opp.getDigitalDealValue().doubleValue();
+        			}
+        		    } else if (opp.getSalesStageCode() == 9) { // For Won
+        
+        			oppIdWon.add(opp.getOpportunityId());
+        			if (opp.getDigitalDealValue() != null) {
+        			    sumOfDealValueWon = sumOfDealValueWon
+        				    + opp.getDigitalDealValue().doubleValue();
+        			}
+        		    } else if (opp.getSalesStageCode() == 10) { // For Lost
+        
+        			oppIdLost.add(opp.getOpportunityId());
+        			if (opp.getDigitalDealValue() != null) {
+        			    sumOfDealValueLost = sumOfDealValueLost
+        				    + opp.getDigitalDealValue().doubleValue();
+        			}
+        		    } else if (opp.getSalesStageCode() == 12) { // For Shelved
+        
+        			oppIdShelved.add(opp.getOpportunityId());
+        			if (opp.getDigitalDealValue() != null) {
+        			    sumOfDealValueShelved = sumOfDealValueShelved
+        				    + opp.getDigitalDealValue().doubleValue();
+        			}
+        		    }
+        		}
+        	    }
+        	    if (!oppIdProspects.isEmpty()) {
+        		leadershipOpportunitiesDTO
+        			.setOppProspects(getLeadershipOpportunityObjectBySalesStageCode(
+        				oppIdProspects, sumOfDealValueProspects, userId));
+        		checkOppExists = true;
+        	    }
+        	    if (!oppIdPipeline.isEmpty()) {
+        		leadershipOpportunitiesDTO
+        			.setOppPipeline(getLeadershipOpportunityObjectBySalesStageCode(
+        				oppIdPipeline, sumOfDealValuePipeline, userId));
+        		checkOppExists = true;
+        	    }
+        	    if (!oppIdWon.isEmpty()) {
+        		leadershipOpportunitiesDTO
+        			.setOppWon(getLeadershipOpportunityObjectBySalesStageCode(
+        				oppIdWon, sumOfDealValueWon, userId));
+        		checkOppExists = true;
+        	    }
+        	    if (!oppIdLost.isEmpty()) {
+        		leadershipOpportunitiesDTO
+        			.setOppLost(getLeadershipOpportunityObjectBySalesStageCode(
+        				oppIdLost, sumOfDealValueLost, userId));
+        		checkOppExists = true;
+        	    }
+        	    if (!oppIdShelved.isEmpty()) {
+        		leadershipOpportunitiesDTO
+        			.setOppShelved(getLeadershipOpportunityObjectBySalesStageCode(
+        				oppIdShelved, sumOfDealValueShelved, userId));
+        		checkOppExists = true;
+        	    }
+        	}
+        	if (!checkOppExists) {
+        	    logger.error("NOT_FOUND: No Opportunity Found for user Id : {}",
+        		    userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "No Opportunity Found for user Id : " + userId);
+        	}
+        	return leadershipOpportunitiesDTO;
+            }
+        
+            /**
+             * This method returns the opportunity object per sales stage code
+             * 
+             * @param oppIdForCodeOne
+             * @param sumOfDealValueForCodeOne
+             * @return LeadershipOpportunityBySalesStageCodeDTO
+             * @throws Exception
+             */
+            private LeadershipOpportunityBySalesStageCodeDTO getLeadershipOpportunityObjectBySalesStageCode(
+        	    List<String> oppId, Double sumOfDealValue, String userId)
+        	    throws Exception {
+        
+        	LeadershipOpportunityBySalesStageCodeDTO oppBySalesCode = new LeadershipOpportunityBySalesStageCodeDTO();
+        	try {
+        	    List<OpportunityT> listOfOpp = opportunityRepository
+        		    .findByOpportunityIdInOrderByCountryAsc(oppId);
+        	    if (listOfOpp != null) {
+        		oppBySalesCode.setOpportunities(listOfOpp);
+        		oppBySalesCode.setSizeOfOpportunities(listOfOpp.size());
+        	    }
+        	    oppBySalesCode.setSumOfDigitalDealValue(sumOfDealValue);
+        	} catch (Exception e) {
+        	    logger.error(
+        		    "NOT_FOUND: An Internal Error has occured while processing request for {} : ",
+        		    userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "An Internal Error has occured while processing request for userId "
+        			    + userId);
+        	}
+        	return oppBySalesCode;
+            }
+        
+            /**
+             * This method helps in retrieving the values from the database and sets the
+             * approporate object
+             * 
+             * @param query
+             * @return List<LeadershipAllOpportunityDTO>
+             * @throws Exception
+             */
+            private List<LeadershipAllOpportunityDTO> getAllOpportunitiesUsingQuery(
+        	    StringBuffer query, String userId) throws Exception {
+        	List<LeadershipAllOpportunityDTO> listOfOpp = null;
+        	try {
+        	    TypedQuery<Object[]> teamOpportunities = (TypedQuery<Object[]>) entityManager
+        		    .createNativeQuery(query.toString());
+        
+        	    if ((teamOpportunities != null)
+        		    && !(teamOpportunities.getResultList().isEmpty())) {
+        
+        		listOfOpp = new ArrayList<LeadershipAllOpportunityDTO>();
+        
+        		for (Object[] opportunity : teamOpportunities.getResultList()) {
+        		    LeadershipAllOpportunityDTO opp = new LeadershipAllOpportunityDTO();
+        		    if (opportunity[2] != null) {
+        			opp.setSalesStageCode(((Integer) opportunity[2])
+        				.intValue());
+        		    }
+        		    if (opportunity[1] != null) {
+        			opp.setDigitalDealValue(BigDecimal.valueOf(Double
+        				.parseDouble(opportunity[1].toString())));
+        		    }
+        		    if (opportunity[0] != null) {
+        			opp.setOpportunityId(opportunity[0].toString());
+        		    }
+        		    listOfOpp.add(opp);
+        		}
+        
+        	    }
+        	} catch (Exception e) {
+        	    logger.error(
+        		    "NOT_FOUND: An Internal Error has occured while processing request for {} : ",
+        		    userId);
+        	    throw new DestinationException(HttpStatus.NOT_FOUND,
+        		    "An Internal Error has occured while processing request for userId "
+        			    + userId);
+        	}
+        	return listOfOpp;
+            }
+        
+            /**
+             * This method helps in generating the query string based on the input
+             * provided
+             * 
+             * @param userId
+             * @param geography
+             * @param fromDateTs
+             * @param toDateTs
+             * @param privilegesQueryString
+             * @return StringBuffer
+             */
+            private StringBuffer constructQueryForLeadershipDashboardOpportunitiesWithPrivileges(
+        	    String userId, String geography, Timestamp fromDateTs,
+        	    Timestamp toDateTs, String privilegesQueryString) {
+        
+        	StringBuffer queryBuffer = new StringBuffer();
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART1);
+        
+        	queryBuffer.append(geography);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART2);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
+        
+        	queryBuffer.append(userId);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
+        
+        	queryBuffer.append(fromDateTs);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART6);
+        
+        	queryBuffer.append(toDateTs);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART7);
+        
+        	queryBuffer.append(privilegesQueryString);
+        
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_SUFFIX);
+        
+        	return queryBuffer;
+            }
+        
 }
