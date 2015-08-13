@@ -3,7 +3,7 @@ package com.tcs.destination.enums;
 public enum UserGroup {
 	BDM("BDM"), BDM_SUPERVISOR("BDM Supervisor"), BID_OFFICE(
 			"Bid Office"), GEO_HEADS("GEO Heads"), STRATEGIC_INITIATIVES("Strategic Initiatives"),
-			SYSTEM("System");
+			SYSTEM("System"), IOU_HEADS("IOU Heads");
 
 	private final String value;
 

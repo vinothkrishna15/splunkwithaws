@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -326,7 +327,7 @@ public class DashBoardService {
 
 		// Append privileges obtained above
 		queryBufferForUpcomingConnects.append(privilegesQuery);
-		
+				
 		// Get the Connects using the constructed query 
 		List<ConnectT> listOfUpcomingConnects = getConnectsFromQueryBuffer(queryBufferForUpcomingConnects, supervisorId);
 	
@@ -525,6 +526,7 @@ public class DashBoardService {
         	// Get the privileges for the user and append to the query constructed
         	// above
         	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
+        	
         
         	// Construct the Query for Wins
         	StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
@@ -532,7 +534,7 @@ public class DashBoardService {
         	// Get wins using the constructed query
         	LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(
         		queryBufferForWins, userId);
-        
+
         	// Get Wins Greater than 5 Million and 1 Million
         	List<OpportunityT> oppWinsFiveMillion = null;
         	List<OpportunityT> oppWinsOneMillion = null;
@@ -588,7 +590,7 @@ public class DashBoardService {
         		leadershipWinsAboveFiveMillion.setSizeOfWins(oppWinsFiveMillion
         			.size());
         		leadershipWinsAboveFiveMillion
-        			.setSumOfdigitalDealValue(sumOfDigitalDealValueFiveMillion);
+        			.setSumOfdigitalDealValue(Double.parseDouble((new DecimalFormat("##.##").format(sumOfDigitalDealValueFiveMillion))));
         	    }
         	    if ((leadershipWinsAboveOneMillion != null)
         		    && (!oppWinsOneMillion.isEmpty())) {
@@ -596,7 +598,7 @@ public class DashBoardService {
         		leadershipWinsAboveOneMillion.setSizeOfWins(oppWinsOneMillion
         			.size());
         		leadershipWinsAboveOneMillion
-        			.setSumOfdigitalDealValue(sumOfDigitalDealValueOneMillion);
+        			.setSumOfdigitalDealValue(Double.parseDouble((new DecimalFormat("##.##").format(sumOfDigitalDealValueOneMillion))));
         	    }
         	}
         
@@ -604,9 +606,9 @@ public class DashBoardService {
         	if ((leadershipWins == null)
         		&& (leadershipWinsAboveFiveMillion == null)
         		&& (leadershipWinsAboveOneMillion == null)) {
-        	    logger.error("NOT_FOUND: Connects not found for user : {}" + userId);
+        	    logger.error("NOT_FOUND: No Opportuniy found for user : {}" + userId);
         	    throw new DestinationException(HttpStatus.NOT_FOUND,
-        		    "Connects not found for user : " + userId);
+        		    "No Opportuniy found for user : " + userId);
         	} else {
         	    leadershipTotalWinsDTO = new LeadershipOverallWinsDTO();
         	    if (leadershipWins != null) {
@@ -669,18 +671,20 @@ public class DashBoardService {
         	    Query teamWins = entityManager.createNativeQuery(queryBuffer
         		    .toString());
         
-        	    if ((teamWins != null) && !(teamWins.getResultList().isEmpty())) {
-        		leadershipWinsDTO = new LeadershipWinsDTO();
-        		resultList = teamWins.getResultList();
-        
-        		leadershipWinsDTO.setSizeOfWins(resultList.size());
-        		leadershipWinsDTO
-        			.setSumOfdigitalDealValue(opportunityRepository
-        				.findDigitalDealValueByOpportunityIdIn(resultList));
-        		opportunityList = opportunityRepository
-        			.findByOpportunityIdInOrderByCountryAsc(resultList);
-        		leadershipWinsDTO.setListOfWins(opportunityList);
-        	    }
+	    if ((teamWins != null) && !(teamWins.getResultList().isEmpty())) {
+		leadershipWinsDTO = new LeadershipWinsDTO();
+		resultList = teamWins.getResultList();
+
+		leadershipWinsDTO.setSizeOfWins(resultList.size());
+		leadershipWinsDTO.setSumOfdigitalDealValue(Double
+			.parseDouble((new DecimalFormat("##.##")
+				.format(opportunityRepository
+					.findDigitalDealValueByOpportunityIdIn(
+						resultList).doubleValue()))));
+		opportunityList = opportunityRepository
+			.findByOpportunityIdInOrderByCountryAsc(resultList);
+		leadershipWinsDTO.setListOfWins(opportunityList);
+	    }
         	} catch (Exception e) {
         	    logger.error(
         		    "NOT_FOUND: An Internal Error has occured while processing request for {} : ",
@@ -709,6 +713,10 @@ public class DashBoardService {
         	StringBuffer queryBuffer = new StringBuffer(
         		TEAM_OPPORTUNITY_WIN_QUERY_PART1);
         
+        	queryBuffer.append(geography);
+        	
+        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART1a);
+        	
         	queryBuffer.append(geography);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
@@ -971,7 +979,7 @@ public class DashBoardService {
         		oppBySalesCode.setOpportunities(listOfOpp);
         		oppBySalesCode.setSizeOfOpportunities(listOfOpp.size());
         	    }
-        	    oppBySalesCode.setSumOfDigitalDealValue(sumOfDealValue);
+        	    oppBySalesCode.setSumOfDigitalDealValue(Double.parseDouble((new DecimalFormat("##.##").format(sumOfDealValue))));
         	} catch (Exception e) {
         	    logger.error(
         		    "NOT_FOUND: An Internal Error has occured while processing request for {} : ",
@@ -1050,6 +1058,10 @@ public class DashBoardService {
         
         	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART1);
         
+        	queryBuffer.append(geography);
+        	
+        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART1a);
+        	
         	queryBuffer.append(geography);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART2);
