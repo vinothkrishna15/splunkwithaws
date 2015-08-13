@@ -54,7 +54,7 @@ public class CustomerController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside CustomerController /customer?namewith=" + nameWith
-				+ " GET");
+				+ "and starts with " + startsWith + " GET");
 		List<CustomerMasterT> customers = null;
 
 		if (!nameWith.isEmpty()) {
@@ -87,9 +87,11 @@ public class CustomerController {
 	}
 
 	/**
-	 * Controller method to find Top revenue customers based on user's access privileges.
+	 * Controller method to find Top revenue customers based on user's access
+	 * privileges.
 	 * 
-	 * @param userId, year, count.
+	 * @param userId
+	 *            , year, count.
 	 * @return Top revenue customers.
 	 */
 	@RequestMapping(value = "/topRevenue", method = RequestMethod.GET)

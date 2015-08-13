@@ -267,7 +267,7 @@ public class CustomerService {
 
 	public List<CustomerMasterT> findByNameStarting(String startsWith)
 			throws Exception {
-		logger.error("Starts With" + startsWith);
+		logger.debug("Starts With" + startsWith);
 		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
 		if (!startsWith.equals("@"))
 			custList.addAll(customerRepository

@@ -959,13 +959,14 @@ public class OpportunityService {
 
 	public List<OpportunityT> getByOpportunities(List<String> customerIdList,
 			List<Integer> salesStageCode, String strategicInitiative,
-			String newLogo, double minDigitalDealValue, double maxDigitalDealValue,
-			String dealCurrency, String digitalFlag, List<String> displayIou,
-			List<String> country, List<String> partnerId,
-			List<String> competitorName, List<String> searchKeywords,
-			List<String> bidRequestType, List<String> offering,
-			List<String> displaySubSp, List<String> opportunityName,
-			List<String> userId) throws DestinationException {
+			String newLogo, double minDigitalDealValue,
+			double maxDigitalDealValue, String dealCurrency,
+			String digitalFlag, List<String> displayIou, List<String> country,
+			List<String> partnerId, List<String> competitorName,
+			List<String> searchKeywords, List<String> bidRequestType,
+			List<String> offering, List<String> displaySubSp,
+			List<String> opportunityName, List<String> userId)
+			throws DestinationException {
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
 		customerIdList = fillIfEmpty(customerIdList);
@@ -997,6 +998,7 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities Found.");
 		}
+		prepareOpportunity(opportunity);
 		return opportunity;
 	}
 
@@ -1048,7 +1050,7 @@ public class OpportunityService {
 					int toIndex = PaginationUtils.getEndIndex(page, count,
 							opportunityTs.size()) + 1;
 					opportunityTs = opportunityTs.subList(fromIndex, toIndex);
-					logger.error("OpportunityT  after pagination size is "
+					logger.debug("OpportunityT  after pagination size is "
 							+ opportunityTs.size());
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
