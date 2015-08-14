@@ -674,6 +674,7 @@ public class BuildOpportunityReportService {
 			}
 			if (initialMerge && fields.size() > 0) {
 				for (int i = 0; i < colValue; i++) {
+					if(opportunity.getBidDetailsTs().size() > 0)
 					spreadSheet.addMergedRegion(new CellRangeAddress(currentRow - 1, currentRow + opportunity.getBidDetailsTs().size() - 2, i, i));
 				}
 			}
@@ -690,6 +691,11 @@ public class BuildOpportunityReportService {
 							spreadSheet.autoSizeColumn(colValue);
 						}
 						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
+						colValue++;
 					}
 					break;
 
@@ -703,6 +709,11 @@ public class BuildOpportunityReportService {
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
+						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					}
 
@@ -720,6 +731,11 @@ public class BuildOpportunityReportService {
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
+						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					}
 					break;
@@ -742,6 +758,11 @@ public class BuildOpportunityReportService {
 							bid++;
 						}
 						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
+						colValue++;
 					}
 					break;
 				case ReportConstants.TARGETBIDSUBMISSIONDATE:
@@ -757,6 +778,11 @@ public class BuildOpportunityReportService {
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
+						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					}
 					break;
@@ -774,6 +800,11 @@ public class BuildOpportunityReportService {
 							spreadSheet.autoSizeColumn(colValue);
 						}
 						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
+						colValue++;
 					}
 					break;
 				case ReportConstants.EXPECTEDDATEOFOUTCOME:
@@ -790,6 +821,11 @@ public class BuildOpportunityReportService {
 							spreadSheet.autoSizeColumn(colValue);
 						}
 						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
+						colValue++;
 					}
 					break;
 				case ReportConstants.WINPROBABILITY:
@@ -803,6 +839,11 @@ public class BuildOpportunityReportService {
 							spreadSheet.autoSizeColumn(colValue);
 						}
 						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
+						colValue++;
 					}
 					break;
 				case ReportConstants.COREATTRIBUTESUSEDFORWINNING:
@@ -815,6 +856,11 @@ public class BuildOpportunityReportService {
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
+						colValue++;
+					} else {
+						row.createCell(colValue).setCellValue("");
+						row.getCell(colValue).setCellStyle(dataRowStyle);
+						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					}
 					break;
