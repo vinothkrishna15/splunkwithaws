@@ -127,20 +127,39 @@ public class UserDetailsController {
 			UserAgent userAgent = UserAgent
 					.parseUserAgentString(httpServletRequest
 							.getHeader("User-Agent"));
-			Browser browser = userAgent.getBrowser();
-			String browserName = browser.getName();
-			String browserVersion = userAgent.getBrowserVersion().getVersion();
+			Browser browser = null;
+			String browserName = null;
+			String browserVersion = null;
+			if (userAgent.getBrowser() != null) {
+				browser = userAgent.getBrowser();
+				if (browser != null && browser.getName() != null)
+					browserName = browser.getName();
+			}
+			if (userAgent.getBrowserVersion() != null)	
+				browserVersion = userAgent.getBrowserVersion().getVersion();
 			logger.info("Browser: {}, Version: {}", browserName, browserVersion);
 			
 			// Get OS details
-			OperatingSystem os = userAgent.getOperatingSystem();
-			String osName = os.getName();
+			OperatingSystem os = null;
+			String osName = null;
+			short osVersion = 0; 
+			if (userAgent.getOperatingSystem() != null) {
+				os = userAgent.getOperatingSystem();
+				if (os != null) { 
+					osVersion = os.getId();
+					if (os.getName() != null)
+						osName = os.getName();
+				}
+			}
 
-			short osVersion = os.getId();
 			logger.info("OS: {}, Version: {}", os, (byte) osVersion);
 
 			// Get Device details
-			String device = os.getDeviceType().getName();
+			String device = null;
+			if (os.getDeviceType() != null) {
+				if (os.getDeviceType().getName() != null)
+					device = os.getDeviceType().getName();
+			}
 			logger.info("Device: {}", device);
 
 			// Save current login session
