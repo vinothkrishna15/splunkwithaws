@@ -32,6 +32,9 @@ import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
 import com.tcs.destination.bean.CustomerRevenueValues;
+import com.tcs.destination.bean.OpportunitySummaryValue;
+import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.ReportSummaryOpportunity;
 import com.tcs.destination.bean.TargetVsActualDetailed;
 import com.tcs.destination.bean.TargetVsActualQuarter;
 import com.tcs.destination.bean.TargetVsActualYearToDate;
@@ -43,6 +46,7 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -51,6 +55,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
 @Service
@@ -112,6 +117,12 @@ public class ReportsService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
+	
+	@Autowired
+	BuildOpportunityReportService buildOpportunityReportService;
+	
+	@Autowired
+	OpportunityRepository opportunityRepository;
 
 	private static final String CONNECT_REPORT_QUERY_PREFIX = "select distinct CON.connect_id ";
 
@@ -222,6 +233,92 @@ public class ReportsService {
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou where ";
+	
+	public static final String OPPORTUNITY_DETAILED_QUERY_PREFIX =
+			"select distinct OPP.opportunity_id from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " where ";
+
+public static final String OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX =
+			"select distinct SSMT.display_sub_sp,count(SSMT.display_sub_sp),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " where ";
+
+public static final String OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX =
+			"select distinct GMT.display_geography,count(GMT.display_geography),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " where ";
+
+public static final String OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX = 
+			"select distinct ICM.display_iou,count(ICM.display_iou),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " where ";
+
+public static final String OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX =
+			"select distinct SASMT.sales_stage_description,count(BDT.bid_id) as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			+ " from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
+			+ " where ";
+
+public static final String OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX =
+			"select distinct SSMT.display_sub_sp,count(BDT.bid_id) as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			+ " from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
+			+ " where ";
+
+public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
+			"select distinct SASMT.sales_stage_description,count(BDT.bid_id) as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			+ " from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+			+ " inner join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " inner join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
+			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
+			+ " where ";
 
 	private static final String CONNECT_START_DATE_COND_PREFIX = "CON.start_datetime_of_connect between "
 			+ Constants.SINGLE_QUOTE;
@@ -234,11 +331,14 @@ public class ReportsService {
 	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by display_geography";
 	private static final String CONNECT_IOU_GROUP_BY_COND_PREFIX = "group by display_iou";
 	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
-	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between "
+	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between "+ Constants.SINGLE_QUOTE;
+	private static final String BID_END_DATE_COND_C_PREFIX = " AND "
 			+ Constants.SINGLE_QUOTE;
-	private static final String BID_END_DATE_COND_PREFIX = " AND "
-			+ Constants.SINGLE_QUOTE;
-	private static final String BID_OFFICE_GROUP_OWNEER_COND_PREFIX = " (BIDGO.bid_office_group_owner in (";
+	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
+	
+	private static final String BID_END_DATE_COND_PREFIX = " AND "+Constants.SINGLE_QUOTE;
+	private static final String BID_OFFICE_GROUP_OWNEER_COND_PREFIX = " BIDGO.bid_office_group_owner in (";
+	
 
 	private static final String TARVSACT_GEO_COND_PREFIX = "GMT.geography in  (";
 	private static final String TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,PRDT.quarter";
@@ -256,6 +356,25 @@ public class ReportsService {
 	private static final String TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX = "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
 			+ "as RVNU group by RVNU.customer_name ,RVNU.display_geography order by revenue desc";
 
+	// ADDED STATIC STRINGS
+	
+		private static final String OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX = " OPP.sales_stage_code between 0 and 8 "+ Constants.OR_CLAUSE;
+		private static final String OPPORTUNITY_SALES_STAGE_COND = "SASMT.sales_stage_code";
+		private static final String OPPORTUNITY_START_DATE_COND_PREFIX = "OPP.deal_closure_date between "+Constants.SINGLE_QUOTE;
+		private static final String OPPORTUNITY_END_DATE_COND_PREFIX = " AND "+Constants.SINGLE_QUOTE;
+		private static final String OPPORTUNITY_GEO_COND_PREFIX = "GMT.geography in (";
+		private static final String OPPORTUNITY_SUBSP_COND_PREFIX = "SSMT.display_sub_sp IN (";
+		private static final String OPPORTUNITY_SALES_STAGE_COND_PREFIX = "OPP.sales_stage_code in (";
+		private static final String OPPORTUNITY_IOU_COND_PREFIX = "ICM.display_iou in (";
+		private static final String OPPORTUNITY_COUNTRY_COND_PREFIX = "OPP.country in (";
+		private static final String OPPORTUNITY_GEO_GROUP_BY_COND_PREFIX = "group by GMT.display_geography";
+		private static final String OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX = "group by ICM.display_iou";
+		private static final String OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX = "group by SSMT.display_sub_sp";
+		
+		
+
+	
+	
 	public List<TargetVsActualDetailed> getTargetVsActual(
 			List<String> geography, List<String> iou, String fromMonth,
 			String toMonth, List<String> currency, String userId)
@@ -2309,15 +2428,15 @@ public class ReportsService {
 		// Get WHERE clause string
 		queryBuffer.append(BID_START_DATE_COND_PREFIX
 				+ new Timestamp(startDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(BID_END_DATE_COND_PREFIX
+		queryBuffer.append(BID_END_DATE_COND_C_PREFIX
 				+ new Timestamp(endDate.getTime()) + Constants.SINGLE_QUOTE);
 		if (bidOwner.isEmpty() || bidOwner.size() == 0) {
-			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_PREFIX + "''" + ")"
+			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + "''" + ")"
 					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
 		} else {
 			String bidOwners = getQuarterListWithSingleQuotes(bidOwner);
 			queryBuffer.append(Constants.AND_CLAUSE
-					+ BID_OFFICE_GROUP_OWNEER_COND_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
+					+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
 					+ "))");
 		}
 		String whereClause = userAccessPrivilegeQueryBuilder
@@ -2337,4 +2456,441 @@ public class ReportsService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	// For Detailed Report
+	
+		public String getOpportunityDetailedQueryString(String userId, Date fromDate,
+				Date toDate, List<Integer> salesStage)throws Exception {
+			logger.debug("Inside getConnectSummaryQueryString() method" );
+			System.out.println("User Id "+userId);
+			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_DETAILED_QUERY_PREFIX);
+				// Get user access privilege groups 
+			HashMap<String, String> queryPrefixMap = 
+						userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+								OPPORTUNITY_IOU_COND_PREFIX, null);
+				// Get WHERE clause string
+			queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
+			queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
+			queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
+				String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+				if (whereClause != null && !whereClause.isEmpty()) { 
+					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+				}
+//				String salesStageCode = Joiner.on("\',\'").join(salesStage);
+//				if (!salesStage.isEmpty()) {
+//					salesStageCode = "\'" + salesStageCode + "\'";
+//				}
+				queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+				System.out.println("Opportunity Detail Query: "+queryBuffer.toString());
+				return queryBuffer.toString();
+		}
+		
+		// Detailed report ends here
+		
+		// Win Loss Service line
+		
+		public String getOpportunityServiceLineSummaryQueryString(String userId, Date fromDate,
+				Date toDate, Integer salesStage)throws Exception {
+			logger.debug("Inside getConnectSummaryQueryString() method" );
+			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX);
+				// Get user access privilege groups 
+			HashMap<String, String> queryPrefixMap = 
+						userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+								OPPORTUNITY_IOU_COND_PREFIX, null);
+				// Get WHERE clause string
+			queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
+			queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
+			queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
+				String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+				if (whereClause != null && !whereClause.isEmpty()) { 
+					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+				}
+				queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+				queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
+				System.out.println(queryBuffer.toString());
+				return queryBuffer.toString();
+		}
+		
+		//
+		
+		// Win Loss Geography
+		
+		public String getOpportunityGeoSummaryQueryString(String userId, Date fromDate,
+				Date toDate, Integer salesStage)throws Exception {
+			logger.debug("Inside getConnectSummaryQueryString() method" );
+			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX);
+				// Get user access privilege groups 
+			HashMap<String, String> queryPrefixMap = 
+						userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+								OPPORTUNITY_IOU_COND_PREFIX, null);
+				// Get WHERE clause string
+			queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
+			queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
+			queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
+				String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+				if (whereClause != null && !whereClause.isEmpty()) { 
+					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+				}
+				queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+				queryBuffer.append(Constants.SPACE+ OPPORTUNITY_GEO_GROUP_BY_COND_PREFIX);
+				System.out.println(queryBuffer.toString());
+				return queryBuffer.toString();
+		}
+		
+		//
+		
+		// Win Loss Iou
+		
+			public String getOpportunityIouSummaryQueryString(String userId, Date fromDate,
+					Date toDate, Integer salesStage)throws Exception {
+				logger.debug("Inside getConnectSummaryQueryString() method" );
+				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX);
+					// Get user access privilege groups 
+				HashMap<String, String> queryPrefixMap = 
+							userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+									OPPORTUNITY_IOU_COND_PREFIX, null);
+					// Get WHERE clause string
+				queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
+				queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
+				queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
+					String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+					if (whereClause != null && !whereClause.isEmpty()) { 
+						queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+					}
+					queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+					queryBuffer.append(Constants.SPACE+ OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX);
+					System.out.println(queryBuffer.toString());
+					return queryBuffer.toString();
+			}
+			
+			//
+			
+			// Anticipating or Pipeline Geography
+			
+			public String getPipelineAnticipatingOppGeoSummaryQueryString(String userId, Integer salesStage)throws Exception {
+				logger.debug("Inside getConnectSummaryQueryString() method" );
+				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX);
+					// Get user access privilege groups 
+				HashMap<String, String> queryPrefixMap = 
+							userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+									OPPORTUNITY_IOU_COND_PREFIX, null);
+					// Get WHERE clause string
+					queryBuffer.append(Constants.SPACE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+					String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+					if (whereClause != null && !whereClause.isEmpty()) { 
+						queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+					}
+					queryBuffer.append(Constants.SPACE+ OPPORTUNITY_GEO_GROUP_BY_COND_PREFIX + Constants.COMMA + OPPORTUNITY_SALES_STAGE_COND);
+					System.out.println(queryBuffer.toString());
+					return queryBuffer.toString();
+			}
+			
+			
+			//
+			
+			// Anticipating or Pipeline Iou
+			
+					public String getPipelineAnticipatingOppIouSummaryQueryString(String userId, Integer salesStage)throws Exception {
+						logger.debug("Inside getConnectSummaryQueryString() method" );
+						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX);
+							// Get user access privilege groups 
+						HashMap<String, String> queryPrefixMap = 
+									userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+											OPPORTUNITY_IOU_COND_PREFIX, null);
+						queryBuffer.append(Constants.SPACE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+							// Get WHERE clause string
+							String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+							if (whereClause != null && !whereClause.isEmpty()) { 
+								queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+							}
+							queryBuffer.append(Constants.SPACE+ OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX + Constants.COMMA + OPPORTUNITY_SALES_STAGE_COND);
+							System.out.println(queryBuffer.toString());
+							return queryBuffer.toString();
+					}
+					
+					
+					//
+					
+					// Anticipating or Pipeline Service Lines
+					
+					public String getPipelineAnticipatingOppServiceLineSummaryQueryString(String userId, List<Integer> salesStage)throws Exception {
+						logger.debug("Inside getConnectSummaryQueryString() method" );
+						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX);
+							// Get user access privilege groups 
+						HashMap<String, String> queryPrefixMap = 
+									userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+											OPPORTUNITY_IOU_COND_PREFIX, null);
+						queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+							// Get WHERE clause string
+							String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+							if (whereClause != null && !whereClause.isEmpty()) { 
+								queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+							}
+							queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
+							System.out.println(queryBuffer.toString());
+							return queryBuffer.toString();
+					}
+					
+					
+					//
+		
+
+					public InputStreamResource getOpportunitySummaryReport(String month,
+							String year, String quarter, List<String> geography,
+							List<String> country, List<String> iou, List<String> currency,
+							List<String> serviceLines, List<Integer> salesStage, String userId) throws Exception {
+						
+						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+							year = DateUtils.getCurrentFinancialYear();
+						}
+						XSSFWorkbook workbook = new XSSFWorkbook();
+						String tillDate=DateUtils.getCurrentDate();
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
+						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStage, userId,workbook);
+						ExcelUtils.arrangeSheetOrder(workbook);
+						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+						workbook.write(byteOutPutStream);
+						byteOutPutStream.flush();
+						byteOutPutStream.close();
+						byte[] bytes = byteOutPutStream.toByteArray();
+						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+						return inputStreamResource;
+					}
+					
+
+					public InputStreamResource getOpportunitiesWith(String month, String quarter,
+							String year, List<String> geography, List<String> country,
+							List<String> iou, List<String> serviceLines,
+							List<Integer> salesStage, List<String> currency, String userId,
+							List<String> fields, String toDate) throws Exception {
+						
+						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+							year = DateUtils.getCurrentFinancialYear();
+						}
+						XSSFWorkbook workbook = new XSSFWorkbook();
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate);
+						buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
+						ExcelUtils.arrangeSheetOrder(workbook);
+						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+						workbook.write(byteOutPutStream);
+						byteOutPutStream.flush();
+						byteOutPutStream.close();
+						byte[] bytes = byteOutPutStream.toByteArray();
+						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+						return inputStreamResource;
+					}
+					
+					
+
+					public InputStreamResource getOpportunityBothReport(String month,
+							String year, String quarter, List<String> geography,
+							List<String> country, List<String> iou, List<String> currency,
+							List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
+						
+						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+							year = DateUtils.getCurrentFinancialYear();
+						}
+						List<Integer> salesStageList = new ArrayList<Integer>(salesStage);
+						String fyear=new String(year);
+						String fquarter=new String(quarter);
+						String fmonth=new String(month);
+						XSSFWorkbook workbook = new XSSFWorkbook();
+						String tillDate = DateUtils.getCurrentDate();
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
+						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStage, userId,workbook);
+						buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStageList, currency, userId,fields,workbook);
+						ExcelUtils.arrangeSheetOrder(workbook);
+						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+						workbook.write(byteOutPutStream);
+						byteOutPutStream.flush();
+						byteOutPutStream.close();
+						byte[] bytes = byteOutPutStream.toByteArray();
+						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+						return inputStreamResource;
+					}
+					
+					
+
+					public void getOpportunitySummaryReportExcel(
+							String month, String year, String quarter, List<String> geography,
+							List<String> country, List<String> iou, List<String> currency,
+							List<String> serviceLines, List<Integer> salesStageList,
+							String userId, XSSFWorkbook workbook) throws DestinationException, Exception {
+						logger.debug("Inside Report Service getReportSummaryOpportunities method");
+						
+						String[] fromYear = null;
+						String[] toYear = null;
+						Boolean isDistinctIou = false;
+						List<Object[]> opportunityList = new ArrayList<Object[]>();
+						List<Integer> pipilineAntiSalesStageList = new ArrayList<Integer>(salesStageList);
+						List<ReportSummaryOpportunity> pipelineAntiIou = new ArrayList<ReportSummaryOpportunity>();
+						List<ReportSummaryOpportunity> pipelineAnticipatingGeography = new ArrayList<ReportSummaryOpportunity>();
+						List<ReportSummaryOpportunity> reportSummaryOpportunities = new ArrayList<ReportSummaryOpportunity>();
+						Map<String, List<ReportSummaryOpportunity>> reportSummaryOppMap = new TreeMap<String, List<ReportSummaryOpportunity>>();
+						List<String> userIds = new ArrayList<String>();
+						List<String> geoList = new ArrayList<String>();
+						List<String> iouList = new ArrayList<String>();
+						List<String> countryList = new ArrayList<String>();
+						List<String> serviceLinesList = new ArrayList<String>();
+						addItemToListGeo(geography,geoList);
+						addItemToList(iou,iouList);
+						addItemToList(country,countryList);
+						addItemToList(serviceLines,serviceLinesList);
+						// ADD USERIDS HERE ITSELF
+						UserT user = userRepository.findByUserId(userId);
+						if(user == null){
+							logger.error("User Id Not Found "+ userId );
+							throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
+						}
+						String userGroup = user.getUserGroupMappingT().getUserGroup();
+						switch (userGroup) {
+						case ReportConstants.BDM:
+							userIds.add(userId);
+							break;
+						case ReportConstants.BDMSUPERVISOR:
+							List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
+							userIds.addAll(subOrdinatesList);
+							if(!userIds.contains(userId)){
+								userIds.add(userId);
+							}
+							break;
+						}
+
+						for (int i = 0; i < salesStageList.size();) {
+
+							if (salesStageList.get(i) < 9) {
+								switch (userGroup) {
+								case ReportConstants.BDM:
+									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds);
+									break;
+								case ReportConstants.BDMSUPERVISOR:
+									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds);
+									break;
+								default:
+										if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
+											String queryString = getPipelineAnticipatingOppGeoSummaryQueryString(userId,salesStageList.get(i));
+											Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+											opportunityList = opportunitySummaryReportQuery.getResultList();
+										} else {
+											opportunityList = opportunityRepository.findSummaryGeography(geoList, countryList, iouList, serviceLinesList, 
+													salesStageList.get(i));
+										}
+									break;
+								}
+								if (opportunityList.size() > 0) {
+									pipelineAnticipatingGeography.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
+													opportunityList, salesStageList.get(i),false));
+								}
+								if (isDistinctIou) {
+									switch (userGroup) {
+									case ReportConstants.BDM:
+										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds);
+										break;
+									case ReportConstants.BDMSUPERVISOR:
+										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds);
+										break;
+									default:
+											if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
+												String queryString = getPipelineAnticipatingOppIouSummaryQueryString(userId,salesStageList.get(i));
+												Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+												opportunityList = opportunitySummaryReportQuery.getResultList();
+												
+											} else {
+												opportunityList = opportunityRepository.findSummaryIou(geoList, countryList, iouList, serviceLinesList, 
+														salesStageList.get(i));
+											}
+										break;
+									}
+//									opportunityList = opportunityRepository.findSummaryIou(
+//											geography, country, iou, serviceLines,salesStageList.get(i));
+									if (opportunityList.size() > 0) {
+										pipelineAntiIou.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
+											opportunityList, salesStageList.get(i),isDistinctIou));
+									}
+								}
+								salesStageList.remove(salesStageList.get(i));
+							} else {
+								i++;
+							}
+						}
+						
+						List<ReportSummaryOpportunity> serviceLinesOpp = buildOpportunityReportService.getServiceLineForPipelineAnticipating(currency, 
+								geography,country, iou, serviceLines, pipilineAntiSalesStageList,userIds, userId, userGroup);
+						if(serviceLinesOpp.size() > 0){
+						reportSummaryOppMap.put("pipelineAnticipatingServiceLine",serviceLinesOpp);
+						}
+						if (pipelineAnticipatingGeography.size() > 0) {
+							reportSummaryOppMap.put("pipelineAnticipatingGeography",
+									pipelineAnticipatingGeography);
+						}
+						if (pipelineAntiIou.size() > 0) {
+							reportSummaryOppMap.put("pipelineAnticipatingIou", pipelineAntiIou);
+						}
+						
+						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
+							if (salesStageList.isEmpty()) {
+								salesStageList.add(9);
+								salesStageList.add(10);
+							}
+							List<OpportunityT> oppList = opportunityRepository.getAllYear();
+							if(oppList.size() == 0){
+								throw new DestinationException(HttpStatus.NOT_FOUND, "No Wins Or Loss Opportunities Found");
+							}
+							fromYear = oppList.get(0).getDealClosureDate().toString().split("-");
+							toYear = oppList.get(oppList.size() - 1).getDealClosureDate().toString().split("-");
+							int startingYear = ExcelUtils.getStartingAndEndingYear(fromYear, true);
+							int endingYear = ExcelUtils.getStartingAndEndingYear(toYear, false);
+							for (; startingYear < endingYear; startingYear++) {
+								String endingFinancialYear = ((startingYear + 1) + "");
+								year = "FY'" + startingYear + "-"+ (endingFinancialYear.substring(2, 4));
+								reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month,year, quarter, geography, country,
+									iou, serviceLines,salesStageList, userIds, userId, isDistinctIou, userGroup);
+								if (reportSummaryOpportunities.size() > 0) {
+									reportSummaryOppMap.put(year, reportSummaryOpportunities);
+								}
+							}
+						} else {
+							reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month, year,
+									quarter, geography, country, iou, serviceLines,
+									salesStageList, userIds, userId, isDistinctIou, userGroup);
+							if (reportSummaryOpportunities.size() > 0) {
+								if (!month.isEmpty()) {
+									reportSummaryOppMap
+											.put("month", reportSummaryOpportunities);
+								} else if (!quarter.isEmpty()) {
+									reportSummaryOppMap
+											.put(quarter, reportSummaryOpportunities);
+								} else {
+									reportSummaryOppMap.put(year, reportSummaryOpportunities);
+								}
+							}
+						}
+						if (reportSummaryOppMap.size() > 0) {
+							buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
+						}else{
+							logger.error("No Data Found In Database");
+							throw new DestinationException(HttpStatus.NOT_FOUND,"No Data Found In Database");
+						}
+					}
+
+					
+					
+					public void addItemToList(List<String> itemList, List<String> targetList){
+						if(itemList.contains("All") && itemList.isEmpty()){
+							itemList.add("");
+						} else {
+							targetList.addAll(itemList);
+						}
+					}
+					
+					public void addItemToListGeo(List<String> itemList, List<String> targetList){
+						if(itemList.contains("All") && itemList.isEmpty()){
+							itemList.add("");
+						} else {
+							targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
+						}
+					}
+
+
+	
 }

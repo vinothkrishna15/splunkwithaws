@@ -75,7 +75,7 @@ public class ConnectDetailedReportService {
 	}
 
 	public void CreateHeaderForMandatoryFields(XSSFRow row, XSSFSheet spreadSheet) {
-		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.HEADER);
+		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER1);
 		row.createCell(0).setCellValue(ReportConstants.CONNECTID);
 		row.getCell(0).setCellStyle(headerSyle);
 		spreadSheet.autoSizeColumn(0);
@@ -103,7 +103,7 @@ public class ConnectDetailedReportService {
 		CreateHeaderForMandatoryFields(row, spreadSheet);
 		int columnNo = 6;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.HEADER);
+				ReportConstants.REPORTHEADER1);
 		for (String field : fields) {
 			switch (field) {
 			case ReportConstants.TASK:
@@ -441,8 +441,7 @@ public class ConnectDetailedReportService {
 		
 		XSSFSheet spreadsheet = workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
-		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.HEADER);
+		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,	ReportConstants.REPORTHEADER);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,

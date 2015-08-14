@@ -25,7 +25,7 @@ public interface BidDetailsTRepository extends
 			+ "  JOIN sub_sp_mapping_t SSM ON OPSUBL.sub_sp=SSM.sub_sp where"
 			+ " (BIDGO.bid_office_group_owner IN (:bidOwner) OR ('') IN (:bidOwner)) AND"
 			+ " (BID.bid_request_receive_date between (:startDate) AND (:endDate)) AND"
-			+ " (GMT.display_geography IN (:geography) OR ('') IN (:geography)) AND"
+			+ " (GMT.geography IN (:geography) OR ('') IN (:geography)) AND"
 			+ " (GCMT.country IN (:country) OR ('') IN (:country)) AND"
 			+ " (SSM.display_sub_sp IN (:serviceLine) OR ('') IN (:serviceLine)) AND"
 			+ " (ICMT.display_iou IN (:iou) OR ('') IN (:iou))", nativeQuery = true)
@@ -36,4 +36,9 @@ public interface BidDetailsTRepository extends
 			@Param("geography") List<String> geography,
 			@Param("country") List<String> country,
 			@Param("serviceLine") List<String> serviceLine);
+
+	@Query(value = "select distinct (BID.*) from bid_details_t BID where BID.bid_id in (:bidId) order by BID.bid_id", nativeQuery = true)
+	List<BidDetailsT> findByBidId(
+			@Param("bidId")List<String> bidId);
+	
 }

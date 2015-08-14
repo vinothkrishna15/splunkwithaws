@@ -15,5 +15,7 @@ public interface GeographyRepository extends
 
 	@Query(value = "select distinct(GMT.geography) from  geography_mapping_t GMT where display_geography in (:geoList)" ,nativeQuery =  true)
 	List<String> findByDisplayGeography(@Param("geoList") List<String> geoList);
+	
+	GeographyMappingT findByGeography(String geography);
 
 }

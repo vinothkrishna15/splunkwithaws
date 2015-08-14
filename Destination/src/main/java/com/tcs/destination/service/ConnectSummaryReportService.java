@@ -46,9 +46,9 @@ public class ConnectSummaryReportService {
 		int currentRow = 0;
 		int colValue = 0;
 		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.HEADER);
+				ReportConstants.REPORTHEADER);
 		CellStyle cellStyle1 = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.HEADER1);
+				ReportConstants.REPORTHEADER1);
 		row = spreadSheet.createRow((short) currentRow);
 		if (!month.isEmpty()) {
 			currentRow = connectSummaryReport(subSpConnectCountList,

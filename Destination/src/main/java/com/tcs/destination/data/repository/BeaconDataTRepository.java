@@ -30,5 +30,49 @@ public interface BeaconDataTRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
 			@Param("quarterList") List<String> quarterList);
+	
+	@Query(value = "select sum(BDT.target) from beacon_data_t BDT "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where BDT.quarter in (:quarterList)", nativeQuery = true)
+	public Object[] getTotalTargetByQuarter(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("quarterList") List<String> quarterList);
+	
+	@Query(value = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
+			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where BDT.quarter in (:quarterList) "
+//			+ "and  BDT.beacon_customer_name <>'' "
+			+ "group by BCMT.customer_name " 
+			+ "order by revenue_sum desc", nativeQuery = true)
+	public List<Object[]> getTargetRevenueByQuarter(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("quarterList") List<String> quarterList);
+	
+//	@Query(value = "select ICMT.display_iou,GMT.display_geography,BCMT.customer_name from beacon_data_t BDT "
+//			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+//			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
+//			+ "JOIN iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
+//			+ "where BCMT.customer_name = ?1 LIMIT 1", nativeQuery = true)
+//	public Object[][] getGeographyAndIouByCustomer(String customerName);
+	
+	@Query(value = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
+			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where BDT.quarter in (:quarterList) "
+//			+ "and  BDT.beacon_customer_name <>'' "
+			+ "group by BCMT.customer_name " 
+			+ "order by revenue_sum desc", nativeQuery = true)
+	public List<Object[]> getOverAllTargetRevenue(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("quarterList") List<String> quarterList);
+
+
 
 }

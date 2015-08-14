@@ -1,5 +1,8 @@
 package com.tcs.destination.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 
 public class ReportConstants {
 
@@ -51,8 +54,8 @@ public class ReportConstants {
 	public static final String TASKSTATUS = "Task Status";
 	public static final String TASKNOTE = "Task Notes";
 	public static final String TASKUPDATEDNOTES = "Task Updated Notes";
-	public static final String HEADER = "header";
-	public static final String HEADER1 = "header1";
+	public static final String REPORTHEADER = "reportHeader";
+	public static final String REPORTHEADER1 = "reportHeader1";
 	public static final String DATAROW = "dataRow";
 	public static final String SERVICELINESPLIT = "Service Line Split";
 	public static final String GEOSPLIT = "GEO Split";
@@ -71,7 +74,7 @@ public class ReportConstants {
 	public static final String OPPORTUNITYNAME = "Opportunity Name";
 	public static final String DIGITALDEALVALUE = "Digital Deal Value";
 	public static final String CRMID = "CrmId";
-	public static final String HEADINGSTYLE = "headingStyle";
+	public static final String REPORTHEADINGSTYLE = "reportHeadingStyle";
 	public static final String SUBHEADINGSTYLE = "subHeadingStyle";
 	public static final String SUBHEADINGSTYLE2 = "subHeadingStyle2";
 	public static final String SUBHEADINGSTYLE3 = "subHeadingStyle3";
@@ -132,6 +135,31 @@ public class ReportConstants {
 	public static final String Q2 = "Q2";
 	public static final String Q3 = "Q3";
 	public static final String Q4 = "Q4";
+	
+	public static final String HEADER = "header";
+	public static final String HEADER1 = "header1";
+	public static final String ROWS = "Row";
+	public static final String DIGITALDEALVALUEPROJECTCURRENCY = "projectDealValue";
+	public static final String CUSTNAME = "customerName";
+	public static final String WINS = "Wins";
+	public static final String LOSSES = "Losses";
+	public static final String PROSPECTS = "Prospects";
+	public static final String PIPELINE = "Pipeline";
+	public static final String OPPORTUNITIES = "Opportunities";
+	public static final String TITLE = "Title";
+	public static final String COMPLETEDATA = "Complete Data";
+	public static final int OFFSETCOLUMNVALUE=0;
+	public static final int OFFSETCOLUMNGEO=4;
+	public static final int OFFSETCOLUMNIOU=8;
+	public static final String STARTINGCOLUMN = "startingColumn";
+	public static final String ENDINGCOLUMN = "endingColumn";
+	public static final String ENDINGROW = "endingRow";
+	public static final String QUARTERS[] = { "Q1", "Q2", "Q3", "Q4", "Total" };
+	public static final List<String> FIRSTQUARTER = Arrays.asList("Q1 ", "APR", "JUL", "OCT","JAN");
+	public static final List<String> SECONDQUARTER = Arrays.asList("Q2 ", "MAY", "AUG", "NOV","FEB");
+	public static final List<String> THIRDQUARTER = Arrays.asList("Q3 ", "JUN", "SEP", "DEC","MAR");
+	public static final String SUMMARYGEOGRAPHYQUERYMETHOD = "findSummaryGeography";
+	public static final String HEADINGSTYLE = "headingStyle";	
 	
 
 }

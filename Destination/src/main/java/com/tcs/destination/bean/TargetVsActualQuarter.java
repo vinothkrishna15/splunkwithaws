@@ -23,11 +23,16 @@ public class TargetVsActualQuarter {
 	@JsonIgnore
 	private BigDecimal projected;
 
+	@JsonIgnore
+	private BigDecimal revenue;
+
 	private List<CurrencyValue> targetValues;
 
 	private List<CurrencyValue> actualValues;
 
 	private List<CurrencyValue> projectedValues;
+
+	private List<CurrencyValue> revenueValues;
 
 	public String getQuarter() {
 		return quarter;
@@ -89,7 +94,7 @@ public class TargetVsActualQuarter {
 		if (projected != null)
 			targetAchieved = targetAchieved.add(projected);
 		if (target == null || target.compareTo(BigDecimal.ZERO) == 0)
-			return targetAchieved;
+			return BigDecimal.ZERO;
 		else
 			return targetAchieved.divide(target, 4, RoundingMode.HALF_UP);
 	}
@@ -126,4 +131,27 @@ public class TargetVsActualQuarter {
 	public void setProjectedValues(List<CurrencyValue> projectedValues) {
 		this.projectedValues = projectedValues;
 	}
+
+	public BigDecimal getRevenue() {
+		if (revenue == null) {
+			revenue = new BigDecimal(0);
+			if (actual != null)
+				revenue = revenue.add(actual);
+			if (projected != null)
+				revenue = revenue.add(projected);
+		}
+		return revenue;
+	}
+
+	public List<CurrencyValue> getRevenueValues() {
+		if (revenueValues == null) {
+			revenueValues = new ArrayList<CurrencyValue>();
+		}
+		return revenueValues;
+	}
+
+	public void setRevenueValues(List<CurrencyValue> revenueValues) {
+		this.revenueValues = revenueValues;
+	}
+
 }

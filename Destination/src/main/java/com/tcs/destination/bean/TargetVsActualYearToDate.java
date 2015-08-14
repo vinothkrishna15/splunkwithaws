@@ -25,11 +25,16 @@ public class TargetVsActualYearToDate {
 	@JsonIgnore
 	private BigDecimal projected;
 
+	@JsonIgnore
+	private BigDecimal revenue;
+
 	private List<CurrencyValue> targetValues;
 
 	private List<CurrencyValue> actualValues;
 
 	private List<CurrencyValue> projectedValues;
+
+	private List<CurrencyValue> revenueValues;
 
 	public String getFinancialYear() {
 		return financialYear;
@@ -94,6 +99,18 @@ public class TargetVsActualYearToDate {
 		}
 		return projected;
 	}
+	
+	public BigDecimal getRevenue() {
+		if (revenue == null) {
+			revenue = new BigDecimal(0);
+			if (actual != null)
+				revenue = revenue.add(getActual());
+			if (projected != null)
+				revenue = revenue.add(getProjected());
+		}
+		return revenue;
+	}
+	
 
 	/**
 	 * Manipulates the target achieved and returns the value based on values
@@ -102,15 +119,11 @@ public class TargetVsActualYearToDate {
 	 * @return Target Achieved in % , ranging (0,1)
 	 */
 	public BigDecimal getTargetAchieved() {
-		BigDecimal targetAchieved = new BigDecimal(0);
-		if (actual != null)
-			targetAchieved = targetAchieved.add(getActual());
-		if (projected != null)
-			targetAchieved = targetAchieved.add(getProjected());
+
 		if (target == null || target.compareTo(BigDecimal.ZERO) == 0)
-			return targetAchieved;
+			return BigDecimal.ZERO;
 		else {
-			return targetAchieved.divide(target, 4, RoundingMode.HALF_UP);
+			return getRevenue().divide(target, 4, RoundingMode.HALF_UP);
 		}
 	}
 
@@ -155,4 +168,14 @@ public class TargetVsActualYearToDate {
 		this.projectedValues = projectedValues;
 	}
 
+	public List<CurrencyValue> getRevenueValues() {
+		if (revenueValues == null) {
+			revenueValues = new ArrayList<CurrencyValue>();
+		}
+		return revenueValues;
+	}
+
+	public void setRevenueValues(List<CurrencyValue> revenueValues) {
+		this.revenueValues = revenueValues;
+	}
 }

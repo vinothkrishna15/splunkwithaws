@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -426,4 +427,127 @@ public class DateUtils {
 		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd MMM yyyy");
 		return formatDate.format(date);
 	}
+	
+	/**
+	 * 
+	 * @param financialYear
+	 *            in the format FY'20xx-xx
+	 * @return
+	 * @throws DestinationException
+	 */
+	public static ArrayList<String> getQuarters(String financialYear)
+			throws DestinationException {
+		ArrayList<String> quarterList = new ArrayList<String>();
+		String years = financialYear.split("'")[1];
+		if (years == null || years.isEmpty()) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Financial Year format. Must be in the format FY'20xx-xx.");
+		} else {
+			Integer currentYear = 0;
+			try {
+				currentYear = Integer.parseInt(years.split("-")[0]);
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Financial Year format. Must be in the format FY'20xx-xx.");
+			}
+
+			for (int i = 1; i < 5; i++) {
+					quarterList.add("Q" + i + " - " + currentYear +"-" + years.split("-")[1]);
+			}
+		}
+
+		return quarterList;
+	}
+
+	/**
+	 * 
+	 * @param quarter
+	 *            The Quarter in the format Qx - 20XX-YY
+	 * @return
+	 * @throws DestinationException
+	 */
+	public static ArrayList<String> getMonths(String quarter)
+			throws DestinationException {
+		ArrayList<String> monthList = new ArrayList<String>();
+		String years = quarter.split(" ")[0];
+		if (years == null || years.isEmpty()) {
+			logger.error("Exception in Quarter Format " + quarter);
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Quarter format. Must be in the format Qx - 20xx-xx.");
+		} else {
+
+			String[] quarterArray = null;
+			Integer quarterNumber = 0;
+			Integer currentYear = 0;
+			try {
+				quarterArray = years.split("-");
+				quarterNumber = Integer
+						.parseInt(quarterArray[0].charAt(1) + "");
+				currentYear = Integer.parseInt(quarterArray[1].trim());
+			} catch (Exception e) {
+				logger.error("Exception in Quarter Format " + e);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Quarter format. Must be in the format Qx - 20xx-xx.");
+			}
+
+				switch (quarterNumber) {
+				case 1:
+					monthList.add("APR-" + currentYear);
+					monthList.add("MAY-" + currentYear);
+					monthList.add("JUN-" + currentYear);
+					break;
+				case 2:
+					monthList.add("JUL-" + currentYear);
+					monthList.add("AUG-" + currentYear);
+					monthList.add("SEP-" + currentYear);
+					break;
+				case 3:
+					monthList.add("OCT-" + currentYear);
+					monthList.add("NOV-" + currentYear);
+					monthList.add("DEC-" + currentYear);
+					break;
+				case 4:
+					monthList.add("JAN-" + (currentYear + 1));
+					monthList.add("FEB-" + (currentYear + 1));
+					monthList.add("MAR-" + (currentYear + 1));
+					break;
+				default:
+					break;
+				}
+			}
+
+		return monthList;
+	}
+	
+	// Return sub category list of year,quarter and month
+		public static Map<String, Date> getSubDatesList(String month, String year,
+				String quarter, boolean isFromDate) throws Exception,
+				DestinationException {
+			Map<String, Date> dateMap = new LinkedHashMap<String, Date>();
+			List<String> subCategoryList = new ArrayList<String>();
+			if (!month.isEmpty()) {
+				subCategoryList.add(month);
+				dateMap.put(month,
+						DateUtils.getDateFromMonth(month, isFromDate));
+			} else if (!year.isEmpty()) {
+				subCategoryList = DateUtils.getQuarters(year);
+				for (String subCategory : subCategoryList) {
+					dateMap.put(subCategory,
+							DateUtils.getDateFromQuarter(subCategory, isFromDate));
+				}
+			} else if (!quarter.isEmpty()) {
+				subCategoryList = DateUtils.getMonths(quarter);
+				for (String subCategory : subCategoryList) {
+					dateMap.put(subCategory,
+							DateUtils.getDateFromMonth(subCategory, isFromDate));
+				}
+			} else {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						"Unable to pick date for the given request");
+			}
+			return dateMap;
+		}	
+
+	
+	
 }

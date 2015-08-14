@@ -26,4 +26,5 @@ public interface ConnectSecondaryOwnerRepository extends
 			@Param("endTime") Timestamp endTime,
 			@Param("customerId") String customerId,
 			@Param("partnerId") String partnerId);
+	
 }

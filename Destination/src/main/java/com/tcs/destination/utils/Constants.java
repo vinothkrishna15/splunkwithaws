@@ -28,5 +28,6 @@ public class Constants {
 	public static final Double FIVE_MILLION = 5000000.0;
 	public static final Double ONE_MILLION = 1000000.0;
 	public static final String USD = "USD";
+	public static final String SPACE = "";
 
 }

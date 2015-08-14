@@ -93,4 +93,26 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
 
+	@Query(value = "select case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as revenue_sum from projected_revenues_data_t PRDT "
+			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where upper(PRDT.month) in (:monthList)", nativeQuery = true)
+	public Object[] getTotalProjectedRevenuesByQuarter(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("monthList") List<String> monthList);
+	
+	@Query(value = "select RCMT.customer_name,case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as revenue_sum from projected_revenues_data_t PRDT "
+			+" JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "where upper(PRDT.month) in (:monthList) "
+			+ "group by RCMT.customer_name " 
+			+ "order by revenue_sum desc LIMIT 30", nativeQuery = true)
+	public List<Object[]> getProjectedRevenues(
+			@Param("iouList") List<String> iouList,
+			@Param("geoList") List<String> geoList,
+			@Param("monthList") List<String> monthList);
+	
+	
 }

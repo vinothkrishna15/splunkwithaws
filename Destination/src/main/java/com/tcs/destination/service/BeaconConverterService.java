@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.BeaconConvertorMappingT;
+import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.OpportunityDealValue;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
@@ -122,4 +123,37 @@ public class BeaconConverterService {
 		return opportunityT;
 	}
 
+	public List<BidDetailsT> convertBidDetailsCurrency(List<BidDetailsT> bidDetailsList, List<String> toCurrency)
+			throws DestinationException {
+		if (!bidDetailsList.isEmpty() && !toCurrency.isEmpty()) {
+			for (BidDetailsT bidDetail : bidDetailsList) {
+				convertBidDetailsCurrency(bidDetail, toCurrency);
+			}
+		}
+		return bidDetailsList;
+	}
+	
+	public BidDetailsT convertBidDetailsCurrency(BidDetailsT bidDetailsT,
+			List<String> toCurrency) throws DestinationException {
+		if (bidDetailsT != null && !toCurrency.isEmpty()) {
+			List<OpportunityDealValue> opportunityDealValues = new ArrayList<OpportunityDealValue>();
+			for (String currency : toCurrency) {
+				OpportunityDealValue opportunityDealValue = new OpportunityDealValue();
+				String fromCurrency = bidDetailsT.getOpportunityT().getDealCurrency();
+				if (fromCurrency != null && !fromCurrency.isEmpty()) {
+					if (bidDetailsT.getOpportunityT().getDigitalDealValue() != null) {
+						opportunityDealValue.setDigitalDealValue(convert(fromCurrency, currency,bidDetailsT.getOpportunityT().getDigitalDealValue()));
+					}
+					if (bidDetailsT.getOpportunityT().getOverallDealSize() != null) {
+						opportunityDealValue.setOverallDealSize(convert(fromCurrency, currency, bidDetailsT.getOpportunityT().getOverallDealSize()));
+					}
+					opportunityDealValue.setCurrency(currency);
+				}
+				opportunityDealValues.add(opportunityDealValue);
+			}
+			bidDetailsT.getOpportunityT().setOpportunityDealValues(opportunityDealValues);
+		}
+		return bidDetailsT;
+	}
+	
 }

@@ -298,5 +298,86 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 	}
 
+	/**
+	 * This method gives detailed report of all the opportunities for the given sales stage code.
+	 * 
+	 * @param userId.
+	 * @return opportunity details for the given user id.
+	 */
+	@RequestMapping(value = "/opportunity/detailed", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> getDetailedOpportunityReport(
+			@RequestParam(value = "month", defaultValue = "") String month,
+			@RequestParam(value = "year", defaultValue = "") String year,
+			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
+			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
+			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "salesStage", defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		String toDate=DateUtils.getCurrentDate();
+		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceLines,salesStage, currency,userId,fields,toDate);
+		HttpHeaders respHeaders = new HttpHeaders();
+	    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
+		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		logger.debug("Connect Detailed Report Downloaded Successfully ");
+		return new ResponseEntity<InputStreamResource>(opportunityDetailedReportExcel, respHeaders,HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/opportunity/summary", method = RequestMethod.GET)			
+	public @ResponseBody ResponseEntity<InputStreamResource> getOpportunitySummary(
+			@RequestParam(value = "month", defaultValue = "") String month,
+			@RequestParam(value = "year", defaultValue = "") String year,
+			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
+			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
+			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "salesStage",defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+	InputStreamResource inputStreamResource= reportsService.getOpportunitySummaryReport(month, year, quarter, geography,
+			country, iou, currency, serviceLines, salesStage,userId);
+	HttpHeaders respHeaders = new HttpHeaders();
+	String toDate=DateUtils.getCurrentDate();
+    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+    respHeaders.setContentDispositionFormData("Excel", "OpportunityReport_"+toDate+".xlsx");
+	return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/opportunity/both", method = RequestMethod.GET)			
+	public @ResponseBody ResponseEntity<InputStreamResource> getOpportunityBoth(
+			@RequestParam(value = "month", defaultValue = "") String month,
+			@RequestParam(value = "year", defaultValue = "") String year,
+			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
+			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
+			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "salesStage", defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+ 		InputStreamResource inputStreamResource=reportsService.getOpportunityBothReport(month, year, quarter, geography,
+				country, iou, currency, serviceLines, salesStage,userId,fields);
+		HttpHeaders respHeaders = new HttpHeaders();
+	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+	    String toDate=DateUtils.getCurrentDate();
+	    respHeaders.setContentDispositionFormData("Excel", "OpportunityReport_"+toDate+".xlsx");
+		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+	}
+	
+	
 	
 }
