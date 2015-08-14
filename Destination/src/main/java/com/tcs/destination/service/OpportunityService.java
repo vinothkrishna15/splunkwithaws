@@ -1028,9 +1028,10 @@ public class OpportunityService {
 			throws DestinationException {
 
 		List<OpportunityT> opportunityTs = null;
-		try {
-			if (isCurrentFinancialYear) {
 
+		if (isCurrentFinancialYear) {
+
+			try {
 				// Create the query and execute
 				String queryString = "select OPP from OpportunityT OPP where OPP.salesStageCode < 9 or (OPP.dealClosureDate > ?1 ) order by "
 						+ sortBy + " " + order;
@@ -1041,22 +1042,27 @@ public class OpportunityService {
 										DateUtils.getCurrentFinancialYear(),
 										true));
 				opportunityTs = (List<OpportunityT>) query.getResultList();
-
-				// Code for pagination
-				if (PaginationUtils.isValidPagination(page, count,
-						opportunityTs.size())) {
-					int fromIndex = PaginationUtils.getStartIndex(page, count,
-							opportunityTs.size());
-					int toIndex = PaginationUtils.getEndIndex(page, count,
-							opportunityTs.size()) + 1;
-					opportunityTs = opportunityTs.subList(fromIndex, toIndex);
-					logger.debug("OpportunityT  after pagination size is "
-							+ opportunityTs.size());
-				} else {
-					throw new DestinationException(HttpStatus.NOT_FOUND,
-							"No Opportunity available for the specified page");
-				}
+			} catch (Exception e) {
+				// Throw exceptions where Order by parameter is invalid
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+			}
+			// Code for pagination
+			if (PaginationUtils.isValidPagination(page, count,
+					opportunityTs.size())) {
+				int fromIndex = PaginationUtils.getStartIndex(page, count,
+						opportunityTs.size());
+				int toIndex = PaginationUtils.getEndIndex(page, count,
+						opportunityTs.size()) + 1;
+				opportunityTs = opportunityTs.subList(fromIndex, toIndex);
+				logger.debug("OpportunityT  after pagination size is "
+						+ opportunityTs.size());
 			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Opportunity available for the specified page");
+			}
+		} else {
+			try {
 				// Page the opportunities for all financial year
 				Page<OpportunityT> opportunityPagable = opportunityRepository
 						.findAll(constructPageSpecification(page, count,
@@ -1065,11 +1071,11 @@ public class OpportunityService {
 				for (OpportunityT opportunityT : opportunityPagable) {
 					opportunityTs.add(opportunityT);
 				}
+			} catch (Exception e) {
+				// Throw exceptions where Order by parameter is invalid
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 			}
-		} catch (Exception e) {
-			// Throw exceptions where Order by parameter is invalid
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
 		}
 
 		if (opportunityTs == null || opportunityTs.size() == 0)
