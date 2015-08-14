@@ -70,7 +70,7 @@ public class ExcelUtils {
 			cellStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
 			cellStyle.setFillPattern(XSSFCellStyle.LEAST_DOTS);
-			cellStyle.setFillBackgroundColor(IndexedColors.TAN.getIndex());
+			cellStyle.setFillBackgroundColor(IndexedColors.SKY_BLUE.getIndex());
 			break;
 		case ReportConstants.DATAROW:
 			font.setColor((short) 0x2bc);
@@ -78,6 +78,7 @@ public class ExcelUtils {
 			font.setBoldweight((short) 12);
 			font.setFontHeightInPoints((short) 10);
 			cellStyle.setFont(font);
+			cellStyle.setAlignment(CellStyle.ALIGN_LEFT);
 			cellStyle.setBorderBottom(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setBorderTop(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setBorderLeft(XSSFBorderFormatting.BORDER_THIN);

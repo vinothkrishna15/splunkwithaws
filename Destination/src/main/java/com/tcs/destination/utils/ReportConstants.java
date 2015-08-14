@@ -18,7 +18,7 @@ public class ReportConstants {
 	public static final String SECONDARYOWNER = "secondaryOwner";
 	public static final String CUSTOMERORPARTNERNAME = "customerOrPartnerName";
 	public static final String TCSACCOUNTCONTACT = "tcsAccountContact";
-	public static final String CUSTOMERCONTACTNAME = "customerContactName";
+	public static final String CUSTOMERCONTACTNAME = "custContactName";
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";
 	public static final String REQUESTRECEIVEDDATE = "requestReceivedDate";
@@ -32,7 +32,7 @@ public class ReportConstants {
 	public static final String DEALCLOSUREDATE = "dealClosureDate";
 	public static final String FACTORSFORWINLOSS = "factorsForWinLoss";
 	public static final String DESCRIPTIONFORWINLOSS = "descriptionForWinLoss";
-	public static final String OPPORTUNITYLINKID = "opportunityLinkID";
+	public static final String OPPORTUNITYLINKID = "oppLinkId";
 	public static final String BIDID = "bidId";
 	public static final String BIDREQUESTTYPE = "bidRequestType";
 	public static final String BIDREQUESTRECEIVEDDATE = "bidRequestReceiveDate";

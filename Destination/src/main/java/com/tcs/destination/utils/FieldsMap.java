@@ -21,13 +21,13 @@ public class FieldsMap {
 		fieldsMap.put("secondaryOwner", "secondary Owner");
 		fieldsMap.put("customerOrPartnerName", "Customer/Partner Name");
 		fieldsMap.put("tcsAccountContact", "Tcs Account Contact");
-		fieldsMap.put("customerContactName", "Customer Contact Name");
+		fieldsMap.put("custContactName", "Customer Contact Name");
 		fieldsMap.put("linkOpportunity", "Link Opportunity");
 		fieldsMap.put("connectNotes", "Connect Notes");
 		fieldsMap.put("customerName", "Customer Name");
 		fieldsMap.put("digitalDealvalue", "Digital Deal value");
 		fieldsMap.put("opportunityDescription", "Opportunity description");
-		fieldsMap.put("opportunityLinkId", "Opportunity Link Id");
+		fieldsMap.put("oppLinkId", "Opportunity Link Id");
 		fieldsMap.put("requestReceiveDate", "Opt Request Receive Date");
 		fieldsMap.put("newLogo", "New Logo");
 		fieldsMap.put("competitors", "Competitors");
@@ -49,6 +49,9 @@ public class FieldsMap {
 		fieldsMap.put("coreAttributesUsedForWinning", "Core attributes used for winning");
 		fieldsMap.put("crmId", "CRM Id");
 		fieldsMap.put("opportunityName", "Opportunity Name");
+		fieldsMap.put("opportunityOwner", "Opportunity Owner");
+		fieldsMap.put("projectDealValue", "Digital Deal Value(Project Currency)");
+		fieldsMap.put("requestReceivedDate", "Request Received Date");
 	}
 	
 	static {

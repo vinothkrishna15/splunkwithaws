@@ -46,6 +46,7 @@ public class ConnectDetailedReportService {
 	@Autowired
 	TaskRepository taskRepository;
 
+	
 	@Autowired
 	UserRepository userRepository;
 	
@@ -457,6 +458,11 @@ public class ConnectDetailedReportService {
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -466,6 +472,11 @@ public class ConnectDetailedReportService {
 			}
 			break;
 		case ReportConstants.IOUHEAD:
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			userAccessField = "Iou";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -494,11 +505,7 @@ public class ConnectDetailedReportService {
 		row = spreadsheet.createRow(10);
 		row.setRowStyle(null);
 		
-		row = spreadsheet.createRow(12);
-		row.createCell(4).setCellValue("User Access Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
+		
 		
 	}
 	

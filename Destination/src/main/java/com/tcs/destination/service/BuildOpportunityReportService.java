@@ -423,16 +423,16 @@ public class BuildOpportunityReportService {
 				case ReportConstants.SUBSP:
 					createHeader(headerRow, spreadSheet,
 							headerColumnValue++, headingStyle, headingColumn, field);
+					List<String> subSpList = new ArrayList<String>();
 					for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
 							.getOpportunitySubSpLinkTs()) {
-						row.createCell(colValue).setCellValue(
-								opportunitySubSpLinkT.getSubSpMappingT()
-										.getSubSp());
-						row.getCell(colValue).setCellStyle(dataRowStyle);
-						spreadSheet.autoSizeColumn(colValue);
-						fieldsSample.remove(field);
-						colValue++;
+						subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
 					}
+					row.createCell(colValue).setCellValue(subSpList.toString().replace("]", "").replace("[", ""));
+					row.getCell(colValue).setCellStyle(dataRowStyle);
+					spreadSheet.autoSizeColumn(colValue);
+					fieldsSample.remove(field);
+					colValue++;
 					break;
 				case ReportConstants.COUNTRY:
 					createHeader(headerRow, spreadSheet,
@@ -511,9 +511,10 @@ public class BuildOpportunityReportService {
 				case ReportConstants.REQUESTRECEIVEDDATE:
 					createHeader(headerRow, spreadSheet,
 							headerColumnValue++, headingStyle, headingColumn, field);
-					row.createCell(colValue).setCellValue(
-							opportunity.getOpportunityRequestReceiveDate()
-									.toString());
+					if(opportunity.getOpportunityRequestReceiveDate() != null)
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityRequestReceiveDate().toString());
+					else
+						row.createCell(colValue).setCellValue("");
 					row.getCell(colValue).setCellStyle(dataRowStyle);
 					fieldsSample.remove(field);
 					spreadSheet.autoSizeColumn(colValue);
@@ -563,8 +564,10 @@ public class BuildOpportunityReportService {
 				case ReportConstants.DEALCLOSUREDATE:
 					createHeader(headerRow, spreadSheet,
 							headerColumnValue++, headingStyle, headingColumn, field);
-					row.createCell(colValue).setCellValue(
-							opportunity.getDealClosureDate().toString());
+					if(opportunity.getDealClosureDate() != null)
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
+					else
+						row.createCell(colValue).setCellValue("");
 					row.getCell(colValue).setCellStyle(dataRowStyle);
 					fieldsSample.remove(field);
 					spreadSheet.autoSizeColumn(colValue);
@@ -601,7 +604,7 @@ public class BuildOpportunityReportService {
 					List<String> partnershipsInvolvedList = new ArrayList<String>();
 					for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
 							.getOpportunityPartnerLinkTs()) {
-						partnershipsInvolvedList.add(opportunityPartnerLinkT.getPartnerId());
+						partnershipsInvolvedList.add(opportunityPartnerLinkT.getPartnerMasterT().getPartnerName());
 					}
 					row.createCell(colValue).setCellValue(partnershipsInvolvedList.toString().replace("[", "").replace("]", ""));
 					row.getCell(colValue).setCellStyle(dataRowStyle);
@@ -657,7 +660,7 @@ public class BuildOpportunityReportService {
 					List<String> opportunityLinkIDList = new ArrayList<String>();
 					for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
 							.getConnectOpportunityLinkIdTs()) {
-						opportunityLinkIDList.add(connectOpportunityLinkIdT.getConnectId());
+						opportunityLinkIDList.add(connectOpportunityLinkIdT.getConnectT().getConnectName());
 					}
 					row.createCell(colValue).setCellValue(opportunityLinkIDList.toString().replace("[", "").replace("]", ""));;
 					row.getCell(colValue).setCellStyle(dataRowStyle);
@@ -710,7 +713,10 @@ public class BuildOpportunityReportService {
 					if (opportunity.getBidDetailsTs().size() > 0) {
 						for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
 							row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidRequestReceiveDate().toString());
+							if(opportunity.getBidDetailsTs().get(bid).getBidRequestReceiveDate() != null)
+								row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidRequestReceiveDate().toString());
+							else
+								row.createCell(colValue).setCellValue("");
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
@@ -744,7 +750,10 @@ public class BuildOpportunityReportService {
 					if (opportunity.getBidDetailsTs().size() > 0) {
 						for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
 							row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
+							if(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate() != null)
+								row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
+							else
+								row.createCell(colValue).setCellValue("");
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
@@ -757,7 +766,10 @@ public class BuildOpportunityReportService {
 					if (opportunity.getBidDetailsTs().size() > 0) {
 						for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
 							row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
+							if(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate() != null)
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate().toString());
+							else
+								row.createCell(colValue).setCellValue("");
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
@@ -770,7 +782,10 @@ public class BuildOpportunityReportService {
 					if (opportunity.getBidDetailsTs().size() > 0) {
 						for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
 							row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate().toString());
+							if(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate() != null)
+								row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate().toString());
+							else
+								row.createCell(colValue).setCellValue("");
 							row.getCell(colValue).setCellStyle(dataRowStyle);
 							spreadSheet.autoSizeColumn(colValue);
 						}
@@ -820,7 +835,6 @@ public class BuildOpportunityReportService {
 		headerRow.createCell(headerColumnValue).setCellValue(
 				FieldsMap.fieldsMap.get(field));
 		headerRow.getCell(headerColumnValue).setCellStyle(headingStyle);
-//		spreadSheet.autoSizeColumn(headerColumnValue);
 		}
 	}
 
@@ -1571,9 +1585,9 @@ public class BuildOpportunityReportService {
 		int rowValue = 0;
 		XSSFSheet spreadsheet = null;
 		CellStyle subHeadingStyle2 = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle2");
+				ReportConstants.SUBHEADINGSTYLE2);
 		CellStyle subHeadingStyle3 = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle3");
+				ReportConstants.SUBHEADINGSTYLE3);
 		CellStyle rowDataStyle = ExcelUtils.createRowStyle(workbook, "dataRow");
 		if (reportSummaryOpportunityList.size() > 0) {
 			for (ReportSummaryOpportunity repSummaryOpp : reportSummaryOpportunityList) {
@@ -1732,11 +1746,11 @@ public class BuildOpportunityReportService {
 		CellStyle headingRow = ExcelUtils
 				.createRowStyle(workbook, "headingRow");
 		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
-				"headingStyle");
+				ReportConstants.HEADINGSTYLE);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle");
+				ReportConstants.SUBHEADINGSTYLE);
 		CellStyle subHeadingStyle2 = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle2");
+				ReportConstants.SUBHEADINGSTYLE2);
 
 		if ((currency.size() > 1) && offsetValue > 0 && offsetValue == 4) {
 			offsetValue = 5;
@@ -1958,14 +1972,14 @@ public class BuildOpportunityReportService {
 		logger.debug("Inside Report Service getServiceTypeDetails method");
 
 		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
-				"headingStyle");
+				ReportConstants.HEADINGSTYLE);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle");
+				ReportConstants.SUBHEADINGSTYLE);
 		CellStyle subHeadingStyle2 = ExcelUtils.createRowStyle(workbook,
-				"subHeadingStyle2");
-		CellStyle rowDataStyle = ExcelUtils.createRowStyle(workbook, "dataRow");
+				ReportConstants.SUBHEADINGSTYLE2);
+		CellStyle rowDataStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
 		CellStyle headingRow = ExcelUtils
-				.createRowStyle(workbook, "headingRow");
+				.createRowStyle(workbook, ReportConstants.HEADINGROW);
 		XSSFSheet spreadsheet = null;
 		int rowValue = 0;
 		XSSFRow row = null;
@@ -3142,6 +3156,12 @@ public class BuildOpportunityReportService {
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13,
+					dataRow);
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -3151,6 +3171,12 @@ public class BuildOpportunityReportService {
 			}
 			break;
 		case ReportConstants.IOUHEAD:
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13,
+					dataRow);
 			userAccessField = "IOU";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -3189,12 +3215,6 @@ public class BuildOpportunityReportService {
 		row.createCell(5).setCellValue(completeList);
 		spreadsheet.autoSizeColumn(5);
 		
-		row = spreadsheet.createRow(12);
-		row.createCell(4).setCellValue("User Access Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13,
-				dataRow);
 		
 	}
 
