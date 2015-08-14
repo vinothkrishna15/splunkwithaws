@@ -22,8 +22,8 @@ public interface FeedbackRepository extends JpaRepository<FeedbackT, String> {
 			+ "and (module=(:module) or (:module)='') "
 			+ "and (updated_user_id=(:updatedUserId) or (:updatedUserId)='')"
 			+ "and (sub_module=(:subModule) or (:subModule)='')"
-			+ "and title like (:titleWith)"
-			+ "and description like (:descriptionWith) order by created_datetime desc", nativeQuery = true)
+			+ "and (title like (:titleWith) or (:titleWith) = '')"
+			+ "and (description like (:descriptionWith) or (:descriptionWith) = '') order by created_datetime desc", nativeQuery = true)
 	List<FeedbackT> findByOptionalIssueTypeAndPriorityAndStatusAndUserIdAndEntityTypeAndUpdatedUserId(
 			@Param("titleWith") String titleWith,
 			@Param("descriptionWith") String descriptionWith,

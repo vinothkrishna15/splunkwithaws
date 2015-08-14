@@ -126,11 +126,16 @@ public class FeedbackService {
 			String subModule) throws Exception {
 		logger.debug("IssueType " + issueType + " Priority " + priority
 				+ " Status " + status + " UserId " + userId);
+
+		titleWith = (titleWith.length() == 0) ? titleWith.trim() : "%"
+				+ titleWith + "%";
+
+		descriptionWith = (descriptionWith.length() == 0) ? descriptionWith
+				.trim() : "%" + descriptionWith + "%";
 		List<FeedbackT> feedbackTs = feedbackRepository
 				.findByOptionalIssueTypeAndPriorityAndStatusAndUserIdAndEntityTypeAndUpdatedUserId(
-						"%" + titleWith + "%", "%" + descriptionWith + "%",
-						issueType, priority, status, userId, module,
-						updatedUserId, subModule);
+						titleWith, descriptionWith, issueType, priority,
+						status, userId, module, updatedUserId, subModule);
 		if (feedbackTs == null || feedbackTs.isEmpty()) {
 			String message = "No feedback available for the given criteria";
 			logger.error(message);
