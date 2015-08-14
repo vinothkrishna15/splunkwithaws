@@ -543,8 +543,7 @@ public class BuildOpportunityReportService {
 				case ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY:
 					createHeader(headerRow, spreadSheet,
 							headerColumnValue++, headingStyle, headingColumn, field);
-					row.createCell(colValue).setCellValue((beaconConverterService.convert("INR", opportunity.getDealCurrency(),
-							opportunity.getDigitalDealValue().doubleValue())).doubleValue()+opportunity.getDealCurrency());
+					row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue() +" "+opportunity.getDealCurrency());
 					row.getCell(colValue).setCellStyle(dataRowStyle);
 					fieldsSample.remove(field);
 					spreadSheet.autoSizeColumn(colValue);
