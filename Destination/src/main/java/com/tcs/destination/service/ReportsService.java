@@ -1870,7 +1870,6 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
 		Date tillDate = new Date();
-		System.out.println("CURE " + tillDate);
 		List<ConnectT> connectList = new ArrayList<ConnectT>();
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
@@ -2007,9 +2006,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
 		Date tillDate = new Date();
-		List<Object[]> subSpConnectCountList = null;
-		List<Object[]> geographyConnectCountList = null;
-		List<Object[]> iouConnectCountList = null;
+		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
+		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
+		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -2048,7 +2047,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 								userId, fromDate, toDate);
 						String queryString2 = getConnectSubSpSummaryQueryString(
 								userId, fromDate, toDate);
-						logger.info("Query string: {}", queryString);
+						logger.info("GEO Query string: {}", queryString);
+						logger.info("IOU Query string: {}", queryString1);
+						logger.info("SUBSP Query string: {}", queryString2);
 						// Execute the native revenue query string
 						Query connectGeoSummaryReportQuery = entityManager
 								.createNativeQuery(queryString);
@@ -2122,17 +2123,17 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			Date fromDate, Date toDate, List<Object[]> subSpConnectCountList,
 			List<Object[]> geographyConnectCountList,
 			List<Object[]> iouConnectCountList) {
-		subSpConnectCountList = connectRepository
+		subSpConnectCountList.addAll(connectRepository
 				.findBySubSpConnectSummaryReport(
 						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds);
-		geographyConnectCountList = connectRepository
+						new Timestamp(toDate.getTime()), userIds));
+		geographyConnectCountList.addAll(connectRepository
 				.findByGeographyConnectSummaryReport(
 						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds);
-		iouConnectCountList = connectRepository.findByIouConnectSummaryReport(
+						new Timestamp(toDate.getTime()), userIds));
+		iouConnectCountList.addAll(connectRepository.findByIouConnectSummaryReport(
 				new Timestamp(fromDate.getTime()),
-				new Timestamp(toDate.getTime()), userIds);
+				new Timestamp(toDate.getTime()), userIds));
 	}
 
 	/**
@@ -2184,9 +2185,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
 		Date tillDate = new Date();
-		List<Object[]> subSpConnectCountList = null;
-		List<Object[]> geographyConnectCountList = null;
-		List<Object[]> iouConnectCountList = null;
+		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
+		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
+		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
 		List<ConnectT> connectList = new ArrayList<ConnectT>();
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
