@@ -83,7 +83,8 @@ public class UserDetailsController {
 			HttpServletRequest httpServletRequest,
 			@RequestParam(value = "userName") String userName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "appVersion", defaultValue = "") String appVersion)
 			throws Exception {
 
 		logger.debug("Inside UserDetailsController /user/login POST");
@@ -91,7 +92,6 @@ public class UserDetailsController {
 		if (user != null) {
 			// Log Username for debugging
 			logger.info("Username: {}", userName);
-
 			HttpSession session = httpServletRequest.getSession(false);
 			if (session == null) {
 				logger.info("Session is null, creating new session");
@@ -152,9 +152,9 @@ public class UserDetailsController {
 			loginHistory.setOs(osName);
 			loginHistory.setOsVersion(Integer.toString((byte) osVersion));
 			loginHistory.setDevice(device);
-			if (httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION) != null) {
-				logger.info("App Version: {}", httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION));
-				loginHistory.setAppVersion((String) httpServletRequest.getHeader(Constants.LOGIN_APP_VERSION));
+			if (appVersion != null && !appVersion.isEmpty()) {
+				logger.info("App Version: {}", appVersion);
+				loginHistory.setAppVersion(appVersion);
 			}
 				
 			if (!userService.addLoginHistory(loginHistory)) {
