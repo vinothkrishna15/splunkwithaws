@@ -16,4 +16,6 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 public interface UserAccessPrivilegesRepository extends JpaRepository<UserAccessPrivilegesT, String> {
 
 	List<UserAccessPrivilegesT> findByUserIdAndParentPrivilegeIdIsNull(String userId);
+	
+	List<UserAccessPrivilegesT> findByUserId(String userId);
 }

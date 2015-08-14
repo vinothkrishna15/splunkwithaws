@@ -416,4 +416,14 @@ public class DateUtils {
 		}
 		return quarters;
 	}
+	
+	/**
+	 * This method used to get the current date in dd MMM yyyy format
+	 * @return current date
+	 */
+	public static String getCurrentDate() {
+		Date date=new Date();
+		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd MMM yyyy");
+		return formatDate.format(date);
+	}
 }
