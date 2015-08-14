@@ -1,9 +1,11 @@
 package com.tcs.destination.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,30 +13,45 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Joiner;
 import com.tcs.destination.bean.BidDetailsT;
-import com.tcs.destination.bean.ConnectSummaryResponse;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.OpportunityT;
-import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
+import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
+import com.tcs.destination.bean.CustomerRevenueValues;
 import com.tcs.destination.bean.TargetVsActualDetailed;
 import com.tcs.destination.bean.TargetVsActualQuarter;
 import com.tcs.destination.bean.TargetVsActualYearToDate;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
+import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.ReportConstants;
 
 @Service
 public class ReportsService {
@@ -55,7 +72,16 @@ public class ReportsService {
 	BeaconConverterService beaconConverterService;
 
 	@Autowired
+	BuildBidReportService buildBidReportService;
+
+	@Autowired
 	ConnectRepository connectRepository;
+
+	@Autowired
+	ConnectDetailedReportService connectDetailedReportService;
+
+	@Autowired
+	ConnectSummaryReportService connectSummaryReportService;
 
 	@Autowired
 	ProjectedRevenuesDataTRepository projectedRevenuesDataTRepository;
@@ -63,211 +89,181 @@ public class ReportsService {
 	@Autowired
 	CustomerRepository customerRepository;
 
-	public List<ConnectT> getConnectDetailedReports(String month,
-			String quarter, String year, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines) throws Exception {
-		logger.info("Inside getConnectDetailedReports Service");
-		addEmptyValues(iou, geography, country, serviceLines);
-		Date fromDate = DateUtils.getDate(month, quarter, year, true);
-		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		List<ConnectT> connectList = connectRepository.findByConnectReport(
-				new Timestamp(fromDate.getTime()),
-				new Timestamp(toDate.getTime()), iou, geography, country,
-				serviceLines);
-		if (connectList.isEmpty()) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
-		} else {
-			return connectList;
-		}
-	}
+	@Autowired
+	BuildExcelTargetVsActualDetailedReportService buildExcelTargetVsActualDetailedReportService;
 
-	public List<ConnectSummaryResponse> getSummaryReports(String required,
-			String month, String quarter, String year, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines) throws Exception {
-		logger.info("Inside searchForReports Service");
-		addEmptyValues(iou, geography, country, serviceLines);
-		Date fromDate = DateUtils.getDate(month, quarter, year, true);
-		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		List<ConnectSummaryResponse> connectSummaryResponses = new ArrayList<ConnectSummaryResponse>();
-		switch (required) {
-		case "subSp":
-			connectSummaryResponses = getConnectSummaryReportsBySubSp(fromDate,
-					toDate, iou, geography, country, serviceLines);
-			break;
-		case "geography":
-			connectSummaryResponses = getConnectSummaryReportsByGeography(
-					fromDate, toDate, iou, geography, country, serviceLines);
-			break;
-		case "iou":
-			connectSummaryResponses = getConnectSummaryReportsByIou(fromDate,
-					toDate, iou, geography, country, serviceLines);
-			break;
-		default:
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid URL");
-		}
-		return connectSummaryResponses;
-	}
+	@Autowired
+	BuildExcelTargetVsActualSummaryReportService buildExcelTargetVsActualSummaryReportService;
 
-	public List<ConnectSummaryResponse> getConnectSummaryReportsBySubSp(
-			Date fromDate, Date toDate, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines) throws Exception {
-		logger.info("Inside getConnectSummaryReportsBySubSp Service");
-		List<ConnectSummaryResponse> connectSummaryResponses = new ArrayList<ConnectSummaryResponse>();
-		List<Object[]> subSpConnectCountList = connectRepository
-				.findBySubSpConnectSummaryReport(
-						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), iou, geography,
-						country, serviceLines);
-		if (subSpConnectCountList.isEmpty()) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
-		} else {
-			for (Object[] subSpConnectCount : subSpConnectCountList) {
-				ConnectSummaryResponse connectSummaryResponse = new ConnectSummaryResponse();
-				connectSummaryResponse
-						.setConnectCount((BigInteger) subSpConnectCount[0]);
-				connectSummaryResponse
-						.setRowLabel((String) subSpConnectCount[1]);
-				connectSummaryResponses.add(connectSummaryResponse);
-			}
-			return connectSummaryResponses;
-		}
-	}
+	@Autowired
+	UserRepository userRepository;
 
-	public List<ConnectSummaryResponse> getConnectSummaryReportsByGeography(
-			Date fromDate, Date toDate, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines) throws Exception {
-		logger.info("Inside getConnectSummaryReportsByGeography Service");
-		List<ConnectSummaryResponse> connectSummaryResponses = new ArrayList<ConnectSummaryResponse>();
-		List<Object[]> geographyConnectCountList = connectRepository
-				.findByGeographyConnectSummaryReport(
-						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), iou, geography,
-						country, serviceLines);
-		if (geographyConnectCountList.isEmpty()) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
-		} else {
-			for (Object[] geographyConnectCount : geographyConnectCountList) {
-				ConnectSummaryResponse connectSummaryResponse = new ConnectSummaryResponse();
-				connectSummaryResponse
-						.setConnectCount((BigInteger) geographyConnectCount[0]);
-				connectSummaryResponse
-						.setRowLabel((String) geographyConnectCount[1]);
-				connectSummaryResponses.add(connectSummaryResponse);
-			}
-			return connectSummaryResponses;
-		}
-	}
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
-	public List<ConnectSummaryResponse> getConnectSummaryReportsByIou(
-			Date fromDate, Date toDate, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines) throws Exception {
-		logger.info("Inside getConnectSummaryReportsByIou Service");
-		List<ConnectSummaryResponse> connectSummaryResponses = new ArrayList<ConnectSummaryResponse>();
-		List<Object[]> iouConnectCountList = connectRepository
-				.findByIouConnectSummaryReport(
-						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), iou, geography,
-						country, serviceLines);
-		if (iouConnectCountList.isEmpty()) {
-			logger.error("NOT_FOUND:No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
-		} else {
-			for (Object[] iouConnectCount : iouConnectCountList) {
-				ConnectSummaryResponse connectSummaryResponse = new ConnectSummaryResponse();
-				connectSummaryResponse
-						.setConnectCount((BigInteger) iouConnectCount[0]);
-				connectSummaryResponse.setRowLabel((String) iouConnectCount[1]);
-				connectSummaryResponses.add(connectSummaryResponse);
-			}
-			return connectSummaryResponses;
-		}
-	}
+	@Autowired
+	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
-	public List<BidDetailsT> getBidDetailedReport(String year, Date fromDate,
-			Date toDate, List<String> bidOwner, List<String> currency,
-			List<String> iou, List<String> geography, List<String> country,
-			List<String> serviceLines) throws DestinationException {
-		logger.info("Inside getBidDetailedReport Service");
-		Date startDate = null;
-		Date endDate = null;
-		if (!year.equals("")) {
-			logger.debug("year is not Empty");
-			startDate = DateUtils.getDateFromFinancialYear(year, true);
-			endDate = DateUtils.getDateFromFinancialYear(year, false);
-		} else {
-			startDate = fromDate;
-			endDate = toDate;
-		}
-		if (bidOwner.size() == 0) {
-			logger.debug("bidOwner is Empty");
-			bidOwner.add("");
-		}
-		addEmptyValues(iou, geography, country, serviceLines);
-		List<BidDetailsT> bidDetailsList = bidDetailsTRepository
-				.findByBidDetailsReport(startDate, endDate, bidOwner, iou,
-						geography, country, serviceLines);
-		logger.info("Bid details has " + bidDetailsList.size() + " values");
-		if (bidDetailsList.isEmpty()) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
-		} else {
-			for (BidDetailsT bidDetail : bidDetailsList) {
-				List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = bidDetail
-						.getOpportunityT()
-						.getOpportunityTcsAccountContactLinkTs();
-				for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunityTcsAccountContactLinkTs) {
-					opportunityTcsAccountContactLinkT.getContactT()
-							.setOpportunityTcsAccountContactLinkTs(null);
-				}
-				OpportunityT opportunityT = beaconConverterService
-						.convertOpportunityCurrency(
-								bidDetail.getOpportunityT(), currency);
-				bidDetail.setOpportunityT(opportunityT);
-			}
-			return bidDetailsList;
-		}
-	}
+	@Autowired
+	UserService userService;
 
-	public void addEmptyValues(List<String> iou, List<String> geography,
-			List<String> country, List<String> serviceLines) {
-		if (iou.size() == 0) {
-			logger.debug("iou is Empty");
-			iou.add("");
-		}
-		if (geography.size() == 0) {
-			logger.debug("geography is Empty");
-			geography.add("");
-		}
-		if (country.size() == 0) {
-			logger.debug("country is Empty");
-			country.add("");
-		}
-		if (serviceLines.size() == 0) {
-			logger.debug("serviceLines is Empty");
-			serviceLines.add("");
-		}
-	}
+	@Autowired
+	GeographyRepository geographyRepository;
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
+	private static final String CONNECT_REPORT_QUERY_PREFIX = "select distinct CON.connect_id ";
+
+	private static final String CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_geography ";
+
+	private static final String CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_iou ";
+
+	private static final String CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_sub_sp ";
+
+	private static final String CONNECT_JOIN_CUS_GEO_IOU_SUBSP = "from connect_t CON "
+			+ "   JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
+			+ "   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
+			+ "   JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
+			+ "   JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
+			+ "   JOIN connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id"
+			+ "   JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
+			+ " where ";
+
+	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
+			+ "	 JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
+			+ "  JOIN opportunity_t OPP ON BID.opportunity_id=OPP.opportunity_id"
+			+ "  JOIN customer_master_t CMT ON  CMT.customer_id = OPP.customer_id"
+			+ "  JOIN iou_customer_mapping_t ICMT on  CMT.iou = ICMT.iou"
+			+ "  JOIN geography_mapping_t GMT on CMT.geography = GMT.geography"
+			+ "  JOIN geography_country_mapping_t GCM ON GMT.geography = GCM.geography"
+			+ "  JOIN opportunity_sub_sp_link_t OPSUBL ON OPP.opportunity_id = OPSUBL.opportunity_id"
+			+ "  JOIN sub_sp_mapping_t SSM ON OPSUBL.sub_sp = SSM.sub_sp "
+			+ " where ";
+
+	// TargetVsActual Detailed Report
+	private static final String TARGET_VS_ACTUAL_PROJECTED_QUERY_PREFIX = "select RCMT.customer_name,PRDT.quarter,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
+			+ "where ";
+
+	private static final String TARGET_VS_ACTUAL_ACTUAL_QUERY_PREFIX = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "where ";
+
+	private static final String TARGET_VS_ACTUAL_TARGET_QUERY_PREFIX = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
+			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou  "
+			+ "where ";
+
+	// TargetVsActual Summary
+	private static final String TARGET_VS_ACTUAL_TOTAL_REVENUE_QUERY_PREFIX = "select sum(BDT.target) from beacon_data_t BDT "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou  "
+			+ "where ";
+
+	private static final String TARGET_VS_ACTUAL_TOTAL_ACT_PROJ_REVENUE_QUERY_PREFIX = "select (RVNU.actual_revenue+RVNU.projected_revenue) as revenue from (select sum(ARDT.revenue) as actual_revenue,  "
+			+ "case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name = ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography  "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name = RCMT.finance_customer_name "
+			+ "where ";
+
+	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_30_revenue from ( ";
+
+	//
+	private static final String TOP_CUS_REVENUES_LIST_QUERY_PREFIX = "select RVNU.customer_name,(RVNU.actual_revenue+RVNU.projected_revenue) as revenue "
+			+ " from (select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue,   "
+			+ " case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "FULL OUTER JOIN  projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name"
+			+ " where ";
+
+	private static final String TARGET_VS_ACTUAL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
+			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
+			+ "where ";
+
+	private static final String TARGET_VS_ACTUAL_OVERALL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
+			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
+			+ "where ";
+
+	private static final String ACTUAL_PROJECTED_OVERALL_REVENUE_QUERY_PREFIX = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue from "
+			+ "(select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue ,case when sum(PRDT.revenue) is not null then "
+			+ "sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT "
+			+ " JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name "
+			+ "where ";
+
+	private static final String OVERALL_REVENUE_QUERY_PREFIX = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue ,RVNU.display_geography "
+			+ "from (select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue , GMT.display_geography, "
+			+ "case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
+			+ "from actual_revenues_data_t ARDT  "
+			+ "JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name "
+			+ "where ";
+
+	private static final String GROUP_CUST_GEO_IOU_QUERY_PREFIX = "select distinct RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, "
+			+ "gmt.display_geography from actual_revenues_data_t ARDT "
+			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou where ";
+
+	private static final String CONNECT_START_DATE_COND_PREFIX = "CON.start_datetime_of_connect between "
+			+ Constants.SINGLE_QUOTE;
+	private static final String CONNECT_END_DATE_COND_PREFIX = " AND "
+			+ Constants.SINGLE_QUOTE;
+	private static final String GEO_COND_PREFIX = "GMT.geography in (";
+	private static final String SUBSP_COND_PREFIX = "SSM.display_sub_sp in (";
+	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
+	private static final String CONNECT_COUNTRY_COND_PREFIX = "GCM.country in (";
+	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by display_geography";
+	private static final String CONNECT_IOU_GROUP_BY_COND_PREFIX = "group by display_iou";
+	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
+	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between "
+			+ Constants.SINGLE_QUOTE;
+	private static final String BID_END_DATE_COND_PREFIX = " AND "
+			+ Constants.SINGLE_QUOTE;
+	private static final String BID_OFFICE_GROUP_OWNEER_COND_PREFIX = " (BIDGO.bid_office_group_owner in (";
+
+	private static final String TARVSACT_GEO_COND_PREFIX = "GMT.geography in  (";
+	private static final String TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,PRDT.quarter";
+	private static final String TARVSACT_ACTUAL_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,ARDT.quarter";
+	private static final String TARVSACT_TARGET_GROUP_BY_COND_PREFIX = "group by BCMT.customer_name,BDT.quarter";
+	private static final String TARVSACT_MONTHS_COND_PREFIX = "upper(PRDT.month) in (";
+	private static final String TARVSACT_REVENUE_MONTHS_COND_PREFIX = "upper(ARDT.month) in (";
+	private static final String TARVSACT_ACTUAL_QUARTER_COND_PREFIX = "BDT.quarter in (";
+	private static final String TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX = ") as RVNU";
+	private static final String TARVSACT_GROUP_BY_ORDER_BY_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU order by revenue desc LIMIT 30) as top_Revenue";
+	private static final String GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU order by revenue desc LIMIT ";
+	private static final String TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX = "group by BCMT.customer_name order by revenue_sum desc";
+	private static final String TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU group by RVNU.customer_name order by revenue desc";
+
+	private static final String TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX = "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
+			+ "as RVNU group by RVNU.customer_name ,RVNU.display_geography order by revenue desc";
 
 	public List<TargetVsActualDetailed> getTargetVsActual(
-			List<String> geographyList, List<String> iouList,
-			List<String> serviceLines, String fromMonth, String toMonth,
-			List<String> currencyList) throws Exception {
+			List<String> geography, List<String> iou, String fromMonth,
+			String toMonth, List<String> currency, String userId)
+			throws Exception {
 		Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap = new TreeMap<String, List<TargetVsActualQuarter>>();
 		List<TargetVsActualDetailed> targetVsActualDetails = new ArrayList<TargetVsActualDetailed>();
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
 		if (toMonth.isEmpty()) {
 			toMonth = DateUtils.getCurrentMonth();
 		}
@@ -279,23 +275,317 @@ public class ReportsService {
 				DateUtils.getQuarterForMonth(formattedMonth);
 			}
 		}
-
-		addEmptyItemToListIfEmpty(iouList);
-		addEmptyItemToListIfEmpty(geographyList);
-		addEmptyItemToListIfEmpty(serviceLines);
-		if (formattedMonths == null || formattedMonths.isEmpty()) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"No Months available for this perticular range");
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+				case BDM_SUPERVISOR:
+					logger.error("User is not authorized to access this service");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+							"User is not authorised to access this service");
+				default:
+					if (geography.contains("All") && (iou.contains("All"))) {
+						if (formattedMonths == null
+								|| formattedMonths.isEmpty()) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"No Months available for this perticular range");
+						}
+						createMapForProjectedByUserPrevilages(formattedMonths,
+								customerIdQuarterMap, userId);
+						mergeMapForActualByUserPrevilages(formattedMonths,
+								customerIdQuarterMap, userId);
+						mergeMapForTargetByUserPrevilages(fromMonth, toMonth,
+								customerIdQuarterMap, userId);
+						generateReponseFromMap(customerIdQuarterMap,
+								targetVsActualDetails);
+						setCurrency(targetVsActualDetails, currency);
+						return targetVsActualDetails;
+					} else {
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfGeo(geography, geographyList);
+						if (formattedMonths == null
+								|| formattedMonths.isEmpty()) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"No Months available for this perticular range");
+						}
+						createMapForProjected(iouList, geographyList,
+								formattedMonths, customerIdQuarterMap);
+						mergeMapForActual(iouList, geographyList,
+								formattedMonths, customerIdQuarterMap);
+						mergeMapForTarget(iouList, geographyList, fromMonth,
+								toMonth, customerIdQuarterMap);
+						generateReponseFromMap(customerIdQuarterMap,
+								targetVsActualDetails);
+						setCurrency(targetVsActualDetails, currency);
+						return targetVsActualDetails;
+					}
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
 		}
-		createMapForProjected(iouList, geographyList, formattedMonths,
-				customerIdQuarterMap);
-		mergeMapForActual(iouList, geographyList, formattedMonths,
-				customerIdQuarterMap);
-		mergeMapForTarget(iouList, geographyList, fromMonth, toMonth,
-				customerIdQuarterMap);
-		generateReponseFromMap(customerIdQuarterMap, targetVsActualDetails);
-		setCurrency(targetVsActualDetails, currencyList);
-		return targetVsActualDetails;
+	}
+
+	private void createMapForProjectedByUserPrevilages(
+			List<String> formattedMonths,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+
+		// Form the native top revenue query string
+		String queryString = getProjectedDetailsQueryString(formattedMonths,
+				customerIdQuarterMap, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+
+		if (resultList != null) {
+			for (Object[] projectedQuarter : resultList) {
+				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+				String customerName = projectedQuarter[0].toString();
+				targetVsActualQuarter
+						.setQuarter(projectedQuarter[1].toString());
+				targetVsActualQuarter
+						.setProjected((BigDecimal) projectedQuarter[2]);
+				customerIdQuarterMap = createMapforQuarters(
+						customerIdQuarterMap, targetVsActualQuarter,
+						customerName);
+			}
+		}
+	}
+
+	private String getProjectedDetailsQueryString(List<String> formattedMonths,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+		logger.debug("Inside getProjectedDetailsQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_PROJECTED_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		System.out.println("months:  " + formattedMonths);
+		System.out.println("query : " + queryBuffer);
+		queryBuffer.append(TARVSACT_MONTHS_COND_PREFIX + formattedMonthsList
+				+ Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append("" + TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private void mergeMapForActualByUserPrevilages(
+			List<String> formattedMonths,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+
+		// Form the native top revenue query string
+		String queryString = getActualDetailsQueryString(formattedMonths,
+				customerIdQuarterMap, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] actualRevenueObj : resultList) {
+			String customerName = actualRevenueObj[0].toString();
+			String quarter = actualRevenueObj[1].toString();
+			BigDecimal actual = (BigDecimal) actualRevenueObj[2];
+			if (customerIdQuarterMap.containsKey(customerName)) {
+				List<TargetVsActualQuarter> targetVsActualQuarterList = customerIdQuarterMap
+						.get(customerName);
+				boolean hasQuarter = false;
+				for (TargetVsActualQuarter targetVsActualQuarter : targetVsActualQuarterList) {
+					if (targetVsActualQuarter.getQuarter().equals(quarter)) {
+						targetVsActualQuarter.setActual(actual);
+						hasQuarter = true;
+					}
+				}
+				if (!hasQuarter) {
+					TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+					targetVsActualQuarter.setQuarter(quarter);
+					targetVsActualQuarter.setActual(actual);
+					targetVsActualQuarterList.add(targetVsActualQuarter);
+				}
+			} else {
+				List<TargetVsActualQuarter> targetVsActualQuarterList = new ArrayList<TargetVsActualQuarter>();
+				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+				targetVsActualQuarter.setQuarter(quarter);
+				targetVsActualQuarter.setActual(actual);
+				targetVsActualQuarterList.add(targetVsActualQuarter);
+				customerIdQuarterMap.put(customerName,
+						targetVsActualQuarterList);
+			}
+		}
+	}
+
+	private String getActualDetailsQueryString(List<String> formattedMonths,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+		logger.debug("Inside getTargetVsActualProjectedDetailedQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_ACTUAL_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_ACTUAL_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+
+	}
+
+	private void mergeMapForTargetByUserPrevilages(String fromMonth,
+			String toMonth,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		System.out.println("Quarter " + quarterList);
+		// Form the native top revenue query string
+		String queryString = getTargetDetailsQueryString(quarterList,
+				customerIdQuarterMap, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] targetObj : resultList) {
+			String customerName = targetObj[0].toString();
+			String quarter = targetObj[1].toString();
+			BigDecimal target = (BigDecimal) targetObj[2];
+
+			// target=target*(4-monthIndex)/3 ; monthIndex={1,2,3}
+			if (quarter.equals(fromQuarter)) {
+				target = target.multiply(
+						new BigDecimal(4 - DateUtils
+								.getMonthIndexOnQuarter(fromMonth))).divide(
+						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+			}
+			if (quarter.equals(toQuarter)) {
+				target = target.multiply(
+						new BigDecimal(4 - DateUtils
+								.getMonthIndexOnQuarter(toMonth))).divide(
+						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+			}
+			if (customerIdQuarterMap.containsKey(customerName)) {
+				List<TargetVsActualQuarter> targetVsActualQuarterList = customerIdQuarterMap
+						.get(customerName);
+				boolean hasQuarter = false;
+				for (TargetVsActualQuarter targetVsActualQuarter : targetVsActualQuarterList) {
+					if (targetVsActualQuarter.getQuarter().equals(quarter)) {
+						targetVsActualQuarter.setTarget(target);
+						hasQuarter = true;
+					}
+				}
+				if (!hasQuarter) {
+					TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+					targetVsActualQuarter.setQuarter(quarter);
+					targetVsActualQuarter.setTarget(target);
+					targetVsActualQuarterList.add(targetVsActualQuarter);
+				}
+			} else {
+				List<TargetVsActualQuarter> targetVsActualQuarterList = new ArrayList<TargetVsActualQuarter>();
+				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+				targetVsActualQuarter.setQuarter(quarter);
+				targetVsActualQuarter.setTarget(target);
+				targetVsActualQuarterList.add(targetVsActualQuarter);
+				customerIdQuarterMap.put(customerName,
+						targetVsActualQuarterList);
+			}
+		}
+
+	}
+
+	private String getTargetDetailsQueryString(List<String> quarterList,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			String userId) throws Exception {
+		logger.debug("Inside getTargetVsActualProjectedDetailedQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_TARGET_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(TARVSACT_GEO_COND_PREFIX, null,
+						IOU_COND_PREFIX, null);
+
+		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
+				+ Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_TARGET_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private void generateReponseFromMap(
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
+			List<TargetVsActualDetailed> targetVsActualDetails) {
+		for (String customerName : customerIdQuarterMap.keySet()) {
+			TargetVsActualDetailed targetVsActualDetailed = new TargetVsActualDetailed();
+			List<TargetVsActualYearToDate> targetVsActualYtds = getTargetVsActualYtdList(customerIdQuarterMap
+					.get(customerName));
+			CustomerMasterT customerMasterT = customerRepository
+					.findByCustomerName(customerName);
+			targetVsActualDetailed.setCustomerMasterT(customerMasterT);
+			targetVsActualDetailed.setYearToDate(targetVsActualYtds);
+			targetVsActualDetails.add(targetVsActualDetailed);
+		}
+	}
+
+	private void createMapForProjected(List<String> iouList,
+			List<String> geographyList, List<String> formattedMonths,
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap) {
+		List<Object[]> projectedQuarterObjList = projectedRevenuesDataTRepository
+				.getProjectedRevenuesByQuarter(iouList, geographyList,
+						formattedMonths);
+		if (projectedQuarterObjList != null) {
+			for (Object[] projectedQuarter : projectedQuarterObjList) {
+				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
+				String customerName = projectedQuarter[0].toString();
+				targetVsActualQuarter
+						.setQuarter(projectedQuarter[1].toString());
+				targetVsActualQuarter
+						.setProjected((BigDecimal) projectedQuarter[2]);
+				customerIdQuarterMap = createMapforQuarters(
+						customerIdQuarterMap, targetVsActualQuarter,
+						customerName);
+			}
+		}
 	}
 
 	private void setCurrency(
@@ -337,6 +627,17 @@ public class ReportsService {
 											targetVsActualYearToDate
 													.getProjected()));
 							targetVsActualYearToDate.getProjectedValues().add(
+									currencyValue);
+						}
+						// Setting Revenue Currency conversion
+						if (targetVsActualYearToDate.getRevenue() != null) {
+							CurrencyValue currencyValue = new CurrencyValue();
+							currencyValue.setCurrency(currency);
+							currencyValue.setValue(beaconConverterService
+									.convert("INR", currency,
+											targetVsActualYearToDate
+													.getRevenue()));
+							targetVsActualYearToDate.getRevenueValues().add(
 									currencyValue);
 						}
 						// Setting the Target Quarter values
@@ -383,6 +684,20 @@ public class ReportsService {
 															targetVsActualQuarter
 																	.getProjected()));
 									targetVsActualQuarter.getProjectedValues()
+											.add(currencyValue);
+								}
+								// Setting Revenue Currency conversion
+								if (targetVsActualQuarter.getRevenue() != null) {
+									CurrencyValue currencyValue = new CurrencyValue();
+									currencyValue.setCurrency(currency);
+									currencyValue
+											.setValue(beaconConverterService
+													.convert(
+															"INR",
+															currency,
+															targetVsActualQuarter
+																	.getRevenue()));
+									targetVsActualQuarter.getRevenueValues()
 											.add(currencyValue);
 								}
 							}
@@ -494,47 +809,23 @@ public class ReportsService {
 		}
 	}
 
-	private void generateReponseFromMap(
-			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
-			List<TargetVsActualDetailed> targetVsActualDetails) {
-		for (String customerName : customerIdQuarterMap.keySet()) {
-			TargetVsActualDetailed targetVsActualDetailed = new TargetVsActualDetailed();
-			List<TargetVsActualYearToDate> targetVsActualYtds = getTargetVsActualYtdList(customerIdQuarterMap
-					.get(customerName));
-			CustomerMasterT customerMasterT = customerRepository
-					.findByCustomerName(customerName);
-			targetVsActualDetailed.setCustomerMasterT(customerMasterT);
-			targetVsActualDetailed.setYearToDate(targetVsActualYtds);
-			targetVsActualDetails.add(targetVsActualDetailed);
+	private void addEmptyItemToListIfGeo(List<String> itemList,
+			List<String> targetList) {
+		if (itemList.contains("All") || itemList.isEmpty()) {
+			targetList.add("");
+		} else {
+			targetList.addAll(geographyRepository
+					.findByDisplayGeography(itemList));
 		}
 	}
 
-	private void createMapForProjected(List<String> iouList,
-			List<String> geographyList, List<String> formattedMonths,
-			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap) {
-		List<Object[]> projectedQuarterObjList = projectedRevenuesDataTRepository
-				.getProjectedRevenuesByQuarter(iouList, geographyList,
-						formattedMonths);
-		if (projectedQuarterObjList != null) {
-			for (Object[] projectedQuarter : projectedQuarterObjList) {
-				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
-				String customerName = projectedQuarter[0].toString();
-				targetVsActualQuarter
-						.setQuarter(projectedQuarter[1].toString());
-				targetVsActualQuarter
-						.setProjected((BigDecimal) projectedQuarter[2]);
-				customerIdQuarterMap = createMapforQuarters(
-						customerIdQuarterMap, targetVsActualQuarter,
-						customerName);
-			}
+	private void addEmptyItemToListIfAll(List<String> itemList,
+			List<String> targetList) {
+		if (itemList.contains("All") || itemList.isEmpty()) {
+			targetList.add("");
+		} else {
+			targetList.addAll(itemList);
 		}
-
-	}
-
-	private void addEmptyItemToListIfEmpty(List<String> itemList) {
-		if (itemList == null || itemList.isEmpty())
-			itemList.add("");
-
 	}
 
 	private List<TargetVsActualYearToDate> getTargetVsActualYtdList(
@@ -573,4 +864,1477 @@ public class ReportsService {
 		return quarterList;
 	}
 
+	// Excel Reports
+
+	public InputStreamResource getTargetVsActualReports(List<String> geography,
+			List<String> iou, String fromMonth, String toMonth,
+			List<String> currencyList, List<String> fields, String userId)
+			throws Exception {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		String tillDate = DateUtils.getCurrentDate();
+		buildExcelTargetVsActualDetailedReportService
+				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
+						tillDate);
+		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
+				geography, iou, fromMonth, toMonth, currencyList, userId);
+		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(
+				targetVsActualDetailedList, fields, currencyList, fromMonth,
+				workbook);
+		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
+				currencyList, userId, workbook);
+		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+		workbook.write(byteOutPutStream);
+		byteOutPutStream.flush();
+		byteOutPutStream.close();
+		byte[] bytes = byteOutPutStream.toByteArray();
+		InputStreamResource inputStream = new InputStreamResource(
+				new ByteArrayInputStream(bytes));
+		return inputStream;
+	}
+
+	public InputStreamResource getTargetVsActualDetailedReport(
+			List<String> geography, List<String> iou, String fromMonth,
+			String toMonth, List<String> currency, List<String> fields,
+			String userId) throws Exception {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
+				geography, iou, fromMonth, toMonth, currency, userId);
+		String tillDate = DateUtils.getCurrentDate();
+		buildExcelTargetVsActualDetailedReportService
+				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
+						tillDate);
+		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(
+				targetVsActualDetailedList, fields, currency, fromMonth,
+				workbook);
+		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+		workbook.write(byteOutPutStream);
+		byteOutPutStream.flush();
+		byteOutPutStream.close();
+		byte[] bytes = byteOutPutStream.toByteArray();
+		InputStreamResource inputStream = new InputStreamResource(
+				new ByteArrayInputStream(bytes));
+		return inputStream;
+	}
+
+	public InputStreamResource getTargetVsActualSummaryReport(
+			List<String> geography, List<String> iou, String fromMonth,
+			String toMonth, List<String> currencyList, String userId)
+			throws Exception {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		String tillDate = DateUtils.getCurrentDate();
+		buildExcelTargetVsActualDetailedReportService
+				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
+						tillDate);
+		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
+				currencyList, userId, workbook);
+		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+		workbook.write(byteOutPutStream);
+		byteOutPutStream.flush();
+		byteOutPutStream.close();
+		byte[] bytes = byteOutPutStream.toByteArray();
+		InputStreamResource inputStream = new InputStreamResource(
+				new ByteArrayInputStream(bytes));
+		return inputStream;
+	}
+
+	public void getTargetVsActualSummaryExcel(List<String> geography,
+			List<String> iou, String fromMonth, String toMonth,
+			List<String> currencyList, String userId, XSSFWorkbook workbook)
+			throws Exception {
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
+		BigDecimal totalTargetINR = new BigDecimal(0);
+		BigDecimal totalActualProjectedINR = new BigDecimal(0);
+		BigDecimal top30CustomersRevenueINR = new BigDecimal(0);
+		List<CustomerRevenueValues> actualProjectedRevenuesList = null;
+		Map<String, BigDecimal> targetRevenuesMap = null;
+		Map<String, BigDecimal> targetOverAllRevenuesMap = null;
+		Map<String, BigDecimal> actualProjectedOverAllRevenuesMap = null;
+		List<Object[]> overAllRevenuesByGeoList = null;
+		List<GroupCustomerGeoIouResponse> geoIouGroupCustNameList = null;
+		int count = 30;
+		if (toMonth.isEmpty()) {
+			toMonth = DateUtils.getCurrentMonth();
+		}
+		List<String> formattedMonths = DateUtils.getAllMonthsBetween(fromMonth,
+				toMonth);
+
+		if (formattedMonths != null && !formattedMonths.isEmpty()) {
+			for (String formattedMonth : formattedMonths) {
+				DateUtils.getQuarterForMonth(formattedMonth);
+			}
+		}
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+				case BDM_SUPERVISOR:
+					logger.error("User is not authorized to access this service");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+							"User is not authorised to access this service");
+				default:
+					if (geography.contains("All") && (iou.contains("All"))) {
+						if (formattedMonths == null
+								|| formattedMonths.isEmpty()) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"No Months available for this perticular range");
+						}
+						// sec 1
+						totalTargetINR = getTotalTargetByUserPrivileges(
+								fromMonth, toMonth, userId);
+						totalActualProjectedINR = getTotalActualProjectedByUserPrivileges(
+								formattedMonths, userId);
+						top30CustomersRevenueINR = getTop30CustomersRevenueSumByUserPrivileges(
+								formattedMonths, userId);
+						// sec 2
+						targetOverAllRevenuesMap = getOverAllTargetRevenuesByUserPrivileges(
+								fromMonth, toMonth, userId);
+						actualProjectedOverAllRevenuesMap = getOverAllActualProjectedRevenuesByUserPrivileges(
+								formattedMonths, userId);
+						overAllRevenuesByGeoList = getOverAllRevenuesByGeoAndUserPrivileges(
+								formattedMonths, userId);
+						// sec 3
+						actualProjectedRevenuesList = getTop30CustomersRevenueListByUserPrivileges(
+								formattedMonths, userId, count);
+						targetRevenuesMap = getTargetRevenuesByUserPrivileges(
+								fromMonth, toMonth, userId);
+						geoIouGroupCustNameList = getGroupCustGeoIouByUserPrivilages(
+								formattedMonths, userId);
+					} else {
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfGeo(geography, geographyList);
+						if (formattedMonths == null
+								|| formattedMonths.isEmpty()) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"No Months available for this perticular range");
+						}
+						totalTargetINR = getTotalTarget(iouList, geographyList,
+								fromMonth, toMonth);
+						totalActualProjectedINR = getTotalActualProjected(
+								iouList, geographyList, formattedMonths);
+						top30CustomersRevenueINR = getTop30CustomersRevenueSum(
+								iouList, geographyList, formattedMonths);
+						targetOverAllRevenuesMap = getOverAllTargetRevenues(
+								iouList, geographyList, fromMonth, toMonth);
+						actualProjectedOverAllRevenuesMap = getOverAllActualProjectedRevenues(
+								iouList, geographyList, formattedMonths);
+						overAllRevenuesByGeoList = getOverAllRevenuesByGeo(
+								iouList, geographyList, formattedMonths);
+						actualProjectedRevenuesList = getTop30CustomersRevenuesList(
+								iouList, geographyList, formattedMonths);
+						targetRevenuesMap = getTargetRevenues(iouList,
+								geographyList, fromMonth, toMonth);
+						geoIouGroupCustNameList = getGroupCustGeoIou(iouList,
+								geographyList, formattedMonths);
+					}
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
+			if (totalTargetINR != null && totalActualProjectedINR != null
+					&& top30CustomersRevenueINR != null
+					&& targetOverAllRevenuesMap != null
+					&& actualProjectedOverAllRevenuesMap != null
+					&& overAllRevenuesByGeoList != null
+					&& actualProjectedRevenuesList != null
+					&& targetRevenuesMap != null
+					&& geoIouGroupCustNameList != null) {
+				buildExcelTargetVsActualSummaryReportService
+						.getTargetVsActualSummaryExcel(fromMonth,
+								totalTargetINR, totalActualProjectedINR,
+								top30CustomersRevenueINR,
+								actualProjectedRevenuesList, targetRevenuesMap,
+								currencyList, targetOverAllRevenuesMap,
+								actualProjectedOverAllRevenuesMap, userId,
+								formattedMonths, workbook,
+								overAllRevenuesByGeoList,
+								geoIouGroupCustNameList);
+			} else {
+				logger.error("No Relevant Data Found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Relevant Data Found");
+			}
+		}
+	}
+
+	private List<GroupCustomerGeoIouResponse> getGroupCustGeoIouByUserPrivilages(
+			List<String> formattedMonths, String userId) throws Exception {
+		List<GroupCustomerGeoIouResponse> revenueGeoValuesList = new ArrayList<GroupCustomerGeoIouResponse>();
+		String queryString = getGroupCustGeoIouQueryString(formattedMonths,
+				userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] actualRevenueObj : resultList) {
+			GroupCustomerGeoIouResponse revenueGeoValues = new GroupCustomerGeoIouResponse();
+			String customerName = actualRevenueObj[0].toString();
+			String groupCustomerName = actualRevenueObj[1].toString();
+			String geography = actualRevenueObj[3].toString();
+			String iou = actualRevenueObj[2].toString();
+			revenueGeoValues.setCustomerName(customerName);
+			revenueGeoValues.setGroupCustomerName(groupCustomerName);
+			revenueGeoValues.setDisplayGeography(geography);
+			revenueGeoValues.setDisplayIou(iou);
+			revenueGeoValuesList.add(revenueGeoValues);
+		}
+		return revenueGeoValuesList;
+	}
+
+	private String getGroupCustGeoIouQueryString(List<String> formattedMonths,
+			String userId) throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				GROUP_CUST_GEO_IOU_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
+	}
+
+	private List<Object[]> getOverAllRevenuesByGeoAndUserPrivileges(
+			List<String> formattedMonths, String userId) throws Exception {
+		String queryString = getOverAllRevenuesByGeoQueryString(
+				formattedMonths, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		return resultList;
+	}
+
+	private String getOverAllRevenuesByGeoQueryString(
+			List<String> formattedMonths, String userId) throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				OVERALL_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private BigDecimal getTop30CustomersRevenueSumByUserPrivileges(
+			List<String> formattedMonths, String userId) throws Exception {
+		String queryString = getTop30CustomersRevenueQueryString(
+				formattedMonths, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<BigDecimal> resultList = tergetVsActualReportQuery.getResultList();
+		return resultList.get(0);
+	}
+
+	private String getTop30CustomersRevenueQueryString(
+			List<String> formattedMonths, String userId) throws Exception {
+		logger.debug("Inside getTotalTargetRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX);
+		queryBuffer.append(TOP_CUS_REVENUES_LIST_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_GROUP_BY_ORDER_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private BigDecimal getTotalTargetByUserPrivileges(String fromMonth,
+			String toMonth, String userId) throws Exception {
+		// Form the native top revenue query string
+		String queryString = getTotalTargetRevenueQueryString(fromMonth,
+				toMonth, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<BigDecimal> resultList = tergetVsActualReportQuery.getResultList();
+		System.out.println("Result  " + resultList.get(0));
+		return resultList.get(0);
+	}
+
+	private String getTotalTargetRevenueQueryString(String fromMonth,
+			String toMonth, String userId) throws Exception {
+		logger.debug("Inside getTotalTargetRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_TOTAL_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
+				+ Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
+	}
+
+	public String getQuarterListWithSingleQuotes(List<String> quarterList) {
+		String quarters = Joiner.on("\',\'").join(quarterList);
+		if (!quarterList.isEmpty()) {
+			quarters = "\'" + quarters + "\'";
+		}
+		return quarters;
+	}
+
+	private BigDecimal getTotalActualProjectedByUserPrivileges(
+			List<String> formattedMonths, String userId) throws Exception {
+		String queryString = getTotalActualProjectedRevenueQueryString(
+				formattedMonths, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<BigDecimal> resultList = tergetVsActualReportQuery.getResultList();
+		return resultList.get(0);
+	}
+
+	private String getTotalActualProjectedRevenueQueryString(
+			List<String> formattedMonths, String userId) throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_TOTAL_ACT_PROJ_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private Map<String, BigDecimal> getTargetRevenuesByUserPrivileges(
+			String fromMonth, String toMonth, String userId) throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		Map<String, BigDecimal> targetRevenues = new TreeMap<String, BigDecimal>();
+		// Form the native top revenue query string
+		String queryString = getTargetRevenueQueryString(quarterList, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] targetRevenueObj : resultList) {
+			String customerName = targetRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (targetRevenueObj[1]);
+			targetRevenues.put(customerName, revenue);
+		}
+		return targetRevenues;
+	}
+
+	private String getTargetRevenueQueryString(List<String> quarterList,
+			String userId) throws Exception {
+		logger.debug("Inside getTotalTargetRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_TARGET_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
+				+ Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private Map<String, BigDecimal> getOverAllTargetRevenuesByUserPrivileges(
+			String fromMonth, String toMonth, String userId) throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		Map<String, BigDecimal> targetRevenues = new TreeMap<String, BigDecimal>();
+		// Form the native top revenue query string
+		String queryString = getOverAllTargetRevenueQueryString(quarterList,
+				userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] targetRevenueObj : resultList) {
+			String customerName = targetRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (targetRevenueObj[1]);
+			targetRevenues.put(customerName, revenue);
+		}
+		return targetRevenues;
+	}
+
+	private String getOverAllTargetRevenueQueryString(List<String> quarterList,
+			String userId) throws Exception {
+		logger.debug("Inside getTotalTargetRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TARGET_VS_ACTUAL_OVERALL_TARGET_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
+				+ Constants.RIGHT_PARANTHESIS);
+		System.out.println("Quert TO P");
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private List<CustomerRevenueValues> getTop30CustomersRevenueListByUserPrivileges(
+			List<String> formattedMonths, String userId, int count)
+			throws Exception {
+		List<CustomerRevenueValues> revenueGeoValuesList = new ArrayList<CustomerRevenueValues>();
+		String queryString = getActualProjectedTop30RevenuesQueryString(
+				formattedMonths, userId, count);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] actualRevenueObj : resultList) {
+			CustomerRevenueValues revenueGeoValues = new CustomerRevenueValues();
+			String customerName = actualRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (actualRevenueObj[1]);
+			revenueGeoValues.setCustomerName(customerName);
+			revenueGeoValues.setValue(revenue);
+			revenueGeoValuesList.add(revenueGeoValues);
+		}
+		return revenueGeoValuesList;
+	}
+
+	private String getActualProjectedTop30RevenuesQueryString(
+			List<String> formattedMonths, String userId, int count)
+			throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TOP_CUS_REVENUES_LIST_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX);
+		queryBuffer.append(count);
+		return queryBuffer.toString();
+	}
+
+	private Map<String, BigDecimal> getOverAllActualProjectedRevenuesByUserPrivileges(
+			List<String> formattedMonths, String userId) throws Exception {
+		Map<String, BigDecimal> actualProjectedOverAllRevenues = new TreeMap<String, BigDecimal>();
+
+		String queryString = getOverAllActualRevenuesQueryString(
+				formattedMonths, userId);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query tergetVsActualReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<Object[]> resultList = tergetVsActualReportQuery.getResultList();
+		for (Object[] actualRevenueObj : resultList) {
+			String customerName = actualRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (actualRevenueObj[1]);
+			actualProjectedOverAllRevenues.put(customerName, revenue);
+		}
+		return actualProjectedOverAllRevenues;
+	}
+
+	private String getOverAllActualRevenuesQueryString(
+			List<String> formattedMonths, String userId) throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				ACTUAL_PROJECTED_OVERALL_REVENUE_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private BigDecimal getTop30CustomersRevenueSum(List<String> iouList,
+			List<String> geographyList, List<String> formattedMonths) {
+		Object[] top30CustomersRevenueObj = actualRevenuesDataTRepository
+				.getTop30CustomersRevenueByQuarter(iouList, geographyList,
+						formattedMonths);
+		BigDecimal top30CustomersRevenue = (BigDecimal) top30CustomersRevenueObj[0];
+		return top30CustomersRevenue;
+	}
+
+	private BigDecimal getTotalTarget(List<String> iouList,
+			List<String> geographyList, String fromMonth, String toMonth)
+			throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		Object[] targetObj = beaconDataTRepository.getTotalTargetByQuarter(
+				iouList, geographyList, quarterList);
+		BigDecimal target = (BigDecimal) targetObj[0];
+		return target;
+	}
+
+	private BigDecimal getTotalActualProjected(List<String> iouList,
+			List<String> geographyList, List<String> formattedMonths) {
+		Object[] actualRevenueObj = actualRevenuesDataTRepository
+				.getTotalRevenue(iouList, geographyList, formattedMonths);
+		BigDecimal actual = (BigDecimal) actualRevenueObj[0];
+		return actual;
+	}
+
+	private Map<String, BigDecimal> getTargetRevenues(List<String> iouList,
+			List<String> geographyList, String fromMonth, String toMonth)
+			throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		Map<String, BigDecimal> targetRevenues = new TreeMap<String, BigDecimal>();
+		List<Object[]> targetObjList = beaconDataTRepository
+				.getTargetRevenueByQuarter(iouList, geographyList, quarterList);
+		for (Object[] targetRevenueObj : targetObjList) {
+			String customerName = targetRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (targetRevenueObj[1]);
+			targetRevenues.put(customerName, revenue);
+		}
+		return targetRevenues;
+	}
+
+	private Map<String, BigDecimal> getOverAllTargetRevenues(
+			List<String> iouList, List<String> geographyList, String fromMonth,
+			String toMonth) throws Exception {
+		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
+		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
+		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
+				toQuarter);
+		Map<String, BigDecimal> targetRevenues = new TreeMap<String, BigDecimal>();
+		List<Object[]> targetObjList = beaconDataTRepository
+				.getOverAllTargetRevenue(iouList, geographyList, quarterList);
+		for (Object[] targetRevenueObj : targetObjList) {
+			String customerName = targetRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (targetRevenueObj[1]);
+			targetRevenues.put(customerName, revenue);
+		}
+		return targetRevenues;
+	}
+
+	private List<Object[]> getOverAllRevenuesByGeo(List<String> iouList,
+			List<String> geographyList, List<String> formattedMonths) {
+		List<Object[]> overAllRevenueByGeo = actualRevenuesDataTRepository
+				.getOverAllActualRevenuesByGeo(geographyList, iouList,
+						formattedMonths);
+
+		return overAllRevenueByGeo;
+	}
+
+	private List<CustomerRevenueValues> getTop30CustomersRevenuesList(
+			List<String> iouList, List<String> geographyList,
+			List<String> formattedMonths) {
+		List<CustomerRevenueValues> customerRevenueValuesList = new ArrayList<CustomerRevenueValues>();
+		List<Object[]> actualRevenueObjList = actualRevenuesDataTRepository
+				.getTop30CustomersRevenues(iouList, geographyList,
+						formattedMonths);
+		for (Object[] actualRevenueObj : actualRevenueObjList) {
+			CustomerRevenueValues revenueGeoValues = new CustomerRevenueValues();
+			String customerName = actualRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (actualRevenueObj[1]);
+			revenueGeoValues.setCustomerName(customerName);
+			revenueGeoValues.setValue(revenue);
+			customerRevenueValuesList.add(revenueGeoValues);
+		}
+		return customerRevenueValuesList;
+	}
+
+	private Map<String, BigDecimal> getOverAllActualProjectedRevenues(
+			List<String> iouList, List<String> geographyList,
+			List<String> formattedMonths) {
+		Map<String, BigDecimal> actualProjectedOverAllRevenues = new TreeMap<String, BigDecimal>();
+		List<Object[]> actualRevenueObjList = actualRevenuesDataTRepository
+				.getOverAllActualRevenues(iouList, geographyList,
+						formattedMonths);
+		for (Object[] actualRevenueObj : actualRevenueObjList) {
+			String customerName = actualRevenueObj[0].toString();
+			BigDecimal revenue = (BigDecimal) (actualRevenueObj[1]);
+			actualProjectedOverAllRevenues.put(customerName, revenue);
+		}
+		return actualProjectedOverAllRevenues;
+	}
+
+	private List<GroupCustomerGeoIouResponse> getGroupCustGeoIou(
+			List<String> iouList, List<String> geographyList,
+			List<String> formattedMonths) {
+		List<GroupCustomerGeoIouResponse> revenueGeoValuesList = new ArrayList<GroupCustomerGeoIouResponse>();
+		List<Object[]> groupCustGeoIouObjList = actualRevenuesDataTRepository
+				.getGroupCustGeoIou(geographyList, iouList, formattedMonths);
+		for (Object[] actualRevenueObj : groupCustGeoIouObjList) {
+			GroupCustomerGeoIouResponse revenueGeoValues = new GroupCustomerGeoIouResponse();
+			String customerName = actualRevenueObj[0].toString();
+			String groupCustomerName = actualRevenueObj[1].toString();
+			String geography = actualRevenueObj[3].toString();
+			String iou = actualRevenueObj[2].toString();
+			revenueGeoValues.setCustomerName(customerName);
+			revenueGeoValues.setGroupCustomerName(groupCustomerName);
+			revenueGeoValues.setDisplayGeography(geography);
+			revenueGeoValues.setDisplayIou(iou);
+			revenueGeoValuesList.add(revenueGeoValues);
+		}
+		return revenueGeoValuesList;
+	}
+
+	/**
+	 * This method forms and executes the query to find Top revenue customers
+	 * based on user access privileges
+	 * 
+	 * @param userId
+	 * @param financialYear
+	 * @param count
+	 * @return
+	 * @return Top revenue customers
+	 * @throws Exception
+	 */
+	private List<ConnectT> getConnectDetailsBasedOnUserPrivileges(
+			Date fromDate, Date toDate, String userId) throws Exception {
+		logger.debug("Inside getConnectDetailsBasedOnUserPrivileges() method");
+		// Form the native top revenue query string
+		String queryString = getConnectDetailedQueryString(userId, fromDate,
+				toDate);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query connectDetailedReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<String> resultList = connectDetailedReportQuery.getResultList();
+		// Retrieve connect details
+		List<ConnectT> connectDetailsList = null;
+		if ((resultList != null) && !(resultList.isEmpty())) {
+			connectDetailsList = connectRepository.getConnectsByIds(resultList);
+		}
+		if (connectDetailsList == null || connectDetailsList.isEmpty()) {
+			logger.error("NOT_FOUND: Connects not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connects not found");
+		}
+		return connectDetailsList;
+	}
+
+	private String getConnectGeoSummaryQueryString(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		logger.debug("Inside getConnectSummaryQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(CONNECT_GEO_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private String getConnectIouSummaryQueryString(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		logger.debug("Inside getConnectSummaryQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(CONNECT_IOU_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	private String getConnectSubSpSummaryQueryString(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		logger.debug("Inside getConnectSummaryQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(CONNECT_SUBSP_GROUP_BY_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	/**
+	 * This method returns the query string with user access privilege
+	 * restrictions added
+	 * 
+	 * @param count
+	 * @param financialYear
+	 * @param privileges
+	 * @return
+	 * @throws Exception
+	 * @throws DestinationException
+	 */
+	private String getConnectDetailedQueryString(String userId, Date fromDate,
+			Date toDate) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						IOU_COND_PREFIX, null);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
+	}
+
+	/**
+	 * This method validate the input details based on user access and
+	 * privileges, and gets the connect detailed report in excel
+	 * 
+	 * @param month
+	 * @param quarter
+	 * @param year
+	 * @param iou
+	 * @param geography
+	 * @param country
+	 * @param serviceLines
+	 * @param userId
+	 * @param fields
+	 * @return connect detailed report in excel from
+	 * @throws Exception
+	 */
+	public InputStreamResource getConnectDetailedReport(String month,
+			String quarter, String year, List<String> iou,
+			List<String> geography, List<String> country,
+			List<String> serviceLines, String userId, List<String> fields)
+			throws Exception {
+		logger.debug("Inside getConnectDetailedReport Service");
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
+		List<String> serviceLinesList = new ArrayList<String>();
+		List<String> userIds = new ArrayList<String>();
+		// user access
+		Date fromDate = DateUtils.getDate(month, quarter, year, true);
+		Date toDate = DateUtils.getDate(month, quarter, year, false);
+		Date tillDate = new Date();
+		System.out.println("CURE " + tillDate);
+		List<ConnectT> connectList = new ArrayList<ConnectT>();
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+					userIds.add(userId);
+					connectList = connectRepository.findByConnectReport(
+							new Timestamp(fromDate.getTime()), new Timestamp(
+									toDate.getTime()), userIds);
+					break;
+				case BDM_SUPERVISOR:
+					userIds = userRepository
+							.getAllSubordinatesIdBySupervisorId(user
+									.getSupervisorUserId());
+					userIds.add(userId);
+					connectList = connectRepository.findByConnectReport(
+							new Timestamp(fromDate.getTime()), new Timestamp(
+									toDate.getTime()), userIds);
+					break;
+				default:
+					if (geography.contains("All")
+							&& (iou.contains("All") && serviceLines
+									.contains("All"))
+							&& country.contains("All")) {
+						connectList = getConnectDetailsBasedOnUserPrivileges(
+								fromDate, toDate, userId);
+					} else {
+						addEmptyItemToListIfGeo(geography, geographyList);
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+						addEmptyItemToListIfAll(country, countryList);
+						connectList = connectRepository.findByConnectReport(
+								new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), iouList,
+								geographyList, countryList, serviceLinesList);
+					}
+					break;
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
+			if (connectList != null) {
+				connectDetailedReportService.getConnectTitlePage(workbook,
+						geography, iou, serviceLines, userId, tillDate);
+				getConnectDetailedReportInExcel(connectList, iouList,
+						geographyList, countryList, serviceLinesList, fields,
+						workbook);
+			} else {
+				logger.error("Connects Not Found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Connects Not Found");
+			}
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			InputStreamResource inputStreamResource = new InputStreamResource(
+					new ByteArrayInputStream(bytes));
+			return inputStreamResource;
+		}
+	}
+
+	/**
+	 * This method
+	 * 
+	 * @param month
+	 * @param quarter
+	 * @param year
+	 * @param connectList
+	 * @param iouList
+	 * @param geographyList
+	 * @param country
+	 * @param serviceLines
+	 * @param userIds
+	 * @param fields
+	 * @param workbook
+	 * @throws Exception
+	 */
+	private void getConnectDetailedReportInExcel(List<ConnectT> connectList,
+			List<String> iouList, List<String> geographyList,
+			List<String> country, List<String> serviceLines,
+			List<String> fields, XSSFWorkbook workbook) throws Exception {
+		logger.debug("Inside connectDetailedReportInExcel Service");
+		if (connectList.isEmpty() || connectList == null) {
+			logger.error("NOT_FOUND: No Relevent Data Found in the database");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Relevent Data Found in the database");
+		} else {
+			connectDetailedReportService.getConnectDetailedReport(connectList,
+					fields, workbook);
+		}
+	}
+
+	/**
+	 * This method validate the input details based on user access and
+	 * privileges, and gets the connect summary report in excel
+	 * 
+	 * @param month
+	 * @param quarter
+	 * @param year
+	 * @param iou
+	 * @param geography
+	 * @param country
+	 * @param serviceLines
+	 * @param userId
+	 * @param fields
+	 * @return
+	 * @throws Exception
+	 */
+	public InputStreamResource connectSummaryReport(String month,
+			String quarter, String year, List<String> iou,
+			List<String> geography, List<String> country,
+			List<String> serviceLines, String userId, List<String> fields)
+			throws Exception {
+		logger.debug("Inside connectSummaryReport() method");
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
+		List<String> serviceLinesList = new ArrayList<String>();
+		List<String> userIds = new ArrayList<String>();
+		// user access
+		Date fromDate = DateUtils.getDate(month, quarter, year, true);
+		Date toDate = DateUtils.getDate(month, quarter, year, false);
+		Date tillDate = new Date();
+		List<Object[]> subSpConnectCountList = null;
+		List<Object[]> geographyConnectCountList = null;
+		List<Object[]> iouConnectCountList = null;
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+					userIds.add(userId);
+					getConnectSummaryDetailsByUserIds(userIds, fromDate,
+							toDate, subSpConnectCountList,
+							geographyConnectCountList, iouConnectCountList);
+					break;
+				case BDM_SUPERVISOR:
+					userIds = userRepository
+							.getAllSubordinatesIdBySupervisorId(user
+									.getSupervisorUserId());
+					userIds.add(userId);
+					getConnectSummaryDetailsByUserIds(userIds, fromDate,
+							toDate, subSpConnectCountList,
+							geographyConnectCountList, iouConnectCountList);
+					break;
+				default:
+					if (geography.contains("All")
+							&& (iou.contains("All") && serviceLines
+									.contains("All"))
+							&& country.contains("All")) {
+						// Form the native top revenue query string
+						String queryString = getConnectGeoSummaryQueryString(
+								userId, fromDate, toDate);
+						String queryString1 = getConnectIouSummaryQueryString(
+								userId, fromDate, toDate);
+						String queryString2 = getConnectSubSpSummaryQueryString(
+								userId, fromDate, toDate);
+						logger.info("Query string: {}", queryString);
+						// Execute the native revenue query string
+						Query connectGeoSummaryReportQuery = entityManager
+								.createNativeQuery(queryString);
+						Query connectIouSummaryReportQuery = entityManager
+								.createNativeQuery(queryString1);
+						Query connectSubSpSummaryReportQuery = entityManager
+								.createNativeQuery(queryString2);
+
+						geographyConnectCountList = connectGeoSummaryReportQuery
+								.getResultList();
+						iouConnectCountList = connectIouSummaryReportQuery
+								.getResultList();
+						subSpConnectCountList = connectSubSpSummaryReportQuery
+								.getResultList();
+					} else {
+						addEmptyItemToListIfGeo(geography, geographyList);
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+						addEmptyItemToListIfAll(country, countryList);
+						subSpConnectCountList = connectRepository
+								.findBySubSpConnectSummaryReport(new Timestamp(
+										fromDate.getTime()), new Timestamp(
+										toDate.getTime()), iouList,
+										geographyList, countryList,
+										serviceLinesList);
+						geographyConnectCountList = connectRepository
+								.findByGeographyConnectSummaryReport(
+										new Timestamp(fromDate.getTime()),
+										new Timestamp(toDate.getTime()),
+										iouList, geographyList, countryList,
+										serviceLinesList);
+						iouConnectCountList = connectRepository
+								.findByIouConnectSummaryReport(new Timestamp(
+										fromDate.getTime()), new Timestamp(
+										toDate.getTime()), iouList,
+										geographyList, countryList,
+										serviceLinesList);
+					}
+					break;
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
+			if (subSpConnectCountList != null
+					&& geographyConnectCountList != null
+					&& iouConnectCountList != null) {
+				connectDetailedReportService.getConnectTitlePage(workbook,
+						geography, iou, serviceLines, userId, tillDate);
+				getConnectSummaryReportExcel(month, quarter, year,
+						subSpConnectCountList, geographyConnectCountList,
+						iouConnectCountList, country, fields, workbook);
+			} else {
+				logger.error("Connects Not Found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Connects Not Found");
+			}
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			InputStreamResource inputStreamResource = new InputStreamResource(
+					new ByteArrayInputStream(bytes));
+			return inputStreamResource;
+		}
+	}
+
+	public void getConnectSummaryDetailsByUserIds(List<String> userIds,
+			Date fromDate, Date toDate, List<Object[]> subSpConnectCountList,
+			List<Object[]> geographyConnectCountList,
+			List<Object[]> iouConnectCountList) {
+		subSpConnectCountList = connectRepository
+				.findBySubSpConnectSummaryReport(
+						new Timestamp(fromDate.getTime()),
+						new Timestamp(toDate.getTime()), userIds);
+		geographyConnectCountList = connectRepository
+				.findByGeographyConnectSummaryReport(
+						new Timestamp(fromDate.getTime()),
+						new Timestamp(toDate.getTime()), userIds);
+		iouConnectCountList = connectRepository.findByIouConnectSummaryReport(
+				new Timestamp(fromDate.getTime()),
+				new Timestamp(toDate.getTime()), userIds);
+	}
+
+	/**
+	 * This method
+	 * 
+	 * @param month
+	 * @param quarter
+	 * @param year
+	 * @param iouList
+	 * @param geographyList
+	 * @param country
+	 * @param serviceLines
+	 * @param userId
+	 * @param fields
+	 * @param workbook
+	 * @throws Exception
+	 */
+	public void getConnectSummaryReportExcel(String month, String quarter,
+			String year, List<Object[]> subSpConnectCountList,
+			List<Object[]> geographyConnectCountList,
+			List<Object[]> iouConnectCountList, List<String> country,
+			List<String> fields, XSSFWorkbook workbook) throws Exception {
+		logger.debug("Inside ConnectSummaryReportExcel() method");
+		if ((subSpConnectCountList.isEmpty() || subSpConnectCountList == null)
+				&& (geographyConnectCountList.isEmpty() || geographyConnectCountList == null)
+				&& (iouConnectCountList.isEmpty() || iouConnectCountList == null)) {
+			logger.error("NOT_FOUND: No Relevent Data Found in the database");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Relevent Data Found in the database");
+		} else {
+			connectSummaryReportService.getSummaryReport(subSpConnectCountList,
+					geographyConnectCountList, iouConnectCountList, month,
+					quarter, year, workbook);
+		}
+	}
+
+	public InputStreamResource getConnectReports(String month, String quarter,
+			String year, List<String> iou, List<String> geography,
+			List<String> country, List<String> serviceLines, String userId,
+			List<String> fields) throws Exception {
+		logger.debug("Inside getConnectReports() method");
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
+		List<String> serviceLinesList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
+		List<String> userIds = new ArrayList<String>();
+		// user access
+		Date fromDate = DateUtils.getDate(month, quarter, year, true);
+		Date toDate = DateUtils.getDate(month, quarter, year, false);
+		Date tillDate = new Date();
+		List<Object[]> subSpConnectCountList = null;
+		List<Object[]> geographyConnectCountList = null;
+		List<Object[]> iouConnectCountList = null;
+		List<ConnectT> connectList = new ArrayList<ConnectT>();
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+					userIds.add(userId);
+					connectList = connectRepository.findByConnectReport(
+							new Timestamp(fromDate.getTime()), new Timestamp(
+									toDate.getTime()), userIds);
+					getConnectSummaryDetailsByUserIds(userIds, fromDate,
+							toDate, subSpConnectCountList,
+							geographyConnectCountList, iouConnectCountList);
+					break;
+				case BDM_SUPERVISOR:
+					userIds = userRepository
+							.getAllSubordinatesIdBySupervisorId(user
+									.getSupervisorUserId());
+					userIds.add(userId);
+					connectList = connectRepository.findByConnectReport(
+							new Timestamp(fromDate.getTime()), new Timestamp(
+									toDate.getTime()), userIds);
+					getConnectSummaryDetailsByUserIds(userIds, fromDate,
+							toDate, subSpConnectCountList,
+							geographyConnectCountList, iouConnectCountList);
+					break;
+				default:
+					if (geography.contains("All")
+							&& (iou.contains("All") && serviceLines
+									.contains("All"))
+							&& country.contains("All")) {
+						connectList = getConnectDetailsBasedOnUserPrivileges(
+								fromDate, toDate, userId);
+						String queryString = getConnectGeoSummaryQueryString(
+								userId, fromDate, toDate);
+						String queryString1 = getConnectIouSummaryQueryString(
+								userId, fromDate, toDate);
+						String queryString2 = getConnectSubSpSummaryQueryString(
+								userId, fromDate, toDate);
+						logger.info("Query string: {}", queryString);
+						// Execute the native revenue query string
+						Query connectGeoSummaryReportQuery = entityManager
+								.createNativeQuery(queryString);
+						Query connectIouSummaryReportQuery = entityManager
+								.createNativeQuery(queryString1);
+						Query connectSubSpSummaryReportQuery = entityManager
+								.createNativeQuery(queryString2);
+
+						geographyConnectCountList = connectGeoSummaryReportQuery
+								.getResultList();
+						iouConnectCountList = connectIouSummaryReportQuery
+								.getResultList();
+						subSpConnectCountList = connectSubSpSummaryReportQuery
+								.getResultList();
+
+					} else {
+						addEmptyItemToListIfGeo(geography, geographyList);
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+						addEmptyItemToListIfAll(country, countryList);
+						connectList = connectRepository.findByConnectReport(
+								new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), iouList,
+								geographyList, country, serviceLines);
+						subSpConnectCountList = connectRepository
+								.findBySubSpConnectSummaryReport(new Timestamp(
+										fromDate.getTime()), new Timestamp(
+										toDate.getTime()), iou, geography,
+										country, serviceLines);
+						geographyConnectCountList = connectRepository
+								.findByGeographyConnectSummaryReport(
+										new Timestamp(fromDate.getTime()),
+										new Timestamp(toDate.getTime()), iou,
+										geography, country, serviceLines);
+						iouConnectCountList = connectRepository
+								.findByIouConnectSummaryReport(new Timestamp(
+										fromDate.getTime()), new Timestamp(
+										toDate.getTime()), iou, geography,
+										country, serviceLines);
+					}
+					break;
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
+			if (connectList != null && subSpConnectCountList != null
+					&& geographyConnectCountList != null
+					&& iouConnectCountList != null) {
+				connectDetailedReportService.getConnectTitlePage(workbook,
+						geography, iou, serviceLines, userId, tillDate);
+				getConnectDetailedReportInExcel(connectList, iouList,
+						geographyList, country, serviceLines, fields, workbook);
+				getConnectSummaryReportExcel(month, quarter, year,
+						subSpConnectCountList, geographyConnectCountList,
+						iouConnectCountList, country, fields, workbook);
+			} else {
+				logger.error("Connects Not Found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Connects Not Found");
+			}
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			InputStreamResource inputStreamResource = new InputStreamResource(
+					new ByteArrayInputStream(bytes));
+			return inputStreamResource;
+		}
+	}
+
+	public InputStreamResource getBidReport(String year, Date fromDate,
+			Date toDate, List<String> bidOwner, List<String> currency,
+			List<String> iou, List<String> geography, List<String> country,
+			List<String> serviceLines, String userId, List<String> fields)
+			throws Exception {
+		logger.info("Inside getBidDetailedReport Service");
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		List<String> geographyList = new ArrayList<String>();
+		List<String> iouList = new ArrayList<String>();
+		List<String> serviceLinesList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
+		Date startDate = fromDate;
+		Date endDate = toDate;
+		Date tillDate = new Date();
+		List<BidDetailsT> bidDetailsList = null;
+		List<BidDetailsT> bidDetails = null;
+		if (!year.equals("")) {
+			logger.debug("year is not Empty");
+			startDate = DateUtils.getDateFromFinancialYear(year, true);
+			endDate = DateUtils.getDateFromFinancialYear(year, false);
+		}
+
+		UserT user = userService.findByUserId(userId);
+		if (user == null) {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
+		} else {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+				case BDM_SUPERVISOR:
+					logger.error("User is not authorized to access this service");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
+				default:
+					if (geography.contains("All")
+							&& (iou.contains("All") && serviceLines
+									.contains("All"))
+							&& country.contains("All")) {
+						bidDetails = getBidDetailsBasedOnUserPrivileges(
+								startDate, endDate, userId, bidOwner);
+					} else {
+						if (bidOwner.size() == 0) {
+							logger.debug("bidOwner is Empty");
+							bidOwner.add("");
+						}
+						addEmptyItemToListIfGeo(geography, geographyList);
+						addEmptyItemToListIfAll(iou, iouList);
+						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+						addEmptyItemToListIfAll(country, countryList);
+						bidDetails = bidDetailsTRepository
+								.findByBidDetailsReport(startDate, endDate,
+										bidOwner, iouList, geographyList,
+										countryList, serviceLinesList);
+					}
+					bidDetailsList = beaconConverterService
+							.convertBidDetailsCurrency(bidDetails, currency);
+					if (bidDetailsList == null || bidDetailsList.isEmpty()) {
+						logger.error("Bid Details Not Found");
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"Bid Details Not Found");
+					}
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
+			}
+		}
+		buildBidReportService.getBidReportTitlePage(workbook, geography, iou,
+				serviceLines, userId, tillDate);
+		buildBidReportService.getBidDetailsReport(bidDetailsList, fields,
+				currency, workbook);
+		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+		workbook.write(byteOutPutStream);
+		byteOutPutStream.flush();
+		byteOutPutStream.close();
+		byte[] bytes = byteOutPutStream.toByteArray();
+		InputStreamResource inputStreamResource = new InputStreamResource(
+				new ByteArrayInputStream(bytes));
+		return inputStreamResource;
+	}
+
+	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
+			Date startDate, Date endDate, String userId, List<String> bidOwner)
+			throws Exception {
+		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
+		// Form the native top revenue query string
+		String queryString = getBidDetailedQueryString(userId, startDate,
+				endDate, bidOwner);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query bidDetailedReportQuery = entityManager
+				.createNativeQuery(queryString);
+		List<String> resultList = bidDetailedReportQuery.getResultList();
+		// Retrieve connect details
+		List<BidDetailsT> bidDetailsList = null;
+		if ((resultList != null) && !(resultList.isEmpty())) {
+			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
+		}
+		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
+			logger.error("NOT_FOUND: bid details not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"bid details not found");
+		}
+		return bidDetailsList;
+	}
+
+	private String getBidDetailedQueryString(String userId, Date startDate,
+			Date endDate, List<String> bidOwner) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(BID_REPORT_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+		// Get WHERE clause string
+		queryBuffer.append(BID_START_DATE_COND_PREFIX
+				+ new Timestamp(startDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(BID_END_DATE_COND_PREFIX
+				+ new Timestamp(endDate.getTime()) + Constants.SINGLE_QUOTE);
+		if (bidOwner.isEmpty() || bidOwner.size() == 0) {
+			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_PREFIX + "''" + ")"
+					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
+		} else {
+			String bidOwners = getQuarterListWithSingleQuotes(bidOwner);
+			queryBuffer.append(Constants.AND_CLAUSE
+					+ BID_OFFICE_GROUP_OWNEER_COND_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
+					+ "))");
+		}
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
+	}
+
+	public InputStreamResource getBdmDetailedReport(String from, String to,
+			List<String> geography, List<String> country,
+			List<String> currency, List<String> serviceLines,
+			List<Integer> salesStage, List<String> opportunityOwnerIds,
+			String supervisorId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

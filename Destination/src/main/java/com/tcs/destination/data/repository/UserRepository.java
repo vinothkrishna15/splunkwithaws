@@ -14,6 +14,7 @@ import java.lang.String;
 public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> findByUserNameIgnoreCaseLike(String nameWith);
 	UserT findByUserName(String userName);
+	UserT findByUserId(String userId);
 	
 	UserT findByUserIdAndTempPassword(String userName, String tempPassword);
 	
