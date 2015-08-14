@@ -315,7 +315,7 @@ public class DashBoardService {
 		// Get the privileges for the user and append to the query constructed above
 		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(supervisorId);
 		queryBufferForPastConnects.append(privilegesQuery);
-		
+
 		// Get the connects using the constructed query
 		List<ConnectT> listOfPastConnects = getConnectsFromQueryBuffer(queryBufferForPastConnects, supervisorId);
 
@@ -606,9 +606,9 @@ public class DashBoardService {
         	if ((leadershipWins == null)
         		&& (leadershipWinsAboveFiveMillion == null)
         		&& (leadershipWinsAboveOneMillion == null)) {
-        	    logger.error("NOT_FOUND: No Opportuniy found for user : {}" + userId);
+        	    logger.error("NOT_FOUND: No Opportunity found for user : {}" + userId);
         	    throw new DestinationException(HttpStatus.NOT_FOUND,
-        		    "No Opportuniy found for user : " + userId);
+        		    "No Opportunity found for user : " + userId);
         	} else {
         	    leadershipTotalWinsDTO = new LeadershipOverallWinsDTO();
         	    if (leadershipWins != null) {
@@ -951,10 +951,10 @@ public class DashBoardService {
         	    }
         	}
         	if (!checkOppExists) {
-        	    logger.error("NOT_FOUND: No Opportunity Found for user Id : {}",
+        	    logger.error("NOT_FOUND: No Opportunity found for user Id : {}",
         		    userId);
         	    throw new DestinationException(HttpStatus.NOT_FOUND,
-        		    "No Opportunity Found for user Id : " + userId);
+        		    "No Opportunity found for user Id : " + userId);
         	}
         	return leadershipOpportunitiesDTO;
             }
