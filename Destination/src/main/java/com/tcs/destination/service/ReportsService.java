@@ -1869,7 +1869,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// user access
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		Date tillDate = new Date();
+		String tillDate = DateUtils.getCurrentDate();
 		List<ConnectT> connectList = new ArrayList<ConnectT>();
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
@@ -1965,9 +1965,8 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			List<String> fields, XSSFWorkbook workbook) throws Exception {
 		logger.debug("Inside connectDetailedReportInExcel Service");
 		if (connectList.isEmpty() || connectList == null) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
+			logger.error("NOT_FOUND: Connects Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Connects Not Found");
 		} else {
 			connectDetailedReportService.getConnectDetailedReport(connectList,
 					fields, workbook);
@@ -2005,7 +2004,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// user access
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		Date tillDate = new Date();
+		String tillDate = DateUtils.getCurrentDate();
 		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
 		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
 		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
@@ -2160,9 +2159,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if ((subSpConnectCountList.isEmpty() || subSpConnectCountList == null)
 				&& (geographyConnectCountList.isEmpty() || geographyConnectCountList == null)
 				&& (iouConnectCountList.isEmpty() || iouConnectCountList == null)) {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
+			logger.error("Connects Not Found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
+					"Connects Not Found");
 		} else {
 			connectSummaryReportService.getSummaryReport(subSpConnectCountList,
 					geographyConnectCountList, iouConnectCountList, month,
@@ -2184,7 +2183,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// user access
 		Date fromDate = DateUtils.getDate(month, quarter, year, true);
 		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		Date tillDate = new Date();
+		String tillDate =DateUtils.getCurrentDate();
 		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
 		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
 		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
