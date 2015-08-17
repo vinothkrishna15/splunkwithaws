@@ -39,7 +39,7 @@ public class UserAccessRequestT implements Serializable {
 	@Column(name="reason_for_request")
 	private String reasonForRequest;
 
-	@Column(name="request_received_datetime")
+	@Column(name="request_received_datetime", updatable=false)
 	private Timestamp requestReceivedDateTime;
 
 	@Column(name="supervisor_email_id")

@@ -62,22 +62,11 @@ public class UserAccessRequestController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userAccessRequestService.insertUserRequest(userAccessRequest)) {
-				status.setStatus(Status.SUCCESS, userAccessRequest.getUserId() + " Request saved");
-				logger.debug("User Access Request saved successfully"
+				status.setStatus(Status.SUCCESS,  "Access request has been saved successfully");
+				logger.debug("Access request has been saved successfully: "
 						+ userAccessRequest.getUserId());
 			}
-		}
-//		}catch (DataIntegrityViolationException dataIntegrityViolationEx){
-//			logger.error("INTERNAL_SERVER_ERROR" + dataIntegrityViolationEx.getMessage());
-//			if(dataIntegrityViolationEx.getMessage().contains("unique")){
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					"Duplicate Request for the user : " + newUserRequest.getUserId());
-//			} else {
-//				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//						 dataIntegrityViolationEx.getMessage());
-//			}
-//		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -95,8 +84,8 @@ public class UserAccessRequestController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userAccessRequestService.editUserRequest(userAccessRequest)) {
-				status.setStatus(Status.SUCCESS, userAccessRequest.getUserId());
-				logger.debug("userAccessRequest updated successfully"
+				status.setStatus(Status.SUCCESS, "Access request has been updated successfully");
+				logger.debug("Access request has been updated successfully: "
 						+ userAccessRequest.getRequestId());
 			}
 		} catch (Exception e) {
@@ -108,7 +97,4 @@ public class UserAccessRequestController {
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
 						status), HttpStatus.OK);
 	}
-
-	
-
 }

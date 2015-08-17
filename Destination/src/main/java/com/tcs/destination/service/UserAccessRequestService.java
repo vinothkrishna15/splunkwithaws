@@ -18,7 +18,9 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class UserAccessRequestService {
@@ -101,61 +103,75 @@ public class UserAccessRequestService {
 	private void validateRequest(UserAccessRequestT userAccessRequest,
 			boolean isUpdate) throws Exception {
 
-		if (userAccessRequest.getUserId() == null) {
-			logger.error("Missing UserId");
+		if (StringUtils.isEmpty(userAccessRequest.getUserId())) {
+			logger.error("UserId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing UserId");
+					"UserId is required");
 		} else {
 			UserT user = userRepository.findByUserId(userAccessRequest
 					.getUserId());
-			if (user != null)
+			if (user != null) {
+				logger.error("User already exists");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"You already have access to the system");
+						"User already exists");
+			}
 		}
 
-		if (userAccessRequest.getUserEmailId() == null) {
-			logger.error("Missing User Email Id");
+		if (StringUtils.isEmpty(userAccessRequest.getUserEmailId())) {
+			logger.error("User Email Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing User Email Id");
+					"User Email Id is required");
+		} else {
+			UserT user = userRepository.findByUserEmailId(userAccessRequest.getUserEmailId());
+			if (user != null) {
+				logger.error("EmailId already exists");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"EmailId already exists");
+			}
 		}
 
-		if (userAccessRequest.getSupervisorId() == null) {
-			logger.error("Missing Supervisor Id");
+		if (StringUtils.isEmpty(userAccessRequest.getSupervisorId())) {
+			logger.error("Supervisor Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing Supervisor Id");
+					"Supervisor Id is required");
 		}
 
-		if (userAccessRequest.getSupervisorId() == null) {
-			logger.error("Missing Supervisor Email Id");
+		if (StringUtils.isEmpty(userAccessRequest.getSupervisorEmailId())) {
+			logger.error("Supervisor Email Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing Supervisor Email Id");
+					"Supervisor Email Id is required");
 		}
-
-		if (userAccessRequest.getReasonForRequest() == null) {
-			logger.error("Missing Request Reason");
+		
+		// Validate supervisor
+	/*	UserT user = userRepository.
+				findByUserIdAndUserEmailId(userAccessRequest.getSupervisorId(), userAccessRequest.getSupervisorEmailId());
+		if (user == null) {
+			logger.error("Supervisor not found");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Missing Request Reason");
+					"Supervisor not found");
+		}
+		*/
+
+		if (StringUtils.isEmpty(userAccessRequest.getReasonForRequest())) {
+			logger.error("Reason for request is required");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Reason for request is required");
 		}
 
 		if (isUpdate) {
-			if (userAccessRequest.getApprovedRejectedBy() == null) {
-				logger.error("Missing Approver Id");
+			if (StringUtils.isEmpty(userAccessRequest.getApprovedRejectedBy())) {
+				logger.error("Approver User Id is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Missing Approver Id");
+						"Approver User Id is required");
 			}
 
-			if (userAccessRequest.getApprovedRejectedComments() == null) {
-				logger.error("Missing Approver Comments");
+			if (StringUtils.isEmpty(userAccessRequest.getApprovedRejectedComments())) {
+				logger.error("Approver Comments is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Missing Approver Comments");
+						"Approver Comments is required");
 			}
-
-			if (userAccessRequest.getApprovedRejectedDate() == null) {
-				logger.error("Missing Approved Date");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Missing Approved Date");
-			}
-
+			// Set current timestamp
+			userAccessRequest.setApprovedRejectedDate(DateUtils.getCurrentTimeStamp());
 		}
 
 	}

@@ -28,4 +28,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	List<UserT> findByUserIdAndUserRole(String userId, String userRole);
 	
+	UserT findByUserEmailId(String emailId);
+
+	UserT findByUserIdAndUserEmailId(String userId, String emailId);
+
 }
