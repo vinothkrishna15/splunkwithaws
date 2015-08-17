@@ -12,7 +12,7 @@ import java.lang.String;
 @Repository
 public interface UserNotificationSettingsRepository extends CrudRepository<UserNotificationSettingsT, Long> {
 	
-	//UserNotificationSettingsT findByUserId(String userId);
+	List<UserNotificationSettingsT> findByUserIdAndIsactive(String userId, String isActive);
 
 	UserNotificationSettingsT findByUserNotificationSettingsId(
 			String userNotificationSettingsId);

@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -44,23 +43,35 @@ public class UserNotificationSettingsT implements Serializable {
 	@Column(name="isactive")
 	private String isactive;
 
+	@Column(name="event_id")
+	private String eventId;
+
 	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
-	@JoinColumn(name="event_id")
+	@JoinColumn(name="event_id", insertable=false, updatable=false)
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
+
+	@Column(name="mode_id")
+	private String modeId;
 
 	//bi-directional many-to-one association to NotificationSettingsModeMappingT
 	@ManyToOne
-	@JoinColumn(name="mode_id")
+	@JoinColumn(name="mode_id", insertable=false, updatable=false)
 	private NotificationSettingsModeMappingT notificationSettingsModeMappingT;
+
+	@Column(name="user_id")
+	private String userId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id", insertable=false, updatable=false)
 	private UserT userT;
 
 	@Transient
 	private List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsT;
+
+	public UserNotificationSettingsT() {
+	}
 
 	public List<UserNotificationSettingsConditionsT> getUserNotificationSettingsConditionsT() {
 		return userNotificationSettingsConditionsT;
@@ -71,8 +82,28 @@ public class UserNotificationSettingsT implements Serializable {
 		this.userNotificationSettingsConditionsT = userNotificationSettingsConditionsT;
 	}
 
-	
-	public UserNotificationSettingsT() {
+	public String getEventId() {
+		return eventId;
+	}
+
+	public void setEventId(String eventId) {
+		this.eventId = eventId;
+	}
+
+	public String getModeId() {
+		return modeId;
+	}
+
+	public void setModeId(String modeId) {
+		this.modeId = modeId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	public String getUserNotificationSettingsId() {

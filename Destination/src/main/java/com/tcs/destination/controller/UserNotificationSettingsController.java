@@ -5,7 +5,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,58 +15,76 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
-@RequestMapping("/userNotification")
+@RequestMapping("/usernotificationsettings")
 public class UserNotificationSettingsController {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(UserNotificationSettingsController.class);
 
 	@Autowired
 	UserNotificationSettingsService userNotificationSettingsService;
 
-		
-	@RequestMapping(value = "/setting",method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> addUserNotificationSetting(
+
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		logger.debug("Inside UserDetailsController /userNotification/setting POST");
+					throws Exception {
+		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings POST");
 		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (userNotificationSettingsService.addOrUpdateUserNotifications(userNotificationSettings)) {
-			logger.debug("User Notification Settings inserted Successfully");
-			status.setStatus(Status.SUCCESS,"User Notification Settings for UserId :"+userNotificationSettings.get(0).getUserT().getUserId() +" inserted Successfully" );
+		try {
+			if (userNotificationSettingsService.saveUserNotifications(userNotificationSettings)) {
+				logger.debug("User notification settings have been added successfully");
+				status.setStatus(Status.SUCCESS, "User notification settings have been added successfully" );
 			}
-		
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
-		}
+	}
 
 
-	@RequestMapping(value = "/setting",method = RequestMethod.PUT)
-	public @ResponseBody ResponseEntity<String> updateUserNotificationSetting(
+	@RequestMapping(method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> updateUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		logger.debug("Inside UserDetailsController /userNotification/setting PUT");
+					throws Exception {
+		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings PUT");
 		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (userNotificationSettingsService.addOrUpdateUserNotifications(userNotificationSettings)) {
-			logger.debug("User Notification Settings updated Successfully");
-			status.setStatus(Status.SUCCESS,"User Notification Settings updated Successfully" );
+		try {
+			if (userNotificationSettingsService.saveUserNotifications(userNotificationSettings)) {
+				logger.debug("User notification settings have been updated successfully");
+				status.setStatus(Status.SUCCESS, "User notification settings have been updated successfully" );
 			}
-		
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
-		}
-		
+	}
+
+	@RequestMapping(method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getUserNotificationSettings(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws Exception {
+		logger.debug("Inside UserNotificationSettingsController/usernotificationsettings?userId="+userId+" GET");
+		List<UserNotificationSettingsT> userNotificationSettings = userNotificationSettingsService.getUserNotificationSettings(userId);
+		return new ResponseEntity<String>
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userNotificationSettings), HttpStatus.OK);  
+	}
 }
-

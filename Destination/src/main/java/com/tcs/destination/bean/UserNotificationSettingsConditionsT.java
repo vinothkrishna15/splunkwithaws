@@ -35,22 +35,55 @@ public class UserNotificationSettingsConditionsT implements Serializable {
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
 
+	@Column(name="condition_id")
+	private String conditionId;
+
 	//bi-directional many-to-one association to NotificationSettingsEventConditionsT
 	@ManyToOne
-	@JoinColumn(name="condition_id")
+	@JoinColumn(name="condition_id", insertable=false, updatable=false)
 	private NotificationSettingsEventConditionsT notificationSettingsEventConditionsT;
+
+	@Column(name="event_id")
+	private String eventId;
 
 	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
-	@JoinColumn(name="event_id")
+	@JoinColumn(name="event_id", insertable=false, updatable=false)
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
+
+	@Column(name="user_id")
+	private String userId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id", insertable=false, updatable=false)
 	private UserT userT;
 
 	public UserNotificationSettingsConditionsT() {
+	}
+
+	public String getConditionId() {
+		return conditionId;
+	}
+
+	public void setConditionId(String conditionId) {
+		this.conditionId = conditionId;
+	}
+
+	public String getEventId() {
+		return eventId;
+	}
+
+	public void setEventId(String eventId) {
+		this.eventId = eventId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	public String getNotificationSettingsConditionsId() {
