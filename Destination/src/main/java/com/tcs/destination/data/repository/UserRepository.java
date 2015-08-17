@@ -31,5 +31,9 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	UserT findByUserEmailId(String emailId);
 
 	UserT findByUserIdAndUserEmailId(String userId, String emailId);
+	
+	@Query(value ="update user_t set user_photo = ?1  where user_id=?2",
+			 nativeQuery = true)
+	void addImage(byte[] imageBytes, String id);
 
 }

@@ -57,5 +57,10 @@ public interface CustomerRepository extends
 	
 	@Query(value = "select * from customer_master_t where customer_id in (:custIds)",nativeQuery=true)
 	List<CustomerMasterT> getCustomersByIds(@Param("custIds") List<String> customerIds);
+	
+	 @Query(value =
+		 "update customer_master_t set logo = ?1  where customer_id=?2",
+		 nativeQuery = true)
+	 void addImage(byte[] imageBytes, String id);
 
 }
