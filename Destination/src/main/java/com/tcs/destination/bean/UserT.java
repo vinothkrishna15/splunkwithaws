@@ -30,41 +30,15 @@ import com.tcs.destination.utils.Constants;
 @Entity
 @Table(name = "user_t")
 @NamedQuery(name = "UserT.findAll", query = "SELECT u FROM UserT u")
-public class UserT implements Serializable, Cloneable {
+public class UserT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public UserT(UserT user) {
-		this.bdmTargetTs = user.bdmTargetTs;
-		this.bidOfficeGroupOwnerLinkTs = user.bidOfficeGroupOwnerLinkTs;
-		this.collaborationCommentTs = user.collaborationCommentTs;
-		this.connectSecondaryOwnerLinkTs = user.connectSecondaryOwnerLinkTs;
-		this.connectTs = user.connectTs;
-		this.documentRepositoryTs = user.documentRepositoryTs;
-		this.frequentlySearchedCustomerPartnerTs = user.frequentlySearchedCustomerPartnerTs;
-		this.loginHistoryTs = user.loginHistoryTs;
-		this.notesTs = user.notesTs;
-		this.opportunitySalesSupportLinkTs = user.opportunitySalesSupportLinkTs;
-		this.opportunityTimelineHistoryTs = user.opportunityTimelineHistoryTs;
-		this.opportunityTs = user.opportunityTs;
-		this.supervisorUserId = user.supervisorUserId;
-		this.supervisorUserId = user.supervisorUserId;
-		this.taskBdmsTaggedLinkTs = user.taskBdmsTaggedLinkTs;
-		this.taskTs = user.taskTs;
-		this.tempPassword = user.tempPassword;
-		this.userEmailId = user.userEmailId;
-		this.userFavoritesTs = user.userFavoritesTs;
-		this.userGroupMappingT = user.userGroupMappingT;
 		this.userId = user.userId;
 		this.userName = user.userName;
-		this.userPhoto = user.userPhoto;
-		this.userRoleMappingT = user.userRoleMappingT;
-		this.userGeneralSettingsT = user.userGeneralSettingsT;
-		this.userTelephone = user.userTelephone;
-		this.baseLocation = user.baseLocation;
-		this.userRole = user.userRole;
-
+		this.tempPassword = user.tempPassword;
 	}
-
+	
 	@Id
 	@Column(name = "user_id")
 	private String userId;
@@ -1275,10 +1249,6 @@ public class UserT implements Serializable, Cloneable {
 
 	public void setBaseLocation(String baseLocation) {
 		this.baseLocation = baseLocation;
-	}
-
-	public UserT clone() throws CloneNotSupportedException {
-		return (UserT) super.clone();
 	}
 
 	public String getNewPassword() {

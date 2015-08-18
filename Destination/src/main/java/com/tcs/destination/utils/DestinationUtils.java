@@ -17,7 +17,7 @@ import com.tcs.destination.exception.DestinationException;
 
 public class DestinationUtils {
 
-
+	// This method returns the current session authenticated user details
 	public static UserT getCurrentUserDetails() {
 		Authentication a = SecurityContextHolder.getContext()
 				.getAuthentication();
@@ -27,6 +27,14 @@ public class DestinationUtils {
 		return ((UserRepositoryUserDetails) a.getPrincipal());
 	}
 
+	// This method verifies if the user id passed in the URI parameter 
+	// is same as current session authenticated user
+	public static boolean isCurrentAuthenticatedUser(String userId) {
+		if (getCurrentUserDetails().getUserId().equals(userId))
+			return true;
+		else
+			return false;
+	}
 
 	/**
 	 * Returns a copy of the object, or null if the object cannot
