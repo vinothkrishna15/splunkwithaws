@@ -185,14 +185,14 @@ public class ReportsService {
 			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name = RCMT.finance_customer_name "
 			+ "where ";
 
-	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_30_revenue from ( ";
+	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_revenue from ( ";
 
-	//
+	
 	private static final String TOP_CUS_REVENUES_LIST_QUERY_PREFIX = "select RVNU.customer_name,(RVNU.actual_revenue+RVNU.projected_revenue) as revenue "
 			+ " from (select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue,   "
 			+ " case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "and ARDT.finance_geography = RCMT.customer_geography "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "FULL OUTER JOIN  projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name"
 			+ " where ";
@@ -363,7 +363,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		private static final String OPPORTUNITY_GEO_GROUP_BY_COND_PREFIX = "group by GMT.display_geography";
 		private static final String OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX = "group by ICM.display_iou";
 		private static final String OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX = "group by SSMT.display_sub_sp";
-		
+		private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
 		
 
 	
@@ -1115,7 +1115,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 						overAllRevenuesByGeoList = getOverAllRevenuesByGeoAndUserPrivileges(
 								formattedMonths, userId);
 						// sec 3
-						actualProjectedRevenuesList = getTop30CustomersRevenueListByUserPrivileges(
+						actualProjectedRevenuesList = getTopCustomersRevenueListByUserPrivileges(
 								formattedMonths, userId, count);
 						targetRevenuesMap = getTargetRevenuesByUserPrivileges(
 								fromMonth, toMonth, userId);
@@ -1470,12 +1470,12 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		return queryBuffer.toString();
 	}
 
-	private List<CustomerRevenueValues> getTop30CustomersRevenueListByUserPrivileges(
+	private List<CustomerRevenueValues> getTopCustomersRevenueListByUserPrivileges(
 			List<String> formattedMonths, String userId, int count)
 			throws Exception {
 		List<CustomerRevenueValues> revenueGeoValuesList = new ArrayList<CustomerRevenueValues>();
-		String queryString = getActualProjectedTop30RevenuesQueryString(
-				formattedMonths, userId, count);
+		String queryString = getActualProjectedTopRevenuesQueryString(
+				formattedMonths, userId, count,GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
@@ -1491,16 +1491,30 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		}
 		return revenueGeoValuesList;
 	}
+	
+	/*
+	 * This method returns query for top customers based on revenue including actuals as well as projected
+	 */
+	public String getTopRevenueCustomersForDashboard(String userId,String financialYear,int count) throws Exception {
+		List<String> months = new ArrayList<String>();
+		List<String> quarters = DateUtils.getQuarters(financialYear);
+		for(String quarter : quarters){
+			List<String> quarterMonths = DateUtils.getMonths(quarter);
+			months.addAll(quarterMonths);
+		}
+		return getActualProjectedTopRevenuesQueryString(months,userId, count, 
+				GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
+	}
 
-	private String getActualProjectedTop30RevenuesQueryString(
-			List<String> formattedMonths, String userId, int count)
+	private String getActualProjectedTopRevenuesQueryString(
+			List<String> formattedMonths, String userId, int count, String geoPrefix, String subSpPrefix, String iouPrefix, String custPrefix)
 			throws Exception {
 		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(
 				TOP_CUS_REVENUES_LIST_QUERY_PREFIX);
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
+				.getQueryPrefixMap(geoPrefix, subSpPrefix, iouPrefix, custPrefix);
 		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
