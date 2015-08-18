@@ -119,10 +119,7 @@ public class BuildOpportunityReportService {
 
 		if (year.isEmpty() && quarter.isEmpty() && month.isEmpty()) {
 			List<OpportunityT> oppList = opportunityRepository.getAllYear();
-			if (oppList.size() == 0) {
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Wins Or Loss Opportunities Found");
-			}
+			if (oppList.size() != 0) {
 			String[] fromYear = oppList.get(0).getDealClosureDate().toString()
 					.split("-");
 			String[] toYear = oppList.get(oppList.size() - 1)
@@ -137,6 +134,7 @@ public class BuildOpportunityReportService {
 					+ (endingFinancialYear.substring(2, 4));
 			fromDate = DateUtils.getDate(month, quarter, year, true);
 			toDate = DateUtils.getDate(month, quarter, endYear, false);
+			}
 		} else {
 			fromDate = DateUtils.getDate(month, quarter, year, true);
 			toDate = DateUtils.getDate(month, quarter, year, false);
@@ -185,9 +183,9 @@ public class BuildOpportunityReportService {
 			getOpportunityReport(opportunityList, fields, currency, workbook);
 
 		} else {
-			logger.error("NOT_FOUND: No Relevent Data Found in the database");
+			logger.error("NOT_FOUND: Opportunities Not Found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Relevent Data Found in the database");
+					"Opportunities Not Found");
 		}
 	}
 
@@ -335,11 +333,12 @@ public class BuildOpportunityReportService {
 		row.getCell(1).setCellStyle(cellStyle);
 		spreadSheet.autoSizeColumn(1);
 		row.createCell(2);
+		List<String> subSpList = new ArrayList<String>();
 		for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
 				.getOpportunitySubSpLinkTs()) {
-			row.getCell(2).setCellValue(
-					opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
+			subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
 		}
+		row.getCell(2).setCellValue(subSpList.toString().replace("]", "").replace("[", ""));
 		row.getCell(2).setCellStyle(cellStyle);
 		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(
@@ -1011,8 +1010,10 @@ public class BuildOpportunityReportService {
 		row.createCell(5).setCellValue(
 				bidDetail.getOpportunityT().getSalesStageCode());
 		row.createCell(6).setCellValue(bidDetail.getBidRequestType());
+		if(bidDetail.getBidRequestReceiveDate() != null){
 		row.createCell(7).setCellValue(
 				bidDetail.getBidRequestReceiveDate().toString());
+		}
 		for (OpportunityDealValue opportunityDealValue : bidDetail
 				.getOpportunityT().getOpportunityDealValues()) {
 			BigDecimal dealValue = opportunityDealValue.getDigitalDealValue();
@@ -1148,18 +1149,24 @@ public class BuildOpportunityReportService {
 					colValue = colValue + maxBidOfficeGroupOwnerListCount;
 					break;
 				case ReportConstants.TARGETBIDSUBMISSIONDATE:
+					if(bidDetail.getTargetBidSubmissionDate() != null){
 					row.createCell(colValue).setCellValue(
 							bidDetail.getTargetBidSubmissionDate().toString());
+					}
 					colValue++;
 					break;
 				case ReportConstants.ACTUALBIDSUBMISSIONDATE:
+					if(bidDetail.getActualBidSubmissionDate() != null){
 					row.createCell(colValue).setCellValue(
 							bidDetail.getActualBidSubmissionDate().toString());
+					}
 					colValue++;
 					break;
 				case ReportConstants.EXPECTEDDATEOFOUTCOME:
+					if(bidDetail.getExpectedDateOfOutcome() != null){
 					row.createCell(colValue).setCellValue(
 							bidDetail.getExpectedDateOfOutcome().toString());
+					}
 					colValue++;
 					break;
 				default:
@@ -1182,6 +1189,7 @@ public class BuildOpportunityReportService {
 		oppSummaryValue.setCount((BigInteger) opportunity[1]);
 		oppSummaryValue.setBidValue((BigDecimal) opportunity[2]);
 		oppSummaryValueList.add(oppSummaryValue);
+		if(opportunity[0] != null){
 		if (oppSummaryValueListMap.containsKey(opportunity[0].toString())) {
 			List<OpportunitySummaryValue> oppSummaryValueMap = oppSummaryValueListMap
 					.get(opportunity[0].toString());
@@ -1195,6 +1203,7 @@ public class BuildOpportunityReportService {
 			oppSummaryValueListMap.put(opportunity[0].toString(),
 					oppSummaryValueList);
 
+		}
 		}
 		return oppSummaryValueListMap;
 	}
@@ -1253,7 +1262,9 @@ public class BuildOpportunityReportService {
 			if (opportunityList.size() > 0) {
 				for (Object[] opportunity : opportunityList) {
 					OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
+					if(opportunity[0]!=null){
 					opportunitySummaryValue.setTitle(opportunity[0].toString());
+					}
 					opportunitySummaryValue
 							.setCount((BigInteger) opportunity[1]);
 					opportunitySummaryValue
@@ -1311,7 +1322,9 @@ public class BuildOpportunityReportService {
 			if (opportunityList.size() > 0) {
 				for (Object[] opportunity : opportunityList) {
 					OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
+					if(opportunity[0]!=null){
 					opportunitySummaryValue.setTitle(opportunity[0].toString());
+					}
 					opportunitySummaryValue
 							.setCount((BigInteger) opportunity[1]);
 					opportunitySummaryValue
@@ -1355,7 +1368,9 @@ public class BuildOpportunityReportService {
 				List<OpportunitySummaryValue> opportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
 				OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
 				opportunitySummaryValue.setCount((BigInteger) opportunity[1]);
+				if(opportunity[2] != null){
 				opportunitySummaryValue.setTitle(opportunity[2].toString());
+				}
 				opportunitySummaryValue
 						.setBidValue((BigDecimal) opportunity[3]);
 				opportunitySummaryValueList.add(opportunitySummaryValue);
@@ -1364,7 +1379,7 @@ public class BuildOpportunityReportService {
 				totalBidValue = totalBidValue.add((BigDecimal) opportunity[3]);
 				totalBidValueUsd = totalBidValueUsd
 						.add((BigDecimal) opportunity[3]);
-
+				if(opportunity[0] != null) {
 				if (oppSummaryMap.containsKey(opportunity[0].toString())) {
 					List<OpportunitySummaryValue> opportunitySummaryListMap = oppSummaryMap
 							.get(opportunity[0].toString());
@@ -1378,6 +1393,7 @@ public class BuildOpportunityReportService {
 					oppSummaryMap.put(opportunity[0].toString(),
 							opportunitySummaryValueList);
 
+				}
 				}
 			}
 
@@ -1421,6 +1437,7 @@ public class BuildOpportunityReportService {
 					List<OpportunitySummaryValue> summaryValueList = new ArrayList<OpportunitySummaryValue>();
 					ReportSummaryOpportunity reportSummaryOpportunity = new ReportSummaryOpportunity();
 					OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
+					if(opportunity[0] != null){
 					if (required.equals("geography"))
 						reportSummaryOpportunity.setGeography(opportunity[0]
 								.toString());
@@ -1430,6 +1447,7 @@ public class BuildOpportunityReportService {
 					else
 						reportSummaryOpportunity.setIou(opportunity[0]
 								.toString());
+					}
 					reportSummaryOpportunity.setSalesStageCode(salesStageCode);
 					reportSummaryOpportunity
 							.setSalesStageDescription((salesStageMappingRepository
@@ -1519,8 +1537,6 @@ public class BuildOpportunityReportService {
 		List<ReportSummaryOpportunity> serviceLineOpp = new ArrayList<ReportSummaryOpportunity>();
 		List<ReportSummaryOpportunity> geoOpp = new ArrayList<ReportSummaryOpportunity>();
 		List<ReportSummaryOpportunity> iouOpp = new ArrayList<ReportSummaryOpportunity>();
-		int iouFirstRow = 0;
-
 		if (reportSummaryOpportunityListMap
 				.containsKey("pipelineAnticipatingGeography")) {
 			getPipelineAnticipatingDetails(workbook,
@@ -3072,9 +3088,6 @@ public class BuildOpportunityReportService {
 		Date fromDate = new Date();
 		Date toDate = new Date();
 		List<Object[]> opportunityList = new ArrayList<Object[]>();
-		List<Object[]> geoObjectList = new ArrayList<Object[]>();
-		List<Object[]> serviceLineObjectList = new ArrayList<Object[]>();
-		List<Object[]> iouObjectList = new ArrayList<Object[]>();
 		List<ReportSummaryOpportunity> reportSummaryOpportunities = new ArrayList<ReportSummaryOpportunity>();
 		fromDateMap = DateUtils.getSubDatesList(month, year, quarter, true);
 		toDateMap = DateUtils.getSubDatesList(month, year, quarter, false);
@@ -3086,10 +3099,10 @@ public class BuildOpportunityReportService {
 					toDate = toDateMap.get(subCategory);
 					switch (userGroup) {
 					case ReportConstants.BDM:
-						serviceLineObjectList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
+						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
 						break;
 					case ReportConstants.BDMSUPERVISOR:
-						serviceLineObjectList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
+						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
 						break;
 					default:
 							if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3369,7 +3382,6 @@ public class BuildOpportunityReportService {
 		CellStyle dataStyle = ExcelUtils.createRowStyle(spreadsheet.getWorkbook(), ReportConstants.DATAROW);		
 		for (OpportunitySummaryValue oppSummaryValue : oppSummaryValueList) {
 			row = ExcelUtils.getRow(spreadsheet, rowValue++);
-			System.out.println("Starting column value "+columnValueMap.get(ReportConstants.STARTINGCOLUMN));
 			createCellWithStyle(spreadsheet, oppSummaryValue.getTitle(), columnValueMap.get(ReportConstants.STARTINGCOLUMN), row, dataStyle);
 			createCellWithStyle(spreadsheet, ""+oppSummaryValue.getCount(), (columnValueMap.get(ReportConstants.STARTINGCOLUMN) + 1), row, dataStyle);
 			createCellWithStyle(spreadsheet, ""+oppSummaryValue.getBidValues().get(0).getValue(), (columnValueMap.get(ReportConstants.STARTINGCOLUMN) + 2), row, dataStyle);

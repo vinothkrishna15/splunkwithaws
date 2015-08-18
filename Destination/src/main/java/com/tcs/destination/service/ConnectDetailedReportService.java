@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.hssf.util.CellRangeAddress;
@@ -32,9 +31,9 @@ import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
-import com.tcs.destination.utils.GetMaximumListCount;
 import com.tcs.destination.utils.ReportConstants;
 
 @Component
@@ -165,22 +164,36 @@ public class ConnectDetailedReportService {
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		row.createCell(0).setCellValue(connect.getConnectId());
 		row.getCell(0).setCellStyle(rowStyle);
-		row.createCell(1).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
-		row.getCell(1).setCellStyle(rowStyle);
+		row.createCell(4).setCellValue(connect.getConnectName());
+		row.getCell(4).setCellStyle(rowStyle);
 		for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
 			row.createCell(2).setCellValue(connectSubSpLinkT.getSubSpMappingT().getDisplaySubSp());
 			row.getCell(2).setCellStyle(rowStyle);
 		}
+		if(connect.getCustomerMasterT()!=null){
+		row.createCell(1).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
+		row.getCell(1).setCellStyle(rowStyle);
+		
 		row.createCell(3).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 		row.getCell(3).setCellStyle(rowStyle);
-		row.createCell(4).setCellValue(connect.getConnectName());
-		row.getCell(4).setCellStyle(rowStyle);
+		
 		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
 		row.getCell(5).setCellStyle(rowStyle);
 		spreadSheet.autoSizeColumn(5);
+	}else{
+		row.createCell(1).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
+		row.getCell(1).setCellStyle(rowStyle);
+		
+		row.createCell(3).setCellValue(Constants.SPACE);
+		row.getCell(3).setCellStyle(rowStyle);
+		
+		spreadSheet.autoSizeColumn(4);
+		row.createCell(5).setCellValue(Constants.SPACE);
+		row.getCell(5).setCellStyle(rowStyle);
+		spreadSheet.autoSizeColumn(5);
 	}
-
+	}
 	public int ConnectReportWithOptionalFields(List<ConnectT> connectList,
 			XSSFWorkbook workbook, XSSFSheet spreadSheet, int currentRow,
 			List<String> fields, XSSFRow row)
@@ -201,17 +214,26 @@ public class ConnectDetailedReportService {
 				case ReportConstants.IOU:
 					XSSFCell iouCell = spreadSheet.getRow(currentRow - 1)
 							.createCell(colValue);
+					if(connect.getCustomerMasterT()!=null){
 					iouCell.setCellValue(connect.getCustomerMasterT()
 							.getIouCustomerMappingT().getIou());
-					iouCell.setCellStyle(cellStyle);
 					spreadSheet.autoSizeColumn(colValue);
+					}else{
+						iouCell.setCellValue(Constants.SPACE);
+					}
+					iouCell.setCellStyle(cellStyle);
 					colValue++;
 					break;
 				case ReportConstants.GEOGRAPHY:
 					XSSFCell geographyCell = spreadSheet.getRow(currentRow - 1)
 							.createCell(colValue);
+					if(connect.getCustomerMasterT()!=null){
 					geographyCell.setCellValue(connect.getCustomerMasterT()
 							.getGeographyMappingT().getGeography());
+					}else{
+						geographyCell.setCellValue(connect.getPartnerMasterT()
+								.getGeographyMappingT().getGeography());
+					}
 					geographyCell.setCellStyle(cellStyle);
 					colValue++;
 					break;
@@ -297,7 +319,7 @@ public class ConnectDetailedReportService {
 					colValue++;
 					break;
 				case ReportConstants.CUSTOMERORPARTNERNAME:
-					if (connect.getCustomerMasterT().getCustomerName() != null) {
+					if (connect.getCustomerMasterT() != null) {
 						XSSFCell cusPartcell = spreadSheet.getRow(
 								currentRow - 1).createCell(colValue);
 						cusPartcell.setCellValue(connect.getCustomerMasterT()
@@ -305,7 +327,7 @@ public class ConnectDetailedReportService {
 						cusPartcell.setCellStyle(cellStyle);
 						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
-					} else if (connect.getPartnerMasterT().getPartnerName() != null) {
+					} else if (connect.getPartnerMasterT() != null) {
 						XSSFCell cusPartcell = spreadSheet.getRow(
 								currentRow - 1).createCell(colValue);
 						cusPartcell.setCellValue(connect.getPartnerMasterT()

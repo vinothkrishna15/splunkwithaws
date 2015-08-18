@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualDetailed;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BuildExcelTargetVsActualDetailedReportService;
 import com.tcs.destination.service.ReportsService;
+import com.tcs.destination.service.ReportsUploadService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -38,74 +42,9 @@ public class ReportsController {
 	@Autowired
 	BuildExcelTargetVsActualDetailedReportService buildExcelReportService;
 	
-//	@RequestMapping(value = "/connect", method = RequestMethod.GET)
-//	public @ResponseBody String connectDetailedReport(
-//			@RequestParam(value = "month", defaultValue = "") String month,
-//			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-//			@RequestParam(value = "year", defaultValue = "") String year,
-//			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
-//			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
-//			@RequestParam(value = "country", defaultValue = "") List<String> country,
-//			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
-//			@RequestParam(value = "userId") String userId,
-//			@RequestParam(value = "fields", defaultValue = "all") String fields,
-//			@RequestParam(value = "view", defaultValue = "") String view)
-//			throws Exception {
-//		logger.debug("Inside ConnectReportController /report/connect GET");
-//		List<ConnectT> connects = reportsService.getConnectDetailedReports(
-//				month, quarter, year, iou, geography, country, serviceLines,userId);
-//		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-//				connects);
-//
-//	}
-//
-//	@RequestMapping(value = "/connect/summary/{required}", method = RequestMethod.GET)
-//	public @ResponseBody String connectSummaryReport(
-//			@PathVariable("required") String required,
-//			@RequestParam(value = "month", defaultValue = "") String month,
-//			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-//			@RequestParam(value = "year", defaultValue = "") String year,
-//			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
-//			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
-//			@RequestParam(value = "country", defaultValue = "") List<String> country,
-//			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
-//			@RequestParam(value = "userId") String userId,
-//			@RequestParam(value = "fields", defaultValue = "all") String fields,
-//			@RequestParam(value = "view", defaultValue = "") String view)
-//			throws Exception {
-//		logger.debug("Inside ConnectReportController /report/connect/summary GET");
-//		List<ConnectSummaryResponse> connectSummaryResponses = reportsService
-//				.getSummaryReports(required, month, quarter, year, iou,
-//						geography, country, serviceLines);
-//		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-//				connectSummaryResponses);
-//
-//	}
-//
-//	@RequestMapping(value = "/biddetails", method = RequestMethod.GET)
-//	public @ResponseBody String report(
-//			@RequestParam(value = "year", defaultValue = "") String year,
-//			@RequestParam(value = "from", defaultValue = "") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
-//			@RequestParam(value = "to", defaultValue = "") @DateTimeFormat(iso = ISO.DATE) Date toDate,
-//			@RequestParam(value = "bidOwner", defaultValue = "") List<String> bidOwner,
-//			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-//			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
-//			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
-//			@RequestParam(value = "country", defaultValue = "") List<String> country,
-//			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
-//			@RequestParam(value = "fields", defaultValue = "all") String fields,
-//			@RequestParam(value = "view", defaultValue = "") String view)
-//			throws Exception {
-//		logger.debug("Inside BidReportController /report/biddetails GET");
-//		List<BidDetailsT> biddetails = reportsService.getBidDetailedReport(
-//				year, fromDate, toDate, bidOwner, currency, iou, geography,
-//				country, serviceLines);
-//
-//		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-//				biddetails);
-//
-//	}
-
+	@Autowired
+	ReportsUploadService reportUploadService;
+	
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
 	public @ResponseBody String targetVsActual(
 			@RequestParam(value = "from") String fromMonth,
@@ -314,7 +253,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
-			@RequestParam(value = "salesStage", defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -339,7 +278,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
-			@RequestParam(value = "salesStage",defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "salesStage",defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -364,7 +303,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
-			@RequestParam(value = "salesStage", defaultValue = "1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -379,5 +318,29 @@ public class ReportsController {
 	}
 	
 	
+
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody String upload(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+		logger.debug("Upload request Received : docName - ");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			//String docId = 
+					reportUploadService.saveDocument(file);
+			status.setStatus(Status.SUCCESS, "Id : ");
+           logger.debug("UPLOAD SUCCESS - Record Created,  Id: ");
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" +e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+		}
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, status);
+	}
+	
+	
+
 	
 }
