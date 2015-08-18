@@ -104,40 +104,50 @@ public class UserAccessRequestService {
 			boolean isUpdate) throws Exception {
 
 		if (StringUtils.isEmpty(userAccessRequest.getUserId())) {
-			logger.error("UserId is required");
+			logger.error("BAD_REQUEST: UserId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"UserId is required");
 		} else {
 			UserT user = userRepository.findByUserId(userAccessRequest
 					.getUserId());
 			if (user != null) {
-				logger.error("User already exists");
+				logger.error("BAD_REQUEST: User already exists");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"User already exists");
+			}
+			
+			// Check if any existing pending requests
+			if (!isUpdate) {
+				if (userAccessReqRepo.findByUserIdAndApprovedRejectedByIsNull(
+						userAccessRequest.getUserId()) != null) {
+					logger.error("BAD_REQUEST: User has already requested for access which is still pending action");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"User has already requested for access which is still pending action");
+				}
 			}
 		}
 
 		if (StringUtils.isEmpty(userAccessRequest.getUserEmailId())) {
-			logger.error("User Email Id is required");
+			logger.error("BAD_REQUEST: User Email Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"User Email Id is required");
 		} else {
 			UserT user = userRepository.findByUserEmailId(userAccessRequest.getUserEmailId());
 			if (user != null) {
-				logger.error("EmailId already exists");
+				logger.error("BAD_REQUEST: EmailId already exists");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"EmailId already exists");
 			}
 		}
 
 		if (StringUtils.isEmpty(userAccessRequest.getSupervisorId())) {
-			logger.error("Supervisor Id is required");
+			logger.error("BAD_REQUEST: Supervisor Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor Id is required");
 		}
 
 		if (StringUtils.isEmpty(userAccessRequest.getSupervisorEmailId())) {
-			logger.error("Supervisor Email Id is required");
+			logger.error("BAD_REQUEST: Supervisor Email Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor Email Id is required");
 		}
@@ -146,27 +156,27 @@ public class UserAccessRequestService {
 	/*	UserT user = userRepository.
 				findByUserIdAndUserEmailId(userAccessRequest.getSupervisorId(), userAccessRequest.getSupervisorEmailId());
 		if (user == null) {
-			logger.error("Supervisor not found");
+			logger.error("BAD_REQUEST: Supervisor not found");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor not found");
 		}
 		*/
 
 		if (StringUtils.isEmpty(userAccessRequest.getReasonForRequest())) {
-			logger.error("Reason for request is required");
+			logger.error("BAD_REQUEST: Reason for request is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Reason for request is required");
 		}
 
 		if (isUpdate) {
 			if (StringUtils.isEmpty(userAccessRequest.getApprovedRejectedBy())) {
-				logger.error("Approver User Id is required");
+				logger.error("BAD_REQUEST: Approver User Id is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Approver User Id is required");
 			}
 
 			if (StringUtils.isEmpty(userAccessRequest.getApprovedRejectedComments())) {
-				logger.error("Approver Comments is required");
+				logger.error("BAD_REQUEST: Approver Comments is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Approver Comments is required");
 			}

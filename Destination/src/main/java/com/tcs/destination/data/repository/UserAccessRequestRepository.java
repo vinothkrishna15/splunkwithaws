@@ -12,4 +12,6 @@ import com.tcs.destination.bean.UserAccessRequestT;
  */
 @Repository
 public interface UserAccessRequestRepository extends JpaRepository<UserAccessRequestT, String> {
+	
+	UserAccessRequestT findByUserIdAndApprovedRejectedByIsNull(String userId);
 }
