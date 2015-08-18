@@ -1,7 +1,9 @@
 package com.tcs.destination.enums;
 
 public enum FeedbackStatus {
-	NEW("NEW"), INPROGRESS("INPROGRESS"), HOLD("HOLD"), CLOSED("CLOSED");
+	NEW("NEW"), INPROGRESS("INPROGRESS"), HOLD("HOLD"), CLOSED("CLOSED"), FIXED(
+			"FIXED"), CLARIFICATION_NEEDED("CLARIFICATION_NEEDED"), NOT_AN_ISSUE(
+			"NOT_AN_ISSUE"), DUPLICATE("DUPLICATE"), REOPEN("REOPEN");
 
 	private final String name;
 
