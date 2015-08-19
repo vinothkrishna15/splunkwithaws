@@ -2346,22 +2346,22 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 						connectList = connectRepository.findByConnectReport(
 								new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), iouList,
-								geographyList, country, serviceLines);
+								geographyList, countryList, serviceLinesList);
 						subSpConnectCountList = connectRepository
-								.findBySubSpConnectSummaryReport(new Timestamp(
-										fromDate.getTime()), new Timestamp(
-										toDate.getTime()), iou, geography,
-										country, serviceLines);
+								.findBySubSpConnectSummaryReport(
+										new Timestamp(fromDate.getTime()),
+										new Timestamp(toDate.getTime()), iouList,
+										geographyList, countryList, serviceLinesList);
 						geographyConnectCountList = connectRepository
 								.findByGeographyConnectSummaryReport(
 										new Timestamp(fromDate.getTime()),
-										new Timestamp(toDate.getTime()), iou,
-										geography, country, serviceLines);
+										new Timestamp(toDate.getTime()), iouList,
+										geographyList, countryList, serviceLinesList);
 						iouConnectCountList = connectRepository
-								.findByIouConnectSummaryReport(new Timestamp(
-										fromDate.getTime()), new Timestamp(
-										toDate.getTime()), iou, geography,
-										country, serviceLines);
+								.findByIouConnectSummaryReport(
+										new Timestamp(fromDate.getTime()),
+										new Timestamp(toDate.getTime()), iouList,
+										geographyList, countryList, serviceLinesList);
 					}
 					break;
 				}

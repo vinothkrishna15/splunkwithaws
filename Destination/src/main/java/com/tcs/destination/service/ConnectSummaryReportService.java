@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.poi.hssf.util.CellRangeAddress;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
@@ -50,19 +52,21 @@ public class ConnectSummaryReportService {
 		CellStyle cellStyle1 = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.REPORTHEADER1);
 		row = spreadSheet.createRow((short) currentRow);
+		
 		if (!month.isEmpty()) {
 			currentRow = connectSummaryReport(subSpConnectCountList,
 					geographyConnectCountList, iouConnectCountList, month,
 					spreadSheet, row, currentRow, colValue, cellStyle,
 					cellStyle1);
-		}
-		if (!quarter.isEmpty()) {
+		} else if (!quarter.isEmpty()) {
 			currentRow = connectSummaryReport(subSpConnectCountList,
 					geographyConnectCountList, iouConnectCountList, quarter,
 					spreadSheet, row, currentRow, colValue, cellStyle,
 					cellStyle1);
-		}
-		if (!year.isEmpty()) {
+		} else {
+			if (year.isEmpty()) {
+				year=DateUtils.getCurrentFinancialYear();
+			}
 			currentRow = connectSummaryReport(subSpConnectCountList,
 					geographyConnectCountList, iouConnectCountList, year,
 					spreadSheet, row, currentRow, colValue, cellStyle,
@@ -95,7 +99,6 @@ public class ConnectSummaryReportService {
 		return currentRow;
 	}
 
-	@SuppressWarnings("deprecation")
 	public int summaryReport(List<Object[]> connectCountList,
 			XSSFSheet spreadSheet, int currentRow, int colValue,
 			CellStyle cellStyle, String subHeader) {
