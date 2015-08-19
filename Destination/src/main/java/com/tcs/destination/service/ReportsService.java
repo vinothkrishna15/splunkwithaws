@@ -125,13 +125,13 @@ public class ReportsService {
 	OpportunityRepository opportunityRepository;
 
 	private static final String CONNECT_REPORT_QUERY_PREFIX = "select distinct CON.connect_id ";
-
-	private static final String CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_geography ";
-
+	
+	private static final String CONNECT_COUNT_GEO_SUMMARY_QUERY_PREFIX = "select count(connect_count), display_geography  from (((select distinct(CON.connect_id) as connect_count,display_geography "; 
+	private static final String CONNECT_SUMMARY_GEO_UNION_PARTNER_REPORT_QUERY_PREFIX =  " UNION select distinct(CON.connect_id) as connect_count, display_geography "; 
 	private static final String CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_iou ";
 
-	private static final String CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_sub_sp ";
-
+	private static final String CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX =  "select count(connect_count), display_sub_sp  from (((select distinct(CON.connect_id) as connect_count,display_sub_sp "; 
+	private static final String CONNECT_SUMMARY_SUBSP_UNION_PARTNER_REPORT_QUERY_PREFIX =  " UNION select distinct(CON.connect_id) as connect_count, display_sub_sp "; 
 	private static final String CONNECT_JOIN_CUS_GEO_IOU_SUBSP = "from connect_t CON "
 			+ "   JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
 			+ "   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
@@ -140,7 +140,16 @@ public class ReportsService {
 			+ "   left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id"
 			+ "   JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
 			+ " where ";
-
+	private static final String CONNECT_ID_PARTNER_UNION_REPORT_QUERY_PREFIX = 	" union select distinct CON.connect_id";	
+	
+	private static final String CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX = 
+			" from connect_t CON   "
+			+ "JOIN partner_master_t PAT ON  PAT.partner_id=CON.partner_id " 
+			+ "JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "  
+			+ "JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "   
+			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "   
+			+ "JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
+	
 	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
 			+ "	 JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
 			+ "  JOIN opportunity_t OPP ON BID.opportunity_id=OPP.opportunity_id"
@@ -324,23 +333,22 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 			+ " where ";
 
-	private static final String CONNECT_START_DATE_COND_PREFIX = "CON.start_datetime_of_connect between "
-			+ Constants.SINGLE_QUOTE;
-	private static final String CONNECT_END_DATE_COND_PREFIX = " AND "
-			+ Constants.SINGLE_QUOTE;
+	private static final String CONNECT_START_DATE_COND_PREFIX = "CON.start_datetime_of_connect between '";
+	private static final String CONNECT_END_DATE_COND_PREFIX = " AND '";
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSM.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String CONNECT_COUNTRY_COND_PREFIX = "GCM.country in (";
-	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by display_geography";
+	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by GMT.display_geography";
+	private static final String CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX = " ))) as geo group by display_geography ";
+	private static final String CONNECT_GROUP_BY_SUBSP_COND_PREFIX = " ))) as geo group by display_sub_sp ";
 	private static final String CONNECT_IOU_GROUP_BY_COND_PREFIX = "group by display_iou";
 	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
-	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between "+ Constants.SINGLE_QUOTE;
-	private static final String BID_END_DATE_COND_C_PREFIX = " AND "
-			+ Constants.SINGLE_QUOTE;
+	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between '";
+	private static final String BID_END_DATE_COND_C_PREFIX = " AND '";
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
 	
-	private static final String BID_END_DATE_COND_PREFIX = " AND "+Constants.SINGLE_QUOTE;
+	private static final String BID_END_DATE_COND_PREFIX = " AND '";
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_PREFIX = " BIDGO.bid_office_group_owner in (";
 	
 
@@ -1783,13 +1791,34 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 	private String getConnectGeoSummaryQueryString(String userId,
 			Date fromDate, Date toDate) throws Exception {
 		logger.debug("Inside getConnectSummaryQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(
-				CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX);
+		
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_COUNT_GEO_SUMMARY_QUERY_PREFIX);
+		String unionPartner = CONNECT_SUMMARY_GEO_UNION_PARTNER_REPORT_QUERY_PREFIX;
+		getConnectCustPartUnionQueryString(userId, fromDate, toDate, queryBuffer, unionPartner);
+		queryBuffer.append(CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX);
+		
+		return queryBuffer.toString();
+	}
+	
+	private String getConnectSubSpSummaryQueryString(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		logger.debug("Inside getConnectSummaryQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX);
+		String unionPartner = CONNECT_SUMMARY_SUBSP_UNION_PARTNER_REPORT_QUERY_PREFIX;
+		getConnectCustPartUnionQueryString(userId, fromDate, toDate, queryBuffer, unionPartner);
+		
+		queryBuffer.append(CONNECT_GROUP_BY_SUBSP_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	public void getConnectCustPartUnionQueryString(String userId,
+			Date fromDate, Date toDate, StringBuffer queryBuffer, String unionPartner)
+			throws Exception {
 		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
+						IOU_COND_PREFIX, null);
 		// Get WHERE clause string
 		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
 				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
@@ -1801,8 +1830,23 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-		queryBuffer.append(CONNECT_GEO_GROUP_BY_COND_PREFIX);
-		return queryBuffer.toString();
+		queryBuffer.append(unionPartner);
+		queryBuffer.append(CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+						null, null);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+		String whereUnionClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryUnionPrefixMap);
+		if (whereUnionClause != null && !whereUnionClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereUnionClause);
+		}
 	}
 
 	private String getConnectIouSummaryQueryString(String userId,
@@ -1830,42 +1874,14 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		return queryBuffer.toString();
 	}
 
-	private String getConnectSubSpSummaryQueryString(String userId,
-			Date fromDate, Date toDate) throws Exception {
-		logger.debug("Inside getConnectSummaryQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(
-				CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX);
-		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
-		// Get WHERE clause string
-		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-		queryBuffer.append(CONNECT_SUBSP_GROUP_BY_COND_PREFIX);
-		return queryBuffer.toString();
-	}
 
 	/**
-	 * This method returns the query string with user access privilege
-	 * restrictions added
-	 * 
-	 * @param count
-	 * @param financialYear
-	 * @param privileges
-	 * @return
+	 * This Method returns the Connect Detailed Query String
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @return Query string
 	 * @throws Exception
-	 * @throws DestinationException
 	 */
 	private String getConnectDetailedQueryString(String userId, Date fromDate,
 			Date toDate) throws Exception {
@@ -1887,6 +1903,27 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
+			queryBuffer.append(CONNECT_ID_PARTNER_UNION_REPORT_QUERY_PREFIX);
+			queryBuffer.append(CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX);
+			// Get user access privilege groups
+			HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
+					.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,null, null);
+			
+			System.out.println("QUERT UNION  "+queryUnionPrefixMap.keySet());
+			// Get WHERE clause string
+			queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
+					+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
+			queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
+					+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
+			System.out.println("QUERTY BUFFER    "+queryBuffer);
+			String whereClauseUnion = userAccessPrivilegeQueryBuilder
+					.getUserAccessPrivilegeWhereConditionClause(userId,
+							queryUnionPrefixMap);
+			System.out.println("Where UNION"+whereClauseUnion);
+			if (whereClauseUnion != null && !whereClauseUnion.isEmpty()) {
+				queryBuffer.append(Constants.AND_CLAUSE + whereClauseUnion);	
+		
+			}
 		return queryBuffer.toString();
 	}
 
@@ -2092,22 +2129,22 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 									.contains("All"))
 							&& country.contains("All")) {
 						// Form the native top revenue query string
-						String queryString = getConnectGeoSummaryQueryString(
+						String geoQueryString = getConnectGeoSummaryQueryString(
 								userId, fromDate, toDate);
-						String queryString1 = getConnectIouSummaryQueryString(
+						String iouQueryString = getConnectIouSummaryQueryString(
 								userId, fromDate, toDate);
-						String queryString2 = getConnectSubSpSummaryQueryString(
+						String subSpQueryString = getConnectSubSpSummaryQueryString(
 								userId, fromDate, toDate);
-						logger.info("GEO Query string: {}", queryString);
-						logger.info("IOU Query string: {}", queryString1);
-						logger.info("SUBSP Query string: {}", queryString2);
+						logger.info("GEO Query string: {}", geoQueryString);
+						logger.info("IOU Query string: {}", iouQueryString);
+						logger.info("SUBSP Query string: {}", subSpQueryString);
 						// Execute the native revenue query string
 						Query connectGeoSummaryReportQuery = entityManager
-								.createNativeQuery(queryString);
+								.createNativeQuery(geoQueryString);
 						Query connectIouSummaryReportQuery = entityManager
-								.createNativeQuery(queryString1);
+								.createNativeQuery(iouQueryString);
 						Query connectSubSpSummaryReportQuery = entityManager
-								.createNativeQuery(queryString2);
+								.createNativeQuery(subSpQueryString);
 
 						geographyConnectCountList = connectGeoSummaryReportQuery
 								.getResultList();
@@ -2281,10 +2318,13 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 								fromDate, toDate, userId);
 						String queryString = getConnectGeoSummaryQueryString(
 								userId, fromDate, toDate);
+						System.out.println("GEO QUERYYYY" +queryString);
 						String queryString1 = getConnectIouSummaryQueryString(
 								userId, fromDate, toDate);
+						System.out.println("SUBSP QUERYYYY" +queryString1);
 						String queryString2 = getConnectSubSpSummaryQueryString(
 								userId, fromDate, toDate);
+						System.out.println("IOU QUERYYYY" +queryString2);
 						logger.info("Query string: {}", queryString);
 						// Execute the native revenue query string
 						Query connectGeoSummaryReportQuery = entityManager
