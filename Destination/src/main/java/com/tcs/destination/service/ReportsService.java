@@ -190,8 +190,9 @@ public class ReportsService {
 	
 	private static final String TOP_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "  
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where ";
 			
 	private static final String RCMT_GEO_COND_PREFIX = "RCMT.customer_geography in (";
@@ -201,8 +202,9 @@ public class ReportsService {
 	private static final String TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 
 		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
 			+ "from projected_revenues_data_t PRDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name = PRDT.finance_customer_name "
-			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "  
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where " ;
 	
 	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
@@ -1521,14 +1523,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 	 * This method returns query for top customers based on revenue including actuals as well as projected
 	 */
 	public String getTopRevenueCustomersForDashboard(String userId,String financialYear,int count) throws Exception {
-		List<String> months = new ArrayList<String>();
-		List<String> quarters = DateUtils.getQuarters(financialYear);
-		for(String quarter : quarters){
-			List<String> quarterMonths = DateUtils.getMonths(quarter);
-			months.addAll(quarterMonths);
-		}
+		List<String> months = DateUtils.getMonthsFromYear(financialYear);
 		return getActualProjectedTopRevenuesQueryString(months,userId, count, 
-				GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
+				RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
 	}
 
 	private String getActualProjectedTopRevenuesQueryString(
