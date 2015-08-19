@@ -1616,6 +1616,13 @@ public class BuildOpportunityReportService {
 			Map<String,Integer> zeroOffesetRowMap = new TreeMap<String,Integer>();
 			zeroOffesetRowMap.put("Wins", 0);
 			zeroOffesetRowMap.put("Losses", 0);
+//			Boolean isYearHeading = false;
+//			if(serviceLineOpp.size() > 0){
+//				isYearHeading = true;
+//			}
+			Map<String,Boolean> yearHeadingMap = new TreeMap<String,Boolean>();
+			yearHeadingMap.put("winsYearHeading", true);
+			yearHeadingMap.put("lossYearHeading", true);
 			if (entry.getKey().equals("month")) {
 				serviceTypeDetailsMonthWise(workbook, serviceLineOpp, month,
 						ReportConstants.OFFSETCOLUMNVALUE, currency);
@@ -1624,13 +1631,13 @@ public class BuildOpportunityReportService {
 				serviceTypeDetailsMonthWise(workbook, iouOpp, month,
 						ReportConstants.OFFSETCOLUMNIOU, currency);
 			} else if (!quarter.isEmpty()) {
-				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, year);
-				getServiceTypeDetails(workbook, geoOpp, currency, quarter,year);
-				getServiceTypeDetails(workbook, iouOpp, currency, quarter,year);
+				yearHeadingMap = getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, year, yearHeadingMap);
+				getServiceTypeDetails(workbook, geoOpp, currency, quarter,year, yearHeadingMap);
+				getServiceTypeDetails(workbook, iouOpp, currency, quarter, year, yearHeadingMap);
 			} else {
-				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, entry.getKey());
-				getServiceTypeDetails(workbook, geoOpp, currency, quarter,entry.getKey());
-				getServiceTypeDetails(workbook, iouOpp, currency, quarter,entry.getKey());
+				yearHeadingMap = getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, entry.getKey(), yearHeadingMap);
+				getServiceTypeDetails(workbook, geoOpp, currency, quarter,entry.getKey(), yearHeadingMap);
+				getServiceTypeDetails(workbook, iouOpp, currency, quarter,entry.getKey(), yearHeadingMap);
 			}
 		}
 
@@ -2027,9 +2034,9 @@ public class BuildOpportunityReportService {
 		}
 	}
 
-	public void getServiceTypeDetails(XSSFWorkbook workbook,
+	public Map<String,Boolean> getServiceTypeDetails(XSSFWorkbook workbook,
 			List<ReportSummaryOpportunity> repSummaryOpportunityList,
-			List<String> currency, String quarter, String year) throws DestinationException {
+			List<String> currency, String quarter, String year, Map<String,Boolean> yearHeadingMap) throws DestinationException {
 		logger.debug("Inside Report Service getServiceTypeDetails method");
 
 		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
@@ -2111,15 +2118,13 @@ public class BuildOpportunityReportService {
 
 				}
 				if (isHeading) {
-
 					rowValue = spreadsheet.getLastRowNum() + 2;
-
-					if (!(repSummaryOpp.getIou() == null)) {
-						row = spreadsheet.createRow((short) rowValue++);
-					} else if (!(repSummaryOpp.getGeography() == null)) {
-						row = spreadsheet.createRow((short) rowValue++);
-					} else {
-						row = spreadsheet.createRow((short) rowValue++);
+					row = spreadsheet.createRow((short) rowValue++);
+					if(repSummaryOpp.getIou() != null){
+						yearHeadingMap.put("winsYearHeading", false);
+						yearHeadingMap.put("lossYearHeading", false);
+					}
+					if (yearHeadingMap.get("winsYearHeading") || yearHeadingMap.get("lossYearHeading") ) {
 						if (!quarter.isEmpty() && currency.size() > 1) {
 							spreadsheet.addMergedRegion(new CellRangeAddress(
 									rowValue - 1, rowValue - 1, 0, 12));
@@ -2139,7 +2144,14 @@ public class BuildOpportunityReportService {
 							cell.setCellValue(quarter);
 						else
 							cell.setCellValue(year);
+						rowValue = rowValue + 1;
 						row = spreadsheet.createRow((short) rowValue++);
+					}
+					
+					if(repSummaryOpp.getSalesStageCode() ==9){
+						yearHeadingMap.put("winsYearHeading", false);
+					} else {
+						yearHeadingMap.put("lossYearHeading", false);
 					}
 
 					if (!year.isEmpty() && currency.size() > 1) {
@@ -2592,6 +2604,8 @@ public class BuildOpportunityReportService {
 				}
 			}
 		}
+		
+		return yearHeadingMap;
 	}
 
 	/**
