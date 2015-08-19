@@ -284,7 +284,7 @@ public class DateUtils {
 		return getFormattedMonth(new Date());
 	}
 
-	private static Date getDateFromDBFormattedString(String dbFormattedString)
+	public static Date getDateFromDBFormattedString(String dbFormattedString)
 			throws ParseException {
 		return dbDateFormat.parse(dbFormattedString);
 	}
@@ -480,7 +480,7 @@ public class DateUtils {
 			Integer quarterNumber = 0;
 			Integer currentYear = 0;
 			try {
-				quarterArray = years.split("-");
+				quarterArray = quarter.split("-");
 				quarterNumber = Integer
 						.parseInt(quarterArray[0].charAt(1) + "");
 				currentYear = Integer.parseInt(quarterArray[1].trim());
@@ -546,6 +546,20 @@ public class DateUtils {
 						"Unable to pick date for the given request");
 			}
 			return dateMap;
+		}
+
+		public static List<String> getMonthsFromYear(String financialYear) throws Exception {
+			List<String> months = new ArrayList<String>();
+			List<String> quarters = getQuarters(financialYear);
+			for(String quarter : quarters){
+				List<String> quarterMonths = getMonths(quarter);
+				for(String mon : quarterMonths){
+					String temp = getFormattedMonth(getDateFromDBFormattedString(mon));
+					quarterMonths.set(quarterMonths.indexOf(mon),temp);
+				}
+				months.addAll(quarterMonths);
+			}
+			return months;
 		}	
 
 	

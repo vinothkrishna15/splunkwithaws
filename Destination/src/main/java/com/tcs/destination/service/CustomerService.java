@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -47,6 +49,11 @@ public class CustomerService {
 			"ART.finance_iou = ICMT.iou and "+
 			"ART.sub_sp = SSMT.actual_sub_sp";
 	
+	private static final String TOP_REVENUE_PROJECTED_PREFIX =
+			"select CMT.* from customer_master_t CMT, (";
+	private static final String TOP_REVENUE_PROJECTED_SUFFIX=
+			") as TRC where CMT.customer_name = TRC.customer_name order by TRC.revenue desc";
+	
 	private static final String TOP_REVENUE_QUERY_SUFFIX = ") as RV where RV.customer_name=CMT.customer_name order by RV.sum desc";
 	private static final String TOP_REVENUE_QUERY_YEAR = " and ART.financial_year = ";
 	private static final String TOP_REVENUE_QUERY_GROUP_BY = " group by RCMT.customer_name order by sum desc limit ";
@@ -66,6 +73,9 @@ public class CustomerService {
 	
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	ReportsService reportsService;
 	
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
@@ -137,26 +147,14 @@ public class CustomerService {
 		String queryString = getRevenueQueryString(userId, count, financialYear);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
-		Query topRevenueQuery = entityManager.createNativeQuery(queryString);
-		List<Object> resultList = topRevenueQuery.getResultList();
-
-		// Get the list of customer ids
-		List<String> customerIdList = new ArrayList<String>();
-		if (resultList != null && !resultList.isEmpty()) {
-			for (Object custObj : resultList) {
-				customerIdList.add((String) custObj);
-			}
-		}
-		
-		// Retrieve customer details
-		List<CustomerMasterT> customerDetailsList = customerRepository.getCustomersByIds(customerIdList);
-		if (customerDetailsList == null || customerDetailsList.isEmpty()) {
+		Query topRevenueQuery = entityManager.createNativeQuery(queryString,CustomerMasterT.class);
+		List<CustomerMasterT> resultList = topRevenueQuery.getResultList();
+		if (resultList == null || resultList.isEmpty()) {
 			logger.error("NOT_FOUND: Top revenue customers not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,"Top revenue customers not found");
 		} 
-
-		removeCyclicForLinkedContactTs(customerDetailsList);
-		return customerDetailsList;
+		removeCyclicForLinkedContactTs(resultList);
+		return resultList;
 	}
 
 	/**
@@ -169,22 +167,9 @@ public class CustomerService {
 	 */
 	private String getRevenueQueryString(String userId, int count, String financialYear) throws Exception {
 		logger.debug("Inside getRevenueQueryString() method" );
-		StringBuffer queryBuffer = new StringBuffer(TOP_REVENUE_QUERY_PREFIX);
-		// Get user access privilege groups 
-		HashMap<String, String> queryPrefixMap = 
-				userAccessPrivilegeQueryBuilder.getQueryPrefixMap(TOP_REVENUE_GEO_COND_PREFIX, TOP_REVENUE_SUBSP_COND_PREFIX, 
-						TOP_REVENUE_IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
-		// Get WHERE clause string
-		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) { 
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-		financialYear = financialYear.replace(Constants.SINGLE_QUOTE, Constants.DOUBLE_SINGLE_QUOTE);
-		queryBuffer.append(TOP_REVENUE_QUERY_YEAR + Constants.SINGLE_QUOTE 
-				+ financialYear + Constants.SINGLE_QUOTE);
-		queryBuffer.append(TOP_REVENUE_QUERY_GROUP_BY + count);
-		queryBuffer.append(TOP_REVENUE_QUERY_SUFFIX);
-
+		StringBuffer queryBuffer = new StringBuffer(TOP_REVENUE_PROJECTED_PREFIX);
+		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(userId, financialYear, count));
+		queryBuffer.append(TOP_REVENUE_PROJECTED_SUFFIX);
 		return queryBuffer.toString();
 	}
 
