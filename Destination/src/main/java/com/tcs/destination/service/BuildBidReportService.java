@@ -34,6 +34,7 @@ import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.GetMaximumListCount;
@@ -353,8 +354,11 @@ public class BuildBidReportService {
 					colValue++;
 					break;
 				case ReportConstants.ACTUALBIDSUBMISSIONDATE:
-					System.out.println("Actual Bid Submission Date"+bidDetail.getActualBidSubmissionDate().toString());
+					if(bidDetail.getActualBidSubmissionDate()!=null){
 					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate().toString());
+					}else{
+					row.createCell(colValue).setCellValue(Constants.SPACE);
+					}
 					row.getCell(colValue).setCellStyle(cellStyle);
 					colValue++;
 					break;
@@ -371,7 +375,7 @@ public class BuildBidReportService {
 	}
 
 	public void getBidReportTitlePage(XSSFWorkbook workbook, List<String> geography, List<String> iou,
-			List<String> serviceLines, String userId, Date tillDate) {
+			List<String> serviceLines, String userId, String tillDate) {
 		XSSFSheet spreadsheet = workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
@@ -391,6 +395,11 @@ public class BuildBidReportService {
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -400,6 +409,11 @@ public class BuildBidReportService {
 			}
 			break;
 		case ReportConstants.IOUHEAD:
+			row = spreadsheet.createRow(12);
+			row.createCell(4).setCellValue("User Access Filter's");
+			row.getCell(4).setCellStyle(subHeadingStyle);
+			spreadsheet.autoSizeColumn(4);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			userAccessField = "Iou";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -427,13 +441,6 @@ public class BuildBidReportService {
 				dataRow);
 		row = spreadsheet.createRow(10);
 		row.setRowStyle(null);
-		
-		row = spreadsheet.createRow(12);
-		row.createCell(4).setCellValue("User Access Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
-		
 	}
 	
 	private void writeDetailsForSearchType(XSSFSheet spreadsheet,

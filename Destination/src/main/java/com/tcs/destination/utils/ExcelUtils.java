@@ -207,7 +207,7 @@ public class ExcelUtils {
 			font.setFontHeightInPoints((short) 11);
 			cellStyle.setFont(font);
 			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
-			cellStyle.setFillPattern(XSSFCellStyle.LESS_DOTS);
+			cellStyle.setFillPattern(XSSFCellStyle.LEAST_DOTS);
 			cellStyle.setFillBackgroundColor(IndexedColors.LIGHT_GREEN.getIndex());
 			cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
 			cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
@@ -254,15 +254,6 @@ public class ExcelUtils {
 		return alteredYear;
 	}
 	
-//public static String getCurrentDate() throws Exception {
-//		
-//		Date tillDate = new Date();
-//		SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy");
-//		String formattedDate = formatter.format(tillDate);
-//		System.out.println("formatted Date"+formattedDate);
-//		return formattedDate;
-//	}
-
 	public static void arrangeSheetOrder(XSSFWorkbook workbook) {
 		int i = 0;
 		if (workbook.getSheet(ReportConstants.TITLE) != null) {
