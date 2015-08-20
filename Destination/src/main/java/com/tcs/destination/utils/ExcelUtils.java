@@ -1,17 +1,28 @@
 package com.tcs.destination.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
 public class ExcelUtils {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(DestinationUtils.class);
+	
 	public static CellStyle createRowStyle(XSSFWorkbook workbook,
 			String headerType) {
 
@@ -291,6 +302,26 @@ public class ExcelUtils {
 			row = spreadsheet.getRow(rowNo);
 		}
 		return row;
+	}
+	
+	/*
+	 * Returns the workbook object for given multipart file(xls / xlsm / xlsx)
+	 */
+	public static Workbook getWorkBook(MultipartFile file) throws IOException{
+		String fileName = file.getOriginalFilename();
+		logger.info("Received File : " + fileName);
+		String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1,fileName.length());
+		logger.info("Received File's Extension : " + fileName);
+		InputStream fileInputStream = file.getInputStream();
+        if(fileExtension.equalsIgnoreCase("xls")){
+        	return new HSSFWorkbook(fileInputStream);
+        } else if(fileExtension.equalsIgnoreCase("xlsx")){
+        	return new XSSFWorkbook(fileInputStream);
+        } else if(fileExtension.equalsIgnoreCase("xlsm")){
+        	return new XSSFWorkbook(fileInputStream);
+        } else {
+        	return null;
+        }
 	}
 
 }
