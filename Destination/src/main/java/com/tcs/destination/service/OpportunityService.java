@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -32,7 +33,6 @@ import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -66,12 +66,34 @@ import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
 @Service
 public class OpportunityService {
+
+	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
+			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
+			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
+			+ "LEFT JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSLT.sub_sp=SSMT.sub_sp where";
+
+	private static final String OPPORTUNITY_GEO_INCLUDE_COND_PREFIX = "GCMT.geography in (";
+	private static final String OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX = "SSMT.display_sub_sp in (";
+	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
+	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
+
+	private static final String OPPORTUNITY_GEO_EXCLUDE_COND_PREFIX = "GCMT.geography not in (";
+	private static final String OPPORTUNITY_SUBSP_EXCLUDE_COND_PREFIX = "SSMT.display_sub_sp not in (";
+	private static final String OPPORTUNITY_IOU_EXCLUDE_COND_PREFIX = "ICMT.display_iou not in (";
+	private static final String OPPORTUNITY_CUSTOMER_EXCLUDE_COND_PREFIX = "CMT.customer_name not in (";
+
+	@Autowired
+	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityService.class);
@@ -146,7 +168,8 @@ public class OpportunityService {
 	UserRepository userRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
-			String customerId, List<String> toCurrency) throws Exception {
+			String customerId, List<String> toCurrency, boolean isAjax)
+			throws Exception {
 		logger.debug("Inside findByOpportunityName() service");
 		List<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
@@ -165,9 +188,11 @@ public class OpportunityService {
 					"Opportunities not found with the given name: " + nameWith);
 		}
 
-		beaconConverterService.convertOpportunityCurrency(opportunities,
-				toCurrency);
-		prepareOpportunity(opportunities);
+		if (!isAjax) {
+			beaconConverterService.convertOpportunityCurrency(opportunities,
+					toCurrency);
+			prepareOpportunity(opportunities);
+		}
 		return opportunities;
 	}
 
@@ -340,23 +365,24 @@ public class OpportunityService {
 	}
 
 	public OpportunityT findByOpportunityId(String opportunityId,
-			List<String> toCurrency) throws DestinationException {
+			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");
+
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
+		if (!isUserOwner(userId, opportunity)) {
+			restrictOpportunity(opportunity);
+		}
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
 					.findByEntityTypeAndEntityId(
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
-			if (searchKeywords != null && searchKeywords.size() > 0) {
-				opportunity.setSearchKeywordsTs(searchKeywords);
-			}
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
-
-			prepareOpportunity(opportunity);
+			prepareOpportunity(opportunity, null);
 
 			return opportunity;
 		} else {
@@ -364,6 +390,51 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty not found: " + opportunityId);
 		}
+	}
+
+	private void restrictOpportunity(OpportunityT opportunity) {
+		opportunity.setDigitalDealValue(null);
+		opportunity.setOverallDealSize(null);
+
+	}
+
+	private void restrictOpportunity(List<OpportunityT> opportunities) {
+		if (opportunities != null && opportunities.size() > 0) {
+			for (OpportunityT opportunityT : opportunities) {
+				restrictOpportunity(opportunityT);
+			}
+		}
+
+	}
+
+	private boolean isUserOwner(String userId, OpportunityT opportunity) {
+		if (opportunity.getOpportunityOwner().equals(userId))
+			return true;
+		else {
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+				if (opportunitySalesSupportLinkT.getSalesSupportOwner().equals(
+						userId))
+					return true;
+			}
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+				if (opportunitySalesSupportLinkT.getSalesSupportOwner().equals(
+						userId))
+					return true;
+			}
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT
+						.getBidOfficeGroupOwnerLinkTs()) {
+					if (bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner()
+							.equals(userId)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	// Method called from controller
@@ -713,19 +784,90 @@ public class OpportunityService {
 		return opportunityList;
 	}
 
-	private void prepareOpportunity(List<OpportunityT> opportunityTs) {
+	private void prepareOpportunity(List<OpportunityT> opportunityTs)
+			throws DestinationException {
 		logger.debug("Inside prepareOpportunity(List<>) method");
-		if (opportunityTs != null) {
-			for (OpportunityT opportunityT : opportunityTs) {
-				prepareOpportunity(opportunityT);
+		List<String> opportunityIds = new ArrayList<String>();
+		for (OpportunityT opportunityT : opportunityTs) {
+			opportunityIds.add(opportunityT.getOpportunityId());
+		}
+		try {
+			List<String> previledgedOpportuniyies = getPreviledgedOpportunityId(opportunityIds);
+
+			if (opportunityTs != null) {
+				for (OpportunityT opportunityT : opportunityTs) {
+					prepareOpportunity(opportunityT, previledgedOpportuniyies);
+				}
 			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
 	}
 
-	private void prepareOpportunity(OpportunityT opportunityT) {
+	private void prepareOpportunity(OpportunityT opportunityT,
+			List<String> previledgedOppIdList) throws DestinationException {
 		logger.debug("Inside prepareOpportunity() method");
+
+		try {
+			checkAccessControl(opportunityT, previledgedOppIdList);
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
+
+	}
+
+	private void checkAccessControl(OpportunityT opportunityT,
+			List<String> previledgedOppIdList) throws Exception {
+		// previledgedOppIdList is null only while it is a single opportunity.
+		if (previledgedOppIdList != null) {
+			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
+				preventSensitiveInfo(opportunityT);
+			}
+		} else {
+			List<String> opportunityIdList = new ArrayList<String>();
+			opportunityIdList.add(opportunityT.getOpportunityId());
+			previledgedOppIdList = getPreviledgedOpportunityId(opportunityIdList);
+			if (previledgedOppIdList == null
+					|| previledgedOppIdList.size() == 0) {
+				preventSensitiveInfo(opportunityT);
+			}
+		}
+
+	}
+
+	private void preventSensitiveInfo(OpportunityT opportunityT) {
+		if (opportunityT != null) {
+			opportunityT.setDigitalDealValue(null);
+			opportunityT.setOverallDealSize(null);
+		}
+
+	}
+
+	private List<String> getPreviledgedOpportunityId(List<String> opportunityIds)
+			throws Exception {
+		logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
+		String queryString = getOpportunityPreviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryString);
+		Query opportunityQuery = entityManager.createNativeQuery(queryString);
+		return opportunityQuery.getResultList();
+	}
+
+	private List<String> getPreviledgedOpportunityId(String opportunityId)
+			throws Exception {
+		logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
+		List<String> opportunityIds = new ArrayList<String>();
+		opportunityIds.add(opportunityId);
+		String queryString = getOpportunityPreviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryString);
+		Query opportunityQuery = entityManager.createNativeQuery(queryString,
+				OpportunityT.class);
+		return opportunityQuery.getResultList();
 	}
 
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
@@ -754,7 +896,8 @@ public class OpportunityService {
 	}
 
 	public List<OpportunityT> findOpportunitiesBySalesStageCode(
-			List<String> currencies, int salesStageCode, String customerId) {
+			List<String> currencies, int salesStageCode, String customerId)
+			throws DestinationException {
 		List<OpportunityT> opportunityTs = null;
 		if (customerId.equals(""))
 			opportunityTs = opportunityRepository
@@ -1118,5 +1261,38 @@ public class OpportunityService {
 		Pageable pageSpecification = new PageRequest(pageIndex, count, sortBy(
 				sortBy, order));
 		return pageSpecification;
+	}
+
+	private String getOpportunityPreviledgeString(String userId,
+			List<String> opportunityIds) throws Exception {
+		logger.debug("Inside getOpportunityPreviledgeString() method");
+		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
+		// Get user access privilege groups
+
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (opportunityIds.size() > 0) {
+			String oppIdList = "(";
+			{
+				for (String opportunityId : opportunityIds)
+					oppIdList += "'" + opportunityId + "',";
+			}
+			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
+			oppIdList += ")";
+
+			queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
+		}
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+
+		return queryBuffer.toString();
 	}
 }
