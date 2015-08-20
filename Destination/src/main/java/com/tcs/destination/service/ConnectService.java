@@ -228,7 +228,7 @@ public class ConnectService {
 	}
 
 	@Transactional
-	public boolean insertConnect(ConnectT connect) throws Exception {
+	public boolean insertConnect(ConnectT connect, boolean isBulkDataLoad) throws Exception {
 		logger.debug("Inside insertConnect() service");
 		// Validate request 
 		validateRequest(connect,true);
@@ -315,8 +315,10 @@ public class ConnectService {
 
 			if (connectRepository.save(connect) != null) {
 				logger.info("Connect has been added successfully");
-				// Invoke Asynchronous Auto Comments Thread
-				processAutoComments(connect.getConnectId(), null);
+				if (!isBulkDataLoad) {
+					// Invoke Asynchronous Auto Comments Thread
+					processAutoComments(connect.getConnectId(), null);
+				}
 				return true;
 			}
 
