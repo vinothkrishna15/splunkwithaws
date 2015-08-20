@@ -1604,6 +1604,26 @@ public class BuildOpportunityReportService {
 							.getSalesStageDescription())
 							+ "( "
 							+ repSummaryOpp.getSalesStageDescription() + " )");
+					row = spreadsheet.createRow((short) 3);
+					if (!quarter.isEmpty() && currency.size() > 1) {
+						spreadsheet.addMergedRegion(new CellRangeAddress(
+								3, 3, 0, 12));
+					} else if (!quarter.isEmpty() && currency.size() == 1) {
+						spreadsheet.addMergedRegion(new CellRangeAddress(
+								3, 3, 0, 8));
+					} else if (!year.isEmpty() && currency.size() > 1) {
+						spreadsheet.addMergedRegion(new CellRangeAddress(
+								3, 3, 0, 15));
+					} else {
+						spreadsheet.addMergedRegion(new CellRangeAddress(
+								3, 3, 0, 10));
+					}
+					cell = row.createCell(0);
+					cell.setCellStyle(headingStyle);
+					if (!quarter.isEmpty())
+						cell.setCellValue(quarter);
+					else
+						cell.setCellValue(year);
 				}
 				if (!(repSummaryOpp.getSubSp() == null)) {
 					serviceLineOpp.add(repSummaryOpp);
@@ -1616,28 +1636,28 @@ public class BuildOpportunityReportService {
 			Map<String,Integer> zeroOffesetRowMap = new TreeMap<String,Integer>();
 			zeroOffesetRowMap.put("Wins", 0);
 			zeroOffesetRowMap.put("Losses", 0);
-//			Boolean isYearHeading = false;
-//			if(serviceLineOpp.size() > 0){
-//				isYearHeading = true;
-//			}
-			Map<String,Boolean> yearHeadingMap = new TreeMap<String,Boolean>();
-			yearHeadingMap.put("winsYearHeading", true);
-			yearHeadingMap.put("lossYearHeading", true);
 			if (entry.getKey().equals("month")) {
+				if(serviceLineOpp.size() > 0){
 				serviceTypeDetailsMonthWise(workbook, serviceLineOpp, month,
 						ReportConstants.OFFSETCOLUMNVALUE, currency);
 				serviceTypeDetailsMonthWise(workbook, geoOpp, month,
 						ReportConstants.OFFSETCOLUMNGEO, currency);
 				serviceTypeDetailsMonthWise(workbook, iouOpp, month,
 						ReportConstants.OFFSETCOLUMNIOU, currency);
+				} else {
+					serviceTypeDetailsMonthWise(workbook, geoOpp, month,
+							ReportConstants.OFFSETCOLUMNVALUE, currency);
+					serviceTypeDetailsMonthWise(workbook, iouOpp, month,
+							ReportConstants.OFFSETCOLUMNGEO, currency);
+				}
 			} else if (!quarter.isEmpty()) {
-				yearHeadingMap = getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, year, yearHeadingMap);
-				getServiceTypeDetails(workbook, geoOpp, currency, quarter,year, yearHeadingMap);
-				getServiceTypeDetails(workbook, iouOpp, currency, quarter, year, yearHeadingMap);
+				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, year);
+				getServiceTypeDetails(workbook, geoOpp, currency, quarter,year);
+				getServiceTypeDetails(workbook, iouOpp, currency, quarter, year);
 			} else {
-				yearHeadingMap = getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, entry.getKey(), yearHeadingMap);
-				getServiceTypeDetails(workbook, geoOpp, currency, quarter,entry.getKey(), yearHeadingMap);
-				getServiceTypeDetails(workbook, iouOpp, currency, quarter,entry.getKey(), yearHeadingMap);
+				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, entry.getKey());
+				getServiceTypeDetails(workbook, geoOpp, currency, quarter,entry.getKey());
+				getServiceTypeDetails(workbook, iouOpp, currency, quarter,entry.getKey());
 			}
 		}
 
@@ -1960,6 +1980,9 @@ public class BuildOpportunityReportService {
 				}
 				for (OpportunitySummaryValue oppSummaryValue : repSummaryOpp
 						.getOpportunitySummaryValueList()) {
+					if(oppSummaryValue.getCount() == BigInteger.ZERO){
+						continue;
+					}
 					if (spreadsheet.getRow(rowValue) == null)
 						row = spreadsheet.createRow((short) rowValue++);
 					else
@@ -2034,13 +2057,11 @@ public class BuildOpportunityReportService {
 		}
 	}
 
-	public Map<String,Boolean> getServiceTypeDetails(XSSFWorkbook workbook,
+	public void getServiceTypeDetails(XSSFWorkbook workbook,
 			List<ReportSummaryOpportunity> repSummaryOpportunityList,
-			List<String> currency, String quarter, String year, Map<String,Boolean> yearHeadingMap) throws DestinationException {
+			List<String> currency, String quarter, String year) throws DestinationException {
 		logger.debug("Inside Report Service getServiceTypeDetails method");
 
-		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.HEADINGSTYLE);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.SUBHEADINGSTYLE);
 		CellStyle subHeadingStyle2 = ExcelUtils.createRowStyle(workbook,
@@ -2120,40 +2141,6 @@ public class BuildOpportunityReportService {
 				if (isHeading) {
 					rowValue = spreadsheet.getLastRowNum() + 2;
 					row = spreadsheet.createRow((short) rowValue++);
-					if(repSummaryOpp.getIou() != null){
-						yearHeadingMap.put("winsYearHeading", false);
-						yearHeadingMap.put("lossYearHeading", false);
-					}
-					if (yearHeadingMap.get("winsYearHeading") || yearHeadingMap.get("lossYearHeading") ) {
-						if (!quarter.isEmpty() && currency.size() > 1) {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 0, 12));
-						} else if (!quarter.isEmpty() && currency.size() == 1) {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 0, 8));
-						} else if (!year.isEmpty() && currency.size() > 1) {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 0, 15));
-						} else {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 0, 10));
-						}
-						cell = row.createCell(0);
-						cell.setCellStyle(headingStyle);
-						if (!quarter.isEmpty())
-							cell.setCellValue(quarter);
-						else
-							cell.setCellValue(year);
-						rowValue = rowValue + 1;
-						row = spreadsheet.createRow((short) rowValue++);
-					}
-					
-					if(repSummaryOpp.getSalesStageCode() ==9){
-						yearHeadingMap.put("winsYearHeading", false);
-					} else {
-						yearHeadingMap.put("lossYearHeading", false);
-					}
-
 					if (!year.isEmpty() && currency.size() > 1) {
 							lastCell = 15;
 					} else if (year.isEmpty() && currency.size() > 1) {
@@ -2605,7 +2592,7 @@ public class BuildOpportunityReportService {
 			}
 		}
 		
-		return yearHeadingMap;
+//		return yearHeadingMap;
 	}
 
 	/**
