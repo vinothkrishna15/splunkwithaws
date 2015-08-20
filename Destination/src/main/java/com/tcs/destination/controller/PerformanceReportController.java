@@ -225,7 +225,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "stagefrom", defaultValue = "4") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "8") int salesStageTo,
-			@RequestParam(value = "currency", defaultValue = "USD") String currency,
+			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "count", defaultValue = "3") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
