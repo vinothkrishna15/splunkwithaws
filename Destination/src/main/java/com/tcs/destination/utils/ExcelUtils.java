@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -322,6 +325,27 @@ public class ExcelUtils {
         } else {
         	return null;
         }
+	}
+	
+	/*
+	 * returns if the workbook contains any errors returned by macro check
+	 */
+	public static boolean isValidWorkbook(Workbook workbook,String sheetName,int rowNum, int colNum){
+		int index = workbook.getSheetIndex(sheetName);
+		if(index==-1)
+			//returning false if the validate sheet does not exist
+			return false;
+		else{
+			Sheet worksheet = workbook.getSheetAt(index);
+			Row row = worksheet.getRow(rowNum);
+			Cell c = row.getCell(colNum);
+			if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		    
 	}
 
 }

@@ -440,13 +440,15 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void createOpportunity(OpportunityT opportunity) throws Exception {
+	public void createOpportunity(OpportunityT opportunity, boolean isBulkDataLoad) throws Exception {
 		logger.debug("Inside createOpportunity() service");
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
 			saveOpportunity(opportunity, false);
-			// Invoke Asynchronous Auto Comments Thread
-			processAutoComments(opportunity.getOpportunityId(), null);
+			if (!isBulkDataLoad) {
+				// Invoke Asynchronous Auto Comments Thread
+				processAutoComments(opportunity.getOpportunityId(), null);
+			}
 		}
 	}
 

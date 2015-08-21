@@ -118,7 +118,7 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.createOpportunity(opportunity);
+			opportunityService.createOpportunity(opportunity, false);
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
