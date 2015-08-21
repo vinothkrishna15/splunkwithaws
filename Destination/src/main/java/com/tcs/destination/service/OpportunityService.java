@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -1294,5 +1295,15 @@ public class OpportunityService {
 		}
 
 		return queryBuffer.toString();
+	}
+
+	public Set<String> findOpportunityNameOrKeywords(String name,
+			String keyword) {
+		if(name.length()>0)
+			name="%"+name+"%";
+		if(keyword.length()>0)
+			keyword="%"+keyword+"%";
+		return opportunityRepository.findOpportunityNameOrKeywords(name.toUpperCase(),
+				keyword.toUpperCase());
 	}
 }

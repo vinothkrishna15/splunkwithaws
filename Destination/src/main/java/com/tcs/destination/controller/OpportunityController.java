@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies,isAjax);
+				.findByOpportunityName(nameWith, customerId, currencies, isAjax);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -318,7 +319,7 @@ public class OpportunityController {
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
-	public @ResponseBody String SearchOpportunities(
+	public @ResponseBody String searchOpportunities(
 			@RequestParam(value = "customerIdList", defaultValue = "") List<String> customerIdList,
 			@RequestParam(value = "displayIou", defaultValue = "") List<String> displayIou,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
@@ -367,6 +368,20 @@ public class OpportunityController {
 				order, isCurrentFinancialYear, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunityTs);
+	}
+
+	@RequestMapping(value = "/name", method = RequestMethod.GET)
+	public @ResponseBody String findOppNameOrKeyword(
+			@RequestParam(value = "name", defaultValue = "all") String name,
+			@RequestParam(value = "keyword", defaultValue = "all") String keyword,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside OpportunityService /all GET");
+		Set<String> searchResults = opportunityService
+				.findOpportunityNameOrKeywords(name, keyword);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				searchResults);
 	}
 
 }
