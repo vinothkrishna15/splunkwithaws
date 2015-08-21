@@ -49,12 +49,13 @@ public class OpportunityController {
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
+			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies);
+				.findByOpportunityName(nameWith, customerId, currencies,isAjax);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -116,7 +117,7 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.createOpportunity(opportunity);
+			opportunityService.createOpportunity(opportunity, false);
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
