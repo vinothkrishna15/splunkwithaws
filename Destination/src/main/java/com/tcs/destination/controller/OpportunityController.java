@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -24,6 +25,7 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
+import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -40,6 +42,9 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityReopenRequestService opportunityReopenRequestService;
+	
+	@Autowired
+	OpportunityUploadService opportunityUploadService;
 
 	// @Autowired
 	// CustomerRepository customerRepository;
@@ -384,4 +389,27 @@ public class OpportunityController {
 				searchResults);
 	}
 
+	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+        public @ResponseBody String uploadOpportunity(
+    	    @RequestParam("file") MultipartFile file,
+    	    @RequestParam("userId") String userId,
+    	    @RequestParam(value = "fields", defaultValue = "all") String fields,
+    	    @RequestParam(value = "view", defaultValue = "") String view)
+    	    throws Exception {
+    	logger.debug("Upload request Received : docName - ");
+    	Status status = new Status();
+    	status.setStatus(Status.FAILED, "");
+    	try {
+    	    opportunityUploadService.saveDocument(file, userId);
+    	    status.setStatus(Status.SUCCESS, "Id : ");
+    	    logger.debug("UPLOAD SUCCESS - Record Created,  Id: ");
+    	} catch (Exception e) {
+    	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+    	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+    		    e.getMessage());
+    	}
+    
+    	return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+    		status);
+        }
 }
