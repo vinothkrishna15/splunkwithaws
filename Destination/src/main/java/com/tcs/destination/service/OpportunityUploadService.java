@@ -27,6 +27,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,6 +46,9 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
@@ -52,14 +56,13 @@ import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTReposi
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.exception.DestinationException;
 
 @Service
 public class OpportunityUploadService {
-
-    @PersistenceContext
-    EntityManager entityManager;
     
     @Autowired
     OpportunityRepository opportunityRepository;
@@ -85,42 +88,46 @@ public class OpportunityUploadService {
     @Autowired
     CompetitorRepository competitorRepository;
     
+    @Autowired
+    UserRepository userRepository;
+    
     Map<String, String> mapOfPartnerMasterT = null;
     Map<String, String> mapOfCustomerMasterT = null;
     Map<String, String> mapOfCustomerContactT = null;
     Map<String, String> mapOfTCSContactT = null;
+    Map<String, String> mapOfUserT = null;
     List<String> listOfCompetitorLink = null;
+    
+    private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     private static final Logger logger = LoggerFactory
 	    .getLogger(ReportsUploadService.class);
 
-    public void saveDocument(MultipartFile multipartFile, String userId)
+    public UploadStatusDTO saveDocument(MultipartFile multipartFile, String userId)
 	    throws Exception {
 	logger.debug("Inside saveDocument Service");
 	File file = convert(multipartFile);
 	boolean isBulkDataLoad = true;
-	// File file = new
-	// File("/Users/bnpp/Desktop/csv/beaconcustomermapping.xls");
-	// document.setFileReference(fileBasePath);
-	// System.out.println(multipartFile.getName());
-	// System.out.println(multipartFile.getOriginalFilename());
-	// System.out.println(multipartFile.getSize());
-	// System.out.println(multipartFile.getInputStream());
+	UploadStatusDTO uploadStatus = null;
+//	List<UploadServiceErrorDetailsDTO> listOfErrors = null;
 
 	try {
+	    
+	    uploadStatus = new UploadStatusDTO();
+	    uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
+//	    listOfErrors = new ArrayList<UploadServiceErrorDetailsDTO>();
+	    uploadStatus.setStatusFlag(true);
+	    
 	    FileInputStream fileInputStream = new FileInputStream(file);
 
 	    Workbook workbook = WorkbookFactory.create(fileInputStream);
 
-	    Sheet sheet = workbook.getSheetAt(0);
+	    Sheet sheet = workbook.getSheetAt(2);
 
 	    System.out.println("count "
 		    + workbook.getSheetAt(0).getLastRowNum());
 
 	    mapOfCustomerMasterT = getNameAndIdFromCustomerMasterT();
-	    
-	    // String key = "BG International UK";
-	    // System.out.println("Value for "+key+" is "+getMapValuesForKey(mapOfCustomerMasterT,key));
 
 	    mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
 
@@ -128,22 +135,18 @@ public class OpportunityUploadService {
 	    mapOfTCSContactT = cmDTO.getMapOfTcsContactT();
 	    mapOfCustomerContactT = cmDTO.getMapOfCustomerContactT();
 	    
-//	    System.out.println("**********");    
-//	    for(String x :ls){
-//		System.out.println(x);
-//	    }
-//	    System.out.println("**********");
-
+	    mapOfUserT = getNameAndIdFromUserT();
+	    
 	    int rowCount = 0;
 	    List<String> listOfCellValues = null;
-	    DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+
 	    // Iterate through each rows one by one
 	    Iterator<Row> rowIterator = sheet.iterator();
 //int firstRow=sheet.getFirstRowNum();
 //int lastRow=sheet.getLastRowNum();
 //System.out.println("Last Row"+lastRow);
-	    while (rowIterator.hasNext() && rowCount < 3) {
-		System.out.println("row "+rowCount);
+	    while (rowIterator.hasNext() && rowCount < 4) {
+//		System.out.println("row "+rowCount);
 		Row row = rowIterator.next();
 //		if (rowCount == 0) {
 		    // noOfColumns = row.getPhysicalNumberOfCells();
@@ -152,130 +155,218 @@ public class OpportunityUploadService {
 		// For each row, iterate through all the columns
 		Iterator<Cell> cellIterator = row.cellIterator();
 
-		if (rowCount > 0) {
-		    int i = 0;
+		if (rowCount > 1) {
+//		    int cellCount = 0;
 		    
 		    listOfCellValues = new ArrayList<String>();
-//		    for(int i=0;i<44;i++){
-		    while (cellIterator.hasNext() && i < 36) {
-			System.out.print("cell " + i);
-			Cell cell = cellIterator.next();
-//			Cell cell = row.getCell(i);
-//			Cell cell = row.getCell(i);
+		    for(int cellCount=0; cellCount<44; cellCount++){
+//		    while (cellIterator.hasNext() && i < 36) {
+//			Cell cell = cellIterator.next();
+			Cell cell = row.getCell(cellCount);
 			
-//			String value = getIndividualCellValue(cell);
-			String value = getCellValue(cell);
+			String value = getIndividualCellValue(cell);
+//			String value = getCellValue(cell);
 			if (value != null) {
 			    listOfCellValues.add(value);
 			}
-//			i++;
+			System.out.println(cellCount+"      "+value);
+//			cellCount++;
 		    }
-		    
-		    for(String x : listOfCellValues){
-			System.out.println(x);
-		    }
+//		    System.out.println("*************************************");
+//		    for(String x : listOfCellValues){
+//			System.out.println(x);
+//		    }
 		    
 		    System.out.print("size of list "+listOfCellValues.size());
-		    if((listOfCellValues.size()>0)&&(listOfCellValues.size()<=37)){
-		    OpportunityT opp = new OpportunityT();
+//		    System.out.print("size of list "+listOfCellValues.get(100));
+		    if(listOfCellValues.size()>0){
+			
+			try {
+			    OpportunityT opp = new OpportunityT();
+			    
+			    // CUSTOMER ID
+			    if(listOfCellValues.get(2)!=""){
+				opp.setCustomerId(getMapValuesForKey(mapOfCustomerMasterT, listOfCellValues.get(2)));
+			    }
+			    
+			    // COUNTRY
+			    if(listOfCellValues.get(5)!=""){
+				opp.setCountry(listOfCellValues.get(5)); 
+			    }
+			    
+			    // CRM ID
+			    if(listOfCellValues.get(6)!=""){
+				opp.setCrmId(listOfCellValues.get(6).substring(0, listOfCellValues.get(6).length() - 2));
+			    } 
+			    
+			    // OPPORTUNITY NAME
+			    if(listOfCellValues.get(7)!=""){
+				opp.setOpportunityName(listOfCellValues.get(7));
+			    }
+			    
+			    // OPPORTUNITY DESCRIPTION
+			    if(listOfCellValues.get(8)!=""){
+				opp.setOpportunityDescription(listOfCellValues.get(8));
+			    }
+			    
+			    // REQUEST RECEIVE DATE
+			    if(listOfCellValues.get(11)!=""){
+				opp.setOpportunityRequestReceiveDate(dateFormat.parse(listOfCellValues.get(11)));
+			    }
+			    
+			    // 	new logo
+			    if(listOfCellValues.get(12)!=""){
+				opp.setNewLogo(listOfCellValues.get(12));
+			    }
+			    
+			    // strategic initiative 
+			    if(listOfCellValues.get(13)!=""){
+				opp.setStrategicInitiative(listOfCellValues.get(13));
+			    }
 
-		    // Params for opportunity_t Table - from Excel Sheet
-		    opp.setCustomerId(getMapValuesForKey(mapOfCustomerMasterT,
-			    listOfCellValues.get(0))); // CUSTOMER ID
-		    opp.setCountry(listOfCellValues.get(1)); // COUNTRY
-		    opp.setCrmId(listOfCellValues.get(2).substring(0,
-			    listOfCellValues.get(2).length() - 2));// CRM ID
-		    opp.setOpportunityName(listOfCellValues.get(3));// OPPORTUNITY
-		    // NAME
-		    opp.setOpportunityDescription(listOfCellValues.get(4));// OPPORTUNITY
-		    // DESCRIPTION
+			    if(listOfCellValues.get(14)!=""){
+			    opp.setDigitalFlag(listOfCellValues.get(14));// DIGITAL FLAG
+			    } 
+			    // SALES STAGE CODE
+			    if(listOfCellValues.get(15)!=""){
+			    opp.setSalesStageCode((Integer.parseInt(listOfCellValues.get(15).substring(0,2))));
+			    }
+			    
+			    // DEAL CURRENCY
+			    if(listOfCellValues.get(16)!=""){
+			    opp.setDealCurrency(listOfCellValues.get(16));
+			    }
+			    
+			    // OverallDealSize
+			    if(listOfCellValues.get(17)!=""){
+			    opp.setOverallDealSize(Double.valueOf(
+				    listOfCellValues.get(17)).intValue());
+			    }
+			    
+			    // DIGITAL DEAL VALUE
+			    if(listOfCellValues.get(19)!=""){
+			    opp.setDigitalDealValue(Double.valueOf(
+				    listOfCellValues.get(19)).intValue());
+			    }
+			    
+			    // OPPORTUNITY OWNER
+			    if(listOfCellValues.get(21)!=""){
+//			    opp.setOpportunityOwner(listOfCellValues.get(21).substring(
+//				    0, listOfCellValues.get(21).length() - 2));
+			    opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
+			    }
+			    
+			    // DEAL TYPE
+			    if(listOfCellValues.get(35)!=""){
+			    opp.setDealType(listOfCellValues.get(35));
+			    }
+			    
+			    // DEAL CLOSURE DATE
+			    if(listOfCellValues.get(36)!=""){
+			    opp.setDealClosureDate(dateFormat.parse(listOfCellValues.get(36)));
+			    }
+			    
+			    // ENGAGEMENT DURATION
+			    if(listOfCellValues.get(37)!=""){
+			    opp.setEngagementDuration((listOfCellValues.get(37)));
+			    }
+			    
+			    // ENGAGEMENT START DATE
+			    if(listOfCellValues.get(38)!=""){
+			    opp.setEngagementStartDate(dateFormat.parse(listOfCellValues
+				    .get(38)));
+			    }
+			    
+			    // COMMENTS FOR WIN LOSS
+			    if(listOfCellValues.get(40)!=""){
+			    opp.setDescriptionForWinLoss(listOfCellValues.get(40)); 
+			    }
+			    
+			    // Params for opportunity_t Table - manually set
+			    opp.setDocumentsAttached("No");
+			    opp.setCreatedBy(userId);
+			    opp.setModifiedBy(userId);
+			    
+			    // Partner Params
+			    if(listOfCellValues.get(25)!=""){
+				opp.setOpportunityPartnerLinkTs(constructOppPartnerLink(listOfCellValues.get(25).trim(), userId, mapOfPartnerMasterT));
+			    }
+			    
+			    // Customer Contact Params
+			    if(listOfCellValues.get(24)!=""){
+				opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24), userId, mapOfCustomerContactT));
+			    }
 
-		    opp.setOpportunityRequestReceiveDate(df
-			    .parse(listOfCellValues.get(7)));// REQUEST RECEIVE
-		    // DATE
-		    opp.setNewLogo(listOfCellValues.get(8));// new logo
-		    opp.setStrategicInitiative(listOfCellValues.get(9));// strategic
-		    // initiative
-		    opp.setDigitalFlag(listOfCellValues.get(10));// DIGITAL FLAG
-		    opp.setSalesStageCode((Integer.parseInt(listOfCellValues
-			    .get(11).substring(0,
-				    listOfCellValues.get(11).length() - 2))));// SALES
-		    // STAGE
-		    // CODE
-		    opp.setDealCurrency(listOfCellValues.get(12));// DEAL
-		    // CURRENCY
-		    opp.setOverallDealSize(Double.valueOf(
-			    listOfCellValues.get(13)).intValue());// OVERALL
-		    // DEAL SIZE
-		    opp.setDigitalDealValue(Double.valueOf(
-			    listOfCellValues.get(14)).intValue());// DIGITAL
-		    // DEAL VALUE
-		    opp.setOpportunityOwner(listOfCellValues.get(15).substring(
-			    0, listOfCellValues.get(15).length() - 2));// OPPORTUNITY
-		    // OWNER
+			    // TCS Contact Params
+			    if(listOfCellValues.get(23)!=""){
+				opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23), userId, mapOfTCSContactT));
+			    }
+			    
+			    // Competitor Params
+			    if(listOfCellValues.get(26)!=""){
+				opp.setOpportunityCompetitorLinkTs(constructOppCompetitorLink(listOfCellValues.get(26), userId));
+			    }
+			    
+			    // Sub Sp Params
+			    if(listOfCellValues.get(9)!=""){
+				opp.setOpportunitySubSpLinkTs(constructOppSubSpLink(listOfCellValues.get(9), userId));
+			    }
+			    
+			    //OpportunityOfferingLinkT Params
+			    if(listOfCellValues.get(10)!=""){
+				opp.setOpportunityOfferingLinkTs(constructOppOfferingLink(listOfCellValues.get(10), userId));
+			    }
+			    
+			    //OpportunitySalesSupportLinkT Params
+			    if(listOfCellValues.get(22)!=""){
+				//opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
+			    	opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22), userId));
+			    }
+			    
+			    //Bid Details
+			    if((listOfCellValues.get(27)!="")||(listOfCellValues.get(29)!="")||(listOfCellValues.get(30)!="")){
+				opp.setBidDetailsTs(constructbidDetailsT(listOfCellValues.get(27), listOfCellValues.get(29), listOfCellValues.get(30), listOfCellValues.get(31), listOfCellValues.get(32), listOfCellValues.get(33), listOfCellValues.get(34), userId));
+			    }
 
-		    opp.setDealType(listOfCellValues.get(21));// DEAL TYPE
-		    opp.setDealClosureDate(df.parse(listOfCellValues.get(22)));// DEAL
-		    // CLOSURE
-		    // DATE
-		    opp.setEngagementDuration((listOfCellValues.get(23)));// ENGAGEMENT
-		    // DURATION
-		    opp.setEngagementStartDate(df.parse(listOfCellValues
-			    .get(24)));// ENGAGEMENT START DATE
-
-		    opp.setDescriptionForWinLoss(listOfCellValues.get(26)); // COMMENTS FOR WIN LOSS
-		    
-		    // Params for opportunity_t Table - manually set
-		    opp.setDocumentsAttached("No");
-		    opp.setCreatedBy(userId);
-		    opp.setModifiedBy(userId);
-		    
-		    // Partner Params
-		    //opp.setOpportunityPartnerLinkTs(constructOppPartnerLink(listOfCellValues.get(19), userId, ""));
-		    opp.setOpportunityPartnerLinkTs(constructOppPartnerLink(listOfCellValues.get(19), userId, mapOfPartnerMasterT));
-		    //opportunityPartnerLinkTRepository.save(opp.getOpportunityPartnerLinkTs());
-		    
-		    // Customer Contact Params
-		    opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(18), userId, mapOfCustomerContactT));
-		    //opportunityCustomerContactLinkTRepository.save(opp.getOpportunityCustomerContactLinkTs());
-		    
-		    // TCS Contact Params
-		    opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(17), userId, mapOfTCSContactT));
-		    
-		    // Competitor Params
-		    opp.setOpportunityCompetitorLinkTs(constructOppCompetitorLink(listOfCellValues.get(20), userId));
-
-		    // Sub Sp Params
-		    opp.setOpportunitySubSpLinkTs(constructOppSubSpLink(listOfCellValues.get(5), userId));
-		    
-		    //OpportunityOfferingLinkT Params
-		    opp.setOpportunityOfferingLinkTs(constructOppOfferingLink(listOfCellValues.get(6), userId));
-		    
-		    //OpportunityOfferingLinkT Params
-		    opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(16), userId));
-		    
-		    //Bid Details
-		    opp.setBidDetailsTs(constructbidDetailsT(listOfCellValues.get(27), listOfCellValues.get(29), listOfCellValues.get(30), listOfCellValues.get(31), listOfCellValues.get(32), listOfCellValues.get(33), listOfCellValues.get(34), userId));
-
-		    // FACTORS FOR WIN LOSS - opportunity_win_loss_factors_t
-		    opp.setOpportunityWinLossFactorsTs(constructOppWinLoss(listOfCellValues.get(25), userId));
-		    
-		    
-		    System.out.println("Inserting...");
-		    opportunityService.createOpportunity(opp, isBulkDataLoad);
-		    System.out.println("Done");
-		    
+			    // FACTORS FOR WIN LOSS - opportunity_win_loss_factors_t
+			    if(listOfCellValues.get(39)!=""){
+				opp.setOpportunityWinLossFactorsTs(constructOppWinLoss(listOfCellValues.get(39), userId));
+			    }
+			    
+			    System.out.println("Inserting...");
+			    opportunityService.createOpportunity(opp, isBulkDataLoad);
+			    System.out.println("Done");
+			} catch(Exception ex){
+			    
+			    if(uploadStatus.isStatusFlag()){
+				uploadStatus.setStatusFlag(false);
+			    }
+			    
+			    UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+			    
+			    error.setRowNumber(rowCount+1);
+			    error.setMessage("Exception occured while processing row");
+			    
+			    uploadStatus.getListOfErrors().add(error);
+			    
+			}
 		    }
+		    
+		    System.out.println("*************************************");
 		}
 		rowCount++;
 	    }
 
 	    fileInputStream.close();
-
+	    
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    logger.error("INTERNAL_SERVER_ERROR: An Exception has occured while processing the request for : {}", userId);
+	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			"An Exception has occured while processing the request for "+userId);
 	}
-	// return fileBasePath;
+	
+	return uploadStatus;
+
     }
     
     private String getIndividualCellValue(Cell cell){
@@ -284,21 +375,26 @@ public class OpportunityUploadService {
         if(cell!=null){
             switch(cell.getCellType()) {
                 case Cell.CELL_TYPE_NUMERIC:
-                    val = String.valueOf(cell.getNumericCellValue());
-//                    System.out.print(cell.getNumericCellValue() + "\t\t");
-                    break;
+                    if (DateUtil.isCellDateFormatted(cell)) {
+        		Date date = DateUtil.getJavaDate(cell.getNumericCellValue());
+        		String dateFmt = cell.getCellStyle().getDataFormatString();
+        		val = new CellDateFormatter(dateFmt).format(date);
+        	    } else {
+        		val = String.valueOf(cell.getNumericCellValue()).trim();
+        	    }
+        	    break;
                 case Cell.CELL_TYPE_STRING:
                     val = String.valueOf(cell.getStringCellValue());
 //                    System.out.print(cell.getStringCellValue() + "\t\t");
                     break;
                 case Cell.CELL_TYPE_BLANK:
-                    val="  ---  ";
+                    val="";
 //                    System.out.print("blank inside");
                     break;
             }
         }
         else {
-            val="  ---  ";
+            val="";
         }
         return val;
 	
@@ -386,7 +482,8 @@ public class OpportunityUploadService {
     	    for (String value : valuesArray) {
     		OpportunitySalesSupportLinkT oclt = new OpportunitySalesSupportLinkT();
     		
-    		oclt.setSalesSupportOwner(validateAndRectifyValue(value.trim()));
+    		String[] ssValue = value.split("-");
+    		oclt.setSalesSupportOwner(getMapValuesForKey(mapOfUserT, ssValue[0].trim()));
     		oclt.setCreatedBy(userId);
     		oclt.setModifiedBy(userId);
 
@@ -401,19 +498,25 @@ public class OpportunityUploadService {
     
     private List<BidDetailsT> constructbidDetailsT(String bidReqType, String bidReqDate, String targetSubmissionDate, String actualSubmissionDate, String expectedOutcomeDate, String winProbability, String coreAttributes, String userId) throws ParseException {
 
-    	List<BidDetailsT> listOfBidDetailsT = new ArrayList<BidDetailsT>();
-    	
-    	DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+	List<BidDetailsT> listOfBidDetailsT = new ArrayList<BidDetailsT>();
     	
     	BidDetailsT bdt = new BidDetailsT();
     	
     	bdt.setBidRequestType(bidReqType);
-    	bdt.setBidRequestReceiveDate(df.parse(bidReqDate));
-    	bdt.setTargetBidSubmissionDate(df.parse(targetSubmissionDate));
-    	bdt.setActualBidSubmissionDate(df.parse(actualSubmissionDate));
-    	bdt.setExpectedDateOfOutcome(df.parse(expectedOutcomeDate));
-    	bdt.setWinProbability(winProbability);
-    	bdt.setCoreAttributesUsedForWinning(coreAttributes);
+    	bdt.setBidRequestReceiveDate(dateFormat.parse(bidReqDate));
+    	bdt.setTargetBidSubmissionDate(dateFormat.parse(targetSubmissionDate));
+    	if(actualSubmissionDate!=""){
+    	    bdt.setActualBidSubmissionDate(dateFormat.parse(actualSubmissionDate));
+    	}
+    	if(expectedOutcomeDate!=""){
+    	    bdt.setExpectedDateOfOutcome(dateFormat.parse(expectedOutcomeDate));
+    	}
+    	if(winProbability!=""){
+    	    bdt.setWinProbability(winProbability);
+    	}
+    	if(coreAttributes!=""){
+    	    bdt.setCoreAttributesUsedForWinning(coreAttributes);
+    	}
     	bdt.setCreatedBy(userId);
     	bdt.setModifiedBy(userId);
     	
@@ -590,6 +693,26 @@ public class OpportunityUploadService {
 //	}
 
 	return mapOfPMT;
+
+    }
+    
+    private Map<String, String> getNameAndIdFromUserT() {
+
+	List<UserT> listOfUsers = null;
+	listOfUsers = (List<UserT>) userRepository
+		.findAll();
+
+	Map<String, String> mapOfUserT = new HashMap<String, String>();
+
+	for (UserT ut : listOfUsers) {
+	    mapOfUserT.put(ut.getUserName().trim(), ut.getUserId().trim());
+	}
+
+	for (Map.Entry<String, String> entry : mapOfUserT.entrySet()) {
+	    System.out.println(entry.getKey() + " " + entry.getValue());
+	}
+
+	return mapOfUserT;
 
     }
     

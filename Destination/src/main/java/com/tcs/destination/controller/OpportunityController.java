@@ -22,6 +22,8 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
@@ -397,11 +399,19 @@ public class OpportunityController {
     	    @RequestParam(value = "view", defaultValue = "") String view)
     	    throws Exception {
     	logger.debug("Upload request Received : docName - ");
-    	Status status = new Status();
-    	status.setStatus(Status.FAILED, "");
+    	UploadStatusDTO status = null;
+//    	Status status = new Status();
+//    	status.setStatus(Status.FAILED, "");
     	try {
-    	    opportunityUploadService.saveDocument(file, userId);
-    	    status.setStatus(Status.SUCCESS, "Id : ");
+    	    status = opportunityUploadService.saveDocument(file, userId);
+    	    if(status!=null){
+    		System.out.println(status.isStatusFlag());
+    		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){
+    		System.out.println(err.getRowNumber());
+    		    System.out.println(err.getMessage());
+    		}
+    	    }
+//    	    status.setStatus(Status.SUCCESS, "Id : ");
     	    logger.debug("UPLOAD SUCCESS - Record Created,  Id: ");
     	} catch (Exception e) {
     	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
