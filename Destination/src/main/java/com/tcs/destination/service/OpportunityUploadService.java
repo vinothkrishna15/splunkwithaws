@@ -126,7 +126,10 @@ public class OpportunityUploadService {
 	    Sheet sheet = workbook.getSheetAt(2);
 
 	    logger.debug("count "
-		    + workbook.getSheetAt(0).getLastRowNum());
+		    + workbook.getSheetAt(2).getLastRowNum());
+	    
+	    System.out.println("count "
+		    + workbook.getSheetAt(2).getLastRowNum());
 	    
 	    uploadStatus = new UploadStatusDTO();
 	    uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
@@ -155,7 +158,7 @@ public class OpportunityUploadService {
 	    // Iterate through each rows one by one
 	    Iterator<Row> rowIterator = sheet.iterator();
 	    
-	    while (rowIterator.hasNext() && rowCount < sheet.getLastRowNum()) {
+	    while (rowIterator.hasNext() && rowCount <= sheet.getLastRowNum()) {
 //		logger.debug("row "+rowCount);
 		Row row = rowIterator.next();
 //		if (rowCount == 0) {
