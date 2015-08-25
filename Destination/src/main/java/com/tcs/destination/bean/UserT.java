@@ -37,6 +37,8 @@ public class UserT implements Serializable {
 		this.userId = user.userId;
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
+		this.userAccessPrivilegesTs = user.userAccessPrivilegesTs;
+		this.supervisorUserId = user.supervisorUserId;
 	}
 	
 	@Id
@@ -260,8 +262,11 @@ public class UserT implements Serializable {
 	// bi-directional many-to-one association to UserGroupMappingT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name = "user_group")
+	@JoinColumn(name = "user_group", insertable = false, updatable = false)
 	private UserGroupMappingT userGroupMappingT;
+	
+	@Column(name="user_group")
+	private String userGroup;
 
 	// bi-directional many-to-one association to UserRoleMappingT
 	// @JsonIgnore
@@ -1131,6 +1136,14 @@ public class UserT implements Serializable {
 
 	public void setUserGroupMappingT(UserGroupMappingT userGroupMappingT) {
 		this.userGroupMappingT = userGroupMappingT;
+	}
+
+	public String getUserGroup() {
+		return userGroup;
+	}
+
+	public void setUserGroup(String userGroup) {
+		this.userGroup = userGroup;
 	}
 
 	public UserRoleMappingT getUserRoleMappingT() {
