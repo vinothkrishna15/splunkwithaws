@@ -8,6 +8,7 @@ public class Constants {
 	public static final String NO = "NO";
 	public static final String YES = "YES";
 	public static final String Y = "Y";
+	public static final String N = "N";
 	public static final String FIELD = "F";
 	public static final String COLLECTION = "C";
 	public static final String ID_FIELD = "I";
