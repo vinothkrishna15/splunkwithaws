@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -32,6 +33,7 @@ import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
@@ -440,7 +442,8 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void createOpportunity(OpportunityT opportunity, boolean isBulkDataLoad) throws Exception {
+	public void createOpportunity(OpportunityT opportunity,
+			boolean isBulkDataLoad) throws Exception {
 		logger.debug("Inside createOpportunity() service");
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
@@ -566,7 +569,8 @@ public class OpportunityService {
 				opportunity.setBidDetailsTs(null);
 				if (opportunity.getOpportunityId() != null) {
 					List<OpportunityTimelineHistoryT> savedOpportunityTimelineHistoryTs = opportunityTimelineHistoryTRepository
-							.findByOpportunityId(opportunity.getOpportunityId());
+							.findByOpportunityIdOrderByUpdatedDatetimeAsc(opportunity
+									.getOpportunityId());
 					if (savedOpportunityTimelineHistoryTs != null
 							&& savedOpportunityTimelineHistoryTs.size() > 0) {
 
@@ -759,6 +763,12 @@ public class OpportunityService {
 				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
 			opportunityWinLossFactorsTRepository.delete(opportunity
 					.getDeleteOpportunityWinLossFactorsTs());
+		}
+
+		if (opportunity.getDeleteSearchKeywordsTs() != null
+				&& opportunity.getDeleteSearchKeywordsTs().size() > 0) {
+			searchKeywordsRepository.delete(opportunity
+					.getDeleteSearchKeywordsTs());
 		}
 	}
 
@@ -1152,7 +1162,7 @@ public class OpportunityService {
 		String actualWords = "";
 		if (containingWords != null)
 			for (String containgWord : containingWords) {
-				containgWord = "%" + containgWord.toUpperCase() + "%";
+				containgWord = containgWord.toUpperCase();
 				actualWords += containgWord + "|";
 			}
 		if (actualWords.length() > 2)
@@ -1299,13 +1309,28 @@ public class OpportunityService {
 		return queryBuffer.toString();
 	}
 
-	public Set<String> findOpportunityNameOrKeywords(String name,
-			String keyword) {
-		if(name.length()>0)
-			name="%"+name+"%";
-		if(keyword.length()>0)
-			keyword="%"+keyword+"%";
-		return opportunityRepository.findOpportunityNameOrKeywords(name.toUpperCase(),
-				keyword.toUpperCase());
+	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
+			String name, String keyword) {
+		ArrayList<OpportunityNameKeywordSearch> opportunityNameKeywordSearchList = new ArrayList<OpportunityNameKeywordSearch>();
+		if (name.length() > 0)
+			name = "%" + name + "%";
+		if (keyword.length() > 0)
+			keyword = "%" + keyword + "%";
+		List<Object[]> results = opportunityRepository
+				.findOpportunityNameOrKeywords(name.toUpperCase(),
+						keyword.toUpperCase());
+
+		for (Object[] result : results) {
+			OpportunityNameKeywordSearch opportunityNameKeywordSearch = new OpportunityNameKeywordSearch();
+			opportunityNameKeywordSearch.setResult(result[0].toString());
+			OpportunityT opportunityT = opportunityRepository.findOne(result[1]
+					.toString());
+			setSearchKeywordTs(opportunityT);
+			opportunityNameKeywordSearch.setOpportunityT(opportunityT);
+			opportunityNameKeywordSearch.setIsName(result[2].toString());
+			;
+			opportunityNameKeywordSearchList.add(opportunityNameKeywordSearch);
+		}
+		return opportunityNameKeywordSearchList;
 	}
 }

@@ -11,5 +11,5 @@ import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 public interface OpportunityTimelineHistoryTRepository extends
 		CrudRepository<OpportunityTimelineHistoryT, String> {
 
-	List<OpportunityTimelineHistoryT> findByOpportunityId(String opportunityId);
+	List<OpportunityTimelineHistoryT> findByOpportunityIdOrderByUpdatedDatetimeAsc(String opportunityId);
 }

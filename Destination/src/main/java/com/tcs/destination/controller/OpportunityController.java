@@ -1,7 +1,9 @@
 package com.tcs.destination.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
@@ -322,7 +325,6 @@ public class OpportunityController {
 	public @ResponseBody String searchOpportunities(
 			@RequestParam(value = "customerIdList", defaultValue = "") List<String> customerIdList,
 			@RequestParam(value = "displayIou", defaultValue = "") List<String> displayIou,
-			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "opportunityName", defaultValue = "") List<String> opportunityName,
 			@RequestParam(value = "partnerId", defaultValue = "") List<String> partnerId,
@@ -378,7 +380,7 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
-		Set<String> searchResults = opportunityService
+		ArrayList<OpportunityNameKeywordSearch> searchResults = opportunityService
 				.findOpportunityNameOrKeywords(name, keyword);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				searchResults);

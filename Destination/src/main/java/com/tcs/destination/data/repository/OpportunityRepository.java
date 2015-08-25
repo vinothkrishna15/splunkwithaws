@@ -1,15 +1,17 @@
 package com.tcs.destination.data.repository;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.TreeMap;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityT;
 
 @Repository
@@ -689,11 +691,12 @@ public interface OpportunityRepository extends
 			@Param("opportunityOwnerIds") List<String> opportunityOwnerIds,
 			@Param("userIds") List<String> userIds);
 
-	@Query(value = " select distinct(result) from ( "
-			+ " select opportunity_name as result from opportunity_t  where UPPER(opportunity_name) like ?1 "
+	@Query(value = " select result, opportunity_id as opportunity, is_name , created_datetime from ( "
+			+ " select opportunity_name as result , opportunity_id , 't' as is_name, created_datetime from opportunity_t  where UPPER(opportunity_name) like ?1 "
 			+ " union "
-			+ " select search_keywords as result from search_keywords_t  where entity_type ='OPPORTUNITY' and UPPER(search_keywords) like ?2 "
-			+ " ) as search", nativeQuery = true)
-	Set<String> findOpportunityNameOrKeywords(String name, String keyword);
+			+ " select SKT.search_keywords as result, SKT.entity_id as opportunity_id ,'f' as is_name , OPP.created_datetime as created_datetime from search_keywords_t SKT JOIN opportunity_t OPP on OPP.opportunity_id=SKT.entity_id where SKT.entity_type ='OPPORTUNITY' and UPPER(search_keywords) like ?2 "
+			+ " ) as search order by created_datetime desc", nativeQuery = true)
+	ArrayList<Object[]> findOpportunityNameOrKeywords(
+			String name, String keyword);
 
 }

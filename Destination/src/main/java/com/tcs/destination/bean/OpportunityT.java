@@ -244,6 +244,9 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	@Transient
 	private List<NotesT> deleteNotesTs;
+	
+	@Transient
+	private List<SearchKeywordsT> deleteSearchKeywordsTs;
 
 	@Transient
 	private List<OpportunityCompetitorLinkT> deleteOpportunityCompetitorLinkTs;
@@ -1132,6 +1135,15 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setDeleteOpportunityWinLossFactorsTs(
 			List<OpportunityWinLossFactorsT> deleteOpportunityWinLossFactorsTs) {
 		this.deleteOpportunityWinLossFactorsTs = deleteOpportunityWinLossFactorsTs;
+	}
+	
+	public List<SearchKeywordsT> getDeleteSearchKeywordsTs() {
+		return deleteSearchKeywordsTs;
+	}
+	
+	public void setDeleteSearchKeywordsTs(
+			List<SearchKeywordsT> deleteSearchKeywordsTs) {
+		this.deleteSearchKeywordsTs = deleteSearchKeywordsTs;
 	}
 
 	public List<OpportunityDealValue> getOpportunityDealValues() {
