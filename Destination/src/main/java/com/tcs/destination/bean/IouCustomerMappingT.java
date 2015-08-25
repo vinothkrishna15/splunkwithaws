@@ -51,6 +51,7 @@ public class IouCustomerMappingT implements Serializable {
 	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
 
 	//bi-directional many-to-one association to RevenueCustomerMappingT
+	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
 
