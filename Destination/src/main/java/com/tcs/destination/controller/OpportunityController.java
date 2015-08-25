@@ -396,7 +396,6 @@ public class OpportunityController {
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
         public @ResponseBody String uploadOpportunity(
     	    @RequestParam("file") MultipartFile file,
-    	    @RequestParam("userId") String userId,
     	    @RequestParam(value = "fields", defaultValue = "all") String fields,
     	    @RequestParam(value = "view", defaultValue = "") String view)
     	    throws Exception {
@@ -405,7 +404,7 @@ public class OpportunityController {
 //    	Status status = new Status();
 //    	status.setStatus(Status.FAILED, "");
     	try {
-    	    status = opportunityUploadService.saveDocument(file, userId);
+    	    status = opportunityUploadService.saveDocument(file);
     	    if(status!=null){
     		System.out.println(status.isStatusFlag());
     		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){

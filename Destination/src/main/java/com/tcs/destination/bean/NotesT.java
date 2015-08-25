@@ -51,10 +51,13 @@ public class NotesT implements Serializable {
 
 	@Column(name = "connect_id")
 	private String connectId;
+	
+	@Column(name = "customer_id")
+	private String customerId;
 
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_id")
+	@JoinColumn(name = "customer_id", insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
 	@Column(name = "partner_id")
@@ -211,4 +214,14 @@ public class NotesT implements Serializable {
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
 	}
+
+	public String getCustomerId() {
+	    return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+	    this.customerId = customerId;
+	}
+	
+	
 }

@@ -6,9 +6,9 @@ public class UploadServiceErrorDetailsDTO implements Serializable{
 
     private static final long serialVersionUID = 8124830922686791666L;
     
-    Integer rowNumber;
+    private Integer rowNumber;
     
-    String message;
+    private String message;
 
     public Integer getRowNumber() {
         return rowNumber;

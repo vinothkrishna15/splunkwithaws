@@ -330,7 +330,7 @@ public class ExcelUtils {
 	/*
 	 * returns if the workbook contains any errors returned by macro check
 	 */
-	public static boolean isValidWorkbook(Workbook workbook,String sheetName,int rowNum, int colNum){
+	public static boolean isValidWorkbook(Workbook workbook,String sheetName,int rowNum, int colNum) throws Exception{
 		int index = workbook.getSheetIndex(sheetName);
 		if(index==-1)
 			//returning false if the validate sheet does not exist
@@ -338,11 +338,16 @@ public class ExcelUtils {
 		else{
 			Sheet worksheet = workbook.getSheetAt(index);
 			Row row = worksheet.getRow(rowNum);
+			if(row!=null){
 			Cell c = row.getCell(colNum);
 			if (c == null || c.getCellType() == Cell.CELL_TYPE_BLANK) {
 				return true;
 			} else {
 				return false;
+			}
+			}
+			else{
+			    return true;
 			}
 		}
 		    

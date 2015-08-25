@@ -3,7 +3,6 @@ package com.tcs.destination.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,9 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.Cell;
@@ -29,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import com.tcs.destination.utils.StringUtils;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.BidDetailsT;
@@ -36,6 +35,7 @@ import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.ContactTMapDTO;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
@@ -52,14 +52,15 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
-import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
-import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.ExcelUtils;
 
 @Service
 public class OpportunityUploadService {
@@ -74,13 +75,7 @@ public class OpportunityUploadService {
     PartnerRepository partnerRepository;
     
     @Autowired
-    OpportunityPartnerLinkTRepository opportunityPartnerLinkTRepository;
-    
-    @Autowired
     ContactRepository contactRepository;
-    
-    @Autowired
-    OpportunityCustomerContactLinkTRepository opportunityCustomerContactLinkTRepository;
     
     @Autowired
     OpportunityService opportunityService;
@@ -91,42 +86,59 @@ public class OpportunityUploadService {
     @Autowired
     UserRepository userRepository;
     
-    Map<String, String> mapOfPartnerMasterT = null;
-    Map<String, String> mapOfCustomerMasterT = null;
-    Map<String, String> mapOfCustomerContactT = null;
-    Map<String, String> mapOfTCSContactT = null;
-    Map<String, String> mapOfUserT = null;
-    List<String> listOfCompetitorLink = null;
+    private Map<String, String> mapOfPartnerMasterT = null;
+    private Map<String, String> mapOfCustomerMasterT = null;
+    private Map<String, String> mapOfCustomerContactT = null;
+    private Map<String, String> mapOfTCSContactT = null;
+    private Map<String, String> mapOfUserT = null;
     
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-
     private static final Logger logger = LoggerFactory
 	    .getLogger(ReportsUploadService.class);
 
-    public UploadStatusDTO saveDocument(MultipartFile multipartFile, String userId)
+    /**
+     * This method uploads the spreadsheet to Opportunity_t and its depending tables
+     * 
+     * @param multipartFile
+     * @param userId
+     * @return UploadStatusDTO
+     * @throws Exception
+     */
+    public UploadStatusDTO saveDocument(MultipartFile multipartFile)
 	    throws Exception {
+	
+	String userId = null;
+	
 	logger.debug("Inside saveDocument Service");
-	File file = convert(multipartFile);
-	boolean isBulkDataLoad = true;
+
 	UploadStatusDTO uploadStatus = null;
-//	List<UploadServiceErrorDetailsDTO> listOfErrors = null;
 
 	try {
 	    
-	    uploadStatus = new UploadStatusDTO();
-	    uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
-//	    listOfErrors = new ArrayList<UploadServiceErrorDetailsDTO>();
-	    uploadStatus.setStatusFlag(true);
+	    userId=DestinationUtils.getCurrentUserDetails().getUserId();
+	    
+	    File file = convert(multipartFile);
 	    
 	    FileInputStream fileInputStream = new FileInputStream(file);
-
+	    
 	    Workbook workbook = WorkbookFactory.create(fileInputStream);
 
 	    Sheet sheet = workbook.getSheetAt(2);
 
-	    System.out.println("count "
+	    logger.debug("count "
 		    + workbook.getSheetAt(0).getLastRowNum());
+	    
+	    uploadStatus = new UploadStatusDTO();
+	    uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
 
+	    // Validates the spreadsheet for errors after validating the excel sheet
+	    if(validateSheet(workbook)){
+	    
+	    boolean isBulkDataLoad = true;
+		
+	    uploadStatus.setStatusFlag(true);
+	
+	    // Get Customer Name and Id from corresponding tables
 	    mapOfCustomerMasterT = getNameAndIdFromCustomerMasterT();
 
 	    mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
@@ -142,24 +154,24 @@ public class OpportunityUploadService {
 
 	    // Iterate through each rows one by one
 	    Iterator<Row> rowIterator = sheet.iterator();
-//int firstRow=sheet.getFirstRowNum();
-//int lastRow=sheet.getLastRowNum();
-//System.out.println("Last Row"+lastRow);
-	    while (rowIterator.hasNext() && rowCount < 4) {
-//		System.out.println("row "+rowCount);
+	    
+	    while (rowIterator.hasNext() && rowCount < sheet.getLastRowNum()) {
+//		logger.debug("row "+rowCount);
 		Row row = rowIterator.next();
 //		if (rowCount == 0) {
 		    // noOfColumns = row.getPhysicalNumberOfCells();
 //		}
 
 		// For each row, iterate through all the columns
-		Iterator<Cell> cellIterator = row.cellIterator();
+//		Iterator<Cell> cellIterator = row.cellIterator();
 
 		if (rowCount > 1) {
 //		    int cellCount = 0;
+		    int emptyCount = 0;
+		    logger.debug("Total Cells"+row.getPhysicalNumberOfCells());
 		    
 		    listOfCellValues = new ArrayList<String>();
-		    for(int cellCount=0; cellCount<44; cellCount++){
+		    for(int cellCount=0; cellCount<43; cellCount++){
 //		    while (cellIterator.hasNext() && i < 36) {
 //			Cell cell = cellIterator.next();
 			Cell cell = row.getCell(cellCount);
@@ -168,176 +180,183 @@ public class OpportunityUploadService {
 //			String value = getCellValue(cell);
 			if (value != null) {
 			    listOfCellValues.add(value);
+			    if(value.equals("")){
+				emptyCount++;
+			    }
 			}
-			System.out.println(cellCount+"      "+value);
+			logger.debug(cellCount+"      "+value);
 //			cellCount++;
 		    }
-//		    System.out.println("*************************************");
-//		    for(String x : listOfCellValues){
-//			System.out.println(x);
-//		    }
 		    
-		    System.out.print("size of list "+listOfCellValues.size());
-//		    System.out.print("size of list "+listOfCellValues.get(100));
-		    if(listOfCellValues.size()>0){
+		    logger.debug("size of list "+listOfCellValues.size());
+		    logger.debug("empty count "+emptyCount);
+		    
+		    // set the cell values to the corresponding fields in the OpportunityT entity object  
+		    if((listOfCellValues.size()>0)&&(emptyCount<43)){
 			
 			try {
 			    OpportunityT opp = new OpportunityT();
 			    
 			    // CUSTOMER ID
-			    if(listOfCellValues.get(2)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				opp.setCustomerId(getMapValuesForKey(mapOfCustomerMasterT, listOfCellValues.get(2)));
 			    }
 			    
 			    // COUNTRY
-			    if(listOfCellValues.get(5)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(5))){
 				opp.setCountry(listOfCellValues.get(5)); 
 			    }
 			    
 			    // CRM ID
-			    if(listOfCellValues.get(6)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(6))){
 				opp.setCrmId(listOfCellValues.get(6).substring(0, listOfCellValues.get(6).length() - 2));
 			    } 
 			    
 			    // OPPORTUNITY NAME
-			    if(listOfCellValues.get(7)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(7))){
 				opp.setOpportunityName(listOfCellValues.get(7));
 			    }
 			    
 			    // OPPORTUNITY DESCRIPTION
-			    if(listOfCellValues.get(8)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(8))){
 				opp.setOpportunityDescription(listOfCellValues.get(8));
 			    }
 			    
 			    // REQUEST RECEIVE DATE
-			    if(listOfCellValues.get(11)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(11))){
 				opp.setOpportunityRequestReceiveDate(dateFormat.parse(listOfCellValues.get(11)));
 			    }
 			    
 			    // 	new logo
-			    if(listOfCellValues.get(12)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(12))){
 				opp.setNewLogo(listOfCellValues.get(12));
 			    }
 			    
 			    // strategic initiative 
-			    if(listOfCellValues.get(13)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(13))){
 				opp.setStrategicInitiative(listOfCellValues.get(13));
 			    }
 
-			    if(listOfCellValues.get(14)!=""){
-			    opp.setDigitalFlag(listOfCellValues.get(14));// DIGITAL FLAG
+			    // DIGITAL FLAG
+			    if(!StringUtils.isEmpty(listOfCellValues.get(14))){
+			    opp.setDigitalFlag(listOfCellValues.get(14));
 			    } 
 			    // SALES STAGE CODE
-			    if(listOfCellValues.get(15)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(15))){
 			    opp.setSalesStageCode((Integer.parseInt(listOfCellValues.get(15).substring(0,2))));
 			    }
 			    
 			    // DEAL CURRENCY
-			    if(listOfCellValues.get(16)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(16))){
 			    opp.setDealCurrency(listOfCellValues.get(16));
 			    }
 			    
 			    // OverallDealSize
-			    if(listOfCellValues.get(17)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(17))){
 			    opp.setOverallDealSize(Double.valueOf(
 				    listOfCellValues.get(17)).intValue());
 			    }
 			    
 			    // DIGITAL DEAL VALUE
-			    if(listOfCellValues.get(19)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(19))){
 			    opp.setDigitalDealValue(Double.valueOf(
 				    listOfCellValues.get(19)).intValue());
 			    }
 			    
 			    // OPPORTUNITY OWNER
-			    if(listOfCellValues.get(21)!=""){
-//			    opp.setOpportunityOwner(listOfCellValues.get(21).substring(
-//				    0, listOfCellValues.get(21).length() - 2));
+			    if(!StringUtils.isEmpty(listOfCellValues.get(21))){
+			    //opp.setOpportunityOwner(listOfCellValues.get(21).substring(0, listOfCellValues.get(21).length() - 2));
 			    opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
 			    }
 			    
 			    // DEAL TYPE
-			    if(listOfCellValues.get(35)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(35))){
 			    opp.setDealType(listOfCellValues.get(35));
 			    }
 			    
 			    // DEAL CLOSURE DATE
-			    if(listOfCellValues.get(36)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(36))){
 			    opp.setDealClosureDate(dateFormat.parse(listOfCellValues.get(36)));
 			    }
 			    
 			    // ENGAGEMENT DURATION
-			    if(listOfCellValues.get(37)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(37))){
 			    opp.setEngagementDuration((listOfCellValues.get(37)));
 			    }
 			    
 			    // ENGAGEMENT START DATE
-			    if(listOfCellValues.get(38)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(38))){
 			    opp.setEngagementStartDate(dateFormat.parse(listOfCellValues
 				    .get(38)));
 			    }
 			    
 			    // COMMENTS FOR WIN LOSS
-			    if(listOfCellValues.get(40)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(40))){
 			    opp.setDescriptionForWinLoss(listOfCellValues.get(40)); 
 			    }
 			    
 			    // Params for opportunity_t Table - manually set
-			    opp.setDocumentsAttached("No");
+			    opp.setDocumentsAttached(Constants.NO);
 			    opp.setCreatedBy(userId);
 			    opp.setModifiedBy(userId);
 			    
 			    // Partner Params
-			    if(listOfCellValues.get(25)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(25))){
 				opp.setOpportunityPartnerLinkTs(constructOppPartnerLink(listOfCellValues.get(25).trim(), userId, mapOfPartnerMasterT));
 			    }
-			    
+			    /*
 			    // Customer Contact Params
-			    if(listOfCellValues.get(24)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(24))){
 				opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24), userId, mapOfCustomerContactT));
 			    }
 
 			    // TCS Contact Params
-			    if(listOfCellValues.get(23)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(23))){
 				opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23), userId, mapOfTCSContactT));
-			    }
+			    }*/
 			    
 			    // Competitor Params
-			    if(listOfCellValues.get(26)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(26))){
 				opp.setOpportunityCompetitorLinkTs(constructOppCompetitorLink(listOfCellValues.get(26), userId));
 			    }
 			    
 			    // Sub Sp Params
-			    if(listOfCellValues.get(9)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(9))){
 				opp.setOpportunitySubSpLinkTs(constructOppSubSpLink(listOfCellValues.get(9), userId));
 			    }
 			    
 			    //OpportunityOfferingLinkT Params
-			    if(listOfCellValues.get(10)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(10))){
 				opp.setOpportunityOfferingLinkTs(constructOppOfferingLink(listOfCellValues.get(10), userId));
 			    }
-			    
+			    /*
 			    //OpportunitySalesSupportLinkT Params
-			    if(listOfCellValues.get(22)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(22))){
 				//opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
 			    	opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22), userId));
 			    }
-			    
+			    */
 			    //Bid Details
-			    if((listOfCellValues.get(27)!="")||(listOfCellValues.get(29)!="")||(listOfCellValues.get(30)!="")){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(27))||(!StringUtils.isEmpty(listOfCellValues.get(29)))||(!StringUtils.isEmpty(listOfCellValues.get(30)))){
 				opp.setBidDetailsTs(constructbidDetailsT(listOfCellValues.get(27), listOfCellValues.get(29), listOfCellValues.get(30), listOfCellValues.get(31), listOfCellValues.get(32), listOfCellValues.get(33), listOfCellValues.get(34), userId));
 			    }
 
 			    // FACTORS FOR WIN LOSS - opportunity_win_loss_factors_t
-			    if(listOfCellValues.get(39)!=""){
+			    if(!StringUtils.isEmpty(listOfCellValues.get(39))){
 				opp.setOpportunityWinLossFactorsTs(constructOppWinLoss(listOfCellValues.get(39), userId));
 			    }
 			    
-			    System.out.println("Inserting...");
-			    opportunityService.createOpportunity(opp, isBulkDataLoad);
-			    System.out.println("Done");
-			} catch(Exception ex){
+			    // Deal Status Remarks
+			    if(!StringUtils.isEmpty(listOfCellValues.get(41))){
+				opp.setNotesTs(constructNotesT(listOfCellValues.get(41).trim(),opp.getCustomerId(), userId));
+			    }
 			    
+			    logger.debug("Inserting...");
+			    opportunityService.createOpportunity(opp, isBulkDataLoad);
+			    logger.debug("Done");
+		
+			} catch(Exception ex){
+			    // Catch the exception pertaining to a particular row and continue iteration
 			    if(uploadStatus.isStatusFlag()){
 				uploadStatus.setStatusFlag(false);
 			    }
@@ -345,30 +364,63 @@ public class OpportunityUploadService {
 			    UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 			    
 			    error.setRowNumber(rowCount+1);
-			    error.setMessage("Exception occured while processing row");
+			    error.setMessage("Failed: "+ex.getMessage());
 			    
 			    uploadStatus.getListOfErrors().add(error);
 			    
 			}
 		    }
+		    else if(emptyCount==43){
+			// If a row is empty, assume that there are no values to process and exit the iteration
+			logger.debug("BREAK...");
+			break;
+		    }
 		    
-		    System.out.println("*************************************");
+		    logger.debug("*************************************");
 		}
 		rowCount++;
 	    }
 
 	    fileInputStream.close();
-	    
+	    }
+	    else {
+		logger.error("BAD_REQUEST: The Excel uploaded by user : {} contains validation errors, please rectify them before you upload the sheet again", userId);
+		throw new DestinationException(HttpStatus.BAD_REQUEST,"The Excel uploaded by user : "+userId+" contains validation errors, please rectify them before you upload the sheet again");
+	    }
 	} catch (Exception e) {
 	    logger.error("INTERNAL_SERVER_ERROR: An Exception has occured while processing the request for : {}", userId);
 	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 			"An Exception has occured while processing the request for "+userId);
 	}
-	
 	return uploadStatus;
+    }
 
+    /**
+     * This method constructs NotesT object
+     * 
+     * @param dealRemarks
+     * @param customerId 
+     * @param userUpdated 
+     * @return
+     */
+    private List<NotesT> constructNotesT(String dealRemarks, String customerId, String userUpdated) {
+	NotesT notes = new NotesT();
+	notes.setEntityType(EntityType.OPPORTUNITY.toString());
+	notes.setNotesUpdated(dealRemarks);
+	notes.setCustomerId(customerId);
+	notes.setUserUpdated(userUpdated);
+	List<NotesT> listOfNotes = new ArrayList<NotesT>();
+	listOfNotes.add(notes);
+	return listOfNotes;
     }
     
+    /**
+     * This method accepts a cell, checks the value and returns the response.
+     * The default value sent is an empty string
+     * 
+     * @param cell
+     * @return String
+     */
     private String getIndividualCellValue(Cell cell){
 	
 	String val="";
@@ -385,11 +437,9 @@ public class OpportunityUploadService {
         	    break;
                 case Cell.CELL_TYPE_STRING:
                     val = String.valueOf(cell.getStringCellValue());
-//                    System.out.print(cell.getStringCellValue() + "\t\t");
                     break;
                 case Cell.CELL_TYPE_BLANK:
                     val="";
-//                    System.out.print("blank inside");
                     break;
             }
         }
@@ -400,8 +450,16 @@ public class OpportunityUploadService {
 	
     }
 
+    /**
+     * This method accepts the factors and returns list of OpportunityWinLossFactorsT objects
+     * 
+     * @param factors
+     * @param userId
+     * @return List<OpportunityWinLossFactorsT>
+     * @throws Exception
+     */
     private List<OpportunityWinLossFactorsT> constructOppWinLoss(
-	    String factors, String userId) {
+	    String factors, String userId) throws Exception {
 	
 	List<OpportunityWinLossFactorsT> listOfWinLossFactors = null;
 	
@@ -409,8 +467,10 @@ public class OpportunityUploadService {
 	    
 	    listOfWinLossFactors = new ArrayList<OpportunityWinLossFactorsT>();
 	    
+	    // factors can be comma separated, hence split() is used
 	    String[] factorsArray = factors.split(",");
 	    
+	    // rank is set based on the order of factors which are given as input 
 	    int rank = 1;
 	    for(String factor : factorsArray){
 		OpportunityWinLossFactorsT owlf = new OpportunityWinLossFactorsT();
@@ -429,7 +489,13 @@ public class OpportunityUploadService {
 	return listOfWinLossFactors;
     }
 
-    private List<String> getCompetitorFromCompetitorLink(){
+    /**
+     * This method provides the values of competitor name from CompetitorMappingT in list of String
+     * 
+     * @return List<String>
+     * @throws Exception
+     */
+    private List<String> getCompetitorFromCompetitorLink() throws Exception {
 	
 	List<String> compLink = new ArrayList<String>();
 	
@@ -444,14 +510,23 @@ public class OpportunityUploadService {
 	
     }
     
-    private List<OpportunityCompetitorLinkT> constructOppCompetitorLink(String values,String userId) {
+    /**
+     * This method constructs list of OpportunityCompetitorLinkT based on the CompetitorName values provided
+     * 
+     * @param values
+     * @param userId
+     * @return List<OpportunityCompetitorLinkT>
+     * @throws Exception
+     */
+    private List<OpportunityCompetitorLinkT> constructOppCompetitorLink(String values,String userId) throws Exception {
 
     	List<OpportunityCompetitorLinkT> listCompetitorLink = null;
     	if (values != null) {
     	    
     	    listCompetitorLink = new ArrayList<OpportunityCompetitorLinkT>();
     	    
-    	    String[] valuesArray = values.split(",");
+    	    // More than one competitor could be provided separated by comma, hence split() is used
+    	    String[] valuesArray = values.split(","); 
 	    
     	    for (String value : valuesArray) {
     		OpportunityCompetitorLinkT oclt = new OpportunityCompetitorLinkT();
@@ -459,8 +534,7 @@ public class OpportunityUploadService {
     		oclt.setCompetitorName(value.trim());
     		oclt.setCreatedBy(userId);
     		oclt.setModifiedBy(userId);
-//    		oclt.setOpportunityId(opportunityId);
-    		oclt.setIncumbentFlag("N"); // To be Checked
+    		oclt.setIncumbentFlag(Constants.N); 
 
     		listCompetitorLink.add(oclt);
     	    }
@@ -470,18 +544,28 @@ public class OpportunityUploadService {
     	return listCompetitorLink;
     }
 
-    private List<OpportunitySalesSupportLinkT> constructOppSalesSupportLink(String values,String userId) {
+    /**
+     * This method constructs list of OpportunitySalesSupportLinkT based on the SalesSupportOwner values provided
+     * 
+     * @param values
+     * @param userId
+     * @return List<OpportunitySalesSupportLinkT>
+     * @throws Exception
+     */
+    private List<OpportunitySalesSupportLinkT> constructOppSalesSupportLink(String values,String userId) throws Exception{
 
     	List<OpportunitySalesSupportLinkT> listOfOppSubSpLink = null;
     	if (values != null) {
     	    
     	listOfOppSubSpLink = new ArrayList<OpportunitySalesSupportLinkT>();
-    	    System.out.println(values+" ------------------>>>");
+    	
+    	    // More than one Sales Support Owner could be provided separated by comma, hence split() is used
     	    String[] valuesArray = values.split(",");
 	    
     	    for (String value : valuesArray) {
     		OpportunitySalesSupportLinkT oclt = new OpportunitySalesSupportLinkT();
     		
+    		// SalesSupportOwner comes with location separated by '-', hence split is used 
     		String[] ssValue = value.split("-");
     		oclt.setSalesSupportOwner(getMapValuesForKey(mapOfUserT, ssValue[0].trim()));
     		oclt.setCreatedBy(userId);
@@ -496,6 +580,20 @@ public class OpportunityUploadService {
     
     }
     
+    /**
+     * This method constructs the BidDetailsT entity using the input provided
+     * 
+     * @param bidReqType
+     * @param bidReqDate
+     * @param targetSubmissionDate
+     * @param actualSubmissionDate
+     * @param expectedOutcomeDate
+     * @param winProbability
+     * @param coreAttributes
+     * @param userId
+     * @return List<BidDetailsT>
+     * @throws ParseException
+     */
     private List<BidDetailsT> constructbidDetailsT(String bidReqType, String bidReqDate, String targetSubmissionDate, String actualSubmissionDate, String expectedOutcomeDate, String winProbability, String coreAttributes, String userId) throws ParseException {
 
 	List<BidDetailsT> listOfBidDetailsT = new ArrayList<BidDetailsT>();
@@ -526,27 +624,38 @@ public class OpportunityUploadService {
     
     }
     
+    /**
+     * This utility method truncates '.0' which is returned as the cell value if the cell contains numbers
+     * 
+     * @param value
+     * @return String
+     */
     private String validateAndRectifyValue(String value) {
-	System.out.println("******** ////// ");
 	String val=value;
-	System.out.println(value.substring(value.length()-2, value.length()));
 	if(value!=null){
 	    if(value.substring(value.length()-2, value.length()).equals(".0")){
 		val = value.substring(0, value.length()-2);
 	    }
 	}
-	System.out.println(val);
-	System.out.println("******** ////// ");
 	return val;
     }
 
-    private List<OpportunitySubSpLinkT> constructOppSubSpLink(String values,String userId) {
+    /**
+     * This method constructs list of OpportunitySubSpLinkT based on the SubSp values provided
+     * 
+     * @param values
+     * @param userId
+     * @return List<OpportunitySubSpLinkT>
+     * @throws Exception
+     */
+    private List<OpportunitySubSpLinkT> constructOppSubSpLink(String values,String userId)  throws Exception {
 
     	List<OpportunitySubSpLinkT> listOfOppSubSpLink = null;
     	if (values != null) {
     	    
     	listOfOppSubSpLink = new ArrayList<OpportunitySubSpLinkT>();
     	    
+    	    // More than one SubSp could be provided separated by comma, hence split() is used
     	    String[] valuesArray = values.split(",");
 	    
     	    for (String value : valuesArray) {
@@ -555,8 +664,6 @@ public class OpportunityUploadService {
     		oclt.setSubSp(value.trim());
     		oclt.setCreatedBy(userId);
     		oclt.setModifiedBy(userId);
-//    		oclt.setOpportunityId(opportunityId);
-
 
     		listOfOppSubSpLink.add(oclt);
     	    }
@@ -567,13 +674,22 @@ public class OpportunityUploadService {
     
     }
     
-    private List<OpportunityOfferingLinkT> constructOppOfferingLink(String values,String userId) {
+    /**
+     * This method constructs list of OpportunityOfferingLinkT based on the Offering values provided
+     * 
+     * @param values
+     * @param userId
+     * @return List<OpportunityOfferingLinkT>
+     * @throws Exception
+     */
+    private List<OpportunityOfferingLinkT> constructOppOfferingLink(String values,String userId)  throws Exception {
 
     	List<OpportunityOfferingLinkT> listOfOppOfferingLink = null;
     	if (values != null) {
     	    
     	listOfOppOfferingLink = new ArrayList<OpportunityOfferingLinkT>();
     	    
+	    // More than one Offering could be provided separated by comma, hence split() is used
     	    String[] valuesArray = values.split(",");
 	    
     	    for (String value : valuesArray) {
@@ -582,8 +698,6 @@ public class OpportunityUploadService {
     		oolt.setOffering(value.trim());
     		oolt.setCreatedBy(userId);
     		oolt.setModifiedBy(userId);
-
-
 
     		listOfOppOfferingLink.add(oolt);
     	    }
@@ -594,31 +708,13 @@ public class OpportunityUploadService {
     
     }
     
-//    private List<String> splitValuesBasedOnSeparator(String keysWithSeparator, List<String> list) {
-//        
-//	List<String> listOfValues = null;
-//
-//	if(keysWithSeparator!=null){
-//	    
-//	    listOfValues = new ArrayList<String>();
-//	    
-//	    String[] keysArray = keysWithSeparator.split(",");
-//	    
-//	    for (String key : keysArray) {
-//		listOfValues.add(getMapValuesForKey(map, key.trim()));
-////		listOfKeys.add(key.trim());
-//	    }
-//
-////	    for (String key : listOfValues) {
-////		System.out.println(key);
-////	    }
-//	    
-//	}
-//
-//	return listOfValues;
-//
-//    }
-
+    /**
+     * This method accepts a cell, checks the value and returns the response.
+     * The default value sent is an empty string
+     * 
+     * @param cell
+     * @return String
+     */
     private String getCellValue(Cell cell) {
 	String value = null;
 	// Check the cell type and format accordingly
@@ -630,7 +726,6 @@ public class OpportunityUploadService {
 		value = new CellDateFormatter(dateFmt).format(date);
 	    } else {
 		value = String.valueOf(cell.getNumericCellValue()).trim();
-		// value = value.substring(0,value.length()-2);
 	    }
 	    break;
 	case Cell.CELL_TYPE_STRING:
@@ -638,15 +733,20 @@ public class OpportunityUploadService {
 	    break;
 	case Cell.CELL_TYPE_BLANK: {
 	    value = "";
-//	    value = cell.getStringCellValue()+"1000";
-	    System.out.println("Blank ----------->>>>");
+	    logger.debug("Blank ----------->>>>");
 	    break;
 	}
 	}
-	// System.out.println(value);
 	return value;
     }
 
+    /**
+     * Converts multipart file to File object
+     * 
+     * @param file
+     * @return File
+     * @throws Exception
+     */
     public File convert(MultipartFile file) throws Exception {
 	File convFile = new File(file.getOriginalFilename());
 	convFile.createNewFile();
@@ -656,7 +756,13 @@ public class OpportunityUploadService {
 	return convFile;
     }
 
-    private Map<String, String> getNameAndIdFromCustomerMasterT() {
+    /**
+     * This method retrieves Customer Name and Id from CustomerMasterT 
+     * 
+     * @return Map
+     * @throws Exception
+     */
+    private Map<String, String> getNameAndIdFromCustomerMasterT() throws Exception{
 
 	List<CustomerMasterT> listOfCustomerMasterT = null;
 	listOfCustomerMasterT = (List<CustomerMasterT>) customerRepository
@@ -669,14 +775,20 @@ public class OpportunityUploadService {
 	}
 
 	// for (Map.Entry<String,String> entry : mapOfCMT.entrySet()) {
-	// System.out.println(entry.getKey()+" "+entry.getValue());
+	// logger.debug(entry.getKey()+" "+entry.getValue());
 	// }
 
 	return mapOfCMT;
 
     }
 
-    private Map<String, String> getNameAndIdFromPartnerMasterT() {
+    /**
+     * This method retrieves Customer Name and Id from PartnerMasterT 
+     * 
+     * @return Map<String, String> 
+     * @throws Exception
+     */
+    private Map<String, String> getNameAndIdFromPartnerMasterT()  throws Exception {
 
 	List<PartnerMasterT> listOfPartnerMasterT = null;
 	listOfPartnerMasterT = (List<PartnerMasterT>) partnerRepository
@@ -689,14 +801,20 @@ public class OpportunityUploadService {
 	}
 
 //	for (Map.Entry<String, String> entry : mapOfPMT.entrySet()) {
-//	    System.out.println(entry.getKey() + " " + entry.getValue());
+//	    logger.debug(entry.getKey() + " " + entry.getValue());
 //	}
 
 	return mapOfPMT;
 
     }
     
-    private Map<String, String> getNameAndIdFromUserT() {
+    /**
+     * This method retrieves Customer Name and Id from UserT
+     * 
+     * @return Map<String, String> 
+     * @throws Exception
+     */
+    private Map<String, String> getNameAndIdFromUserT() throws Exception {
 
 	List<UserT> listOfUsers = null;
 	listOfUsers = (List<UserT>) userRepository
@@ -709,21 +827,27 @@ public class OpportunityUploadService {
 	}
 
 	for (Map.Entry<String, String> entry : mapOfUserT.entrySet()) {
-	    System.out.println(entry.getKey() + " " + entry.getValue());
+	    logger.debug(entry.getKey() + " " + entry.getValue());
 	}
 
 	return mapOfUserT;
 
     }
     
-    private ContactTMapDTO getNameAndIdFromContactT() {
+    /**
+     * This method retrieves Customer Name and Id from ContactT
+     * 
+     * @return
+     * @throws Exception
+     */
+    private ContactTMapDTO getNameAndIdFromContactT()  throws Exception{
         
 	List<ContactT> listOfContactT = null;
 	listOfContactT = (List<ContactT>) contactRepository.findAll();
 
-	for(ContactT cc : listOfContactT){
-//	    System.out.println(cc.getContactId());
-	}
+//	for(ContactT cc : listOfContactT){
+//	    logger.debug(cc.getContactId());
+//	}
 	
 	ContactTMapDTO cmDTO = new ContactTMapDTO();
 	
@@ -750,7 +874,7 @@ public class OpportunityUploadService {
 	}
 
 //	for (Map.Entry<String, String> entry : mapOfTcsContactT.entrySet()) {
-//	    System.out.println(entry.getKey() + " " + entry.getValue());
+//	    logger.debug(entry.getKey() + " " + entry.getValue());
 //	}
 	
 	}
@@ -759,14 +883,24 @@ public class OpportunityUploadService {
 
     }
     
+    /**
+     * This method constructs list of OpportunityPartnerLinkT based on the partnerValues values provided
+     * 
+     * @param partnerValues
+     * @param userId
+     * @param map
+     * @return List<OpportunityPartnerLinkT> 
+     * @throws Exception
+     */
     private List<OpportunityPartnerLinkT> constructOppPartnerLink(
-    	    String partnerValues,String userId, Map map) {
+    	    String partnerValues,String userId, Map<String, String> map) throws Exception{
 	
     	List<OpportunityPartnerLinkT> listOppPartnerLinkT = null;
     	if (partnerValues != null) {
     	    
     	    listOppPartnerLinkT = new ArrayList<OpportunityPartnerLinkT>();
-    	    List<String> listOfpId = splitValuesBasedOnSeparator(partnerValues, map);
+    	    // get the Id values based on the values in the map
+    	    List<String> listOfpId = getValuesFromKeysSeparatedByComma(partnerValues, map);
     	    
     	    if ((listOfpId != null) && (!listOfpId.isEmpty())) {
     		for (String pId : listOfpId) {
@@ -775,7 +909,6 @@ public class OpportunityUploadService {
     		    oplt.setPartnerId(pId);
     		    oplt.setCreatedBy(userId);
     		    oplt.setModifiedBy(userId);
-//    		    oplt.setOpportunityId(oppId);
     		    
     		    listOppPartnerLinkT.add(oplt);
     		}
@@ -785,14 +918,24 @@ public class OpportunityUploadService {
     	return listOppPartnerLinkT;
     }
     
+    /**
+     * This method constructs list of OpportunityCustomerContactLinkT based on the customer names provided
+     * 
+     * @param custNames
+     * @param userId
+     * @param map
+     * @return List<OpportunityCustomerContactLinkT> 
+     * @throws Exception
+     */
     private List<OpportunityCustomerContactLinkT> constructOppCustomerContactLink(
-    	    String custNames,String userId, Map map) {
+    	    String custNames,String userId, Map<String, String> map) throws Exception{
 	
     	List<OpportunityCustomerContactLinkT> listOppCustomerLinkT = null;
     	if (custNames != null) {
 
     	    listOppCustomerLinkT = new ArrayList<OpportunityCustomerContactLinkT>();
-    	    List<String> listOfcId = splitValuesBasedOnSeparator(custNames, map);
+    	    // get the Id values based on the values in the map
+    	    List<String> listOfcId = getValuesFromKeysSeparatedByComma(custNames, map);
     	    
     	    if ((listOfcId != null) && (!listOfcId.isEmpty())) {
     		for (String cId : listOfcId) {
@@ -801,8 +944,7 @@ public class OpportunityUploadService {
     		occlt.setContactId(cId);
     		occlt.setCreatedBy(userId);
     		occlt.setModifiedBy(userId);
-//    		occlt.setOpportunityId(oppId);
-    		    
+
     		listOppCustomerLinkT.add(occlt);
     		}
     	    }
@@ -812,14 +954,24 @@ public class OpportunityUploadService {
     	return listOppCustomerLinkT;
     }
     
+    /**
+     * This method constructs list of OpportunityTcsAccountContactLinkT based on the tcs associate names provided
+     * 
+     * @param tcsNames
+     * @param userId
+     * @param map
+     * @return List<OpportunityTcsAccountContactLinkT> 
+     * @throws Exception
+     */
     private List<OpportunityTcsAccountContactLinkT> constructOppTCSContactLink(
-    	    String tcsNames,String userId, Map map) {
+    	    String tcsNames,String userId, Map<String, String> map) throws Exception{
 	
     	List<OpportunityTcsAccountContactLinkT> listTcsContactLinkT = null;
     	if (tcsNames != null) {
     	    
     	listTcsContactLinkT = new ArrayList<OpportunityTcsAccountContactLinkT>();
-    	    List<String> listOfcId = splitValuesBasedOnSeparator(tcsNames, map);
+	    // get the Id values based on the values in the map
+    	    List<String> listOfcId = getValuesFromKeysSeparatedByComma(tcsNames, map);
     	    
     	    if ((listOfcId != null) && (!listOfcId.isEmpty())) {
     		for (String id : listOfcId) {
@@ -828,7 +980,6 @@ public class OpportunityUploadService {
     		occlt.setContactId(id);
     		occlt.setCreatedBy(userId);
     		occlt.setModifiedBy(userId);
-//    		occlt.setOpportunityId(oppId);
     		    
     		listTcsContactLinkT.add(occlt);
     		}
@@ -839,7 +990,15 @@ public class OpportunityUploadService {
     	return listTcsContactLinkT;
     }
 
-    private List<String> splitValuesBasedOnSeparator(String keysWithSeparator, Map map) {
+    /**
+     * This utility method get the keys which are separated by commas and returns the values for the keys
+     * 
+     * @param keysWithSeparator
+     * @param map
+     * @return
+     * @throws Exception
+     */
+    private List<String> getValuesFromKeysSeparatedByComma(String keysWithSeparator, Map<String, String> map) throws Exception{
 
 	List<String> listOfValues = null;
 
@@ -851,11 +1010,10 @@ public class OpportunityUploadService {
 	    
 	    for (String key : keysArray) {
 		listOfValues.add(getMapValuesForKey(map, key.trim()));
-//		listOfKeys.add(key.trim());
 	    }
 
 //	    for (String key : listOfValues) {
-//		System.out.println(key);
+//		logger.debug(key);
 //	    }
 	    
 	}
@@ -864,7 +1022,15 @@ public class OpportunityUploadService {
 
     }
 
-    private String getMapValuesForKey(Map<String, String> map, String key) {
+    /**
+     * This method retrieves the value for the key
+     * 
+     * @param map
+     * @param key
+     * @return String
+     * @throws Exception
+     */
+    private String getMapValuesForKey(Map<String, String> map, String key) throws Exception {
 	String value = null;
 	if (map.containsKey(key)) {
 	    value = map.get(key);
@@ -872,6 +1038,15 @@ public class OpportunityUploadService {
 	return value;
     }
 
-
+    /**
+     * This method checks the spreadsheet's validate tab for any validation related errors
+     *  
+     * @param workbook
+     * @return boolean
+     * @throws Exception
+     */
+    private boolean validateSheet(Workbook workbook) throws Exception{
+	return ExcelUtils.isValidWorkbook(workbook, Constants.VALIDATOR_SHEET_NAME, 4, 1)&&ExcelUtils.isValidWorkbook(workbook, Constants.VALIDATOR_SHEET_NAME, 4, 2);
+    }
     
 }
