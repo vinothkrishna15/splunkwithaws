@@ -94,7 +94,7 @@ public class OpportunityUploadService {
     
     private static final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     private static final Logger logger = LoggerFactory
-	    .getLogger(ReportsUploadService.class);
+	    .getLogger(OpportunityUploadService.class);
 
     /**
      * This method uploads the spreadsheet to Opportunity_t and its depending tables
@@ -122,20 +122,21 @@ public class OpportunityUploadService {
 	    FileInputStream fileInputStream = new FileInputStream(file);
 	    
 	    Workbook workbook = WorkbookFactory.create(fileInputStream);
-
-	    Sheet sheet = workbook.getSheetAt(2);
-
-	    logger.debug("count "
-		    + workbook.getSheetAt(2).getLastRowNum());
-	    
-	    System.out.println("count "
-		    + workbook.getSheetAt(2).getLastRowNum());
 	    
 	    uploadStatus = new UploadStatusDTO();
 	    uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
 
 	    // Validates the spreadsheet for errors after validating the excel sheet
 	    if(validateSheet(workbook)){
+		
+	    Sheet sheet = workbook.getSheetAt(2);
+
+	    logger.debug("count "
+			    + workbook.getSheetAt(2).getLastRowNum());
+		    
+	    System.out.println("count "
+			    + workbook.getSheetAt(2).getLastRowNum());
+
 	    
 	    boolean isBulkDataLoad = true;
 		
@@ -199,15 +200,24 @@ public class OpportunityUploadService {
 			
 			try {
 			    OpportunityT opp = new OpportunityT();
-			    
+
 			    // CUSTOMER ID
 			    if(!StringUtils.isEmpty(listOfCellValues.get(2))){
-				opp.setCustomerId(getMapValuesForKey(mapOfCustomerMasterT, listOfCellValues.get(2)));
+				String custId = getMapValuesForKey(mapOfCustomerMasterT, listOfCellValues.get(2).trim());
+				if(custId!=null){
+				    opp.setCustomerId(custId);
+				} else {
+				    throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Customer Name");
+				}
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Customer Name is empty");
 			    }
 			    
 			    // COUNTRY
 			    if(!StringUtils.isEmpty(listOfCellValues.get(5))){
 				opp.setCountry(listOfCellValues.get(5)); 
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Country is empty");
 			    }
 			    
 			    // CRM ID
@@ -218,6 +228,8 @@ public class OpportunityUploadService {
 			    // OPPORTUNITY NAME
 			    if(!StringUtils.isEmpty(listOfCellValues.get(7))){
 				opp.setOpportunityName(listOfCellValues.get(7));
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Opportunity Name is empty");
 			    }
 			    
 			    // OPPORTUNITY DESCRIPTION
@@ -228,6 +240,8 @@ public class OpportunityUploadService {
 			    // REQUEST RECEIVE DATE
 			    if(!StringUtils.isEmpty(listOfCellValues.get(11))){
 				opp.setOpportunityRequestReceiveDate(dateFormat.parse(listOfCellValues.get(11)));
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Request Receive Date is empty");
 			    }
 			    
 			    // 	new logo
@@ -244,9 +258,12 @@ public class OpportunityUploadService {
 			    if(!StringUtils.isEmpty(listOfCellValues.get(14))){
 			    opp.setDigitalFlag(listOfCellValues.get(14));
 			    } 
+			    
 			    // SALES STAGE CODE
 			    if(!StringUtils.isEmpty(listOfCellValues.get(15))){
-			    opp.setSalesStageCode((Integer.parseInt(listOfCellValues.get(15).substring(0,2))));
+				opp.setSalesStageCode((Integer.parseInt(listOfCellValues.get(15).substring(0,2))));
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Sales Stage Code is empty");
 			    }
 			    
 			    // DEAL CURRENCY
@@ -269,7 +286,15 @@ public class OpportunityUploadService {
 			    // OPPORTUNITY OWNER
 			    if(!StringUtils.isEmpty(listOfCellValues.get(21))){
 			    //opp.setOpportunityOwner(listOfCellValues.get(21).substring(0, listOfCellValues.get(21).length() - 2));
-			    opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
+				String oppOwner = getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim());
+				if(oppOwner!=null){
+				    opp.setOpportunityOwner(oppOwner);
+				} else {
+				    throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Opportunity Owner");
+				}
+			    
+			    } else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Opportunity Owner is empty");
 			    }
 			    
 			    // DEAL TYPE
@@ -307,16 +332,16 @@ public class OpportunityUploadService {
 			    if(!StringUtils.isEmpty(listOfCellValues.get(25))){
 				opp.setOpportunityPartnerLinkTs(constructOppPartnerLink(listOfCellValues.get(25).trim(), userId, mapOfPartnerMasterT));
 			    }
-			    /*
-			    // Customer Contact Params
-			    if(!StringUtils.isEmpty(listOfCellValues.get(24))){
-				opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24), userId, mapOfCustomerContactT));
-			    }
-
-			    // TCS Contact Params
-			    if(!StringUtils.isEmpty(listOfCellValues.get(23))){
-				opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23), userId, mapOfTCSContactT));
-			    }*/
+			    
+//			    // Customer Contact Params
+//			    if(!StringUtils.isEmpty(listOfCellValues.get(24))){
+//				opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24), userId, mapOfCustomerContactT));
+//			    }
+//
+//			    // TCS Contact Params
+//			    if(!StringUtils.isEmpty(listOfCellValues.get(23))){
+//				opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23), userId, mapOfTCSContactT));
+//			    }
 			    
 			    // Competitor Params
 			    if(!StringUtils.isEmpty(listOfCellValues.get(26))){
@@ -332,13 +357,13 @@ public class OpportunityUploadService {
 			    if(!StringUtils.isEmpty(listOfCellValues.get(10))){
 				opp.setOpportunityOfferingLinkTs(constructOppOfferingLink(listOfCellValues.get(10), userId));
 			    }
-			    /*
-			    //OpportunitySalesSupportLinkT Params
-			    if(!StringUtils.isEmpty(listOfCellValues.get(22))){
-				//opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
-			    	opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22), userId));
-			    }
-			    */
+			    
+//			    //OpportunitySalesSupportLinkT Params
+//			    if(!StringUtils.isEmpty(listOfCellValues.get(22))){
+//				//opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT, listOfCellValues.get(21).trim()));
+//			    	opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22), userId));
+//			    }
+			    
 			    //Bid Details
 			    if(!StringUtils.isEmpty(listOfCellValues.get(27))||(!StringUtils.isEmpty(listOfCellValues.get(29)))||(!StringUtils.isEmpty(listOfCellValues.get(30)))){
 				opp.setBidDetailsTs(constructbidDetailsT(listOfCellValues.get(27), listOfCellValues.get(29), listOfCellValues.get(30), listOfCellValues.get(31), listOfCellValues.get(32), listOfCellValues.get(33), listOfCellValues.get(34), userId));
@@ -357,8 +382,8 @@ public class OpportunityUploadService {
 			    logger.debug("Inserting...");
 			    opportunityService.createOpportunity(opp, isBulkDataLoad);
 			    logger.debug("Done");
-		
-			} catch(Exception ex){
+
+			} catch(DestinationException e){
 			    // Catch the exception pertaining to a particular row and continue iteration
 			    if(uploadStatus.isStatusFlag()){
 				uploadStatus.setStatusFlag(false);
@@ -367,10 +392,14 @@ public class OpportunityUploadService {
 			    UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 			    
 			    error.setRowNumber(rowCount+1);
-			    error.setMessage("Failed: "+ex.getMessage());
+			    error.setMessage(e.getMessage());
 			    
 			    uploadStatus.getListOfErrors().add(error);
-			    
+			}
+			catch(Exception e){
+			    logger.error("INTERNAL_SERVER_ERROR: An Exception has occured while processing the request for : {}", userId);
+			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An Exception has occured while processing the request for "+userId);
 			}
 		    }
 		    else if(emptyCount==43){
@@ -390,6 +419,10 @@ public class OpportunityUploadService {
 		logger.error("BAD_REQUEST: The Excel uploaded by user : {} contains validation errors, please rectify them before you upload the sheet again", userId);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,"The Excel uploaded by user : "+userId+" contains validation errors, please rectify them before you upload the sheet again");
 	    }
+	} catch (DestinationException de) {
+	    logger.error("BAD_REQUEST:"+de.getMessage());
+	    throw new DestinationException(HttpStatus.BAD_REQUEST,
+			de.getMessage());
 	} catch (Exception e) {
 	    logger.error("INTERNAL_SERVER_ERROR: An Exception has occured while processing the request for : {}", userId);
 	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
