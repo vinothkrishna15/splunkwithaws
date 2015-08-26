@@ -219,8 +219,11 @@ public class ReportsService {
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where " ;
 	
-	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
+	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
 			+ " as RVNU group by RVNU.customer_name order by revenue desc LIMIT ";
+	
+	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
+			+ " as RVNU group by RVNU.customer_name order by revenue desc  ";
 	
 	private static final String TARGET_VS_ACTUAL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
@@ -234,30 +237,43 @@ public class ReportsService {
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
 			+ "where ";
 
-	private static final String ACTUAL_PROJECTED_OVERALL_REVENUE_QUERY_PREFIX = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue from "
-			+ "(select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue ,case when sum(PRDT.revenue) is not null then "
-			+ "sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT "
-			+ " JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
-			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name "
+	private static final String OVERALL_REVENUE_BY_GEO_QUERY_PREFIX = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue, RVNU.display_geography from  "
+			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue, GMT.display_geography from actual_revenues_data_t ARDT " 
+			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
+			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
 			+ "where ";
-
-	private static final String OVERALL_REVENUE_QUERY_PREFIX = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue ,RVNU.display_geography "
-			+ "from (select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue , GMT.display_geography, "
-			+ "case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
-			+ "from actual_revenues_data_t ARDT  "
-			+ "JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
-			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name "
+	private static final String GROUP_BY_OVERALL_ACTUAL_REVENUE_BY_GEO_PREFIX="group by RCMT.customer_name,GMT.display_geography  order by actual_revenue desc) ";
+	
+	private static final String OVERALL_REVENUE_BY_GEO_UNION_PROJECTED_QUERY_PREFIX = 
+			"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue " 
+			+ ", GMT.display_geography from projected_revenues_data_t PRDT " 
+			+ " JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
+			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
+			+ " JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where ";
-
-	private static final String GROUP_CUST_GEO_IOU_QUERY_PREFIX = "select distinct RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, "
-			+ "gmt.display_geography from actual_revenues_data_t ARDT "
-			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+	
+	private static final String GROUP_BY_OVERALL_PROJECTED_REVENUE_BY_GEO_PREFIX = 
+			"group by RCMT.customer_name, GMT.display_geography order by projected_revenue desc)) "
+			+ " as RVNU group by RVNU.customer_name, RVNU.display_geography order by revenue desc ";
+	
+	private static final String GROUP_CUST_GEO_IOU_QUERY_PREFIX = "select RVNU.customer_name, RVNU.finance_customer_name, RVNU.display_iou, RVNU.display_geography "
+			+ "from ((select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, " 
+			+ "gmt.display_geography from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on "
+			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography) "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou where ";
+			+ "JOIN iou_customer_mapping_t ICMT on "
+			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp " 
+			+ "where ";
+	
+	private static final String GROUP_CUST_GEO_IOU_UNION_QUERY_PREFIX = " UNION (select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
+			+ "from projected_revenues_data_t PRDT JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography=PRDT.finance_geography) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where ";
 	
 	public static final String OPPORTUNITY_DETAILED_QUERY_PREFIX =
 			"select distinct OPP.opportunity_id from opportunity_t OPP"
@@ -269,7 +285,7 @@ public class ReportsService {
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where ";
 
-public static final String OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX =
+	public static final String OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX =
 			"select distinct SSMT.display_sub_sp,count(SSMT.display_sub_sp),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
@@ -279,7 +295,7 @@ public static final String OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX =
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where ";
 
-public static final String OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX =
+	public static final String OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX =
 			"select distinct GMT.display_geography,count(GMT.display_geography),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
@@ -289,7 +305,7 @@ public static final String OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX =
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where ";
 
-public static final String OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX = 
+	public static final String OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX = 
 			"select distinct ICM.display_iou,count(ICM.display_iou),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
@@ -299,7 +315,7 @@ public static final String OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX =
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where ";
 
-public static final String OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX =
+	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX =
 			"select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -312,7 +328,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 			+ " where ";
 
-public static final String OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX =
+	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX =
 			"select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -325,7 +341,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PRE
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 			+ " where ";
 
-public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
+	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			"select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -361,7 +377,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 	private static final String TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,PRDT.quarter";
 	private static final String TARVSACT_ACTUAL_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,ARDT.quarter";
 	private static final String TARVSACT_TARGET_GROUP_BY_COND_PREFIX = "group by BCMT.customer_name,BDT.quarter";
-	private static final String TARVSACT_MONTHS_COND_PREFIX = "upper(PRDT.month) in (";
+	private static final String TARVSACT_MONTHS_PROJECTED_COND_PREFIX = "upper(PRDT.month) in (";
 	private static final String TARVSACT_REVENUE_MONTHS_COND_PREFIX = "upper(ARDT.month) in (";
 	private static final String TARVSACT_ACTUAL_QUARTER_COND_PREFIX = "BDT.quarter in (";
 	private static final String TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX = "))) as RVNU";
@@ -513,8 +529,8 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
-		queryBuffer.append(TARVSACT_MONTHS_COND_PREFIX + formattedMonthsList
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX + formattedMonthsList
 				+ Constants.RIGHT_PARANTHESIS);
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -581,7 +597,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -671,7 +687,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 				.getQueryPrefixMap(TARVSACT_GEO_COND_PREFIX, null,
 						IOU_COND_PREFIX, null);
 
-		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		String quarters = getStringListWithSingleQuotes(quarterList);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
 				+ Constants.RIGHT_PARANTHESIS);
@@ -1056,8 +1072,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
-				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
-						tillDate);
+				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate);
 		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
 				currencyList, userId, workbook);
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
@@ -1205,8 +1220,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 	private List<GroupCustomerGeoIouResponse> getGroupCustGeoIouByUserPrivilages(
 			List<String> formattedMonths, String userId) throws Exception {
 		List<GroupCustomerGeoIouResponse> revenueGeoValuesList = new ArrayList<GroupCustomerGeoIouResponse>();
-		String queryString = getGroupCustGeoIouQueryString(formattedMonths,
-				userId);
+		String queryString = getGroupCustGeoIouQueryString(formattedMonths, userId);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
@@ -1236,7 +1250,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1246,6 +1260,15 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
+		
+		queryBuffer.append(GROUP_CUST_GEO_IOU_UNION_QUERY_PREFIX);
+		// Get user access privilege groups
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX);
 		return queryBuffer.toString();
 	}
 
@@ -1267,11 +1290,11 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			List<String> formattedMonths, String userId) throws Exception {
 		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(
-				OVERALL_REVENUE_QUERY_PREFIX);
+				OVERALL_REVENUE_BY_GEO_QUERY_PREFIX);
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1281,7 +1304,15 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-		queryBuffer.append(TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX);
+		queryBuffer.append(GROUP_BY_OVERALL_ACTUAL_REVENUE_BY_GEO_PREFIX);
+		
+		queryBuffer.append(OVERALL_REVENUE_BY_GEO_UNION_PROJECTED_QUERY_PREFIX);
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(GROUP_BY_OVERALL_PROJECTED_REVENUE_BY_GEO_PREFIX);
 		return queryBuffer.toString();
 	}
 
@@ -1307,7 +1338,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1326,13 +1357,13 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		// Get WHERE clause string
-		queryBuffer.append(TARVSACT_MONTHS_COND_PREFIX
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
 		
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-		queryBuffer.append(RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX);
+		queryBuffer.append(RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX);
 		queryBuffer.append(TARVSACT_GROUP_BY_ORDER_BY_COND_PREFIX);
 		
 		return queryBuffer.toString();
@@ -1363,7 +1394,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
 		List<String> quarterList = DateUtils.getAllQuartersBetween(fromQuarter,
 				toQuarter);
-		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		String quarters = getStringListWithSingleQuotes(quarterList);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
 				+ Constants.RIGHT_PARANTHESIS);
@@ -1376,7 +1407,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		return queryBuffer.toString();
 	}
 
-	public String getQuarterListWithSingleQuotes(List<String> quarterList) {
+	public String getStringListWithSingleQuotes(List<String> quarterList) {
 		String quarters = Joiner.on("\',\'").join(quarterList);
 		if (!quarterList.isEmpty()) {
 			quarters = "\'" + quarters + "\'";
@@ -1406,7 +1437,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1422,7 +1453,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 				HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
 						.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
 				// Get WHERE clause string
-				queryBuffer.append(TARVSACT_MONTHS_COND_PREFIX
+				queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
 						+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
 				String whereUnionClause = userAccessPrivilegeQueryBuilder
 						.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1466,7 +1497,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		String quarters = getStringListWithSingleQuotes(quarterList);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
 				+ Constants.RIGHT_PARANTHESIS);
@@ -1511,7 +1542,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String quarters = getQuarterListWithSingleQuotes(quarterList);
+		String quarters = getStringListWithSingleQuotes(quarterList);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_ACTUAL_QUARTER_COND_PREFIX + quarters
 				+ Constants.RIGHT_PARANTHESIS);
@@ -1568,7 +1599,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(geoPrefix, subSpPrefix, iouPrefix, custPrefix);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1587,13 +1618,13 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(geoPrefix, subSpPrefix, iouPrefix, custPrefix);
 		// Get WHERE clause string
-		queryBuffer.append(TARVSACT_MONTHS_COND_PREFIX
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
 		
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-		queryBuffer.append(RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX);
+		queryBuffer.append(RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX);
 		queryBuffer.append(count);
 		return queryBuffer.toString();
 	}
@@ -1621,12 +1652,12 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 	private String getOverAllActualRevenuesQueryString(
 			List<String> formattedMonths, String userId) throws Exception {
 		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(
-				ACTUAL_PROJECTED_OVERALL_REVENUE_QUERY_PREFIX);
+StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
+		
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		String formattedMonthsList = getQuarterListWithSingleQuotes(formattedMonths);
+				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
+		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -1636,7 +1667,21 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-		queryBuffer.append(TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX);
+		queryBuffer.append(RCMT_GROUP_CUST_ORDER_ACTUAL_REVENUE_COND_PREFIX);
+		
+		queryBuffer.append(TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX);
+		
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
+		// Get WHERE clause string
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		queryBuffer.append(RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_COND_PREFIX);
 		return queryBuffer.toString();
 	}
 
@@ -1680,9 +1725,6 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		Map<String, BigDecimal> targetRevenues = new TreeMap<String, BigDecimal>();
 		List<Object[]> targetObjList = beaconDataTRepository
 				.getTargetRevenueByQuarter(iouList, geographyList, quarterList);
-		
-		
-		
 		for (Object[] targetRevenueObj : targetObjList) {
 			String customerName = targetRevenueObj[0].toString();
 			BigDecimal revenue = (BigDecimal) (targetRevenueObj[1]);
@@ -2439,6 +2481,9 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			startDate = DateUtils.getDateFromFinancialYear(year, true);
 			endDate = DateUtils.getDateFromFinancialYear(year, false);
 		}
+//		else if(year.equals("")){
+//			startDate = DateUtils
+//		}
 
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
@@ -2545,7 +2590,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + "''" + ")"
 					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
 		} else {
-			String bidOwners = getQuarterListWithSingleQuotes(bidOwner);
+			String bidOwners = getStringListWithSingleQuotes(bidOwner);
 			queryBuffer.append(Constants.AND_CLAUSE
 					+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
 					+ "))");

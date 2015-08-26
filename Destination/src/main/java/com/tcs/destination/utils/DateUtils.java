@@ -1,6 +1,7 @@
 package com.tcs.destination.utils;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -562,6 +563,14 @@ public class DateUtils {
 			return months;
 		}	
 
-	
-	
+	public static Date getNewTimestampFormat(String values)
+			throws Exception {
+		DateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+		Date date = (Date) formatter.parse(values);
+		SimpleDateFormat newFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		String finalString = newFormat.format(date);
+		Date newDateFormat = (Date) newFormat.parse(finalString);
+		return newDateFormat;
+	}
+
 }

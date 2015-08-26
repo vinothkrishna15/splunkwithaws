@@ -59,40 +59,49 @@ public interface ActualRevenuesDataTRepository extends
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
 
-	@Query(value = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue from "
-			+ "(select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue ,case when sum(PRDT.revenue) is not null then "
-			+ "sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT " 
-			+" JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name " 
-			+ "where upper(ARDT.month) in (:monthList) "
-			+ "group by RCMT.customer_name order by actual_revenue desc) as RVNU group by RVNU.customer_name "
-			+ "order by revenue desc ", nativeQuery = true)
+	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from  "
+	+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
+	+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
+	+ " and RCMT.customer_geography=ARDT.finance_geography) "
+	+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+	+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
+	+ "where upper(ARDT.month) in (:monthList) "
+	+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+	+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+	+ "group by RCMT.customer_name order by actual_revenue desc) "
+	+ " UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue " 
+	+ "from projected_revenues_data_t PRDT " 
+	+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
+	+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+	+ "where upper(PRDT.month) in (:monthList) "
+	+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+	+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+	+ "group by RCMT.customer_name order by projected_revenue desc)) "
+	+ " as RVNU group by RVNU.customer_name order by revenue desc ", nativeQuery = true)
 	public List<Object[]> getOverAllActualRevenues(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
 	
 	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from  "
-		+ "(((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
+		+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
 		+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
 		+ " and RCMT.customer_geography=ARDT.finance_geography) "
 		+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 		+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
 		+ "where upper(ARDT.month) in (:monthList) "
-			+ "and (RCMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by actual_revenue desc) "
 		+ " UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue " 
 			+ "from projected_revenues_data_t PRDT " 
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(ARDT.month) in (:monthList) "
-			+ "and (RCMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "where upper(PRDT.month) in (:monthList) "
+			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "group by RCMT.customer_name order by projected_revenue desc) "
-			+ "as RVNU order by revenue desc LIMIT 30 ", nativeQuery = true)
+			+ "group by RCMT.customer_name order by projected_revenue desc)) "
+			+ " as RVNU group by RVNU.customer_name order by revenue desc LIMIT 30 ", nativeQuery = true)
 	public List<Object[]> getTop30CustomersRevenues(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
@@ -119,34 +128,52 @@ public interface ActualRevenuesDataTRepository extends
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
 	
-	@Query(value = "select RVNU.customer_name,sum(RVNU.actual_revenue+RVNU.projected_revenue) as revenue, RVNU.display_geography from "
-			+ "(select RCMT.customer_name,sum(ARDT.revenue) as actual_revenue ,GMT.display_geography, case when sum(PRDT.revenue) is not null then "
-			+ "sum(PRDT.revenue) else '0' end as projected_revenue from actual_revenues_data_t ARDT " 
-			+" JOIN revenue_customer_mapping_t RCMT ON RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography  "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
-			+ "FULL OUTER JOIN projected_revenues_data_t PRDT on PRDT.finance_customer_name=RCMT.finance_customer_name " 
-			+ "where upper(ARDT.month) in (:monthList) and (GMT.geography in (:geographyList) or ('') in (:geographyList))"
-			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList))"
-			+ "group by RCMT.customer_name ,GMT.display_geography order by actual_revenue desc) as RVNU group by RVNU.customer_name ,RVNU.display_geography"
-			+ " order by revenue desc ", nativeQuery = true)
-	public List<Object[]> getOverAllActualRevenuesByGeo(
-			@Param("geographyList") List<String> geographyList,
-			@Param("iouList")List<String> iouList,
-			@Param("monthList") List<String> monthList);
-	
-	
-	@Query(value = "select distinct RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
-			+ "from actual_revenues_data_t ARDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name " 
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
-			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou"
+	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue, RVNU.display_geography from  "
+			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue, GMT.display_geography from actual_revenues_data_t ARDT " 
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
+			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
 			+ " where upper(ARDT.month) in (:monthList) "
-			+ "and (GMT.geography in (:geographyList) or ('') in (:geographyList)) "
-			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) ",nativeQuery=true)
-	public List<Object[]> getGroupCustGeoIou(
-			@Param("geographyList") List<String> geographyList,
+			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
+			+ " UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue " 
+			+ ", GMT.display_geography from projected_revenues_data_t PRDT " 
+			+ " JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography"
+			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
+			+ " JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ " where upper(PRDT.month) in (:monthList) "
+			+ " and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+			+ " and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
+			+ " group by RCMT.customer_name, GMT.display_geography order by projected_revenue desc)) "
+			+ " as RVNU group by RVNU.customer_name, RVNU.display_geography order by revenue desc ", nativeQuery = true)
+	public List<Object[]> getOverAllActualRevenuesByGeo(
+			@Param("geoList") List<String> geographyList,
 			@Param("iouList")List<String> iouList,
 			@Param("monthList") List<String> monthList);
 	
+	
+	@Query(value = "select RVNU.customer_name, RVNU.finance_customer_name, RVNU.display_iou, RVNU.display_geography "
+			+ "from ((select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, " 
+			+ "gmt.display_geography from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on "
+			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography) "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
+			+ "JOIN iou_customer_mapping_t ICMT on "
+			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp " 
+			+ "where upper(ARDT.month) in (:monthList) "
+			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList))"
+			+ " and (ICMT.display_iou in (:iouList) or ('') in (:iouList))) "
+			+ "UNION (select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
+			+ "from projected_revenues_data_t PRDT JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography=PRDT.finance_geography) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where upper(PRDT.month) in (:monthList) and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) " 
+			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)))) as RVNU ", nativeQuery = true)
+	public List<Object[]> getGroupCustGeoIou(
+			@Param("geoList") List<String> geoList,
+			@Param("iouList")List<String> iouList,
+			@Param("monthList") List<String> monthList);
 }
