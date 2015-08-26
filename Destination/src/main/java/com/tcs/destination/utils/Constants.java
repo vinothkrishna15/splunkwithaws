@@ -31,5 +31,8 @@ public class Constants {
 	public static final String USD = "USD";
 	public static final String SPACE = "";
 	public static final String VALIDATOR_SHEET_NAME="Validate";
+	public static final int OPPORTUNITY_DESC_MAX_SIZE = 1000;
+	public static final int ENGAGEMENT_DURATION_MAX_SIZE = 15;
+	public static final int NOTEST_MAX_SIZE = 1000;
 
 }

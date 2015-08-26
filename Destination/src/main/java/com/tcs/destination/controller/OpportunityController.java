@@ -395,16 +395,15 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
         public @ResponseBody String uploadOpportunity(
+        	@RequestParam("userId") String userId,
     	    @RequestParam("file") MultipartFile file,
     	    @RequestParam(value = "fields", defaultValue = "all") String fields,
     	    @RequestParam(value = "view", defaultValue = "") String view)
     	    throws Exception {
     	logger.debug("Upload request Received : docName - ");
     	UploadStatusDTO status = null;
-//    	Status status = new Status();
-//    	status.setStatus(Status.FAILED, "");
     	try {
-    	    status = opportunityUploadService.saveDocument(file);
+    	    status = opportunityUploadService.saveDocument(file, userId);
     	    if(status!=null){
     		System.out.println(status.isStatusFlag());
     		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){
@@ -412,8 +411,6 @@ public class OpportunityController {
     		    System.out.println(err.getMessage());
     		}
     	    }
-//    	    status.setStatus(Status.SUCCESS, "Id : ");
-    	    logger.debug("UPLOAD SUCCESS - Record Created,  Id: ");
     	} catch (Exception e) {
     	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
     	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
