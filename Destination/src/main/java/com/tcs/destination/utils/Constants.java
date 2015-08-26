@@ -34,5 +34,6 @@ public class Constants {
 	public static final int OPPORTUNITY_DESC_MAX_SIZE = 1000;
 	public static final int ENGAGEMENT_DURATION_MAX_SIZE = 15;
 	public static final int NOTEST_MAX_SIZE = 1000;
+	public static final int CORE_ATTRIBUTES_MAX_VALUE = 300;
 
 }

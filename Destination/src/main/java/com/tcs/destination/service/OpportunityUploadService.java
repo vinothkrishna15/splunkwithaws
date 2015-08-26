@@ -809,7 +809,7 @@ public class OpportunityUploadService {
 			String bidReqDate, String targetSubmissionDate,
 			String actualSubmissionDate, String expectedOutcomeDate,
 			String winProbability, String coreAttributes, String userId)
-			throws ParseException {
+			throws Exception {
 
 		List<BidDetailsT> listOfBidDetailsT = new ArrayList<BidDetailsT>();
 
@@ -836,7 +836,11 @@ public class OpportunityUploadService {
 			bdt.setWinProbability(winProbability);
 		}
 		if (!StringUtils.isEmpty(coreAttributes)) {
-			bdt.setCoreAttributesUsedForWinning(coreAttributes);
+			if(coreAttributes.length()<=Constants.CORE_ATTRIBUTES_MAX_VALUE) {
+				bdt.setCoreAttributesUsedForWinning(coreAttributes);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Core Attributes used for winning should be a maximum of "+Constants.CORE_ATTRIBUTES_MAX_VALUE+" characters");
+			}
 		}
 		bdt.setCreatedBy(userId);
 		bdt.setModifiedBy(userId);
