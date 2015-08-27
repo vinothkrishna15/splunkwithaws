@@ -35,5 +35,8 @@ public class Constants {
 	public static final int ENGAGEMENT_DURATION_MAX_SIZE = 15;
 	public static final int NOTEST_MAX_SIZE = 1000;
 	public static final int CORE_ATTRIBUTES_MAX_VALUE = 300;
+	public static final String ROWNUMBER = "Row Number";
+	public static final String ERROR_MESSAGE = "Error Message";
+	public static final String UPLOAD_ERRORS = "upload errors";
 
 }

@@ -317,30 +317,4 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 	}
 	
-	
-
-	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody String upload(
-			@RequestParam("file") MultipartFile file,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.debug("Upload request Received : docName - ");
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		try {
-			//String docId = 
-					reportUploadService.saveDocument(file);
-			status.setStatus(Status.SUCCESS, "Id : ");
-           logger.debug("UPLOAD SUCCESS - Record Created,  Id: ");
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" +e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
-		}
-
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, status);
-	}
-	
-	
-
-	
 }

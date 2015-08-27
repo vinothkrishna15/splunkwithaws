@@ -148,14 +148,14 @@ public class ReportsService {
 			+ "JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
 	
 	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
-			+ "	 JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
+			+ "	 left outer JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
 			+ "  JOIN opportunity_t OPP ON BID.opportunity_id=OPP.opportunity_id"
 			+ "  JOIN customer_master_t CMT ON  CMT.customer_id = OPP.customer_id"
 			+ "  JOIN iou_customer_mapping_t ICMT on  CMT.iou = ICMT.iou"
 			+ "  JOIN geography_mapping_t GMT on CMT.geography = GMT.geography"
 			+ "  JOIN geography_country_mapping_t GCM ON GMT.geography = GCM.geography"
-			+ "  JOIN opportunity_sub_sp_link_t OPSUBL ON OPP.opportunity_id = OPSUBL.opportunity_id"
-			+ "  JOIN sub_sp_mapping_t SSM ON OPSUBL.sub_sp = SSM.sub_sp "
+			+ "  left outer join opportunity_sub_sp_link_t OPSUBL ON OPP.opportunity_id = OPSUBL.opportunity_id"
+			+ "  left outer JOIN sub_sp_mapping_t SSM ON OPSUBL.sub_sp = SSM.sub_sp "
 			+ " where ";
 
 	// TargetVsActual Detailed Report

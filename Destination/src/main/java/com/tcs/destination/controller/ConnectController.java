@@ -1,13 +1,17 @@
 package com.tcs.destination.controller;
 
+import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +30,7 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.ConnectUploadService;
+import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -44,6 +49,9 @@ public class ConnectController {
 
 	@Autowired
 	ConnectUploadService connectUploadService;
+	
+	@Autowired
+	UploadErrorReport uploadErrorReport;
 	
 	/**
 	 * This Method is used to find connection details for the given connection
@@ -228,7 +236,7 @@ public class ConnectController {
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public @ResponseBody String uploadOpportunity(
+    public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
 	    @RequestParam("file") MultipartFile file,
 	    @RequestParam("userId") String userId,
 	    @RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -236,11 +244,13 @@ public class ConnectController {
 	    throws Exception {
 	logger.debug("Upload request Received : docName ");
 	UploadStatusDTO status = null;
+	List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 	try {
 	    status = connectUploadService.saveConnectDocument(file, userId);
 	    if(status!=null){
 		System.out.println(status.isStatusFlag());
-		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){
+		errorDetailsDTOs = status.getListOfErrors();
+		for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
 		System.out.println(err.getRowNumber());
 		    System.out.println(err.getMessage());
 		}
@@ -251,9 +261,13 @@ public class ConnectController {
 	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 		    e.getMessage());
 	}
-
-	return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-		status);
-    }
+	InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
+	HttpHeaders respHeaders = new HttpHeaders();
+//	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+//	respHeaders.setContentDispositionFormData("attachment","upload_error.xls");
+	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
+	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+}
 	
 }

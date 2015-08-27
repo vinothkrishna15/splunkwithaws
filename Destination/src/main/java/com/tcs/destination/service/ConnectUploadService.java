@@ -57,6 +57,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.StringUtils;
@@ -360,7 +361,7 @@ public class ConnectUploadService {
 		connectT.setModifiedBy(userId); 
 		
 		// DOCUMENTS ATTACHED
-		connectT.setDocumentsAttached("NO");
+		connectT.setDocumentsAttached(Constants.NO);
 			
 		connectService.insertConnect(connectT, isBulkDataLoad);
 		}
