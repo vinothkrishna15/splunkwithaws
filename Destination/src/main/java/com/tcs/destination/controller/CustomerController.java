@@ -35,13 +35,14 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
-			@PathVariable("id") String customerid,
+			@PathVariable("id") String customerId,
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside CustomerController /customer/id=" + customerid
+		logger.debug("Inside CustomerController /customer/id=" + customerId
 				+ " GET");
-		CustomerMasterT customer = customerService.findById(customerid);
+		CustomerMasterT customer = customerService.findById(customerId, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customer);
 	}
@@ -72,16 +73,18 @@ public class CustomerController {
 
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
 	public @ResponseBody String findTargetVsActual(
-			@RequestParam("name") String name,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view,
-			@RequestParam(value = "year", defaultValue = "") String financialYear,
-			@RequestParam(value = "currency", defaultValue = "USD") String currency)
+			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
+			@RequestParam(value = "quarter", defaultValue = "", required = false) String quarter,
+			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
+			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
+			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
-		logger.debug("Inside CustomerController /customer/targetVsActual?name="
-				+ name + " GET");
+		logger.debug("Inside CustomerController /customer/targetVsActual GET");
 		List<TargetVsActualResponse> tarVsAct = customerService
-				.findTargetVsActual(name, currency, financialYear);
+				.findTargetVsActual(financialYear, quarter, customerName,
+						currency, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				tarVsAct);
 	}

@@ -1,12 +1,8 @@
 package com.tcs.destination.service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -18,42 +14,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import scala.Array;
-
-import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.NoSuchCurrencyException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class CustomerService {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(CustomerService.class);
-	
-	private static final String TOP_REVENUE_QUERY_PREFIX = 
-			"select CMT.customer_id from customer_master_t CMT,(select RCMT.customer_name, sum(ART.revenue) from "+
-			"actual_revenues_data_t ART, revenue_customer_mapping_t RCMT, "+
-			"iou_customer_mapping_t ICMT, sub_sp_mapping_t SSMT "+
-			"where ART.finance_customer_name = RCMT.finance_customer_name and "+
-			"ART.finance_geography = RCMT.customer_geography and "+
-			"ART.finance_iou = ICMT.iou and "+
-			"ART.sub_sp = SSMT.actual_sub_sp";
-	
-	private static final String TOP_REVENUE_PROJECTED_PREFIX =
-			"select CMT.* from customer_master_t CMT, (";
-	private static final String TOP_REVENUE_PROJECTED_SUFFIX=
-			") as TRC where CMT.customer_name = TRC.customer_name order by TRC.revenue desc";
-	
+
+	private static final String CUSTOMER_NAME_QUERY_PREFIX = "select CMT.customer_name from customer_master_t CMT "
+			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
+
+	private static final String TOP_REVENUE_QUERY_PREFIX = "select CMT.customer_id from customer_master_t CMT,(select RCMT.customer_name, sum(ART.revenue) from "
+			+ "actual_revenues_data_t ART, revenue_customer_mapping_t RCMT, "
+			+ "iou_customer_mapping_t ICMT, sub_sp_mapping_t SSMT "
+			+ "where ART.finance_customer_name = RCMT.finance_customer_name and "
+			+ "ART.finance_geography = RCMT.customer_geography and "
+			+ "ART.finance_iou = ICMT.iou and "
+			+ "ART.sub_sp = SSMT.actual_sub_sp";
+
+	private static final String TOP_REVENUE_PROJECTED_PREFIX = "select CMT.* from customer_master_t CMT, (";
+	private static final String TOP_REVENUE_PROJECTED_SUFFIX = ") as TRC where CMT.customer_name = TRC.customer_name order by TRC.revenue desc";
+
+	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
+	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
+	private static final String CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.customer_name in (";
+
 	private static final String TOP_REVENUE_QUERY_SUFFIX = ") as RV where RV.customer_name=CMT.customer_name order by RV.sum desc";
 	private static final String TOP_REVENUE_QUERY_YEAR = " and ART.financial_year = ";
 	private static final String TOP_REVENUE_QUERY_GROUP_BY = " group by RCMT.customer_name order by sum desc limit ";
@@ -66,73 +64,94 @@ public class CustomerService {
 	CustomerRepository customerRepository;
 
 	@Autowired
+	OpportunityService opportunityService;
+
+	@Autowired
+	ContactService contactService;
+
+	@Autowired
 	BeaconConvertorRepository beaconRepository;
-	
+
 	@PersistenceContext
-    private EntityManager entityManager;
-	
+	private EntityManager entityManager;
+
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	ReportsService reportsService;
-	
+
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
-	public CustomerMasterT findById(String customerId) throws Exception {
+	@Autowired
+	PerformanceReportService performanceReportService;
+
+	public CustomerMasterT findById(String customerId,String userId) throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail doesnot match");
 		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: Customer not found: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found: " + customerId);
 		}
-		removeCyclicForLinkedContactTs(customerMasterT);
+		prepareCustomerDetails(customerMasterT, null);
 		return customerMasterT;
 	}
 
 	/**
-	 * This service is used to find Top revenue customers based on user's access privileges.
+	 * This service is used to find Top revenue customers based on user's access
+	 * privileges.
 	 * 
-	 * @param userId, year, count.
+	 * @param userId
+	 *            , year, count.
 	 * @return Top revenue customers.
 	 */
-	public List<CustomerMasterT> findTopRevenue(String userId, String financialYear, int count)
-			throws Exception {
+	public List<CustomerMasterT> findTopRevenue(String userId,
+			String financialYear, int count) throws Exception {
 		logger.debug("Inside findTopRevenue() service");
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
 			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User not found: " + userId);
 		} else {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service 
-				switch(UserGroup.valueOf(UserGroup.getName(userGroup))) {
-					case BDM: 
-					case BDM_SUPERVISOR:
-						logger.error("User is not authorized to access this service");
-						throw new DestinationException(HttpStatus.FORBIDDEN, "User is not authorised to access this service");
-					default: 	
-						// Validate financial year and set default value
-						if (financialYear.isEmpty()) {
-							logger.debug("Financial year is empty");
-							financialYear = DateUtils.getCurrentFinancialYear();
-						}
-						List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(userId, financialYear, count);
-						return resultCustomerList;
+				// Validate user group, BDM's & BDM supervisor's are not
+				// authorized for this service
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+				case BDM_SUPERVISOR:
+					logger.error("User is not authorized to access this service");
+					throw new DestinationException(HttpStatus.FORBIDDEN,
+							"User is not authorised to access this service");
+				default:
+					// Validate financial year and set default value
+					if (financialYear.isEmpty()) {
+						logger.debug("Financial year is empty");
+						financialYear = DateUtils.getCurrentFinancialYear();
+					}
+					List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
+							userId, financialYear, count);
+					return resultCustomerList;
 				}
 			} else {
 				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid User Group");
 			}
-        }
+		}
 	}
 
 	/**
-	 * This method forms and executes the query to find Top revenue customers based on user access privileges
+	 * This method forms and executes the query to find Top revenue customers
+	 * based on user access privileges
 	 * 
 	 * @param userId
 	 * @param financialYear
@@ -140,86 +159,65 @@ public class CustomerService {
 	 * @return Top revenue customers
 	 * @throws Exception
 	 */
-	private List<CustomerMasterT> getTopRevenuesBasedOnUserPrivileges(String userId, 
-			String financialYear, int count) throws Exception {
+	private List<CustomerMasterT> getTopRevenuesBasedOnUserPrivileges(
+			String userId, String financialYear, int count) throws Exception {
 		logger.debug("Inside getTopRevenuesBasedOnUserPrivileges() method");
 		// Form the native top revenue query string
 		String queryString = getRevenueQueryString(userId, count, financialYear);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
-		Query topRevenueQuery = entityManager.createNativeQuery(queryString,CustomerMasterT.class);
+		Query topRevenueQuery = entityManager.createNativeQuery(queryString,
+				CustomerMasterT.class);
 		List<CustomerMasterT> resultList = topRevenueQuery.getResultList();
 		if (resultList == null || resultList.isEmpty()) {
 			logger.error("NOT_FOUND: Top revenue customers not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,"Top revenue customers not found");
-		} 
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Top revenue customers not found");
+		}
 		removeCyclicForLinkedContactTs(resultList);
 		return resultList;
 	}
 
 	/**
-	 * This method returns the query string with user access privilege restrictions added
+	 * This method returns the query string with user access privilege
+	 * restrictions added
+	 * 
 	 * @param count
 	 * @param financialYear
 	 * @param privileges
 	 * @return
 	 * @throws DestinationException
 	 */
-	private String getRevenueQueryString(String userId, int count, String financialYear) throws Exception {
-		logger.debug("Inside getRevenueQueryString() method" );
-		StringBuffer queryBuffer = new StringBuffer(TOP_REVENUE_PROJECTED_PREFIX);
-		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(userId, financialYear, count));
+	private String getRevenueQueryString(String userId, int count,
+			String financialYear) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				TOP_REVENUE_PROJECTED_PREFIX);
+		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(
+				userId, financialYear, count));
 		queryBuffer.append(TOP_REVENUE_PROJECTED_SUFFIX);
 		return queryBuffer.toString();
 	}
 
-	public List<TargetVsActualResponse> findTargetVsActual(String name,
-			String currency, String financialYear) throws Exception {
+	public List<TargetVsActualResponse> findTargetVsActual(
+			String financialYear, String quarter, String customerName,
+			String currency, String userId) throws Exception {
 		logger.debug("Inside findTargetVsActual() service");
-		BeaconConvertorMappingT beacon = beaconRepository
-				.findByCurrencyName(currency);
-		if (beacon == null) {
-			logger.error("No Such Currency Exception");
-			throw new NoSuchCurrencyException();
-		}
-		List<TargetVsActualResponse> tarActResponseList = new ArrayList<TargetVsActualResponse>();
-		if (financialYear.equals("")) {
-			financialYear = DateUtils.getCurrentFinancialYear();
-		}
-		List<Object[]> actualList = customerRepository.findActual(name,
-				financialYear);
-		List<Object[]> targetList = customerRepository.findTarget(name,
-				financialYear);
-		for (Object[] actual : actualList) {
-			TargetVsActualResponse response = new TargetVsActualResponse();
-			response.setQuarter(actual[0].toString());
-			response.setActual(new BigDecimal(actual[1].toString()).divide(
-					beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
-			for (Object[] target : targetList) {
-				if (target[0].toString().equals(response.getQuarter())) {
-					logger.debug("Target Equals Quarter");
-					response.setTarget(new BigDecimal(target[1].toString())
-							.divide(beacon.getConversionRate(), 2,
-									RoundingMode.HALF_UP));
-				}
-			}
-			tarActResponseList.add(response);
-		}
-		if (actualList.isEmpty()) {
-			for (Object[] target : targetList) {
-				TargetVsActualResponse response = new TargetVsActualResponse();
-				response.setQuarter(target[0].toString());
-				response.setTarget(new BigDecimal(target[1].toString()).divide(
-						beacon.getConversionRate(), 2, RoundingMode.HALF_UP));
-				tarActResponseList.add(response);
-			}
-		}
-		if (tarActResponseList.isEmpty()) {
-			logger.error("NOT_FOUND: TargetVsActual data not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"TargetVsActual data not found");
-		}
-		return tarActResponseList;
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail doesnot match");
+
+		ArrayList<String> customerNameList = new ArrayList<String>();
+		customerNameList.add(customerName);
+		customerNameList = getPreviledgedCustomerName(userId, customerNameList,
+				true);
+
+		if (customerNameList == null || customerNameList.isEmpty())
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User does not have access to view this information");
+		return performanceReportService.getTargetVsActualRevenueSummary(
+				financialYear, quarter, "", "", "", customerName, currency);
 	}
 
 	public List<CustomerMasterT> findByNameContaining(String nameWith)
@@ -228,11 +226,12 @@ public class CustomerService {
 		List<CustomerMasterT> custList = customerRepository
 				.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(nameWith);
 		if (custList.isEmpty()) {
-			logger.error("NOT_FOUND: Customer not found with given name: {}", nameWith);
+			logger.error("NOT_FOUND: Customer not found with given name: {}",
+					nameWith);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Customer not found with given name: " + nameWith);
 		}
-		removeCyclicForLinkedContactTs(custList);
+		prepareCustomerDetails(custList);
 		return custList;
 	}
 
@@ -242,11 +241,14 @@ public class CustomerService {
 		List<CustomerMasterT> custList = customerRepository
 				.findByGroupCustomerNameIgnoreCaseContainingOrderByGroupCustomerNameAsc(groupCustName);
 		if (custList.isEmpty()) {
-			logger.error("NOT_FOUND: Customer not found with given group customer name: {}", groupCustName);
+			logger.error(
+					"NOT_FOUND: Customer not found with given group customer name: {}",
+					groupCustName);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer not found with given group customer name: " + groupCustName);
+					"Customer not found with given group customer name: "
+							+ groupCustName);
 		}
-		removeCyclicForLinkedContactTs(custList);
+		prepareCustomerDetails(custList);
 		return custList;
 	}
 
@@ -266,11 +268,14 @@ public class CustomerService {
 			}
 
 		if (custList.isEmpty()) {
-			logger.error("NOT_FOUND: Customer not found with given customer name: {}", startsWith);
+			logger.error(
+					"NOT_FOUND: Customer not found with given customer name: {}",
+					startsWith);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer not found with given customer name: " + startsWith);
+					"Customer not found with given customer name: "
+							+ startsWith);
 		}
-		removeCyclicForLinkedContactTs(custList);
+		prepareCustomerDetails(custList);
 		return custList;
 	}
 
@@ -293,6 +298,131 @@ public class CustomerService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * This method returns the query string with user access privilege
+	 * restrictions added
+	 * 
+	 * @param count
+	 * @param financialYear
+	 * @param privileges
+	 * @return
+	 * @throws DestinationException
+	 */
+	private String getCustomerPrevilegeQueryString(String userId,
+			List<String> customerNameList, boolean considerGeoIou)
+			throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CUSTOMER_NAME_QUERY_PREFIX);
+
+		HashMap<String, String> queryPrefixMap;
+
+		if (considerGeoIou) {
+			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+					CUSTOMER_GEO_COND_SUFFIX, null, CUSTOMER_IOU_COND_SUFFIX,
+					CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+		} else {
+			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+					null, null, null, CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+		}
+
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+
+		if ((whereClause != null && !whereClause.isEmpty())
+				|| (customerNameList != null && customerNameList.size() > 0)) {
+			queryBuffer.append(" where ");
+		}
+
+		if (customerNameList != null && customerNameList.size() > 0) {
+			String customerNameQueryList = "(";
+			{
+				for (String customerName : customerNameList)
+					customerNameQueryList += "'" + customerName.replace("\'", "\'\'") + "',";
+			}
+			customerNameQueryList = customerNameQueryList.substring(0,
+					customerNameQueryList.length() - 1);
+			customerNameQueryList += ")";
+
+			queryBuffer.append(" CMT.customer_name in " + customerNameQueryList);
+		}
+		
+		if ((whereClause != null && !whereClause.isEmpty())
+				&& (customerNameList != null && customerNameList.size() > 0)) {
+			queryBuffer.append(Constants.AND_CLAUSE);
+		}
+
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(whereClause);
+		}
+
+		return queryBuffer.toString();
+	}
+
+	public ArrayList<String> getPreviledgedCustomerName(String userId,
+			ArrayList<String> customerNameList, boolean considerGeoIou)
+			throws Exception {
+		logger.debug("Inside setPreviledgeConstraints(customerName) method");
+		String queryString = getCustomerPrevilegeQueryString(userId,
+				customerNameList, considerGeoIou);
+		logger.info("Query string: {}", queryString);
+		Query opportunityQuery = entityManager.createNativeQuery(queryString);
+		return (ArrayList<String>) opportunityQuery.getResultList();
+	}
+
+	private void prepareCustomerDetails(List<CustomerMasterT> customerMasterList)
+			throws Exception {
+		if (customerMasterList != null && !customerMasterList.isEmpty()) {
+			ArrayList<String> customerNameList = new ArrayList<String>();
+			for (CustomerMasterT customerMasterT : customerMasterList) {
+				customerNameList.add(customerMasterT.getCustomerName());
+			}
+			customerNameList = getPreviledgedCustomerName(DestinationUtils
+					.getCurrentUserDetails().getUserId(), customerNameList,
+					true);
+
+			for (CustomerMasterT customerMasterT : customerMasterList) {
+				prepareCustomerDetails(customerMasterT, customerNameList);
+			}
+		}
+
+	}
+
+	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
+			ArrayList<String> customerNameList) throws DestinationException {
+		removeCyclicForLinkedContactTs(customerMasterT);
+		try {
+			if (customerNameList == null) {
+				customerNameList = new ArrayList<String>();
+				customerNameList.add(customerMasterT.getCustomerName());
+				customerNameList = getPreviledgedCustomerName(DestinationUtils
+						.getCurrentUserDetails().getUserId(), customerNameList,
+						true);
+			}
+			if (customerNameList == null
+					|| customerNameList.isEmpty()
+					|| (!customerNameList.contains(customerMasterT
+							.getCustomerName()))) {
+				hideSensitiveInfo(customerMasterT);
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+
+	}
+
+	private void hideSensitiveInfo(CustomerMasterT customerMasterT) {
+		opportunityService.preventSensitiveInfo(customerMasterT
+				.getOpportunityTs());
+		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
+				.getContactCustomerLinkTs())
+			contactService.preventSensitiveInfo(contactCustomerLinkT
+					.getContactT());
+
 	}
 
 }
