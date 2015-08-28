@@ -341,14 +341,18 @@ public class CustomerService {
 			String customerNameQueryList = "(";
 			{
 				for (String customerName : customerNameList)
-					customerNameQueryList += "'" + customerName + "',";
+					customerNameQueryList += "'" + customerName.replace("\'", "\'\'") + "',";
 			}
 			customerNameQueryList = customerNameQueryList.substring(0,
 					customerNameQueryList.length() - 1);
 			customerNameQueryList += ")";
 
-			queryBuffer.append(" CMT.customer_name in " + customerNameQueryList
-					+ Constants.AND_CLAUSE);
+			queryBuffer.append(" CMT.customer_name in " + customerNameQueryList);
+		}
+		
+		if ((whereClause != null && !whereClause.isEmpty())
+				&& (customerNameList != null && customerNameList.size() > 0)) {
+			queryBuffer.append(Constants.AND_CLAUSE);
 		}
 
 		if (whereClause != null && !whereClause.isEmpty()) {
