@@ -38,7 +38,7 @@ public class UserT implements Serializable {
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
 	}
-	
+
 	@Id
 	@Column(name = "user_id")
 	private String userId;
@@ -72,8 +72,8 @@ public class UserT implements Serializable {
 
 	@Transient
 	private Timestamp lastLogin;
-	
-	@OneToMany(mappedBy="userT")
+
+	@OneToMany(mappedBy = "userT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	// bi-directional many-to-one association to BdmTargetT
@@ -262,8 +262,8 @@ public class UserT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "user_group", insertable = false, updatable = false)
 	private UserGroupMappingT userGroupMappingT;
-	
-	@Column(name="user_group")
+
+	@Column(name = "user_group")
 	private String userGroup;
 
 	// bi-directional many-to-one association to UserRoleMappingT
@@ -282,6 +282,9 @@ public class UserT implements Serializable {
 
 	@Transient
 	private String newPassword;
+
+	@Transient
+	private List<String> previledgedCustomerNameList;
 
 	public UserT() {
 	}
@@ -1286,16 +1289,27 @@ public class UserT implements Serializable {
 			List<UserAccessPrivilegesT> userAccessPrivilegesTs) {
 		this.userAccessPrivilegesTs = userAccessPrivilegesTs;
 	}
-	
-	public UserAccessPrivilegesT addUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
+
+	public UserAccessPrivilegesT addUserAccessPrivilegesT(
+			UserAccessPrivilegesT userAccessPrivilegesT) {
 		getUserAccessPrivilegesTs().add(userAccessPrivilegesT);
 		userAccessPrivilegesT.setUserT(this);
 		return userAccessPrivilegesT;
 	}
 
-	public UserAccessPrivilegesT removeUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
+	public UserAccessPrivilegesT removeUserAccessPrivilegesT(
+			UserAccessPrivilegesT userAccessPrivilegesT) {
 		getUserAccessPrivilegesTs().remove(userAccessPrivilegesT);
 		userAccessPrivilegesT.setUserT(null);
 		return userAccessPrivilegesT;
+	}
+
+	public List<String> getPreviledgedCustomerNameList() {
+		return previledgedCustomerNameList;
+	}
+
+	public void setPreviledgedCustomerNameList(
+			List<String> previledgedCustomerNameList) {
+		this.previledgedCustomerNameList = previledgedCustomerNameList;
 	}
 }

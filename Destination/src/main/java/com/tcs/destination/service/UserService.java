@@ -21,7 +21,6 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 
-
 @Service
 public class UserService {
 
@@ -33,15 +32,18 @@ public class UserService {
 
 	@Autowired
 	LoginHistoryRepository loginHistoryRepository;
-	
+
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
-	
+
 	@Autowired
 	DestinationMailUtils mailUtils;
-	
+
 	@Value("${forgotPassword}")
 	private String forgotPasswordSubject;
+
+	@Autowired
+	CustomerService customerService;
 
 	public List<UserT> findByUserName(String nameWith) throws Exception {
 		logger.debug("Inside findByUserName Service");
@@ -87,6 +89,8 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found");
 		}
+		user.setPreviledgedCustomerNameList(customerService
+				.getPreviledgedCustomerName(user.getUserId(), null, false));
 		return user;
 	}
 
@@ -135,8 +139,7 @@ public class UserService {
 	public UserT findByUserIdAndPassword(String userId, String password)
 			throws Exception {
 		logger.debug("Inside findByUserIdAndPassword() service");
-		return (userRepository.findByUserIdAndTempPassword(userId,
-				password));
+		return (userRepository.findByUserIdAndTempPassword(userId, password));
 	}
 
 	public void updateUser(UserT user) {
@@ -158,20 +161,22 @@ public class UserService {
 				.isEmpty());
 	}
 
-	
 	/**
 	 * This is the service method for forgot password service
+	 * 
 	 * @param userId
 	 * @param userEmailId
 	 * @throws Exception
 	 */
-	public void forgotPassword(String userId, String userEmailId) throws Exception {
+	public void forgotPassword(String userId, String userEmailId)
+			throws Exception {
 		logger.debug("Inside forgotPassword() service");
 		UserT user = userRepository.findOne(userId);
-		if(user != null){
+		if (user != null) {
 			String retrievedMailId = user.getUserEmailId();
-			if(retrievedMailId.equals(userEmailId)){
-				mailUtils.sendPasswordAutomatedEmail(forgotPasswordSubject,user,new Date());
+			if (retrievedMailId.equals(userEmailId)) {
+				mailUtils.sendPasswordAutomatedEmail(forgotPasswordSubject,
+						user, new Date());
 			} else {
 				logger.error("UserId and E-Mail address do not match");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -183,16 +188,19 @@ public class UserService {
 					"User not found: " + userId);
 		}
 	}
-	
+
 	/**
 	 * This service is used to get all the access privileges for a user
+	 * 
 	 * @param userId
 	 * @return List of user access privileges
 	 * @throws Exception
 	 */
-	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId) throws Exception {
+	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId)
+			throws Exception {
 		logger.debug("Inside getAllPrivilegesByUserId() service");
-		return (userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNull(userId));
+		return (userAccessPrivilegesRepository
+				.findByUserIdAndParentPrivilegeIdIsNull(userId));
 	}
 
 }

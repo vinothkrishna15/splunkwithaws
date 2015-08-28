@@ -90,11 +90,6 @@ public class OpportunityService {
 	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
 
-	private static final String OPPORTUNITY_GEO_EXCLUDE_COND_PREFIX = "GCMT.geography not in (";
-	private static final String OPPORTUNITY_SUBSP_EXCLUDE_COND_PREFIX = "SSMT.display_sub_sp not in (";
-	private static final String OPPORTUNITY_IOU_EXCLUDE_COND_PREFIX = "ICMT.display_iou not in (";
-	private static final String OPPORTUNITY_CUSTOMER_EXCLUDE_COND_PREFIX = "CMT.customer_name not in (";
-
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
@@ -852,7 +847,16 @@ public class OpportunityService {
 
 	}
 
-	private void preventSensitiveInfo(OpportunityT opportunityT) {
+	public void preventSensitiveInfo(List<OpportunityT> opportunityTs) {
+		for (OpportunityT opportunityT : opportunityTs) {
+			if (opportunityT != null) {
+				preventSensitiveInfo(opportunityT);
+			}
+		}
+
+	}
+
+	public void preventSensitiveInfo(OpportunityT opportunityT) {
 		if (opportunityT != null) {
 			opportunityT.setDigitalDealValue(null);
 			opportunityT.setOverallDealSize(null);

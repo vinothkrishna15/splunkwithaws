@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -79,17 +80,19 @@ public class ContactService {
 	}
 
 	/**
-	 * This method is used to find all the contacts with the given contact type 
+	 * This method is used to find all the contacts with the given contact type
 	 * and/or for a specific Customer / Partner.
 	 * 
-	 * @param customerId, partnerId, contactType
+	 * @param customerId
+	 *            , partnerId, contactType
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsByContactType(String customerId, String partnerId, String contactType)
-			throws Exception {
+	public List<ContactT> findContactsByContactType(String customerId,
+			String partnerId, String contactType) throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
 
-		List<ContactT> contactList = contactRepository.findByContactType(customerId, partnerId, contactType);
+		List<ContactT> contactList = contactRepository.findByContactType(
+				customerId, partnerId, contactType);
 
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
@@ -261,4 +264,24 @@ public class ContactService {
 			}
 		}
 	}
+
+	public void preventSensitiveInfo(List<ContactT> contactTs) {
+		for (ContactT contactT : contactTs) {
+			if (contactT != null) {
+				preventSensitiveInfo(contactT);
+			}
+		}
+
+	}
+
+	public void preventSensitiveInfo(ContactT contactT) {
+		if (contactT != null) {
+			if (contactT.getContactType().equals(ContactType.EXTERNAL)) {
+				contactT.setContactEmailId(null);
+				contactT.setContactTelephone(null);
+			}
+		}
+
+	}
+
 }
