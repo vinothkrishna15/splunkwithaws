@@ -38,16 +38,10 @@ public class UserT implements Serializable {
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
 	}
-
+	
 	@Id
 	@Column(name = "user_id")
 	private String userId;
-
-	@Column(name="created_datetime")
-	private Timestamp createdDatetime;
-
-	@Column(name="modified_datetime")
-	private Timestamp modifiedDatetime;
 
 	@Column(name = "supervisor_user_id")
 	private String supervisorUserId;
@@ -79,7 +73,10 @@ public class UserT implements Serializable {
 	@Transient
 	private Timestamp lastLogin;
 
-	@OneToMany(mappedBy = "userT")
+	@Transient
+	private List<String> previledgedCustomerNameList;
+	
+	@OneToMany(mappedBy="userT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	// bi-directional many-to-one association to BdmTargetT
@@ -268,8 +265,8 @@ public class UserT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "user_group", insertable = false, updatable = false)
 	private UserGroupMappingT userGroupMappingT;
-
-	@Column(name = "user_group")
+	
+	@Column(name="user_group")
 	private String userGroup;
 
 	// bi-directional many-to-one association to UserRoleMappingT
@@ -289,25 +286,6 @@ public class UserT implements Serializable {
 	@Transient
 	private String newPassword;
 
-	@Column(name="created_by")
-	private String createdBy;
-
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="created_by", insertable = false, updatable = false)
-	private UserT createdByUser;
-
-	@Column(name="modified_by")
-	private String modifiedBy;
-	
-	//bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name="modified_by", insertable = false, updatable = false)
-	private UserT modifiedByUser;
-	
-	@Transient
-	private List<String> previledgedCustomerNameList;
-
 	public UserT() {
 	}
 
@@ -318,23 +296,6 @@ public class UserT implements Serializable {
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
-	
-	public Timestamp getCreatedDatetime() {
-		return this.createdDatetime;
-	}
-
-	public void setCreatedDatetime(Timestamp createdDatetime) {
-		this.createdDatetime = createdDatetime;
-	}
-
-	public Timestamp getModifiedDatetime() {
-		return this.modifiedDatetime;
-	}
-
-	public void setModifiedDatetime(Timestamp modifiedDatetime) {
-		this.modifiedDatetime = modifiedDatetime;
-	}
-
 
 	public String getSupervisorUserId() {
 		return this.supervisorUserId;
@@ -390,38 +351,6 @@ public class UserT implements Serializable {
 
 	public void setUserTelephone(String userTelephone) {
 		this.userTelephone = userTelephone;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
-
-	public UserT getCreatedByUser() {
-		return createdByUser;
-	}
-
-	public void setCreatedByUser(UserT createdByUser) {
-		this.createdByUser = createdByUser;
-	}
-
-	public String getModifiedBy() {
-		return modifiedBy;
-	}
-
-	public void setModifiedBy(String modifiedBy) {
-		this.modifiedBy = modifiedBy;
-	}
-
-	public UserT getModifiedByUser() {
-		return modifiedByUser;
-	}
-
-	public void setModifiedByUser(UserT modifiedByUser) {
-		this.modifiedByUser = modifiedByUser;
 	}
 
 	public List<BdmTargetT> getBdmTargetTs() {
@@ -1360,16 +1289,14 @@ public class UserT implements Serializable {
 			List<UserAccessPrivilegesT> userAccessPrivilegesTs) {
 		this.userAccessPrivilegesTs = userAccessPrivilegesTs;
 	}
-
-	public UserAccessPrivilegesT addUserAccessPrivilegesT(
-			UserAccessPrivilegesT userAccessPrivilegesT) {
+	
+	public UserAccessPrivilegesT addUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
 		getUserAccessPrivilegesTs().add(userAccessPrivilegesT);
 		userAccessPrivilegesT.setUserT(this);
 		return userAccessPrivilegesT;
 	}
 
-	public UserAccessPrivilegesT removeUserAccessPrivilegesT(
-			UserAccessPrivilegesT userAccessPrivilegesT) {
+	public UserAccessPrivilegesT removeUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
 		getUserAccessPrivilegesTs().remove(userAccessPrivilegesT);
 		userAccessPrivilegesT.setUserT(null);
 		return userAccessPrivilegesT;
