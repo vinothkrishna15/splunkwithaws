@@ -25,4 +25,7 @@ public interface PartnerRepository extends
 			 nativeQuery = true)
 	void addImage(byte[] imageBytes, String id);
 
+	@Query(value ="select partner_name, partner_id from partner_master_t", nativeQuery = true)
+	List<Object[]> getPartnerNameAndId();
+
 }

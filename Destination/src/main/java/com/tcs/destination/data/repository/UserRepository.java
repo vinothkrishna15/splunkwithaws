@@ -35,5 +35,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value ="update user_t set user_photo = ?1  where user_id=?2",
 			 nativeQuery = true)
 	void addImage(byte[] imageBytes, String id);
+	
+	@Query(value ="select user_name, user_id from user_t", nativeQuery = true)
+	List<Object[]> getNameAndId();
 
 }

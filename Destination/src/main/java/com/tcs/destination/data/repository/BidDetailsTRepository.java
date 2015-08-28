@@ -40,5 +40,8 @@ public interface BidDetailsTRepository extends
 	@Query(value = "select distinct (BID.*) from bid_details_t BID where BID.bid_id in (:bidId) order by BID.bid_id", nativeQuery = true)
 	List<BidDetailsT> findByBidId(
 			@Param("bidId")List<String> bidId);
+
+	@Query(value = "select bid_request_type from bid_request_type_mapping_t", nativeQuery = true)
+	List<String> getBidRequestType();
 	
 }

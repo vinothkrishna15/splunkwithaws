@@ -18,4 +18,7 @@ public interface GeographyRepository extends
 	
 	GeographyMappingT findByGeography(String geography);
 
+	@Query(value = "select country from geography_country_mapping_t" ,nativeQuery =  true)
+	List<String> getCountry();
+
 }

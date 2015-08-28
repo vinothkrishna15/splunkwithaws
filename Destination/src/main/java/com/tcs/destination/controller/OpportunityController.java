@@ -8,7 +8,10 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +34,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.OpportunityUploadService;
+import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -50,6 +54,9 @@ public class OpportunityController {
 	
 	@Autowired
 	OpportunityUploadService opportunityUploadService;
+	
+	@Autowired
+	UploadErrorReport uploadErrorReport;
 
 	// @Autowired
 	// CustomerRepository customerRepository;
@@ -394,7 +401,7 @@ public class OpportunityController {
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-        public @ResponseBody String uploadOpportunity(
+        public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
         	@RequestParam("userId") String userId,
     	    @RequestParam("file") MultipartFile file,
     	    @RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -402,22 +409,22 @@ public class OpportunityController {
     	    throws Exception {
     	logger.debug("Upload request Received : docName - ");
     	UploadStatusDTO status = null;
+    	List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null; 
     	try {
     	    status = opportunityUploadService.saveDocument(file, userId);
     	    if(status!=null){
-    		System.out.println(status.isStatusFlag());
-    		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){
-    		System.out.println(err.getRowNumber());
-    		    System.out.println(err.getMessage());
-    		}
+    		errorDetailsDTOs =status.getListOfErrors();
     	    }
     	} catch (Exception e) {
     	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
     	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
     		    e.getMessage());
     	}
+    	InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
+	HttpHeaders respHeaders = new HttpHeaders();
+	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
+	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+}
     
-    	return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-    		status);
-        }
 }

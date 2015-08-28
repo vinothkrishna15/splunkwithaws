@@ -63,4 +63,7 @@ public interface CustomerRepository extends
 		 nativeQuery = true)
 	 void addImage(byte[] imageBytes, String id);
 
+	 @Query(value ="select customer_name, customer_id from customer_master_t", nativeQuery = true)
+	 List<Object[]> getNameAndId();
+
 }
