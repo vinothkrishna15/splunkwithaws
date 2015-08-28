@@ -47,7 +47,7 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityReopenRequestService opportunityReopenRequestService;
-	
+
 	@Autowired
 	OpportunityUploadService opportunityUploadService;
 
@@ -58,15 +58,17 @@ public class OpportunityController {
 	public @ResponseBody String findOne(
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies, isAjax);
+				.findByOpportunityName(nameWith, customerId, currencies,
+						isAjax, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -394,30 +396,31 @@ public class OpportunityController {
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-        public @ResponseBody String uploadOpportunity(
-        	@RequestParam("userId") String userId,
-    	    @RequestParam("file") MultipartFile file,
-    	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-    	    @RequestParam(value = "view", defaultValue = "") String view)
-    	    throws Exception {
-    	logger.debug("Upload request Received : docName - ");
-    	UploadStatusDTO status = null;
-    	try {
-    	    status = opportunityUploadService.saveDocument(file, userId);
-    	    if(status!=null){
-    		System.out.println(status.isStatusFlag());
-    		for(UploadServiceErrorDetailsDTO err : status.getListOfErrors()){
-    		System.out.println(err.getRowNumber());
-    		    System.out.println(err.getMessage());
-    		}
-    	    }
-    	} catch (Exception e) {
-    	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-    	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-    		    e.getMessage());
-    	}
-    
-    	return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-    		status);
-        }
+	public @ResponseBody String uploadOpportunity(
+			@RequestParam("userId") String userId,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Upload request Received : docName - ");
+		UploadStatusDTO status = null;
+		try {
+			status = opportunityUploadService.saveDocument(file, userId);
+			if (status != null) {
+				System.out.println(status.isStatusFlag());
+				for (UploadServiceErrorDetailsDTO err : status
+						.getListOfErrors()) {
+					System.out.println(err.getRowNumber());
+					System.out.println(err.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				status);
+	}
 }

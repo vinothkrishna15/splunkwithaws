@@ -166,9 +166,14 @@ public class OpportunityService {
 	UserRepository userRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
-			String customerId, List<String> toCurrency, boolean isAjax)
+			String customerId, List<String> toCurrency, boolean isAjax,String userId)
 			throws Exception {
 		logger.debug("Inside findByOpportunityName() service");
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail doesnot match");
+		
 		List<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
