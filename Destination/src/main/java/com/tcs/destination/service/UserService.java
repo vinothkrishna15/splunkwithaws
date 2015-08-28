@@ -89,8 +89,8 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found");
 		}
-		user.setPreviledgedCustomerNameList(customerService
-				.getPreviledgedCustomerName(user.getUserId(), null, false));
+//		user.setPreviledgedCustomerNameList(customerService
+//				.getPreviledgedCustomerName(user.getUserId(), null, false));
 		return user;
 	}
 
