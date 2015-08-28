@@ -36,7 +36,7 @@ public class CustomerController {
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("id") String customerId,
-			@PathVariable("userId") String userId,
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
