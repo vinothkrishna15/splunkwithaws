@@ -74,6 +74,12 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 
+/**
+ * This service helps in uploading opportunities to database
+ * 
+ * @author bnpp
+ *
+ */
 @Service
 public class OpportunityUploadService {
 
@@ -147,11 +153,6 @@ public class OpportunityUploadService {
 
 	try {
 
-//	    File file = convert(multipartFile);
-
-//	    FileInputStream fileInputStream = new FileInputStream(file);
-
-//	    Workbook workbook = WorkbookFactory.create(fileInputStream);
 	    Workbook workbook = ExcelUtils.getWorkBook(multipartFile);
 	    uploadStatus = new UploadStatusDTO();
 	    uploadStatus
@@ -355,13 +356,8 @@ public class OpportunityUploadService {
 
 				// ENGAGEMENT DURATION
 				if (!StringUtils.isEmpty(listOfCellValues.get(37))) {
-//				    if (listOfCellValues.get(37).length() <= OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE) {
 				    validateCellByStringLength(listOfCellValues.get(37),OpportunityUploadConstants.ENGAGEMENT_DURATION, 37, OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE);
 				    opp.setEngagementDuration((listOfCellValues.get(37)));
-//				    } else {
-//					throw new DestinationException(
-//						HttpStatus.BAD_REQUEST, "Engagement duration should be a maximum of "+ OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE+ " characters");
-//				    }
 				}
 
 				// ENGAGEMENT START DATE
@@ -373,17 +369,9 @@ public class OpportunityUploadService {
 
 				// COMMENTS FOR WIN LOSS
 				if (!StringUtils.isEmpty(listOfCellValues.get(40))) {
-//				    if (listOfCellValues.get(40).length() <= OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE) {
 				    validateCellByStringLength(listOfCellValues.get(40),OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS, 40, OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE);
 				    opp.setDescriptionForWinLoss(listOfCellValues
 						.get(40));
-//				    } else {
-//					throw new DestinationException(
-//						HttpStatus.BAD_REQUEST,
-//						"Comments for win loss should be a maximum of "
-//							+ OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE
-//							+ " characters");
-//				    }
 				}
 
 				// Params for opportunity_t Table - manually set
@@ -464,6 +452,9 @@ public class OpportunityUploadService {
 					    listOfCellValues.get(33),
 					    listOfCellValues.get(34), userId));
 				}
+				/*
+				 * Commented on-demand 
+				 */
 				// else {
 				// String message="";
 				// if(StringUtils.isEmpty(listOfCellValues.get(27))){
@@ -492,16 +483,8 @@ public class OpportunityUploadService {
 
 				// Deal Status Remarks
 				if (!StringUtils.isEmpty(listOfCellValues.get(41))) {
-//				    if (listOfCellValues.get(41).length() <= OpportunityUploadConstants.NOTEST_MAX_SIZE) {
 				    validateCellByStringLength(listOfCellValues.get(41), OpportunityUploadConstants.DEAL_STATUS_REMARKS, 41, OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE);
 				    opp.setNotesTs(constructNotesT(listOfCellValues.get(41),opp.getCustomerId(), userId));
-//				    } else {
-//					throw new DestinationException(
-//						HttpStatus.BAD_REQUEST,
-//						"Deal Status should be a maximum of "
-//							+ OpportunityUploadConstants.NOTEST_MAX_SIZE
-//							+ " characters");
-//				    }
 				}
 
 				logger.debug("Inserting...");
@@ -535,7 +518,6 @@ public class OpportunityUploadService {
 		    rowCount++;
 		}
 
-//		fileInputStream.close();
 	    } else {
 		logger.error(
 			"BAD_REQUEST: The Excel uploaded by user : {} contains validation errors, please rectify them before you upload the sheet again",
@@ -561,6 +543,13 @@ public class OpportunityUploadService {
 	return uploadStatus;
     }
     
+    /**
+     * This method validates the date provided
+     * @param date
+     * @param columnName
+     * @return Date
+     * @throws Exception
+     */
     private Date validateDate(String date, String columnName) throws Exception{
 	
 	Date formattedDate = null;
@@ -986,15 +975,8 @@ public class OpportunityUploadService {
         	    bdt.setWinProbability(winProbability);
         	}
         	if (!StringUtils.isEmpty(coreAttributes)) {
-        //	    if (coreAttributes.length() <= OpportunityUploadConstants.CORE_ATTRIBUTES_MAX_VALUE) {
         	    validateCellByStringLength(coreAttributes, OpportunityUploadConstants.CORE_ATTRIBUTES, 34, OpportunityUploadConstants.CORE_ATTRIBUTES_MAX_VALUE);
         	    bdt.setCoreAttributesUsedForWinning(coreAttributes);
-        //	    } else {
-        //		throw new DestinationException(HttpStatus.BAD_REQUEST,
-        //			"Core Attributes used for winning should be a maximum of "
-        //				+ OpportunityUploadConstants.CORE_ATTRIBUTES_MAX_VALUE
-        //				+ " characters");
-        //	    }
         	}
         	bdt.setCreatedBy(userId);
         	bdt.setModifiedBy(userId);
