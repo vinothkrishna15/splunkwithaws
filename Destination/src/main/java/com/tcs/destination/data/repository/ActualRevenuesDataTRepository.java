@@ -49,7 +49,7 @@ public interface ActualRevenuesDataTRepository extends
  	+ "and RCMT.customer_geography=PRDT.finance_geography) "
  	+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
  	+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp " 
- 	+ "where upper(ARDT.month) in (:monthList) "
+ 	+ "where upper(PRDT.month) in (:monthList) "
  	+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
  	+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) " 
  	+ "group by RCMT.customer_name order by projected_revenue desc))) " 

@@ -2471,18 +2471,19 @@ StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
-		Date startDate = fromDate;
-		Date endDate = toDate;
+		Date startDate = null;
+		Date endDate = null;
 		String tillDate = DateUtils.getCurrentDate();
 		List<BidDetailsT> bidDetailsList =new ArrayList<BidDetailsT>();
 		List<BidDetailsT> bidDetails = new ArrayList<BidDetailsT>();
-		if (!year.equals("")) {
-			logger.debug("year is not Empty");
-			startDate = DateUtils.getDateFromFinancialYear(year, true);
-			endDate = DateUtils.getDateFromFinancialYear(year, false);
-		}
-//		else if(year.equals("")){
-//			startDate = DateUtils
+		
+		startDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(fromDate, year, true);
+		endDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(endDate, year, false);
+		
+//		if (!year.equals("")) {
+//			logger.debug("year is not Empty");
+//			startDate = DateUtils.getDateFromFinancialYear(year, true);
+//			endDate = DateUtils.getDateFromFinancialYear(year, false);
 //		}
 
 		UserT user = userService.findByUserId(userId);
