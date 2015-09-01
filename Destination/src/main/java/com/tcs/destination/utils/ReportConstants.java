@@ -159,7 +159,14 @@ public class ReportConstants {
 	public static final List<String> SECONDQUARTER = Arrays.asList("Q2 ", "MAY", "AUG", "NOV","FEB");
 	public static final List<String> THIRDQUARTER = Arrays.asList("Q3 ", "JUN", "SEP", "DEC","MAR");
 	public static final String SUMMARYGEOGRAPHYQUERYMETHOD = "findSummaryGeography";
-	public static final String HEADINGSTYLE = "headingStyle";	
+	public static final String HEADINGSTYLE = "headingStyle";
+	public static final String OPPNAME = "opportunityName";
+	public static final String CRM = "crmId";
+	public static final String YTDBEACONTARGET = "yTdBeaconTarget";
+	public static final String YTDACTUAL = "yTdActual";
+	public static final String YTDPROJECTED = "yTdProjected";
+	public static final String YTDREVENUE = "yTdRevenue";
+	public static final String YTDTARGETACHIEVED = "yTdTargetAchieved";	
 	
 
 }

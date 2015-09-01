@@ -102,14 +102,14 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		headerList.add(ReportConstants.Q2FY + currentFinancialYear + ReportConstants.BEACONTARGET);
 		headerList.add(ReportConstants.Q3FY + currentFinancialYear + ReportConstants.BEACONTARGET);
 		headerList.add(ReportConstants.Q4FY + currentFinancialYear + ReportConstants.BEACONTARGET);
-		if (fields.contains("beaconTarget")) {
+		if (fields.contains(ReportConstants.YTDBEACONTARGET)) {
 			headerList.add(4, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.BEACONTARGET);
 		}
 		headerList.add(ReportConstants.Q1FY + currentFinancialYear + ReportConstants.ACTUAL);
 		headerList.add(ReportConstants.Q2FY + currentFinancialYear + ReportConstants.ACTUAL);
 		headerList.add(ReportConstants.Q3FY + currentFinancialYear + ReportConstants.ACTUAL);
 		headerList.add(ReportConstants.Q4FY + currentFinancialYear + ReportConstants.ACTUAL);
-		if (fields.contains("Actual")) {
+		if (fields.contains(ReportConstants.YTDACTUAL)) {
 			headerList.add(9, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.ACTUAL);
 		}
 		Boolean isTrue = getProjectedValue(targetVsActualDetailedList);
@@ -118,7 +118,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			headerList.add(ReportConstants.Q2FY + currentFinancialYear + ReportConstants.PROJECTED);
 			headerList.add(ReportConstants.Q3FY + currentFinancialYear + ReportConstants.PROJECTED);
 			headerList.add(ReportConstants.Q4FY + currentFinancialYear + ReportConstants.PROJECTED);
-			if (fields.contains("Projected")) {
+			if (fields.contains(ReportConstants.YTDPROJECTED)) {
 				headerList.add(14, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.PROJECTED);
 			}
 		}
@@ -133,7 +133,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				+ currentFinancialYear + ReportConstants.PROJECTED);
 		headerList.add(ReportConstants.Q4FY + currentFinancialYear + ReportConstants.REVENUEQ4FY + currentFinancialYear + ReportConstants.ACTUALQ4FY
 				+ currentFinancialYear + ReportConstants.PROJECTED);
-		if (fields.contains("Revenue")) {
+		if (fields.contains(ReportConstants.YTDREVENUE)) {
 			headerList.add(c, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.REVENUE);
 		}
 		int columnNo = 3 + columnValue;
@@ -170,7 +170,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.getCell(columnNo).setCellStyle(headerStyle);
 		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
-		if (fields.contains("TargetAchieved")) {
+		if (fields.contains(ReportConstants.YTDTARGETACHIEVED)) {
 			row.createCell(columnNo).setCellValue(
 					ReportConstants.YTDFY + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 			row.getCell(columnNo).setCellStyle(headerStyle);
@@ -316,7 +316,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 			
 			//If fields contains beaconTarget , Write the targetValues for the financial year into Excel
-			if (fields.contains("beaconTarget")) {
+			if (fields.contains(ReportConstants.YTDBEACONTARGET)) {
 				if (currencyList.size() > 1) {
 					columnNo = 11 + offset;
 				} else {
@@ -380,7 +380,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 
 			//If fields contains Actual , Write the actualRevenue for the financial year into Excel
-			if (fields.contains("Actual")) {
+			if (fields.contains(ReportConstants.YTDACTUAL)) {
 				if (currencyList.size() > 1) {
 					columnNo = 19 + offset;
 				} else {
@@ -464,7 +464,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 
 			//If fields contains Projected, Write the ProjectedRevenue for the financial year into Excel
 			if (isTrue) {
-				if (fields.contains("Projected")) {
+				if (fields.contains(ReportConstants.YTDPROJECTED)) {
 					if (currencyList.size() > 1) {
 						columnNo = 19 + offset + projectedOffset;
 					} else {
@@ -543,7 +543,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 				 
 			//If fields contains Revenue, Write the Revenue for the financial year into Excel
-			if (fields.contains("Revenue")) {
+			if (fields.contains(ReportConstants.YTDREVENUE)) {
 				if (currencyList.size() > 1) {
 					columnNo = 27 + offset + projectedOffset;
 				} else {
@@ -609,7 +609,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 			
 			//If fields contains TargetAchieved , Write the targetAchieved for the financial year into Excel
-		 	if (fields.contains("TargetAchieved")) {
+		 	if (fields.contains(ReportConstants.YTDTARGETACHIEVED)) {
 				if (currencyList.size() > 1) {
 					columnNo = 31 + offset + projectedOffset;
 				} else {

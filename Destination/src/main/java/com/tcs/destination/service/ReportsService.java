@@ -163,19 +163,19 @@ public class ReportsService {
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
-			+ "where ";
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_ACTUAL_QUERY_PREFIX = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
-			+ "where ";
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_TARGET_QUERY_PREFIX = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou  "
-			+ "where ";
+			+ "where BCMT.customer_name not like 'UNKNOWN%' and ";
 
 	// TargetVsActual Summary
 	private static final String TARGET_VS_ACTUAL_TOTAL_REVENUE_QUERY_PREFIX = "select sum(BDT.target) from beacon_data_t BDT "
@@ -197,10 +197,21 @@ public class ReportsService {
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp where ";
 	
-	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_revenue from ( ";
-
+	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_revenue from (select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
+			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where ";
 	
 	private static final String TOP_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
+			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
+	
+	private static final String OVER_ALL_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
@@ -208,8 +219,8 @@ public class ReportsService {
 			+ "where ";
 			
 	private static final String RCMT_GEO_COND_PREFIX = "RCMT.customer_geography in (";
+
 	private static final String RCMT_GROUP_CUST_ORDER_ACTUAL_REVENUE_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc)";
-	
 	
 	private static final String TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 
 		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
@@ -217,8 +228,24 @@ public class ReportsService {
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and " ;
+	
+	private static final String OVER_ALL_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 
+		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
+			+ "from projected_revenues_data_t PRDT " 
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where " ;
 	
+	private static final String TOP_CUSTOMER_REVENUE_SUM_UNION_QUERY_PREFIX = 
+		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
+			+ "from projected_revenues_data_t PRDT " 
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ "where " ;
+
 	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
 			+ " as RVNU group by RVNU.customer_name order by revenue desc LIMIT ";
 	
@@ -1333,7 +1360,7 @@ public class ReportsService {
 			List<String> formattedMonths, String userId) throws Exception {
 		logger.debug("Inside getTotalTargetRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX);
-		queryBuffer.append(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
+//		queryBuffer.append(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
@@ -1351,7 +1378,7 @@ public class ReportsService {
 		queryBuffer.append(RCMT_GROUP_CUST_ORDER_ACTUAL_REVENUE_COND_PREFIX);
 //		queryBuffer.append(GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX);
 		
-		queryBuffer.append(TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX);
+		queryBuffer.append(TOP_CUSTOMER_REVENUE_SUM_UNION_QUERY_PREFIX);
 		
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
@@ -1652,7 +1679,7 @@ public class ReportsService {
 	private String getOverAllActualRevenuesQueryString(
 			List<String> formattedMonths, String userId) throws Exception {
 		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
-StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
+StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREFIX);
 		
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
@@ -1669,11 +1696,8 @@ StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
 		}
 		queryBuffer.append(RCMT_GROUP_CUST_ORDER_ACTUAL_REVENUE_COND_PREFIX);
 		
-		queryBuffer.append(TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX);
+		queryBuffer.append(OVER_ALL_CUSTOMER_REVENUE_UNION_QUERY_PREFIX);
 		
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
@@ -2480,12 +2504,6 @@ StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
 		startDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(fromDate, year, true);
 		endDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(endDate, year, false);
 		
-//		if (!year.equals("")) {
-//			logger.debug("year is not Empty");
-//			startDate = DateUtils.getDateFromFinancialYear(year, true);
-//			endDate = DateUtils.getDateFromFinancialYear(year, false);
-//		}
-
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
 			logger.error("NOT_FOUND: User not found: {}", userId);

@@ -71,12 +71,12 @@ public class BuildBidReportService {
 				ReportConstants.REPORTHEADER);
 		XSSFRow row = spreadSheet.createRow(0);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			CreateHeaderBidDetailsReportMandatoryFields(row, spreadSheet,
+			createHeaderBidDetailsReportMandatoryFields(row, spreadSheet,
 					currency);
-			BidReportWithMandatoryFields(bidDetailsList, spreadSheet, currency);
+			getBidReportWithMandatoryFields(bidDetailsList, spreadSheet, currency);
 		} else {
 			XSSFRow row1 = spreadSheet.createRow(1);
-			CreateHeaderBidDetailsReportOptionalFields(bidDetailsList, row,
+			createHeaderBidDetailsReportOptionalFields(bidDetailsList, row,
 					row1, fields, spreadSheet, currency);
 			BidReportWithOptionalFields(bidDetailsList, spreadSheet, fields,
 					currency);
@@ -91,7 +91,7 @@ public class BuildBidReportService {
 		return inputStreamResource;
 	}
 
-	public void CreateHeaderBidDetailsReportMandatoryFields(XSSFRow row,
+	public void createHeaderBidDetailsReportMandatoryFields(XSSFRow row,
 			XSSFSheet spreadSheet, List<String> currency) {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
 		getMandatoryBidReportHeader(row, spreadSheet);
@@ -108,7 +108,7 @@ public class BuildBidReportService {
 			}
 		} else {
 			row.createCell(8).setCellValue(
-					ReportConstants.DIGITALDEALVALUE + "In " + currency.get(0));
+					ReportConstants.DIGITALDEALVALUE + " In " + currency.get(0));
 			row.getCell(8).setCellStyle(cellStyle);
 			spreadSheet.autoSizeColumn(8);
 		}
@@ -142,7 +142,7 @@ public class BuildBidReportService {
 		spreadSheet.autoSizeColumn(7);
 	}
 
-	public void CreateHeaderBidDetailsReportOptionalFields(
+	public void createHeaderBidDetailsReportOptionalFields(
 			List<BidDetailsT> bidDetailsList, XSSFRow row, XSSFRow row1,
 			List<String> fields, XSSFSheet spreadSheet, List<String> currency) {
 		/**
@@ -185,7 +185,7 @@ public class BuildBidReportService {
 		}
 	}
 
-	public int BidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList,
+	public int getBidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList,
 			XSSFSheet spreadSheet, List<String> currency) {
 		int currentRow = 1;
 		if (currency.size() > 1) {
@@ -292,7 +292,7 @@ public class BuildBidReportService {
 					row.getCell(colValue).setCellStyle(cellStyle);
 					colValue++;
 					break;
-				case ReportConstants.CRMID:
+				case ReportConstants.CRM:
 					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCrmId());
 					row.getCell(colValue).setCellStyle(cellStyle);
 					spreadSheet.autoSizeColumn(colValue);
@@ -303,7 +303,7 @@ public class BuildBidReportService {
 					row.getCell(colValue).setCellStyle(cellStyle);
 					colValue++;
 					break;
-				case ReportConstants.OPPORTUNITYNAME:
+				case ReportConstants.OPPNAME:
 					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getOpportunityName());
 					row.getCell(colValue).setCellStyle(cellStyle);
 					colValue++;
