@@ -46,18 +46,18 @@ public class ConnectT implements Serializable {
 	@Column(name = "connect_name")
 	private String connectName;
 
-	@Column(name="created_datetime",updatable = false)
+	@Column(name = "created_datetime", updatable = false)
 	private Timestamp createdDatetime;
-	
-	@Column(name="modified_datetime")
+
+	@Column(name = "modified_datetime")
 	private Timestamp modifiedDatetime;
-	
-	@Column(name = "created_by",updatable = false)
+
+	@Column(name = "created_by", updatable = false)
 	private String createdBy;
-	
+
 	@Column(name = "modified_by")
 	private String modifiedBy;
-	
+
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name = "created_by", updatable = false, insertable = false)
@@ -67,7 +67,7 @@ public class ConnectT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "modified_by", updatable = false, insertable = false)
 	private UserT modifiedByUser;
-	
+
 	@Column(name = "documents_attached")
 	private String documentsAttached;
 
@@ -202,6 +202,12 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs;
+
+	@Transient
+	private List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs;
+	
+	@Transient
+	private List<SearchKeywordsT> deleteSearchKeywordsTs;
 
 	public String getConnectId() {
 		return this.connectId;
@@ -803,5 +809,22 @@ public class ConnectT implements Serializable {
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
 	}
+
+	public List<ConnectOpportunityLinkIdT> getDeleteConnectOpportunityLinkIdTs() {
+		return deleteConnectOpportunityLinkIdTs;
+	}
+
+	public void setDeleteConnectOpportunityLinkIdTs(
+			List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs) {
+		this.deleteConnectOpportunityLinkIdTs = deleteConnectOpportunityLinkIdTs;
+	}
 	
+	public List<SearchKeywordsT> getDeleteSearchKeywordsTs() {
+		return deleteSearchKeywordsTs;
+	}
+	
+	public void setDeleteSearchKeywordsTs(
+			List<SearchKeywordsT> deleteSearchKeywordsTs) {
+		this.deleteSearchKeywordsTs = deleteSearchKeywordsTs;
+	}
 }
