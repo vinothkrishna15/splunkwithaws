@@ -64,7 +64,7 @@ public class ReportsController {
 				targetVsActualDetailedList);
 	}
 	
-	@RequestMapping(value = "/targetVsActual/detailed/excel", method = RequestMethod.GET)
+	@RequestMapping(value = "/targetVsActual/detailed", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> getTargetVsActualReport(
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
@@ -85,7 +85,7 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/targetVsActual/summary/excel", method = RequestMethod.GET)
+	@RequestMapping(value = "/targetVsActual/summary", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> getTargetVsActualSummaryReport(
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
@@ -105,7 +105,7 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/targetVsActual/both/excel", method = RequestMethod.GET)
+	@RequestMapping(value = "/targetVsActual/both", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> getTargetVsActualBothReports(
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
@@ -201,8 +201,8 @@ public class ReportsController {
 	@RequestMapping(value = "/bid/detailed", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> getDetailedBidReport(
 			@RequestParam(value = "year", defaultValue = "") String year,
-			@RequestParam(value="from",defaultValue="")@DateTimeFormat(iso = ISO.DATE) Date fromDate,
-			@RequestParam(value="to",defaultValue="") @DateTimeFormat(iso = ISO.DATE) Date toDate,
+			@RequestParam(value="from",defaultValue="") String fromMonth,
+			@RequestParam(value="to",defaultValue="") String toMonth,
 			@RequestParam(value = "bidOwner", defaultValue = "") List<String> bidOwner,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
@@ -214,7 +214,7 @@ public class ReportsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ReportController /report/bid/detailed GET");
-		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromDate, toDate,bidOwner,currency,iou, geography, country,serviceLines,userId,fields);
+		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceLines,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
 		logger.debug("Download Header - Attachment : " + "bidDetailsReport_"+todaysDate+".xlsx");

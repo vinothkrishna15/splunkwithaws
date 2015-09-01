@@ -2484,8 +2484,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		}
 	}
 
-	public InputStreamResource getBidReport(String year, Date fromDate,
-			Date toDate, List<String> bidOwner, List<String> currency,
+	public InputStreamResource getBidReport(String year, String fromMonth,
+			String toMonth, List<String> bidOwner, List<String> currency,
 			List<String> iou, List<String> geography, List<String> country,
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
@@ -2501,8 +2501,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		List<BidDetailsT> bidDetailsList =new ArrayList<BidDetailsT>();
 		List<BidDetailsT> bidDetails = new ArrayList<BidDetailsT>();
 		
-		startDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(fromDate, year, true);
-		endDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(endDate, year, false);
+		startDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(fromMonth, year, true);
+		endDate = DateUtils.getDateFromGivenAndCurrentFinancialYear(toMonth, year, false);
 		
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {

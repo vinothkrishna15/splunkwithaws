@@ -573,11 +573,11 @@ public class DateUtils {
 		return newDateFormat;
 	}
 
-	public static Date getDateFromGivenAndCurrentFinancialYear(Date givenDate, String year, boolean isTrue) throws Exception{
+	public static Date getDateFromGivenAndCurrentFinancialYear(String givenDate, String year, boolean isTrue) throws Exception{
 		Date date = null;
 		if (isTrue) {
 			if (givenDate !=null) {
-				date = givenDate;
+				date = getDateFromMonth(givenDate, true);
 			} else if (!year.equals("")) {
 				logger.debug("year is not Empty");
 				date = getDateFromFinancialYear(year, true);
@@ -586,7 +586,7 @@ public class DateUtils {
 			}
 		} else {
 			if (givenDate !=null) {
-				date = givenDate;
+				date = getDateFromMonth(givenDate, false);
 			} else if (!year.equals("")) {
 				logger.debug("year is not Empty");
 				date = getDateFromFinancialYear(year, false);
