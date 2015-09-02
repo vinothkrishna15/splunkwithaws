@@ -38,5 +38,5 @@ public class Constants {
 	public static final String ROWNUMBER = "Row Number";
 	public static final String ERROR_MESSAGE = "Error Message";
 	public static final String UPLOAD_ERRORS = "upload errors";
-
+	public static final String UNKNOWN_CUSTOMER = "UNKNOWN%";
 }

@@ -37,28 +37,12 @@ public class CustomerService {
 	private static final String CUSTOMER_NAME_QUERY_PREFIX = "select CMT.customer_name from customer_master_t CMT "
 			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
 
-	private static final String TOP_REVENUE_QUERY_PREFIX = "select CMT.customer_id from customer_master_t CMT,(select RCMT.customer_name, sum(ART.revenue) from "
-			+ "actual_revenues_data_t ART, revenue_customer_mapping_t RCMT, "
-			+ "iou_customer_mapping_t ICMT, sub_sp_mapping_t SSMT "
-			+ "where ART.finance_customer_name = RCMT.finance_customer_name and "
-			+ "ART.finance_geography = RCMT.customer_geography and "
-			+ "ART.finance_iou = ICMT.iou and "
-			+ "ART.sub_sp = SSMT.actual_sub_sp";
-
 	private static final String TOP_REVENUE_PROJECTED_PREFIX = "select CMT.* from customer_master_t CMT, (";
 	private static final String TOP_REVENUE_PROJECTED_SUFFIX = ") as TRC where CMT.customer_name = TRC.customer_name order by TRC.revenue desc";
 
 	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
 	private static final String CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.customer_name in (";
-
-	private static final String TOP_REVENUE_QUERY_SUFFIX = ") as RV where RV.customer_name=CMT.customer_name order by RV.sum desc";
-	private static final String TOP_REVENUE_QUERY_YEAR = " and ART.financial_year = ";
-	private static final String TOP_REVENUE_QUERY_GROUP_BY = " group by RCMT.customer_name order by sum desc limit ";
-	private static final String TOP_REVENUE_GEO_COND_PREFIX = "RCMT.customer_geography in (";
-	private static final String TOP_REVENUE_SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
-	private static final String TOP_REVENUE_IOU_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -224,7 +208,7 @@ public class CustomerService {
 			throws Exception {
 		logger.debug("Inside findByNameContaining() service");
 		List<CustomerMasterT> custList = customerRepository
-				.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(nameWith);
+				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(nameWith, Constants.UNKNOWN_CUSTOMER);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: Customer not found with given name: {}",
 					nameWith);
@@ -238,8 +222,8 @@ public class CustomerService {
 	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName)
 			throws Exception {
 		logger.debug("Inside findByGroupCustomerName() service");
-		List<CustomerMasterT> custList = customerRepository
-				.findByGroupCustomerNameIgnoreCaseContainingOrderByGroupCustomerNameAsc(groupCustName);
+		List<CustomerMasterT> custList = customerRepository.
+				findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(groupCustName, Constants.UNKNOWN_CUSTOMER);
 		if (custList.isEmpty()) {
 			logger.error(
 					"NOT_FOUND: Customer not found with given group customer name: {}",
@@ -258,12 +242,12 @@ public class CustomerService {
 		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
 		if (!startsWith.equals("@"))
 			custList.addAll(customerRepository
-					.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(startsWith));
+					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(startsWith, Constants.UNKNOWN_CUSTOMER));
 		else
 			for (int i = 0; i <= 9; i++) {
 				List<CustomerMasterT> customerMasterTs = customerRepository
-						.findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(i
-								+ "");
+						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(i
+								+ "", Constants.UNKNOWN_CUSTOMER);
 				custList.addAll(customerMasterTs);
 			}
 

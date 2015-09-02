@@ -17,11 +17,11 @@ public interface CustomerRepository extends
 
 	List<CustomerMasterT> findByCustomerId(String customerid);
 
-	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(
-			String name);
+	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+			String name, String nameNot);
 
-	List<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithOrderByCustomerNameAsc(
-			String name);
+	List<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+			String name, String nameNot);
 
 	@Query(value = "select * from customer_Master_T c ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
 	List<CustomerMasterT> findRecent(int count);
@@ -35,8 +35,8 @@ public interface CustomerRepository extends
 	@Query(value = "SELECT B.Quarter,B.target FROM BEACON_DATA_T B,BEACON_CUSTOMER_MAPPING_T CM WHERE  B.beacon_customer_name =CM.beacon_customer_name AND B.FINANCIAL_YEAR=?2  AND CM.customer_name=?1", nativeQuery = true)
 	List<Object[]> findTarget(String customerName, String financialYear);
 
-	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingOrderByGroupCustomerNameAsc(
-			String groupCustName);
+	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
+			String groupCustName, String groupCustNameNot);
 
 	// @Query(value =
 	// "update customer_master_t set logo = ?1  where customer_id=?2",
