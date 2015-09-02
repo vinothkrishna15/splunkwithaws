@@ -40,13 +40,17 @@ import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
+import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
+import com.tcs.destination.data.repository.UserNotificationsTRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Service
@@ -101,6 +105,20 @@ public class ConnectService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
+	
+	// Required beans for Notifications - start
+	@Autowired
+	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
+
+	@Autowired
+	UserNotificationsTRepository userNotificationsTRepository;
+
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepo;
+
+	@Autowired
+	ThreadPoolTaskExecutor notificationsTaskExecutor;
+	// Required beans for Notifications - end
 
 	@Autowired
 	UserRepository userRepository;
@@ -320,6 +338,8 @@ public class ConnectService {
 				if (!isBulkDataLoad) {
 					// Invoke Asynchronous Auto Comments Thread
 					processAutoComments(connect.getConnectId(), null);
+					//Invoke Asynchronous Notifications Thread
+					processNotifications(connect.getConnectId(),null);
 				}
 				return true;
 			}
@@ -327,6 +347,23 @@ public class ConnectService {
 		}
 		logger.debug("Connect not Saved");
 		return false;
+	}
+	
+	private void processNotifications(String connectId, Object oldObject) {
+		logger.debug("Calling processNotifications() method");
+		NotificationHelper notificationsHelper = new NotificationHelper();
+		notificationsHelper.setEntityId(connectId);
+		notificationsHelper.setEntityType(EntityType.CONNECT.name());
+		if (oldObject != null) {
+			notificationsHelper.setOldObject(oldObject);
+		}
+		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper.setCrudRepository(connectRepository);
+		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		// Invoking Auto Comments Task Executor Thread
+		notificationsTaskExecutor.execute(notificationsHelper);
 	}
 
 	private void validateRequest(ConnectT connect, boolean isInsert)
@@ -507,6 +544,8 @@ public class ConnectService {
 			logger.info("Connect has been updated successfully: " + connectId);
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(connectId, oldObject);
+			//Invoke Asynchronous Notifications Thread
+			processNotifications(connectId,oldObject);
 			return true;
 		}
 		return false;

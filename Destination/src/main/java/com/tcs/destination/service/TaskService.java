@@ -21,9 +21,12 @@ import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
 import com.tcs.destination.data.repository.TaskRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
+import com.tcs.destination.data.repository.UserNotificationsTRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.TaskCollaborationPreference;
@@ -31,6 +34,8 @@ import com.tcs.destination.enums.TaskEntityReference;
 import com.tcs.destination.enums.TaskStatus;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
+import com.tcs.destination.helper.NotificationHelper;
+import com.tcs.destination.helper.NotificationsLazyLoader;
 import com.tcs.destination.utils.DestinationUtils;
 
 /**
@@ -76,6 +81,20 @@ public class TaskService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
+	
+	// Required beans for Notifications - start
+	@Autowired
+	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
+
+	@Autowired
+	UserNotificationsTRepository userNotificationsTRepository;
+
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepo;
+
+	@Autowired
+	ThreadPoolTaskExecutor notificationsTaskExecutor;
+	// Required beans for Notifications - end
 
 	/**
 	 * This method is used to find task details for the given task id.
@@ -258,8 +277,20 @@ public class TaskService {
 		
 		// Invoke Asynchronous Auto Comments Thread
 		processAutoComments(managedTask.getTaskId(), null);
-		
+		// Invoke Asynchronous Notifications Thread
+		processNotifications(managedTask.getTaskId(), null);
 		return managedTask;
+	}
+	
+	// This method is used to load database object with auto comments eligible
+	// lazy collections populated
+	public TaskT loadDbTaskWithLazyCollections(
+			String taskId) throws Exception {
+		logger.debug("Inside loadDbTaskWithLazyCollections() method");
+		TaskT task = (TaskT) NotificationsLazyLoader.loadLazyCollections(taskId,
+				EntityType.TASK.name(), taskRepository, notificationEventFieldsTRepository,
+				null);
+		return task;
 	}
 
 	/**
@@ -278,8 +309,14 @@ public class TaskService {
 			logger.error("TaskId is required for update");
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "TaskId is required for update");
 		}
-		//Check if task exists
-		TaskT dbTask = taskRepository.findOne(task.getTaskId());
+		// Check if task exists
+		if (!taskRepository.exists(task.getTaskId())) {
+			logger.error("NOT_FOUND: Task not found for update: {}", task.getTaskId());
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Task not found for update: " + task.getTaskId());
+		}
+
+		// Load db object before update with lazy collections populated for NNotifications
+		TaskT dbTask = loadDbTaskWithLazyCollections(task.getTaskId());
 		if (dbTask != null) {
 			logger.debug("Task Exists");
 
@@ -330,6 +367,9 @@ public class TaskService {
 
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(dbTask.getTaskId(), oldObject);
+			
+			// Invoke Asynchronous Notifications Thread
+			processNotifications(dbTask.getTaskId(), oldObject);
 
 		} else {
 			logger.error("NOT_FOUND: Task not found for update: {}", task.getTaskId());
@@ -465,6 +505,24 @@ public class TaskService {
 		autoCommentsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
+	}
+	
+	// This method is used to invoke asynchronous thread for notifications
+	private void processNotifications(String taskId, Object oldObject){
+		logger.debug("Calling processNotifications() method");
+		NotificationHelper notificationsHelper = new NotificationHelper();
+		notificationsHelper.setEntityId(taskId);
+		notificationsHelper.setEntityType(EntityType.TASK.name());
+		if (oldObject != null) {
+			notificationsHelper.setOldObject(oldObject);
+		}
+		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper.setCrudRepository(taskRepository);
+		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		// Invoking notifications Task Executor Thread
+		notificationsTaskExecutor.execute(notificationsHelper);
 	}
 	
 }
