@@ -201,7 +201,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		Boolean isTrue = getProjectedValue(targetVsActualDetailedList);
 		for (TargetVsActualDetailed targetVsActual : targetVsActualDetailedList) {
 			row = spreadSheet.createRow((short) currentRow + 2);
-			getTargetVsActualReportMandatoryFields(spreadSheet, row,
+			getTargetVsActualReportWithOrWithOutFields(spreadSheet, row,
 					currencyList, targetVsActualDetailedList, targetVsActual,
 					fields,isTrue);
 			currentRow++;
@@ -209,7 +209,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		return currentRow;
 	}
 
-	public void getTargetVsActualReportMandatoryFields(XSSFSheet spreadSheet,
+	public void getTargetVsActualReportWithOrWithOutFields(XSSFSheet spreadSheet,
 			XSSFRow row, List<String> currencyList,
 			List<TargetVsActualDetailed> targetVsActualDetailedList,
 			TargetVsActualDetailed targetVsActual, List<String> fields, Boolean isTrue) {
