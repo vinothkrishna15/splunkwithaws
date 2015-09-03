@@ -25,25 +25,37 @@ public class FavoritesService {
 	@Autowired
 	FavoritesSearchedRepository userFavRepository;
 
-	public FavoritesResponse findFavoritesFor(String userId, String entityType, int start, int count)
-			throws Exception {
-		FavoritesResponse favorites = null; 
+	@Autowired
+	ContactService contactService;
+
+	public FavoritesResponse findFavoritesFor(String userId, String entityType,
+			int start, int count) throws Exception {
+		FavoritesResponse favorites = null;
 
 		logger.debug("Inside findFavoritesFor Service");
 		if (EntityType.contains(entityType)) {
 			logger.debug("EntityType is present");
 			Pageable pageable = new PageRequest(start, count);
 			Page<UserFavoritesT> userFavorites = userFavRepository
-					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(userId, entityType, pageable);
-			
+					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(
+							userId, entityType, pageable);
+
 			if (userFavorites.getContent().isEmpty()) {
 				logger.error("NOT_FOUND: No Relevent Data Found in the database");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
 			} else {
+				for (UserFavoritesT userFavorite : userFavorites) {
+					if (userFavorite.getContactT() != null) {
+						contactService
+								.removeCyclicForLinkedContactTs(userFavorite
+										.getContactT());
+					}
+				}
 				favorites = new FavoritesResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
-				logger.debug("Total Favorites: " + userFavorites.getTotalElements());
+				logger.debug("Total Favorites: "
+						+ userFavorites.getTotalElements());
 				favorites.setTotalCount(userFavorites.getTotalElements());
 				return favorites;
 			}
@@ -65,7 +77,10 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Customer ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByCustomerIdAndUserId(favorites.getCustomerId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByCustomerIdAndUserId(
+									favorites.getCustomerId(),
+									favorites.getUserId());
 					favorites.setConnectId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -80,7 +95,9 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Partner ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByPartnerIdAndUserId(favorites.getPartnerId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByPartnerIdAndUserId(favorites.getPartnerId(),
+									favorites.getUserId());
 					favorites.setConnectId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -95,7 +112,9 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Connect ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByConnectIdAndUserId(favorites.getConnectId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByConnectIdAndUserId(favorites.getConnectId(),
+									favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -110,7 +129,10 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Opportunity ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByOpportunityIdAndUserId(favorites.getOpportunityId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByOpportunityIdAndUserId(
+									favorites.getOpportunityId(),
+									favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setDocumentId(null);
@@ -125,7 +147,10 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Document ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByDocumentIdAndUserId(favorites.getDocumentId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByDocumentIdAndUserId(
+									favorites.getDocumentId(),
+									favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setContactId(null);
 					favorites.setOpportunityId(null);
@@ -141,7 +166,9 @@ public class FavoritesService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Contact ID can not be empty");
 				} else {
-					userFavoritesT = userFavRepository.findByContactIdAndUserId(favorites.getContactId(), favorites.getUserId());
+					userFavoritesT = userFavRepository
+							.findByContactIdAndUserId(favorites.getContactId(),
+									favorites.getUserId());
 					favorites.setPartnerId(null);
 					favorites.setOpportunityId(null);
 					favorites.setConnectId(null);
@@ -154,15 +181,15 @@ public class FavoritesService {
 				logger.debug("Adding Favorites Document");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Saving Task as favorite is not supported!");
-				
+
 			}
-			
+
 			if (userFavoritesT != null) {
 				logger.error("BAD_REQUEST: The Entity has already been added to User Favorites");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"The Entity has already been added to User Favorites");
-			} 
-			
+			}
+
 			try {
 				logger.debug("Saving the UserFavorite");
 				return userFavRepository.save(favorites) != null;
@@ -178,11 +205,12 @@ public class FavoritesService {
 	}
 
 	public void removeFromFavorites(String favoritesId) throws Exception {
-		try{
+		try {
 			userFavRepository.delete(favoritesId);
-		} catch(Exception e){
-			logger.error("INTERNAL_SERVER_ERROR: "+e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
 	}
 

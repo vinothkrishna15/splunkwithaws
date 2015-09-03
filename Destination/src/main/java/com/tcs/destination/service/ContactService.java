@@ -245,7 +245,7 @@ public class ContactService {
 		return contactRoleMappingTs;
 	}
 
-	private void removeCyclicForLinkedContactTs(List<ContactT> contactTs) {
+	public void removeCyclicForLinkedContactTs(List<ContactT> contactTs) {
 		if (contactTs != null) {
 			for (ContactT contactT : contactTs) {
 				removeCyclicForLinkedContactTs(contactT);
@@ -253,7 +253,7 @@ public class ContactService {
 		}
 	}
 
-	private void removeCyclicForLinkedContactTs(ContactT contactT) {
+	public void removeCyclicForLinkedContactTs(ContactT contactT) {
 		if (contactT != null) {
 			if (contactT.getContactCustomerLinkTs() != null) {
 				for (ContactCustomerLinkT contactCustomerLinkT : contactT
