@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2490,7 +2491,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.info("Inside getBidDetailedReport Service");
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook();
+		workbook.setCompressTempFiles(true);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
@@ -2556,16 +2558,9 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		}
 		buildBidReportService.getBidReportTitlePage(workbook, geography, iou,
 				serviceLines, userId, tillDate);
-		buildBidReportService.getBidDetailsReport(bidDetailsList, fields,
+		
+		return buildBidReportService.getBidDetailsReport(bidDetailsList, fields,
 				currency, workbook);
-		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-		workbook.write(byteOutPutStream);
-		byteOutPutStream.flush();
-		byteOutPutStream.close();
-		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStreamResource = new InputStreamResource(
-				new ByteArrayInputStream(bytes));
-		return inputStreamResource;
 	}
 
 	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
