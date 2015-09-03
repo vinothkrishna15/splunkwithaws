@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
@@ -26,7 +27,7 @@ public class ExcelUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationUtils.class);
 	
-	public static CellStyle createRowStyle(XSSFWorkbook workbook,
+	public static CellStyle createRowStyle(Workbook workbook,
 			String headerType) {
 
 		CellStyle cellStyle = workbook.createCellStyle();

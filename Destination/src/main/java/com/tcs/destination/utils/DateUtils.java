@@ -576,7 +576,7 @@ public class DateUtils {
 	public static Date getDateFromGivenAndCurrentFinancialYear(String givenDate, String year, boolean isTrue) throws Exception{
 		Date date = null;
 		if (isTrue) {
-			if (givenDate !=null) {
+			if (givenDate !=null && givenDate.length()>0) {
 				date = getDateFromMonth(givenDate, true);
 			} else if (!year.equals("")) {
 				logger.debug("year is not Empty");
@@ -585,7 +585,7 @@ public class DateUtils {
 				date = getDateFromFinancialYear(getCurrentFinancialYear(), true);
 			}
 		} else {
-			if (givenDate !=null) {
+			if (givenDate !=null && givenDate.length()>0) {
 				date = getDateFromMonth(givenDate, false);
 			} else if (!year.equals("")) {
 				logger.debug("year is not Empty");
