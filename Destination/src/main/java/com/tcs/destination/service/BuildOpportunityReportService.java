@@ -56,6 +56,7 @@ import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
@@ -3209,7 +3210,8 @@ public class BuildOpportunityReportService {
 		
 		////
 		String userAccessField = null;
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNull(userId);
+		List<UserAccessPrivilegesT> userPrivilegesList = 
+				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		switch (userGroup) {

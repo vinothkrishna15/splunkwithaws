@@ -85,23 +85,27 @@ public class UserAccessPrivilegeQueryBuilder {
 	private void initGroupConditions(PrivilegeGroup privilegeGroup,
 			HashMap<String, String> queryPrefix) throws Exception {
 		logger.debug("Inside initGroupConditions() method");
-		StringBuffer geoBuffer = new StringBuffer();
-		StringBuffer subspBuffer = new StringBuffer();
-		StringBuffer iouBuffer = new StringBuffer();
-		StringBuffer custBuffer = new StringBuffer();
 		if (privilegeGroup != null && queryPrefix != null) {
-			if (queryPrefix.get(PrivilegeType.GEOGRAPHY.name()) != null)
+			if (queryPrefix.get(PrivilegeType.GEOGRAPHY.name()) != null) {
+				StringBuffer geoBuffer = new StringBuffer();
 				privilegeGroup.setGeographyBuffer(geoBuffer.append(queryPrefix
 						.get(PrivilegeType.GEOGRAPHY.name())));
-			if (queryPrefix.get(PrivilegeType.SUBSP.name()) != null)
+			}
+			if (queryPrefix.get(PrivilegeType.SUBSP.name()) != null) {
+				StringBuffer subspBuffer = new StringBuffer();
 				privilegeGroup.setSubspBuffer(subspBuffer.append(queryPrefix
 						.get(PrivilegeType.SUBSP.name())));
-			if (queryPrefix.get(PrivilegeType.IOU.name()) != null)
+			}
+			if (queryPrefix.get(PrivilegeType.IOU.name()) != null) {
+				StringBuffer iouBuffer = new StringBuffer();
 				privilegeGroup.setIouBuffer(iouBuffer.append(queryPrefix
 						.get(PrivilegeType.IOU.name())));
-			if (queryPrefix.get(PrivilegeType.CUSTOMER.name()) != null)
+			}
+			if (queryPrefix.get(PrivilegeType.CUSTOMER.name()) != null) {
+				StringBuffer custBuffer = new StringBuffer();
 				privilegeGroup.setCustomerBuffer(custBuffer.append(queryPrefix
 						.get(PrivilegeType.CUSTOMER.name())));
+			}
 		}
 	}
 
@@ -188,8 +192,10 @@ public class UserAccessPrivilegeQueryBuilder {
 			}
 
 			// Forming conditions for child privileges if any
-			List<UserAccessPrivilegesT> childPrivileges = privilege
-					.getUserAccessPrivilegesTs();
+			//List<UserAccessPrivilegesT> childPrivileges = privilege.getUserAccessPrivilegesTs();
+			List<UserAccessPrivilegesT> childPrivileges = 
+					userService.getAllChildPrivilegesByUserIdAndParentPrivilegeId(privilege.getUserId(), privilege.getPrivilegeId());
+
 			if (childPrivileges != null && !childPrivileges.isEmpty()) {
 				logger.debug("Child Privileges Size: {}",
 						childPrivileges.size());
@@ -259,7 +265,7 @@ public class UserAccessPrivilegeQueryBuilder {
 			PrivilegeGroup privilegeGroup) throws Exception {
 		logger.debug("Inside handleParenthesis() method");
 		StringBuffer geoBuffer = privilegeGroup.getGeographyBuffer();
-		if (geoBuffer != null) {
+		if (geoBuffer != null && geoBuffer.length() > 0) {
 			if (geoBuffer.indexOf(Constants.COMMA) != -1) {
 				geoBuffer.replace(geoBuffer.length() - 1, geoBuffer.length(),
 						Constants.RIGHT_PARANTHESIS);
@@ -268,7 +274,7 @@ public class UserAccessPrivilegeQueryBuilder {
 		}
 
 		StringBuffer subspBuffer = privilegeGroup.getSubspBuffer();
-		if (subspBuffer != null) {
+		if (subspBuffer != null && subspBuffer.length() > 0) {
 			if (subspBuffer.indexOf(Constants.COMMA) != -1) {
 				subspBuffer.replace(subspBuffer.length() - 1,
 						subspBuffer.length(), Constants.RIGHT_PARANTHESIS);
@@ -277,7 +283,7 @@ public class UserAccessPrivilegeQueryBuilder {
 		}
 
 		StringBuffer iouBuffer = privilegeGroup.getIouBuffer();
-		if (iouBuffer != null) {
+		if (iouBuffer != null && iouBuffer.length() > 0) {
 			if (iouBuffer.indexOf(Constants.COMMA) != -1) {
 				iouBuffer.replace(iouBuffer.length() - 1, iouBuffer.length(),
 						Constants.RIGHT_PARANTHESIS);
@@ -286,7 +292,7 @@ public class UserAccessPrivilegeQueryBuilder {
 		}
 
 		StringBuffer custBuffer = privilegeGroup.getCustomerBuffer();
-		if (custBuffer != null) {
+		if (custBuffer != null && custBuffer.length() > 0) {
 			if (custBuffer.indexOf(Constants.COMMA) != -1) {
 				custBuffer.replace(custBuffer.length() - 1,
 						custBuffer.length(), Constants.RIGHT_PARANTHESIS);
@@ -328,45 +334,62 @@ public class UserAccessPrivilegeQueryBuilder {
 	private String getWhereClauseString(List<PrivilegeGroup> privilegeGroups)
 			throws Exception {
 		logger.debug("Inside getWhereClauseString() method");
-		// WHERE Clause parenthesis - start
-		StringBuffer clauseBuffer = new StringBuffer(Constants.LEFT_PARANTHESIS);
 		if (privilegeGroups != null && !privilegeGroups.isEmpty()) {
+			// WHERE Clause parenthesis - start
+			StringBuffer clauseBuffer = new StringBuffer(Constants.LEFT_PARANTHESIS);
 			for (PrivilegeGroup privilegeGroup : privilegeGroups) {
-				// Sub condition group parenthesis - start
-				clauseBuffer.append(Constants.LEFT_PARANTHESIS);
-				if (privilegeGroup.getGeographyBuffer() != null)
-					concatenateBuffer(clauseBuffer,
-							privilegeGroup.getGeographyBuffer(),
-							Constants.AND_CLAUSE);
-				if (privilegeGroup.getSubspBuffer() != null)
-					concatenateBuffer(clauseBuffer,
-							privilegeGroup.getSubspBuffer(),
-							Constants.AND_CLAUSE);
-				if (privilegeGroup.getIouBuffer() != null)
-					concatenateBuffer(clauseBuffer,
-							privilegeGroup.getIouBuffer(), Constants.AND_CLAUSE);
-				if (privilegeGroup.getCustomerBuffer() != null)
-					concatenateBuffer(clauseBuffer,
-							privilegeGroup.getCustomerBuffer(),
-							Constants.AND_CLAUSE);
-				// Trimming the unwanted last " and "
-				if (clauseBuffer.toString().contains(Constants.AND_CLAUSE))
-					clauseBuffer.setLength(clauseBuffer.length() - 5);
-				// Sub condition group parenthesis - end
-				clauseBuffer.append(Constants.RIGHT_PARANTHESIS);
-				// Logical OR prefix for next condition group
-				clauseBuffer.append(Constants.OR_CLAUSE);
+				StringBuffer geoBuffer = privilegeGroup.getGeographyBuffer();
+				StringBuffer subspBuffer = privilegeGroup.getSubspBuffer();
+				StringBuffer iouBuffer = privilegeGroup.getIouBuffer();
+				StringBuffer custBuffer = privilegeGroup.getCustomerBuffer();
+				
+				if ((geoBuffer != null && geoBuffer.length() > 0)
+						|| (subspBuffer != null && subspBuffer.length() > 0)
+						|| (iouBuffer != null && iouBuffer.length() > 0)
+						|| (custBuffer != null && custBuffer.length() > 0)) 
+				{
+					// Sub condition group parenthesis - start
+					clauseBuffer.append(Constants.LEFT_PARANTHESIS);
+					if (geoBuffer != null && geoBuffer.length() > 0) {
+						concatenateBuffer(clauseBuffer, geoBuffer, Constants.AND_CLAUSE);
+					}
+					if (subspBuffer != null && subspBuffer.length() > 0) {
+						concatenateBuffer(clauseBuffer, subspBuffer, Constants.AND_CLAUSE);
+					}
+					if (iouBuffer != null && iouBuffer.length() > 0) {
+						concatenateBuffer(clauseBuffer, iouBuffer, Constants.AND_CLAUSE);
+					}
+					if (custBuffer != null && custBuffer.length() > 0) {
+						concatenateBuffer(clauseBuffer, custBuffer, Constants.AND_CLAUSE);
+					}
+					// Trimming the unwanted last " and "
+					if (clauseBuffer.toString().contains(Constants.AND_CLAUSE))
+						clauseBuffer.setLength(clauseBuffer.length() - 5);
+					// Sub condition group parenthesis - end
+					clauseBuffer.append(Constants.RIGHT_PARANTHESIS);
+					// Remove inner empty parenthesis  (e.g. (() or ())
+					if (clauseBuffer.toString().contains(Constants.EMPTY_PARANTHESIS))  {
+						clauseBuffer.setLength(clauseBuffer.length() - 2);
+					} else { 
+						// Logical OR prefix for next condition group
+						clauseBuffer.append(Constants.OR_CLAUSE);
+					}
+				}
 			}
 			// Trimming the unwanted last " or "
-			clauseBuffer.setLength(clauseBuffer.length() - 4);
+			if (clauseBuffer.toString().contains(Constants.OR_CLAUSE))
+				clauseBuffer.setLength(clauseBuffer.length() - 4);
 			// Clause parenthesis - end
 			clauseBuffer.append(Constants.RIGHT_PARANTHESIS);
+			// Remove outer empty parenthesis after removing inner empty parenthesis
+			if (clauseBuffer.toString().contains(Constants.EMPTY_PARANTHESIS)) 
+				clauseBuffer.setLength(clauseBuffer.length() - 2);
 			logger.info("Condition clause formed: " + clauseBuffer.toString());
+			return clauseBuffer.toString();
 		} else {
 			logger.debug("User does not have any specific access privileges defined");
 			return null;
 		}
-		return clauseBuffer.toString();
 	}
 
 	/**

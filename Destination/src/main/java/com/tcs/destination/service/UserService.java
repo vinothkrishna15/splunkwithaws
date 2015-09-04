@@ -18,6 +18,7 @@ import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 
@@ -190,7 +191,7 @@ public class UserService {
 	}
 
 	/**
-	 * This service is used to get all the access privileges for a user
+	 * This service is used to get all the active access privileges for a user
 	 * 
 	 * @param userId
 	 * @return List of user access privileges
@@ -200,7 +201,22 @@ public class UserService {
 			throws Exception {
 		logger.debug("Inside getAllPrivilegesByUserId() service");
 		return (userAccessPrivilegesRepository
-				.findByUserIdAndParentPrivilegeIdIsNull(userId));
+				.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y));
+	}
+
+	/**
+	 * This service is used to get all the active access privileges for a user and parent privilege id
+	 * 
+	 * @param userId
+	 * @param privilegeId
+	 * @return List of user access privileges
+	 * @throws Exception
+	 */
+	public List<UserAccessPrivilegesT> getAllChildPrivilegesByUserIdAndParentPrivilegeId(String userId, Integer parentPrivilegeId)
+			throws Exception {
+		logger.debug("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() service");
+		return (userAccessPrivilegesRepository
+				.findByUserIdAndParentPrivilegeIdAndIsactive(userId, parentPrivilegeId, Constants.Y));
 	}
 
 }

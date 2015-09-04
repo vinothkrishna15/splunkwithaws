@@ -69,7 +69,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		currentRow = getTargetVsActualSummaryReportSectionTwo(targetOverAllRevenuesMap,	actualOverAllRevenuesMap, currencyList, spreadSheet);
 		currentRow=currentRow+4;
 		//Section Two Part 2
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserId(userId);
+		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserIdAndIsactive(userId, Constants.Y);
 		int firstColumn = 1;
 		int secColumn=2;
 		for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){

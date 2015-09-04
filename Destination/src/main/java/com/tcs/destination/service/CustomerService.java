@@ -78,7 +78,7 @@ public class CustomerService {
 		if (!userId
 				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail doesnot match");
+					"User Id and Login User Detail does not match");
 		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: Customer not found: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,

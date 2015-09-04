@@ -42,10 +42,10 @@ public class UserAccessPrivilegesT implements Serializable {
 	private UserAccessPrivilegesT userAccessPrivilegesT;
 
 	@Column(name="parent_privilege_id")
-	private String parentPrivilegeId;
+	private Integer parentPrivilegeId;
 
 	//bi-directional many-to-one association to UserAccessPrivilegesT
-	@OneToMany(mappedBy="userAccessPrivilegesT",fetch=FetchType.EAGER)
+	@OneToMany(mappedBy="userAccessPrivilegesT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	//bi-directional many-to-one association to UserT
@@ -129,11 +129,11 @@ public class UserAccessPrivilegesT implements Serializable {
 		this.userId = userId;
 	}
 
-	public String getParentPrivilegeId() {
+	public Integer getParentPrivilegeId() {
 		return parentPrivilegeId;
 	}
 
-	public void setParentPrivilegeId(String parentPrivilegeId) {
+	public void setParentPrivilegeId(Integer parentPrivilegeId) {
 		this.parentPrivilegeId = parentPrivilegeId;
 	}
 }

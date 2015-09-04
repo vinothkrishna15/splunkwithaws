@@ -15,7 +15,10 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 @Repository
 public interface UserAccessPrivilegesRepository extends JpaRepository<UserAccessPrivilegesT, String> {
 
-	List<UserAccessPrivilegesT> findByUserIdAndParentPrivilegeIdIsNull(String userId);
+	List<UserAccessPrivilegesT> findByUserIdAndParentPrivilegeIdIsNullAndIsactive(String userId, String isActive);
 	
-	List<UserAccessPrivilegesT> findByUserId(String userId);
+	List<UserAccessPrivilegesT> findByUserIdAndIsactive(String userId, String isActive);
+
+	List<UserAccessPrivilegesT> findByUserIdAndParentPrivilegeIdAndIsactive(String userId, Integer parentPrivilegeId, String isActive);
+
 }
