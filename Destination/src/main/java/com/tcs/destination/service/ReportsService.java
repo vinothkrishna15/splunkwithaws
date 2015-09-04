@@ -257,7 +257,7 @@ public class ReportsService {
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
-			+ "where ";
+			+ "where BCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_OVERALL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
@@ -294,14 +294,14 @@ public class ReportsService {
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "JOIN iou_customer_mapping_t ICMT on "
 			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp " 
-			+ "where ";
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
 	private static final String GROUP_CUST_GEO_IOU_UNION_QUERY_PREFIX = " UNION (select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
 			+ "from projected_revenues_data_t PRDT JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
 			+ "and RCMT.customer_geography=PRDT.finance_geography) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where ";
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
 	public static final String OPPORTUNITY_DETAILED_QUERY_PREFIX =
 			"select distinct OPP.opportunity_id from opportunity_t OPP"

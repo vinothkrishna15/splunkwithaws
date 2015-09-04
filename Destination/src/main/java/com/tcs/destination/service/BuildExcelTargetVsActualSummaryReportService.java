@@ -26,6 +26,7 @@ import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
@@ -68,7 +69,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		currentRow = getTargetVsActualSummaryReportSectionTwo(targetOverAllRevenuesMap,	actualOverAllRevenuesMap, currencyList, spreadSheet);
 		currentRow=currentRow+4;
 		//Section Two Part 2
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserId(userId);
+		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserIdAndIsactive(userId, Constants.Y);
 		int firstColumn = 1;
 		int secColumn=2;
 		for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
@@ -554,7 +555,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		String groupCustName=null;
 		String customerName=null;
 		double totalPercentageAchieved=0;
-		
+		XSSFRow row=null;
 		CellStyle bottomStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.BOTTOMROW);
 		
 		if(!actualRevenuesList.isEmpty()){
@@ -563,7 +564,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 //				List<RevenueGeoValues> revenueGeoValuesList=new ArrayList<RevenueGeoValues>();
 				BigDecimal percentAchieved=new BigDecimal(0);
 				double percentAchieve=0;
-				XSSFRow row = spreadSheet.createRow((short) currentRow);
+				row = spreadSheet.createRow((short) currentRow);
 				customerName=revenueGeoValues.getCustomerName();
 //				groupCustName=revenueGeoValues.getGroupCustomerName();
 				BigDecimal targetRevenueINR = targetRevenuesMap.get(customerName);
@@ -615,6 +616,10 @@ public class BuildExcelTargetVsActualSummaryReportService {
 						actualRevenueINR,actualRevenueUSD, percentAchieved, percentAchievedBracket,
 						 currencyList,spreadSheet, geography, iou, groupCustName);
 			}
+			int lastCol=row.getLastCellNum();
+			for(int startCol=0;startCol<=lastCol;startCol++){
+				spreadSheet.autoSizeColumn(startCol);
+			}
 			XSSFRow totalRow = spreadSheet.createRow((short) currentRow);
 			int columnNo=1;
 			totalRow.createCell(columnNo).setCellValue(ReportConstants.GRANDTOTAL);
@@ -647,11 +652,11 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			}else{
 				totalRow.createCell(columnNo).setCellValue(totalTargetRevenueUSD.doubleValue());
 				totalRow.getCell(columnNo).setCellStyle(bottomStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				totalRow.createCell(columnNo).setCellValue(totalActualRevenueUSD.doubleValue());
 				totalRow.getCell(columnNo).setCellStyle(bottomStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 			}
 			}
@@ -700,19 +705,23 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		int columnValue = 1;
 		row.createCell(columnValue).setCellValue(customerName);
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		columnValue++;
+		if(groupCustName!=null){
 		row.createCell(columnValue).setCellValue(groupCustName);
+		}else {
+			row.createCell(columnValue).setCellValue(Constants.SPACE);
+		}
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		columnValue++;
 		row.createCell(columnValue).setCellValue(geography);
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		columnValue++;
 		row.createCell(columnValue).setCellValue(iou);
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		columnValue++;
 		if (currencyList.size() > 1) {
 			row.createCell(columnValue).setCellValue(
@@ -722,17 +731,17 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			row.createCell(columnValue).setCellValue(
 					targetRevenueUSD.doubleValue());
 			row.getCell(columnValue).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnValue);
+//			spreadSheet.autoSizeColumn(columnValue);
 			columnValue++;
 			row.createCell(columnValue).setCellValue(
 					actualRevenueINR.doubleValue());
 			row.getCell(columnValue).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnValue);
+//			spreadSheet.autoSizeColumn(columnValue);
 			columnValue++;
 			row.createCell(columnValue).setCellValue(
 					actualRevenueUSD.doubleValue());
 			row.getCell(columnValue).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnValue);
+//			spreadSheet.autoSizeColumn(columnValue);
 			columnValue++;
 		} else {
 			if (currencyList.contains(ReportConstants.INR)) {
@@ -743,7 +752,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 				row.createCell(columnValue).setCellValue(
 						actualRevenueINR.doubleValue());
 				row.getCell(columnValue).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(columnValue);
+//				spreadSheet.autoSizeColumn(columnValue);
 				columnValue++;
 			} else {
 				row.createCell(columnValue).setCellValue(
@@ -753,18 +762,18 @@ public class BuildExcelTargetVsActualSummaryReportService {
 				row.createCell(columnValue).setCellValue(
 						actualRevenueUSD.doubleValue());
 				row.getCell(columnValue).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(columnValue);
+//				spreadSheet.autoSizeColumn(columnValue);
 				columnValue++;
 			}
 		}
 		row.createCell(columnValue).setCellValue(
 				percentAchieved.doubleValue() * 100);
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		columnValue++;
 		row.createCell(columnValue).setCellValue(percentAchievedBracket);
 		row.getCell(columnValue).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnValue);
+//		spreadSheet.autoSizeColumn(columnValue);
 		currentRow++;
 		return currentRow;
 	}

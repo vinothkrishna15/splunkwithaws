@@ -25,7 +25,7 @@ public interface BeaconDataTRepository extends
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "where BDT.quarter in (:quarterList) group by BCMT.customer_name,BDT.quarter", nativeQuery = true)
+			+ "where BDT.quarter in (:quarterList) and BCMT.customer_name not like 'UNKNOWN%' group by BCMT.customer_name,BDT.quarter", nativeQuery = true)
 	public List<Object[]> getTargetByQuarter(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,

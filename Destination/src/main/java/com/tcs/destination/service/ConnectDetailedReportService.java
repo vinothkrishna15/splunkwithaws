@@ -475,7 +475,8 @@ public class ConnectDetailedReportService {
 		
 		////
 		String userAccessField = null;
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNull(userId);
+		List<UserAccessPrivilegesT> userPrivilegesList = 
+				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		switch (userGroup) {

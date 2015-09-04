@@ -29,7 +29,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "where upper(ARDT.month) in (:monthList) group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
+			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
 	public List<Object[]> getActualRevenuesByQuarter(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,

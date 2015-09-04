@@ -23,6 +23,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
@@ -199,7 +200,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		Boolean isTrue = getProjectedValue(targetVsActualDetailedList);
 		for (TargetVsActualDetailed targetVsActual : targetVsActualDetailedList) {
 			row = spreadSheet.createRow((short) currentRow + 2);
-			getTargetVsActualReportMandatoryFields(spreadSheet, row,
+			getTargetVsActualReportWithOrWithOutFields(spreadSheet, row,
 					currencyList, targetVsActualDetailedList, targetVsActual,
 					fields,isTrue);
 			currentRow++;
@@ -207,7 +208,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		return currentRow;
 	}
 
-	public void getTargetVsActualReportMandatoryFields(XSSFSheet spreadSheet,
+	public void getTargetVsActualReportWithOrWithOutFields(XSSFSheet spreadSheet,
 			XSSFRow row, List<String> currencyList,
 			List<TargetVsActualDetailed> targetVsActualDetailedList,
 			TargetVsActualDetailed targetVsActual, List<String> fields, Boolean isTrue) {
@@ -927,7 +928,8 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		
 		////
 		String userAccessField = null;
-		List<UserAccessPrivilegesT> userPrivilegesList = userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNull(userId);
+		List<UserAccessPrivilegesT> userPrivilegesList = 
+				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		switch (userGroup) {
