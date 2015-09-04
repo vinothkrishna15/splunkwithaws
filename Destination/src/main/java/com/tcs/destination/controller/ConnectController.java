@@ -125,7 +125,6 @@ public class ConnectController {
 				+ "&to=" + toDate + "GET");
 		if (weekStartDate.getTime() == weekEndDate.getTime()
 				&& monthStartDate.getTime() == monthEndDate.getTime()) {
-			System.out.println("Old Code");
 			List<ConnectT> connects = connectService
 					.searchforConnectsBetweenForUserOrCustomerOrPartner(
 							fromDate, toDate, userId, owner, customerId,
