@@ -35,6 +35,8 @@ public class UserAccessPrivilegesT implements Serializable {
 	@Column(name="privilege_value")
 	private String privilegeValue;
 
+	private String isactive;
+
 	//bi-directional many-to-one association to UserAccessPrivilegesT
 	@ManyToOne
 	@JoinColumn(name="parent_privilege_id", insertable=false ,updatable=false)
