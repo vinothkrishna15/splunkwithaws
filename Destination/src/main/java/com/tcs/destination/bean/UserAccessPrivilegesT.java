@@ -12,7 +12,6 @@ import com.tcs.destination.utils.Constants;
 
 import java.util.List;
 
-
 /**
  * The persistent class for the user_access_privileges_t database table.
  * 
