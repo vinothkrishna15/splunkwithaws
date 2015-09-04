@@ -38,8 +38,6 @@ public class BuildExcelTargetVsActualDetailedReportService {
 	@Autowired
 	UserRepository userRepository;
 
-	ExcelUtils excelUtils = new ExcelUtils();
-	
 	@Autowired
 	BuildExcelTargetVsActualSummaryReportService buildExcelTargetVsActualSummaryReportService;
 

@@ -2491,8 +2491,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.info("Inside getBidDetailedReport Service");
-		SXSSFWorkbook workbook = new SXSSFWorkbook();
-		workbook.setCompressTempFiles(true);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+//		workbook.setCompressTempFiles(true);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();

@@ -62,45 +62,46 @@ public class ConnectDetailedReportService {
 		int currentRow = 0;
 		row = spreadSheet.createRow((short) currentRow);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			CreateHeaderForMandatoryFields(row, spreadSheet);
-			currentRow = ConnectReportWithMandatoryFields(connectList,
+			createHeaderForMandatoryFields(row, spreadSheet);
+			currentRow = connectReportWithMandatoryFields(connectList,
 					spreadSheet, currentRow, row);
 			currentRow++;
 		} else {
-			CreateHeaderOptionalFields(connectList, row, fields, workbook, spreadSheet, currentRow);
-			currentRow = ConnectReportWithOptionalFields(connectList, workbook,
+			createHeaderOptionalFields(connectList, row, fields, workbook, spreadSheet, currentRow);
+			currentRow = connectReportWithOptionalFields(connectList, workbook,
 					spreadSheet, currentRow, fields, row);
 			currentRow++;
 		}
 	}
 
-	public void CreateHeaderForMandatoryFields(XSSFRow row, XSSFSheet spreadSheet) {
+	public void createHeaderForMandatoryFields(XSSFRow row, XSSFSheet spreadSheet) {
 		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER);
+		spreadSheet.setDefaultColumnWidth(30);
 		row.createCell(0).setCellValue(ReportConstants.CONNECTID);
 		row.getCell(0).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(0);
+//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(1).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(1);
+//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
 		row.getCell(2).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(2);
+//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(3).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(3);
+//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.CONNECTNAME);
 		row.getCell(4).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
 		row.getCell(5).setCellStyle(headerSyle);
-		spreadSheet.autoSizeColumn(5);
+//		spreadSheet.autoSizeColumn(5);
 	}
 
-	public void CreateHeaderOptionalFields(List<ConnectT> connectList,
+	public void createHeaderOptionalFields(List<ConnectT> connectList,
 			XSSFRow row, List<String> fields,
 			XSSFWorkbook workbook, XSSFSheet spreadSheet, int currentRow) {
 		// This method creates header for mandatory fields
-		CreateHeaderForMandatoryFields(row, spreadSheet);
+		createHeaderForMandatoryFields(row, spreadSheet);
 		int columnNo = 6;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.REPORTHEADER);
@@ -109,53 +110,55 @@ public class ConnectDetailedReportService {
 			case ReportConstants.TASK:
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKCOUNT);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKID);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKDESCRIPTION);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.ENTITYREFERENCE);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKOWNER);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TARGETDATEFORCOMPLETION);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKSTATUS);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				row.createCell(columnNo).setCellValue(ReportConstants.TASKNOTE);
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				break;
 			default:
 				row.createCell(columnNo).setCellValue(FieldsMap.fieldsMap.get(field));
 				row.getCell(columnNo).setCellStyle(headerStyle);
-				spreadSheet.autoSizeColumn(columnNo);
+//				spreadSheet.autoSizeColumn(columnNo);
 				columnNo++;
 				break;
 			}
 		}
 	}
 
-	public int ConnectReportWithMandatoryFields(List<ConnectT> connectList,XSSFSheet spreadSheet, int currentRow, XSSFRow row) {
+	public int connectReportWithMandatoryFields(List<ConnectT> connectList,XSSFSheet spreadSheet, int currentRow, XSSFRow row) {
 		for (ConnectT connect : connectList) {
 			row = spreadSheet.createRow((short) currentRow + 1);
 			getConnectReportMandatoryFields(spreadSheet, row, connect);
 			currentRow++;
 		}
+//		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(5);
 		return currentRow;
 	}
 
@@ -177,24 +180,20 @@ public class ConnectDetailedReportService {
 		row.createCell(3).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 		row.getCell(3).setCellStyle(rowStyle);
 		
-		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
 		row.getCell(5).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(5);
+//		spreadSheet.autoSizeColumn(5);
 	}else{
 		row.createCell(1).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
 		row.getCell(1).setCellStyle(rowStyle);
-		
 		row.createCell(3).setCellValue(Constants.SPACE);
 		row.getCell(3).setCellStyle(rowStyle);
-		
-		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(Constants.SPACE);
 		row.getCell(5).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(5);
 	}
 	}
-	public int ConnectReportWithOptionalFields(List<ConnectT> connectList,
+	public int connectReportWithOptionalFields(List<ConnectT> connectList,
 			XSSFWorkbook workbook, XSSFSheet spreadSheet, int currentRow,
 			List<String> fields, XSSFRow row)
 			throws DestinationException {
@@ -238,16 +237,15 @@ public class ConnectDetailedReportService {
 					colValue++;
 					break;
 				case ReportConstants.SUBSP:
-					for (ConnectSubSpLinkT connectSubSpLinkT : connect
-							.getConnectSubSpLinkTs()) {
-						XSSFCell subSpCell = spreadSheet.getRow(currentRow - 1)
-								.createCell(colValue);
-						subSpCell.setCellValue(connectSubSpLinkT
-								.getSubSpMappingT().getSubSp());
-						subSpCell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
-						colValue++;
+					List<String> subSpList = new ArrayList<String>();
+					XSSFCell subSpCell = spreadSheet.getRow(currentRow - 1).createCell(colValue);
+					for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+					subSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
 					}
+					subSpCell.setCellValue(subSpList.toString().replace("[", "").replace("]", ""));
+					subSpCell.setCellStyle(cellStyle);
+//					spreadSheet.autoSizeColumn(colValue);
+					colValue++;
 					break;
 				case ReportConstants.COUNTRY:
 					XSSFCell countryCell = spreadSheet.getRow(currentRow - 1)
@@ -255,7 +253,7 @@ public class ConnectDetailedReportService {
 					countryCell.setCellValue(connect
 							.getGeographyCountryMappingT().getCountry());
 					countryCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.OFFERING:
@@ -266,7 +264,7 @@ public class ConnectDetailedReportService {
 					}
 					offeringCell.setCellValue(offering.toString().replace("[", "").replace("]", ""));
 					offeringCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.CATEGORY:
@@ -282,7 +280,7 @@ public class ConnectDetailedReportService {
 					startDateOfConnectCell.setCellValue(connect
 							.getStartDatetimeOfConnect().toString());
 					startDateOfConnectCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.ENDDATE:
@@ -291,7 +289,7 @@ public class ConnectDetailedReportService {
 					endDateOfConnectCell.setCellValue(connect
 							.getEndDatetimeOfConnect().toString());
 					endDateOfConnectCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.PRIMARYOWNER:
@@ -301,7 +299,7 @@ public class ConnectDetailedReportService {
 							.getPrimaryOwner());
 					primaryOwnerCell.setCellValue(userT.getUserName());
 					primaryOwnerCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.SECONDARYOWNER:
@@ -314,7 +312,7 @@ public class ConnectDetailedReportService {
 					}
 						secondaryOwnerCell.setCellValue(secondaryOwners.toString().replace("[", "").replace("]", ""));
 						secondaryOwnerCell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 //					}
 					colValue++;
 					break;
@@ -325,7 +323,7 @@ public class ConnectDetailedReportService {
 						cusPartcell.setCellValue(connect.getCustomerMasterT()
 								.getCustomerName());
 						cusPartcell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					} else if (connect.getPartnerMasterT() != null) {
 						XSSFCell cusPartcell = spreadSheet.getRow(
@@ -333,7 +331,7 @@ public class ConnectDetailedReportService {
 						cusPartcell.setCellValue(connect.getPartnerMasterT()
 								.getPartnerName());
 						cusPartcell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					} else {
 						colValue++;
@@ -347,7 +345,7 @@ public class ConnectDetailedReportService {
 					}
 					tcsAccountContactCell.setCellValue(tcsContactNames.toString().replace("[", "").replace("]", ""));
 					tcsAccountContactCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.CUSTOMERCONTACTNAME:
@@ -358,7 +356,7 @@ public class ConnectDetailedReportService {
 					}
 						customerContactNameCell.setCellValue(cusContactNames.toString().replace("[", "").replace("]", ""));
 						customerContactNameCell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					break;
 				case ReportConstants.LINKOPPORTUNITY:
@@ -369,7 +367,7 @@ public class ConnectDetailedReportService {
 					}
 						opportunityCell.setCellValue(opportunityNames.toString().replace("[", "").replace("]", ""));
 						opportunityCell.setCellStyle(cellStyle);
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					break;
 				case ReportConstants.CONNECTNOTES:
@@ -381,7 +379,7 @@ public class ConnectDetailedReportService {
 					}
 					connectNotesCell.setCellValue(connectNotesList.toString().replace("[", "").replace("]", ""));
 					connectNotesCell.setCellStyle(cellStyle);
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.TASK:
@@ -413,7 +411,10 @@ public class ConnectDetailedReportService {
 			} else {
 				currentRow = currentRow + 0;
 			}
-
+		}
+		int lastCol = row.getLastCellNum();
+		for(int startCol=0;startCol<lastCol;startCol++){
+			spreadSheet.autoSizeColumn(startCol);
 		}
 		return currentRow;
 
@@ -426,28 +427,28 @@ public class ConnectDetailedReportService {
 		int columnOffset=1;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskId());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskDescription());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getEntityReference());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		UserT taskOwnerName = userRepository.findByUserId(taskList.get(i).getTaskOwner());
 		row.createCell(columnNo+columnOffset).setCellValue(taskOwnerName.getUserName());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTargetDateForCompletion().toString());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskStatus());
 		row.getCell(columnNo+columnOffset).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(columnNo+columnOffset);
+//		spreadSheet.autoSizeColumn(columnNo+columnOffset);
 		columnOffset++;
 		List<String> taskNotesUpdatedList=new ArrayList<String>();
 		for (NotesT notes : taskList.get(i).getNotesTs()) {
