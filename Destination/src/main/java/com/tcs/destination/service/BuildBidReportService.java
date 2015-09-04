@@ -71,6 +71,8 @@ public class BuildBidReportService {
 			List<String> currency, SXSSFWorkbook workbook) throws Exception {
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Bid Report");
 		
+		spreadSheet.setDefaultColumnWidth(30);
+		
 //		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
 		SXSSFRow row = (SXSSFRow) spreadSheet.createRow(0);
 		if (fields.size() == 0 && fields.isEmpty()) {
@@ -121,28 +123,28 @@ public class BuildBidReportService {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
 		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
 		row.getCell(0).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(0);
+//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(1).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(1);
+//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
 		row.getCell(2).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(2);
+//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(3).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(3);
+//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
 		row.getCell(4).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
 		row.getCell(5).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(5);
+//		spreadSheet.autoSizeColumn(5);
 		row.createCell(6).setCellValue(ReportConstants.BIDREQUESTTYPE);
 		row.getCell(6).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(6);
+//		spreadSheet.autoSizeColumn(6);
 		row.createCell(7).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
 		row.getCell(7).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(7);
+//		spreadSheet.autoSizeColumn(7);
 	}
 
 	public void createHeaderBidDetailsReportOptionalFields(
@@ -191,6 +193,9 @@ public class BuildBidReportService {
 					bidDetail);
 			currentRow++;
 		}
+//		for(int startCol=0;startCol<=8;startCol++){
+//			spreadSheet.autoSizeColumn(startCol);
+//		}
 		return currentRow;
 	}
 
@@ -345,13 +350,19 @@ public class BuildBidReportService {
 					colValue++;
 					break;
 				case ReportConstants.BIDOFFICEGROUPOWNER:
+					if (bidDetail.getBidOfficeGroupOwnerLinkTs().size() > 0) {
 					List<String> bodofficeGroupOwner=new ArrayList<String>();
 					for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetail.getBidOfficeGroupOwnerLinkTs()) {
 					UserT userT = userRepository.findByUserId(bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner());
 					bodofficeGroupOwner.add(userT.getUserName());
 					}
 					row.createCell(colValue).setCellValue(bodofficeGroupOwner.toString().replace("[", "").replace("]", ""));
+					row.getCell(colValue).setCellStyle(cellStyle);
 //					spreadSheet.autoSizeColumn(colValue);
+					}else{
+						row.createCell(colValue).setCellValue(Constants.SPACE);
+						row.getCell(colValue).setCellStyle(cellStyle);
+					}
 					colValue++;
 					break;
 				case ReportConstants.TARGETBIDSUBMISSIONDATE:
@@ -385,10 +396,11 @@ public class BuildBidReportService {
 				currentRow = currentRow + 0;
 			}
 		}
-		int lastCol = row.getLastCellNum();
-		for(int startCol=9;startCol<=lastCol;startCol++){
-			spreadSheet.autoSizeColumn(startCol);
-		}
+//		int lastCol = row.getLastCellNum();
+//		for(int startCol=8;startCol<=lastCol;startCol++){
+//			if(row.getCell(startCol)!=null)
+//			spreadSheet.autoSizeColumn(startCol);
+//		}
 		return currentRow;
 	}
 

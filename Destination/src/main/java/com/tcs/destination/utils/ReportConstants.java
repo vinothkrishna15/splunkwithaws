@@ -86,7 +86,7 @@ public class ReportConstants {
 	public static final String BDM = "BDM";
 	public static final String BDMSUPERVISOR = "BDM Supervisor";
 	public static final String GEOHEAD = "GEO Heads";
-	public static final String IOUHEAD = "IOU Heads";
+	public static final String IOUHEAD = "IOU Spocs";
 	
 	public static final String TOP30REVENUE ="Top 30 Revenue (Master Customer)";
 	public static final String SUMOFTARGETREVENUES = "Sum of Target revenue FY'";
