@@ -3412,16 +3412,16 @@ public class BuildOpportunityReportService {
 	}
 	
 	public void addItemToList(List<String> itemList, List<String> targetList){
-		if(itemList.contains("All") && itemList.isEmpty()){
-			itemList.add("");
+		if(itemList.contains("All") || itemList.isEmpty()){
+			targetList.add("");
 		} else {
 			targetList.addAll(itemList);
 		}
 	}
 	
 	public void addItemToListGeo(List<String> itemList, List<String> targetList){
-		if(itemList.contains("All") && itemList.isEmpty()){
-			itemList.add("");
+		if(itemList.contains("All") || itemList.isEmpty()){
+			targetList.add("");
 		} else {
 			targetList.addAll(geographyMappingTRepository.findByDisplayGeography(itemList));
 		}

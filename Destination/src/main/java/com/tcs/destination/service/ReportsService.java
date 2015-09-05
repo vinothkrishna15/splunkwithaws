@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -2794,17 +2795,17 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					}
 					
 					
-					//
-		
 
 					public InputStreamResource getOpportunitySummaryReport(String month,
 							String year, String quarter, List<String> geography,
 							List<String> country, List<String> iou, List<String> currency,
 							List<String> serviceLines, List<Integer> salesStage, String userId) throws Exception {
 						
+						
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
+						
 						XSSFWorkbook workbook = new XSSFWorkbook();
 						String tillDate=DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
@@ -2849,18 +2850,23 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							List<String> country, List<String> iou, List<String> currency,
 							List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
 						
+						
+//						List<Integer> salesStageList = new ArrayList<Integer>(salesStage);
+						
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
-						List<Integer> salesStageList = new ArrayList<Integer>(salesStage);
+						List<Integer> salesStageCodeList=new ArrayList<Integer>();
+						removeUnwantedNumbers(salesStage, salesStageCodeList);
+						
 						String fyear=new String(year);
 						String fquarter=new String(quarter);
 						String fmonth=new String(month);
 						XSSFWorkbook workbook = new XSSFWorkbook();
 						String tillDate = DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
-						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStage, userId,workbook);
-						buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStageList, currency, userId,fields,workbook);
+						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
+						buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
 						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 						workbook.write(byteOutPutStream);
@@ -2872,6 +2878,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					}
 					
 					
+					public void removeUnwantedNumbers(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
+						for(Integer salesStage:salesStageList){
+							if(salesStage!=11 && salesStage!=12 && salesStage!=13){
+								salesStageCodeList.add(salesStage);
+							}
+						}
+					}
 
 					public void getOpportunitySummaryReportExcel(
 							String month, String year, String quarter, List<String> geography,
@@ -2921,8 +2934,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							break;
 						}
 
-						for (int i = 0; i < salesStageList.size();) {
-
+						for (int i = 0; i <salesStageList.size();) {
 							if (salesStageList.get(i) < 9) {
 								switch (userGroup) {
 								case ReportConstants.BDM:
@@ -3039,7 +3051,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					
 					public void addItemToList(List<String> itemList, List<String> targetList){
 						if(itemList.contains("All") || itemList.isEmpty()){
-							itemList.add("");
+							targetList.add("");
 						} else {
 							targetList.addAll(itemList);
 						}
@@ -3047,7 +3059,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					
 					public void addItemToListGeo(List<String> itemList, List<String> targetList){
 						if(itemList.contains("All") || itemList.isEmpty()){
-							itemList.add("");
+							targetList.add("");
 						} else {
 							targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
 						}

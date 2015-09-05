@@ -263,7 +263,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
-			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -313,7 +313,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
-			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)

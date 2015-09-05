@@ -1147,7 +1147,7 @@ public class OpportunityService {
 			salesStageCode.add(-1);
 		String defaultDealRange = "NO";
 		if (minDigitalDealValue == 0
-				&& maxDigitalDealValue == Integer.MAX_VALUE)
+				&& maxDigitalDealValue == Double.MAX_VALUE)
 			defaultDealRange = "YES";
 		List<OpportunityT> opportunity = opportunityRepository
 				.findByOpportunitiesIgnoreCaseLike(customerIdList,
