@@ -6,8 +6,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -172,7 +170,7 @@ public class OpportunityService {
 		if (!userId
 				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail doesnot match");
+					"User Id and Login User detail does not match");
 		
 		List<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
@@ -371,12 +369,8 @@ public class OpportunityService {
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");
 
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
-		if (!isUserOwner(userId, opportunity)) {
-			restrictOpportunity(opportunity);
-		}
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
@@ -823,7 +817,11 @@ public class OpportunityService {
 		logger.debug("Inside prepareOpportunity() method");
 
 		try {
-			checkAccessControl(opportunityT, previledgedOppIdList);
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			// Apply user access privileges if not primary / sales support owner
+			if (!isUserOwner(userId, opportunityT)) {
+				checkAccessControl(opportunityT, previledgedOppIdList);
+			}
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
