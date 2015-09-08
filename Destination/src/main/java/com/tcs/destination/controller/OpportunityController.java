@@ -356,6 +356,7 @@ public class OpportunityController {
 			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
 					+ Double.MAX_VALUE) double maxDigitalDealValue,
 			@RequestParam(value = "dealCurrency", defaultValue = "USD") String dealCurrency,
+			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "userId", defaultValue = "") List<String> userId,
 			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -366,7 +367,7 @@ public class OpportunityController {
 				minDigitalDealValue, maxDigitalDealValue, dealCurrency,
 				digitalFlag, displayIou, country, partnerId, competitorName,
 				searchKeywords, bidRequestType, offering, displaySubSp,
-				opportunityName, userId);
+				opportunityName, userId, currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunity);
 	}

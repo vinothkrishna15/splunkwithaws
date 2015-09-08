@@ -376,17 +376,31 @@ public interface OpportunityRepository extends
 			@Param("opportunityIds") List<String> opportunityIds);
 
 	@Query(value = "select distinct OPP.* from opportunity_t OPP"
+			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where  ((OPP.sales_stage_code in (:salesStage)) AND ((OPP.sales_stage_code between 0 and 8) OR"
 			+ " (OPP.deal_closure_date between (:fromDate) AND (:toDate))))"
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))", nativeQuery = true)
 	List<OpportunityT> findOpportunitiesByRoleWith(
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStage") List<Integer> salesStage,
-			@Param("userIds") List<String> userIds);
-
+			@Param("userIds") List<String> userIds,
+			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	
 	@Query(value = "select distinct OPP.* from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
@@ -410,19 +424,36 @@ public interface OpportunityRepository extends
 	// Detailed Ends Here
 
 	// Win or Loss query
-
+	
+	
+	
+//	+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+//	+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code "
+	
 	@Query(value = "select distinct SSMT.display_sub_sp,count(SSMT.display_sub_sp),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou "
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
 			+ " where (opp.sales_stage_code IN (:salesStageCode)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.sales_stage_code between 0 and 8) OR (opp.deal_closure_date  between (:fromDate) AND (:toDate)))"
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findOpportunitiesWithServiceLineByRole(
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStageCode") int salesStageCode,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds, 
+			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct SSMT.display_sub_sp,count(SSMT.display_sub_sp),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -444,19 +475,32 @@ public interface OpportunityRepository extends
 			@Param("iou") List<String> iou,
 			@Param("serviceLines") List<String> serviceLines,
 			@Param("salesStageCode") int salesStageCode);
-
+	
+	
 	@Query(value = "select distinct GMT.display_geography,count(GMT.display_geography),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou "
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " where ((opp.sales_stage_code IN (:salesStage))"
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.sales_stage_code between 0 and 8) OR (opp.deal_closure_date  between (:fromDate) AND (:toDate))))"
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by GMT.display_geography", nativeQuery = true)
 	List<Object[]> findOpportunitiesWithGeographyByRole(
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStage") int salesStage,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds, 
+			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct GMT.display_geography,count(GMT.display_geography),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -480,17 +524,29 @@ public interface OpportunityRepository extends
 			@Param("salesStage") int salesStage);
 
 	@Query(value = "select distinct ICM.display_iou,count(ICM.display_iou),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where (opp.sales_stage_code IN (:salesStage)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.sales_stage_code between 0 and 8) OR (opp.deal_closure_date  between (:fromDate) AND (:toDate)))"
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by ICM.display_iou", nativeQuery = true)
 	List<Object[]> findOpportunitiesWithIouByRole(
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStage") int salesStage,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds, 
+			@Param("geoList") List<String> geoList,
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct ICM.display_iou,count(ICM.display_iou),case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as digital_deal_value from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
@@ -516,20 +572,33 @@ public interface OpportunityRepository extends
 	// Win or Loss ends here
 
 	// Anticipating or Pipeline Querys
-
+	
+	
 	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 			+ " where (opp.sales_stage_code IN (:salesStage)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by GMT.display_geography,SASMT.sales_stage_code", nativeQuery = true)
 	List<Object[]> findSummaryGeographyByRole(
 			@Param("salesStage") int salesStage,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds,
+			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
@@ -553,20 +622,33 @@ public interface OpportunityRepository extends
 			@Param("iou") List<String> iou,
 			@Param("serviceLines") List<String> serviceLines,
 			@Param("salesStage") int salesStage);
-
+	
+	
 	@Query(value = "select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
-			+ " from opportunity_t OPP"
+			+ " from opportunity_t OPP "
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
-			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
-			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
-			+ " where(opp.sales_stage_code IN (:salesStage))"
+			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
+			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code "
+			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou "
+			+ " where(opp.sales_stage_code IN (:salesStage)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findPipelineSummaryServiceLineByRole(
 			@Param("salesStage") List<Integer> salesStage,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds,
+			@Param("geoList") List<String> geoList,
+			@Param("countryList") List<String> countryList,
+			@Param("iouList") List<String> iouList,
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
@@ -590,19 +672,33 @@ public interface OpportunityRepository extends
 			@Param("iou") List<String> iou,
 			@Param("serviceLines") List<String> serviceLines,
 			@Param("salesStage") List<Integer> salesStage);
+	
+	
 
 	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
-			+ " from opportunity_t OPP"
+			+ " from opportunity_t OPP "
+			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
+			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 			+ " where (opp.sales_stage_code IN (:salesStage)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) "
+			+ " AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))"
+			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
+			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))"
 			+ " group by ICM.display_iou,SASMT.sales_stage_code", nativeQuery = true)
 	List<Object[]> findSummaryIouByRole(@Param("salesStage") int salesStage,
-			@Param("userIds") List<String> userIds);
+			@Param("userIds") List<String> userIds, 
+			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList, 
+			@Param("iouList") List<String> iouList, 
+			@Param("serviceLines") List<String> serviceLines);
 
 	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
@@ -610,7 +706,7 @@ public interface OpportunityRepository extends
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
-			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
 			+ " inner join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"

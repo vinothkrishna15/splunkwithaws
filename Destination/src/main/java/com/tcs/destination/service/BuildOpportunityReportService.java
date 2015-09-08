@@ -147,11 +147,15 @@ public class BuildOpportunityReportService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
 		}
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
-		
+		addItemToListGeo(geography,geoList);
+		addItemToList(iou,iouList);
+		addItemToList(country,countryList);
+		addItemToList(serviceLines,serviceLinesList);
 		switch (userGroup) {
 		case ReportConstants.BDM:
 			userIds.add(userId);
-			opportunities = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds);
+			opportunities = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
+					geoList, countryList, iouList, serviceLinesList);
 			break;
 		case ReportConstants.BDMSUPERVISOR:
 			List<String> subOrdinatesList = userRepository.getAllSubordinatesIdBySupervisorId(userId);
@@ -159,7 +163,8 @@ public class BuildOpportunityReportService {
 			if(!userIds.contains(userId)){
 				userIds.add(userId);
 			}
-			opportunities = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds);
+			opportunities = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
+					geoList, countryList, iouList, serviceLinesList);
 			break;
 		default:
 				if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -169,10 +174,6 @@ public class BuildOpportunityReportService {
 					opportunities = opportunityRepository.findByOpportunityIds(opportunityIds);
 					
 				} else {
-					addItemToListGeo(geography,geoList);
-					addItemToList(iou,iouList);
-					addItemToList(country,countryList);
-					addItemToList(serviceLines,serviceLinesList);
 					opportunities = opportunityRepository.findOpportunitiesWith(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
 							salesStage);
 				}
@@ -1248,10 +1249,10 @@ public class BuildOpportunityReportService {
 			List<OpportunitySummaryValue> pipelineOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
 			switch (userGroup) {
 			case ReportConstants.BDM:
-				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds);
+				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case ReportConstants.BDMSUPERVISOR:
-				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds);
+				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
 					if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -1308,10 +1309,10 @@ public class BuildOpportunityReportService {
 			List<OpportunitySummaryValue> anticipatingOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
 			switch (userGroup) {
 			case ReportConstants.BDM:
-				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds);
+				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			case ReportConstants.BDMSUPERVISOR:
-				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds);
+				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
 					if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -1561,6 +1562,7 @@ public class BuildOpportunityReportService {
 			reportSummaryOpportunityListMap
 					.remove("pipelineAnticipatingServiceLine");
 		}
+		
 		if (reportSummaryOpportunityListMap
 				.containsKey("pipelineAnticipatingIou")) {
 			getPipelineAnticipatingDetails(workbook,
@@ -3108,10 +3110,10 @@ public class BuildOpportunityReportService {
 					toDate = toDateMap.get(subCategory);
 					switch (userGroup) {
 					case ReportConstants.BDM:
-						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
+						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 						break;
 					case ReportConstants.BDMSUPERVISOR:
-						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds);
+						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
 							if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3139,10 +3141,10 @@ public class BuildOpportunityReportService {
 					toDate = toDateMap.get(subCategory);
 					switch (userGroup) {
 					case ReportConstants.BDM:
-						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds);
+						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					case ReportConstants.BDMSUPERVISOR:
-						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds);
+						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
 							if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3171,10 +3173,10 @@ public class BuildOpportunityReportService {
 						toDate = toDateMap.get(subCategory);
 						switch (userGroup) {
 						case ReportConstants.BDM:
-							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds);
+							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						case ReportConstants.BDMSUPERVISOR:
-							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds);
+							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						default:
 								if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3213,7 +3215,7 @@ public class BuildOpportunityReportService {
 				ReportConstants.DATAROW);
 		String completeList = null;
 		XSSFRow row = null;
-		XSSFSheet spreadsheet = workbook.createSheet("Title");
+		XSSFSheet spreadsheet = workbook.createSheet(ReportConstants.TITLE);
 		
 		////
 		String userAccessField = null;
@@ -3221,43 +3223,52 @@ public class BuildOpportunityReportService {
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
+		row = spreadsheet.createRow(12);
+		row.createCell(4).setCellValue("User Access Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
-			userAccessField = "Geography";
-			row = spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13,
-					dataRow);
+			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
-				if(previlageType.equals("GEOGRAPHY")){
+				if(previlageType.equals(Constants.GEOGRAPHY)){
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow);
 			break;
 		case ReportConstants.IOUHEAD:
-			row = spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13,
-					dataRow);
-			userAccessField = "IOU";
+			userAccessField = Constants.IOU;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
-				if(previlageType.equals("IOU")){
+				if(previlageType.equals(Constants.IOU)){
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user,	dataRow);
 			break;
+		case ReportConstants.BDM:
+			writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
+			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
+			row = spreadsheet.createRow(17);
+			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
+			break;
+		case ReportConstants.BDMSUPERVISOR:
+			writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
+			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
+			row = spreadsheet.createRow(17);
+			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
+			break;
+		default :
+			writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
-		////
+		
+		////s
 		row = spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
+		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
 		row.createCell(4).setCellValue("Opportunity report as on " + tillDate);
 		spreadsheet.autoSizeColumn(4);
 		row.getCell(4).setCellStyle(headinStyle);
@@ -3265,9 +3276,9 @@ public class BuildOpportunityReportService {
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, "Geography", geography, 7,
+		writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
 				dataRow);
-		writeDetailsForSearchType(spreadsheet, "IOU", iou, 8, dataRow);
+		writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 8, dataRow);
 		writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
 				dataRow);
 		row = spreadsheet.createRow(10);
@@ -3286,6 +3297,29 @@ public class BuildOpportunityReportService {
 		
 	}
 
+	public void writeUserFilterConditions(XSSFSheet spreadsheet, UserT user, String conditions) {
+		XSSFRow row;
+		row = spreadsheet.createRow(13);
+		row.createCell(4).setCellValue("User");
+		row.createCell(5).setCellValue(user.getUserName());
+		row = spreadsheet.createRow(14);
+		row.createCell(4).setCellValue("Condition(S)");
+		row.createCell(5).setCellValue(conditions);
+		spreadsheet.autoSizeColumn(4);
+		spreadsheet.autoSizeColumn(5);
+	}
+
+	private void writeDetailsForSearchTypeUserAccessFilter(XSSFSheet spreadsheet,
+			String searchType, List<String> searchList, UserT user,
+			CellStyle dataRowStyle) {
+		XSSFRow row = null;
+		writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPBASEDONPRIVILAGE);
+		row = spreadsheet.createRow(15);
+		row.createCell(4).setCellValue(searchType);
+		String completeList = getCompleteList(searchList);
+		row.createCell(5).setCellValue(completeList);
+	}
+	
 	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
 			String searchType, List<String> searchList, int rowValue,
 			CellStyle dataRowStyle) {
@@ -3306,11 +3340,6 @@ public class BuildOpportunityReportService {
 		}
 	}
 	
-	private void addEmptyItemToListIfEmpty(List<String> itemList) { 
-		if (itemList == null || itemList.isEmpty())
-			itemList.add("");
-
-	}
 	
 	// BDM performance
 	
@@ -3322,12 +3351,12 @@ public class BuildOpportunityReportService {
 		if(oppSummaryValueMap.get(ReportConstants.WINS).size() > 0){
 			Map<String,Integer> columnValueMap = new TreeMap<String,Integer>();
 			columnValueMap = createHeaderForWinOrLoss(spreadsheet, currency, ReportConstants.WINS, columnValueMap);
-			writeValuesForWinsOrLoss(spreadsheet, oppSummaryValueMap.get("Wins"), columnValueMap);
+			writeValuesForWinsOrLoss(spreadsheet, oppSummaryValueMap.get(ReportConstants.WINS), columnValueMap);
 		}
 		if(oppSummaryValueMap.get(ReportConstants.LOSSES).size()>0) {
 			Map<String,Integer> columnValueMap = new TreeMap<String,Integer>();
 			columnValueMap = createHeaderForWinOrLoss(spreadsheet,currency,ReportConstants.LOSSES,columnValueMap);
-			writeValuesForWinsOrLoss(spreadsheet, oppSummaryValueMap.get("Losses"), columnValueMap);
+			writeValuesForWinsOrLoss(spreadsheet, oppSummaryValueMap.get(ReportConstants.LOSSES), columnValueMap);
 		}
 //			createHeaderFor
 //	}

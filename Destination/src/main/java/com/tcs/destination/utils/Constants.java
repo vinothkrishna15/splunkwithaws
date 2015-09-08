@@ -40,5 +40,7 @@ public class Constants {
 	public static final String UPLOAD_ERRORS = "upload errors";
 	public static final String UNKNOWN_CUSTOMER = "UNKNOWN%";
 	public static final String EMPTY_PARANTHESIS = "()";
+	public static final String GEOGRAPHY = "GEOGRAPHY";
+	public static final String IOU = "IOU";
 
 }

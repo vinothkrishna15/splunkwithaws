@@ -2805,11 +2805,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
+						List<Integer> salesStageCodeList=new ArrayList<Integer>();
+						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
 						
 						XSSFWorkbook workbook = new XSSFWorkbook();
 						String tillDate=DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
-						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStage, userId,workbook);
+						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
 						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 						workbook.write(byteOutPutStream);
@@ -2843,21 +2845,17 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						return inputStreamResource;
 					}
 					
-					
 
 					public InputStreamResource getOpportunityBothReport(String month,
 							String year, String quarter, List<String> geography,
 							List<String> country, List<String> iou, List<String> currency,
 							List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
 						
-						
-//						List<Integer> salesStageList = new ArrayList<Integer>(salesStage);
-						
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
 						List<Integer> salesStageCodeList=new ArrayList<Integer>();
-						removeUnwantedNumbers(salesStage, salesStageCodeList);
+						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
 						
 						String fyear=new String(year);
 						String fquarter=new String(quarter);
@@ -2878,9 +2876,9 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					}
 					
 					
-					public void removeUnwantedNumbers(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
+					public void removeUnwantedSalesStageCodes(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
 						for(Integer salesStage:salesStageList){
-							if(salesStage!=11 && salesStage!=12 && salesStage!=13){
+							if(salesStage!=11 || salesStage!=12 || salesStage!=13){
 								salesStageCodeList.add(salesStage);
 							}
 						}
@@ -2938,10 +2936,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							if (salesStageList.get(i) < 9) {
 								switch (userGroup) {
 								case ReportConstants.BDM:
-									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds);
+									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 									break;
 								case ReportConstants.BDMSUPERVISOR:
-									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds);
+									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 									break;
 								default:
 										if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -2961,10 +2959,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 								if (isDistinctIou) {
 									switch (userGroup) {
 									case ReportConstants.BDM:
-										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds);
+										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 										break;
 									case ReportConstants.BDMSUPERVISOR:
-										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds);
+										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 										break;
 									default:
 											if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
@@ -3047,8 +3045,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						}
 					}
 
-					
-					
 					public void addItemToList(List<String> itemList, List<String> targetList){
 						if(itemList.contains("All") || itemList.isEmpty()){
 							targetList.add("");

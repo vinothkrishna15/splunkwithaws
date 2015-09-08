@@ -166,7 +166,12 @@ public class ReportConstants {
 	public static final String YTDACTUAL = "yTdActual";
 	public static final String YTDPROJECTED = "yTdProjected";
 	public static final String YTDREVENUE = "yTdRevenue";
-	public static final String YTDTARGETACHIEVED = "yTdTargetAchieved";	
+	public static final String YTDTARGETACHIEVED = "yTdTargetAchieved";
+	public static final String FULLACCESS = "None, Full Access";
+	public static final String OPPWHEREBDMPRIMARYORSALESOWNER = "Oppurunities where BDM is tagged as Primary Or Sales Support Owner is downloaded";
+	public static final String OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER = "Oppurunities where BDM Supervisor is tagged as Primary Or Sales Support Owner is downloaded";
+	public static final String REPORTNOTE = "Note: Data downloaded is a combination of user selection and filter";
+	public static final String OPPBASEDONPRIVILAGE = "Oppurunities based on privilege defined";	
 	
 
 }

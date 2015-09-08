@@ -200,6 +200,10 @@ public class ExcelUtils {
 			font.setFontHeightInPoints((short) 11);
 			cellStyle.setFont(font);
 			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+			cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderLeft(XSSFCellStyle.BORDER_THIN);
 			break;
 		
 		case ReportConstants.HEADER:

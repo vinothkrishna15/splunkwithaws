@@ -1128,7 +1128,7 @@ public class OpportunityService {
 			List<String> partnerId, List<String> competitorName,
 			List<String> searchKeywords, List<String> bidRequestType,
 			List<String> offering, List<String> displaySubSp,
-			List<String> opportunityName, List<String> userId)
+			List<String> opportunityName, List<String> userId, List<String> toCurrency)
 			throws DestinationException {
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
@@ -1162,6 +1162,7 @@ public class OpportunityService {
 					"No Opportunities Found.");
 		}
 		prepareOpportunity(opportunity);
+		beaconConverterService.convertOpportunityCurrency(opportunity, toCurrency);
 		return opportunity;
 	}
 
