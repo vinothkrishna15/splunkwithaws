@@ -276,7 +276,7 @@ public class ContactService {
 
 	public void preventSensitiveInfo(ContactT contactT) {
 		if (contactT != null) {
-			if (contactT.getContactType().equals(ContactType.EXTERNAL)) {
+			if (contactT.getContactType().equals(ContactType.EXTERNAL.name())) {
 				contactT.setContactEmailId(null);
 				contactT.setContactTelephone(null);
 			}

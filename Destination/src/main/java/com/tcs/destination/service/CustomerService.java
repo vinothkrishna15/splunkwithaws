@@ -343,13 +343,14 @@ public class CustomerService {
 			queryBuffer.append(whereClause);
 		}
 
+		logger.info("queryString = " + queryBuffer.toString());
 		return queryBuffer.toString();
 	}
 
 	public ArrayList<String> getPreviledgedCustomerName(String userId,
 			ArrayList<String> customerNameList, boolean considerGeoIou)
 			throws Exception {
-		logger.debug("Inside setPreviledgeConstraints(customerName) method");
+		logger.debug("Inside getPreviledgedCustomerName() method");
 		String queryString = getCustomerPrevilegeQueryString(userId,
 				customerNameList, considerGeoIou);
 		logger.info("Query string: {}", queryString);
@@ -359,6 +360,8 @@ public class CustomerService {
 
 	private void prepareCustomerDetails(List<CustomerMasterT> customerMasterList)
 			throws Exception {
+		logger.debug("Inside prepareCustomerDetails() method");
+
 		if (customerMasterList != null && !customerMasterList.isEmpty()) {
 			ArrayList<String> customerNameList = new ArrayList<String>();
 			for (CustomerMasterT customerMasterT : customerMasterList) {
@@ -377,6 +380,8 @@ public class CustomerService {
 
 	private void prepareCustomerDetails(CustomerMasterT customerMasterT,
 			ArrayList<String> customerNameList) throws DestinationException {
+		logger.debug("Inside prepareCustomerDetails() method");
+
 		removeCyclicForLinkedContactTs(customerMasterT);
 		try {
 			if (customerNameList == null) {
@@ -400,6 +405,8 @@ public class CustomerService {
 	}
 
 	private void hideSensitiveInfo(CustomerMasterT customerMasterT) {
+		logger.debug("Inside hideSensitiveInfo() method");
+
 		opportunityService.preventSensitiveInfo(customerMasterT
 				.getOpportunityTs());
 		for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
