@@ -37,12 +37,13 @@ public class CustomerController {
 	public @ResponseBody String findOne(
 			@PathVariable("id") String customerId,
 			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside CustomerController /customer/id=" + customerId
 				+ " GET");
-		CustomerMasterT customer = customerService.findById(customerId, userId);
+		CustomerMasterT customer = customerService.findById(customerId, userId, currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customer);
 	}
