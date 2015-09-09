@@ -422,14 +422,12 @@ public class BuildBidReportService {
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
+		row = (SXSSFRow) spreadsheet.createRow(12);
+		row.createCell(4).setCellValue("User Access Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
-			userAccessField = ReportConstants.GEO;
-			row = (SXSSFRow) spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -437,13 +435,9 @@ public class BuildBidReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.BIDBASEDONPRIVILAGE);
 			break;
 		case ReportConstants.IOUHEAD:
-			row = (SXSSFRow) spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			userAccessField = ReportConstants.Iou;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -452,7 +446,10 @@ public class BuildBidReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.BIDBASEDONPRIVILAGE);
 			break;
+		default :
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		////
 		row = (SXSSFRow) spreadsheet.createRow(4);
@@ -464,32 +461,32 @@ public class BuildBidReportService {
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
 				dataRow);
-		writeDetailsForSearchType(spreadsheet, "IOU", iou, 8, dataRow);
-		writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "IOU", iou, 8, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
 				dataRow);
 		row = (SXSSFRow) spreadsheet.createRow(10);
 		row.setRowStyle(null);
 	}
 	
-	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,
-			String searchType, List<String> searchList, int rowValue,
-			CellStyle dataRowStyle) {
-		SXSSFRow row = null;
-		row = (SXSSFRow) spreadsheet.createRow(rowValue);
-		row.createCell(4).setCellValue(searchType);
-		spreadsheet.autoSizeColumn(4);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
-	}
+//	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,
+//			String searchType, List<String> searchList, int rowValue,
+//			CellStyle dataRowStyle) {
+//		SXSSFRow row = null;
+//		row = (SXSSFRow) spreadsheet.createRow(rowValue);
+//		row.createCell(4).setCellValue(searchType);
+//		spreadsheet.autoSizeColumn(4);
+//		String completeList = getCompleteList(searchList);
+//		row.createCell(5).setCellValue(completeList);
+//		spreadsheet.autoSizeColumn(5);
+//	}
 
-	private String getCompleteList(List<String> itemList) {
-		if (itemList.size() == 0) {
-			return "All";
-		} else {
-			return itemList.toString().replace("[", "").replace("]", "");
-		}
-	}
+//	private String getCompleteList(List<String> itemList) {
+//		if (itemList.size() == 0) {
+//			return "All";
+//		} else {
+//			return itemList.toString().replace("[", "").replace("]", "");
+//		}
+//	}
 }

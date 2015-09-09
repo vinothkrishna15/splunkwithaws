@@ -137,7 +137,7 @@ public class ReportsService {
 			+ "   JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
 			+ "   JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
 			+ "   left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id"
-			+ "   JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
+			+ "   left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
 			+ " where ";
 	private static final String CONNECT_ID_PARTNER_UNION_REPORT_QUERY_PREFIX = 	" union select distinct CON.connect_id";	
 	
@@ -147,7 +147,7 @@ public class ReportsService {
 			+ "JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "  
 			+ "JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "   
 			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "   
-			+ "JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
+			+ "left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
 	
 	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
 			+ "	 left outer JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
@@ -1305,7 +1305,6 @@ public class ReportsService {
 			List<String> formattedMonths, String userId) throws Exception {
 		String queryString = getOverAllRevenuesByGeoQueryString(
 				formattedMonths, userId);
-		System.out.println("OVER ALL BY GEO"+queryString);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
@@ -1350,7 +1349,6 @@ public class ReportsService {
 		String queryString = getTop30CustomersRevenueSumQueryString(
 				formattedMonths, userId);
 		logger.info("Query string: {}", queryString);
-		System.out.println("Customers Top 30   :::"+queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
 				.createNativeQuery(queryString);
@@ -1449,7 +1447,6 @@ public class ReportsService {
 		String queryString = getTotalActualProjectedRevenueQueryString(
 				formattedMonths, userId);
 		
-		System.out.println("ACTUAL PROJECTED :::"+queryString);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
@@ -1592,7 +1589,6 @@ public class ReportsService {
 		String queryString = getActualProjectedTopRevenuesQueryString(
 				formattedMonths, userId, count,RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		logger.info("Query string: {}", queryString);
-		System.out.println("Top Customers Query ::::::::"+queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
 				.createNativeQuery(queryString);
@@ -1664,7 +1660,6 @@ public class ReportsService {
 
 		String queryString = getOverAllActualRevenuesQueryString(
 				formattedMonths, userId);
-		System.out.println("OVER ALLL REVENUE  :"+queryString);
 		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query tergetVsActualReportQuery = entityManager
@@ -1996,17 +1991,14 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
 					.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,null, null);
 			
-			System.out.println("QUERT UNION  "+queryUnionPrefixMap.keySet());
 			// Get WHERE clause string
 			queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
 					+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
 			queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
 					+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-			System.out.println("QUERTY BUFFER    "+queryBuffer);
 			String whereClauseUnion = userAccessPrivilegeQueryBuilder
 					.getUserAccessPrivilegeWhereConditionClause(userId,
 							queryUnionPrefixMap);
-			System.out.println("Where UNION"+whereClauseUnion);
 			if (whereClauseUnion != null && !whereClauseUnion.isEmpty()) {
 				queryBuffer.append(Constants.AND_CLAUSE + whereClauseUnion);	
 		
@@ -2053,6 +2045,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		} else {
+			addEmptyItemToListIfGeo(geography, geographyList);
+			addEmptyItemToListIfAll(iou, iouList);
+			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+			addEmptyItemToListIfAll(country, countryList);
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
 				// Validate user group, BDM's & BDM supervisor's are not
@@ -2062,7 +2058,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					connectList = connectRepository.findByConnectReport(
 							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds);
+									toDate.getTime()), userIds, iouList,
+									geographyList, countryList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
 					userIds = userRepository
@@ -2071,7 +2068,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					connectList = connectRepository.findByConnectReport(
 							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds);
+									toDate.getTime()), userIds, iouList,
+									geographyList, countryList, serviceLinesList);
 					break;
 				default:
 					if (geography.contains("All")
@@ -2081,10 +2079,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						connectList = getConnectDetailsBasedOnUserPrivileges(
 								fromDate, toDate, userId);
 					} else {
-						addEmptyItemToListIfGeo(geography, geographyList);
-						addEmptyItemToListIfAll(iou, iouList);
-						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-						addEmptyItemToListIfAll(country, countryList);
 						connectList = connectRepository.findByConnectReport(
 								new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), iouList,
@@ -2190,6 +2184,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		} else {
+			addEmptyItemToListIfGeo(geography, geographyList);
+			addEmptyItemToListIfAll(iou, iouList);
+			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+			addEmptyItemToListIfAll(country, countryList);
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
 				// Validate user group, BDM's & BDM supervisor's are not
@@ -2199,7 +2197,9 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					getConnectSummaryDetailsByUserIds(userIds, fromDate,
 							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList);
+							geographyConnectCountList, iouConnectCountList, iouList,
+							geographyList, countryList,
+							serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
 					userIds = userRepository
@@ -2208,42 +2208,20 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					getConnectSummaryDetailsByUserIds(userIds, fromDate,
 							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList);
+							geographyConnectCountList, iouConnectCountList, iouList,
+							geographyList, countryList,
+							serviceLinesList);
 					break;
 				default:
 					if (geography.contains("All")
 							&& (iou.contains("All") && serviceLines
 									.contains("All"))
 							&& country.contains("All")) {
-						// Form the native top revenue query string
-						String geoQueryString = getConnectGeoSummaryQueryString(
-								userId, fromDate, toDate);
-						String iouQueryString = getConnectIouSummaryQueryString(
-								userId, fromDate, toDate);
-						String subSpQueryString = getConnectSubSpSummaryQueryString(
-								userId, fromDate, toDate);
-						logger.info("GEO Query string: {}", geoQueryString);
-						logger.info("IOU Query string: {}", iouQueryString);
-						logger.info("SUBSP Query string: {}", subSpQueryString);
-						// Execute the native revenue query string
-						Query connectGeoSummaryReportQuery = entityManager
-								.createNativeQuery(geoQueryString);
-						Query connectIouSummaryReportQuery = entityManager
-								.createNativeQuery(iouQueryString);
-						Query connectSubSpSummaryReportQuery = entityManager
-								.createNativeQuery(subSpQueryString);
 
-						geographyConnectCountList = connectGeoSummaryReportQuery
-								.getResultList();
-						iouConnectCountList = connectIouSummaryReportQuery
-								.getResultList();
-						subSpConnectCountList = connectSubSpSummaryReportQuery
-								.getResultList();
+						geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
+						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
+						subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
 					} else {
-						addEmptyItemToListIfGeo(geography, geographyList);
-						addEmptyItemToListIfAll(iou, iouList);
-						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-						addEmptyItemToListIfAll(country, countryList);
 						subSpConnectCountList = connectRepository
 								.findBySubSpConnectSummaryReport(new Timestamp(
 										fromDate.getTime()), new Timestamp(
@@ -2294,21 +2272,60 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		}
 	}
 
+	private List<Object[]> getConnectSubSpSummaryDetails(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		String subSpQueryString = getConnectSubSpSummaryQueryString(
+				userId, fromDate, toDate);
+		logger.info("SUBSP Query string: {}", subSpQueryString);
+		// Execute the native revenue query string
+		Query connectSubSpSummaryReportQuery = entityManager
+				.createNativeQuery(subSpQueryString);
+		return connectSubSpSummaryReportQuery
+				.getResultList();
+	}
+
+	private List<Object[]> getConnectIouSummaryDetails(String userId,
+			Date fromDate, Date toDate) throws Exception {
+		String iouQueryString = getConnectIouSummaryQueryString(
+				userId, fromDate, toDate);
+		logger.info("IOU Query string: {}", iouQueryString);
+		// Execute the native revenue query string
+		Query connectIouSummaryReportQuery = entityManager
+				.createNativeQuery(iouQueryString);
+		return connectIouSummaryReportQuery.getResultList();
+	}
+
+	private List<Object[]> getConnectGeoSummaryDetails(String userId, Date fromDate, Date toDate) throws Exception {
+		// Form the native top revenue query string
+		String geoQueryString = getConnectGeoSummaryQueryString(userId, fromDate, toDate);
+		logger.info("GEO Query string: {}", geoQueryString);
+		// Execute the native revenue query string
+		Query connectGeoSummaryReportQuery = entityManager
+				.createNativeQuery(geoQueryString);
+		return connectGeoSummaryReportQuery.getResultList();
+	}
+
 	public void getConnectSummaryDetailsByUserIds(List<String> userIds,
 			Date fromDate, Date toDate, List<Object[]> subSpConnectCountList,
 			List<Object[]> geographyConnectCountList,
-			List<Object[]> iouConnectCountList) {
+			List<Object[]> iouConnectCountList, List<String> iouList, List<String> geographyList, List<String> countryList, List<String> serviceLinesList) {
 		subSpConnectCountList.addAll(connectRepository
 				.findBySubSpConnectSummaryReport(
 						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds));
+						new Timestamp(toDate.getTime()), userIds, iouList,
+						geographyList, countryList,
+						serviceLinesList));
 		geographyConnectCountList.addAll(connectRepository
 				.findByGeographyConnectSummaryReport(
 						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds));
+						new Timestamp(toDate.getTime()), userIds, iouList,
+						geographyList, countryList,
+						serviceLinesList));
 		iouConnectCountList.addAll(connectRepository.findByIouConnectSummaryReport(
 				new Timestamp(fromDate.getTime()),
-				new Timestamp(toDate.getTime()), userIds));
+				new Timestamp(toDate.getTime()), userIds, iouList,
+				geographyList, countryList,
+				serviceLinesList));
 	}
 
 	/**
@@ -2370,6 +2387,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		} else {
+			addEmptyItemToListIfGeo(geography, geographyList);
+			addEmptyItemToListIfAll(iou, iouList);
+			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+			addEmptyItemToListIfAll(country, countryList);
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
 				// Validate user group, BDM's & BDM supervisor's are not
@@ -2379,10 +2400,12 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					connectList = connectRepository.findByConnectReport(
 							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds);
+									toDate.getTime()), userIds,  iouList,
+									geographyList, countryList, serviceLinesList);
 					getConnectSummaryDetailsByUserIds(userIds, fromDate,
 							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList);
+							geographyConnectCountList, iouConnectCountList, iouList,
+							geographyList, countryList, serviceLinesList);
 					break;
 				case BDM_SUPERVISOR:
 					userIds = userRepository
@@ -2391,48 +2414,24 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					userIds.add(userId);
 					connectList = connectRepository.findByConnectReport(
 							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds);
+									toDate.getTime()), userIds, iouList,
+									geographyList, countryList, serviceLinesList);
 					getConnectSummaryDetailsByUserIds(userIds, fromDate,
 							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList);
+							geographyConnectCountList, iouConnectCountList, iouList,
+							geographyList, countryList, serviceLinesList);
 					break;
 				default:
 					if (geography.contains("All")
 							&& (iou.contains("All") && serviceLines
 									.contains("All"))
 							&& country.contains("All")) {
-						connectList = getConnectDetailsBasedOnUserPrivileges(
-								fromDate, toDate, userId);
-						String queryString = getConnectGeoSummaryQueryString(
-								userId, fromDate, toDate);
-						System.out.println("GEO QUERYYYY" +queryString);
-						String queryString1 = getConnectIouSummaryQueryString(
-								userId, fromDate, toDate);
-						System.out.println("SUBSP QUERYYYY" +queryString1);
-						String queryString2 = getConnectSubSpSummaryQueryString(
-								userId, fromDate, toDate);
-						System.out.println("IOU QUERYYYY" +queryString2);
-						logger.info("Query string: {}", queryString);
-						// Execute the native revenue query string
-						Query connectGeoSummaryReportQuery = entityManager
-								.createNativeQuery(queryString);
-						Query connectIouSummaryReportQuery = entityManager
-								.createNativeQuery(queryString1);
-						Query connectSubSpSummaryReportQuery = entityManager
-								.createNativeQuery(queryString2);
-
-						geographyConnectCountList = connectGeoSummaryReportQuery
-								.getResultList();
-						iouConnectCountList = connectIouSummaryReportQuery
-								.getResultList();
-						subSpConnectCountList = connectSubSpSummaryReportQuery
-								.getResultList();
+						connectList = getConnectDetailsBasedOnUserPrivileges(fromDate, toDate, userId);
+						geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
+						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
+						subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
 
 					} else {
-						addEmptyItemToListIfGeo(geography, geographyList);
-						addEmptyItemToListIfAll(iou, iouList);
-						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-						addEmptyItemToListIfAll(country, countryList);
 						connectList = connectRepository.findByConnectReport(
 								new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), iouList,

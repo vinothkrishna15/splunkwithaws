@@ -459,6 +459,15 @@ public class ConnectDetailedReportService {
 		return columnNo;
 		}
 
+	/**
+	 * This Method Writes The Connect Report Title Page In WorkBook
+	 * @param workbook
+	 * @param geography
+	 * @param iou
+	 * @param serviceLines
+	 * @param userId
+	 * @param tillDate
+	 */
 	public void getConnectTitlePage(XSSFWorkbook workbook,
 			List<String> geography, List<String> iou,
 			List<String> serviceLines, String userId, String tillDate) {
@@ -470,23 +479,20 @@ public class ConnectDetailedReportService {
 				ReportConstants.DATAROW);
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
-//		String completeList = null;
 		XSSFRow row = null;
 		
-		////
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
+		row = spreadsheet.createRow(12);
+		row.createCell(4).setCellValue("User Access Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";
-			row = spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -494,14 +500,10 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			break;
 		case ReportConstants.IOUHEAD:
-			row = spreadsheet.createRow(12);
-			row.createCell(4).setCellValue("User Access Filter's");
-			row.getCell(4).setCellStyle(subHeadingStyle);
-			spreadsheet.autoSizeColumn(4);
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
-			userAccessField = "Iou";
+			userAccessField = "IOU";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -509,11 +511,27 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
+//			
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 			break;
-		}
-		////
+		case ReportConstants.BDM:
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER);
+			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
+			row = spreadsheet.createRow(17);
+			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
+			break;
+		case ReportConstants.BDMSUPERVISOR:
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER);
+			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
+			row = spreadsheet.createRow(17);
+			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
+			break;
+		default :
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
+			}
+		
 		row = spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
+		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
 		row.createCell(4).setCellValue("Connect report as on " + tillDate);
 		spreadsheet.autoSizeColumn(4);
 		row.getCell(4).setCellStyle(headinStyle);
@@ -528,9 +546,6 @@ public class ConnectDetailedReportService {
 				dataRow);
 		row = spreadsheet.createRow(10);
 		row.setRowStyle(null);
-		
-		
-		
 	}
 	
 	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
@@ -552,10 +567,4 @@ public class ConnectDetailedReportService {
 			return itemList.toString().replace("[", "").replace("]", "");
 		}
 	}
-	
-//	private void addEmptyItemToListIfEmpty(List<String> itemList) { //
-//		if (itemList == null || itemList.isEmpty())
-//			itemList.add("");
-//
-//	}
 }

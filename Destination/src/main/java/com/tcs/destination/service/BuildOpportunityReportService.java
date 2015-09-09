@@ -3237,7 +3237,7 @@ public class BuildOpportunityReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-			writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow);
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.OPPBASEDONPRIVILAGE);
 			break;
 		case ReportConstants.IOUHEAD:
 			userAccessField = Constants.IOU;
@@ -3248,22 +3248,22 @@ public class BuildOpportunityReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-			writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user,	dataRow);
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.OPPBASEDONPRIVILAGE);
 			break;
 		case ReportConstants.BDM:
-			writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
 			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
 			row = spreadsheet.createRow(17);
 			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		case ReportConstants.BDMSUPERVISOR:
-			writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
 			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
 			row = spreadsheet.createRow(17);
 			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		default :
-			writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		
 		////s
@@ -3276,10 +3276,10 @@ public class BuildOpportunityReportService {
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
 				dataRow);
-		writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 8, dataRow);
-		writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 8, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
 				dataRow);
 		row = spreadsheet.createRow(10);
 		row.setRowStyle(null);
@@ -3297,48 +3297,47 @@ public class BuildOpportunityReportService {
 		
 	}
 
-	public void writeUserFilterConditions(XSSFSheet spreadsheet, UserT user, String conditions) {
-		XSSFRow row;
-		row = spreadsheet.createRow(13);
-		row.createCell(4).setCellValue("User");
-		row.createCell(5).setCellValue(user.getUserName());
-		row = spreadsheet.createRow(14);
-		row.createCell(4).setCellValue("Condition(S)");
-		row.createCell(5).setCellValue(conditions);
-		spreadsheet.autoSizeColumn(4);
-		spreadsheet.autoSizeColumn(5);
-	}
+//	public void writeUserFilterConditions(XSSFSheet spreadsheet, UserT user, String conditions) {
+//		XSSFRow row;
+//		row = spreadsheet.createRow(13);
+//		row.createCell(4).setCellValue("User");
+//		row.createCell(5).setCellValue(user.getUserName());
+//		row = spreadsheet.createRow(14);
+//		row.createCell(4).setCellValue("Condition(S)");
+//		row.createCell(5).setCellValue(conditions);
+//		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(5);
+//	}
 
-	private void writeDetailsForSearchTypeUserAccessFilter(XSSFSheet spreadsheet,
-			String searchType, List<String> searchList, UserT user,
-			CellStyle dataRowStyle) {
-		XSSFRow row = null;
-		writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPBASEDONPRIVILAGE);
-		row = spreadsheet.createRow(15);
-		row.createCell(4).setCellValue(searchType);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-	}
-	
-	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
-			String searchType, List<String> searchList, int rowValue,
-			CellStyle dataRowStyle) {
-		XSSFRow row = null;
-		row = spreadsheet.createRow(rowValue);
-		row.createCell(4).setCellValue(searchType);
-		spreadsheet.autoSizeColumn(4);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
-	}
+//	private void writeDetailsForSearchTypeUserAccessFilter(XSSFSheet spreadsheet,
+//			String searchType, List<String> searchList, UserT user,	CellStyle dataRowStyle, String previlegeBased) {
+//		XSSFRow row = null;
+////		ExcelUtils.writeUserFilterConditions(spreadsheet, user, previlegeBased);
+//		row = spreadsheet.createRow(15);
+//		row.createCell(4).setCellValue(searchType);
+//		String completeList = getCompleteList(searchList);
+//		row.createCell(5).setCellValue(completeList);
+//	}
+//	
+//	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
+//			String searchType, List<String> searchList, int rowValue,
+//			CellStyle dataRowStyle) {
+//		XSSFRow row = null;
+//		row = spreadsheet.createRow(rowValue);
+//		row.createCell(4).setCellValue(searchType);
+//		spreadsheet.autoSizeColumn(4);
+//		String completeList = getCompleteList(searchList);
+//		row.createCell(5).setCellValue(completeList);
+//		spreadsheet.autoSizeColumn(5);
+//	}
 
-	private String getCompleteList(List<String> itemList) {
-		if (itemList.size() == 0) {
-			return "All";
-		} else {
-			return itemList.toString().replace("[", "").replace("]", "");
-		}
-	}
+//	private String getCompleteList(List<String> itemList) {
+//		if (itemList.size() == 0) {
+//			return "All";
+//		} else {
+//			return itemList.toString().replace("[", "").replace("]", "");
+//		}
+//	}
 	
 	
 	// BDM performance

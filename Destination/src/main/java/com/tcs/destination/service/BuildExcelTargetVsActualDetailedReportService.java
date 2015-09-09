@@ -915,7 +915,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 	public void getTargetVsActualTitlePage(XSSFWorkbook workbook, List<String> geography, List<String> iou, String userId,
 			String tillDate) {
 		
-		XSSFSheet spreadsheet = workbook.createSheet("Title");
+		XSSFSheet spreadsheet = workbook.createSheet(ReportConstants.TITLE);
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.REPORTHEADER);
@@ -923,38 +923,45 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				ReportConstants.DATAROW);
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
-//		String completeList = null;
 		XSSFRow row = null;
 		
-		////
+		//
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
+		row = spreadsheet.createRow(12);
+		row.createCell(4).setCellValue("User Access Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
-			userAccessField = "Geography";
+			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
-				if(previlageType.equals(PrivilegeType.GEOGRAPHY.name())){
+				if(previlageType.equals(Constants.GEOGRAPHY)){
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.TARVSACTBASEDONPRIVILAGE);
 			break;
 		case ReportConstants.IOUHEAD:
-			userAccessField = "Iou";
+			userAccessField = Constants.IOU;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
-				if(previlageType.equals(PrivilegeType.IOU.name())){
+				if(previlageType.equals(Constants.IOU)){
 					privilegeValueList.add(privilageValue);
 				}
 			}
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.TARVSACTBASEDONPRIVILAGE);
 			break;
+		default :
+			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
-		////
+		
 		row = spreadsheet.createRow(4);
 		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
 		row.createCell(4).setCellValue("Beacon Target Vs Actual report as on " + tillDate);
@@ -964,10 +971,10 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
 				dataRow);
-		writeDetailsForSearchType(spreadsheet, ReportConstants.IOU, iou, 8, dataRow);
-//		writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.IOU, iou, 8, dataRow);
+//		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
 //				dataRow);
 		row = spreadsheet.createRow(10);
 		row.setRowStyle(null);
@@ -976,27 +983,8 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 		
 	}
 	
-	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
-			String searchType, List<String> searchList, int rowValue,
-			CellStyle dataRowStyle) {
-		XSSFRow row = null;
-		row = spreadsheet.createRow(rowValue);
-		row.createCell(4).setCellValue(searchType);
-		spreadsheet.autoSizeColumn(4);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
-	}
-
-	private String getCompleteList(List<String> itemList) {
-		if (itemList.size() == 0) {
-			return "All";
-		} else {
-			return itemList.toString().replace("[", "").replace("]", "");
-		}
-	}
 }

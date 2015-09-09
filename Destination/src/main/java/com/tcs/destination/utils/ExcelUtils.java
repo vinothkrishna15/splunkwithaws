@@ -2,6 +2,7 @@ package com.tcs.destination.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -11,6 +12,8 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -21,6 +24,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion.Static;
+import com.tcs.destination.bean.UserT;
 
 public class ExcelUtils {
 
@@ -358,4 +364,83 @@ public class ExcelUtils {
 		    
 	}
 
-}
+	public static void writeUserFilterConditions(XSSFSheet spreadsheet, UserT user, String conditions) {
+		XSSFRow row;
+		row = spreadsheet.createRow(13);
+		row.createCell(4).setCellValue("User");
+		row.createCell(5).setCellValue(user.getUserName());
+		row = spreadsheet.createRow(14);
+		row.createCell(4).setCellValue("Condition(S)");
+		row.createCell(5).setCellValue(conditions);
+		spreadsheet.autoSizeColumn(4);
+		spreadsheet.autoSizeColumn(5);
+	}
+
+	public static void writeUserFilterConditions(SXSSFSheet spreadsheet, UserT user, String conditions) {
+		SXSSFRow row;
+		row = (SXSSFRow) spreadsheet.createRow(13);
+		row.createCell(4).setCellValue("User");
+		row.createCell(5).setCellValue(user.getUserName());
+		row = (SXSSFRow) spreadsheet.createRow(14);
+		row.createCell(4).setCellValue("Condition(S)");
+		row.createCell(5).setCellValue(conditions);
+		spreadsheet.autoSizeColumn(4);
+		spreadsheet.autoSizeColumn(5);
+	}
+
+	public static void writeDetailsForSearchTypeUserAccessFilter(
+			XSSFSheet spreadsheet, String userAccessField,
+			List<String> privilegeValueList, UserT user, CellStyle dataRow,
+			String previlegeBased) {
+		XSSFRow row = null;
+		writeUserFilterConditions(spreadsheet, user, previlegeBased);
+		row = spreadsheet.createRow(15);
+		row.createCell(4).setCellValue(userAccessField);
+		String completeList = getCompleteList(privilegeValueList);
+		row.createCell(5).setCellValue(completeList);
+	}
+	
+	public static String getCompleteList(List<String> itemList) {
+		if (itemList.size() == 0) {
+			return "All";
+		} else {
+			return itemList.toString().replace("[", "").replace("]", "");
+		}
+	}
+
+	public static void writeDetailsForSearchType(XSSFSheet spreadsheet,
+			String searchType, List<String> searchList, int rowValue, CellStyle dataRow) {
+		XSSFRow row = null;
+		row = spreadsheet.createRow(rowValue);
+		row.createCell(4).setCellValue(searchType);
+		spreadsheet.autoSizeColumn(4);
+		String completeList = getCompleteList(searchList);
+		row.createCell(5).setCellValue(completeList);
+		spreadsheet.autoSizeColumn(5);
+		
+	}
+	
+	public static void writeDetailsForSearchType(SXSSFSheet spreadsheet,
+			String searchType, List<String> searchList, int rowValue, CellStyle dataRow) {
+		SXSSFRow row = null;
+		row = (SXSSFRow) spreadsheet.createRow(rowValue);
+		row.createCell(4).setCellValue(searchType);
+		spreadsheet.autoSizeColumn(4);
+		String completeList = getCompleteList(searchList);
+		row.createCell(5).setCellValue(completeList);
+		spreadsheet.autoSizeColumn(5);
+		
+	}
+
+	public static void writeDetailsForSearchTypeUserAccessFilter(
+			SXSSFSheet spreadsheet, String userAccessField,
+			List<String> privilegeValueList, UserT user, CellStyle dataRow,
+			String previlegeBased) {
+		SXSSFRow row = null;
+		writeUserFilterConditions(spreadsheet, user, previlegeBased);
+		row = (SXSSFRow) spreadsheet.createRow(15);
+		row.createCell(4).setCellValue(userAccessField);
+		String completeList = getCompleteList(privilegeValueList);
+		row.createCell(5).setCellValue(completeList);
+	}
+	}
