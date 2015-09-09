@@ -64,6 +64,9 @@ public class CustomerService {
 
 	@Autowired
 	ReportsService reportsService;
+	
+	@Autowired
+	BeaconConverterService beaconConverterService;
 
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
@@ -71,7 +74,7 @@ public class CustomerService {
 	@Autowired
 	PerformanceReportService performanceReportService;
 
-	public CustomerMasterT findById(String customerId,String userId) throws Exception {
+	public CustomerMasterT findById(String customerId,String userId, List<String> toCurrency) throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
@@ -85,6 +88,7 @@ public class CustomerService {
 					"Customer not found: " + customerId);
 		}
 		prepareCustomerDetails(customerMasterT, null);
+		beaconConverterService.convertOpportunityCurrency(customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;
 	}
 
