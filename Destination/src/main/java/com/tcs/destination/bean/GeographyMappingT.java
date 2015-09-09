@@ -38,6 +38,12 @@ public class GeographyMappingT implements Serializable {
 
 	@Column(name = "display_geography")
 	private String displayGeography;
+	
+	
+	//bi-directional many-to-one association to GeographyCountryMappingT
+	@OneToMany(mappedBy="geographyMappingT")
+	private List<GeographyCountryMappingT> geographyCountryMappingTs;
+
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
 	@JsonIgnore
@@ -179,5 +185,27 @@ public class GeographyMappingT implements Serializable {
 
 		return revenueCustomerMappingT;
 	}
+	
+	public List<GeographyCountryMappingT> getGeographyCountryMappingTs() {
+		return this.geographyCountryMappingTs;
+	}
 
+	public void setGeographyCountryMappingTs(List<GeographyCountryMappingT> geographyCountryMappingTs) {
+		this.geographyCountryMappingTs = geographyCountryMappingTs;
+	}
+
+	public GeographyCountryMappingT addGeographyCountryMappingT(GeographyCountryMappingT geographyCountryMappingT) {
+		getGeographyCountryMappingTs().add(geographyCountryMappingT);
+		geographyCountryMappingT.setGeographyMappingT(this);
+
+		return geographyCountryMappingT;
+	}
+
+	public GeographyCountryMappingT removeGeographyCountryMappingT(GeographyCountryMappingT geographyCountryMappingT) {
+		getGeographyCountryMappingTs().remove(geographyCountryMappingT);
+		geographyCountryMappingT.setGeographyMappingT(null);
+
+		return geographyCountryMappingT;
+	}
+	
 }
