@@ -16,6 +16,8 @@ public interface UserNotificationSettingsRepository extends CrudRepository<UserN
 
 	UserNotificationSettingsT findByUserNotificationSettingsId(
 			String userNotificationSettingsId);
+	
+	List<UserNotificationSettingsT> findByUserIdAndEventId(String userId,Integer eventId);
 
 	
 }

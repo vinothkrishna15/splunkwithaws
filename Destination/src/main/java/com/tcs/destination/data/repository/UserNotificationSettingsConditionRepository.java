@@ -9,5 +9,5 @@ import com.tcs.destination.bean.UserNotificationSettingsConditionsT;
 @Repository
 public interface UserNotificationSettingsConditionRepository extends CrudRepository<UserNotificationSettingsConditionsT, String>{
 
-	List<UserNotificationSettingsConditionsT> findByUserIdAndEventId(String userId, String eventId);
+	List<UserNotificationSettingsConditionsT> findByUserIdAndEventId(String userId, Integer eventId);
 }

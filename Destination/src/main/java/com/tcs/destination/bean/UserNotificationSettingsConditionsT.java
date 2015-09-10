@@ -44,7 +44,7 @@ public class UserNotificationSettingsConditionsT implements Serializable {
 	private NotificationSettingsEventConditionsT notificationSettingsEventConditionsT;
 
 	@Column(name="event_id")
-	private String eventId;
+	private Integer eventId;
 
 	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
@@ -70,11 +70,11 @@ public class UserNotificationSettingsConditionsT implements Serializable {
 		this.conditionId = conditionId;
 	}
 
-	public String getEventId() {
+	public Integer getEventId() {
 		return eventId;
 	}
 
-	public void setEventId(String eventId) {
+	public void setEventId(Integer eventId) {
 		this.eventId = eventId;
 	}
 
