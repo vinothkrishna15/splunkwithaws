@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +81,7 @@ public class UserNotificationSettingsService {
 		}
 		
 		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs = (List<NotificationSettingsGroupMappingT>) notificationSettingsGroupMappingRepository
-				.findAll();
+				.findAll(new Sort(Sort.Direction.ASC,"groupId"));
 		if (notificationSettingsGroupMappingTs != null)
 			for (NotificationSettingsGroupMappingT notificationSettingsGroupMappingT : notificationSettingsGroupMappingTs) {
 				List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationSettingsGroupMappingT
@@ -97,6 +98,7 @@ public class UserNotificationSettingsService {
 							for(UserNotificationSettingsT userNotificationSettingsT:userNotificationSettingsTs)
 							{
 								userNotificationSettingsT.setNotificationSettingsModeMappingT(null);
+								userNotificationSettingsT.getUserT().setUserNotificationSettingsTs(null);
 							}
 						notificationSettingsEventMappingT
 								.setUserNotificationSettingsTs(userNotificationSettingsTs);
