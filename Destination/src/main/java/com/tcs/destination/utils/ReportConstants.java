@@ -85,10 +85,10 @@ public class ReportConstants {
 	public static final String ROWSTYLE1 = "rowStyle1";
 	public static final String BOTTOMROW = "bottomStyle";
 	
-	public static final String BDM = UserGroup.BDM.name();
-	public static final String BDMSUPERVISOR = UserGroup.BDM_SUPERVISOR.name();
-	public static final String GEOHEAD = UserGroup.GEO_HEADS.name();
-	public static final String IOUHEAD = UserGroup.IOU_HEADS.name();
+	public static final String BDM = "BDM";
+	public static final String BDMSUPERVISOR = "BDM Supervisor";
+	public static final String GEOHEAD = "GEO Heads";
+	public static final String IOUHEAD = "IOU Heads";
 	
 	public static final String TOP30REVENUE ="Top 30 Revenue (Master Customer)";
 	public static final String SUMOFTARGETREVENUES = "Sum of Target revenue FY'";
