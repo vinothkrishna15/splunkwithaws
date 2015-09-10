@@ -417,6 +417,9 @@ public class OpportunityController {
     	    status = opportunityUploadService.saveDocument(file, userId);
     	    if(status!=null){
     		errorDetailsDTOs =status.getListOfErrors();
+    		for(UploadServiceErrorDetailsDTO up :status.getListOfErrors()){
+    			logger.error(up.getRowNumber()+"   "+up.getMessage());
+    		}
     	    }
     	} catch (Exception e) {
     	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
