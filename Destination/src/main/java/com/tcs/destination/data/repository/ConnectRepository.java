@@ -357,5 +357,33 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	List<String> getSecondaryOwnerByConnectId(
 			@Param("connectId") String connectId);
 
+	/**
+	 * Retrieve all connects within the timestamp provided
+	 * 
+	 * @param startTimestamp
+	 * @param endTimestamp
+	 * @return List<String>
+	 */
+	@Query(value = "select connect_id from connect_t where (start_datetime_of_connect between (:startDate) and (:endDate))",nativeQuery = true)
+	List<String> getAllConnectsForDashbaord(@Param("startDate") Timestamp startTimestamp ,@Param("endDate") Timestamp endTimestamp);
+
+	/**
+	 * Retrieve connectIds which are not present in notes_t (status is open) 
+	 * 
+	 * @param connectIds
+	 * @param startTimestamp
+	 * @param endTimestamp
+	 * @return List<String>
+	 */
+	@Query(value = "SELECT DISTINCT c.connect_id FROM connect_t c WHERE (c.start_datetime_of_connect BETWEEN (:startDate) AND (:endDate)) EXCEPT SELECT DISTINCT n.connect_id FROM notes_t n WHERE n.connect_id in (:connectIds)",nativeQuery = true)
+	List<String> getAllConnectsForDashbaordStatusOpen(@Param("connectIds") List<String> connectIds, @Param("startDate") Timestamp startTimestamp ,@Param("endDate") Timestamp endTimestamp);
+	
+	/**
+	 * Get all connects present in the list of connectIds sorted by start_datetime_of_connect
+	 * 
+	 * @param connectIds
+	 * @return List<ConnectT>
+	 */
+	List<ConnectT> findByConnectIdInOrderByStartDatetimeOfConnectAsc(List<String> connectIds);
 
 }

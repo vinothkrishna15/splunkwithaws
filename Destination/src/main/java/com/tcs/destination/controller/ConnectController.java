@@ -269,4 +269,38 @@ public class ConnectController {
 	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 }
 	
+	/**
+	 * This controller retrieves all the connects based on the status and FY
+	 * 
+	 * @param fields
+	 * @param view
+	 * @param status
+	 * @param financialYear
+	 * @return ResponseEntity<String>
+	 * @throws Exception
+	 */
+        @RequestMapping(value = "/all", method = RequestMethod.GET)
+        public @ResponseBody ResponseEntity<String> getAllConnectsForDashboard(
+        	    @RequestParam(value = "fields", defaultValue = "") String fields,
+        	    @RequestParam(value = "view", defaultValue = "") String view,
+        	    @RequestParam(value ="status", defaultValue="ALL") String status,
+        	    @RequestParam("fy") String financialYear)
+        	    throws Exception {
+        
+        	List<ConnectT> listOfConnects = null;
+        	try {
+        	    listOfConnects = connectService.getAllConnectsForDashbaord(status, financialYear);
+        	    if(listOfConnects==null){
+        		logger.error("NOT_FOUND : No Connects found for the status {} and FY {}", status, financialYear);
+            	    	throw new DestinationException(HttpStatus.NOT_FOUND,"No Connects found for the status "+status+" and FY "+financialYear);
+        	    }
+        	} catch (Exception e) {
+        	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+        	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+        	}
+        	return new ResponseEntity<String>(
+			ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				listOfConnects), HttpStatus.OK);
+            }
+	
 }

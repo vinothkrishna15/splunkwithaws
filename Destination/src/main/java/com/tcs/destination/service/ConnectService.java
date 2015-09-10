@@ -40,14 +40,19 @@ import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
+import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class ConnectService {
@@ -107,6 +112,9 @@ public class ConnectService {
 
 	@Autowired
 	ConnectOpportunityLinkTRepository connectOpportunityLinkTRepository;
+	
+	@Autowired
+	NotesTRepository notesRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -915,5 +923,72 @@ public class ConnectService {
 		}
 
 		return dashBoardConnectsResponse;
+	}
+	
+	/**
+	 * This method retrieves all the connects for the Financial Year and status 
+	 *  
+	 * @param status
+	 * @param financialYear
+	 * @return
+	 * @throws Exception
+	 */
+	public List<ConnectT> getAllConnectsForDashbaord(String status,
+	    String financialYear) throws Exception {
+
+	List<ConnectT> listOfConnects = null;
+	List<String> connectIds = null;
+	try {
+	    if (StringUtils.isEmpty(financialYear)) {
+		financialYear = DateUtils.getCurrentFinancialYear();
+	    }
+
+	    Timestamp startTimestamp = new Timestamp(DateUtils
+		    .getDateFromFinancialYear(financialYear, true).getTime());
+	    Timestamp endTimestamp = new Timestamp(DateUtils
+		    .getDateFromFinancialYear(financialYear, false).getTime()
+		    + Constants.ONE_DAY_IN_MILLIS - 1);
+
+	    if ((status != null)&&(ConnectStatusType.contains(status))) {
+		// Retrieve all connectIds present within the FY
+		connectIds = connectRepository.getAllConnectsForDashbaord(startTimestamp, endTimestamp);
+		if ((connectIds != null) && (!connectIds.isEmpty())) {
+		    List<String> connectIdsForStatusOpenClosed = null;
+		    if (status.equalsIgnoreCase(ConnectStatusType.OPEN.toString())) { // If Status is open, check for connects which has no notes in notes_t table
+		    	connectIdsForStatusOpenClosed = connectRepository.getAllConnectsForDashbaordStatusOpen(connectIds, startTimestamp, endTimestamp);
+				listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+		    } else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED.toString())) { // If Status is closed, check for connects which has notes in notes_t table
+		    	connectIdsForStatusOpenClosed = notesRepository.getAllConnectsForDashbaordStatusClosed(connectIds);
+				listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+		    } else if (status.equalsIgnoreCase(ConnectStatusType.ALL.toString())) { // If status is ALL, get connects from connect_t
+		    	listOfConnects = connectRepository.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
+		    }
+		}
+	    } else {
+		    logger.error("BAD_REQUEST: Invalid Status Type");
+		    throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Status Type");
+	    }
+	} catch (Exception e) {
+	    logger.error("INTERNAL_SERVER_ERROR: "+e.getMessage());
+	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+	}
+	return listOfConnects;
+    }
+
+	/**
+	 * This method retrieves list of Connects based on the connectIds provided
+	 * 
+	 * @param connectIds
+	 * @return List<ConnectT>
+	 */
+	private List<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(List<String> connectIds) {
+	    
+	    List<ConnectT> listOfConnects = null;
+	    
+	    if ((connectIds != null) && (!connectIds.isEmpty())) {
+	        listOfConnects = connectRepository.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
+	    }
+	    
+	    return listOfConnects;
 	}
 }
