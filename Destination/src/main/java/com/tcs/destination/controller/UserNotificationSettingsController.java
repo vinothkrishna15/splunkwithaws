@@ -82,18 +82,5 @@ public class UserNotificationSettingsController {
 						status), HttpStatus.OK);
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> getUserNotificationSettings(
-			@RequestParam(value = "userId") String userId,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		logger.debug("Inside UserNotificationSettingsController/usernotificationsettings?userId="
-				+ userId + " GET");
-		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingT = userNotificationSettingsService
-				.getUserNotificationSettings(userId);
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						notificationSettingsGroupMappingT), HttpStatus.OK);
-	}
+	
 }
