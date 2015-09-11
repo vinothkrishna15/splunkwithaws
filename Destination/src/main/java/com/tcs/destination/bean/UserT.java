@@ -253,11 +253,11 @@ public class UserT implements Serializable {
 	private List<UserNotificationSettingsT> userNotificationSettingsTs;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy = "userT1")
+	@OneToMany(mappedBy = "recipientUser")
 	private List<UserNotificationsT> userNotificationsTs1;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy = "userT2")
+	@OneToMany(mappedBy = "userT")
 	private List<UserNotificationsT> userNotificationsTs2;
 
 	// bi-directional many-to-one association to UserGroupMappingT
@@ -1093,7 +1093,7 @@ public class UserT implements Serializable {
 	public UserNotificationsT addUserNotificationsTs1(
 			UserNotificationsT userNotificationsTs1) {
 		getUserNotificationsTs1().add(userNotificationsTs1);
-		userNotificationsTs1.setUserT1(this);
+		userNotificationsTs1.setRecipientUser(this);
 
 		return userNotificationsTs1;
 	}
@@ -1101,7 +1101,7 @@ public class UserT implements Serializable {
 	public UserNotificationsT removeUserNotificationsTs1(
 			UserNotificationsT userNotificationsTs1) {
 		getUserNotificationsTs1().remove(userNotificationsTs1);
-		userNotificationsTs1.setUserT1(null);
+		userNotificationsTs1.setRecipientUser(null);
 
 		return userNotificationsTs1;
 	}
@@ -1118,7 +1118,7 @@ public class UserT implements Serializable {
 	public UserNotificationsT addUserNotificationsTs2(
 			UserNotificationsT userNotificationsTs2) {
 		getUserNotificationsTs2().add(userNotificationsTs2);
-		userNotificationsTs2.setUserT2(this);
+		userNotificationsTs2.setUserT(this);
 
 		return userNotificationsTs2;
 	}
@@ -1126,7 +1126,7 @@ public class UserT implements Serializable {
 	public UserNotificationsT removeUserNotificationsTs2(
 			UserNotificationsT userNotificationsTs2) {
 		getUserNotificationsTs2().remove(userNotificationsTs2);
-		userNotificationsTs2.setUserT2(null);
+		userNotificationsTs2.setUserT(null);
 
 		return userNotificationsTs2;
 	}
