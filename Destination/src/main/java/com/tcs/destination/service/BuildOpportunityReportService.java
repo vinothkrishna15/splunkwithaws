@@ -2618,7 +2618,7 @@ public class BuildOpportunityReportService {
 			List<ReportSummaryOpportunity> reportSummaryOpportunityList,
 			List<String> currency) throws DestinationException {
 		logger.debug("Inside Report Service getPipelineAnticipatingDetails method");
-
+		
 		CellStyle rowDateStyle = ExcelUtils.createRowStyle(workbook, "dataRow");
 		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
 				"headingStyle");
@@ -2641,6 +2641,7 @@ public class BuildOpportunityReportService {
 		int startTotalValueAnticipating = 0;
 		int columnValuePipeline = 1;
 		int columnValueAnticipating = 1;
+		try{
 		Map<String, List<String>> iouListMap = new TreeMap<String, List<String>>();
 		Map<String, List<Integer>> geographyMapPipeline = new LinkedHashMap<String, List<Integer>>();
 		Map<String, List<Integer>> geographyMapAnticipating = new LinkedHashMap<String, List<Integer>>();
@@ -2997,10 +2998,8 @@ public class BuildOpportunityReportService {
 				for (int column = 1; column <= lastColumnPipeline; column++) {
 					cell = (XSSFCell) row.createCell(column);
 					cell.setCellStyle(subHeadingStyle2);
-					cell.setCellFormula("SUM(" + ((char) (65 + column))
-							+ startTotalValuePipeline + ":"
-							+ ((char) (65 + column))
-							+ spreadsheet.getLastRowNum() + ")");
+					setCellFormulaWithColumnFormed(spreadsheet, cell,
+							startTotalValuePipeline, column);
 					spreadsheet.autoSizeColumn(column);
 				}
 			}
@@ -3030,15 +3029,42 @@ public class BuildOpportunityReportService {
 				for (int column = 1; column <= lastColumnAnticipating; column++) {
 					cell = (XSSFCell) row.createCell(column);
 					cell.setCellStyle(subHeadingStyle2);
-					cell.setCellFormula("SUM(" + ((char) (65 + column))
-							+ startTotalValueAnticipating + ":"
-							+ ((char) (65 + column))
-							+ spreadsheet.getLastRowNum() + ")");
+					setCellFormulaWithColumnFormed(spreadsheet, cell,
+							startTotalValueAnticipating, column);
 					spreadsheet.autoSizeColumn(column);
 				}
 			}
 		}
-	}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		}
+
+	public void setCellFormulaWithColumnFormed(XSSFSheet spreadsheet,
+			XSSFCell cell, int startTotalValuePipeline, int column) {
+		String formula = "";
+		if(column < 26){
+			formula = "SUM(" + ((char) (65 + column))
+					+ startTotalValuePipeline + ":"
+					+ ((char) (65 + column))
+					+ spreadsheet.getLastRowNum() + ")";
+		cell.setCellFormula(formula);
+		
+		}
+		else {
+			char[] colName = new char[2];
+			colName[0] = (char)(65 + (column / 26) - 1);
+			colName[1] = (char)(65 + (column % 26));
+			
+	        String columnName = new String(colName);
+	        formula = "SUM(" + columnName
+					+ startTotalValuePipeline + ":"
+					+ columnName
+					+ spreadsheet.getLastRowNum() + ")";
+			cell.setCellFormula(formula);
+			
+		}
+		}
 
 	/**
 	 * Add zero to List which doesn't contain the search item

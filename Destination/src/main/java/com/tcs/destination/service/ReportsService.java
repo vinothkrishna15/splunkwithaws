@@ -8,7 +8,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -2877,7 +2876,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					
 					public void removeUnwantedSalesStageCodes(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
 						for(Integer salesStage:salesStageList){
-							if(salesStage!=11 || salesStage!=12 || salesStage!=13){
+							if(!salesStage.equals(11) && !salesStage.equals(12) && !salesStage.equals(13)){
 								salesStageCodeList.add(salesStage);
 							}
 						}
