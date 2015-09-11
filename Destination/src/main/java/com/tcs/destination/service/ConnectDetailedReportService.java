@@ -170,7 +170,11 @@ public class ConnectDetailedReportService {
 		row.createCell(4).setCellValue(connect.getConnectName());
 		row.getCell(4).setCellStyle(rowStyle);
 		for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+			if(connectSubSpLinkT.getSubSpMappingT().getDisplaySubSp()!=null){
 			row.createCell(2).setCellValue(connectSubSpLinkT.getSubSpMappingT().getDisplaySubSp());
+			}else{
+				row.createCell(2).setCellValue(Constants.SPACE);
+			}
 			row.getCell(2).setCellStyle(rowStyle);
 		}
 		if(connect.getCustomerMasterT()!=null){
@@ -277,8 +281,7 @@ public class ConnectDetailedReportService {
 				case ReportConstants.STARTDATE:
 					XSSFCell startDateOfConnectCell = spreadSheet.getRow(
 							currentRow - 1).createCell(colValue);
-					startDateOfConnectCell.setCellValue(connect
-							.getStartDatetimeOfConnect().toString());
+					startDateOfConnectCell.setCellValue(connect.getStartDatetimeOfConnect().toString());
 					startDateOfConnectCell.setCellStyle(cellStyle);
 //					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
@@ -306,11 +309,17 @@ public class ConnectDetailedReportService {
 					List<String> secondaryOwnersList=connectRepository.getSecondaryOwnerByConnectId(connect.getConnectId());
 					List<String> secondaryOwners=new ArrayList<String>();
 					XSSFCell secondaryOwnerCell = spreadSheet.getRow(currentRow - 1).createCell(colValue);
+					if(!secondaryOwnersList.isEmpty()){
 					for (String secondaryOwner : secondaryOwnersList) {
+						if(secondaryOwner!=null){
 						UserT user = userRepository.findByUserId(secondaryOwner);
 						secondaryOwners.add(user.getUserName());
+						}
 					}
 						secondaryOwnerCell.setCellValue(secondaryOwners.toString().replace("[", "").replace("]", ""));
+					}else{
+						secondaryOwnerCell.setCellValue(Constants.SPACE);
+					}
 						secondaryOwnerCell.setCellStyle(cellStyle);
 //						spreadSheet.autoSizeColumn(colValue);
 //					}

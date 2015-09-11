@@ -983,7 +983,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
+//		ExcelUtils.writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
 		
 	}
 	
