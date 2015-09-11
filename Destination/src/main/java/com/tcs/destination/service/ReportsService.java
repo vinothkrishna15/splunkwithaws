@@ -2464,11 +2464,11 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					&& iouConnectCountList != null) {
 				connectDetailedReportService.getConnectTitlePage(workbook,
 						geography, iou, serviceLines, userId, tillDate);
-				getConnectDetailedReportInExcel(connectList, iouList,
-						geographyList, country, serviceLines, fields, workbook);
 				getConnectSummaryReportExcel(month, quarter, year,
 						subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
+				getConnectDetailedReportInExcel(connectList, iouList,
+						geographyList, country, serviceLines, fields, workbook);
 			} else {
 				logger.error("Connects Not Found");
 				throw new DestinationException(HttpStatus.NOT_FOUND,

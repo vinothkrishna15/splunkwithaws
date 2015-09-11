@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
@@ -74,7 +75,6 @@ public class ConnectSummaryReportService {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public int connectSummaryReport(List<Object[]> subSpConnectCountList,
 			List<Object[]> geographyConnectCountList,
 			List<Object[]> iouConnectCountList, String date,
@@ -125,26 +125,30 @@ public class ConnectSummaryReportService {
 		// row.createCell(colValue+1).setCellValue(ReportConstants.COUNTOFCONNECTIDS);
 		spreadSheet.autoSizeColumn(colValue + 1);
 		currentRow++;
+		CellStyle dataStyle = spreadSheet.getWorkbook().createCellStyle();
+		dataStyle.setFillForegroundColor(HSSFColor.BLUE.index);
+		dataStyle.setFillPattern(XSSFCellStyle.LESS_DOTS);
+		dataStyle.setBorderBottom(XSSFBorderFormatting.BORDER_THIN);
+		dataStyle.setBorderTop(XSSFBorderFormatting.BORDER_THIN);
+		dataStyle.setBorderLeft(XSSFBorderFormatting.BORDER_THIN);
+		dataStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 		for (Object[] object : connectCountList) {
-			CellStyle dataStyle = spreadSheet.getWorkbook().createCellStyle();
-			dataStyle.setFillForegroundColor(HSSFColor.BLUE.index);
-			dataStyle.setFillPattern(XSSFCellStyle.LESS_DOTS);
-			dataStyle.setBorderBottom(XSSFBorderFormatting.BORDER_THIN);
-			dataStyle.setBorderTop(XSSFBorderFormatting.BORDER_THIN);
-			dataStyle.setBorderLeft(XSSFBorderFormatting.BORDER_THIN);
-			dataStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 			row = spreadSheet.createRow((short) currentRow);
 			XSSFCell cell = row.createCell(colValue);
-			cell.setCellStyle(dataStyle);
-			cell.setCellValue(object[1].toString());
-			// row.createCell(colValue).setCellValue(object[1].toString());
-			spreadSheet.autoSizeColumn(colValue);
 			XSSFCell cell1 = row.createCell(colValue + 1);
+			cell.setCellStyle(dataStyle);
 			cell1.setCellStyle(dataStyle);
-			// row.createCell(colValue+1).setCellValue(object[0].toString());
+			if(object[1]!=null){
+			cell.setCellValue(object[1].toString());
 			cell1.setCellValue(object[0].toString());
+//			}else{
+//			cell1.setCellValue(Constants.SPACE);
+//			cell.setCellValue(Constants.SPACE);
+//			}
+			spreadSheet.autoSizeColumn(colValue);
 			spreadSheet.autoSizeColumn(colValue + 1);
 			currentRow++;
+		}
 		}
 		return currentRow;
 	}
