@@ -3102,8 +3102,8 @@ public class BuildOpportunityReportService {
 		}
 		}
 
-	public void setCellFormulaWithColumnFormed(XSSFSheet spreadsheet,
-			XSSFCell cell, int startTotalValuePipeline, int column) {
+	public void setCellFormulaWithColumnFormed(SXSSFSheet spreadsheet,
+			SXSSFCell cell, int startTotalValuePipeline, int column) {
 		String formula = "";
 		if(column < 26){
 			formula = "SUM(" + ((char) (65 + column))
