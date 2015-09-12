@@ -2807,7 +2807,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						List<Integer> salesStageCodeList=new ArrayList<Integer>();
 						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
 						
-						XSSFWorkbook workbook = new XSSFWorkbook();
+						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 						String tillDate=DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
@@ -2831,7 +2831,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
-						XSSFWorkbook workbook = new XSSFWorkbook();
+						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate);
 						buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
@@ -2859,7 +2859,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						String fyear=new String(year);
 						String fquarter=new String(quarter);
 						String fmonth=new String(month);
-						XSSFWorkbook workbook = new XSSFWorkbook();
+						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 						String tillDate = DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
@@ -2887,7 +2887,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							String month, String year, String quarter, List<String> geography,
 							List<String> country, List<String> iou, List<String> currency,
 							List<String> serviceLines, List<Integer> salesStageList,
-							String userId, XSSFWorkbook workbook) throws DestinationException, Exception {
+							String userId, SXSSFWorkbook workbook) throws DestinationException, Exception {
 						logger.debug("Inside Report Service getReportSummaryOpportunities method");
 						
 						String[] fromYear = null;
@@ -3039,8 +3039,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						if (reportSummaryOppMap.size() > 0) {
 							buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
 						}else{
-							logger.error("Opportunities Not Found");
-							throw new DestinationException(HttpStatus.NOT_FOUND," Opportunities Not Found");
+							logger.error("Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
+							throw new DestinationException(HttpStatus.NOT_FOUND," Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
 						}
 					}
 
