@@ -91,8 +91,8 @@ public class ReportConstants {
 	public static final String IOUHEAD = "IOU Heads";
 	
 	public static final String TOP30REVENUE ="Top 30 Revenue (Master Customer)";
-	public static final String SUMOFTARGETREVENUES = "Sum of Target revenue FY'";
-	public static final String SUMOFACHIEVEDREVENUE = "Sum of Achieved revenue FY'";
+	public static final String SUMOFTARGETREVENUES = "Sum of Target revenue ";
+	public static final String SUMOFACHIEVEDREVENUE = "Sum of Achieved revenue ";
 	public static final String PERCENTACHIEVED = "% Achieved";
 	public static final String PERCENTACHIEVEDBRACKET = "% Achieved Bracket";
 	public static final String INR = "INR";

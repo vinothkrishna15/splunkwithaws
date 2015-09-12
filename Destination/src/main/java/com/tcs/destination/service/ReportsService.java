@@ -2890,10 +2890,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						
 						String[] fromYear = null;
 						String[] toYear = null;
-						Boolean isDistinctIou = false;
-						if(iou.size() > 0 ){
-							isDistinctIou = true;
-						}
+						Boolean isDistinctIou = true;
 						List<Object[]> opportunityList = new ArrayList<Object[]>();
 						List<Integer> pipilineAntiSalesStageList = new ArrayList<Integer>(salesStageList);
 						List<ReportSummaryOpportunity> pipelineAntiIou = new ArrayList<ReportSummaryOpportunity>();

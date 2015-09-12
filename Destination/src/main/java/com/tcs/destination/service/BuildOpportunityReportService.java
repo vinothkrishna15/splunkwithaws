@@ -119,7 +119,7 @@ public class BuildOpportunityReportService {
 		List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
 
 		if (year.isEmpty() && quarter.isEmpty() && month.isEmpty()) {
-			List<OpportunityT> oppList = opportunityRepository.getAllYear();
+			List<OpportunityT> oppList = opportunityRepository.getAllYearInDetailed();
 			if (oppList.size() != 0) {
 			String[] fromYear = oppList.get(0).getDealClosureDate().toString()
 					.split("-");
@@ -3178,6 +3178,7 @@ public class BuildOpportunityReportService {
 		List<String> countryList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
 		addItemToListGeo(geography,geoList);
+			isDistinctIou = true;
 		addItemToList(iou,iouList);
 		addItemToList(country,countryList);
 		addItemToList(serviceLines,serviceLinesList);
@@ -3273,7 +3274,7 @@ public class BuildOpportunityReportService {
 									iouOpportunityList = opportunitySummaryReportQuery.getResultList();
 									
 								} else {
-									iouOpportunityList = opportunityRepository.findOpportunitiesWithIou(fromDate, toDate, geography, country, iou, serviceLines, 
+									iouOpportunityList = opportunityRepository.findOpportunitiesWithIou(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
 											salesStageCode);
 								}
 							break;

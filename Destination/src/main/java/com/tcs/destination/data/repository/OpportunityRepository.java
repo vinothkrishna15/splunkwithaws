@@ -724,8 +724,11 @@ public interface OpportunityRepository extends
 
 	// Anticipating or pipeline ends here
 
-	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10) order by deal_closure_date", nativeQuery = true)
+	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
 	List<OpportunityT> getAllYear();
+	
+	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10,11,12,13) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
+	List<OpportunityT> getAllYearInDetailed();
 
 	@Query(value = "select distinct UT.user_name,count(OPP.opportunity_id),"
 			+ "case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / "

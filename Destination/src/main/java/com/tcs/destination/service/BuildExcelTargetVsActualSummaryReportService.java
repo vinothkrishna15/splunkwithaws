@@ -30,6 +30,7 @@ import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
@@ -141,12 +142,11 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			headerRow.getCell(columnValue).setCellStyle(headerStyle);
 			spreadSheet.autoSizeColumn(columnValue);
 			columnValue++;
-			String currentYear=fromMonth.substring(4,8);
-			String nextYear = "" + (Integer.parseInt(currentYear.substring(1,currentYear.length()))+1);
-			String sumOfTargetRevenue = ReportConstants.SUMOFTARGETREVENUES+currentYear+"-"+nextYear;
+			String currentFinYear=DateUtils.getCurrentFinancialYear();
+			String sumOfTargetRevenue = ReportConstants.SUMOFTARGETREVENUES+currentFinYear;
 			columnValue = createHeaderTargetActualRevenueWithCurriencies(spreadSheet, currencyList, columnValue, currentRow,
 					headerStyle,subHeaderStyle, headerRow, subHeaderRow, sumOfTargetRevenue);
-			String sumOfAchievedRevenue = ReportConstants.SUMOFACHIEVEDREVENUE+currentYear+"-"+nextYear;
+			String sumOfAchievedRevenue = ReportConstants.SUMOFACHIEVEDREVENUE+currentFinYear;
 			columnValue = createHeaderTargetActualRevenueWithCurriencies(spreadSheet, currencyList, columnValue, currentRow,
 					headerStyle,subHeaderStyle, headerRow, subHeaderRow, sumOfAchievedRevenue);
 			headerRow.createCell(columnValue).setCellValue(ReportConstants.PERCENTACHIEVED);
