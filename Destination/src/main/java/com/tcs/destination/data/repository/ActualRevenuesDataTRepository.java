@@ -14,7 +14,7 @@ public interface ActualRevenuesDataTRepository extends
 		CrudRepository<ActualRevenuesDataT, String> {
 
 	@Query(value = "select ARDT.quarter, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
-			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography = ?3 or ?3 = '') "
+			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography = ?3 or ?3 = '') "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
@@ -27,7 +27,7 @@ public interface ActualRevenuesDataTRepository extends
 
 	@Query(value = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography in (:geoList) or ('') in (:geoList)) "
+			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
 	public List<Object[]> getActualRevenuesByQuarter(

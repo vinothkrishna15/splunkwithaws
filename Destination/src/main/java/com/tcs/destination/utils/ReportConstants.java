@@ -116,17 +116,9 @@ public class ReportConstants {
 	public static final String GEO = "Geography";
 	public static final String Iou = "Iou";
 	public static final String BEACONTARGET = " Beacon Target";
-	public static final String Q1FY = "Q1 FY'";
-	public static final String Q2FY = "Q2 FY'";
-	public static final String Q3FY = "Q3 FY'";
-	public static final String Q4FY = "Q4 FY'";
 	public static final String ACTUAL = " Actual";
 	public static final String PROJECTED = " Projected";
-	public static final String YTDFY = "YTD FY'";
-	public static final String REVENUEQ1FY = " Revenue = Q1 FY'";
-	public static final String REVENUEQ2FY = " Revenue = Q2 FY'";
-	public static final String REVENUEQ3FY = " Revenue = Q3 FY'";
-	public static final String REVENUEQ4FY = " Revenue = Q4 FY'";
+	public static final String YTDFY = "YTD ";
 	public static final String ACTUALQ1FY = " Actual + Q1 FY'";
 	public static final String ACTUALQ2FY = " Actual + Q2 FY'";
 	public static final String ACTUALQ3FY = " Actual + Q3 FY'";

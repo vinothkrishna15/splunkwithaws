@@ -9,6 +9,9 @@ import java.util.TreeMap;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -56,11 +59,11 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		String fromMonth, BigDecimal totalTargetINR, BigDecimal totalActualINR, BigDecimal top30CustomersRevenueINR,
 		List<CustomerRevenueValues> actualRevenuesMap, 	Map<String, BigDecimal> targetRevenuesMap,
 		List<String> currencyList, Map<String, BigDecimal> targetOverAllRevenuesMap,
-		Map<String, BigDecimal> actualOverAllRevenuesMap, String userId , List<String> formattedMonths, XSSFWorkbook workbook,
+		Map<String, BigDecimal> actualOverAllRevenuesMap, String userId , List<String> formattedMonths, SXSSFWorkbook workbook,
 		List<Object[]> overAllRevenuesByGeoMap, List<GroupCustomerGeoIouResponse> geoIouGroupCustName)
 		throws Exception {
 		logger.debug("Inside getTargetVsActualSummaryExcel() method");
-		XSSFSheet spreadSheet = workbook.createSheet(ReportConstants.SUMMARY);
+		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet(ReportConstants.SUMMARY);
 		int currentRow=0;
 		//section One
 		targetVsActualSummaryReportSectionOne(spreadSheet, totalTargetINR,	totalActualINR, top30CustomersRevenueINR, currencyList);
@@ -101,22 +104,22 @@ public class BuildExcelTargetVsActualSummaryReportService {
 				currentRow,geoIouGroupCustName);
 		}
 	
-	private int getTargetVsActualSummaryReportHeaderSectionThree(XSSFSheet spreadSheet, List<String> currencyList, 
+	private int getTargetVsActualSummaryReportHeaderSectionThree(SXSSFSheet spreadSheet, List<String> currencyList, 
 			int currentRow, String fromMonth) {
 		int columnValue = 1;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER);
 		CellStyle subHeaderStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.SUBHEADER);
-		XSSFRow section3HeaderRow = spreadSheet.createRow((short) currentRow);
+		SXSSFRow section3HeaderRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		CellStyle section3HeaderStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.REPORTHEADINGSTYLE);
 		section3HeaderRow.createCell(columnValue).setCellValue(ReportConstants.TOP30REVENUE);
 		spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 1,10));
 		section3HeaderRow.getCell(columnValue).setCellStyle(section3HeaderStyle);
 		currentRow=currentRow+2;
 		
-		XSSFRow headerRow = spreadSheet.createRow((short) currentRow);
+		SXSSFRow headerRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		currentRow++;
 		
-		XSSFRow subHeaderRow = spreadSheet.createRow((short) currentRow);
+		SXSSFRow subHeaderRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 	    	
 			headerRow.createCell(columnValue).setCellValue(ReportConstants.CUSTOMERNAME);
 			subHeaderRow.createCell(columnValue).setCellStyle(subHeaderStyle);
@@ -159,9 +162,9 @@ public class BuildExcelTargetVsActualSummaryReportService {
 	}
 
 	public int createHeaderTargetActualRevenueWithCurriencies(
-			XSSFSheet spreadSheet, List<String> currencyList, int columnValue,
-			int currentRow, CellStyle headerStyle, CellStyle subHeaderStyle, XSSFRow headerRow,
-			XSSFRow subHeaderRow, String sumOfTargetRevenue) {
+			SXSSFSheet spreadSheet, List<String> currencyList, int columnValue,
+			int currentRow, CellStyle headerStyle, CellStyle subHeaderStyle, SXSSFRow headerRow,
+			SXSSFRow subHeaderRow, String sumOfTargetRevenue) {
 		headerRow.createCell(columnValue).setCellValue(sumOfTargetRevenue);
 		spreadSheet.autoSizeColumn(columnValue);
 		headerRow.getCell(columnValue).setCellStyle(headerStyle);
@@ -188,7 +191,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 	 * @param currencyList 
 	 * @throws Exception 
 	 */
-	public void targetVsActualSummaryReportSectionOne(XSSFSheet spreadSheet, BigDecimal totalTargetINR, 
+	public void targetVsActualSummaryReportSectionOne(SXSSFSheet spreadSheet, BigDecimal totalTargetINR, 
 			BigDecimal totalActualProjectedINR, BigDecimal top30CustomersRevenueINR, List<String> currencyList) throws Exception {
 		int currentRow=2;
 		int columnNo=1;
@@ -197,12 +200,12 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		BigDecimal top30CustomersRevenueUSD=beaconConverterService.convert(ReportConstants.INR, ReportConstants.USD, top30CustomersRevenueINR);
 		CellStyle borderStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), "Border");
 		CellStyle headerStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.REPORTHEADINGSTYLE);
-		XSSFRow headingRow = spreadSheet.createRow((short) currentRow);
+		SXSSFRow headingRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		headingRow.createCell(columnNo).setCellValue(ReportConstants.OVERALLSUMMARY);
 		spreadSheet.addMergedRegion(new CellRangeAddress(2, 2, 1,12));
 		headingRow.getCell(columnNo).setCellStyle(headerStyle);
 		currentRow=currentRow+2;
-		XSSFRow row = spreadSheet.createRow((short) currentRow);
+		SXSSFRow row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		row.createCell(columnNo).setCellValue(ReportConstants.TOTALTARGET);
 		row.getCell(columnNo).setCellStyle(borderStyle);
 		columnNo++;
@@ -239,7 +242,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			}
 		}
 		currentRow++;
-		XSSFRow row1 = spreadSheet.createRow((short) currentRow);
+		SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		row1.createCell(1).setCellValue(ReportConstants.TOTALACHIEVED);
 		row1.getCell(1).setCellStyle(borderStyle);
 		if(currencyList.size()>1){
@@ -265,7 +268,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			}
 		}
 		currentRow++;
-		XSSFRow row2 = spreadSheet.createRow((short) currentRow);
+		SXSSFRow row2 = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		row2.createCell(1).setCellValue(ReportConstants.PERCENTACHIEVED);
 		row2.getCell(1).setCellStyle(borderStyle);
 		BigDecimal targetAchieved=totalActualProjectedINR.divide(totalTargetINR, 4, RoundingMode.HALF_DOWN);  
@@ -309,8 +312,8 @@ public class BuildExcelTargetVsActualSummaryReportService {
 
 	private int getTargetVsActualSummaryReportSectionTwo(Map<String, BigDecimal> targetOverAllRevenuesMap,
 			Map<String, BigDecimal> actualOverAllRevenuesMap,	
-			List<String> currencyList, XSSFSheet spreadSheet) {
-		XSSFRow row = null;
+			List<String> currencyList, SXSSFSheet spreadSheet) {
+		SXSSFRow row = null;
 		BigDecimal targetRevenueINR = new BigDecimal(0);
 		BigDecimal actualRevenueINR = new BigDecimal(0);
 		int currentRow = 10;
@@ -360,7 +363,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 	private int getTargetVsActualSummaryReportSectionTwoByGeo(
 			Map<String, BigDecimal> targetOverAllRevenuesMap,
 			List<Object[]> overAllRevenuesByGeoMap, Map<String, BigDecimal> actualProjectedOverAllRevenuesByGeoMap,
-			List<String> currencyList, XSSFSheet spreadSheet, String geography, int firstColumn, int secColumn, int currentRow) {
+			List<String> currencyList, SXSSFSheet spreadSheet, String geography, int firstColumn, int secColumn, int currentRow) {
 		BigDecimal targetRevenueINR = new BigDecimal(0);
 		BigDecimal actualRevenueINR = new BigDecimal(0);
 		int count1=0; int count2=0; int count3=0;
@@ -405,72 +408,72 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		return currentRow;		
 	}
 
-	public static XSSFRow createOrGetRow(XSSFSheet spreadsheet, int rowNo) {
-		XSSFRow row = null;
+	public static SXSSFRow createOrGetRow(SXSSFSheet spreadsheet, int rowNo) {
+		SXSSFRow row = null;
 		if (spreadsheet.getRow(rowNo) == null) {
-			row = spreadsheet.createRow(rowNo);
+			row = (SXSSFRow) spreadsheet.createRow(rowNo);
 		} else {
-			row = spreadsheet.getRow(rowNo);
+			row = (SXSSFRow) spreadsheet.getRow(rowNo);
 		}
 		return row;
 	}
 	
 	private int addSectionTwoToExcelByGeo(int currentRow,
 			BigDecimal targetRevenueINR, BigDecimal actualRevenueINR,
-			BigDecimal percentAchieved, List<String> currencyList, XSSFSheet spreadSheet, int count1,
+			BigDecimal percentAchieved, List<String> currencyList, SXSSFSheet spreadSheet, int count1,
 			int count2, int count3, int count4, int count5, int count6,
 			int count7, String geography,int firstColumn,int secColumn) {
 		currentRow=20;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.BOTTOMROW);
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.DATAROW);
 		CellStyle subHeaderStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.REPORTHEADINGSTYLE);
-		XSSFRow headingRow = createOrGetRow(spreadSheet, currentRow);
+		SXSSFRow headingRow = createOrGetRow(spreadSheet, currentRow);
 		headingRow.createCell(firstColumn).setCellValue(geography);
 		spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, firstColumn,secColumn));
 		headingRow.getCell(firstColumn).setCellStyle(subHeaderStyle);
 		currentRow=currentRow+2;
-		XSSFRow row0 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row0 = createOrGetRow(spreadSheet, currentRow++);
 		row0.createCell(firstColumn).setCellValue(ReportConstants.PERCENTACHIEVEDBRACKET);
 		row0.getCell(firstColumn).setCellStyle(headerStyle);
 		row0.createCell(secColumn).setCellValue(ReportConstants.COUNT);
 		row0.getCell(secColumn).setCellStyle(headerStyle);
 		spreadSheet.autoSizeColumn(firstColumn);
-		XSSFRow row1 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row1 = createOrGetRow(spreadSheet, currentRow++);
 		row1.createCell(firstColumn).setCellValue(ReportConstants.NOPENETRATION);
 		row1.getCell(firstColumn).setCellStyle(rowStyle);
 		row1.createCell(secColumn).setCellValue(count1);
 		row1.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row2 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row2 = createOrGetRow(spreadSheet, currentRow++);
 		row2.createCell(firstColumn).setCellValue(ReportConstants.ONETOTENPERCENT);
 		row2.getCell(firstColumn).setCellStyle(rowStyle);
 		row2.createCell(secColumn).setCellValue(count2);
 		row2.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row3 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row3 = createOrGetRow(spreadSheet, currentRow++);
 		row3.createCell(firstColumn).setCellValue(ReportConstants.ELEVENTOTWENTYFIVEPERCENT);
 		row3.getCell(firstColumn).setCellStyle(rowStyle);
 		row3.createCell(secColumn).setCellValue(count3);
 		row3.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row4 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row4 = createOrGetRow(spreadSheet, currentRow++);
 		row4.createCell(firstColumn).setCellValue(ReportConstants.TWENTYSIXTOFIFTYPERCENT);
 		row4.getCell(firstColumn).setCellStyle(rowStyle);
 		row4.createCell(secColumn).setCellValue(count4);
 		row4.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row5 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row5 = createOrGetRow(spreadSheet, currentRow++);
 		row5.createCell(firstColumn).setCellValue(ReportConstants.FIFTYONETOSEVENTYFIVEPERCENT);
 		row5.getCell(firstColumn).setCellStyle(rowStyle);
 		row5.createCell(secColumn).setCellValue(count5);
 		row5.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row6 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row6 = createOrGetRow(spreadSheet, currentRow++);
 		row6.createCell(firstColumn).setCellValue(ReportConstants.SEVENTYSIXTOHUNDREDPERCENT);
 		row6.getCell(firstColumn).setCellStyle(rowStyle);
 		row6.createCell(secColumn).setCellValue(count6);
 		row6.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row7 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row7 = createOrGetRow(spreadSheet, currentRow++);
 		row7.createCell(firstColumn).setCellValue(ReportConstants.HUNDREDPERCENT);
 		row7.getCell(firstColumn).setCellStyle(rowStyle);
 		row7.createCell(secColumn).setCellValue(count7);
 		row7.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row8 = createOrGetRow(spreadSheet, currentRow++);
+		SXSSFRow row8 = createOrGetRow(spreadSheet, currentRow++);
 		row8.createCell(firstColumn).setCellValue(ReportConstants.TOTALRESULT);
 		row8.getCell(firstColumn).setCellStyle(headerStyle);
 		row8.createCell(secColumn).setCellValue(count1+count2+count3+count4+count5+count6+count7);
@@ -478,60 +481,60 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		return currentRow;
 	}
 
-	private int addSectionTwoToExcel(XSSFRow row, int currentRow, BigDecimal targetRevenueINR,
-			BigDecimal actualRevenueINR, BigDecimal percentAchieved, List<String> currencyList, XSSFSheet spreadSheet, int count1, int count2, int count3, int count4, int count5, int count6, int count7) {
+	private int addSectionTwoToExcel(SXSSFRow row, int currentRow, BigDecimal targetRevenueINR,
+			BigDecimal actualRevenueINR, BigDecimal percentAchieved, List<String> currencyList, SXSSFSheet spreadSheet, int count1, int count2, int count3, int count4, int count5, int count6, int count7) {
 		int firstColumn = 1;
 		int secColumn=2;
 		currentRow=10;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.BOTTOMROW);
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.DATAROW);
 		CellStyle subHeaderStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.REPORTHEADINGSTYLE);
-		XSSFRow headingRow = spreadSheet.createRow((short) 8);
+		SXSSFRow headingRow = (SXSSFRow) spreadSheet.createRow((short) 8);
 		headingRow.createCell(1).setCellValue(ReportConstants.OVERALL);
 		spreadSheet.addMergedRegion(new CellRangeAddress(8, 8, 1,2));
 		headingRow.getCell(1).setCellStyle(subHeaderStyle);
-		XSSFRow row0=spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row0=(SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row0.createCell(firstColumn).setCellValue(ReportConstants.PERCENTACHIEVEDBRACKET);
 		row0.getCell(firstColumn).setCellStyle(headerStyle);
 		row0.createCell(secColumn).setCellValue(ReportConstants.COUNT);
 		row0.getCell(secColumn).setCellStyle(headerStyle);
 		spreadSheet.autoSizeColumn(firstColumn);
-		XSSFRow row1 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row1.createCell(firstColumn).setCellValue(ReportConstants.NOPENETRATION);
 		row1.getCell(firstColumn).setCellStyle(rowStyle);
 		row1.createCell(secColumn).setCellValue(count1);
 		row1.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row2 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row2 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row2.createCell(firstColumn).setCellValue(ReportConstants.ONETOTENPERCENT);
 		row2.getCell(firstColumn).setCellStyle(rowStyle);
 		row2.createCell(secColumn).setCellValue(count2);
 		row2.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row3 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row3 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row3.createCell(firstColumn).setCellValue(ReportConstants.ELEVENTOTWENTYFIVEPERCENT);
 		row3.getCell(firstColumn).setCellStyle(rowStyle);
 		row3.createCell(secColumn).setCellValue(count3);
 		row3.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row4 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row4 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row4.createCell(firstColumn).setCellValue(ReportConstants.TWENTYSIXTOFIFTYPERCENT);
 		row4.getCell(firstColumn).setCellStyle(rowStyle);
 		row4.createCell(secColumn).setCellValue(count4);
 		row4.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row5 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row5 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row5.createCell(firstColumn).setCellValue(ReportConstants.FIFTYONETOSEVENTYFIVEPERCENT);
 		row5.getCell(firstColumn).setCellStyle(rowStyle);
 		row5.createCell(secColumn).setCellValue(count5);
 		row5.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row6 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row6 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row6.createCell(firstColumn).setCellValue(ReportConstants.SEVENTYSIXTOHUNDREDPERCENT);
 		row6.getCell(firstColumn).setCellStyle(rowStyle);
 		row6.createCell(secColumn).setCellValue(count6);
 		row6.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row7 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row7 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row7.createCell(firstColumn).setCellValue(ReportConstants.HUNDREDPERCENT);
 		row7.getCell(firstColumn).setCellStyle(rowStyle);
 		row7.createCell(secColumn).setCellValue(count7);
 		row7.getCell(secColumn).setCellStyle(rowStyle);
-		XSSFRow row8 = spreadSheet.createRow((short) currentRow++);
+		SXSSFRow row8 = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 		row8.createCell(firstColumn).setCellValue(ReportConstants.TOTALRESULT);
 		row8.getCell(firstColumn).setCellStyle(headerStyle);
 		row8.createCell(secColumn).setCellValue(count1+count2+count3+count4+count5+count6+count7);
@@ -542,7 +545,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 	public void getTargetVsActualSummaryReportSectionThree(
 			List<CustomerRevenueValues> actualRevenuesList,
 			Map<String, BigDecimal> targetRevenuesMap,
-			List<String> currencyList, XSSFSheet spreadSheet, int currentRow, List<GroupCustomerGeoIouResponse> geoIouGroupCustNameList) throws Exception {
+			List<String> currencyList, SXSSFSheet spreadSheet, int currentRow, List<GroupCustomerGeoIouResponse> geoIouGroupCustNameList) throws Exception {
 //		int currentRow = 24;
 		currentRow++;
 		String percentAchievedBracket=null;
@@ -555,7 +558,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		String groupCustName=null;
 		String customerName=null;
 		double totalPercentageAchieved=0;
-		XSSFRow row=null;
+		SXSSFRow row=null;
 		CellStyle bottomStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.BOTTOMROW);
 		
 		if(!actualRevenuesList.isEmpty()){
@@ -564,7 +567,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 //				List<RevenueGeoValues> revenueGeoValuesList=new ArrayList<RevenueGeoValues>();
 				BigDecimal percentAchieved=new BigDecimal(0);
 				double percentAchieve=0;
-				row = spreadSheet.createRow((short) currentRow);
+				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				customerName=revenueGeoValues.getCustomerName();
 //				groupCustName=revenueGeoValues.getGroupCustomerName();
 				BigDecimal targetRevenueINR = targetRevenuesMap.get(customerName);
@@ -620,7 +623,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			for(int startCol=0;startCol<=lastCol;startCol++){
 				spreadSheet.autoSizeColumn(startCol);
 			}
-			XSSFRow totalRow = spreadSheet.createRow((short) currentRow);
+			SXSSFRow totalRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			int columnNo=1;
 			totalRow.createCell(columnNo).setCellValue(ReportConstants.GRANDTOTAL);
 			totalRow.getCell(columnNo).setCellStyle(bottomStyle);
@@ -695,11 +698,11 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		return percentAchievedBracket;
 	}
 
-	public int addSectionThreeToExcel(XSSFRow row, int currentRow, String customerName,
+	public int addSectionThreeToExcel(SXSSFRow row, int currentRow, String customerName,
 			BigDecimal targetRevenueINR, BigDecimal targetRevenueUSD,
 			BigDecimal actualRevenueINR, BigDecimal actualRevenueUSD,
 			BigDecimal percentAchieved, String percentAchievedBracket,
-			List<String> currencyList, XSSFSheet spreadSheet, String geography, String iou, String groupCustName)
+			List<String> currencyList, SXSSFSheet spreadSheet, String geography, String iou, String groupCustName)
 			throws Exception {
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		int columnValue = 1;
