@@ -1047,18 +1047,18 @@ public class ReportsService {
 			List<String> iou, String fromMonth, String toMonth,
 			List<String> currencyList, List<String> fields, String userId)
 			throws Exception {
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		String tillDate = DateUtils.getCurrentDate();
-		buildExcelTargetVsActualDetailedReportService
-				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
-						tillDate);
-		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
-				geography, iou, fromMonth, toMonth, currencyList, userId);
-		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(
-				targetVsActualDetailedList, fields, currencyList, fromMonth,
+		//To Write The Report Title page
+		buildExcelTargetVsActualDetailedReportService.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate);
+		//
+		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(geography, iou, fromMonth, toMonth, currencyList, userId);
+		
+		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth, currencyList, userId, workbook);
+		
+		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(targetVsActualDetailedList, fields, currencyList, fromMonth,
 				workbook);
-		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
-				currencyList, userId, workbook);
+		
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
 		byteOutPutStream.flush();
@@ -1073,9 +1073,10 @@ public class ReportsService {
 			List<String> geography, List<String> iou, String fromMonth,
 			String toMonth, List<String> currency, List<String> fields,
 			String userId) throws Exception {
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
 				geography, iou, fromMonth, toMonth, currency, userId);
+		if(targetVsActualDetailedList!=null){
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
 				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
@@ -1083,6 +1084,10 @@ public class ReportsService {
 		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(
 				targetVsActualDetailedList, fields, currency, fromMonth,
 				workbook);
+		}else{
+			logger.error("NOT_FOUND: Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+		}
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
 		byteOutPutStream.flush();
@@ -1097,7 +1102,7 @@ public class ReportsService {
 			List<String> geography, List<String> iou, String fromMonth,
 			String toMonth, List<String> currencyList, String userId)
 			throws Exception {
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
 				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate);
@@ -1115,7 +1120,7 @@ public class ReportsService {
 
 	public void getTargetVsActualSummaryExcel(List<String> geography,
 			List<String> iou, String fromMonth, String toMonth,
-			List<String> currencyList, String userId, XSSFWorkbook workbook)
+			List<String> currencyList, String userId, SXSSFWorkbook workbook)
 			throws Exception {
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
@@ -1238,9 +1243,8 @@ public class ReportsService {
 								overAllRevenuesByGeoList,
 								geoIouGroupCustNameList);
 			} else {
-				logger.error("No Relevant Data Found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevant Data Found");
+				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
 			}
 		}
 	}
@@ -2027,7 +2031,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.debug("Inside getConnectDetailedReport Service");
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
@@ -2097,9 +2101,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						geographyList, countryList, serviceLinesList, fields,
 						workbook);
 			} else {
-				logger.error("Connects Not Found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Connects Not Found");
+				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2131,7 +2134,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	private void getConnectDetailedReportInExcel(List<ConnectT> connectList,
 			List<String> iouList, List<String> geographyList,
 			List<String> country, List<String> serviceLines,
-			List<String> fields, XSSFWorkbook workbook) throws Exception {
+			List<String> fields, SXSSFWorkbook workbook) throws Exception {
 		logger.debug("Inside connectDetailedReportInExcel Service");
 		if (connectList.isEmpty() || connectList == null) {
 			logger.error("NOT_FOUND: Connects Not Found");
@@ -2164,7 +2167,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.debug("Inside connectSummaryReport() method");
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
@@ -2256,9 +2259,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
 			} else {
-				logger.error("Connects Not Found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Connects Not Found");
+				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2346,7 +2348,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			String year, List<Object[]> subSpConnectCountList,
 			List<Object[]> geographyConnectCountList,
 			List<Object[]> iouConnectCountList, List<String> country,
-			List<String> fields, XSSFWorkbook workbook) throws Exception {
+			List<String> fields, SXSSFWorkbook workbook) throws Exception {
 		logger.debug("Inside ConnectSummaryReportExcel() method");
 		if ((subSpConnectCountList.isEmpty() || subSpConnectCountList == null)
 				&& (geographyConnectCountList.isEmpty() || geographyConnectCountList == null)
@@ -2366,7 +2368,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> country, List<String> serviceLines, String userId,
 			List<String> fields) throws Exception {
 		logger.debug("Inside getConnectReports() method");
-		XSSFWorkbook workbook = new XSSFWorkbook();
+		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
@@ -2469,9 +2471,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				getConnectDetailedReportInExcel(connectList, iouList,
 						geographyList, country, serviceLines, fields, workbook);
 			} else {
-				logger.error("Connects Not Found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Connects Not Found");
+				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2544,9 +2545,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					bidDetailsList = beaconConverterService
 							.convertBidDetailsCurrency(bidDetails, currency);
 					if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-						logger.error("Bid Details Not Found");
-						throw new DestinationException(HttpStatus.NOT_FOUND,
-								"Bid Details Not Found");
+						logger.error("NOT_FOUND: Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
 					}
 				}
 			} else {
@@ -2580,9 +2580,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
 		}
 		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-			logger.error("NOT_FOUND: bid details not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"bid details not found");
+			logger.error("NOT_FOUND: Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
 		}
 		return bidDetailsList;
 	}
