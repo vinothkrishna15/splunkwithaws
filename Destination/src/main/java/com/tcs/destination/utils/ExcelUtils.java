@@ -279,7 +279,7 @@ public class ExcelUtils {
 		return alteredYear;
 	}
 	
-	public static void arrangeSheetOrder(XSSFWorkbook workbook) {
+	public static void arrangeSheetOrder(SXSSFWorkbook workbook) {
 		int i = 0;
 		if (workbook.getSheet(ReportConstants.TITLE) != null) {
 			workbook.setSheetOrder(ReportConstants.TITLE, i);
@@ -308,12 +308,12 @@ public class ExcelUtils {
 
 	}
 	
-	public static XSSFRow getRow(XSSFSheet spreadsheet, int rowNo) {
-		XSSFRow row = null;
+	public static SXSSFRow getRow(SXSSFSheet spreadsheet, int rowNo) {
+		SXSSFRow row = null;
 		if (spreadsheet.getRow(rowNo) == null) {
-			row = spreadsheet.createRow(rowNo);
+			row = (SXSSFRow) spreadsheet.createRow(rowNo);
 		} else {
-			row = spreadsheet.getRow(rowNo);
+			row = (SXSSFRow) spreadsheet.getRow(rowNo);
 		}
 		return row;
 	}

@@ -50,7 +50,7 @@ public class FieldsMap {
 		fieldsMap.put("crmId", "CRM Id");
 		fieldsMap.put("opportunityName", "Opportunity Name");
 		fieldsMap.put("opportunityOwner", "Opportunity Owner");
-		fieldsMap.put("projectDealValue", "Digital Deal Value(Project Currency)");
+		fieldsMap.put("projectDealValue", "Digital Deal Value in Project Currency");
 		fieldsMap.put("requestReceivedDate", "Request Received Date");
 	}
 	
