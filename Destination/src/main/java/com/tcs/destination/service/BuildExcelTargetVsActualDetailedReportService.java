@@ -179,19 +179,17 @@ public class BuildExcelTargetVsActualDetailedReportService {
 
 	public Boolean getProjectedValue(List<TargetVsActualDetailed> targetVsActualDetailedList){
 		Boolean str=false;
-		BigDecimal cur= new BigDecimal(0.00); 
+		BigDecimal projectedValue= new BigDecimal(0); 
 		for (TargetVsActualDetailed targetVsActual : targetVsActualDetailedList) {
-			for (TargetVsActualYearToDate targetVsActualYearToDate :targetVsActual.getYearToDate() ) {
-					if(targetVsActualYearToDate.getProjectedValues()!=null && targetVsActualYearToDate.getProjectedValues().size()>0)
-						for(CurrencyValue currency:targetVsActualYearToDate.getProjectedValues()){
-							if(currency.getValue()!=null && currency.getValue()!=cur){
-								str=true;
-								break;
-							}
-						}
-						
-					}
-				}
+			for (TargetVsActualYearToDate targetVsActualYearToDate : targetVsActual
+					.getYearToDate()) {
+				if (targetVsActualYearToDate.getProjected() != null
+						&& targetVsActualYearToDate.getProjected()
+								.doubleValue() != projectedValue.doubleValue())
+					str = true;
+				break;
+			}
+		}
 		return str;
 	}
 	
