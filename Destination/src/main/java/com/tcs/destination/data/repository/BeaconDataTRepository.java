@@ -23,7 +23,8 @@ public interface BeaconDataTRepository extends
 
 	@Query(value = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
-			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+			+ "and BCMT.customer_geography = BDT.beacon_geography "
+			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BDT.beacon_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where BDT.quarter in (:quarterList) and BCMT.customer_name not like 'UNKNOWN%' group by BCMT.customer_name,BDT.quarter", nativeQuery = true)
 	public List<Object[]> getTargetByQuarter(

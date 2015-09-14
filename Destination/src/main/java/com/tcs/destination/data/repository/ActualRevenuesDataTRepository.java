@@ -27,6 +27,7 @@ public interface ActualRevenuesDataTRepository extends
 
 	@Query(value = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "and RCMT.customer_geography = ARDT.finance_geography "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
