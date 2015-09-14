@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 
+import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactT;
 
@@ -385,5 +386,20 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * @return List<ConnectT>
 	 */
 	List<ConnectT> findByConnectIdInOrderByStartDatetimeOfConnectAsc(List<String> connectIds);
+
+	/**
+	 * This query performs search of connect_t and search_keyword_t based on name and keyword.
+	 * Note that results from connect_t will have is_name as 't' and results from search_keywords_t will have is_name as 'f'
+	 * 
+	 * @param name
+	 * @param keyword
+	 * @return List<Object[]>
+	 */
+	@Query(value="select result, connect_id as connect, is_name , created_datetime from (select connect_name as result , connect_id , 't' as is_name, "
+			+ "created_datetime from connect_t  where UPPER(connect_name) like ?1 union select SKT.search_keywords as result, "
+			+ "SKT.entity_id as connect_id ,'f' as is_name , OPP.created_datetime as created_datetime from search_keywords_t SKT "
+			+ "JOIN connect_t OPP on OPP.connect_id=SKT.entity_id where SKT.entity_type ='CONNECT' and UPPER(search_keywords) like ?2) "
+			+ "as search order by created_datetime desc", nativeQuery=true)
+	List<Object[]> findConnectNameOrKeywords(String name, String keyword);
 
 }

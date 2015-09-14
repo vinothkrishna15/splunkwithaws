@@ -162,18 +162,21 @@ public class ReportsService {
 	// TargetVsActual Detailed Report
 	private static final String TARGET_VS_ACTUAL_PROJECTED_QUERY_PREFIX = "select RCMT.customer_name,PRDT.quarter,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography = PRDT.finance_geography "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_ACTUAL_QUERY_PREFIX = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
+			+ "and RCMT.customer_geography = ARDT.finance_geography "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_TARGET_QUERY_PREFIX = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "and BCMT.customer_geography = BDT.beacon_geography "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou  "
 			+ "where BCMT.customer_name not like 'UNKNOWN%' and ";

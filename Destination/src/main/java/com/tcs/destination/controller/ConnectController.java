@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,8 +23,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -302,5 +305,38 @@ public class ConnectController {
 			ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				listOfConnects), HttpStatus.OK);
             }
+        
+        /**
+         * This controller performs search of connects and searchKeywords based on name and keyword
+         * 
+         * @param name
+         * @param keyword
+         * @param fields
+         * @param view
+         * @return String
+         * @throws Exception
+         */
+        @RequestMapping(value = "/name", method = RequestMethod.GET)
+    	public @ResponseBody String findConnectNameOrKeyword(
+    			@RequestParam(value = "name", defaultValue = "") String name,
+    			@RequestParam(value = "keyword", defaultValue = "") String keyword,
+    			@RequestParam(value = "fields", defaultValue = "all") String fields,
+    			@RequestParam(value = "view", defaultValue = "") String view)
+    			throws Exception {
+    		logger.debug("Inside ConnectService /name GET");
+    		List<ConnectNameKeywordSearch> searchResults = null;
+    		try {
+    		searchResults = connectService.findConnectNameOrKeywords(name, keyword);
+    		if((searchResults==null)||(searchResults.isEmpty())){
+    			logger.error("No Results found for name {} and keyword {}", name, keyword);
+    			throw new DestinationException(HttpStatus.NOT_FOUND, "No Results found for name "+name+" and keyword "+keyword);
+    		}
+    		} catch(Exception e){
+    			logger.error("An Exception has occured : {}", e.getMessage());
+    			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "An Exception has occured : "+e.getMessage());
+    		}
+    		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+    				searchResults);
+    	}
 	
 }
