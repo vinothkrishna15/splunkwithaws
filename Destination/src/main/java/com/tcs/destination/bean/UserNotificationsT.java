@@ -57,24 +57,35 @@ public class UserNotificationsT implements Serializable {
 
 	// bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name = "connect_id")
+	@JoinColumn(name="connect_id",insertable = false,updatable = false)
 	private ConnectT connectT;
+	
+	@Column(name="connect_id")
+	private String connectId;
 
-	// bi-directional many-to-one association to
-	// NotificationSettingsEventMappingT
+	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
-	@JoinColumn(name = "event_id")
+	@JoinColumn(name = "event_id",insertable = false,updatable = false)
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
+	
+	@Column(name="event_id")
+	private int eventId;
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
-	@JoinColumn(name = "opportunity_id")
+	@JoinColumn(name="opportunity_id",insertable = false,updatable = false)
 	private OpportunityT opportunityT;
+	
+	@Column(name="opportunity_id")
+	private String opportunityId;
 
 	// bi-directional many-to-one association to TaskT
 	@ManyToOne
-	@JoinColumn(name = "task_id")
+	@JoinColumn(name="task_id",insertable = false,updatable = false)
 	private TaskT taskT;
+	
+	@Column(name="task_id")
+	private String taskId;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -83,8 +94,11 @@ public class UserNotificationsT implements Serializable {
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", insertable = false, updatable = false)
 	private UserT userT;
+	
+	@Column(name="user_id")
+	private String userId;
 
 	public UserNotificationsT() {
 	}
@@ -162,6 +176,14 @@ public class UserNotificationsT implements Serializable {
 		this.connectT = connectT;
 	}
 
+	public String getConnectId() {
+		return connectId;
+	}
+
+	public void setConnectId(String connectId) {
+		this.connectId = connectId;
+	}
+
 	public NotificationSettingsEventMappingT getNotificationSettingsEventMappingT() {
 		return this.notificationSettingsEventMappingT;
 	}
@@ -169,6 +191,14 @@ public class UserNotificationsT implements Serializable {
 	public void setNotificationSettingsEventMappingT(
 			NotificationSettingsEventMappingT notificationSettingsEventMappingT) {
 		this.notificationSettingsEventMappingT = notificationSettingsEventMappingT;
+	}
+
+	public int getEventId() {
+		return eventId;
+	}
+
+	public void setEventId(int eventId) {
+		this.eventId = eventId;
 	}
 
 	public OpportunityT getOpportunityT() {
@@ -179,12 +209,28 @@ public class UserNotificationsT implements Serializable {
 		this.opportunityT = opportunityT;
 	}
 
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
+
 	public TaskT getTaskT() {
 		return this.taskT;
 	}
 
 	public void setTaskT(TaskT taskT) {
 		this.taskT = taskT;
+	}
+	
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
 	}
 
 	public UserT getRecipientUser() {
@@ -201,6 +247,14 @@ public class UserNotificationsT implements Serializable {
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+	
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 
 	public String getRecipient() {

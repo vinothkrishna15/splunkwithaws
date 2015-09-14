@@ -50,6 +50,7 @@ import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
@@ -61,12 +62,16 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
+import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.helper.NotificationHelper;
+import com.tcs.destination.helper.NotificationsLazyLoader;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
@@ -160,6 +165,21 @@ public class OpportunityService {
 	CollaborationCommentsRepository collaborationCommentsRepository;
 
 	// Required beans for Auto comments - end
+	
+	// Required beans for Notifications - start
+	@Autowired
+	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
+
+	@Autowired
+	UserNotificationsRepository userNotificationsTRepository;
+
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepo;
+
+	@Autowired
+	ThreadPoolTaskExecutor notificationsTaskExecutor;
+	// Required beans for Notifications - end
+	
 	@Autowired
 	UserRepository userRepository;
 
@@ -369,8 +389,12 @@ public class OpportunityService {
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");
 
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
+		if (!isUserOwner(userId, opportunity)) {
+			restrictOpportunity(opportunity);
+		}
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
@@ -445,6 +469,8 @@ public class OpportunityService {
 			if (!isBulkDataLoad) {
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
+				// Invoke Asynchronous Notification Thread
+				processNotifications(opportunity.getOpportunityId(),null);
 			}
 		}
 	}
@@ -681,6 +707,8 @@ public class OpportunityService {
 					+ opportunityId);
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(opportunityId, oldObject);
+			// Invoke Asynchronous Notifications Thread
+			processNotifications(opportunityId, oldObject);
 		}
 	}
 
@@ -694,6 +722,12 @@ public class OpportunityService {
 						EntityType.OPPORTUNITY.name(), opportunityRepository,
 						autoCommentsEntityTRepository,
 						autoCommentsEntityFieldsTRepository, null);
+		if (opportunity != null) {
+			opportunity = (OpportunityT) NotificationsLazyLoader
+					.loadLazyCollections(opportunityId,
+							EntityType.OPPORTUNITY.name(), opportunityRepository,
+							notificationEventFieldsTRepository, null);
+		}
 		return opportunity;
 	}
 
@@ -952,6 +986,24 @@ public class OpportunityService {
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
+	}
+	
+	// This method is used to invoke asynchronous thread for notifications
+	private void processNotifications(String opportunitytId, Object oldObject){
+		logger.debug("Calling processNotifications() method");
+		NotificationHelper notificationsHelper = new NotificationHelper();
+		notificationsHelper.setEntityId(opportunitytId);
+		notificationsHelper.setEntityType(EntityType.OPPORTUNITY.name());
+		if (oldObject != null) {
+			notificationsHelper.setOldObject(oldObject);
+		}
+		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper.setCrudRepository(opportunityRepository);
+		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		// Invoking notifications Task Executor Thread
+		notificationsTaskExecutor.execute(notificationsHelper);
 	}
 
 	/**

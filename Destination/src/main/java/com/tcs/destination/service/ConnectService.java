@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
+import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
@@ -26,6 +27,8 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
@@ -41,7 +44,10 @@ import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
+import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
@@ -49,6 +55,7 @@ import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
+import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
@@ -107,6 +114,20 @@ public class ConnectService {
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
 
+	@Autowired
+	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
+
+	@Autowired
+	UserNotificationsRepository userNotificationsTRepository;
+
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepo;
+
+	@Autowired
+	ThreadPoolTaskExecutor notificationsTaskExecutor;
+	// Required beans for Notifications - end
+	
+	
 	@Autowired
 	UserRepository userRepository;
 
@@ -328,6 +349,8 @@ public class ConnectService {
 				if (!isBulkDataLoad) {
 					// Invoke Asynchronous Auto Comments Thread
 					processAutoComments(connect.getConnectId(), null);
+					//Invoke Asynchronous Notifications Thread
+					processNotifications(connect.getConnectId(),null);
 				}
 				return true;
 			}
@@ -335,6 +358,23 @@ public class ConnectService {
 		}
 		logger.debug("Connect not Saved");
 		return false;
+	}
+	
+	private void processNotifications(String connectId, Object oldObject) {
+		logger.debug("Calling processNotifications() method");
+		NotificationHelper notificationsHelper = new NotificationHelper();
+		notificationsHelper.setEntityId(connectId);
+		notificationsHelper.setEntityType(EntityType.CONNECT.name());
+		if (oldObject != null) {
+			notificationsHelper.setOldObject(oldObject);
+		}
+		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper.setCrudRepository(connectRepository);
+		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		// Invoking Auto Comments Task Executor Thread
+		notificationsTaskExecutor.execute(notificationsHelper);
 	}
 
 	private void validateRequest(ConnectT connect, boolean isInsert)
@@ -515,6 +555,8 @@ public class ConnectService {
 			logger.info("Connect has been updated successfully: " + connectId);
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(connectId, oldObject);
+			//Invoke Asynchronous Notifications Thread
+			processNotifications(connectId,oldObject);
 			return true;
 		}
 		return false;
@@ -990,5 +1032,50 @@ public class ConnectService {
 	    }
 	    
 	    return listOfConnects;
+	}
+
+	/**
+	 * This service performs search of connects and searchKeywords based on name and keyword
+	 * 
+	 * @param name
+	 * @param keyword
+	 * @return List<ConnectNameKeywordSearch>
+	 * @throws Exception
+	 */
+	public List<ConnectNameKeywordSearch> findConnectNameOrKeywords(
+			String name, String keyword) throws Exception {
+
+		List<ConnectNameKeywordSearch> connectNameKeywordSearchList = null;
+
+		try {
+			
+			if (name.length() > 0)
+				name = "%" + name + "%";
+			if (keyword.length() > 0)
+				keyword = "%" + keyword + "%";
+			
+			List<Object[]> results = connectRepository
+					.findConnectNameOrKeywords(name.toUpperCase(),
+							keyword.toUpperCase());
+
+			if ((results != null) && (!results.isEmpty())) {
+				connectNameKeywordSearchList = new ArrayList<ConnectNameKeywordSearch>();
+				for (Object[] result : results) {
+					ConnectNameKeywordSearch connectNameKeywordSearch = new ConnectNameKeywordSearch();
+					connectNameKeywordSearch.setResult(result[0].toString());
+					ConnectT connectT = connectRepository.findOne(result[1]
+							.toString());
+					setSearchKeywordTs(connectT);
+					connectNameKeywordSearch.setConnectT(connectT);
+					connectNameKeywordSearch.setIsName(result[2].toString());
+					connectNameKeywordSearchList.add(connectNameKeywordSearch);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("An Exception has occured : {}", e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return connectNameKeywordSearchList;
 	}
 }
