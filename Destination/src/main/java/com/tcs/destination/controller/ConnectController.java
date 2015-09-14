@@ -318,8 +318,8 @@ public class ConnectController {
          */
         @RequestMapping(value = "/name", method = RequestMethod.GET)
     	public @ResponseBody String findConnectNameOrKeyword(
-    			@RequestParam(value = "name", defaultValue = "all") String name,
-    			@RequestParam(value = "keyword", defaultValue = "all") String keyword,
+    			@RequestParam(value = "name", defaultValue = "") String name,
+    			@RequestParam(value = "keyword", defaultValue = "") String keyword,
     			@RequestParam(value = "fields", defaultValue = "all") String fields,
     			@RequestParam(value = "view", defaultValue = "") String view)
     			throws Exception {
@@ -327,13 +327,13 @@ public class ConnectController {
     		List<ConnectNameKeywordSearch> searchResults = null;
     		try {
     		searchResults = connectService.findConnectNameOrKeywords(name, keyword);
-    		if(searchResults==null){
+    		if((searchResults==null)||(searchResults.isEmpty())){
     			logger.error("No Results found for name {} and keyword {}", name, keyword);
     			throw new DestinationException(HttpStatus.NOT_FOUND, "No Results found for name "+name+" and keyword "+keyword);
     		}
     		} catch(Exception e){
     			logger.error("An Exception has occured : {}", e.getMessage());
-    			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "An Exception has occured : {} "+keyword);
+    			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "An Exception has occured : "+e.getMessage());
     		}
     		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
     				searchResults);
