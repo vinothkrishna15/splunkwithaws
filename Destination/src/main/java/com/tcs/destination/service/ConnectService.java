@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
+import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
@@ -26,6 +27,8 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunityNameKeywordSearch;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
@@ -990,5 +993,50 @@ public class ConnectService {
 	    }
 	    
 	    return listOfConnects;
+	}
+
+	/**
+	 * This service performs search of connects and searchKeywords based on name and keyword
+	 * 
+	 * @param name
+	 * @param keyword
+	 * @return List<ConnectNameKeywordSearch>
+	 * @throws Exception
+	 */
+	public List<ConnectNameKeywordSearch> findConnectNameOrKeywords(
+			String name, String keyword) throws Exception {
+
+		List<ConnectNameKeywordSearch> connectNameKeywordSearchList = null;
+
+		try {
+			
+			if (name.length() > 0)
+				name = "%" + name + "%";
+			if (keyword.length() > 0)
+				keyword = "%" + keyword + "%";
+			
+			List<Object[]> results = connectRepository
+					.findConnectNameOrKeywords(name.toUpperCase(),
+							keyword.toUpperCase());
+
+			if ((results != null) && (!results.isEmpty())) {
+				connectNameKeywordSearchList = new ArrayList<ConnectNameKeywordSearch>();
+				for (Object[] result : results) {
+					ConnectNameKeywordSearch connectNameKeywordSearch = new ConnectNameKeywordSearch();
+					connectNameKeywordSearch.setResult(result[0].toString());
+					ConnectT connectT = connectRepository.findOne(result[1]
+							.toString());
+					setSearchKeywordTs(connectT);
+					connectNameKeywordSearch.setConnectT(connectT);
+					connectNameKeywordSearch.setIsName(result[2].toString());
+					connectNameKeywordSearchList.add(connectNameKeywordSearch);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("An Exception has occured : {}", e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return connectNameKeywordSearchList;
 	}
 }
