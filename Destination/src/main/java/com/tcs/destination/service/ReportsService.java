@@ -1088,8 +1088,8 @@ public class ReportsService {
 				targetVsActualDetailedList, fields, currency, fromMonth,
 				workbook);
 		}else{
-			logger.error("NOT_FOUND: Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+			logger.error("NOT_FOUND: Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
 		}
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
@@ -1246,8 +1246,8 @@ public class ReportsService {
 								overAllRevenuesByGeoList,
 								geoIouGroupCustNameList);
 			} else {
-				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
 			}
 		}
 	}
@@ -2104,8 +2104,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						geographyList, countryList, serviceLinesList, fields,
 						workbook);
 			} else {
-				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2262,8 +2262,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
 			} else {
-				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2474,8 +2474,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				getConnectDetailedReportInExcel(connectList, iouList,
 						geographyList, country, serviceLines, fields, workbook);
 			} else {
-				logger.error("NOT_FOUND: Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no connects are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
 			}
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -2548,8 +2548,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					bidDetailsList = beaconConverterService
 							.convertBidDetailsCurrency(bidDetails, currency);
 					if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-						logger.error("NOT_FOUND: Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
-						throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
+						logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
 					}
 				}
 			} else {
@@ -2583,8 +2583,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
 		}
 		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-			logger.error("NOT_FOUND: Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Report couldn't not be downloaded, as no bids are available for user selection and privilege combination");
+			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
 		}
 		return bidDetailsList;
 	}
@@ -3037,8 +3037,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						if (reportSummaryOppMap.size() > 0) {
 							buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
 						}else{
-							logger.error("Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
-							throw new DestinationException(HttpStatus.NOT_FOUND," Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
+							logger.error("Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
+							throw new DestinationException(HttpStatus.NOT_FOUND," Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
 						}
 					}
 

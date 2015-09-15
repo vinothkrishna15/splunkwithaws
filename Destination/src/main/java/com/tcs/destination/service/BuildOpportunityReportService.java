@@ -184,9 +184,9 @@ public class BuildOpportunityReportService {
 			getOpportunityReport(opportunityList, fields, currency, workbook);
 
 		} else {
-			logger.error("NOT_FOUND: Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
+			logger.error("NOT_FOUND: Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Report couldn't not be downloaded, as no opportunities are available for user selection and privilege combination");
+					"Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
 		}
 	}
 
