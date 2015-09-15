@@ -12,5 +12,8 @@ public interface OfferingRepository extends
 
     @Query(value="select offering from offering_mapping_t", nativeQuery=true)
     List<String> getOffering();
+    
+    @Query(value="select subSp, offering from OfferingMappingT")
+    List<Object[]> getSubSpOffering();
 
 }

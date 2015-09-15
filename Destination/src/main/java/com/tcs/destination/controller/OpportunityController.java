@@ -31,10 +31,12 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityReopenRequestService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -57,6 +59,9 @@ public class OpportunityController {
 	
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
+	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
 
 	// @Autowired
 	// CustomerRepository customerRepository;
@@ -446,5 +451,35 @@ public class OpportunityController {
 	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
 	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 }
-    
+
+	
+	@RequestMapping(value = "/download", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadOpportunity(
+			@RequestParam("userId") String userId,
+			@RequestParam("downloadOpportunities") boolean oppFlag,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		HttpHeaders respHeaders = null;
+		InputStreamResource opportunityDownloadExcel = null;
+		try {
+			opportunityDownloadExcel = opportunityDownloadService
+					.downloadDocument(oppFlag, userId);
+			respHeaders = new HttpHeaders();
+			respHeaders.setContentDispositionFormData("attachment",
+					"opportunityDownload" + DateUtils.getCurrentDate()
+							+ ".xlsm");
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.debug("Connect Summary Report Downloaded Successfully ");
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<InputStreamResource>(
+				opportunityDownloadExcel, respHeaders, HttpStatus.OK);
+
+	}
+	
 }

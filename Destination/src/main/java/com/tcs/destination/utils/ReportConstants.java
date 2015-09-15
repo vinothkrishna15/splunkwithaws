@@ -24,7 +24,7 @@ public class ReportConstants {
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";
 	public static final String REQUESTRECEIVEDDATE = "requestReceivedDate";
-	public static final String OPPORTUNITYOWNER = "opportunityOwner";
+	public static final String OPPORTUNITYOWNER = "opportunityName";
 	public static final String NEWLOGO = "newLogo";
 	public static final String COMPETITORS = "competitors";
 	public static final String PARTNERSHIPSINVOLVED = "partnershipsInvolved";

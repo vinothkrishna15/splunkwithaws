@@ -42,5 +42,21 @@ public class Constants {
 	public static final String EMPTY_PARANTHESIS = "()";
 	public static final String GEOGRAPHY = "GEOGRAPHY";
 	public static final String IOU = "IOU";
+	
+	public static final String APPLICATION_PROPERTIES_FILENAME = "application";
+	public static final String OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME = "opportunitySheetTemplate";
+	public static final String OPPORTUNITY_TEMPLATE_COMPETITOR_SHEET_NAME = "Competitor(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_GEOGRAPHY_COUNTRY_SHEET_NAME = "Geography Country(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_OFFERING_SHEET_NAME = "Offering(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_USER_SHEET_NAME = "User(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_CUSTOMER_MASTER_SHEET_NAME = "Customer Master(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_SUBSP_SHEET_NAME = "SubSp(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_PARTNER_SHEET_NAME = "Partner(Ref)";  
+	public static final String OPPORTUNITY_TEMPLATE_CUSTOMER_CONTACT_SHEET_NAME = "Customer Contact(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contact(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_CURRENCY_SHEET_NAME = "Currency(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_WIN_LOSS_SHEET_NAME = "Win Loss Factor(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_BID_REQUEST_DEAL_TYPE_SHEET_NAME = "Bid Request  & Deal Type(Ref)";
+	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
 
 }
