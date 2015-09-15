@@ -172,7 +172,6 @@ public class BuildOpportunityReportService {
 					Query opportunityDetailedReportQuery = entityManager.createNativeQuery(queryString);
 					List<String> opportunityIds = opportunityDetailedReportQuery.getResultList();
 					opportunities = opportunityRepository.findByOpportunityIds(opportunityIds);
-					
 				} else {
 					opportunities = opportunityRepository.findOpportunitiesWith(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
 							salesStage);
@@ -195,6 +194,7 @@ public class BuildOpportunityReportService {
 			List<String> fields, List<String> currency, SXSSFWorkbook workbook)
 			throws Exception {
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Complete Data");
+		spreadSheet.setDefaultColumnWidth(30);
 		SXSSFRow headerRow = null;
 		int currentRow = 0;
 		int headerColumnValue = 0;
@@ -223,7 +223,7 @@ public class BuildOpportunityReportService {
 		if (currency.size() > 1) {
 			row.createCell(7).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(7).setCellStyle(cellStyle);
-			spreadSheet.autoSizeColumn(7);
+//			spreadSheet.autoSizeColumn(7);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 7,
 					7 + currency.size() - 1));
 			CellStyle cellStyle1 = ExcelUtils.createRowStyle(
@@ -238,7 +238,7 @@ public class BuildOpportunityReportService {
 					ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)
 							+ ")");
 			row.getCell(7).setCellStyle(cellStyle);
-			spreadSheet.autoSizeColumn(7);
+//			spreadSheet.autoSizeColumn(7);
 		}
 	}
 
@@ -246,25 +246,25 @@ public class BuildOpportunityReportService {
 			SXSSFSheet spreadSheet, CellStyle cellStyle) {
 		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
 		row.getCell(0).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(0);
+//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(1).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(1);
+//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
 		row.getCell(2).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(2);
+//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(3).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(3);
+//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
 		row.getCell(4).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
 		row.getCell(5).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(5);
+//		spreadSheet.autoSizeColumn(5);
 		row.createCell(6).setCellValue(ReportConstants.OPPORTUNITYNAME);
 		row.getCell(6).setCellStyle(cellStyle);
-		spreadSheet.autoSizeColumn(6);
+//		spreadSheet.autoSizeColumn(6);
 	}
 
 	public int CreateHeaderOpportunityReportOptionalFields(
@@ -281,7 +281,6 @@ public class BuildOpportunityReportService {
 		 * This method creates default headers
 		 */
 		getMandatoryHeaderForOpportunityReport(row, spreadSheet, cellStyle);
-
 		if (currency.size() > 1) {
 			row.createCell(7).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(7).setCellStyle(cellStyle);
@@ -302,8 +301,18 @@ public class BuildOpportunityReportService {
 		if (currency.size() > 1) {
 			colValue = 9;
 		}
+//		createHeaderForOptionalFields(row, spreadSheet, cellStyle,fields, colValue);		
 		
 		return colValue;
+	}
+
+	private void createHeaderForOptionalFields(SXSSFRow row, SXSSFSheet spreadSheet, 
+			CellStyle cellStyle, List<String> fields, int columnNo) {
+		for (String field : fields) {
+			row.createCell(columnNo).setCellValue(FieldsMap.fieldsMap.get(field));
+			row.getCell(columnNo).setCellStyle(cellStyle);
+			columnNo++;
+		}
 	}
 
 	public int OpportunityReportWithMandatoryFields(
@@ -319,9 +328,9 @@ public class BuildOpportunityReportService {
 					opportunity);
 			currentRow++;
 		}
-		for(int startCol=0;startCol<=8;startCol++){
-			spreadSheet.autoSizeColumn(startCol);
-		}
+//		for(int startCol=0;startCol<=8;startCol++){
+//			spreadSheet.autoSizeColumn(startCol);
+//		}
 		return currentRow;
 	}
 
@@ -982,23 +991,23 @@ public class BuildOpportunityReportService {
 	public void CreateHeaderBidDetailsReportMandatoryFields(SXSSFRow row,
 			SXSSFRow row1, SXSSFSheet spreadSheet, List<String> currency) {
 		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
-		spreadSheet.autoSizeColumn(0);
+//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
-		spreadSheet.autoSizeColumn(1);
+//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
-		spreadSheet.autoSizeColumn(2);
+//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
-		spreadSheet.autoSizeColumn(3);
+//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
-		spreadSheet.autoSizeColumn(4);
+//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
-		spreadSheet.autoSizeColumn(5);
+//		spreadSheet.autoSizeColumn(5);
 		row.createCell(6).setCellValue(ReportConstants.BIDREQUESTTYPE);
-		spreadSheet.autoSizeColumn(6);
+//		spreadSheet.autoSizeColumn(6);
 		row.createCell(7).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
-		spreadSheet.autoSizeColumn(7);
+//		spreadSheet.autoSizeColumn(7);
 		row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-		spreadSheet.autoSizeColumn(8);
+//		spreadSheet.autoSizeColumn(8);
 		spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency
 				.size() - 1));
 		for (int i = 0; i < currency.size(); i++) {
@@ -1024,13 +1033,13 @@ public class BuildOpportunityReportService {
 					bidDetailsList, field);
 			row.createCell(colValue).setCellValue(
 					FieldsMap.fieldsMap.get(field));
-			spreadSheet.autoSizeColumn(colValue);
+//			spreadSheet.autoSizeColumn(colValue);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, colValue,
 					colValue + listCount - 1));
 			for (int i = 0; i < listCount; i++) {
 				row1.createCell(colValue + i).setCellValue(
 						FieldsMap.childMap.get(field));
-				spreadSheet.autoSizeColumn(colValue + i);
+//				spreadSheet.autoSizeColumn(colValue + i);
 			}
 			colValue = colValue + listCount;
 		}
@@ -1106,7 +1115,7 @@ public class BuildOpportunityReportService {
 					row.createCell(colValue).setCellValue(
 							bidDetail.getOpportunityT().getCustomerMasterT()
 									.getIouCustomerMappingT().getIou());
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.GEOGRAPHY:
@@ -1114,7 +1123,7 @@ public class BuildOpportunityReportService {
 							bidDetail.getOpportunityT()
 									.getGeographyCountryMappingT()
 									.getGeography());
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.SUBSP:
@@ -1123,7 +1132,7 @@ public class BuildOpportunityReportService {
 						row.createCell(colValue).setCellValue(
 								opportunitySubSpLinkT.getSubSpMappingT()
 										.getSubSp());
-						spreadSheet.autoSizeColumn(colValue);
+//						spreadSheet.autoSizeColumn(colValue);
 						colValue++;
 					}
 					break;
@@ -1138,7 +1147,7 @@ public class BuildOpportunityReportService {
 				case ReportConstants.CRMID:
 					row.createCell(colValue).setCellValue(
 							bidDetail.getOpportunityT().getCrmId());
-					spreadSheet.autoSizeColumn(colValue);
+//					spreadSheet.autoSizeColumn(colValue);
 					colValue++;
 					break;
 				case ReportConstants.NEWLOGO:
@@ -1162,7 +1171,7 @@ public class BuildOpportunityReportService {
 						row.createCell(colValue + i).setCellValue(
 								opportunityTcsAccountContactLinkT.getContactT()
 										.getContactName());
-						spreadSheet.autoSizeColumn(colValue + i);
+//						spreadSheet.autoSizeColumn(colValue + i);
 						i++;
 					}
 					colValue = colValue + maxTcsAccountContactlistCount;
@@ -1176,7 +1185,7 @@ public class BuildOpportunityReportService {
 							.getOpportunityT().getOpportunityCompetitorLinkTs()) {
 						row.createCell(colValue + c).setCellValue(
 								opportunityCompetitorLinkT.getCompetitorName());
-						spreadSheet.autoSizeColumn(colValue + c);
+//						spreadSheet.autoSizeColumn(colValue + c);
 						c++;
 					}
 					colValue = colValue + maxCompetitorsCount;
@@ -1202,7 +1211,7 @@ public class BuildOpportunityReportService {
 										.getBidOfficeGroupOwner());
 						row.createCell(colValue + b).setCellValue(
 								userT.getUserName());
-						spreadSheet.autoSizeColumn(colValue + b);
+//						spreadSheet.autoSizeColumn(colValue + b);
 						b++;
 					}
 					colValue = colValue + maxBidOfficeGroupOwnerListCount;
@@ -1757,24 +1766,24 @@ public class BuildOpportunityReportService {
 				}
 				cell = (SXSSFCell) row.createCell(0);
 				cell.setCellValue("SERVICE LINE WISE");
-				spreadsheet.autoSizeColumn(0);
+//				spreadsheet.autoSizeColumn(0);
 				cell.setCellStyle(subHeadingStyle3);
 				row = (SXSSFRow) spreadsheet.createRow((short) rowValue++);
 				cell = (SXSSFCell) row.createCell(0);
-				spreadsheet.autoSizeColumn(0);
+//				spreadsheet.autoSizeColumn(0);
 				cell.setCellValue("Service Line");
 				cell.setCellStyle(subHeadingStyle2);
 				cell = (SXSSFCell) row.createCell(1);
-				spreadsheet.autoSizeColumn(1);
+//				spreadsheet.autoSizeColumn(1);
 				cell.setCellValue("# of bids");
 				cell.setCellStyle(subHeadingStyle2);
 				cell = (SXSSFCell) row.createCell(2);
-				spreadsheet.autoSizeColumn(2);
+//				spreadsheet.autoSizeColumn(2);
 				cell.setCellValue("bid value(" + currency.get(0) + ")");
 				cell.setCellStyle(subHeadingStyle2);
 				if ((currency.size() > 1)) {
 					cell = (SXSSFCell) row.createCell(3);
-					spreadsheet.autoSizeColumn(3);
+//					spreadsheet.autoSizeColumn(3);
 					cell.setCellValue("bid value(" + currency.get(1) + ")");
 					cell.setCellStyle(subHeadingStyle2);
 				}
@@ -1783,41 +1792,41 @@ public class BuildOpportunityReportService {
 					row = (SXSSFRow) spreadsheet.createRow((short) rowValue++);
 					row.createCell(0).setCellValue(oppSummaryValue.getTitle());
 					row.getCell(0).setCellStyle(rowDataStyle);
-					spreadsheet.autoSizeColumn(0);
+//					spreadsheet.autoSizeColumn(0);
 					row.createCell(1).setCellValue(
 							oppSummaryValue.getCount().intValue());
-					spreadsheet.autoSizeColumn(1);
+//					spreadsheet.autoSizeColumn(1);
 					row.getCell(1).setCellStyle(rowDataStyle);
 					row.createCell(2).setCellValue(
 							(beaconConverterService.convert("INR", currency
 									.get(0), oppSummaryValue.getBidValue()
 									.doubleValue())).doubleValue());
-					spreadsheet.autoSizeColumn(2);
+//					spreadsheet.autoSizeColumn(2);
 					row.getCell(2).setCellStyle(rowDataStyle);
 					if ((currency.size() > 1)) {
 						row.createCell(3).setCellValue(
 								(beaconConverterService.convert("INR", currency
 										.get(1), oppSummaryValue.getBidValue()
 										.doubleValue())).doubleValue());
-						spreadsheet.autoSizeColumn(3);
+//						spreadsheet.autoSizeColumn(3);
 						row.getCell(3).setCellStyle(rowDataStyle);
 					}
 				}
 				row = (SXSSFRow) spreadsheet.createRow((short) rowValue);
 				row.createCell(0).setCellValue("Total");
-				spreadsheet.autoSizeColumn(0);
+//				spreadsheet.autoSizeColumn(0);
 				spreadsheet.getRow(rowValue).getCell(0)
 						.setCellStyle(subHeadingStyle2);
 				row.createCell(1).setCellValue(
 						repSummaryOpp.getTotalCount().intValue());
-				spreadsheet.autoSizeColumn(1);
+//				spreadsheet.autoSizeColumn(1);
 				spreadsheet.getRow(rowValue).getCell(1)
 						.setCellStyle(subHeadingStyle2);
 				row.createCell(2).setCellValue(
 						(beaconConverterService.convert("INR", currency.get(0),
 								repSummaryOpp.getTotalBidValueFirstCurrency()
 										.doubleValue())).doubleValue());
-				spreadsheet.autoSizeColumn(2);
+//				spreadsheet.autoSizeColumn(2);
 				spreadsheet.getRow(rowValue).getCell(2)
 						.setCellStyle(subHeadingStyle2);
 				if ((currency.size() > 1)) {
@@ -1826,7 +1835,7 @@ public class BuildOpportunityReportService {
 									.get(1), repSummaryOpp
 									.getTotalBidValueFirstCurrency()
 									.doubleValue())).doubleValue());
-					spreadsheet.autoSizeColumn(3);
+//					spreadsheet.autoSizeColumn(3);
 					spreadsheet.getRow(rowValue).getCell(3)
 							.setCellStyle(subHeadingStyle2);
 				}
@@ -2020,24 +2029,24 @@ public class BuildOpportunityReportService {
 						row = (SXSSFRow) spreadsheet.getRow((short) rowValue++);
 					row.createCell(0 + offsetValue)
 							.setCellValue("Service Line");
-					spreadsheet.autoSizeColumn(0 + offsetValue);
+//					spreadsheet.autoSizeColumn(0 + offsetValue);
 					row.getCell(0 + offsetValue).setCellStyle(subHeadingStyle2);
 					if(repSummaryOpp.getSalesStageCode() == 9){
 					row.createCell(1 + offsetValue).setCellValue("# of wins");
 					} else {
 						row.createCell(1 + offsetValue).setCellValue("# of Losses");
 					}
-					spreadsheet.autoSizeColumn(1 + offsetValue);
+//					spreadsheet.autoSizeColumn(1 + offsetValue);
 					row.getCell(1 + offsetValue).setCellStyle(subHeadingStyle2);
 					row.createCell(2 + offsetValue).setCellValue(
 							"total value(" + currency.get(0) + ")");
-					spreadsheet.autoSizeColumn(2 + offsetValue);
+//					spreadsheet.autoSizeColumn(2 + offsetValue);
 					row.getCell(2 + offsetValue).setCellStyle(subHeadingStyle2);
 					isHeading = false;
 					if ((currency.size() > 1)) {
 						row.createCell(3 + offsetValue).setCellValue(
 								"total value(" + currency.get(1) + ")");
-						spreadsheet.autoSizeColumn(3 + offsetValue);
+//						spreadsheet.autoSizeColumn(3 + offsetValue);
 						row.getCell(3 + offsetValue).setCellStyle(
 								subHeadingStyle2);
 					}
@@ -2062,10 +2071,10 @@ public class BuildOpportunityReportService {
 								repSummaryOpp.getIou());
 					}
 					row.getCell(0 + offsetValue).setCellStyle(rowDataStyle);
-					spreadsheet.autoSizeColumn(0 + offsetValue);
+//					spreadsheet.autoSizeColumn(0 + offsetValue);
 					row.createCell(1 + offsetValue).setCellValue(
 							oppSummaryValue.getCount().intValue());
-					spreadsheet.autoSizeColumn(1 + offsetValue);
+//					spreadsheet.autoSizeColumn(1 + offsetValue);
 					row.getCell(1 + offsetValue).setCellStyle(rowDataStyle);
 					row.createCell(2 + offsetValue).setCellValue(
 							beaconConverterService
@@ -2075,7 +2084,7 @@ public class BuildOpportunityReportService {
 											oppSummaryValue.getBidValue()
 													.doubleValue())
 									.doubleValue());
-					spreadsheet.autoSizeColumn(2 + offsetValue);
+//					spreadsheet.autoSizeColumn(2 + offsetValue);
 					row.getCell(2 + offsetValue).setCellStyle(rowDataStyle);
 					if ((currency.size() > 1)) {
 						row.createCell(3 + offsetValue).setCellValue(
@@ -2084,7 +2093,7 @@ public class BuildOpportunityReportService {
 										currency.get(1),
 										oppSummaryValue.getBidValue()
 												.doubleValue()).doubleValue());
-						spreadsheet.autoSizeColumn(3 + offsetValue);
+//						spreadsheet.autoSizeColumn(3 + offsetValue);
 						row.getCell(3 + offsetValue).setCellStyle(rowDataStyle);
 					}
 				}
@@ -2096,19 +2105,19 @@ public class BuildOpportunityReportService {
 				row = (SXSSFRow) spreadsheet.getRow((short) rowValue++);
 
 			row.createCell(0 + offsetValue).setCellValue("Total");
-			spreadsheet.autoSizeColumn(0 + offsetValue);
+//			spreadsheet.autoSizeColumn(0 + offsetValue);
 			row.getCell(0 + offsetValue).setCellStyle(subHeadingStyle2);
 			row.createCell(1 + offsetValue).setCellFormula(
 					"SUM(" + ((char) (66 + offsetValue)) + "7:"
 							+ ((char) (66 + offsetValue)) + (rowValue - 1)
 							+ ")");
-			spreadsheet.autoSizeColumn(1 + offsetValue);
+//			spreadsheet.autoSizeColumn(1 + offsetValue);
 			row.getCell(1 + offsetValue).setCellStyle(subHeadingStyle2);
 			row.createCell(2 + offsetValue).setCellFormula(
 					"SUM(" + ((char) (67 + offsetValue)) + "7:"
 							+ ((char) (67 + offsetValue)) + (rowValue - 1)
 							+ ")");
-			spreadsheet.autoSizeColumn(2 + offsetValue);
+//			spreadsheet.autoSizeColumn(2 + offsetValue);
 			row.getCell(2 + offsetValue).setCellStyle(subHeadingStyle2);
 			if ((currency.size() > 1)) {
 				row.createCell(3 + offsetValue).setCellFormula(
@@ -2116,7 +2125,7 @@ public class BuildOpportunityReportService {
 								+ ((char) (68 + offsetValue)) + (rowValue - 1)
 								+ ")");
 				row.getCell(3 + offsetValue).setCellStyle(subHeadingStyle2);
-				spreadsheet.autoSizeColumn(3 + offsetValue);
+//				spreadsheet.autoSizeColumn(3 + offsetValue);
 			}
 		}
 	}
@@ -2222,7 +2231,7 @@ public class BuildOpportunityReportService {
 					} else {
 						cell = (SXSSFCell) row.getCell(0);
 					}
-					spreadsheet.autoSizeColumn(0);
+//					spreadsheet.autoSizeColumn(0);
 					cell.setCellStyle(subHeadingStyle);
 					if (!(repSummaryOpp.getSubSp() == null))
 						cell.setCellValue("SERVICE LINES WISE");
@@ -2309,7 +2318,7 @@ public class BuildOpportunityReportService {
 						for (int i = 0; i < 5; i++) {
 							cell = (SXSSFCell) row
 									.createCell(currencyOffsetValue[i]);
-							spreadsheet.autoSizeColumn(currencyOffsetValue[i]);
+//							spreadsheet.autoSizeColumn(currencyOffsetValue[i]);
 							cell.setCellValue(ReportConstants.QUARTERS[i]);
 							cell.setCellStyle(headingRow);
 						}
@@ -2325,19 +2334,19 @@ public class BuildOpportunityReportService {
 						}
 						row.createCell(0).setCellValue(
 								"Service Line");
-						spreadsheet.autoSizeColumn(0);
+//						spreadsheet.autoSizeColumn(0);
 						for (int i = 1; i < columnSize; i++) {
 							if(repSummaryOpp.getSalesStageCode() == 9){
 							row.createCell((++count)).setCellValue("# of wins");
 							} else {
 								row.createCell((++count)).setCellValue("# of Losses");
 							}
-							spreadsheet.autoSizeColumn(count);
+//							spreadsheet.autoSizeColumn(count);
 							row.createCell(++count)
 									.setCellValue(
 											"Total Value (" + currency.get(0)
 													+ ")");
-							spreadsheet.autoSizeColumn(count);
+//							spreadsheet.autoSizeColumn(count);
 							row.createCell(++count)
 									.setCellValue(
 											"Total Value (" + currency.get(1)
@@ -2357,7 +2366,7 @@ public class BuildOpportunityReportService {
 						}
 						row.createCell(0).setCellValue(
 								"Service Line");
-						spreadsheet.autoSizeColumn(0);
+//						spreadsheet.autoSizeColumn(0);
 						for (int i = 1; i < columnSize; i++) {
 							if(repSummaryOpp.getSalesStageCode() == 9){
 							row.createCell(++count)
@@ -2366,12 +2375,12 @@ public class BuildOpportunityReportService {
 								row.createCell(++count)
 								.setCellValue("# of Losses");
 							}
-							spreadsheet.autoSizeColumn(count);
+//							spreadsheet.autoSizeColumn(count);
 							row.createCell(++count)
 									.setCellValue(
 											"Total Value (" + currency.get(0)
 													+ ")");
-							spreadsheet.autoSizeColumn(count);
+//							spreadsheet.autoSizeColumn(count);
 						}
 						for (int i = 0; i < columnStyleSize; i++) {
 							row.getCell(i).setCellStyle(
@@ -3178,7 +3187,7 @@ public class BuildOpportunityReportService {
 		List<String> countryList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
 		addItemToListGeo(geography,geoList);
-			isDistinctIou = true;
+	    isDistinctIou = true;
 		addItemToList(iou,iouList);
 		addItemToList(country,countryList);
 		addItemToList(serviceLines,serviceLinesList);
@@ -3293,29 +3302,49 @@ public class BuildOpportunityReportService {
 
 	public void getTitleSheet(SXSSFWorkbook workbook, List<String> geography,
 			List<String> iou, List<String> serviceLines,
-			List<Integer> salesStage, String userId, String tillDate) {
+			List<Integer> salesStage, String userId, String tillDate, List<String> country, String reportType, String month, String quarter, String year, List<String> currency) {
 
 		List<String> privilegeValueList = new ArrayList<String>();
-		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.REPORTHEADINGSTYLE);
-		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.ROWS);
-		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.DATAROW);
+		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADINGSTYLE);
+		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.ROWS);
+		CellStyle dataRow = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
 		String completeList = null;
 		SXSSFRow row = null;
 		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet(ReportConstants.TITLE);
 		
+		row = (SXSSFRow) spreadsheet.createRow(4);
+		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
+		row.createCell(4).setCellValue("Opportunity report as on " + tillDate);
+		row.getCell(4).setCellStyle(headinStyle);
+		row = (SXSSFRow) spreadsheet.createRow(6);
+		row.createCell(4).setCellValue("User Selection Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Country", country, 8, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 9, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 10, dataRow);
+		row = (SXSSFRow) spreadsheet.createRow(11);
+		row.createCell(4).setCellValue("Period");
+		String period=ExcelUtils.getPeriod(month, quarter, year);
+		row.createCell(5).setCellValue(period);
+		row = (SXSSFRow) spreadsheet.createRow(12);
+		if (salesStage.size() == 0) {
+			completeList = "All";
+		} else {
+			completeList = ExcelUtils.getSalesStageCode(salesStage);
+		}
+		row.createCell(4).setCellValue("Sales stage");
+		row.createCell(5).setCellValue(completeList);
+		spreadsheet.autoSizeColumn(5);
 		////
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
-		row = (SXSSFRow) spreadsheet.createRow(12);
+		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = Constants.GEOGRAPHY;
@@ -3341,48 +3370,29 @@ public class BuildOpportunityReportService {
 			break;
 		case ReportConstants.BDM:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
-			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
-			row = (SXSSFRow) spreadsheet.createRow(17);
-			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		case ReportConstants.BDMSUPERVISOR:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
-			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
-			row = (SXSSFRow) spreadsheet.createRow(17);
-			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		
 		////s
-		row = (SXSSFRow) spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
-		row.createCell(4).setCellValue("Opportunity report as on " + tillDate);
-		spreadsheet.autoSizeColumn(4);
-		row.getCell(4).setCellStyle(headinStyle);
-		row = (SXSSFRow) spreadsheet.createRow(6);
-		row.createCell(4).setCellValue("User Selection Filter's");
+		row = (SXSSFRow) spreadsheet.createRow(21);
+//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 5));
+		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
-				dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 8, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
-				dataRow);
-		row = (SXSSFRow) spreadsheet.createRow(10);
-		row.setRowStyle(null);
-		if (salesStage.size() == 0) {
-			completeList = "All";
-		} else {
-			completeList = salesStage.toString().replace("[", "")
-					.replace("]", "");
-		}
-		row.createCell(4).setCellValue("Sales stage");
-		spreadsheet.autoSizeColumn(4);
-		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
+		row = (SXSSFRow) spreadsheet.createRow(22);
+		row.createCell(4).setCellValue("Currency");
+		row.createCell(5).setCellValue(currency.toString().replace("[", "").replace("]", ""));
+		row = (SXSSFRow) spreadsheet.createRow(23);
+		row.createCell(4).setCellValue("Report Type");
+		row.createCell(5).setCellValue(reportType);
 		
+		spreadsheet.addMergedRegion(new CellRangeAddress(25, 25, 4, 7));
+		row = (SXSSFRow) spreadsheet.createRow(25);
+		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 		
 	}
 

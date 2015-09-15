@@ -1050,7 +1050,7 @@ public class ReportsService {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		String tillDate = DateUtils.getCurrentDate();
 		//To Write The Report Title page
-		buildExcelTargetVsActualDetailedReportService.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate);
+		buildExcelTargetVsActualDetailedReportService.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary, Detailed");
 		//
 		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(geography, iou, fromMonth, toMonth, currencyList, userId);
 		
@@ -1080,7 +1080,7 @@ public class ReportsService {
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
 				.getTargetVsActualTitlePage(workbook, geography, iou, userId,
-						tillDate);
+						tillDate, currency, fromMonth, toMonth, "Detailed");
 		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(
 				targetVsActualDetailedList, fields, currency, fromMonth,
 				workbook);
@@ -1105,7 +1105,7 @@ public class ReportsService {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
-				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate);
+				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary");
 		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
 				currencyList, userId, workbook);
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
@@ -2096,7 +2096,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			}
 			if (connectList != null) {
 				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate);
+						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Detailed");
 				getConnectDetailedReportInExcel(connectList, iouList,
 						geographyList, countryList, serviceLinesList, fields,
 						workbook);
@@ -2254,7 +2254,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					&& geographyConnectCountList != null
 					&& iouConnectCountList != null) {
 				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate);
+						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary");
 				getConnectSummaryReportExcel(month, quarter, year,
 						subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
@@ -2464,7 +2464,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					&& geographyConnectCountList != null
 					&& iouConnectCountList != null) {
 				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate);
+						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary, Detailed");
 				getConnectSummaryReportExcel(month, quarter, year,
 						subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
@@ -2556,7 +2556,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			}
 		}
 		buildBidReportService.getBidReportTitlePage(workbook, geography, iou,
-				serviceLines, userId, tillDate);
+				serviceLines, userId, tillDate, country, currency, fromMonth, toMonth, "Detailed");
 		
 		return buildBidReportService.getBidDetailsReport(bidDetailsList, fields,
 				currency, workbook);
@@ -2807,7 +2807,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						
 						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 						String tillDate=DateUtils.getCurrentDate();
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary", month, quarter, year, currency);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
 						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
@@ -2830,7 +2830,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							year = DateUtils.getCurrentFinancialYear();
 						}
 						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate);
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate, country,"Detailed", month, quarter, year, currency);
 						buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
 						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
@@ -2859,7 +2859,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						String fmonth=new String(month);
 						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
 						String tillDate = DateUtils.getCurrentDate();
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate);
+						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary, Detailed", month, quarter, year, currency);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
 						buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);

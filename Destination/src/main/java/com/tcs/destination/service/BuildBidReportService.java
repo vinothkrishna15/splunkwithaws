@@ -405,7 +405,7 @@ public class BuildBidReportService {
 	}
 
 	public void getBidReportTitlePage(SXSSFWorkbook workbook, List<String> geography, List<String> iou,
-			List<String> serviceLines, String userId, String tillDate) {
+			List<String> serviceLines, String userId, String tillDate, List<String> country, List<String> currency, String fromMonth, String toMonth, String reportType) {
 		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
@@ -416,13 +416,31 @@ public class BuildBidReportService {
 				ReportConstants.DATAROW);
 		SXSSFRow row = null;
 		
+		row = (SXSSFRow) spreadsheet.createRow(4);
+		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
+		row.createCell(4).setCellValue("Bid report as on " + tillDate);
+		spreadsheet.autoSizeColumn(4);
+		row.getCell(4).setCellStyle(headinStyle);
+		row = (SXSSFRow) spreadsheet.createRow(6);
+		row.createCell(4).setCellValue("User Selection Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Country", country, 8, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 9, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 10, dataRow);
+		row = (SXSSFRow) spreadsheet.createRow(11);
+		row.createCell(4).setCellValue("Period");
+		String period=ExcelUtils.getPeriod(fromMonth, toMonth);
+		row.createCell(5).setCellValue(period);
+		
 		////
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
-		row = (SXSSFRow) spreadsheet.createRow(12);
+		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		spreadsheet.autoSizeColumn(4);
@@ -452,22 +470,20 @@ public class BuildBidReportService {
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		////
-		row = (SXSSFRow) spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
-		row.createCell(4).setCellValue("Bid report as on " + tillDate);
-		spreadsheet.autoSizeColumn(4);
-		row.getCell(4).setCellStyle(headinStyle);
-		row = (SXSSFRow) spreadsheet.createRow(6);
-		row.createCell(4).setCellValue("User Selection Filter's");
+		row = (SXSSFRow) spreadsheet.createRow(21);
+//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 7));
+		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7,
-				dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "IOU", iou, 8, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
-				dataRow);
-		row = (SXSSFRow) spreadsheet.createRow(10);
-		row.setRowStyle(null);
+		row = (SXSSFRow) spreadsheet.createRow(22);
+		row.createCell(4).setCellValue("Currency");
+		row.createCell(5).setCellValue(currency.toString().replace("[", "").replace("]", ""));
+		row = (SXSSFRow) spreadsheet.createRow(23);
+		row.createCell(4).setCellValue("Report Type");
+		row.createCell(5).setCellValue(reportType);
+		
+		spreadsheet.addMergedRegion(new CellRangeAddress(25, 25, 4, 7));
+		row = (SXSSFRow) spreadsheet.createRow(25);
+		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 	}
 	
 //	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,

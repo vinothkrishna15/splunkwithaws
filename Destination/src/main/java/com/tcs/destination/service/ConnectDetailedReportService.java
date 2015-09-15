@@ -474,10 +474,15 @@ public class ConnectDetailedReportService {
 	 * @param serviceLines
 	 * @param userId
 	 * @param tillDate
+	 * @param string 
+	 * @param year 
+	 * @param quarter 
+	 * @param month 
+	 * @param country 
 	 */
 	public void getConnectTitlePage(SXSSFWorkbook workbook,
 			List<String> geography, List<String> iou,
-			List<String> serviceLines, String userId, String tillDate) {
+			List<String> serviceLines, String userId, String tillDate, List<String> country, String month, String quarter, String year, String reportType) {
 		
 		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
@@ -487,6 +492,26 @@ public class ConnectDetailedReportService {
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
 		SXSSFRow row = null;
+		
+		
+		row = (SXSSFRow) spreadsheet.createRow(4);
+		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
+		row.createCell(4).setCellValue("Connect report as on " + tillDate);
+		spreadsheet.autoSizeColumn(4);
+		row.getCell(4).setCellStyle(headinStyle);
+		row = (SXSSFRow) spreadsheet.createRow(6);
+		row.createCell(4).setCellValue("User Selection Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Country", country, 8, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 9, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 10, dataRow);
+		row = (SXSSFRow) spreadsheet.createRow(11);
+		row.createCell(4).setCellValue("Period");
+		String period=ExcelUtils.getPeriod(month, quarter, year);
+		row.createCell(5).setCellValue(period);
+		
 		
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
@@ -523,36 +548,25 @@ public class ConnectDetailedReportService {
 			break;
 		case ReportConstants.BDM:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER);
-			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
-			row = (SXSSFRow) spreadsheet.createRow(17);
-			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		case ReportConstants.BDMSUPERVISOR:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER);
-			spreadsheet.addMergedRegion(new CellRangeAddress(17, 17, 4, 7));
-			row = (SXSSFRow) spreadsheet.createRow(17);
-			row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 			}
-		
-		row = (SXSSFRow) spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
-		row.createCell(4).setCellValue("Connect report as on " + tillDate);
-		spreadsheet.autoSizeColumn(4);
-		row.getCell(4).setCellStyle(headinStyle);
-		row = (SXSSFRow) spreadsheet.createRow(6);
-		row.createCell(4).setCellValue("User Selection Filter's");
+		row = (SXSSFRow) spreadsheet.createRow(21);
+//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 7));
+		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
-		writeDetailsForSearchType(spreadsheet, "Geography", geography, 7,
-				dataRow);
-		writeDetailsForSearchType(spreadsheet, "IOU", iou, 8, dataRow);
-		writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 9,
-				dataRow);
-		row = (SXSSFRow) spreadsheet.createRow(10);
-		row.setRowStyle(null);
+		row = (SXSSFRow) spreadsheet.createRow(22);
+		row.createCell(4).setCellValue("Report Type");
+		row.createCell(5).setCellValue(reportType);
+		
+		spreadsheet.addMergedRegion(new CellRangeAddress(24, 24, 4, 7));
+		row = (SXSSFRow) spreadsheet.createRow(24);
+		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
+		
 	}
 	
 	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,

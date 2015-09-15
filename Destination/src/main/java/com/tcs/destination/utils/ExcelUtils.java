@@ -2,6 +2,7 @@ package com.tcs.destination.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -378,10 +379,13 @@ public class ExcelUtils {
 
 	public static void writeUserFilterConditions(SXSSFSheet spreadsheet, UserT user, String conditions) {
 		SXSSFRow row;
-		row = (SXSSFRow) spreadsheet.createRow(13);
+		row = (SXSSFRow) spreadsheet.createRow(15);
 		row.createCell(4).setCellValue("User");
 		row.createCell(5).setCellValue(user.getUserName());
-		row = (SXSSFRow) spreadsheet.createRow(14);
+		row = (SXSSFRow) spreadsheet.createRow(16);
+		row.createCell(4).setCellValue("Group");
+		row.createCell(5).setCellValue(user.getUserGroup());
+		row = (SXSSFRow) spreadsheet.createRow(17);
 		row.createCell(4).setCellValue("Condition(S)");
 		row.createCell(5).setCellValue(conditions);
 		spreadsheet.autoSizeColumn(4);
@@ -438,9 +442,86 @@ public class ExcelUtils {
 			String previlegeBased) {
 		SXSSFRow row = null;
 		writeUserFilterConditions(spreadsheet, user, previlegeBased);
-		row = (SXSSFRow) spreadsheet.createRow(15);
+		row = (SXSSFRow) spreadsheet.createRow(18);
 		row.createCell(4).setCellValue(userAccessField);
 		String completeList = getCompleteList(privilegeValueList);
 		row.createCell(5).setCellValue(completeList);
 	}
+
+	public static String getPeriod(String month, String quarter, String year) {
+		String period=null;
+		if(month.length()>0 && quarter.length()==0 && year.length()==0){
+			period = month;
+		}else if(month.length()==0 && quarter.length()>0 && year.length()==0){
+			period = quarter;
+		}else if(month.length()==0 && quarter.length()==0 && year.length()>0){
+			period = year;
+		}else{
+			period = DateUtils.getCurrentFinancialYear();
+		}
+		return period;
 	}
+	
+	public static String getSalesStageCode(List<Integer> salesStageList){
+		String code=null;
+		List<String> salesSatgeCodes = new ArrayList<String>();
+		for(Integer salesStage:salesStageList){
+			switch(salesStage){
+			case 0:
+				salesSatgeCodes.add("00 - Suspecting");
+				break;
+			case 1:
+				salesSatgeCodes.add("01 - Prospecting");
+				break;
+			case 2:
+				salesSatgeCodes.add("02 - EOI / RFI In Response");
+				break;
+			case 3:
+				salesSatgeCodes.add("03 - EOI / RFI Submitted");
+				break;
+			case 4:
+				salesSatgeCodes.add("04 - RFP in Progress");
+				break;
+			case 5:
+				salesSatgeCodes.add("05 - RFP Submitted");
+				break;
+			case 6:
+				salesSatgeCodes.add("06 - Shortlisted");
+				break;
+			case 7:
+				salesSatgeCodes.add("07 - Selected");
+				break;
+			case 8:
+				salesSatgeCodes.add("08 - Contract Negotiation");
+				break;
+			case 9:
+				salesSatgeCodes.add("09 - Closed & Won");
+				break;
+			case 10:
+				salesSatgeCodes.add("10 - Closed & Lost");
+				break;
+			case 11:
+				salesSatgeCodes.add("11 - Closed & Scrapped");
+				break;
+			case 12:
+				salesSatgeCodes.add("12 - Closed & Shelved");
+				break;
+			case 13:
+				salesSatgeCodes.add("13 - Closed & Disqualified");
+				break;
+			}
+			code = salesSatgeCodes.toString().replace("[", "").replace("]", "");
+		}
+		return code;
+		
+	}
+
+	public static String getPeriod(String fromMonth, String toMonth) {
+		String period=null;
+		List<String> periodList=new ArrayList<String>();
+		periodList.add(fromMonth);
+		periodList.add(toMonth);
+		period = periodList.toString().replace("[", "").replace("]", "");
+		return period;
+	}
+}
