@@ -27,5 +27,8 @@ public interface PartnerRepository extends
 
 	@Query(value ="select partner_name, partner_id from partner_master_t", nativeQuery = true)
 	List<Object[]> getPartnerNameAndId();
+	
+	@Query(value ="select partner_name, geography from partner_master_t", nativeQuery = true)
+	List<Object[]> getPartnerNameAndGeography();
 
 }

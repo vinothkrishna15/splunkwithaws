@@ -1,5 +1,7 @@
 package com.tcs.destination.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -523,5 +525,27 @@ public class ExcelUtils {
 		periodList.add(toMonth);
 		period = periodList.toString().replace("[", "").replace("]", "");
 		return period;
+	}
+	
+	/*
+	 * Returns the workbook object for given file(xls / xlsm / xlsx)
+	 */
+	public static Workbook getWorkBook(File file) throws IOException{
+	    
+	    Workbook workbook = null;
+	    
+	    FileInputStream fileInputStream = new FileInputStream(file);
+
+	    String fileName  = file.getName();
+	    String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
+            if(fileExtension.equalsIgnoreCase("xls")){
+                workbook = new HSSFWorkbook(fileInputStream);
+            } else if(fileExtension.equalsIgnoreCase("xlsx")){
+        	workbook = new XSSFWorkbook(fileInputStream);
+            } else if(fileExtension.equalsIgnoreCase("xlsm")){
+        	workbook = new XSSFWorkbook(fileInputStream);
+            }
+            
+            return workbook;
 	}
 }
