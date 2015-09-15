@@ -325,16 +325,13 @@ public class ConnectController {
     			throws Exception {
     		logger.debug("Inside ConnectService /name GET");
     		List<ConnectNameKeywordSearch> searchResults = null;
-    		try {
+    		
     		searchResults = connectService.findConnectNameOrKeywords(name, keyword);
     		if((searchResults==null)||(searchResults.isEmpty())){
     			logger.error("No Results found for name {} and keyword {}", name, keyword);
     			throw new DestinationException(HttpStatus.NOT_FOUND, "No Results found for name "+name+" and keyword "+keyword);
     		}
-    		} catch(Exception e){
-    			logger.error("An Exception has occured : {}", e.getMessage());
-    			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "An Exception has occured : "+e.getMessage());
-    		}
+    		
     		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
     				searchResults);
     	}
