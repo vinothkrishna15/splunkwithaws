@@ -132,6 +132,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getGeo(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "displayGeography", defaultValue = "") String displayGeography,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
@@ -143,7 +144,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		List<GeographyReport> geoList = null;
-		if (geography.equals("")) {
+		if (displayGeography.equals("")&&geography.isEmpty()) {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
@@ -180,16 +181,16 @@ public class PerformanceReportController {
 				}
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
-						geography, currency, true);
+						displayGeography,geography, currency, true);
 
 			} else if (wins) {
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
-						geography, currency, false);
+						displayGeography,geography, currency, false);
 			} else {
 				geoList = perfService.getRevenuesBySubGeography(financialYear,
-						quarter, customerName, serviceLine, iou, geography,
-						currency);
+						quarter, customerName, serviceLine, iou,
+						displayGeography,geography, currency);
 			}
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,

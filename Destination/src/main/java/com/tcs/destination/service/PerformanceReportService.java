@@ -294,8 +294,11 @@ public class PerformanceReportService {
 		Map<String, BigDecimal> map = new TreeMap<String, BigDecimal>();
 		for (Object[] obj : objList) {
 			String dispName = (String) obj[0];
-			BigDecimal rev = new BigDecimal(obj[1].toString());
-			map.put(dispName, rev);
+			BigDecimal rev = null;
+			if (obj[1] != null)
+				rev = new BigDecimal(obj[1].toString());
+			if (dispName != null)
+				map.put(dispName, rev);
 		}
 		return map;
 	}
@@ -385,18 +388,24 @@ public class PerformanceReportService {
 
 	public List<GeographyReport> getRevenuesBySubGeography(
 			String financialYear, String quarter, String customer,
-			String subSp, String iou, String geography, String currency)
-			throws Exception {
+			String subSp, String iou, String displayGeography,
+			String geography, String currency) throws Exception {
 
-		List<Object[]> geoObjList = perfRepo.getRevenuesBySubGeo(financialYear,
-				quarter, customer, subSp, iou, geography);
+		List<Object[]> geoObjList = null;
+		if (geography.isEmpty()) {
+			geoObjList = perfRepo.getRevenuesBySubGeo(financialYear, quarter,
+					customer, subSp, iou, displayGeography);
+		} else {
+			geoObjList = perfRepo.getRevenuesByCountry(financialYear, quarter,
+					customer, subSp, iou, geography);
+		}
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
 
 		List<Object[]> geoProjObjList = projectedRepository
 				.getRevenuesBySubGeo(financialYear, quarter, customer, subSp,
-						iou, geography);
+						iou, displayGeography);
 
 		// adding projected revenue
 		mergeProjectedRevenue(dispGeoMap, geoProjObjList);
@@ -650,22 +659,37 @@ public class PerformanceReportService {
 
 	public List<GeographyReport> getOpportunitiesBySubGeography(
 			String financialYear, String quarter, String customerName,
-			String serviceLine, String iou, String geography, String currency,
-			boolean isPipeline) throws Exception {
+			String serviceLine, String iou, String displayGeography,
+			String geography, String currency, boolean isPipeline)
+			throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
 		if (isPipeline) {
-			opportunitiesByGeographyReports = opportunityRepository
-					.findPipelinePerformanceBySubGeography(customerName,
-							serviceLine, iou, geography, currency, fromDate,
-							toDate);
+			if (geography.isEmpty()) {
+				opportunitiesByGeographyReports = opportunityRepository
+						.findPipelinePerformanceBySubGeography(customerName,
+								serviceLine, iou, displayGeography, currency,
+								fromDate, toDate);
+			} else {
+				opportunitiesByGeographyReports = opportunityRepository
+						.findPipelinePerformanceByCountry(customerName,
+								serviceLine, iou, geography, currency,
+								fromDate, toDate);
+			}
 		} else {
-			opportunitiesByGeographyReports = opportunityRepository
-					.findWinsPerformanceBySubGeography(customerName,
-							serviceLine, iou, geography, currency, fromDate,
-							toDate);
+			if (geography.isEmpty()) {
+				opportunitiesByGeographyReports = opportunityRepository
+						.findWinsPerformanceBySubGeography(customerName,
+								serviceLine, iou, displayGeography, currency,
+								fromDate, toDate);
+			} else {
+				opportunitiesByGeographyReports = opportunityRepository
+						.findWinsPerformanceByCountry(customerName,
+								serviceLine, iou, geography, currency,
+								fromDate, toDate);
+			}
 		}
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
