@@ -102,18 +102,29 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
-	
+
 	@Query(value = "select RCMT.customer_name,case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as revenue_sum from projected_revenues_data_t PRDT "
-			+" JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ " JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(PRDT.month) in (:monthList) "
-			+ "group by RCMT.customer_name " 
+			+ "group by RCMT.customer_name "
 			+ "order by revenue_sum desc LIMIT 30", nativeQuery = true)
 	public List<Object[]> getProjectedRevenues(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
-	
-	
+
+	@Query(value = "select PRDT.month, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0.0' end as projected_revenue from projected_revenues_data_t PRDT "
+			+ "join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (GMT.display_geography = ?3 or ?3 = '') "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
+			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "
+			+ "join revenue_customer_mapping_t RCMT on "
+			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography) and "
+			+ "(RCMT.customer_name = ?5 or ?5= '')  where PRDT.financial_year = ?1 and (PRDT.quarter = ?2 or ?2 = '') "
+			+ "group by PRDT.month order by PRDT.month asc ", nativeQuery = true)
+	public List<Object[]> findProjectedRevenueByQuarter(String financialYear,
+			String quarter, String geography, String iou, String customerName,
+			String serviceLine);
+
 }

@@ -11,7 +11,7 @@ public class TargetVsActualResponse implements Serializable{
 
 	private BigDecimal actual;
 
-	private String quarter;
+	private String subTimeLine;
 
 	public BigDecimal getTarget() {
 		return target;
@@ -29,12 +29,12 @@ public class TargetVsActualResponse implements Serializable{
 		this.actual = actual;
 	}
 
-	public String getQuarter() {
-		return quarter;
+	public String getSubTimeLine() {
+		return subTimeLine;
 	}
-
-	public void setQuarter(String quarter) {
-		this.quarter = quarter;
+	
+	public void setSubTimeLine(String subTimeLine) {
+		this.subTimeLine = subTimeLine;
 	}
 
 }
