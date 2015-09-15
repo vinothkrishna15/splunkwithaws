@@ -18,6 +18,7 @@ import com.tcs.destination.data.repository.NotificationSettingsGroupMappingRepos
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Service
@@ -91,9 +92,9 @@ public class UserNotificationSettingsService {
 						NotificationSettingsEventMappingT notificationSettingsEventMappingT = notificationEventGroupMappingT
 								.getNotificationSettingsEventMappingT();
 						List<UserNotificationSettingsT> userNotificationSettingsTs=userNotificationSettingsRepository
-								.findByUserIdAndEventId(userId,
+								.findByUserIdAndEventIdAndIsactive(userId,
 										notificationSettingsEventMappingT
-												.getEventId());
+												.getEventId(),Constants.Y);
 						if(userNotificationSettingsTs!=null)
 							for(UserNotificationSettingsT userNotificationSettingsT:userNotificationSettingsTs)
 							{

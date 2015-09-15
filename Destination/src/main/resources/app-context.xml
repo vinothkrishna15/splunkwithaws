@@ -97,4 +97,11 @@
 		<property name="queueCapacity" value="25" />
 	</bean>
 	
+	<bean id="notificationsTaskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="10" />
+		<property name="maxPoolSize" value="15" />
+		<property name="queueCapacity" value="50" />
+	</bean>
+	
 </beans>
