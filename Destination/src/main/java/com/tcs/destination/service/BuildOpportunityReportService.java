@@ -63,9 +63,6 @@ import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.GetMaximumListCount;
 import com.tcs.destination.utils.ReportConstants;
 
-
-
-
 @Component
 public class BuildOpportunityReportService {
 	private static final Logger logger = LoggerFactory
@@ -454,12 +451,6 @@ public class BuildOpportunityReportService {
 					row.getCell(colValue).setCellStyle(dataRowStyle);
 				}
 				colValue++;
-//				if(headingColumn){
-//					headerRow.createCell(headerColumnValue).setCellValue(
-//							"Project Currency");
-//					headerRow.getCell(headerColumnValue).setCellStyle(headingStyle);
-//					headerColumnValue++;
-//					}
 				if(opportunity.getDealCurrency() != null){
 					row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
 					row.getCell(colValue).setCellStyle(dataRowStyle);
