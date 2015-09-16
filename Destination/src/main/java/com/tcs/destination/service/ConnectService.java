@@ -885,9 +885,8 @@ public class ConnectService {
 
 				// throw an exception if connects is empty and
 				// size of monthConnects and weekConnects are zero
-				if (((connects != null) && (connects.isEmpty()))
-						&& ((weekConnects != null) && (weekConnects.size() == 0))
-						&& ((monthConnects != null) && (monthConnects.size() == 0))) {
+				if ((connects == null || connects.isEmpty())
+						&& dashBoardConnectsResponse.getWeekCount() == 0 && dashBoardConnectsResponse.getMonthCount() == 0) {
 					logger.error(
 							"NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
 									+ "days of week between {} and {}, days of month between {} and {}",
