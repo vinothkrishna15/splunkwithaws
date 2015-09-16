@@ -403,7 +403,7 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
 		ArrayList<OpportunityNameKeywordSearch> searchResults = null;
-		try {
+		
 			searchResults = opportunityService.findOpportunityNameOrKeywords(
 					name, keyword);
 			if ((searchResults == null) || (searchResults.isEmpty())) {
@@ -413,11 +413,7 @@ public class OpportunityController {
 						"No Results found for name " + name + " and keyword "
 								+ keyword);
 			}
-		} catch (Exception e) {
-			logger.error("An Exception has occured : {}", e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"An Exception has occured : " + e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				searchResults);
 	}
