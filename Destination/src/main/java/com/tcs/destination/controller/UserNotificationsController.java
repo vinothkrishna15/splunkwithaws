@@ -9,14 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
 import com.tcs.destination.service.UserNotificationsService;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -67,6 +71,35 @@ public class UserNotificationsController {
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						notificationSettingsGroupMappingT), HttpStatus.OK);
-	}                                                                      
+	}           
+	
+	/**
+	 * This controller updates the read status
+	 * 
+	 * @param userNotificationIds
+	 * @param read
+	 * @return ResponseEntity<String>
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/read", method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> updateReadStatus(
+			@RequestBody List<String> userNotificationIds,
+			@RequestParam(value = "read") String read)
+			throws Exception {
+		logger.debug("Inside UserNotificationsController /read PUT");
+		String status = "";
+		try {
+		status = userNotificationsService.updateReadStatus(userNotificationIds,
+				read);
+		} catch(Exception e){
+			logger.error("An Exception has occured : {}", e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "An Exception has occured : "+e.getMessage());
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 
-}
+	}
+	}
+
+
