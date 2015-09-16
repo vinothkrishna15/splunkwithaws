@@ -2,7 +2,6 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -12,17 +11,13 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
-import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.CustomerRevenueValues;
+import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
@@ -66,6 +61,10 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		logger.debug("Inside getTargetVsActualSummaryExcel() method");
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet(ReportConstants.SUMMARY);
 		int currentRow=0;
+		totalTargetINR = totalTargetINR.setScale(2, BigDecimal.ROUND_HALF_UP);
+		totalActualINR = totalActualINR.setScale(2, BigDecimal.ROUND_HALF_UP);
+		top30CustomersRevenueINR = top30CustomersRevenueINR.setScale(2, BigDecimal.ROUND_HALF_UP);
+		
 		//section One
 		targetVsActualSummaryReportSectionOne(spreadSheet, totalTargetINR,	totalActualINR, top30CustomersRevenueINR, currencyList);
 	
@@ -563,27 +562,13 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		
 		if(!actualRevenuesList.isEmpty()){
 			for(CustomerRevenueValues revenueGeoValues:actualRevenuesList){
-//			for (String customerName : actualRevenuesMap.keySet()) {
-//				List<RevenueGeoValues> revenueGeoValuesList=new ArrayList<RevenueGeoValues>();
 				BigDecimal percentAchieved=new BigDecimal(0);
 				double percentAchieve=0;
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				customerName=revenueGeoValues.getCustomerName();
-//				groupCustName=revenueGeoValues.getGroupCustomerName();
 				BigDecimal targetRevenueINR = targetRevenuesMap.get(customerName);
 				BigDecimal actualRevenueINR =revenueGeoValues.getValue();
-//				geography=revenueGeoValues.getGeography();
-//				iou=revenueGeoValues.getIou();
 				
-//				revenueGeoValuesList = actualRevenuesMap.get(customerName);
-//				for(RevenueGeoValues revenueGeoValues:revenueGeoValuesList){
-//				 actualRevenueINR = revenueGeoValues.getValue();
-//				geography=revenueGeoValues.getGeography().toString();
-//				iou=revenueGeoValues.getIou().toString();
-//				groupCustName=revenueGeoValues.getGroupCustomerName().toString();
-//////						actualRevenuesMap.get(customerName);
-//				}
-//				Object[][] geoIou = actualRevenuesDataTRepository.getGeographyAndIouByCustomer(customerName,geography);
 				for(GroupCustomerGeoIouResponse groupCustomerGeoIouResponse:geoIouGroupCustNameList){
 					if(customerName.equals(groupCustomerGeoIouResponse.getCustomerName())){
 						geography=groupCustomerGeoIouResponse.getDisplayGeography();
@@ -591,10 +576,6 @@ public class BuildExcelTargetVsActualSummaryReportService {
 						groupCustName=groupCustomerGeoIouResponse.getGroupCustomerName();
 					}
 				}
-//				RevenueCustomerMappingT revenueCustomerMappingT=revenueCustomerRepository.findByCustomerName(customerName);
-//				geography=revenueCustomerMappingT.getGeographyMappingT().getDisplayGeography();
-//				groupCustName=revenueCustomerMappingT.getFinanceCustomerName();
-				
 				
 				if (targetRevenueINR == null) {
 					targetRevenueINR = new BigDecimal(0);
@@ -602,6 +583,9 @@ public class BuildExcelTargetVsActualSummaryReportService {
 				if (actualRevenueINR == null) {
 					actualRevenueINR = new BigDecimal(0);
 				}
+				
+				targetRevenueINR = targetRevenueINR.setScale(2, BigDecimal.ROUND_HALF_UP);
+				actualRevenueINR = actualRevenueINR.setScale(2, BigDecimal.ROUND_HALF_UP);
 				totalTargetRevenueINR=totalTargetRevenueINR.add(targetRevenueINR);
 				totalActualRevenueINR=totalActualRevenueINR.add(actualRevenueINR);
 				BigDecimal targetRevenueUSD=beaconConverterService.convert(ReportConstants.INR, ReportConstants.USD,  targetRevenueINR.doubleValue());
@@ -632,7 +616,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 			}
 			columnNo=columnNo+4;
 			if(currencyList.size()>1){
-			totalRow.createCell(columnNo).setCellValue(totalTargetRevenueINR.doubleValue());
+			totalRow.createCell(columnNo).setCellValue(totalTargetRevenueINR.doubleValue()); 
 			totalRow.getCell(columnNo).setCellStyle(bottomStyle);
 			columnNo++;
 			totalRow.createCell(columnNo).setCellValue(totalTargetRevenueUSD.doubleValue());

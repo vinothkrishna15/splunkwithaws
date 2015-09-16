@@ -219,13 +219,10 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity/team/oppDealValue?id="
 				+ supervisorUserId + " GET");
 		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
-		try {
+		
 			opportunities = opportunityService
 					.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -329,14 +326,11 @@ public class OpportunityController {
 
 		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
-		try {
+		
 			teamOpportunityDetails = opportunityService
 					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
 							page, count);
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				teamOpportunityDetails);

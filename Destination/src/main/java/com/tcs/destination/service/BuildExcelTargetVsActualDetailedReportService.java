@@ -222,13 +222,20 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		String percentAchievedBracket=null;
 		BigDecimal percentAchieved=new BigDecimal(0);
 		double percentAchieve=0;
+		boolean geographyFlag=fields.contains(ReportConstants.GEOGRAPHY);
+		boolean iouFlag=fields.contains(ReportConstants.IOU);
+		boolean yTdBeaconTargetFlag=fields.contains(ReportConstants.YTDBEACONTARGET);
+		boolean yTdActualFlag=fields.contains(ReportConstants.YTDACTUAL);
+		boolean yTdProjectedFlag=fields.contains(ReportConstants.YTDPROJECTED);
+		boolean yTdTargetAchievedFlag=fields.contains(ReportConstants.YTDTARGETACHIEVED);
+		boolean yTdRevenueFlag=fields.contains(ReportConstants.YTDREVENUE);
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		row.createCell(columnNo).setCellValue(
 				targetVsActual.getCustomerMasterT().getCustomerName());
 		row.getCell(columnNo).setCellStyle(rowStyle);
 		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
-		if (fields.contains(ReportConstants.GEOGRAPHY)) {
+		if (geographyFlag) {
 			row.createCell(columnNo).setCellValue(
 					targetVsActual.getCustomerMasterT().getGeographyMappingT()
 							.getGeography());
@@ -243,7 +250,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.getCell(columnNo).setCellStyle(rowStyle);
 		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
-		if (fields.contains(ReportConstants.IOU)) {
+		if (iouFlag) {
 			row.createCell(columnNo).setCellValue(
 					targetVsActual.getCustomerMasterT()
 							.getIouCustomerMappingT().getIou());
@@ -315,7 +322,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 			
 			//If fields contains beaconTarget , Write the targetValues for the financial year into Excel
-			if (fields.contains(ReportConstants.YTDBEACONTARGET)) {
+			if (yTdBeaconTargetFlag) {
 				if (currencyList.size() > 1) {
 					columnNo = 11 + offset;
 				} else {
@@ -390,7 +397,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 
 			//If fields contains Actual , Write the actualRevenue for the financial year into Excel
-			if (fields.contains(ReportConstants.YTDACTUAL)) {
+			if (yTdActualFlag) {
 				if (currencyList.size() > 1) {
 					columnNo = 19 + offset;
 				} else {
@@ -476,7 +483,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 
 			//If fields contains Projected, Write the ProjectedRevenue for the financial year into Excel
 			if (isTrue) {
-				if (fields.contains(ReportConstants.YTDPROJECTED)) {
+				if (yTdProjectedFlag) {
 					if (currencyList.size() > 1) {
 						columnNo = 19 + offset + projectedOffset;
 					} else {
@@ -556,7 +563,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 				 
 			//If fields contains Revenue, Write the Revenue for the financial year into Excel
-			if (fields.contains(ReportConstants.YTDREVENUE)) {
+			if (yTdRevenueFlag) {
 				if (currencyList.size() > 1) {
 					columnNo = 27 + offset + projectedOffset;
 				} else {
@@ -631,7 +638,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 			
 			//If fields contains TargetAchieved , Write the targetAchieved for the financial year into Excel
-		 	if (fields.contains(ReportConstants.YTDTARGETACHIEVED)) {
+		 	if (yTdTargetAchievedFlag) {
 				if (currencyList.size() > 1) {
 					columnNo = 31 + offset + projectedOffset;
 				} else {

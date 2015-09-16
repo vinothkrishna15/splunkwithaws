@@ -123,7 +123,7 @@ public class TargetVsActualYearToDate {
 		if (target == null || target.compareTo(BigDecimal.ZERO) == 0)
 			return BigDecimal.ZERO;
 		else {
-			return getRevenue().divide(target, 4, RoundingMode.HALF_UP);
+			return getRevenue().divide(target, 2, RoundingMode.HALF_UP);
 		}
 	}
 
