@@ -221,16 +221,10 @@ public class ConnectController {
 		logger.debug("Inside ConnectController /connect/team?from=" + fromDate
 				+ "&to=" + toDate + "&supervisorId " + supervisorId + "GET");
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
-		try {
-			// Calling the service method
-			dashBoardConnectsResponse = connectService.getTeamConnects(
-					supervisorId, fromDate, toDate, role, weekStartDate,
-					weekEndDate, monthStartDate, monthEndDate);
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		// Calling the service method
+		dashBoardConnectsResponse = connectService.getTeamConnects(
+				supervisorId, fromDate, toDate, role, weekStartDate,
+				weekEndDate, monthStartDate, monthEndDate);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						dashBoardConnectsResponse), HttpStatus.OK);

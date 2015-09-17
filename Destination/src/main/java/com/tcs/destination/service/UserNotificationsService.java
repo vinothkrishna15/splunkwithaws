@@ -15,6 +15,7 @@ import com.tcs.destination.bean.UserNotificationsT;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Service
@@ -88,5 +89,43 @@ public class UserNotificationsService {
 			}
 		}
 		return isUpdated;
+	}
+
+	/**
+	 * This service updates the read status
+	 * 
+	 * @param userNotificationIds
+	 * @param read
+	 * @return String
+	 * @throws Exception
+	 */
+	public String updateReadStatus(List<String> userNotificationIds, String read)
+			throws Exception {
+		String status = "";
+		String message = "No User Notification Id provided";
+
+		if (userNotificationIds != null && userNotificationIds.size() != 0) {
+			if (read.equalsIgnoreCase(Constants.NO)) {
+				status = Constants.YES;
+				message = "Marked as read";
+			} else if (read.equalsIgnoreCase(Constants.YES)) {
+				status = Constants.NO;
+				message = "Marked as unread";
+			} else {
+				logger.error("BAD_REQUEST - Invalid read parameter provided");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid read parameter provided");
+			}
+
+			int updateCount = userNotificationsRepository.updateReadStatus(
+					userNotificationIds, status);
+			if (updateCount == 0) {
+				message = "Invalid User Notification Id Provided";
+			} else if (updateCount > 0) {
+				message = updateCount + " " + message;
+			}
+		}
+
+		return message;
 	}
 }

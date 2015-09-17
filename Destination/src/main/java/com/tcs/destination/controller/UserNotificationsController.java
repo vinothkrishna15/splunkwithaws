@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-
-
 import java.util.Date;
 import java.util.List;
 
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserNotificationSettingsT;
@@ -50,9 +49,12 @@ public class UserNotificationsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside UserNotificationsController /user GET");
-		List<UserNotificationsT> userNotificationsT = userNotificationsService.getNotifications(userId, read, fromDate.getTime(), toDate.getTime());
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				userNotificationsT), HttpStatus.OK);
+		List<UserNotificationsT> userNotificationsT = userNotificationsService
+				.getNotifications(userId, read, fromDate.getTime(),
+						toDate.getTime());
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						userNotificationsT), HttpStatus.OK);
 
 		// List<UserNotificationsT> userNotificationsT =
 		// userNotificationsService
@@ -73,15 +75,16 @@ public class UserNotificationsController {
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						notificationSettingsGroupMappingT), HttpStatus.OK);
-	}   
-	
+	}
+
 	/**
 	 * This method updates the user notification settings
+	 * 
 	 * @param userNotificationSettings
 	 * @return Status
 	 * @throws Exception
 	 */
-	
+
 	@RequestMapping(value = "/settings", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> saveUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings)
@@ -103,7 +106,33 @@ public class UserNotificationsController {
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
 						status), HttpStatus.OK);
-
 	}
 
+	/**
+	 * This controller updates the read status
+	 * 
+	 * @param userNotificationIds
+	 * @param read
+	 * @return ResponseEntity<String>
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/read", method = RequestMethod.PUT)
+	public @ResponseBody ResponseEntity<String> updateReadStatus(
+			@RequestBody List<String> userNotificationIds,
+			@RequestParam(value = "read") String read) throws Exception {
+		logger.debug("Inside UserNotificationsController /read PUT");
+		String status = "";
+		try {
+			status = userNotificationsService.updateReadStatus(
+					userNotificationIds, read);
+		} catch (Exception e) {
+			logger.error("An Exception has occured : {}", e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An Exception has occured : " + e.getMessage());
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
+
+	}
 }

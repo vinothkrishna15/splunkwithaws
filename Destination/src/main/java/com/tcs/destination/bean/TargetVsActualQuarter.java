@@ -96,7 +96,7 @@ public class TargetVsActualQuarter {
 		if (target == null || target.compareTo(BigDecimal.ZERO) == 0)
 			return BigDecimal.ZERO;
 		else
-			return targetAchieved.divide(target, 4, RoundingMode.HALF_UP);
+			return targetAchieved.divide(target, 2, RoundingMode.HALF_UP);
 	}
 
 	public List<CurrencyValue> getTargetValues() {

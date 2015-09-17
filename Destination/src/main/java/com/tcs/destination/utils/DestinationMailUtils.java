@@ -201,7 +201,7 @@ public class DestinationMailUtils {
 						velocityEngine,forgotPasswordTemplateLoc, Constants.UTF8,forgotPasswordTemplateDataModel);
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
-//				mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 //				logger.info("Forgot Password : Mail sent");
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
@@ -246,7 +246,7 @@ public class DestinationMailUtils {
 						velocityEngine,userAccessTemplateLoc, Constants.UTF8,userAccessTemplateDataModel);
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray,ccMailIdsArray,bccMailIdsArray,subject,text);
-//				mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 //				logger.info("User Access : Mail sent");
 			} catch(Exception e){
 			 System.out.println(e.getMessage());
@@ -293,7 +293,7 @@ public class DestinationMailUtils {
 						velocityEngine,reopenOpportunityTemplateLoc, Constants.UTF8,reopenOppTemplateDataModel);
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, bccMailIdsArray, subject, text);
-//				mailSender.send(automatedMIMEMessage);
+				mailSender.send(automatedMIMEMessage);
 //				logger.info("Opportunity Reopen : Mail sent");
 			} catch(Exception e){
 			 System.out.println(e.getMessage());

@@ -17,7 +17,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1050,7 +1049,7 @@ public class ReportsService {
 			List<String> iou, String fromMonth, String toMonth,
 			List<String> currencyList, List<String> fields, String userId)
 			throws Exception {
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		String tillDate = DateUtils.getCurrentDate();
 		//To Write The Report Title page
 		buildExcelTargetVsActualDetailedReportService.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary, Detailed");
@@ -1067,8 +1066,7 @@ public class ReportsService {
 		byteOutPutStream.flush();
 		byteOutPutStream.close();
 		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStream = new InputStreamResource(
-				new ByteArrayInputStream(bytes));
+		InputStreamResource inputStream = new InputStreamResource(new ByteArrayInputStream(bytes));
 		return inputStream;
 	}
 
@@ -1076,7 +1074,7 @@ public class ReportsService {
 			List<String> geography, List<String> iou, String fromMonth,
 			String toMonth, List<String> currency, List<String> fields,
 			String userId) throws Exception {
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
 				geography, iou, fromMonth, toMonth, currency, userId);
 		if(targetVsActualDetailedList!=null){
@@ -1105,7 +1103,7 @@ public class ReportsService {
 			List<String> geography, List<String> iou, String fromMonth,
 			String toMonth, List<String> currencyList, String userId)
 			throws Exception {
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
 				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary");
@@ -2034,7 +2032,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.debug("Inside getConnectDetailedReport Service");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
@@ -2170,7 +2168,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.debug("Inside connectSummaryReport() method");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
@@ -2371,7 +2369,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> country, List<String> serviceLines, String userId,
 			List<String> fields) throws Exception {
 		logger.debug("Inside getConnectReports() method");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
@@ -2494,7 +2492,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> serviceLines, String userId, List<String> fields)
 			throws Exception {
 		logger.info("Inside getBidDetailedReport Service");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 //		workbook.setCompressTempFiles(true);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
@@ -2808,7 +2806,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						List<Integer> salesStageCodeList=new ArrayList<Integer>();
 						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
 						
-						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 						String tillDate=DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary", month, quarter, year, currency);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
@@ -2832,7 +2830,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
-						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate, country,"Detailed", month, quarter, year, currency);
 						buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 						ExcelUtils.arrangeSheetOrder(workbook);
@@ -2860,7 +2858,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						String fyear=new String(year);
 						String fquarter=new String(quarter);
 						String fmonth=new String(month);
-						SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 						String tillDate = DateUtils.getCurrentDate();
 						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary, Detailed", month, quarter, year, currency);
 						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);

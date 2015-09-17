@@ -64,14 +64,10 @@ public class DashboardController {
 			throws Exception {
 		logger.debug("Inside ConnectController /dashboard/teamchart" + "GET");
 		PerformaceChartBean chartValues = null;
-		try {
+		
 			chartValues = dashboardService.getTeamChartValues(supervisorId,
 					financialYear);
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				chartValues);
 	}
@@ -99,14 +95,9 @@ public class DashboardController {
 			throws Exception {
 		logger.debug("Inside CustomerController /dashboard/leadership/connect GET");
 		LeadershipConnectsDTO connects = null;
-		try {
+		
 		connects = dashboardService.getLeadershipConnectsByGeography(userId, fromDate, toDate, geography);
-		}
-		catch(Exception e){
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, connects);
 	}
@@ -134,14 +125,9 @@ public class DashboardController {
 			throws Exception {
 		logger.debug("Inside CustomerController /dashboard/leadership/wins GET");
 		LeadershipOverallWinsDTO wins = null;
-		try {
+		
 		    wins = dashboardService.getLeadershipWinsByGeography(userId, fromDate, toDate, geography);
-		}
-		catch(Exception e){
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, wins);
 	}
@@ -169,14 +155,9 @@ public class DashboardController {
 			throws Exception {
 		logger.debug("Inside CustomerController /dashboard/leadership/opp GET");
 		LeadershipOpportunitiesDTO opportunities = null;
-		try {
+		
 		    opportunities = dashboardService.getLeadershipOpportunitiesByGeography(userId, fromDate, toDate, geography);
-		}
-		catch(Exception e){
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+		
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, opportunities);
 	}
