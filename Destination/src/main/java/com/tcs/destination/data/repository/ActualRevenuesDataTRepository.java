@@ -176,7 +176,7 @@ public interface ActualRevenuesDataTRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("monthList") List<String> monthList);
 
-	@Query(value = "select ARDT.month, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
+	@Query(value = "select upper(ARDT.month), case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
 			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography = ?3 or ?3 = '') "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "

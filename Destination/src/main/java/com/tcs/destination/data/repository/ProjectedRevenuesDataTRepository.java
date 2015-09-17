@@ -115,7 +115,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("geoList") List<String> geoList,
 			@Param("monthList") List<String> monthList);
 
-	@Query(value = "select PRDT.month, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0.0' end as projected_revenue from projected_revenues_data_t PRDT "
+	@Query(value = "select upper(PRDT.month), case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0.0' end as projected_revenue from projected_revenues_data_t PRDT "
 			+ "join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (GMT.display_geography = ?3 or ?3 = '') "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
 			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "

@@ -1,12 +1,14 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.neo4j.cypher.internal.compiler.v2_1.functions.Round;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,14 +106,35 @@ public class PerformanceReportService {
 				quarterMap, currency);
 
 		// service line does not have target revenue
-		if (serviceLine.equals("") && quarter.isEmpty()) {
-			List<Object[]> targetRevenueList = beaconDataTRepository
-					.findTargetRevenue(financialYear, quarter, geography, iou,
-							customerName);
+		if (serviceLine.equals("")) {
+
+			List<Object[]> targetRevenueList = null;
+//			if (quarter.isEmpty()) {
+				targetRevenueList = beaconDataTRepository.findTargetRevenue(
+						financialYear, quarter, geography, iou, customerName);
+//			} else {
+//				targetRevenueList = new ArrayList<Object[]>();
+//				List<Object[]> targetList = beaconDataTRepository
+//						.findTargetRevenue(financialYear, quarter, geography,
+//								iou, customerName);
+//				List<String> months = DateUtils.getMonths(quarter);
+//				// Since asked for one Quarter, Target will return only one row
+//				if (targetList.size() == 1) {
+//					for (String month : months) {
+//						Object[] targetRevenue = new Object[2];
+//						targetRevenue[0] = month;
+//						targetRevenue[1] = ((BigDecimal) targetList.get(0)[1])
+//								.divide(new BigDecimal(3),2,RoundingMode.UP);
+//						targetRevenueList.add(targetRevenue);
+//					}
+//				}
+//			}
+
 			logger.debug("Target Revenue has " + targetRevenueList.size()
 					+ " values");
 
 			List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
+
 			populateResponseList(targetRevenueList, targetList, true, currency);
 
 			List<TargetVsActualResponse> tarActResponseList = mergeLists(
