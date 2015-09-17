@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
+import com.tcs.destination.bean.OpportunityResponse;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
@@ -53,13 +54,13 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityReopenRequestService opportunityReopenRequestService;
-	
+
 	@Autowired
 	OpportunityUploadService opportunityUploadService;
-	
+
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-	
+
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
 
@@ -80,7 +81,8 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		List<OpportunityT> opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies, isAjax, userId);
+				.findByOpportunityName(nameWith, customerId, currencies,
+						isAjax, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -219,10 +221,10 @@ public class OpportunityController {
 		logger.debug("Inside OpportunityController /opportunity/team/oppDealValue?id="
 				+ supervisorUserId + " GET");
 		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
-		
-			opportunities = opportunityService
-					.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
-		
+
+		opportunities = opportunityService
+				.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
+
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
@@ -326,11 +328,9 @@ public class OpportunityController {
 
 		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
-		
-			teamOpportunityDetails = opportunityService
-					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
-							page, count);
-		
+		teamOpportunityDetails = opportunityService
+				.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
+						page, count);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				teamOpportunityDetails);
@@ -382,10 +382,10 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
-		List<OpportunityT> opportunityTs = opportunityService.findAll(sortBy,
-				order, isCurrentFinancialYear, page, count);
+		OpportunityResponse opportunityResponse = opportunityService.findAll(
+				sortBy, order, isCurrentFinancialYear, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunityTs);
+				opportunityResponse);
 	}
 
 	@RequestMapping(value = "/name", method = RequestMethod.GET)
@@ -397,52 +397,56 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
 		ArrayList<OpportunityNameKeywordSearch> searchResults = null;
-		
-			searchResults = opportunityService.findOpportunityNameOrKeywords(
-					name, keyword);
-			if ((searchResults == null) || (searchResults.isEmpty())) {
-				logger.error("No Results found for name {} and keyword {}",
-						name, keyword);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Results found for name " + name + " and keyword "
-								+ keyword);
-			}
-		
+
+		searchResults = opportunityService.findOpportunityNameOrKeywords(name,
+				keyword);
+		if ((searchResults == null) || (searchResults.isEmpty())) {
+			logger.error("No Results found for name {} and keyword {}", name,
+					keyword);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Results found for name " + name + " and keyword "
+							+ keyword);
+		}
+
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				searchResults);
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-        public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
-        	@RequestParam("userId") String userId,
-    	    @RequestParam("file") MultipartFile file,
-    	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-    	    @RequestParam(value = "view", defaultValue = "") String view)
-    	    throws Exception {
-    	logger.debug("Upload request Received : docName - ");
-    	UploadStatusDTO status = null;
-    	List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null; 
-    	try {
-    	    status = opportunityUploadService.saveDocument(file, userId);
-    	    if(status!=null){
-    		errorDetailsDTOs =status.getListOfErrors();
-    		for(UploadServiceErrorDetailsDTO up :status.getListOfErrors()){
-    			logger.error(up.getRowNumber()+"   "+up.getMessage());
-    		}
-    	    }
-    	} catch (Exception e) {
-    	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-    	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-    		    e.getMessage());
-    	}
-    	InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-	HttpHeaders respHeaders = new HttpHeaders();
-	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
-	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
-}
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
+			@RequestParam("userId") String userId,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Upload request Received : docName - ");
+		UploadStatusDTO status = null;
+		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		try {
+			status = opportunityUploadService.saveDocument(file, userId);
+			if (status != null) {
+				errorDetailsDTOs = status.getListOfErrors();
+				for (UploadServiceErrorDetailsDTO up : status.getListOfErrors()) {
+					logger.error(up.getRowNumber() + "   " + up.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		InputStreamResource excelFile = uploadErrorReport
+				.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment",
+				"upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+				HttpStatus.OK);
+	}
 
-	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadOpportunity(
 			@RequestParam("userId") String userId,
@@ -471,5 +475,5 @@ public class OpportunityController {
 				opportunityDownloadExcel, respHeaders, HttpStatus.OK);
 
 	}
-	
+
 }

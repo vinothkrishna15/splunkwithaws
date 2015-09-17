@@ -34,6 +34,7 @@ import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.OpportunityResponse;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -165,7 +166,7 @@ public class OpportunityService {
 	CollaborationCommentsRepository collaborationCommentsRepository;
 
 	// Required beans for Auto comments - end
-	
+
 	// Required beans for Notifications - start
 	@Autowired
 	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
@@ -179,19 +180,19 @@ public class OpportunityService {
 	@Autowired
 	ThreadPoolTaskExecutor notificationsTaskExecutor;
 	// Required beans for Notifications - end
-	
+
 	@Autowired
 	UserRepository userRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
-			String customerId, List<String> toCurrency, boolean isAjax,String userId)
-			throws Exception {
+			String customerId, List<String> toCurrency, boolean isAjax,
+			String userId) throws Exception {
 		logger.debug("Inside findByOpportunityName() service");
 		if (!userId
 				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User Id and Login User detail does not match");
-		
+
 		List<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
@@ -470,7 +471,7 @@ public class OpportunityService {
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
 				// Invoke Asynchronous Notification Thread
-				processNotifications(opportunity.getOpportunityId(),null);
+				processNotifications(opportunity.getOpportunityId(), null);
 			}
 		}
 	}
@@ -725,7 +726,8 @@ public class OpportunityService {
 		if (opportunity != null) {
 			opportunity = (OpportunityT) NotificationsLazyLoader
 					.loadLazyCollections(opportunityId,
-							EntityType.OPPORTUNITY.name(), opportunityRepository,
+							EntityType.OPPORTUNITY.name(),
+							opportunityRepository,
 							notificationEventFieldsTRepository, null);
 		}
 		return opportunity;
@@ -851,7 +853,8 @@ public class OpportunityService {
 		logger.debug("Inside prepareOpportunity() method");
 
 		try {
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			// Apply user access privileges if not primary / sales support owner
 			if (!isUserOwner(userId, opportunityT)) {
 				checkAccessControl(opportunityT, previledgedOppIdList);
@@ -987,9 +990,9 @@ public class OpportunityService {
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
 	}
-	
+
 	// This method is used to invoke asynchronous thread for notifications
-	private void processNotifications(String opportunitytId, Object oldObject){
+	private void processNotifications(String opportunitytId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
 		notificationsHelper.setEntityId(opportunitytId);
@@ -997,11 +1000,15 @@ public class OpportunityService {
 		if (oldObject != null) {
 			notificationsHelper.setOldObject(oldObject);
 		}
-		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
-		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
-		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper
+				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper
+				.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper
+				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
 		notificationsHelper.setCrudRepository(opportunityRepository);
-		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		notificationsHelper.setEntityManagerFactory(entityManager
+				.getEntityManagerFactory());
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -1180,8 +1187,8 @@ public class OpportunityService {
 			List<String> partnerId, List<String> competitorName,
 			List<String> searchKeywords, List<String> bidRequestType,
 			List<String> offering, List<String> displaySubSp,
-			List<String> opportunityName, List<String> userId, List<String> toCurrency)
-			throws DestinationException {
+			List<String> opportunityName, List<String> userId,
+			List<String> toCurrency) throws DestinationException {
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
 		customerIdList = fillIfEmpty(customerIdList);
@@ -1196,8 +1203,7 @@ public class OpportunityService {
 		if (salesStageCode.isEmpty())
 			salesStageCode.add(-1);
 		String defaultDealRange = "NO";
-		if (minDigitalDealValue == 0
-				&& maxDigitalDealValue == Double.MAX_VALUE)
+		if (minDigitalDealValue == 0 && maxDigitalDealValue == Double.MAX_VALUE)
 			defaultDealRange = "YES";
 		List<OpportunityT> opportunity = opportunityRepository
 				.findByOpportunitiesIgnoreCaseLike(customerIdList,
@@ -1214,7 +1220,8 @@ public class OpportunityService {
 					"No Opportunities Found.");
 		}
 		prepareOpportunity(opportunity);
-		beaconConverterService.convertOpportunityCurrency(opportunity, toCurrency);
+		beaconConverterService.convertOpportunityCurrency(opportunity,
+				toCurrency);
 		return opportunity;
 	}
 
@@ -1239,9 +1246,11 @@ public class OpportunityService {
 
 	}
 
-	public List<OpportunityT> findAll(String sortBy, String order,
+	public OpportunityResponse findAll(String sortBy, String order,
 			Boolean isCurrentFinancialYear, int page, int count)
 			throws DestinationException {
+
+		OpportunityResponse opportunityResponse = new OpportunityResponse();
 
 		List<OpportunityT> opportunityTs = null;
 
@@ -1258,6 +1267,7 @@ public class OpportunityService {
 										DateUtils.getCurrentFinancialYear(),
 										true));
 				opportunityTs = (List<OpportunityT>) query.getResultList();
+				opportunityResponse.setTotalCount(opportunityTs.size());
 			} catch (Exception e) {
 				// Throw exceptions where Order by parameter is invalid
 				throw new DestinationException(
@@ -1271,6 +1281,7 @@ public class OpportunityService {
 				int toIndex = PaginationUtils.getEndIndex(page, count,
 						opportunityTs.size()) + 1;
 				opportunityTs = opportunityTs.subList(fromIndex, toIndex);
+				opportunityResponse.setOpportunityTs(opportunityTs);
 				logger.debug("OpportunityT  after pagination size is "
 						+ opportunityTs.size());
 			} else {
@@ -1283,10 +1294,13 @@ public class OpportunityService {
 				Page<OpportunityT> opportunityPagable = opportunityRepository
 						.findAll(constructPageSpecification(page, count,
 								sortBy, order));
+				opportunityResponse.setTotalCount(opportunityPagable
+						.getTotalElements());
 				opportunityTs = new ArrayList<OpportunityT>();
 				for (OpportunityT opportunityT : opportunityPagable) {
 					opportunityTs.add(opportunityT);
 				}
+				opportunityResponse.setOpportunityTs(opportunityTs);
 			} catch (Exception e) {
 				// Throw exceptions where Order by parameter is invalid
 				throw new DestinationException(
@@ -1298,7 +1312,7 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities found");
 		prepareOpportunity(opportunityTs);
-		return opportunityTs;
+		return opportunityResponse;
 	}
 
 	/**
