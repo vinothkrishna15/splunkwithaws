@@ -52,7 +52,7 @@ public class UserNotificationSettingsT implements Serializable {
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
 
 	@Column(name="mode_id")
-	private String modeId;
+	private Integer modeId;
 
 	//bi-directional many-to-one association to NotificationSettingsModeMappingT
 	@ManyToOne
@@ -90,11 +90,11 @@ public class UserNotificationSettingsT implements Serializable {
 		this.eventId = eventId;
 	}
 
-	public String getModeId() {
+	public Integer getModeId() {
 		return modeId;
 	}
 
-	public void setModeId(String modeId) {
+	public void setModeId(Integer modeId) {
 		this.modeId = modeId;
 	}
 

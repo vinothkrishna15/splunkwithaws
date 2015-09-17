@@ -10,15 +10,13 @@ import com.tcs.destination.bean.UserNotificationSettingsT;
 import java.lang.String;
 
 @Repository
-public interface UserNotificationSettingsRepository extends CrudRepository<UserNotificationSettingsT, Long> {
-	
-	List<UserNotificationSettingsT> findByUserIdAndIsactive(String userId, String isActive);
+public interface UserNotificationSettingsRepository extends
+		CrudRepository<UserNotificationSettingsT, Long> {
 
-	UserNotificationSettingsT findByUserNotificationSettingsId(
-			String userNotificationSettingsId);
-	
+	List<UserNotificationSettingsT> findByUserIdAndIsactive(String userId,
+			String isActive);
+
 	List<UserNotificationSettingsT> findByUserIdAndEventIdAndIsactive(
 			String recipient, int eventId, String Isactive);
 
-	
 }

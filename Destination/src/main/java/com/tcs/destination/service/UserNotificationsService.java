@@ -8,8 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -22,6 +25,9 @@ public class UserNotificationsService {
 
 	@Autowired
 	UserNotificationsRepository userNotificationsRepository;
+
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepository;
 
 	public List<UserNotificationsT> getNotifications(String userId,
 			String read, long fromTime, long toTime)
@@ -39,15 +45,48 @@ public class UserNotificationsService {
 
 		if (read.equals("")) {
 			userNotificationsTs = userNotificationsRepository
-					.getOptedPortalNotifications(userId,new Timestamp(fromTime), new Timestamp(toTime));
+					.getOptedPortalNotifications(userId,
+							new Timestamp(fromTime), new Timestamp(toTime));
 		} else {
 			userNotificationsTs = userNotificationsRepository
-					.getOptedPortalNotificationsWithRead(userId,new Timestamp(fromTime), new Timestamp(toTime),read);
+					.getOptedPortalNotificationsWithRead(userId, new Timestamp(
+							fromTime), new Timestamp(toTime), read);
 		}
-		if(userNotificationsTs==null||userNotificationsTs.size()==0)
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Notification is available.");
+		if (userNotificationsTs == null || userNotificationsTs.size() == 0)
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Notification is available.");
 		return userNotificationsTs;
 
 	}
 
+	/**
+	 * this method updates the user notification settings
+	 * 
+	 * @param userNotificationSettings
+	 * @return boolean
+	 * @throws Exception
+	 */
+
+	@Transactional
+	public boolean saveUserNotifications(
+			List<UserNotificationSettingsT> userNotificationSettings)
+			throws Exception {
+		boolean isUpdated = false;
+		for (UserNotificationSettingsT userNotificationSettingsT : userNotificationSettings) {
+			if (userNotificationSettingsT.getUserNotificationSettingsId() != null) {
+				userNotificationSettingsRepository
+						.save(userNotificationSettingsT);
+				logger.debug("User notification settings have been added successfully for "
+						+ userNotificationSettingsT
+								.getUserNotificationSettingsId());
+				isUpdated = true;
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						userNotificationSettingsT
+								.getUserNotificationSettingsId()
+								+ " is invalid user notification settings id");
+			}
+		}
+		return isUpdated;
+	}
 }
