@@ -149,27 +149,28 @@ public interface OpportunityRepository extends
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
-			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:displayGeography) OR (:displayGeography) = '') "
+			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8) "
 			+ "where OPP.digital_deal_value <> 0 group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByServiceLine(
-			@Param("geography") String geography, @Param("iou") String iou,
-			@Param("currency") String currency,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("displayGeography") String displayGeography,@Param("geography") String geography, @Param("iou") String iou,
+			@Param("currency") String currency);
 
 	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
 			+ "(:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
-			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.geography = (:geography) OR (:geography) = '') "
+			+ "and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and "
 			+ "(ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findWinsPerformanceByServiceLine(
-			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("displayGeography") String displayGeography,@Param("geography") String geography, @Param("iou") String iou,
 			@Param("currency") String currency,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 

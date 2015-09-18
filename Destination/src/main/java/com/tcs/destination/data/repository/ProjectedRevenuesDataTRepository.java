@@ -22,9 +22,13 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography) and "
 			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by PRDT.quarter order by PRDT.quarter asc ", nativeQuery = true)
-	List<Object[]> findProjectedRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
-			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
-			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
+	List<Object[]> findProjectedRevenue(
+			@Param("financialYear") String financialYear,
+			@Param("quarter") String quarter,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("customerName") String customerName,
+			@Param("serviceLine") String serviceLine);
 
 	@Query(value = "select distinct ICMT.display_iou as displayIOU, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from iou_customer_mapping_t ICMT left outer join"
@@ -42,16 +46,21 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ " from sub_sp_mapping_t SSMT left outer join"
 			+ " (select SSMT.display_sub_sp as displaySubSp, sum(PRDT.revenue) as actualRevenue"
 			+ " from sub_sp_mapping_t SSMT join projected_revenues_data_t PRDT on SSMT.actual_sub_sp = PRDT.sub_sp"
-			+ " and PRDT.financial_year = ?1 and (PRDT.quarter = ?2 or ?2 = '')"
-			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography = ?3 or ?3 = '')"
-			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?5 or ?5 = '')"
+			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography = (:geography) or (:geography) = '')"
+			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography) ='')"
+			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and "
-			+ " (RCMT.customer_name = ?4 or ?4 = '')"
+			+ " (RCMT.customer_name = (:customerName) or (:customerName) = '')"
 			+ " group by SSMT.display_sub_sp"
 			+ " order by actualRevenue desc) Result"
 			+ " on SSMT.display_sub_sp = Result.displaySubSp order by revenue desc", nativeQuery = true)
-	public List<Object[]> getRevenuesBySubSp(String financialYear,
-			String quarter, String geography, String customerName, String iou);
+	public List<Object[]> getRevenuesBySubSp(
+			@Param("financialYear") String financialYear,
+			@Param("quarter") String quarter,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography,
+			@Param("customerName") String customerName, @Param("iou") String iou);
 
 	@Query(value = "select distinct GMT.display_geography as displayGeography, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from geography_mapping_t GMT left outer join"
@@ -125,11 +134,14 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography) and "
 			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by PRDT.month order by PRDT.month asc ", nativeQuery = true)
-	public List<Object[]> findProjectedRevenueByQuarter(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
-			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
-			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
-	
-	
+	public List<Object[]> findProjectedRevenueByQuarter(
+			@Param("financialYear") String financialYear,
+			@Param("quarter") String quarter,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("customerName") String customerName,
+			@Param("serviceLine") String serviceLine);
+
 	@Query(value = "select Result.country, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue from geography_mapping_t GMT "
 			+ "left outer join "
 			+ "(select (PRDT.client_country) as country,(GCMT.geography) as geography, sum(PRDT.revenue) as actualRevenue from geography_country_mapping_t GCMT "

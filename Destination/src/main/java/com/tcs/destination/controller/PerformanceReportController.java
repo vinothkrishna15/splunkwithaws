@@ -96,6 +96,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
+			@RequestParam(value = "displayGeography", defaultValue = "", required = false) String displayGeography,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
@@ -116,14 +117,14 @@ public class PerformanceReportController {
 						"There cannot be any Opportunity which is both in Pipeline and Won. Kindly check the request");
 			}
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
-					quarter, geography, iou, currency, true);
+					quarter,displayGeography, geography, iou, currency, true);
 
 		} else if (wins) {
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
-					quarter, geography, iou, currency, false);
+					quarter,displayGeography, geography, iou, currency, false);
 		} else {
 			subSpList = perfService.getRevenuesBySubSp(financialYear, quarter,
-					geography, customerName, iou, currency);
+					displayGeography,geography, customerName, iou, currency);
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				subSpList);

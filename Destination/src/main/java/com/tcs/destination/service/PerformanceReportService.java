@@ -327,17 +327,17 @@ public class PerformanceReportService {
 	}
 
 	public List<SubSpReport> getRevenuesBySubSp(String financialYear,
-			String quarter, String geography, String customerName, String iou,
+			String quarter, String displayGeography,String geography, String customerName, String iou,
 			String currency) throws Exception {
 
 		List<Object[]> subObjList = perfRepo.getRevenuesBySubSp(financialYear,
-				quarter, geography, customerName, iou);
+				quarter,displayGeography, geography, customerName, iou);
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> subSpMap = getMapFromObjList(subObjList);
 
 		List<Object[]> subProjObjList = projectedRepository.getRevenuesBySubSp(
-				financialYear, quarter, geography, customerName, iou);
+				financialYear, quarter,displayGeography, geography, customerName, iou);
 
 		// adding projected revenue
 		mergeProjectedRevenue(subSpMap, subProjObjList);
@@ -617,19 +617,21 @@ public class PerformanceReportService {
 	}
 
 	public List<SubSpReport> getOpportunitiesBySubSp(String financialYear,
-			String quarter, String geography, String iou, String currency,
+			String quarter,String displayGeography, String geography, String iou, String currency,
 			boolean isPipeline) throws Exception {
+		if(!quarter.isEmpty())
+			financialYear="";
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<SubSpReport> subSpReports = new ArrayList<SubSpReport>();
 		List<Object[]> opportunitiesBySubSpReports = null;
 		if (isPipeline) {
 			opportunitiesBySubSpReports = opportunityRepository
-					.findPipelinePerformanceByServiceLine(geography, iou,
-							currency, fromDate, toDate);
+					.findPipelinePerformanceByServiceLine(displayGeography,geography, iou,
+							currency);
 		} else {
 			opportunitiesBySubSpReports = opportunityRepository
-					.findWinsPerformanceByServiceLine(geography, iou, currency,
+					.findWinsPerformanceByServiceLine(displayGeography,geography, iou, currency,
 							fromDate, toDate);
 		}
 		if (opportunitiesBySubSpReports != null) {
@@ -647,6 +649,8 @@ public class PerformanceReportService {
 				subSpReports.add(subSpReport);
 			}
 		}
+		if(subSpReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 
 		return subSpReports;
 	}
