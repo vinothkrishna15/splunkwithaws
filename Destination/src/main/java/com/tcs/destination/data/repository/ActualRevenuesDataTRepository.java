@@ -14,16 +14,18 @@ public interface ActualRevenuesDataTRepository extends
 		CrudRepository<ActualRevenuesDataT, String> {
 
 	@Query(value = "select ARDT.quarter, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
-			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography = ?3 or ?3 = '') "
-			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
-			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "
+			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography = (:geography) or (:geography) = '') "
+			+ "and (GMT.display_geography = (:displayGeography) or (:displayGeography)='') "
+			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
+			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
-			+ "(RCMT.customer_name = ?5 or ?5= '')  where ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '') "
+			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
+			+ "and (GMT.display_geography = (:displayGeography) or (:geography) = '')"
 			+ "group by ARDT.quarter order by ARDT.quarter asc ", nativeQuery = true)
-	List<Object[]> findActualRevenue(String financialYear, String quarter,
-			String geography, String iou, String customerName,
-			String serviceLine);
+	List<Object[]> findActualRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
+			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
+			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
 
 	@Query(value = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
@@ -177,14 +179,15 @@ public interface ActualRevenuesDataTRepository extends
 			@Param("monthList") List<String> monthList);
 
 	@Query(value = "select upper(ARDT.month), case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
-			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography = ?3 or ?3 = '') "
-			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?4 or ?4 = '') "
-			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?6 or ?6 = '') "
+			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography = (:geography) or (:geography) = '') "
+			+ "and (GMT.display_geography = (:displayGeography) or (:displayGeography)='') "
+			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
+			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
-			+ "(RCMT.customer_name = ?5 or ?5= '')  where ARDT.financial_year = ?1 and (ARDT.quarter = ?2 or ?2 = '') "
+			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by ARDT.month order by ARDT.month asc ", nativeQuery = true)
-	List<Object[]> findActualRevenueByQuarter(String financialYear,
-			String quarter, String geography, String iou, String customerName,
-			String serviceLine);
+	List<Object[]> findActualRevenueByQuarter(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
+			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
+			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
 }

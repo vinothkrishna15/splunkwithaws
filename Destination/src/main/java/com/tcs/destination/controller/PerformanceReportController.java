@@ -39,6 +39,7 @@ public class PerformanceReportController {
 	public @ResponseBody ResponseEntity<String> getActualRevenue(
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "", required = false) String quarter,
+			@RequestParam(value = "displayGeography", defaultValue = "", required = false) String displayGeography,
 			@RequestParam(value = "geography", defaultValue = "", required = false) String geography,
 			@RequestParam(value = "serviceline", defaultValue = "", required = false) String serviceLine,
 			@RequestParam(value = "iou", defaultValue = "", required = false) String iou,
@@ -48,7 +49,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
 		List<TargetVsActualResponse> response = perfService
-				.getTargetVsActualRevenueSummary(financialYear, quarter,
+				.getTargetVsActualRevenueSummary(financialYear, quarter,displayGeography,
 						geography, serviceLine, iou, customerName, currency);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,

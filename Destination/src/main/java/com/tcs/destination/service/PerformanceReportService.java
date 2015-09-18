@@ -62,7 +62,7 @@ public class PerformanceReportService {
 	SalesStageMappingRepository salesStageMappingRepository;
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
-			String financialYear, String quarter, String geography,
+			String financialYear, String quarter, String displayGeography,String geography,
 			String serviceLine, String iou, String customerName, String currency)
 			throws Exception {
 		logger.info("Inside getRevenueSummary Service");
@@ -76,10 +76,10 @@ public class PerformanceReportService {
 		List<Object[]> actualObjList = null;
 		if (quarter.isEmpty()) {
 			actualObjList = actualsRepository.findActualRevenue(financialYear,
-					quarter, geography, iou, customerName, serviceLine);
+					quarter, displayGeography, geography, iou, customerName, serviceLine);
 		} else {
 			actualObjList = actualsRepository.findActualRevenueByQuarter(
-					financialYear, quarter, geography, iou, customerName,
+					financialYear, quarter, displayGeography,geography, iou, customerName,
 					serviceLine);
 		}
 		logger.info("Actual Revenue has " + actualObjList.size() + " values");
@@ -90,12 +90,12 @@ public class PerformanceReportService {
 
 		if (quarter.isEmpty()) {
 			projectedObjList = projectedRepository.findProjectedRevenue(
-					financialYear, quarter, geography, iou, customerName,
+					financialYear, quarter, displayGeography,geography, iou, customerName,
 					serviceLine);
 		} else {
 			projectedObjList = projectedRepository
 					.findProjectedRevenueByQuarter(financialYear, quarter,
-							geography, iou, customerName, serviceLine);
+							displayGeography,geography, iou, customerName, serviceLine);
 		}
 		logger.info("Projected Revenue has " + projectedObjList.size()
 				+ " values");
@@ -111,7 +111,7 @@ public class PerformanceReportService {
 			List<Object[]> targetRevenueList = null;
 //			if (quarter.isEmpty()) {
 				targetRevenueList = beaconDataTRepository.findTargetRevenue(
-						financialYear, quarter, geography, iou, customerName);
+						financialYear, quarter, displayGeography,geography, iou, customerName);
 //			} else {
 //				targetRevenueList = new ArrayList<Object[]>();
 //				List<Object[]> targetList = beaconDataTRepository
