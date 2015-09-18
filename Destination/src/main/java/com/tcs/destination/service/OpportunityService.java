@@ -1042,18 +1042,28 @@ public class OpportunityService {
 
 				// Iterate the result and set the response object
 				for (Object[] oppDTOArray : opportunities) {
-					if (oppDTOArray[0] != null && oppDTOArray[1] != null
-							&& oppDTOArray[2] != null && oppDTOArray[3] != null) {
 
-						OpportunitiesBySupervisorIdDTO opp = new OpportunitiesBySupervisorIdDTO();
+					OpportunitiesBySupervisorIdDTO opp = new OpportunitiesBySupervisorIdDTO();
 
+					if (oppDTOArray[0] != null) {
 						opp.setDigitalDealValue(oppDTOArray[0].toString());
-						opp.setSalesStageCode(oppDTOArray[1].toString());
-						opp.setSalesCount(oppDTOArray[2].toString());
-						opp.setSalesStageDescription(oppDTOArray[3].toString());
-
-						listOfopportunitiesDTO.add(opp);
+					} else {
+						opp.setDigitalDealValue("0");
 					}
+					if (oppDTOArray[1] != null) {
+						opp.setSalesStageCode(oppDTOArray[1].toString());
+					}
+					if (oppDTOArray[2] != null) {
+						opp.setSalesCount(oppDTOArray[2].toString());
+					} else {
+						opp.setSalesCount("0");
+					}
+					if (oppDTOArray[3] != null) {
+						opp.setSalesStageDescription(oppDTOArray[3].toString());
+					}
+
+					listOfopportunitiesDTO.add(opp);
+
 				}
 			} else {
 				logger.error(
