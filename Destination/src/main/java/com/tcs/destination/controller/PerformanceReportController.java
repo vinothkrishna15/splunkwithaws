@@ -39,7 +39,7 @@ public class PerformanceReportController {
 	public @ResponseBody ResponseEntity<String> getActualRevenue(
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "", required = false) String quarter,
-			@RequestParam(value = "geography", defaultValue = "", required = false) String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "", required = false) String geography,
 			@RequestParam(value = "serviceline", defaultValue = "", required = false) String serviceLine,
 			@RequestParam(value = "iou", defaultValue = "", required = false) String iou,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
@@ -59,7 +59,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getIOU(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
 			@RequestParam(value = "serviceLine", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
@@ -95,7 +95,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
@@ -201,7 +201,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
@@ -221,7 +221,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getTopOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "stagefrom", defaultValue = "4") int salesStageFrom,
