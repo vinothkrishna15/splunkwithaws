@@ -266,7 +266,7 @@ public interface OpportunityRepository extends
 			+ "where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
 			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
 			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t "
-			+ "where bid_office_group_owner in (:users)))) group by OPP.sales_stage_code,SSM.sales_stage_code", nativeQuery = true)
+			+ "where bid_office_group_owner in (:users)))) group by OPP.sales_stage_code,SSM.sales_stage_description order by OPP.sales_stage_code", nativeQuery = true)
 	public List<Object[]> findDealValueOfOpportunitiesBySupervisorId(
 			@Param("users") List<String> users);
 
