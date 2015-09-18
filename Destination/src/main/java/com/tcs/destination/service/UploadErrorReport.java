@@ -34,12 +34,7 @@ public class UploadErrorReport {
 		byteOutPutStream.flush();
 		byteOutPutStream.close();
 		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStream = new InputStreamResource(
-				new ByteArrayInputStream(bytes));
-		
-		FileOutputStream fos = new FileOutputStream("/Users/bnpp/Music/error_report.xlsx");
-		fos.write(bytes);
-		fos.close();
+		InputStreamResource inputStream = new InputStreamResource(new ByteArrayInputStream(bytes));
 		return inputStream;
 	}
 

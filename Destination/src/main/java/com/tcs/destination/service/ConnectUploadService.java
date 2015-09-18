@@ -39,8 +39,10 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SubSpMappingT;
+import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
@@ -53,6 +55,7 @@ import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
+import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
@@ -109,6 +112,9 @@ public class ConnectUploadService {
 
 	@Autowired
 	ConnectTypeRepository connectTypeRepository;
+	
+	@Autowired
+	TimezoneMappingRepository timeZoneMappingRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectUploadService.class);
@@ -122,7 +128,9 @@ public class ConnectUploadService {
 	Map<String, SubSpMappingT> mapOfSubSpMappingT = null;
 	Map<String, OfferingMappingT> mapOfOfferingMappingT = null;
 	Map<String, ConnectTypeMappingT> mapOfConnectTypeMappingT = null;
-	Map<String, ContactT> contactListMap=null;
+	Map<String, ContactT> contactTsMap=null;
+	Map<String, String> timeZoneMap=null;
+	Map<String, String> userTsMap=null;
 	
 	public UploadStatusDTO saveConnectDocument(MultipartFile multipartFile,
 			String userId) throws Exception {
@@ -139,12 +147,8 @@ public class ConnectUploadService {
 		uploadStatus.setStatusFlag(true);
 		
 		 Workbook workbook = ExcelUtils.getWorkBook(multipartFile);
-//		FileInputStream fileInputStream = new FileInputStream(file);
-		// Create Workbook instance holding reference to .xlsx file
-//		Workbook workbook = WorkbookFactory.create(fileInputStream);
-		// Get first/desired sheet from the workbook
-	
-		boolean isValid = ExcelUtils.isValidWorkbook(workbook, "validate", 4, 2);
+
+		 boolean isValid = ExcelUtils.isValidWorkbook(workbook, "validate", 4, 2);
 		System.out.println("IS VALID " + isValid);
 		if (isValid) {
 		Sheet sheet = workbook.getSheet("connect");
@@ -162,7 +166,9 @@ public class ConnectUploadService {
 		ContactTMapDTO cmDTO = getNameAndIdFromContactT();
 		mapOfTCSContactT = cmDTO.getMapOfTcsContactT();
 		mapOfCustomerContactT = cmDTO.getMapOfCustomerContactT();
-		contactListMap= getContactsList();
+		contactTsMap= getContactT();
+		userTsMap= getUserTMap();
+		timeZoneMap = getTimeZoneMappingT();
 		rowStart++;
 		int rowNo = 0;
 		List<String> listOfCellValues = null;
@@ -185,21 +191,18 @@ public class ConnectUploadService {
 		}
 		if (isRowEmpty) {
 			if (row != null) {
-			System.out.println("ROW N_____------>>>>>" + rowNo);
 			// For each row, iterate through all the columns
 			if (rowNo > 0) {
 		listOfCellValues = new ArrayList<String>();
-		for(int cellNo=1; cellNo<row.getLastCellNum();cellNo++){
+		for(int cellNo=2; cellNo<row.getLastCellNum();cellNo++){
 			System.out.print("cell " + cellNo);
 			Cell cell = row.getCell(cellNo);
 			String value = getCellValue(cell);
-			// System.out.println("VALUES   ------<<<<<<<<<<<"+ value);
 			if (row != null && value != null) {
-				// System.out.println("VALUES   ------>>>>>>"+ value);
 				listOfCellValues.add(value);
 			}
 		}
-		System.out.print("size of list " + listOfCellValues.size());
+//		System.out.print("size of list " + listOfCellValues.size());
 		try{
 			
 		if ((listOfCellValues.size() > 0) && (listOfCellValues.size() <= 18)) {
@@ -209,7 +212,8 @@ public class ConnectUploadService {
 		
 			connectT.setConnectCategory(listOfCellValues.get(0));
 			
-			if (listOfCellValues.get(0).equals("CUSTOMER")) {
+			System.out.println("TYPE*********"+listOfCellValues.get(0));
+			if (listOfCellValues.get(0).equals(EntityType.CUSTOMER.name())) {
 			
 				// CUSTOMER ID
 				if(!StringUtils.isEmpty(listOfCellValues.get(1))){
@@ -217,7 +221,7 @@ public class ConnectUploadService {
 					if(mapOfCustomerMasterT.containsKey(listOfCellValues.get(1))){
 						connectT.setCustomerId(getMapValuesForKey(mapOfCustomerMasterT,	listOfCellValues.get(1)));
 					} else {
-						throw new DestinationException(HttpStatus.NOT_FOUND, "Customer Name Is Incorrect");
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Customer Name");
 					}
 				}else{
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer Name Is Mandatory");
@@ -230,7 +234,7 @@ public class ConnectUploadService {
 					if(mapOfPartnerMasterT.containsKey(listOfCellValues.get(1))){
 						connectT.setPartnerId(getMapValuesForKey(mapOfPartnerMasterT, listOfCellValues.get(1)));
 					} else {
-						throw new DestinationException(HttpStatus.NOT_FOUND, "Partner Name Is Incorrect");
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
 					}
 				}else{
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Partner Name Is Mandatory");
@@ -261,7 +265,7 @@ public class ConnectUploadService {
 			if(mapOfSubSpMappingT.containsKey(listOfCellValues.get(4))){
 				connectT.setConnectSubSpLinkTs(constructConnectSubSpLink(listOfCellValues.get(4), userId,mapOfSubSpMappingT)); 
 			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "SubSp Is Incorrect");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid SubSp");
 			}
 		}
 
@@ -271,22 +275,22 @@ public class ConnectUploadService {
 			if(mapOfOfferingMappingT.containsKey(listOfCellValues.get(5))){
 				connectT.setConnectOfferingLinkTs(constructConnectOfferingLink(listOfCellValues.get(5), userId, mapOfOfferingMappingT));
 			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Offering Is Incorrect");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Offering");
 			}
 		}
 
 		// CONNECT START DATE OF CONNECT
 		// DateUtils.getNewTimestampFormat(listOfCellValues.get(6));
-		if(!StringUtils.isEmpty(listOfCellValues.get(7))){
-			Date startDateOfConnect = DateUtils.getNewTimestampFormat(listOfCellValues.get(7));
+		if(!StringUtils.isEmpty(listOfCellValues.get(6))){
+			Date startDateOfConnect = DateUtils.getNewTimestampFormat(listOfCellValues.get(6));
 			connectT.setStartDatetimeOfConnect(new Timestamp(startDateOfConnect.getTime()));
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Start Date Of Connect Is Mandatory");
 		}
 		
 		// CONNECT END DATE OF CONNECT
-		if(!StringUtils.isEmpty(listOfCellValues.get(8))){
-			Date endDateOfConnect = DateUtils.getNewTimestampFormat(listOfCellValues.get(8));
+		if(!StringUtils.isEmpty(listOfCellValues.get(6))){
+			Date endDateOfConnect = DateUtils.getNewTimestampFormat(listOfCellValues.get(6));
 			connectT.setEndDatetimeOfConnect(new Timestamp(endDateOfConnect.getTime()));
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "End Date Of Connect Is Mandatory");
@@ -294,7 +298,9 @@ public class ConnectUploadService {
 
 		// TIME ZONE
 		if(!StringUtils.isEmpty(listOfCellValues.get(9))){
-			connectT.setTimeZone(listOfCellValues.get(9));
+		if(timeZoneMap.containsKey(listOfCellValues.get(9))){
+			connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
+		}
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Time Zone Is Mandatory");
 		}
@@ -308,36 +314,40 @@ public class ConnectUploadService {
 		
 		// PRIMARY OWNER
 		if(!StringUtils.isEmpty(listOfCellValues.get(12))){
-			connectT.setPrimaryOwner(listOfCellValues.get(12).replace(".0", ""));
+			if(userTsMap.containsKey(listOfCellValues.get(12))){
+			connectT.setPrimaryOwner(userTsMap.get(listOfCellValues.get(12)));
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Connect Owner");
+			}
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Primary Owner Is Mandatory");
 		}
 
 		// CONNECT SECONDARY OWNER
 		if(listOfCellValues.get(13).length()>0){
-			connectT.setConnectSecondaryOwnerLinkTs(constructConnectSalesSupportLink(listOfCellValues.get(13), userId));
+			connectT.setConnectSecondaryOwnerLinkTs(constructConnectSecondaryOwnerLink(listOfCellValues.get(13), userId));
 		}
 		
 		// CONNECT TCS ACCOUNT CONTACT
 		if(listOfCellValues.get(14).length()>0){
 		
-			if(contactListMap.containsKey(listOfCellValues.get(14))){
+			if(contactTsMap.containsKey(listOfCellValues.get(14))){
 				connectT.setConnectTcsAccountContactLinkTs(constructConnectTCSContactLink(
 					listOfCellValues.get(14), userId, mapOfTCSContactT, mapOfContactT));
 			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Tcs Account Contact Is Incorrect");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Tcs Account Contact");
 			}
 		}
 
 		// CONNECT CUSTOMER CONTACT
 		if(!StringUtils.isEmpty(listOfCellValues.get(15))){
 		
-			if(contactListMap.containsKey(listOfCellValues.get(15))){
+//			if(contactTsMap.containsKey(listOfCellValues.get(15))){
 				connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
 					listOfCellValues.get(15), userId, mapOfCustomerContactT, mapOfContactT));
-			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Customer Contact Is Incorrect");
-			}
+//			} else {
+//				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Connect Customer Contact");
+//			}
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Customer Contact Is Mandatory");
 		}
@@ -351,7 +361,7 @@ public class ConnectUploadService {
 		if(mapOfConnectTypeMappingT.containsKey(listOfCellValues.get(11))){
 			connectT.setConnectTypeMappingT(constructConnectType(listOfCellValues.get(11), mapOfConnectTypeMappingT));
 		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Type Is Incorrect");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Connect Type");
 		}
 
 		// CREATED BY
@@ -386,6 +396,7 @@ public class ConnectUploadService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Validation Failed Please Check");
 		}
 	} catch (Exception e) {
+		e.printStackTrace();
 		logger.error("INTERNAL_SERVER_ERROR: An Exception has occured while processing the request for : {}", userId);
 		throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 			"An Exception has occured while processing the request for "+userId);
@@ -393,6 +404,25 @@ public class ConnectUploadService {
 	return uploadStatus;
 	}
 
+	private Map<String, String> getUserTMap() {
+		List<UserT> listOfUserT = null;
+		listOfUserT = (List<UserT>) userRepository.findAll();
+		Map<String, String> userTMap = new HashMap<String, String>();
+		for (UserT userT : listOfUserT) {
+			userTMap.put(userT.getUserName(), userT.getUserId());
+		}
+		return userTMap;
+	}
+
+	private Map<String, String> getTimeZoneMappingT() {
+		List<TimeZoneMappingT> listOfTimeZoneMappingT = null;
+		listOfTimeZoneMappingT = (List<TimeZoneMappingT>) timeZoneMappingRepository.findAll();
+		Map<String, String> timeZomeMappingTsMap = new HashMap<String, String>();
+		for (TimeZoneMappingT timeZoneMappingT : listOfTimeZoneMappingT) {
+			timeZomeMappingTsMap.put(timeZoneMappingT.getTimeZoneCode(), timeZoneMappingT.getDescription());
+		}
+		return timeZomeMappingTsMap;
+	}
 	private String getCellValue(Cell cell) {
 		String value = null;
 		if(cell != null){
@@ -412,7 +442,6 @@ public class ConnectUploadService {
 			break;
 		case Cell.CELL_TYPE_BLANK: {
 			value = "";
-			System.out.println("Blank >>>>");
 			break;
 		}
 		}
@@ -560,7 +589,7 @@ public class ConnectUploadService {
 
 	private List<ConnectTcsAccountContactLinkT> constructConnectTCSContactLink(
 			String tcsNames, String userId, Map map,
-			Map<String, ContactT> mapOfContactT) {
+			Map<String, ContactT> mapOfContactT) throws Exception {
 
 		List<ConnectTcsAccountContactLinkT> listTcsContactLinkT = null;
 		if (tcsNames != null) {
@@ -582,7 +611,7 @@ public class ConnectUploadService {
 
 	private List<ConnectCustomerContactLinkT> constructConnectCustomerContactLink(
 			String custNames, String userId, Map map,
-			Map<String, ContactT> mapOfContactT) {
+			Map<String, ContactT> mapOfContactT) throws Exception {
 
 		List<ConnectCustomerContactLinkT> listConnectCustomerLinkT = null;
 		if (custNames != null) {
@@ -591,8 +620,7 @@ public class ConnectUploadService {
 			if ((listOfcId != null) && (!listOfcId.isEmpty())) {
 				for (String cId : listOfcId) {
 					ConnectCustomerContactLinkT ccclt = new ConnectCustomerContactLinkT();
-					ContactT contact = getContactMapValuesForKey(mapOfContactT, 
-							cId);
+					ContactT contact = getContactMapValuesForKey(mapOfContactT, cId);
 					ccclt.setContactT(contact);
 					ccclt.setCreatedBy(userId);
 					ccclt.setModifiedBy(userId);
@@ -625,7 +653,7 @@ public class ConnectUploadService {
 		return contactMap;
 	}
 
-	public Map<String, ContactT> getContactsList() {
+	public Map<String, ContactT> getContactT() {
 		List<ContactT> listOfContactT = null;
 		listOfContactT = (List<ContactT>) contactRepository.findAll();
 		Map<String, ContactT> contactListMap = new HashMap<String, ContactT>();
@@ -640,7 +668,7 @@ public class ConnectUploadService {
 		listOfSubSpT = (List<SubSpMappingT>) subSpRepository.findAll();
 		Map<String, SubSpMappingT> subSpMap = new HashMap<String, SubSpMappingT>();
 		for (SubSpMappingT subSpT : listOfSubSpT) {
-			subSpMap.put(subSpT.getSubSp(), subSpT);
+			subSpMap.put(subSpT.getSubSp().trim(), subSpT);
 		}
 		return subSpMap;
 	}
@@ -669,10 +697,12 @@ public class ConnectUploadService {
 	}
 
 	private ContactT getContactMapValuesForKey(
-			Map<String, ContactT> contactMap, String key) {
+			Map<String, ContactT> contactMap, String key) throws Exception {
 		ContactT contact = null;
 		if (contactMap.containsKey(key)) {
 			contact = contactMap.get(key);
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Contact Name");
 		}
 		return contact;
 	}
@@ -695,7 +725,7 @@ public class ConnectUploadService {
 		return offering;
 	}
 
-	private List<ConnectSecondaryOwnerLinkT> constructConnectSalesSupportLink(
+	private List<ConnectSecondaryOwnerLinkT> constructConnectSecondaryOwnerLink(
 			String values, String userId) {
 
 		List<ConnectSecondaryOwnerLinkT> listOfConnectSecOwnerLink = null;
@@ -705,8 +735,7 @@ public class ConnectUploadService {
 			String[] valuesArray = values.split(",");
 			for (String value : valuesArray) {
 				ConnectSecondaryOwnerLinkT oclt = new ConnectSecondaryOwnerLinkT();
-				oclt.setConnectSecondaryOwnerLinkId(validateAndRectifyValue(value
-						.trim()));
+				oclt.setConnectSecondaryOwnerLinkId(validateAndRectifyValue(value.trim()));
 				oclt.setCreatedBy(userId);
 				oclt.setModifiedBy(userId);
 				listOfConnectSecOwnerLink.add(oclt);
@@ -719,8 +748,7 @@ public class ConnectUploadService {
 		String val = value;
 		System.out.println(value.substring(value.length() - 2, value.length()));
 		if (value != null) {
-			if (value.substring(value.length() - 2, value.length())
-					.equals(".0")) {
+			if (value.substring(value.length() - 2, value.length()).equals(".0")) {
 				val = value.substring(0, value.length() - 2);
 			}
 		}
