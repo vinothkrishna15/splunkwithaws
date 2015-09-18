@@ -415,20 +415,25 @@ public class PerformanceReportService {
 			String geography, String currency) throws Exception {
 
 		List<Object[]> geoObjList = null;
+		List<Object[]> geoProjObjList =null;
 		if (geography.isEmpty()) {
 			geoObjList = perfRepo.getRevenuesBySubGeo(financialYear, quarter,
 					customer, subSp, iou, displayGeography);
+			geoProjObjList = projectedRepository
+					.getRevenuesBySubGeo(financialYear, quarter, customer, subSp,
+							iou, displayGeography);
 		} else {
 			geoObjList = perfRepo.getRevenuesByCountry(financialYear, quarter,
 					customer, subSp, iou, geography);
+			geoProjObjList = projectedRepository
+					.getRevenuesByCountry(financialYear, quarter, customer, subSp,
+							iou, displayGeography);
 		}
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
 
-		List<Object[]> geoProjObjList = projectedRepository
-				.getRevenuesBySubGeo(financialYear, quarter, customer, subSp,
-						iou, displayGeography);
+		
 
 		// adding projected revenue
 		mergeProjectedRevenue(dispGeoMap, geoProjObjList);

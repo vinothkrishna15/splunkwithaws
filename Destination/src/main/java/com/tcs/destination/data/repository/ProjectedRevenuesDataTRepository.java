@@ -126,5 +126,19 @@ public interface ProjectedRevenuesDataTRepository extends
 	public List<Object[]> findProjectedRevenueByQuarter(String financialYear,
 			String quarter, String geography, String iou, String customerName,
 			String serviceLine);
+	
+	
+	@Query(value = "select Result.country, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue from geography_mapping_t GMT "
+			+ "left outer join "
+			+ "(select (PRDT.client_country) as country,(GCMT.geography) as geography, sum(PRDT.revenue) as actualRevenue from geography_country_mapping_t GCMT "
+			+ "left outer join projected_revenues_data_t PRDT on (GCMT.geography=PRDT.finance_geography)"
+			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = ?4 or ?4 = '') "
+			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = ?5 or ?5 = '') "
+			+ "join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name = ?3 or ?3 = '') "
+			+ "where PRDT.financial_year = ?1 and (PRDT.quarter = ?2 or ?2 = '') "
+			+ "group by PRDT.client_country,GCMT.geography order by actualRevenue desc) Result on GMT.geography = Result.geography where GMT.geography = ?6 order by revenue desc", nativeQuery = true)
+	public List<Object[]> getRevenuesByCountry(String financialYear,
+			String quarter, String customer, String subSp, String iou,
+			String geography);
 
 }
