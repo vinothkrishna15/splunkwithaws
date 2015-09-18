@@ -39,8 +39,8 @@ public class GeographyMappingT implements Serializable {
 	@Column(name = "display_geography")
 	private String displayGeography;
 	
-	
 	//bi-directional many-to-one association to GeographyCountryMappingT
+	@JsonIgnore
 	@OneToMany(mappedBy="geographyMappingT")
 	private List<GeographyCountryMappingT> geographyCountryMappingTs;
 

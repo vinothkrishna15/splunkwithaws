@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -26,14 +24,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
-import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.ConnectDownloadService;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.ConnectUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -55,6 +54,9 @@ public class ConnectController {
 	
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
+	@Autowired
+	ConnectDownloadService connectDownloadService;
 	
 	/**
 	 * This Method is used to find connection details for the given connection
@@ -329,5 +331,17 @@ public class ConnectController {
     		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
     				searchResults);
     	}
-	
+    	
+    	@RequestMapping(value = "/download", method = RequestMethod.GET)
+    	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect() throws Exception {
+    		logger.debug("Download request Received : docName ");
+    		InputStreamResource excelFile = connectDownloadService.getConnects();
+    		HttpHeaders respHeaders = new HttpHeaders();
+    		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+    		String todaysDate = DateUtils.getCurrentDate();
+    		logger.debug("Download Header - Attachment : " + "Connect" + todaysDate + ".xlsm");
+    		respHeaders.setContentDispositionFormData("attachment", "Connect" + todaysDate + ".xlsm");
+    		logger.debug("Connect Downloaded Successfully ");
+    		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
+    	}
 }

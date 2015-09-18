@@ -963,7 +963,33 @@ public class ConnectService {
 					"No subordinate found for supervisor id " + supervisorId);
 		}
 
+		removeCyclicConnectsInCustomerMappingT(dashBoardConnectsResponse);
 		return dashBoardConnectsResponse;
+	}
+	
+	/**
+	* This method removes the ConnectTs present in CustomerMappingT in ConnectT
+	* 
+	* @param dashBoardConnectsResponse
+	*/
+	public void removeCyclicConnectsInCustomerMappingT(
+			DashBoardConnectsResponse dashBoardConnectsResponse) {
+
+		if (dashBoardConnectsResponse != null) {
+
+			if ((dashBoardConnectsResponse.getConnectTs() != null)
+					&& (!dashBoardConnectsResponse.getConnectTs().isEmpty())) {
+
+				for (ConnectT connectT : dashBoardConnectsResponse
+						.getConnectTs()) {
+
+					if (connectT.getCustomerMasterT() != null) {
+
+						connectT.getCustomerMasterT().setConnectTs(null);
+					}
+				}
+			}
+		}
 	}
 	
 	/**
