@@ -6,6 +6,7 @@ import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
@@ -36,10 +37,12 @@ public class NotificationSettingsModeMappingT implements Serializable {
 	private String notificationMode;
 
 	//bi-directional many-to-one association to NotificationSentHistoryT
+	@JsonIgnore
 	@OneToMany(mappedBy="notificationSettingsModeMappingT")
 	private List<NotificationSentHistoryT> notificationSentHistoryTs;
 
 	//bi-directional many-to-one association to UserNotificationSettingsT
+	@JsonIgnore
 	@OneToMany(mappedBy="notificationSettingsModeMappingT")
 	private List<UserNotificationSettingsT> userNotificationSettingsTs;
 

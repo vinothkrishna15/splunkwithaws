@@ -14,9 +14,13 @@ import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.NotificationSettingsGroupMappingRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
+import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.UserGroup;
+import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
@@ -35,6 +39,9 @@ public class UserNotificationSettingsService {
 
 	@Autowired
 	NotificationSettingsGroupMappingRepository notificationSettingsGroupMappingRepository;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	@Transactional
 	public boolean saveUserNotifications(
@@ -98,7 +105,6 @@ public class UserNotificationSettingsService {
 						if(userNotificationSettingsTs!=null)
 							for(UserNotificationSettingsT userNotificationSettingsT:userNotificationSettingsTs)
 							{
-								userNotificationSettingsT.setNotificationSettingsModeMappingT(null);
 								userNotificationSettingsT.getUserT().setUserNotificationSettingsTs(null);
 							}
 						notificationSettingsEventMappingT
@@ -106,7 +112,34 @@ public class UserNotificationSettingsService {
 					}
 				}
 			}
-
+		
+		UserT userT=userRepository.findOne(userId);
+		if(UserGroup.contains(userT.getUserGroup()))
+		{
+			int index=Integer.MAX_VALUE;
+			switch(UserGroup.valueOf(userT.getUserGroup())){
+			case BDM:
+				index=3;
+				removeNotificationSettingsFromIndex(
+						notificationSettingsGroupMappingTs, index);
+				removeNotificationSettingsFromIndex(
+						notificationSettingsGroupMappingTs, index);
+				break;
+			case BDM_SUPERVISOR:
+				index=4;
+				removeNotificationSettingsFromIndex(
+						notificationSettingsGroupMappingTs, index);
+				break;
+			}
+		}
+		
 		return notificationSettingsGroupMappingTs;
+	}
+
+	private void removeNotificationSettingsFromIndex(
+			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs,
+			int index) {
+		if(index<notificationSettingsGroupMappingTs.size())
+		notificationSettingsGroupMappingTs.remove(index);
 	}
 }
