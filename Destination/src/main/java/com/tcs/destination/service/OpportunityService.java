@@ -865,6 +865,7 @@ public class OpportunityService {
 		}
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
+		removeCyclicForCustomers(opportunityT);
 
 	}
 
@@ -937,6 +938,17 @@ public class OpportunityService {
 					connectOpportunityLinkIdT.getConnectT()
 							.setConnectOpportunityLinkIdTs(null);
 				}
+			}
+		}
+	}
+
+	private void removeCyclicForCustomers(OpportunityT opportunityT) {
+		logger.debug("Inside removeCyclicForLinkedConnects() method");
+
+		if (opportunityT != null) {
+			if (opportunityT.getCustomerMasterT() != null) {
+				opportunityT
+				.getCustomerMasterT().setOpportunityTs(null);
 			}
 		}
 	}
