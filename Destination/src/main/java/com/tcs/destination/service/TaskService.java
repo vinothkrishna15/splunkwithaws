@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.helper.NotificationsLazyLoader;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 /**
  * Service class to handle Task module related requests.
@@ -521,6 +523,46 @@ public class TaskService {
 			notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			// Invoking notifications Task Executor Thread
 			notificationsTaskExecutor.execute(notificationsHelper);
+		}
+		
+		/**
+		 * This service find all the tasks assigned to others by users under a supervisor
+		 * 
+		 * @param supervisorId
+		 * @return
+		 * @throws Exception
+		 */
+		public List<TaskT> findTeamTasksAssignedtoOthers(String supervisorId)
+				throws Exception {
+			logger.debug("Inside findTeamTasksAssignedtoOthers() service");
+	
+			List<TaskT> taskList = null;
+			List<String> userIds = null;
+	
+			if (!StringUtils.isEmpty(supervisorId)) {
+				userIds = userRepository.getAllSubordinatesIdBySupervisorId(supervisorId);
+				if ((userIds != null)&&(!userIds.isEmpty())) {
+					taskList = new ArrayList<TaskT>();
+					for (String userId : userIds) {
+						List<TaskT> tasks = taskRepository.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(userId,userId);
+						taskList.addAll(tasks);
+					}
+				} else {
+					logger.error("NOT_FOUND: No Subordinates found for Supervisor Id : {}", supervisorId);
+					throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates found for Supervisor Id : "+supervisorId);
+				}
+			} else {
+				logger.error("NOT_FOUND: Missing Supervisor Id");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Missing Supervisor Id");
+			}
+			
+			if ((taskList == null) || taskList.isEmpty()) {
+				logger.error("NOT_FOUND: No assigned to others tasks found for the supervisorId: {}", supervisorId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "No assigned to others tasks found for the supervisorId: " + supervisorId);
+			}
+			
+			return taskList;
 		}
 	
 }
