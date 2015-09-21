@@ -16,6 +16,8 @@ public class OpportunityDetailsDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	private String opportunityId;
+	
 	private String opportunityName;
 	
 	private String customerName;
@@ -26,7 +28,15 @@ public class OpportunityDetailsDTO implements Serializable {
 	
 	private int salesStageCode;
 	
-	private String createdDate;
+	private String modifiedDate;
+
+	public String getOpportunityId() {
+		return opportunityId;
+	}
+
+	public void setOpportunityId(String opportunityId) {
+		this.opportunityId = opportunityId;
+	}
 
 	public String getOpportunityName() {
 		return opportunityName;
@@ -68,12 +78,12 @@ public class OpportunityDetailsDTO implements Serializable {
 		this.salesStageCode = salesStageCode;
 	}
 
-	public String getCreatedDate() {
-		return createdDate;
+	public String getModifiedDate() {
+		return modifiedDate;
 	}
 
-	public void setCreatedDate(String createdDate) {
-		this.createdDate = createdDate;
+	public void setModifiedDate(String modifiedDate) {
+		this.modifiedDate = modifiedDate;
 	}
 
 }
