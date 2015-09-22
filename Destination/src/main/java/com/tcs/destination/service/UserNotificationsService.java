@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -44,6 +45,13 @@ public class UserNotificationsService {
 		}
 		List<UserNotificationsT> userNotificationsTs = null;
 
+		{
+			Calendar toCalendar = Calendar.getInstance();
+			toCalendar.setTimeInMillis(toTime);
+			toCalendar.set(Calendar.DATE, toCalendar.get(Calendar.DATE) + 1);
+			toTime = toCalendar.getTimeInMillis();
+		}
+		
 		if (read.equals("")) {
 			userNotificationsTs = userNotificationsRepository
 					.getOptedPortalNotifications(userId,
