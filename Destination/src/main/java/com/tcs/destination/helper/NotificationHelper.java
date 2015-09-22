@@ -30,6 +30,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.utils.Constants;
 
@@ -58,6 +59,7 @@ public class NotificationHelper implements Runnable {
 	private OpportunityRepository opportunityRepository;
 	private ConnectRepository connectRepository;
 	private TaskRepository taskRepository;
+	private UserRepository userRepository;
 	private FollowedRepository taggedFollowedRepository;
 
 	public Object getOldObject() {
@@ -180,11 +182,13 @@ public class NotificationHelper implements Runnable {
 	private void notifyForComments() throws Exception {
 		String ownerMessageTemplate = null;
 		String taggedFollowedMessageTemplate = null;
+		String ownersSupervisorMessageTemplate = null;
 		String commentedEntityName = null;
 		String commentedEntityType = null;
-		String commentedEntityId=null;
+		String commentedEntityId = null;
 		int ownerEventId = 0;
 		int taggedEventId = 0;
+		int ownerSupervisorEventId = 0;
 		List<String> ownerIdList = null;
 		List<String> taggedUserList = null;
 		{
@@ -194,6 +198,15 @@ public class NotificationHelper implements Runnable {
 				ownerMessageTemplate = notificationEventGroupMappingTs.get(0)
 						.getMessageTemplate();
 				ownerEventId = notificationEventGroupMappingTs.get(0)
+						.getEventId();
+			}
+		}
+		{
+			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = getNotificationEventGroupMappingTs(13);
+			if (notificationEventGroupMappingTs.size() > 0) {
+				ownersSupervisorMessageTemplate = notificationEventGroupMappingTs
+						.get(0).getMessageTemplate();
+				ownerSupervisorEventId = notificationEventGroupMappingTs.get(0)
 						.getEventId();
 			}
 		}
@@ -215,7 +228,7 @@ public class NotificationHelper implements Runnable {
 					.getOpportunityId());
 			commentedEntityName = opportunityT.getOpportunityName();
 			commentedEntityType = EntityType.OPPORTUNITY.name();
-			commentedEntityId=commentT.getOpportunityId();
+			commentedEntityId = commentT.getOpportunityId();
 			ownerIdList = opportunityRepository.getAllOwners(commentT
 					.getOpportunityId());
 			// Don't send notifications to the user who
@@ -232,7 +245,7 @@ public class NotificationHelper implements Runnable {
 					.getConnectId());
 			commentedEntityName = connectT.getConnectName();
 			commentedEntityType = EntityType.CONNECT.name();
-			commentedEntityId=commentT.getConnectId();
+			commentedEntityId = commentT.getConnectId();
 			ownerIdList = connectRepository.findOwnersOfConnect(commentT
 					.getConnectId());
 			taggedUserList = taggedFollowedRepository
@@ -244,7 +257,7 @@ public class NotificationHelper implements Runnable {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
 			commentedEntityType = EntityType.TASK.name();
-			commentedEntityId=commentT.getTaskId();
+			commentedEntityId = commentT.getTaskId();
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
 					.getTasksTaggedFollowedUsers(commentT.getTaskId());
@@ -256,7 +269,8 @@ public class NotificationHelper implements Runnable {
 			String msgTemplate = replaceTokens(
 					ownerMessageTemplate,
 					populateTokens(commentT.getUserT().getUserName(),
-							commentedEntityName, null, null, commentedEntityType));
+							commentedEntityName, null, null,
+							commentedEntityType));
 			logger.error("Owners " + ownerIdList.size());
 			if (msgTemplate != null) {
 				for (String recipient : ownerIdList) {
@@ -267,11 +281,29 @@ public class NotificationHelper implements Runnable {
 				}
 			}
 		}
+
+		{
+			List<String> ownersSupervisorIds = userRepository
+					.getSupervisorUserId(ownerIdList);
+			String msgTemplate = replaceTokens(
+					ownersSupervisorMessageTemplate,
+					populateTokens(commentT.getUserT().getUserName(),
+							commentedEntityName, null, null,
+							commentedEntityType));
+			if (msgTemplate != null) {
+				for (String recipient : ownersSupervisorIds) {
+					addUserNotifications(msgTemplate, recipient, ownerSupervisorEventId,
+							commentedEntityType, commentedEntityId);
+				}
+			}
+		}
+
 		{
 			String msgTemplate = replaceTokens(
 					taggedFollowedMessageTemplate,
 					populateTokens(commentT.getUserT().getUserName(),
-							commentedEntityName, null, null, commentedEntityType));
+							commentedEntityName, null, null,
+							commentedEntityType));
 			logger.error("tagged : " + taggedUserList.size());
 			if (msgTemplate != null) {
 				for (String recipient : taggedUserList) {
@@ -1337,5 +1369,9 @@ public class NotificationHelper implements Runnable {
 
 	public void setTaskRepository(TaskRepository taskRepository) {
 		this.taskRepository = taskRepository;
+	}
+	
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
 	}
 }

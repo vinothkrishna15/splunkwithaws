@@ -20,6 +20,7 @@ import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.CommentType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.enums.EntityType;
@@ -65,6 +66,9 @@ public class CollaborationCommentsService {
 	@Autowired
 	TaskRepository taskRepository;
 
+	@Autowired
+	UserRepository userRepository;
+
 	public boolean insertComments(CollaborationCommentT comments)
 			throws Exception {
 		if (isValidComment(comments)) {
@@ -104,6 +108,7 @@ public class CollaborationCommentsService {
 				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
+		notificationsHelper.setUserRepository(userRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
