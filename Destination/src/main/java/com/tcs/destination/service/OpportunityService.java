@@ -1154,6 +1154,8 @@ public class OpportunityService {
 					for (OpportunityT opportunity : opportunitiesSubList) {
 
 						OpportunityDetailsDTO teamDetails = new OpportunityDetailsDTO();
+						teamDetails.setOpportunityId(opportunity
+								.getOpportunityId());
 						teamDetails.setOpportunityName(opportunity
 								.getOpportunityName());
 						teamDetails.setCustomerName(opportunity
@@ -1164,9 +1166,9 @@ public class OpportunityService {
 								.getUserName());
 						teamDetails.setSalesStageCode(opportunity
 								.getSalesStageCode());
-						teamDetails.setCreatedDate(new SimpleDateFormat(
+						teamDetails.setModifiedDate(new SimpleDateFormat(
 								"dd-MMM-yyyy").format(opportunity
-								.getCreatedDatetime()));
+								.getModifiedDatetime()));
 
 						listOfOpportunityDetails.add(teamDetails);
 					}

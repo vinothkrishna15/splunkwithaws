@@ -240,4 +240,22 @@ public class TaskController {
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
+	
+	/**
+	 * This method is used to find all the tasks assigned to others by users under a supervisor.
+	 * 
+	 * @param supervisorId
+	 * @return tasks assigned to others by users under a supervisor.
+	 */
+	@RequestMapping(value="/team/findAssigned", method=RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findTeamTasksAssignedToOthers(
+			@RequestParam(value="supervisorId") String supervisorId,
+			@RequestParam(value="fields", defaultValue="all") String fields,
+			@RequestParam(value="view", defaultValue="") String view) throws Exception 
+	{
+		logger.debug("Inside TaskController /task/team/findAssigned?supervisorId="+supervisorId+" GET");
+		List<TaskT> taskList = taskService.findTeamTasksAssignedtoOthers(supervisorId);
+		return new ResponseEntity<String>
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+	}
 }
