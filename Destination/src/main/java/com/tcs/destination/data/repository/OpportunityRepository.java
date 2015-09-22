@@ -316,6 +316,14 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(
 			@Param("users") List<String> users);
 
+	@Query(value = "select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) and "
+			+ "((OPP.deal_closure_date between (:startTs) and (:endTs) and OPP.sales_stage_code between 9 and 13) or (OPP.sales_stage_code < 9)) order by OPP.created_datetime desc", nativeQuery = true)
+	List<OpportunityT> findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
+			@Param("users") List<String> users,@Param("startTs") Timestamp startTs,@Param("endTs") Timestamp endTs);
+
 	@Query(value = "select distinct(OPP.*) from opportunity_t OPP,customer_master_t CMT "
 			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) "
 			+ "and (OPP.sales_stage_code in (:salesStageCode) or (-1) in (:salesStageCode)) "
