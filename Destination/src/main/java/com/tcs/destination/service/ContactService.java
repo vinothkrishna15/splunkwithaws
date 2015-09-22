@@ -35,14 +35,14 @@ public class ContactService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContactService.class);
 
-	private static final String CONACT_NAME_QUERY_PREFIX = "select distinct(CONT.contact_name) from contact_t CONT "
+	private static final String CONACT_QUERY_PREFIX = "select distinct(CONT.contact_id) from contact_t CONT "
 			+" JOIN contact_customer_link_t CCLT on CONT.contact_id=CCLT.contact_id " 
 			+" JOIN customer_master_t CMT on CMT.customer_id=CCLT.customer_id "
 			+" JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou ";
 
 	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
-	private static final String CONTACT_NAME_COND_SUFFIX = "CONT.contact_name in (";
+	private static final String CONTACT_ID_COND_SUFFIX = "CONT.contact_id in ";
 	
 	@Autowired
 	ContactRepository contactRepository;
@@ -329,17 +329,17 @@ public class ContactService {
 	}
 	
 	private void prepareContactDetails(ContactT contact,
-			ArrayList<String> contactNameList) throws DestinationException {
+			ArrayList<String> contactIdList) throws DestinationException {
 		logger.debug("Inside prepareContactDetails() method");
 		try {
-			if (contactNameList == null) {
-				contactNameList = new ArrayList<String>();
-				contactNameList.add(contact.getContactName());
-				contactNameList = getPreviledgedContactName(DestinationUtils
-						.getCurrentUserDetails().getUserId(), contactNameList,	true);
+			if (contactIdList == null) {
+				contactIdList = new ArrayList<String>();
+				contactIdList.add(contact.getContactId());
+				contactIdList = getPreviledgedContactIds(DestinationUtils
+						.getCurrentUserDetails().getUserId(), contactIdList,	true);
 			}
-			if (contactNameList == null || contactNameList.isEmpty()
-					|| (!contactNameList.contains(contact.getContactName()))) {
+			if (contactIdList == null || contactIdList.isEmpty()
+					|| (!contactIdList.contains(contact.getContactId()))) {
 				preventSensitiveInfo(contact);
 			}
 		} catch (Exception e) {
@@ -348,22 +348,22 @@ public class ContactService {
 		}
 	}
 
-	private ArrayList<String> getPreviledgedContactName(String userId,
-			ArrayList<String> customerNameList, boolean considerGeoIou)
+	private ArrayList<String> getPreviledgedContactIds(String userId,
+			ArrayList<String> contactIdList, boolean considerGeoIou)
 			throws Exception {
 		logger.debug("Inside getPreviledgedCustomerName() method");
 		String queryString = getContactPrevilegeQueryString(userId,
-				customerNameList, considerGeoIou);
+				contactIdList, considerGeoIou);
 		logger.info("Query string: {}", queryString);
 		Query contactQuery = entityManager.createNativeQuery(queryString);
 		return (ArrayList<String>) contactQuery.getResultList();
 	}
 
 	private String getContactPrevilegeQueryString(String userId,
-			ArrayList<String> contactNameList, boolean considerGeoIou)
+			ArrayList<String> contactIdList, boolean considerGeoIou)
 			throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(CONACT_NAME_QUERY_PREFIX);
+		StringBuffer queryBuffer = new StringBuffer(CONACT_QUERY_PREFIX);
 
 		HashMap<String, String> queryPrefixMap = null;
 
@@ -378,26 +378,26 @@ public class ContactService {
 				.getUserAccessPrivilegeWhereConditionClause(userId,	queryPrefixMap);
 
 		if ((whereClause != null && !whereClause.isEmpty())
-				|| (contactNameList != null && contactNameList.size() > 0)) {
+				|| (contactIdList != null && contactIdList.size() > 0)) {
 			queryBuffer.append(" where ");
 		}
 
-		if (contactNameList != null && contactNameList.size() > 0) {
-			String contactNameQueryList = "(";
+		if (contactIdList != null && contactIdList.size() > 0) {
+			String contactIdQueryList = "(";
 			{
-				for (String contactName : contactNameList)
-					contactNameQueryList += "'"
-							+ contactName.replace("\'", "\'\'") + "',";
+				for (String contactId : contactIdList)
+					contactIdQueryList += "'"
+							+ contactId.replace("\'", "\'\'") + "',";
 			}
-			contactNameQueryList = contactNameQueryList.substring(0,
-					contactNameQueryList.length() - 1);
-			contactNameQueryList += ")";
+			contactIdQueryList = contactIdQueryList.substring(0,
+					contactIdQueryList.length() - 1);
+			contactIdQueryList += ")";
 
-			queryBuffer.append(CONTACT_NAME_COND_SUFFIX  + contactNameQueryList);
+			queryBuffer.append(CONTACT_ID_COND_SUFFIX  + contactIdQueryList);
 		}
 
 		if ((whereClause != null && !whereClause.isEmpty())
-				&& (contactNameList != null && contactNameList.size() > 0)) {
+				&& (contactIdList != null && contactIdList.size() > 0)) {
 			queryBuffer.append(Constants.AND_CLAUSE);
 		}
 
@@ -411,19 +411,19 @@ public class ContactService {
 	
 	private void prepareContactDetails(List<ContactT> contactList) throws Exception {
 		removeCyclicForLinkedContactTs(contactList);
-		logger.debug("Inside prepareCustomerDetails() method");
+		logger.debug("Inside prepareContactDetails() method");
 
 		if (contactList != null && !contactList.isEmpty()) {
-			ArrayList<String> contactNameList = new ArrayList<String>();
+			ArrayList<String> contactIdList = new ArrayList<String>();
 			for (ContactT contactT : contactList) {
-				contactNameList.add(contactT.getContactName());
+				contactIdList.add(contactT.getContactId());
 			}
-			contactNameList = getPreviledgedContactName(DestinationUtils
-					.getCurrentUserDetails().getUserId(), contactNameList, true);
+			contactIdList = getPreviledgedContactIds(DestinationUtils
+					.getCurrentUserDetails().getUserId(), contactIdList, true);
 
 			for (ContactT contactT : contactList) {
 				if(contactT.getContactCategory().equals(EntityType.CUSTOMER.name())){
-				prepareContactDetails(contactT, contactNameList);
+				prepareContactDetails(contactT, contactIdList);
 				}
 			}
 		}
