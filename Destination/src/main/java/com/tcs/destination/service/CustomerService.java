@@ -43,6 +43,12 @@ public class CustomerService {
 	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
 	private static final String CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.customer_name in (";
+	private static final String GROUP_CUSTOMER_NAME_QUERY_PREFIX = "select distinct CMT.group_customer_name from customer_master_t CMT "
+			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
+	
+	private static final String GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.group_customer_name like ";
+	
+	private static final String ORDERBY_SUFFIX = " order by CMT.group_customer_name";
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -418,6 +424,63 @@ public class CustomerService {
 			contactService.preventSensitiveInfo(contactCustomerLinkT
 					.getContactT());
 
+	}
+
+	/**
+	 * @param nameWith - string to be searched
+	 * @param userId - userId for which the privilege restrictions are to be applied 
+	 * @return - List of distinct group customer names based on privileges
+	 * @throws Exception
+	 */
+	public List<String> findByGroupCustomerNameBasedOnPrivilege(
+			String nameWith, String userId) throws Exception {
+		// TODO Auto-generated method stub
+		String queryString = null;
+		List<String> resultList = null;
+		
+		if(!DestinationUtils.getCurrentUserDetails().getUserId().equalsIgnoreCase(userId))
+		{
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid user Id"); 
+		}
+		else{
+			
+		queryString = getGroupCustomerPrivilegeQueryString(userId, "'%"+nameWith+"%'");
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query groupCustomerPrivilegeQuery = entityManager.createNativeQuery(queryString);
+		
+		resultList = groupCustomerPrivilegeQuery.getResultList();
+		}
+		
+		
+		return resultList;
+	}
+	
+	private String getGroupCustomerPrivilegeQueryString(String userId,
+			String nameWith) throws Exception {
+		logger.debug("Inside getGroupCustomerPrivilegeQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(
+				GROUP_CUSTOMER_NAME_QUERY_PREFIX);
+
+		HashMap<String, String> queryPrefixMap;
+
+		queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+				CUSTOMER_GEO_COND_SUFFIX, null, CUSTOMER_IOU_COND_SUFFIX,
+				CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+
+		if ((whereClause != null && !whereClause.isEmpty())
+				|| (nameWith != null && !nameWith.isEmpty())) {
+			queryBuffer.append(" and "+GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX + 
+					 nameWith + " and " + whereClause + ORDERBY_SUFFIX);
+		}
+
+		logger.info("queryString = " + queryBuffer.toString());
+		return queryBuffer.toString();
 	}
 
 }
