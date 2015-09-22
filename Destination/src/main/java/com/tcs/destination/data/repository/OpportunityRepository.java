@@ -4,14 +4,12 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityT;
 
 @Repository
@@ -156,7 +154,8 @@ public interface OpportunityRepository extends
 			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8) "
 			+ "where OPP.digital_deal_value <> 0 group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByServiceLine(
-			@Param("displayGeography") String displayGeography,@Param("geography") String geography, @Param("iou") String iou,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography, @Param("iou") String iou,
 			@Param("currency") String currency);
 
 	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
@@ -170,7 +169,8 @@ public interface OpportunityRepository extends
 			+ "(ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate) group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findWinsPerformanceByServiceLine(
-			@Param("displayGeography") String displayGeography,@Param("geography") String geography, @Param("iou") String iou,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography, @Param("iou") String iou,
 			@Param("currency") String currency,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
@@ -824,5 +824,11 @@ public interface OpportunityRepository extends
 			@Param("geography") String geography,
 			@Param("currency") String currency,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+	@Query(value = "select distinct(user_id) from ( "
+			+ "select opportunity_owner as user_id from opportunity_t where opportunity_id =(:opportunityId) union "
+			+ "select sales_support_owner as user_id from opportunity_sales_support_link_t	where opportunity_id =(:opportunityId) union "
+			+ "select bid_office_group_owner as user_id from bid_office_group_owner_link_t  where bid_id  in (select bid_id from bid_details_t where opportunity_id =(:opportunityId))) as opportunity_owners", nativeQuery = true)
+	List<String> getAllOwners(@Param("opportunityId") String opportunityId);
 
 }
