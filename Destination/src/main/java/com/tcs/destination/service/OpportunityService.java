@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.sql.Timestamp;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -1110,7 +1111,7 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(
-			String supervisorUserId, int page, int count) throws Exception {
+			String supervisorUserId, int page, int count, boolean isCurrentFinancialYear) throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
@@ -1126,8 +1127,16 @@ public class OpportunityService {
 		if ((users != null) && (users.size() > 0)) {
 
 			// Retrieve opportunities from users
-			opportunities = opportunityRepository
-					.findTeamOpportunityDetailsBySupervisorId(users);
+			if(!isCurrentFinancialYear){
+				opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users);
+			} else if(isCurrentFinancialYear){
+				String financialYear = DateUtils.getCurrentFinancialYear();
+				
+				Timestamp startTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, true).getTime());
+				Timestamp endTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, false).getTime() + Constants.ONE_DAY_IN_MILLIS - 1);
+				
+				opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp);
+			}
 
 			if ((opportunities != null) && (!opportunities.isEmpty())) {
 
@@ -1282,7 +1291,7 @@ public class OpportunityService {
 
 			try {
 				// Create the query and execute
-				String queryString = "select OPP from OpportunityT OPP where OPP.salesStageCode < 9 or (OPP.dealClosureDate > ?1 ) order by "
+				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.sales_stage_code between 9 and 13)) order by "
 						+ sortBy + " " + order;
 				Query query = entityManager.createQuery(queryString)
 						.setParameter(

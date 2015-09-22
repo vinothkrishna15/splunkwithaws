@@ -312,6 +312,7 @@ public class OpportunityController {
 	@RequestMapping(value = "/team/oppdetails", method = RequestMethod.GET)
 	public @ResponseBody String findTeamOpportunityDetailsBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
+			@RequestParam(value = "isCurrentFinancialYear", defaultValue = "false") boolean isCurrentFinancialYear,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -330,7 +331,7 @@ public class OpportunityController {
 
 		teamOpportunityDetails = opportunityService
 				.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
-						page, count);
+						page, count, isCurrentFinancialYear);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				teamOpportunityDetails);
