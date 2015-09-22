@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CustomerService;
@@ -125,6 +126,28 @@ public class CustomerController {
 				.findByGroupCustomerName(nameWith);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customer);
+	}
+	
+	@RequestMapping(value ="/groupBasedOnPrivilege", method = RequestMethod.GET)
+	public @ResponseBody String findByGroupCustomerNameBasedOnPrivilege(
+			@RequestParam("userId") String userId,
+			@RequestParam("nameWith") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside CustomerController /customer/groupBasedOnPrivilege?nameWith="
+				+ nameWith + " GET");
+		
+		List<String> groupCustomer = customerService
+				.findByGroupCustomerNameBasedOnPrivilege(nameWith,userId);
+		if(groupCustomer == null || groupCustomer.isEmpty()) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Results found for search : " + nameWith);
+		} 
+		
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					groupCustomer);
+		
 	}
 
 }

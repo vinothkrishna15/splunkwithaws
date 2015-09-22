@@ -47,13 +47,14 @@ public class ContactController {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
+			@RequestParam(value = "userId") String userId,
 			@PathVariable("id") String contactId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ContactController /contact/id=" + contactId
 				+ " GET");
-		ContactT contact = contactService.findById(contactId);
+		ContactT contact = contactService.findById(contactId, userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				contact);
 	}
@@ -70,6 +71,7 @@ public class ContactController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsWithName(
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -84,10 +86,10 @@ public class ContactController {
 		// If NameWith service
 		if (!nameWith.isEmpty()) {
 			contactlist = contactService.findContactsWithNameContaining(
-					nameWith, customerId, partnerId, contactType);
+					nameWith, customerId, partnerId, contactType, userId);
 		} else if (!startsWith.isEmpty()) {
 			contactlist = contactService
-					.findContactsWithNameStarting(startsWith);
+					.findContactsWithNameStarting(startsWith, userId);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");
@@ -99,6 +101,7 @@ public class ContactController {
 
 	@RequestMapping(value = "/contacttype", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsByContactType(
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
@@ -109,7 +112,7 @@ public class ContactController {
 		List<ContactT> contactlist = null;
 
 		if (!customerId.isEmpty() || !partnerId.isEmpty()) {
-			contactlist = contactService.findContactsByContactType(customerId, partnerId, contactType);
+			contactlist = contactService.findContactsByContactType(customerId, partnerId, contactType, userId);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either CustomerId or PartnerId is required");
