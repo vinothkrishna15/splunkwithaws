@@ -1,6 +1,12 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
@@ -19,13 +26,24 @@ import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class ContactService {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(ContactService.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContactService.class);
 
+	private static final String CONACT_NAME_QUERY_PREFIX = "select distinct(CONT.contact_name) from contact_t CONT "
+			+" JOIN contact_customer_link_t CCLT on CONT.contact_id=CCLT.contact_id " 
+			+" JOIN customer_master_t CMT on CMT.customer_id=CCLT.customer_id "
+			+" JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou ";
+
+	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
+	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
+	private static final String CONTACT_NAME_COND_SUFFIX = "CONT.contact_name in (";
+	
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -34,25 +52,40 @@ public class ContactService {
 
 	@Autowired
 	ContactCustomerLinkTRepository contactCustomerLinkTRepository;
+	
+	@PersistenceContext
+	private EntityManager entityManager;
 
+	@Autowired
+	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
+	
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 
 	 * @param contactId
+	 * @param userId 
 	 * @return contact details for the given contact id.
 	 */
-	public ContactT findById(String contactId) throws Exception {
+	public ContactT findById(String contactId, String userId) throws Exception {
 		logger.debug("Inside findTaskById Service");
 		ContactT contact = contactRepository.findOne(contactId);
-
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail does not match");
 		if (contact == null) {
 			logger.error("NOT_FOUND: No contact found for the ContactId");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contact found");
 		}
 		removeCyclicForLinkedContactTs(contact);
+		if(contact.getContactCategory().equals(EntityType.CUSTOMER.name())){
+		prepareContactDetails(contact, null);
+		}
 		return contact;
 	}
+
+	
 
 	/**
 	 * This method is used to find all the contacts with the given contact name
@@ -60,24 +93,30 @@ public class ContactService {
 	 * 
 	 * @param contactName
 	 *            , customerId, partnerId
+	 * @param userId 
 	 * @return contacts.
 	 */
 	public List<ContactT> findContactsWithNameContaining(String contactName,
-			String customerId, String partnerId, String contactType)
+			String customerId, String partnerId, String contactType, String userId)
 			throws Exception {
 		logger.debug("Inside findContactsWithNameContaining Service");
 
 		List<ContactT> contactList = contactRepository.findByContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
-
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contacts found");
 		}
 		removeCyclicForLinkedContactTs(contactList);
+		prepareContactDetails(contactList);
 		return contactList;
 	}
+
 
 	/**
 	 * This method is used to find all the contacts with the given contact type
@@ -85,21 +124,26 @@ public class ContactService {
 	 * 
 	 * @param customerId
 	 *            , partnerId, contactType
+	 * @param userId 
 	 * @return contacts.
 	 */
 	public List<ContactT> findContactsByContactType(String customerId,
-			String partnerId, String contactType) throws Exception {
+			String partnerId, String contactType, String userId) throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
-
+		if (!userId
+				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contacts found");
 		}
 		removeCyclicForLinkedContactTs(contactList);
+		prepareContactDetails(contactList);
 		return contactList;
 	}
 
@@ -108,9 +152,10 @@ public class ContactService {
 	 * alphabet .
 	 * 
 	 * @param startsWith
+	 * @param userId 
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsWithNameStarting(String startsWith)
+	public List<ContactT> findContactsWithNameStarting(String startsWith, String userId)
 			throws Exception {
 		logger.debug("Inside findContactsWithNameStarting Service");
 		List<ContactT> contactList = contactRepository
@@ -122,6 +167,7 @@ public class ContactService {
 					"No Contacts found");
 		}
 		removeCyclicForLinkedContactTs(contactList);
+		prepareContactDetails(contactList);
 		return contactList;
 	}
 
@@ -271,7 +317,6 @@ public class ContactService {
 				preventSensitiveInfo(contactT);
 			}
 		}
-
 	}
 
 	public void preventSensitiveInfo(ContactT contactT) {
@@ -281,7 +326,107 @@ public class ContactService {
 				contactT.setContactTelephone(null);
 			}
 		}
-
+	}
+	
+	private void prepareContactDetails(ContactT contact,
+			ArrayList<String> contactNameList) throws DestinationException {
+		logger.debug("Inside prepareContactDetails() method");
+		try {
+			if (contactNameList == null) {
+				contactNameList = new ArrayList<String>();
+				contactNameList.add(contact.getContactName());
+				contactNameList = getPreviledgedContactName(DestinationUtils
+						.getCurrentUserDetails().getUserId(), contactNameList,	true);
+			}
+			if (contactNameList == null || contactNameList.isEmpty()
+					|| (!contactNameList.contains(contact.getContactName()))) {
+				preventSensitiveInfo(contact);
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
 	}
 
+	private ArrayList<String> getPreviledgedContactName(String userId,
+			ArrayList<String> customerNameList, boolean considerGeoIou)
+			throws Exception {
+		logger.debug("Inside getPreviledgedCustomerName() method");
+		String queryString = getContactPrevilegeQueryString(userId,
+				customerNameList, considerGeoIou);
+		logger.info("Query string: {}", queryString);
+		Query contactQuery = entityManager.createNativeQuery(queryString);
+		return (ArrayList<String>) contactQuery.getResultList();
+	}
+
+	private String getContactPrevilegeQueryString(String userId,
+			ArrayList<String> contactNameList, boolean considerGeoIou)
+			throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CONACT_NAME_QUERY_PREFIX);
+
+		HashMap<String, String> queryPrefixMap = null;
+
+		if (considerGeoIou) {
+			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+					CUSTOMER_GEO_COND_SUFFIX, null, CUSTOMER_IOU_COND_SUFFIX,
+					null);
+		}
+
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,	queryPrefixMap);
+
+		if ((whereClause != null && !whereClause.isEmpty())
+				|| (contactNameList != null && contactNameList.size() > 0)) {
+			queryBuffer.append(" where ");
+		}
+
+		if (contactNameList != null && contactNameList.size() > 0) {
+			String contactNameQueryList = "(";
+			{
+				for (String contactName : contactNameList)
+					contactNameQueryList += "'"
+							+ contactName.replace("\'", "\'\'") + "',";
+			}
+			contactNameQueryList = contactNameQueryList.substring(0,
+					contactNameQueryList.length() - 1);
+			contactNameQueryList += ")";
+
+			queryBuffer.append(CONTACT_NAME_COND_SUFFIX  + contactNameQueryList);
+		}
+
+		if ((whereClause != null && !whereClause.isEmpty())
+				&& (contactNameList != null && contactNameList.size() > 0)) {
+			queryBuffer.append(Constants.AND_CLAUSE);
+		}
+
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(whereClause);
+		}
+
+		logger.info("queryString = " + queryBuffer.toString());
+		return queryBuffer.toString();
+	}
+	
+	private void prepareContactDetails(List<ContactT> contactList) throws Exception {
+		removeCyclicForLinkedContactTs(contactList);
+		logger.debug("Inside prepareCustomerDetails() method");
+
+		if (contactList != null && !contactList.isEmpty()) {
+			ArrayList<String> contactNameList = new ArrayList<String>();
+			for (ContactT contactT : contactList) {
+				contactNameList.add(contactT.getContactName());
+			}
+			contactNameList = getPreviledgedContactName(DestinationUtils
+					.getCurrentUserDetails().getUserId(), contactNameList, true);
+
+			for (ContactT contactT : contactList) {
+				if(contactT.getContactCategory().equals(EntityType.CUSTOMER.name())){
+				prepareContactDetails(contactT, contactNameList);
+				}
+			}
+		}
+	}
+	
 }
