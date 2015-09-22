@@ -22,4 +22,8 @@ public interface NotificationsEventFieldsTRepository extends CrudRepository<Noti
 	List<NotificationEventFieldsT> findByEntityTypeAndIsactiveAndParentFieldIdIsNull(
 			String entityType, String isActive);
 	
+	List<NotificationEventFieldsT> findByNotificationEventIdAndIsactive(int eventId,String isActive);
+	
+	List<NotificationEventFieldsT> findByNotificationEventIdAndEntityTypeAndIsactive(int eventId, String entityType, String isActive);
+	
 }
