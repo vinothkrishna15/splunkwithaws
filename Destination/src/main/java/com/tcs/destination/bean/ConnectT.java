@@ -93,6 +93,10 @@ public class ConnectT implements Serializable {
 	private String timeZone;
 
 	private String location;
+	
+	@ManyToOne
+	@JoinColumn(name="location", insertable=false, updatable=false)
+	private CityMapping cityMapping;
 
 	private String type;
 
@@ -744,6 +748,14 @@ public class ConnectT implements Serializable {
 
 	public void setLocation(String location) {
 		this.location = location;
+	}
+
+	public CityMapping getCityMapping() {
+		return cityMapping;
+	}
+
+	public void setCityMapping(CityMapping cityMapping) {
+		this.cityMapping = cityMapping;
 	}
 
 	public String getType() {
