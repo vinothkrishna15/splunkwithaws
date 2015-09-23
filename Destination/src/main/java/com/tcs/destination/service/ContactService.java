@@ -69,10 +69,10 @@ public class ContactService {
 	public ContactT findById(String contactId, String userId) throws Exception {
 		logger.debug("Inside findTaskById Service");
 		ContactT contact = contactRepository.findOne(contactId);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contact == null) {
 			logger.error("NOT_FOUND: No contact found for the ContactId");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -103,10 +103,10 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -133,10 +133,10 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -427,6 +427,75 @@ public class ContactService {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * This method inserts contact to the database
+	 * 
+	 * @param contactToInsert
+	 * @return ContactT
+	 * @throws Exception
+	 */
+	@Transactional
+	public ContactT addContact(ContactT contactToInsert) throws Exception{
+
+		ContactT contactT = null;
+		
+		if(contactToInsert!=null){
+			
+			contactT = new ContactT();
+			
+			contactT.setContactCategory(contactToInsert.getContactCategory());
+			contactT.setCreatedModifiedBy(contactToInsert.getCreatedModifiedBy());
+			contactT.setContactType(contactToInsert.getContactType());
+			contactT.setEmployeeNumber(contactToInsert.getEmployeeNumber());
+			contactT.setContactName(contactToInsert.getContactName());
+			contactT.setContactRole(contactToInsert.getContactRole());
+			contactT.setOtherRole(contactToInsert.getOtherRole());
+			contactT.setContactEmailId(contactToInsert.getContactEmailId());
+			contactT.setContactTelephone(contactToInsert.getContactTelephone());
+			contactT.setContactLinkedinProfile(contactToInsert.getContactLinkedinProfile());
+			contactT.setPartnerId(contactToInsert.getPartnerId());
+			
+			contactT = contactRepository.save(contactT);
+			logger.debug("Contact Saved .... "+contactT.getContactId());
+			
+			if((contactToInsert.getContactCustomerLinkTs()!=null)&&(!contactToInsert.getContactCustomerLinkTs().isEmpty())){
+				logger.debug("Inside getContactCustomerLinkTs save");
+				
+				String contactId =contactT.getContactId();
+				
+				List<ContactCustomerLinkT> listOfCclt = new ArrayList<ContactCustomerLinkT>();
+				
+				for(ContactCustomerLinkT cclt : contactToInsert.getContactCustomerLinkTs()){
+					cclt.setContactId(contactId);
+					listOfCclt.add(cclt);
+				}
+				
+				listOfCclt = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository.save(listOfCclt);
+				
+				contactT.setContactCustomerLinkTs(listOfCclt);
+				logger.debug("ContactCustomerLinkTs saved...");
+			}
+			
+		}
+		
+		return contactT;
+	}
+
+	/**
+	 * This method deletes the Contact from the database
+	 * 
+	 * @param contactT
+	 * @throws Exception
+	 */
+	@Transactional
+	public void remove(ContactT contactT) throws Exception {
+		
+		if(contactT != null){
+			contactRepository.delete(contactT);
+		}
+
 	}
 	
 }

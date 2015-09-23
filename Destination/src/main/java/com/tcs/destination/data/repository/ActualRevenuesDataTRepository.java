@@ -20,12 +20,12 @@ public interface ActualRevenuesDataTRepository extends
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
-			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
+			+ "(RCMT.customer_name in (:customerName) or ('') in (:customerName))  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "and (GMT.display_geography = (:displayGeography) or (:geography) = '')"
 			+ "group by ARDT.quarter order by ARDT.quarter asc ", nativeQuery = true)
 	List<Object[]> findActualRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
-			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
+			@Param("customerName") List<String> customerName,@Param("serviceLine") String serviceLine);
 
 	@Query(value = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
@@ -185,9 +185,9 @@ public interface ActualRevenuesDataTRepository extends
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
-			+ "(RCMT.customer_name = (:customerName) or (:customerName)= '')  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
+			+ "(RCMT.customer_name in (:customerName) or ('') in (:customerName))  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by ARDT.month order by ARDT.month asc ", nativeQuery = true)
 	List<Object[]> findActualRevenueByQuarter(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
-			@Param("customerName") String customerName,@Param("serviceLine") String serviceLine);
+			@Param("customerName") List<String> customerName,@Param("serviceLine") String serviceLine);
 }

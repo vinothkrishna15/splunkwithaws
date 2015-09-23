@@ -389,7 +389,7 @@ public class ReportsService {
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSM.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String CONNECT_COUNTRY_COND_PREFIX = "GCM.country in (";
+	private static final String COUNTRY_COND_PREFIX = "GCM.country in (";
 	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by GMT.display_geography";
 	private static final String CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX = " ))) as geo group by display_geography ";
 	private static final String CONNECT_GROUP_BY_SUBSP_COND_PREFIX = " ))) as geo group by display_sub_sp ";
@@ -398,9 +398,6 @@ public class ReportsService {
 	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between '";
 	private static final String BID_END_DATE_COND_C_PREFIX = " AND '";
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
-	
-	private static final String BID_END_DATE_COND_PREFIX = " AND '";
-	private static final String BID_OFFICE_GROUP_OWNEER_COND_PREFIX = " BIDGO.bid_office_group_owner in (";
 	
 
 	private static final String TARVSACT_GEO_COND_PREFIX = "GMT.geography in  (";
@@ -1438,12 +1435,12 @@ public class ReportsService {
 		return queryBuffer.toString();
 	}
 
-	public String getStringListWithSingleQuotes(List<String> quarterList) {
-		String quarters = Joiner.on("\',\'").join(quarterList);
-		if (!quarterList.isEmpty()) {
-			quarters = "\'" + quarters + "\'";
+	public String getStringListWithSingleQuotes(List<String> formattedList) {
+		String appendedString = Joiner.on("\',\'").join(formattedList);
+		if (!formattedList.isEmpty()) {
+			appendedString = "\'" + appendedString + "\'";
 		}
-		return quarters;
+		return appendedString;
 	}
 
 	private BigDecimal getTotalActualProjectedByUserPrivileges(
@@ -1944,7 +1941,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CONNECT_COUNTRY_COND_PREFIX);
+						IOU_COND_PREFIX, COUNTRY_COND_PREFIX);
 		// Get WHERE clause string
 		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
 				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
@@ -2395,82 +2392,64 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			addEmptyItemToListIfAll(country, countryList);
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case BDM:
-					userIds.add(userId);
-					connectList = connectRepository.findByConnectReport(
-							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds,  iouList,
-									geographyList, countryList, serviceLinesList);
-					getConnectSummaryDetailsByUserIds(userIds, fromDate,
-							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList, iouList,
-							geographyList, countryList, serviceLinesList);
-					break;
-				case BDM_SUPERVISOR:
-					userIds = userRepository
-							.getAllSubordinatesIdBySupervisorId(user
-									.getSupervisorUserId());
-					userIds.add(userId);
-					connectList = connectRepository.findByConnectReport(
-							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds, iouList,
-									geographyList, countryList, serviceLinesList);
-					getConnectSummaryDetailsByUserIds(userIds, fromDate,
-							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList, iouList,
-							geographyList, countryList, serviceLinesList);
-					break;
-				default:
-					if (geography.contains("All")
-							&& (iou.contains("All") && serviceLines
-									.contains("All"))
-							&& country.contains("All")) {
-						connectList = getConnectDetailsBasedOnUserPrivileges(fromDate, toDate, userId);
-						geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
-						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
-						subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
-
-					} else {
-						connectList = connectRepository.findByConnectReport(
-								new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime()), iouList,
+			// Validate user group, BDM's & BDM supervisor's are not
+			// authorized for this service
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+				userIds.add(userId);
+				connectList = connectRepository.findByConnectReport(
+						new Timestamp(fromDate.getTime()), new Timestamp(
+								toDate.getTime()), userIds,  iouList,
 								geographyList, countryList, serviceLinesList);
-						subSpConnectCountList = connectRepository
-								.findBySubSpConnectSummaryReport(
-										new Timestamp(fromDate.getTime()),
-										new Timestamp(toDate.getTime()), iouList,
-										geographyList, countryList, serviceLinesList);
-						geographyConnectCountList = connectRepository
-								.findByGeographyConnectSummaryReport(
-										new Timestamp(fromDate.getTime()),
-										new Timestamp(toDate.getTime()), iouList,
-										geographyList, countryList, serviceLinesList);
-						iouConnectCountList = connectRepository
-								.findByIouConnectSummaryReport(
-										new Timestamp(fromDate.getTime()),
-										new Timestamp(toDate.getTime()), iouList,
-										geographyList, countryList, serviceLinesList);
-					}
-					break;
+				getConnectSummaryDetailsByUserIds(userIds, fromDate,
+						toDate, subSpConnectCountList,
+						geographyConnectCountList, iouConnectCountList, iouList,
+						geographyList, countryList, serviceLinesList);
+				break;
+			case BDM_SUPERVISOR:
+				userIds = userRepository
+						.getAllSubordinatesIdBySupervisorId(user
+								.getSupervisorUserId());
+				userIds.add(userId);
+				connectList = connectRepository.findByConnectReport(
+						new Timestamp(fromDate.getTime()), new Timestamp(
+								toDate.getTime()), userIds, iouList,
+								geographyList, countryList, serviceLinesList);
+				getConnectSummaryDetailsByUserIds(userIds, fromDate,
+						toDate, subSpConnectCountList,
+						geographyConnectCountList, iouConnectCountList, iouList,
+						geographyList, countryList, serviceLinesList);
+				break;
+			default:
+				if (geography.contains("All") && (iou.contains("All") && serviceLines.contains("All"))&& country.contains("All")) {
+					connectList = getConnectDetailsBasedOnUserPrivileges(fromDate, toDate, userId);
+					geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
+					iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
+					subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
+
+				} else {
+					connectList = connectRepository.findByConnectReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
+							geographyList, countryList, serviceLinesList);
+					subSpConnectCountList = connectRepository.findBySubSpConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
+									geographyList, countryList, serviceLinesList);
+					geographyConnectCountList = connectRepository.findByGeographyConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
+									geographyList, countryList, serviceLinesList);
+					iouConnectCountList = connectRepository.findByIouConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
+									geographyList, countryList, serviceLinesList);
 				}
+				break;
+			}
 			} else {
 				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid User Group");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
 			}
 			if (connectList != null && subSpConnectCountList != null
 					&& geographyConnectCountList != null
 					&& iouConnectCountList != null) {
-				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary, Detailed");
-				getConnectSummaryReportExcel(month, quarter, year,
-						subSpConnectCountList, geographyConnectCountList,
+				connectDetailedReportService.getConnectTitlePage(workbook, geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary, Detailed");
+				getConnectSummaryReportExcel(month, quarter, year, subSpConnectCountList, geographyConnectCountList,
 						iouConnectCountList, country, fields, workbook);
-				getConnectDetailedReportInExcel(connectList, iouList,
-						geographyList, country, serviceLines, fields, workbook);
+				getConnectDetailedReportInExcel(connectList, iouList, geographyList, country, serviceLines, fields, workbook);
 			} else {
 				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
@@ -2480,8 +2459,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			byteOutPutStream.flush();
 			byteOutPutStream.close();
 			byte[] bytes = byteOutPutStream.toByteArray();
-			InputStreamResource inputStreamResource = new InputStreamResource(
-					new ByteArrayInputStream(bytes));
+			InputStreamResource inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
 			return inputStreamResource;
 		}
 	}
@@ -2510,57 +2488,100 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		UserT user = userService.findByUserId(userId);
 		if (user == null) {
 			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
 		} else {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case BDM:
-				case BDM_SUPERVISOR:
-					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
-				default:
-					if (geography.contains("All")
-							&& (iou.contains("All") && serviceLines
-									.contains("All"))
-							&& country.contains("All")) {
-						bidDetails = getBidDetailsBasedOnUserPrivileges(
-								startDate, endDate, userId, bidOwner);
-					} else {
-						if (bidOwner.size() == 0) {
-							logger.debug("bidOwner is Empty");
-							bidOwner.add("");
-						}
-						addEmptyItemToListIfGeo(geography, geographyList);
-						addEmptyItemToListIfAll(iou, iouList);
-						addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-						addEmptyItemToListIfAll(country, countryList);
-						bidDetails = bidDetailsTRepository
-								.findByBidDetailsReport(startDate, endDate,
-										bidOwner, iouList, geographyList,
-										countryList, serviceLinesList);
-					}
-					bidDetailsList = beaconConverterService
-							.convertBidDetailsCurrency(bidDetails, currency);
-					if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-						logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
-						throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
-					}
+			// Validate user group, BDM's & BDM supervisor's are not
+			// authorized for this service
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case BDM_SUPERVISOR:
+				logger.error("User is not authorized to access this service");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
+			default:
+				addEmptyItemToListIfGeo(geography, geographyList);
+				addEmptyItemToListIfAll(iou, iouList);
+				addEmptyItemToListIfAll(serviceLines, serviceLinesList);
+				addEmptyItemToListIfAll(country, countryList);
+				bidDetails = getBidDetailsBasedOnUserPrivileges(startDate, endDate, userId, bidOwner, geographyList, iouList, serviceLinesList, countryList);
+				bidDetailsList = beaconConverterService.convertBidDetailsCurrency(bidDetails, currency);
+				if (bidDetailsList == null || bidDetailsList.isEmpty()) {
+					logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
 				}
+			}
 			} else {
 				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid User Group");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
 			}
 		}
 		buildBidReportService.getBidReportTitlePage(workbook, geography, iou,
-				serviceLines, userId, tillDate, country, currency, fromMonth, toMonth, "Detailed");
+				serviceLines, userId, tillDate, country, currency, fromMonth, toMonth, "Detailed", year);
 		
 		return buildBidReportService.getBidDetailsReport(bidDetailsList, fields,
 				currency, workbook);
+	}
+
+	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(Date startDate, Date endDate, String userId, List<String> bidOwner,
+			List<String> geographyList, List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
+		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
+		// Form the native top revenue query string
+//		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner);
+		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner, geographyList, iouList, serviceLinesList, countryList);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query bidDetailedReportQuery = entityManager.createNativeQuery(queryString);
+		List<String> resultList = bidDetailedReportQuery.getResultList();
+		// Retrieve connect details
+		List<BidDetailsT> bidDetailsList = null;
+		if ((resultList != null) && !(resultList.isEmpty())) {
+			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
+		}
+		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
+			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
+		}
+		return bidDetailsList;
+	}
+
+	private String getBidDetailedQueryString(String userId, Date startDate, Date endDate, List<String> bidOwner, List<String> geographyList,
+			List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(BID_REPORT_QUERY_PREFIX);
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
+		// Get WHERE clause string
+		queryBuffer.append(BID_START_DATE_COND_PREFIX
+				+ new Timestamp(startDate.getTime()) + Constants.SINGLE_QUOTE);
+		queryBuffer.append(BID_END_DATE_COND_C_PREFIX
+				+ new Timestamp(endDate.getTime()) + Constants.SINGLE_QUOTE);
+		if (bidOwner.isEmpty() || bidOwner.size() == 0) {
+			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + "''" + ")"
+					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
+		} else {
+			String bidOwners = getStringListWithSingleQuotes(bidOwner);
+			queryBuffer.append(Constants.AND_CLAUSE
+					+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners + "))");
+		}
+		if(!geographyList.contains("") && geographyList!=null){
+			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +getStringListWithSingleQuotes(geographyList)+ Constants.RIGHT_PARANTHESIS);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			queryBuffer.append(Constants.AND_CLAUSE + IOU_COND_PREFIX +getStringListWithSingleQuotes(iouList)+ Constants.RIGHT_PARANTHESIS);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +getStringListWithSingleQuotes(serviceLinesList)+ Constants.RIGHT_PARANTHESIS);
+		}
+		if(!countryList.contains("") && countryList!=null){
+			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX +getStringListWithSingleQuotes(countryList)+ Constants.RIGHT_PARANTHESIS);
+		}
+		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
 	}
 
 	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
@@ -2771,7 +2792,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					}
 					
 					
-					//
 					
 					// Anticipating or Pipeline Service Lines
 					

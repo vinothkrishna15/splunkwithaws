@@ -211,7 +211,7 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User does not have access to view this information");
 		return performanceReportService.getTargetVsActualRevenueSummary(
-				financialYear, quarter, "", "","", "", customerName, currency);
+				financialYear, quarter, "", "","", "", customerName, currency, "");
 	}
 
 	public List<CustomerMasterT> findByNameContaining(String nameWith)

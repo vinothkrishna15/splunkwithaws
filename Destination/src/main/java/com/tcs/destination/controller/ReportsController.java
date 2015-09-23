@@ -1,14 +1,11 @@
 package com.tcs.destination.controller;
 
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,11 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualDetailed;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BuildExcelTargetVsActualDetailedReportService;
 import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.service.ReportsUploadService;
@@ -134,12 +128,12 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		InputStreamResource connectDetailedReportExcel = reportsService.getConnectDetailedReport(month, quarter, year, iou,geography, country, serviceLines,userId,fields);
+		InputStreamResource connectDetailedReportExcel = reportsService.getConnectDetailedReport(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 	    String todaysDate=DateUtils.getCurrentDate();
@@ -157,14 +151,14 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		InputStreamResource connectSummaryReportExcel = reportsService
 				.connectSummaryReport(month, quarter, year, iou, geography,
-						country, serviceLines, userId, fields);
+						country, serviceline, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
 		logger.debug("Download Header - Attachment : "+ "connectSummaryReport_"+todaysDate+".xlsx");
@@ -183,12 +177,12 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		InputStreamResource connectReportExcel = reportsService.getConnectReports(month, quarter, year, iou,geography, country, serviceLines,userId,fields);
+		InputStreamResource connectReportExcel = reportsService.getConnectReports(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 	    String todaysDate=DateUtils.getCurrentDate();
@@ -208,13 +202,13 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside ReportController /report/bid/detailed GET");
-		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceLines,userId,fields);
+		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
 		logger.debug("Download Header - Attachment : " + "bidDetailsReport_"+todaysDate+".xlsx");
@@ -232,14 +226,14 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
 			@RequestParam(value = "salesStage") List<Integer> salesStage,
 			@RequestParam(value = "opportunityOwnerIds",defaultValue = "") List<String> opportunityOwnerIds,
 			@RequestParam(value = "supervisorId") String supervisorId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		InputStreamResource inputStreamResource=reportsService.getBdmDetailedReport(from,to,geography,country,currency,serviceLines,salesStage,opportunityOwnerIds,supervisorId);
+		InputStreamResource inputStreamResource=reportsService.getBdmDetailedReport(from,to,geography,country,currency,serviceline,salesStage,opportunityOwnerIds,supervisorId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		  respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 		  String toDate=DateUtils.getCurrentDate();
@@ -262,7 +256,7 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
@@ -270,7 +264,7 @@ public class ReportsController {
 			throws Exception {
 
 		String toDate=DateUtils.getCurrentDate();
-		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceLines,salesStage, currency,userId,fields,toDate);
+		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceline,salesStage, currency,userId,fields,toDate);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
 	    respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
@@ -287,7 +281,7 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage",defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -295,7 +289,7 @@ public class ReportsController {
 			throws Exception {
 
 	InputStreamResource inputStreamResource= reportsService.getOpportunitySummaryReport(month, year, quarter, geography,
-			country, iou, currency, serviceLines, salesStage,userId);
+			country, iou, currency, serviceline, salesStage,userId);
 	HttpHeaders respHeaders = new HttpHeaders();
 	String toDate=DateUtils.getCurrentDate();
 	  respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
@@ -312,14 +306,14 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "serviceLines", defaultValue = "All") List<String> serviceLines,
+			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
  		InputStreamResource inputStreamResource=reportsService.getOpportunityBothReport(month, year, quarter, geography,
-				country, iou, currency, serviceLines, salesStage,userId,fields);
+				country, iou, currency, serviceline, salesStage,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 	    String toDate=DateUtils.getCurrentDate();
