@@ -47,7 +47,7 @@ public class ContactController {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@PathVariable("id") String contactId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -71,7 +71,7 @@ public class ContactController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsWithName(
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -101,7 +101,7 @@ public class ContactController {
 
 	@RequestMapping(value = "/contacttype", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsByContactType(
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
