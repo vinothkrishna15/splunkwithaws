@@ -49,8 +49,9 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
 		List<TargetVsActualResponse> response = perfService
-				.getTargetVsActualRevenueSummary(financialYear, quarter,displayGeography,
-						geography, serviceLine, iou, customerName, currency);
+				.getTargetVsActualRevenueSummary(financialYear, quarter,
+						displayGeography, geography, serviceLine, iou,
+						customerName, currency);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						response), HttpStatus.OK);
@@ -62,9 +63,9 @@ public class PerformanceReportController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "serviceLine", defaultValue = "") String serviceLine,
+			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
+			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
-			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -72,18 +73,11 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<IOUReport> iouList = null;
-		if (pipelines) {
-			if (wins) {
-				throw new DestinationException(
-						HttpStatus.BAD_REQUEST,
-						"There cannot be any Opportunity which is both in Pipeline and Won. Kindly check the request");
-			}
+		if (salesStageFrom < salesStageTo) {
 			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
-					geography, serviceLine, currency, true);
+					geography, serviceLine, currency, salesStageFrom,
+					salesStageTo);
 
-		} else if (wins) {
-			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
-					geography, serviceLine, currency, false);
 		} else {
 			iouList = perfService.getRevenuesByIOU(financialYear, quarter,
 					geography, serviceLine, currency);
@@ -101,8 +95,8 @@ public class PerformanceReportController {
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
-			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
+			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
+			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -110,21 +104,14 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<SubSpReport> subSpList = null;
-		if (pipelines) {
-			if (wins) {
-				throw new DestinationException(
-						HttpStatus.BAD_REQUEST,
-						"There cannot be any Opportunity which is both in Pipeline and Won. Kindly check the request");
-			}
+		if (salesStageFrom < salesStageTo) {
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
-					quarter,displayGeography, geography, iou, currency, true);
+					quarter, displayGeography, geography, iou, currency,
+					salesStageFrom, salesStageTo);
 
-		} else if (wins) {
-			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
-					quarter,displayGeography, geography, iou, currency, false);
 		} else {
 			subSpList = perfService.getRevenuesBySubSp(financialYear, quarter,
-					displayGeography,geography, customerName, iou, currency);
+					displayGeography, geography, customerName, iou, currency);
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				subSpList);
@@ -137,36 +124,24 @@ public class PerformanceReportController {
 			@RequestParam(value = "displayGeography", defaultValue = "") String displayGeography,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
+			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
+			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
-			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		List<GeographyReport> geoList = null;
-		if (displayGeography.equals("")&&geography.isEmpty()) {
+		if (displayGeography.equals("") && geography.isEmpty()) {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
-
-			if (pipelines) {
-				if (wins) {
-					throw new DestinationException(
-							HttpStatus.BAD_REQUEST,
-							"There cannot be any Opportunity which is both in Pipeline and Won. Kindly check the request");
-				}
+			if (salesStageFrom < salesStageTo) {
 				geoList = perfService.getOpportunitiesByDispGeography(
 						financialYear, quarter, serviceLine, iou, currency,
-						true);
-
-			} else if (wins) {
-				geoList = perfService.getOpportunitiesByDispGeography(
-						financialYear, quarter, serviceLine, iou, currency,
-						false);
+						salesStageFrom, salesStageTo);
 			} else {
-
 				geoList = perfService.getRevenuesByDispGeography(financialYear,
 						quarter, customerName, serviceLine, iou, currency);
 			}
@@ -175,24 +150,15 @@ public class PerformanceReportController {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
-			if (pipelines) {
-				if (wins) {
-					throw new DestinationException(
-							HttpStatus.BAD_REQUEST,
-							"There cannot be any Opportunity which is both in Pipeline and Won. Kindly check the request");
-				}
+			if (salesStageFrom < salesStageTo) {
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency, true);
-
-			} else if (wins) {
-				geoList = perfService.getOpportunitiesBySubGeography(
-						financialYear, quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency, false);
+						displayGeography, geography, currency, salesStageFrom,
+						salesStageTo);
 			} else {
 				geoList = perfService.getRevenuesBySubGeography(financialYear,
 						quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency);
+						displayGeography, geography, currency);
 			}
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,

@@ -344,6 +344,8 @@ public class PerformanceReportService {
 
 		List<SubSpReport> subSpRevenuesList = convertMaptoSubSpList(subSpMap,
 				currency);
+		if(subSpRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 
 		return subSpRevenuesList;
 	}
@@ -386,6 +388,9 @@ public class PerformanceReportService {
 
 		List<GeographyReport> geoRevenuesList = convertMaptoGeographyList(
 				dispGeoMap, currency);
+		
+		if(geoRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 
 		return geoRevenuesList;
 	}
@@ -440,6 +445,9 @@ public class PerformanceReportService {
 
 		List<GeographyReport> geoRevenuesList = convertMaptoGeographyList(
 				dispGeoMap, currency);
+		
+		if(geoRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 
 		return geoRevenuesList;
 	}
@@ -583,20 +591,14 @@ public class PerformanceReportService {
 
 	public List<IOUReport> getOpportunitiesByIOU(String financialYear,
 			String quarter, String geography, String serviceLine,
-			String currency, boolean isPipeline) throws Exception {
+			String currency, int salesStageFrom,int salesStageTo) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<IOUReport> iouReports = new ArrayList<IOUReport>();
 		List<Object[]> opportunitiesByIOU = null;
-		if (isPipeline) {
 			opportunitiesByIOU = opportunityRepository
 					.findPipelinePerformanceByIOU(geography, serviceLine,
-							currency, fromDate, toDate);
-		} else {
-			opportunitiesByIOU = opportunityRepository
-					.findWinsPerformanceByIOU(geography, serviceLine, currency,
-							fromDate, toDate);
-		}
+							currency, fromDate, toDate,salesStageFrom,salesStageTo);
 		if (opportunitiesByIOU != null) {
 			for (Object[] opportunityByIOU : opportunitiesByIOU) {
 				IOUReport iouReport = new IOUReport();
@@ -618,22 +620,18 @@ public class PerformanceReportService {
 
 	public List<SubSpReport> getOpportunitiesBySubSp(String financialYear,
 			String quarter,String displayGeography, String geography, String iou, String currency,
-			boolean isPipeline) throws Exception {
+			int salesStageFrom,int salesStageTo) throws Exception {
 		if(!quarter.isEmpty())
 			financialYear="";
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<SubSpReport> subSpReports = new ArrayList<SubSpReport>();
 		List<Object[]> opportunitiesBySubSpReports = null;
-		if (isPipeline) {
+
 			opportunitiesBySubSpReports = opportunityRepository
 					.findPipelinePerformanceByServiceLine(displayGeography,geography, iou,
-							currency);
-		} else {
-			opportunitiesBySubSpReports = opportunityRepository
-					.findWinsPerformanceByServiceLine(displayGeography,geography, iou, currency,
-							fromDate, toDate);
-		}
+							currency,salesStageFrom,salesStageTo);
+		
 		if (opportunitiesBySubSpReports != null) {
 			for (Object[] opportunityBySubSp : opportunitiesBySubSpReports) {
 				SubSpReport subSpReport = new SubSpReport();
@@ -657,20 +655,14 @@ public class PerformanceReportService {
 
 	public List<GeographyReport> getOpportunitiesByDispGeography(
 			String financialYear, String quarter, String subSp, String iou,
-			String currency, boolean isPipeline) throws Exception {
+			String currency,int salesStageFrom, int salesStageTo) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
-		if (isPipeline) {
 			opportunitiesByGeographyReports = opportunityRepository
 					.findPipelinePerformanceByGeography(subSp, iou, currency,
-							fromDate, toDate);
-		} else {
-			opportunitiesByGeographyReports = opportunityRepository
-					.findWinsPerformanceByGeography(subSp, iou, currency,
-							fromDate, toDate);
-		}
+							fromDate, toDate,salesStageFrom,salesStageTo);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
@@ -686,43 +678,32 @@ public class PerformanceReportService {
 			}
 		}
 
+		if(geographyReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 		return geographyReports;
 	}
 
 	public List<GeographyReport> getOpportunitiesBySubGeography(
 			String financialYear, String quarter, String customerName,
 			String serviceLine, String iou, String displayGeography,
-			String geography, String currency, boolean isPipeline)
+			String geography, String currency, int salesStageFrom, int salesStageTo)
 			throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
-		if (isPipeline) {
 			if (geography.isEmpty()) {
 				opportunitiesByGeographyReports = opportunityRepository
 						.findPipelinePerformanceBySubGeography(customerName,
 								serviceLine, iou, displayGeography, currency,
-								fromDate, toDate);
+								fromDate, toDate,salesStageFrom,salesStageTo);
 			} else {
 				opportunitiesByGeographyReports = opportunityRepository
 						.findPipelinePerformanceByCountry(customerName,
 								serviceLine, iou, geography, currency,
-								fromDate, toDate);
+								fromDate, toDate,salesStageFrom,salesStageTo);
 			}
-		} else {
-			if (geography.isEmpty()) {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findWinsPerformanceBySubGeography(customerName,
-								serviceLine, iou, displayGeography, currency,
-								fromDate, toDate);
-			} else {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findWinsPerformanceByCountry(customerName,
-								serviceLine, iou, geography, currency,
-								fromDate, toDate);
-			}
-		}
+		
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
@@ -737,6 +718,9 @@ public class PerformanceReportService {
 				geographyReports.add(geographyReport);
 			}
 		}
+		
+		if(geographyReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
 
 		return geographyReports;
 	}
