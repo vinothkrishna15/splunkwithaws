@@ -66,4 +66,7 @@ public interface CustomerRepository extends
 	 @Query(value ="select customer_name, customer_id from customer_master_t", nativeQuery = true)
 	 List<Object[]> getNameAndId();
 
+	 @Query(value ="select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
+	 List<String> findByGroupCustomerName(String groupCustName);
+
 }

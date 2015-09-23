@@ -44,13 +44,14 @@ public class PerformanceReportController {
 			@RequestParam(value = "serviceline", defaultValue = "", required = false) String serviceLine,
 			@RequestParam(value = "iou", defaultValue = "", required = false) String iou,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
+			@RequestParam(value = "groupCustomer", defaultValue = "", required = false) String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
 		List<TargetVsActualResponse> response = perfService
 				.getTargetVsActualRevenueSummary(financialYear, quarter,displayGeography,
-						geography, serviceLine, iou, customerName, currency);
+						geography, serviceLine, iou, customerName, currency, groupCustomer);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						response), HttpStatus.OK);
@@ -91,7 +92,7 @@ public class PerformanceReportController {
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				iouList);
 	}
-
+	
 	@RequestMapping(method = RequestMethod.GET, value = "/subsp")
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -100,6 +101,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
@@ -124,7 +126,7 @@ public class PerformanceReportController {
 					quarter,displayGeography, geography, iou, currency, false);
 		} else {
 			subSpList = perfService.getRevenuesBySubSp(financialYear, quarter,
-					displayGeography,geography, customerName, iou, currency);
+					displayGeography,geography, customerName, iou, currency, groupCustomer);
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				subSpList);
@@ -139,6 +141,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
 			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
@@ -168,7 +171,7 @@ public class PerformanceReportController {
 			} else {
 
 				geoList = perfService.getRevenuesByDispGeography(financialYear,
-						quarter, customerName, serviceLine, iou, currency);
+						quarter, customerName, serviceLine, iou, currency, groupCustomer);
 			}
 
 		} else {
@@ -183,16 +186,16 @@ public class PerformanceReportController {
 				}
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency, true);
+						displayGeography,geography, currency, true, groupCustomer);
 
 			} else if (wins) {
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency, false);
+						displayGeography,geography, currency, false, groupCustomer);
 			} else {
 				geoList = perfService.getRevenuesBySubGeography(financialYear,
 						quarter, customerName, serviceLine, iou,
-						displayGeography,geography, currency);
+						displayGeography,geography, currency, groupCustomer);
 			}
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
@@ -208,12 +211,14 @@ public class PerformanceReportController {
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
+			@RequestParam(value = "customer", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		ReportsOpportunity reportsOpportunity = perfService.getOpportunity(
 				financialYear, quarter, geography, iou, serviceLine, currency,
-				pipelines);
+				pipelines, customerName, groupCustomer);
 		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 				reportsOpportunity);
 
@@ -230,6 +235,8 @@ public class PerformanceReportController {
 			@RequestParam(value = "stageto", defaultValue = "8") int salesStageTo,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "count", defaultValue = "3") int count,
+			@RequestParam(value = "customer", defaultValue = "") String customerName,
+			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -250,7 +257,7 @@ public class PerformanceReportController {
 		}
 		List<OpportunityT> oppList = perfService.getTopOpportunities(currency,
 				geography, salesStageFrom, salesStageTo, serviceLine, iou,
-				startDate, endDate, count);
+				startDate, endDate, count, customerName, groupCustomer);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				oppList);
 

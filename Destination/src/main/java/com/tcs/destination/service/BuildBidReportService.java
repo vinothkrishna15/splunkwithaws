@@ -405,7 +405,7 @@ public class BuildBidReportService {
 	}
 
 	public void getBidReportTitlePage(SXSSFWorkbook workbook, List<String> geography, List<String> iou,
-			List<String> serviceLines, String userId, String tillDate, List<String> country, List<String> currency, String fromMonth, String toMonth, String reportType) {
+			List<String> serviceLines, String userId, String tillDate, List<String> country, List<String> currency, String fromMonth, String toMonth, String reportType, String year) {
 		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,
@@ -415,7 +415,7 @@ public class BuildBidReportService {
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
 		SXSSFRow row = null;
-		
+		String period = year;
 		row = (SXSSFRow) spreadsheet.createRow(4);
 		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 10));
 		row.createCell(4).setCellValue("Bid report as on " + tillDate);
@@ -431,7 +431,9 @@ public class BuildBidReportService {
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 10, dataRow);
 		row = (SXSSFRow) spreadsheet.createRow(11);
 		row.createCell(4).setCellValue("Period");
-		String period=ExcelUtils.getPeriod(fromMonth, toMonth);
+		if(year.length()==0){
+		period=ExcelUtils.getPeriod(fromMonth, toMonth);
+		}
 		row.createCell(5).setCellValue(period);
 		
 		////
@@ -446,6 +448,7 @@ public class BuildBidReportService {
 		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
+			userAccessField = ReportConstants.GEO;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
