@@ -5,7 +5,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,14 +17,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ContactService;
+import com.tcs.destination.service.ContactUploadService;
+import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -37,6 +45,12 @@ public class ContactController {
 
 	@Autowired
 	ContactService contactService;
+	
+	@Autowired
+	ContactUploadService contactUploadService;
+	
+	@Autowired
+	UploadErrorReport uploadErrorReport;
 
 	/**
 	 * This method is used to find contact details for the given contact id.
@@ -176,6 +190,40 @@ public class ContactController {
 				.findContactRoles();
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				contactRole);
+	}
+	
+	/**
+	 * This controller uplaads the Contact Sheets (Partner and Customer) to the database
+	 * 
+	 * @param userId
+	 * @param file
+	 * @param contactCategory
+	 * @param fields
+	 * @param view
+	 * @return ResponseEntity<InputStreamResource>
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadContacts(
+			@RequestParam("userId") String userId,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("contactCategory") String contactCategory,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		
+		UploadStatusDTO status = contactUploadService.upload(file, userId, contactCategory);
+		if (status != null) {
+			errorDetailsDTOs = status.getListOfErrors();
+		}
+		
+		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment","contact_upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
 
 }
