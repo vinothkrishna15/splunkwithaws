@@ -11,10 +11,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.CollaborationCommentT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotificationEventFieldsT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -118,6 +120,19 @@ public class NotificationsLazyLoader {
 					} 
 					break;
 				}
+				case COMMENT:
+					CollaborationCommentT collaborationCommentT=null;
+					if (em != null) {
+						logger.debug("Loading Comments from database using entity manager for Asynchronous Thread");
+						collaborationCommentT = em.find(CollaborationCommentT.class, entityId);
+						em.refresh(collaborationCommentT);
+					} else {
+						logger.debug("Loading Comments from database using JPA Repository for Main Thread");
+						collaborationCommentT = ((CollaborationCommentsRepository) crudRepository).findOne(entityId);
+					}
+					if(collaborationCommentT!=null)
+						return collaborationCommentT;
+					break;
 				default:
 					logger.error("Invalid Entity Type: " + entityType);
 					throw new Exception("Invalid Entity Type: " + entityType);

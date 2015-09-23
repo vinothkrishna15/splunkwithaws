@@ -128,7 +128,7 @@ public class CustomerController {
 				customer);
 	}
 	
-	@RequestMapping(value ="/groupBasedOnPrivilege", method = RequestMethod.GET)
+	@RequestMapping(value ="/privilege/group", method = RequestMethod.GET)
 	public @ResponseBody String findByGroupCustomerNameBasedOnPrivilege(
 			@RequestParam("userId") String userId,
 			@RequestParam("nameWith") String nameWith,
