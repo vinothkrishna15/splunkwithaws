@@ -58,15 +58,17 @@ public class UploadErrorReport {
 		row.getCell(1).setCellStyle(headerSyle);
 		spreadSheet.autoSizeColumn(1);
 		currentRow++;
-		for(UploadServiceErrorDetailsDTO upErorDto : errorDetailsDTOs){
-			row = spreadSheet.createRow((short) currentRow);
-			row.createCell(0).setCellValue(upErorDto.getRowNumber());
-			row.getCell(0).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(0);
-			row.createCell(1).setCellValue(upErorDto.getMessage());
-			row.getCell(1).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(1);
-			currentRow++;
+		if (errorDetailsDTOs != null) {
+			for (UploadServiceErrorDetailsDTO upErorDto : errorDetailsDTOs) {
+				row = spreadSheet.createRow((short) currentRow);
+				row.createCell(0).setCellValue(upErorDto.getRowNumber());
+				row.getCell(0).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(0);
+				row.createCell(1).setCellValue(upErorDto.getMessage());
+				row.getCell(1).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(1);
+				currentRow++;
+			}
 		}
 		
 	}

@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.NotificationEventGroupMappingT;
+import com.tcs.destination.bean.NotificationSettingsEventMappingT;
+import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserNotificationsT;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
@@ -64,6 +67,28 @@ public class UserNotificationsService {
 		if (userNotificationsTs == null || userNotificationsTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Notification is available.");
+		
+		for(UserNotificationsT notification : userNotificationsTs){
+			NotificationSettingsEventMappingT notificationSettingsEventMappingT = 
+					notification.getNotificationSettingsEventMappingT();
+
+			if(notificationSettingsEventMappingT != null){
+				List<NotificationEventGroupMappingT> notificationEventGroupMappingTs =
+						notificationSettingsEventMappingT.getNotificationEventGroupMappingTs();
+				if(notificationEventGroupMappingTs != null && !notificationEventGroupMappingTs.isEmpty()){
+					for(NotificationEventGroupMappingT 
+							notificationEventGroupMappingT : notificationEventGroupMappingTs){
+						NotificationSettingsGroupMappingT notificationSettingsGroupMappingT = 
+								notificationEventGroupMappingT.getNotificationSettingsGroupMappingT();
+						if(notificationSettingsGroupMappingT != null){
+							notificationSettingsGroupMappingT.setNotificationEventGroupMappingTs(null);
+						}
+
+					}
+				}
+			}
+		}
+		
 		return userNotificationsTs;
 
 	}
