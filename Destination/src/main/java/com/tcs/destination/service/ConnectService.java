@@ -16,6 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.CityMapping;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
@@ -34,6 +35,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
+import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
@@ -136,6 +138,9 @@ public class ConnectService {
 	
 	@Autowired
 	NotesTRepository notesRepository;
+	
+	@Autowired
+	CityMappingRepository cityMappingRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -430,6 +435,37 @@ public class ConnectService {
 			logger.error("BAD_REQUEST: ModifiedBy is requried");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
+		}
+		
+		validateAndUpdateCityMapping(connect);
+	}
+
+	private void validateAndUpdateCityMapping(ConnectT connect)
+			throws DestinationException {
+		String location = connect.getLocation();
+		CityMapping cityMapping = connect.getCityMapping();
+		if(cityMapping != null){
+			String city = cityMapping.getCity();
+			if(!city.equalsIgnoreCase(location)){
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Location mismatch with city Mapping");
+			}
+			CityMapping cityMappingDB = cityMappingRepository.findOne(city);
+			//CityMapping cityMappingDB = cityMappingRepository.getCityByCityName(city.toUpperCase());
+			if(cityMappingDB == null){
+				String latitude = cityMapping.getLatitude();
+				if(StringUtils.isEmpty(latitude)){
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"latitude is required");
+				}		
+				String longitude = cityMapping.getLongitude();
+				if(StringUtils.isEmpty(longitude)){
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"longitude is required");
+				}
+				
+				cityMappingRepository.save(cityMapping);
+			}
 		}
 	}
 
