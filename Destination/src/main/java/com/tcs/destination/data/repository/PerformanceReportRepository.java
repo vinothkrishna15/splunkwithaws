@@ -66,7 +66,7 @@ public interface PerformanceReportRepository extends
 			+ " where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " group by GMT.geography"
 			+ " order by actualRevenue desc) Result on GMT.geography = Result.displayGeography"
-			+ " where GMT.display_geography = ?6 order by revenue desc", nativeQuery = true)
+			+ " where GMT.display_geography = (:geography) order by revenue desc", nativeQuery = true)
 	public List<Object[]> getRevenuesBySubGeo(@Param("financialYear") String financialYear,
 			@Param("quarter") String quarter, @Param("customer") List<String> customer,
 			@Param("subSp") String subSp, @Param("iou") String iou,
