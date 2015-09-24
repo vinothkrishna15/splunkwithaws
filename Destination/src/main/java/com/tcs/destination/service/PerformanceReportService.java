@@ -294,6 +294,9 @@ public class PerformanceReportService {
 
 		List<IOUReport> iouRevenuesList = convertMaptoIOUList(iouMap, currency);
 
+		if (iouRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 		return iouRevenuesList;
 	}
 
@@ -703,6 +706,9 @@ public class PerformanceReportService {
 			}
 
 		}
+		if (iouReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return iouReports;
 	}

@@ -73,7 +73,7 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<IOUReport> iouList = null;
-		if (salesStageFrom < salesStageTo) {
+		if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
 			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
 					geography, serviceLine, currency, salesStageFrom,
 					salesStageTo);
@@ -105,7 +105,7 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<SubSpReport> subSpList = null;
-		if (salesStageFrom < salesStageTo) {
+		if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
 					quarter, displayGeography, geography, iou, currency,
 					salesStageFrom, salesStageTo);
@@ -139,7 +139,7 @@ public class PerformanceReportController {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
-			if (salesStageFrom < salesStageTo) {
+			if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
 				geoList = perfService.getOpportunitiesByDispGeography(
 						financialYear, quarter, serviceLine, iou, currency,
 						salesStageFrom, salesStageTo);
@@ -152,7 +152,7 @@ public class PerformanceReportController {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
-			if (salesStageFrom < salesStageTo) {
+			if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
 						displayGeography, geography, currency, salesStageFrom,
