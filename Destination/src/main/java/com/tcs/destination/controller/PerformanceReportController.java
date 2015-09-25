@@ -171,7 +171,7 @@ public class PerformanceReportController {
 	public @ResponseBody String getOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
