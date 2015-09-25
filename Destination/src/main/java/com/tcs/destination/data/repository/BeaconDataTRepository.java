@@ -15,15 +15,14 @@ public interface BeaconDataTRepository extends
 
 	@Query(value = "select BDT.quarter, case when sum(BDT.target) is not null then sum(BDT.target) else '0.0' end as target from beacon_data_t BDT "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
-			+ "join beacon_customer_mapping_t BCMT on (BDT.beacon_customer_name = BCMT.beacon_customer_name and BDT.beacon_geography = BCMT.customer_geography) and (BCMT.customer_name in (:customerName) or ('') in (:customerName)) "
+			+ "join beacon_customer_mapping_t BCMT on (BDT.beacon_customer_name = BCMT.beacon_customer_name and BDT.beacon_geography = BCMT.customer_geography and BDT.beacon_iou = BCMT.beacon_iou) and (BCMT.customer_name in (:customerName) or ('') in (:customerName)) "
 			+ "join geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BCMT.customer_geography = (:geography) or (:geography)= '') and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
 			+ "where BDT.financial_year = (:financialYear) and (BDT.quarter = (:quarter) or (:quarter) = '') group by BDT.quarter order by BDT.quarter asc", nativeQuery = true)
 	List<Object[]> findTargetRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,@Param("customerName") List<String> customerName);
 
 	@Query(value = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
-			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
-			+ "and BCMT.customer_geography = BDT.beacon_geography "
+			+ "JOIN beacon_customer_mapping_t BCMT on (BCMT.beacon_customer_name=BDT.beacon_customer_name and BCMT.customer_geography = BDT.beacon_geography and BDT.beacon_iou = BCMT.beacon_iou) "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BDT.beacon_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where BDT.quarter in (:quarterList) and BCMT.customer_name not like 'UNKNOWN%' group by BCMT.customer_name,BDT.quarter", nativeQuery = true)
@@ -42,7 +41,7 @@ public interface BeaconDataTRepository extends
 			@Param("quarterList") List<String> quarterList);
 	
 	@Query(value = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
-			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN beacon_customer_mapping_t BCMT on (BCMT.beacon_customer_name = BDT.beacon_customer_name and BCMT.customer_geography = BDT.beacon_geography and BDT.beacon_iou = BCMT.beacon_iou)"
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BDT.beacon_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where BDT.quarter in (:quarterList) "
@@ -62,7 +61,7 @@ public interface BeaconDataTRepository extends
 //	public Object[][] getGeographyAndIouByCustomer(String customerName);
 	
 	@Query(value = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
-			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN beacon_customer_mapping_t BCMT on (BCMT.beacon_customer_name=BDT.beacon_customer_name and BCMT.customer_geography = BDT.beacon_geography and BDT.beacon_iou = BCMT.beacon_iou) "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BDT.beacon_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where BDT.quarter in (:quarterList) "
