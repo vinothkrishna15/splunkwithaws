@@ -43,7 +43,7 @@ public class NotificationSettingsGroupMappingT implements Serializable {
 	private String groupDescription;
 
 	//bi-directional many-to-one association to NotificationEventGroupMappingT
-	@OrderBy("event_group_mapping_id DESC")
+	@OrderBy("event_group_mapping_id ASC")
 	@OneToMany(mappedBy="notificationSettingsGroupMappingT")
 	private List<NotificationEventGroupMappingT> notificationEventGroupMappingTs;
 
