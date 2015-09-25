@@ -16,7 +16,7 @@ public interface BeaconDataTRepository extends
 	@Query(value = "select BDT.quarter, case when sum(BDT.target) is not null then sum(BDT.target) else '0.0' end as target from beacon_data_t BDT "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
 			+ "join beacon_customer_mapping_t BCMT on (BDT.beacon_customer_name = BCMT.beacon_customer_name and BDT.beacon_geography = BCMT.customer_geography) and (BCMT.customer_name in (:customerName) or ('') in (:customerName)) "
-			+ "join geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BCMT.customer_geography = (:geography) or (:geography)= '') and (GMT.display_geography=(:displayGeography))"
+			+ "join geography_mapping_t GMT on BDT.beacon_geography = GMT.geography and (BCMT.customer_geography = (:geography) or (:geography)= '') and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
 			+ "where BDT.financial_year = (:financialYear) and (BDT.quarter = (:quarter) or (:quarter) = '') group by BDT.quarter order by BDT.quarter asc", nativeQuery = true)
 	List<Object[]> findTargetRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,@Param("customerName") List<String> customerName);
