@@ -1,5 +1,8 @@
 package com.tcs.destination.data.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +17,6 @@ public interface BeaconConvertorRepository extends CrudRepository<BeaconConverto
 	
 	BeaconConvertorMappingT findByCurrencyName(String currencyname);
 
+	@Query(value="select currencyName, conversionRate from BeaconConvertorMappingT")
+	List<Object[]> getCurrencyNameAndRate();
 }

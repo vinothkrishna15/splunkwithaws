@@ -115,28 +115,8 @@ public class BuildOpportunityReportService {
 		List<String> userIds = new ArrayList<String>();
 		List<OpportunityT> opportunities = new ArrayList<OpportunityT>();
 
-		if (year.isEmpty() && quarter.isEmpty() && month.isEmpty()) {
-			List<OpportunityT> oppList = opportunityRepository.getAllYearInDetailed();
-			if (oppList.size() != 0) {
-			String[] fromYear = oppList.get(0).getDealClosureDate().toString()
-					.split("-");
-			String[] toYear = oppList.get(oppList.size() - 1)
-					.getDealClosureDate().toString().split("-");
-			int startingYear = ExcelUtils.getStartingAndEndingYear(fromYear,
-					true);
-			int endingYear = ExcelUtils.getStartingAndEndingYear(toYear, false);
-			String endingFinancialYear = (endingYear + "");
-			year = "FY'" + startingYear + "-"
-					+ (endingFinancialYear.substring(2, 4));
-			String endYear = "FY'" + (endingYear - 1) + "-"
-					+ (endingFinancialYear.substring(2, 4));
-			fromDate = DateUtils.getDate(month, quarter, year, true);
-			toDate = DateUtils.getDate(month, quarter, endYear, false);
-			}
-		} else {
 			fromDate = DateUtils.getDate(month, quarter, year, true);
 			toDate = DateUtils.getDate(month, quarter, year, false);
-		}
 		
 		UserT user = userRepository.findByUserId(userId);
 		if(user == null){
@@ -3330,48 +3310,7 @@ public class BuildOpportunityReportService {
 		
 	}
 
-//	public void writeUserFilterConditions(SXSSFSheet spreadsheet, UserT user, String conditions) {
-//		SXSSFRow row;
-//		row = spreadsheet.createRow(13);
-//		row.createCell(4).setCellValue("User");
-//		row.createCell(5).setCellValue(user.getUserName());
-//		row = spreadsheet.createRow(14);
-//		row.createCell(4).setCellValue("Condition(S)");
-//		row.createCell(5).setCellValue(conditions);
-//		spreadsheet.autoSizeColumn(4);
-//		spreadsheet.autoSizeColumn(5);
-//	}
 
-//	private void writeDetailsForSearchTypeUserAccessFilter(SXSSFSheet spreadsheet,
-//			String searchType, List<String> searchList, UserT user,	CellStyle dataRowStyle, String previlegeBased) {
-//		SXSSFRow row = null;
-////		ExcelUtils.writeUserFilterConditions(spreadsheet, user, previlegeBased);
-//		row = spreadsheet.createRow(15);
-//		row.createCell(4).setCellValue(searchType);
-//		String completeList = getCompleteList(searchList);
-//		row.createCell(5).setCellValue(completeList);
-//	}
-//	
-//	private void writeDetailsForSearchType(XSSFSheet spreadsheet,
-//			String searchType, List<String> searchList, int rowValue,
-//			CellStyle dataRowStyle) {
-//		SXSSFRow row = null;
-//		row = spreadsheet.createRow(rowValue);
-//		row.createCell(4).setCellValue(searchType);
-//		spreadsheet.autoSizeColumn(4);
-//		String completeList = getCompleteList(searchList);
-//		row.createCell(5).setCellValue(completeList);
-//		spreadsheet.autoSizeColumn(5);
-//	}
-
-//	private String getCompleteList(List<String> itemList) {
-//		if (itemList.size() == 0) {
-//			return "All";
-//		} else {
-//			return itemList.toString().replace("[", "").replace("]", "");
-//		}
-//	}
-	
 	
 	// BDM performance
 	
@@ -3467,11 +3406,11 @@ public class BuildOpportunityReportService {
 	}
 	
 	
-	private void createTitle(SXSSFSheet spreadsheet, List<String> currency) {
+//	private void createTitle(SXSSFSheet spreadsheet, List<String> currency) {
+//
+//		spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,(1+currency.size())));
+//	}
 
-		spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,(1+currency.size())));
-	}
-	
 	public void addItemToList(List<String> itemList, List<String> targetList){
 		if(itemList.contains("All") || itemList.isEmpty()){
 			targetList.add("");
