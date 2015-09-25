@@ -99,7 +99,7 @@ public class UserNotificationSettingsService {
 						NotificationSettingsEventMappingT notificationSettingsEventMappingT = notificationEventGroupMappingT
 								.getNotificationSettingsEventMappingT();
 						List<UserNotificationSettingsT> userNotificationSettingsTs=userNotificationSettingsRepository
-								.findByUserIdAndEventId(userId,
+								.findByUserIdAndEventIdOrderByEventIdAsc(userId,
 										notificationSettingsEventMappingT
 												.getEventId());
 						if(userNotificationSettingsTs!=null)
