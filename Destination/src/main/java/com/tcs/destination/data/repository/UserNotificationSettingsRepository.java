@@ -18,5 +18,8 @@ public interface UserNotificationSettingsRepository extends
 
 	List<UserNotificationSettingsT> findByUserIdAndEventIdAndIsactive(
 			String recipient, int eventId, String Isactive);
+	
+	List<UserNotificationSettingsT> findByUserIdAndEventId(
+			String recipient, int eventId);
 
 }

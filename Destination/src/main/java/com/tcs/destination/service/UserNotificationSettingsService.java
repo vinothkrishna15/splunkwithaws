@@ -99,9 +99,9 @@ public class UserNotificationSettingsService {
 						NotificationSettingsEventMappingT notificationSettingsEventMappingT = notificationEventGroupMappingT
 								.getNotificationSettingsEventMappingT();
 						List<UserNotificationSettingsT> userNotificationSettingsTs=userNotificationSettingsRepository
-								.findByUserIdAndEventIdAndIsactive(userId,
+								.findByUserIdAndEventId(userId,
 										notificationSettingsEventMappingT
-												.getEventId(),Constants.Y);
+												.getEventId());
 						if(userNotificationSettingsTs!=null)
 							for(UserNotificationSettingsT userNotificationSettingsT:userNotificationSettingsTs)
 							{
