@@ -28,6 +28,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.BidRequestTypeMappingT;
 import com.tcs.destination.bean.ContactT;
@@ -98,14 +100,18 @@ public class OpportunityDownloadService {
     @Autowired
     OpportunityRepository opportunityRepository;
     
+    @Autowired
+    BeaconConverterService beaconConverterService;
+    
     private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yy");
 
-    public InputStreamResource downloadDocument(boolean oppFlag, String userId)
+    public InputStreamResource downloadDocument(boolean oppFlag, String userId, boolean dealValueFlag)
 	    throws Exception {
 
 	Workbook workbook = null;
 	InputStreamResource inputStreamResource = null;
+	
 	
 	try {
 
@@ -114,9 +120,10 @@ public class OpportunityDownloadService {
 		    Constants.OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME)));
 	    
 	    if(oppFlag){
+	    	
 		    // Populate Opportunity Sheet
 		    populateOpportunitySheet(workbook
-			    .getSheet(Constants.OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME));
+			    .getSheet(Constants.OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME), dealValueFlag);
 	    }
 
 	    // Populate Competitor Sheet
@@ -174,7 +181,7 @@ public class OpportunityDownloadService {
 	return inputStreamResource;
     }
     
-    private void populateOpportunitySheet(Sheet opportunitySheet) throws Exception{
+    private void populateOpportunitySheet(Sheet opportunitySheet, boolean dealValueFlag) throws Exception{
 
 	List<OpportunityT> listOfOpportunity = opportunityRepository.findAll();
 		
@@ -182,6 +189,10 @@ public class OpportunityDownloadService {
 	for(OpportunityT opp : listOfOpportunity){
 	    System.out.println(rowCount);
 	    Row row = opportunitySheet.createRow(rowCount);
+	    
+	    //Opportunity Id
+	    Cell cellOppId = row.createCell(1);
+	    cellOppId.setCellValue(opp.getOpportunityId().trim());
 	    
 	    // Country
 	    Cell cellCountry = row.createCell(5);
@@ -241,10 +252,26 @@ public class OpportunityDownloadService {
 		cellOverallDealValue.setCellValue(opp.getOverallDealSize());
 	    }
 	    
+	    //	OVERALL DEAL SIZE in USD
+	    if(dealValueFlag){
+	    	if(opp.getOverallDealSize()!=null) {
+	    		Cell cellOverallDealValue = row.createCell(18);
+	    		cellOverallDealValue.setCellValue(convertCurrencyToUSD(opp.getDealCurrency(), opp.getOverallDealSize()).doubleValue());
+	    	}
+	    }
+	    
 	    //DIGITAL DEAL VALUE
 	    if(opp.getDigitalDealValue()!=null){
 		Cell cellDigitalDealValue = row.createCell(19);
 		cellDigitalDealValue.setCellValue(opp.getDigitalDealValue());
+	    }
+	    
+	    // DIGITAL DEAL SIZE in USD
+	    if(dealValueFlag){
+	    	if(opp.getDigitalDealValue()!=null) {
+	    		Cell cellDigitalDealValue = row.createCell(20);
+	    		cellDigitalDealValue.setCellValue(convertCurrencyToUSD(opp.getDealCurrency(), opp.getDigitalDealValue()).doubleValue());
+	    	}
 	    }
 	    
 	    //OPPORTUNITY OWNER
@@ -397,7 +424,20 @@ public class OpportunityDownloadService {
 	
     }
 
-    private String constructWinLossFactors(List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
+    /**
+     * This method converts the given 
+     * 
+     * @param dealCurrency
+     * @param overallDealSize
+     * @return
+     * @throws Exception
+     */
+    private BigDecimal convertCurrencyToUSD(String dealCurrency,Integer overallDealSize) throws Exception{
+
+		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD", overallDealSize.doubleValue());
+	}
+
+	private String constructWinLossFactors(List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
 	
 	StringBuilder buffer = new StringBuilder();
 
@@ -767,5 +807,9 @@ public class OpportunityDownloadService {
 
 	return destFormat.format(actualFormat.parse(Stringdate));
     }
+    
+
+
+    
 
 }

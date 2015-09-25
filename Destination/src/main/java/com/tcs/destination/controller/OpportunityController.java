@@ -453,6 +453,7 @@ public class OpportunityController {
 	public ResponseEntity<InputStreamResource> downloadOpportunity(
 			@RequestParam("userId") String userId,
 			@RequestParam("downloadOpportunities") boolean oppFlag,
+			@RequestParam("isDealValuesInUSDRequired") boolean dealValueFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -460,7 +461,7 @@ public class OpportunityController {
 		InputStreamResource opportunityDownloadExcel = null;
 		try {
 			opportunityDownloadExcel = opportunityDownloadService
-					.downloadDocument(oppFlag, userId);
+					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
 			respHeaders.setContentDispositionFormData("attachment",
 					"opportunityDownload" + DateUtils.getCurrentDate()
