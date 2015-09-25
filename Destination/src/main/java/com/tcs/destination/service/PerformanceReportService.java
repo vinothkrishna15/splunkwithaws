@@ -302,17 +302,20 @@ public class PerformanceReportService {
 
 	private void mergeProjectedRevenue(Map<String, BigDecimal> map,
 			List<Object[]> projObjList) throws Exception {
+		if (map == null)
+			map = new TreeMap<String, BigDecimal>();
 		for (Object[] obj : projObjList) {
 			String dispName = (String) obj[0];
-			BigDecimal projRev = new BigDecimal(obj[1].toString());
-			if (map.containsKey(dispName)) {
-				BigDecimal actual = map.get(dispName);
-				map.put(dispName, actual.add(projRev));
-			} else {
-				// if subsp/iou/geography/quarter does not have actuals data
-				map.put(dispName, projRev);
+			if (obj[1] != null&&dispName!=null) {
+				BigDecimal projRev = new BigDecimal(obj[1].toString());
+				if (map.containsKey(dispName)) {
+					BigDecimal actual = map.get(dispName);
+					map.put(dispName, actual.add(projRev));
+				} else {
+					// if subsp/iou/geography/quarter does not have actuals data
+					map.put(dispName, projRev);
+				}
 			}
-
 		}
 	}
 
