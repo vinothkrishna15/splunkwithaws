@@ -145,16 +145,14 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine);
 
-	@Query(value = "select Result.country, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue from geography_mapping_t GMT "
-			+ "left outer join "
-			+ "(select (PRDT.client_country) as country,(GCMT.geography) as geography, sum(PRDT.revenue) as actualRevenue from geography_country_mapping_t GCMT "
-			+ "left outer join projected_revenues_data_t PRDT on (GCMT.geography=PRDT.finance_geography)"
-			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '') "
-			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
-			+ "join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer)) "
-			+ "and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography "
-			+ "where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
-			+ "group by PRDT.client_country,GCMT.geography order by actualRevenue desc) Result on GMT.geography = Result.geography where GMT.geography = (:geography) order by revenue desc", nativeQuery = true)
+	@Query(value = "select PRDT.client_country,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '') "
+			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
+			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer)) "
+			+ " and PRDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou "
+			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
+			+ " where PRDT.financial_year=(:financialYear) and (PRDT.quarter=(:quarter) or (:quarter)= '') "
+			+ " and (RCMT.customer_geography=(:geography) or (:geography)='') group by PRDT.client_country", nativeQuery = true)
 	public List<Object[]> getRevenuesByCountry(@Param("financialYear") String financialYear,
 			@Param("quarter") String quarter, @Param("customer") List<String> customer,
 			@Param("subSp") String subSp, @Param("iou") String iou,
