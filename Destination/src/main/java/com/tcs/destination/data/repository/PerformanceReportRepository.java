@@ -33,6 +33,7 @@ public interface PerformanceReportRepository extends
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and "
 			+ " (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou"
 			+ " group by SSMT.display_sub_sp"
 			+ " order by actualRevenue desc) Result"
 			+ " on SSMT.display_sub_sp = Result.displaySubSp order by revenue desc", nativeQuery = true)
@@ -48,6 +49,7 @@ public interface PerformanceReportRepository extends
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and"
 			+ " (RCMT.customer_name  in (:customer) or ('') in (:customer))"
+			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou"
 			+ " group by GMT.display_geography"
 			+ " order by actualRevenue desc) Result"
 			+ " on GMT.display_geography = Result.displayGeography order by revenue desc", nativeQuery = true)
@@ -63,6 +65,7 @@ public interface PerformanceReportRepository extends
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ " where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " group by GMT.geography"
 			+ " order by actualRevenue desc) Result on GMT.geography = Result.displayGeography"
@@ -79,6 +82,7 @@ public interface PerformanceReportRepository extends
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '') "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
 			+ "join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer)) "
+			+ "and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ "where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by ARDT.client_country,GCMT.geography order by actualRevenue desc) Result on GMT.geography = Result.geography where GMT.geography = (:geography) order by revenue desc", nativeQuery = true)
 	public List<Object[]> getRevenuesByCountry(@Param("financialYear") String financialYear,
