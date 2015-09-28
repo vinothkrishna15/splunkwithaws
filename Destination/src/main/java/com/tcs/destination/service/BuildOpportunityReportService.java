@@ -1209,7 +1209,7 @@ public class BuildOpportunityReportService {
 		for (int i = 0; i < salesStageList.size(); i++) {
 			if (salesStageList.get(i) >= 0 && salesStageList.get(i) < 4) {
 				salesStageAnticipating.add(salesStageList.get(i));
-			} else if (salesStageList.get(i) > 3 && salesStageList.get(i) < 8) {
+			} else if (salesStageList.get(i) > 3 && salesStageList.get(i) < 9) {
 				salesStagePipeline.add(salesStageList.get(i));
 			}
 		}
@@ -1238,9 +1238,6 @@ public class BuildOpportunityReportService {
 					}
 				break;
 			}
-//			opportunityList = opportunityRepository
-//					.findPipelineSummaryServiceLine(geography, country, iou,
-//							serviceLines, salesStagePipeline, userIds);
 			if (opportunityList.size() > 0) {
 				for (Object[] opportunity : opportunityList) {
 					OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
