@@ -138,10 +138,10 @@ public class UserNotificationsService {
 		String message = "No User Notification Id provided";
 
 		if (userNotificationIds != null && userNotificationIds.size() != 0) {
-			if (read.equalsIgnoreCase(Constants.NO)) {
+			if (read.equalsIgnoreCase(Constants.YES)) {
 				status = Constants.YES;
 				message = "Marked as read";
-			} else if (read.equalsIgnoreCase(Constants.YES)) {
+			} else if (read.equalsIgnoreCase(Constants.NO)) {
 				status = Constants.NO;
 				message = "Marked as unread";
 			} else {

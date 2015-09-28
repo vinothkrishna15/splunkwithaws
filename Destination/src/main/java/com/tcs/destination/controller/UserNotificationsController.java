@@ -121,10 +121,10 @@ public class UserNotificationsController {
 			@RequestBody List<String> userNotificationIds,
 			@RequestParam(value = "read") String read) throws Exception {
 		logger.debug("Inside UserNotificationsController /read PUT");
-		String status = "";
+		Status status = new Status();
 		try {
-			status = userNotificationsService.updateReadStatus(
-					userNotificationIds, read);
+			status.setStatus(Status.SUCCESS, userNotificationsService
+					.updateReadStatus(userNotificationIds, read));
 		} catch (Exception e) {
 			logger.error("An Exception has occured : {}", e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
