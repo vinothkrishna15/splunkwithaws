@@ -43,6 +43,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "geography", defaultValue = "", required = false) String geography,
 			@RequestParam(value = "serviceline", defaultValue = "", required = false) String serviceLine,
 			@RequestParam(value = "iou", defaultValue = "", required = false) String iou,
+			@RequestParam(value = "wins", defaultValue = "false") boolean wins,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "", required = false) String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
@@ -51,7 +52,7 @@ public class PerformanceReportController {
 			throws Exception {
 		List<TargetVsActualResponse> response = perfService
 				.getTargetVsActualRevenueSummary(financialYear, quarter,displayGeography,
-						geography, serviceLine, iou, customerName, currency, groupCustomer);
+						geography, serviceLine, iou, customerName, currency, groupCustomer,wins);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						response), HttpStatus.OK);

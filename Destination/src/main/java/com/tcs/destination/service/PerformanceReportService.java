@@ -68,8 +68,8 @@ public class PerformanceReportService {
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
 			String financialYear, String quarter, String displayGeography,
 			String geography, String serviceLine, String iou,
-			String customerName, String currency, String groupCustomer)
-			throws Exception {
+			String customerName, String currency, String groupCustomer,
+			boolean wins) throws Exception {
 		logger.info("Inside getRevenueSummary Service");
 		List<String> custName = new ArrayList<String>();
 		if (customerName.length() == 0 && groupCustomer.length() > 0) {
@@ -83,77 +83,160 @@ public class PerformanceReportService {
 		} else {
 			custName.add(customerName);
 		}
-		if (financialYear.equals("")) {
+		if (financialYear.equals("")&&quarter.isEmpty()) {
 			logger.debug("Financial Year is Empty");
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		logger.debug("Financial Year: " + financialYear);
-
-		List<Object[]> actualObjList = null;
-		if (quarter.isEmpty()) {
-			actualObjList = actualsRepository.findActualRevenue(financialYear,
-					quarter, displayGeography, geography, iou, custName,
-					serviceLine);
-		} else {
-			actualObjList = actualsRepository.findActualRevenueByQuarter(
-					financialYear, quarter, displayGeography, geography, iou,
-					custName, serviceLine);
-		}
-		logger.info("Actual Revenue has " + actualObjList.size() + " values");
-
-		Map<String, BigDecimal> quarterMap = getMapFromObjList(actualObjList);
-
-		List<Object[]> projectedObjList = null;
-
-		if (quarter.isEmpty()) {
-			projectedObjList = projectedRepository.findProjectedRevenue(
-					financialYear, quarter, displayGeography, geography, iou,
-					custName, serviceLine);
-		} else {
-			projectedObjList = projectedRepository
-					.findProjectedRevenueByQuarter(financialYear, quarter,
-							displayGeography, geography, iou, custName,
-							serviceLine);
-		}
-		logger.info("Projected Revenue has " + projectedObjList.size()
-				+ " values");
-
-		mergeProjectedRevenue(quarterMap, projectedObjList);
-
-		List<TargetVsActualResponse> actualProjectedList = convertMaptoTargetvsActualResponse(
-				quarterMap, currency);
-
-		// service line does not have target revenue
-		if (serviceLine.equals("")) {
-
-			List<Object[]> targetRevenueList = null;
-			targetRevenueList = beaconDataTRepository.findTargetRevenue(
-					financialYear, quarter, displayGeography, geography, iou,
-					custName);
-
-			logger.debug("Target Revenue has " + targetRevenueList.size()
+		if (!wins) {
+			// Get get data of actuals
+			List<Object[]> actualObjList = null;
+			if (quarter.isEmpty()) {
+				actualObjList = actualsRepository.findActualRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			} else {
+				actualObjList = actualsRepository.findActualRevenueByQuarter(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			}
+			logger.info("Actual Revenue has " + actualObjList.size()
 					+ " values");
+
+			Map<String, BigDecimal> quarterMap = getMapFromObjList(actualObjList);
+
+			List<Object[]> projectedObjList = null;
+
+			if (quarter.isEmpty()) {
+				projectedObjList = projectedRepository.findProjectedRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			} else {
+				projectedObjList = projectedRepository
+						.findProjectedRevenueByQuarter(financialYear, quarter,
+								displayGeography, geography, iou, custName,
+								serviceLine);
+			}
+			logger.info("Projected Revenue has " + projectedObjList.size()
+					+ " values");
+
+			mergeProjectedRevenue(quarterMap, projectedObjList);
+
+			List<TargetVsActualResponse> actualProjectedList = convertMaptoTargetvsActualResponse(
+					quarterMap, currency);
+
+			// service line does not have target revenue
+			if (serviceLine.equals("")) {
+
+				List<Object[]> targetRevenueList = null;
+				targetRevenueList = beaconDataTRepository.findTargetRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName);
+
+				logger.debug("Target Revenue has " + targetRevenueList.size()
+						+ " values");
+
+				List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
+
+				populateResponseList(targetRevenueList, targetList, true,
+						currency);
+
+				List<TargetVsActualResponse> tarActResponseList = mergeLists(
+						targetList, actualProjectedList);
+				if (tarActResponseList.isEmpty()) {
+					logger.error("NOT_FOUND: No Relevent Data Found in the database");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Relevent Data Found in the database");
+				}
+				return tarActResponseList;
+			} else {
+				if (actualProjectedList.isEmpty()) {
+					logger.error("NOT_FOUND: No Relevent Data Found in the database");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Relevent Data Found in the database");
+				}
+				return actualProjectedList;
+			}
+		} else {
+			Date fromDate = DateUtils.getDate("", quarter, financialYear, true);
+			Date toDate = DateUtils.getDate("", quarter, financialYear, false);
+			// TODO:
+			List<Object[]> digitalDealValueList = opportunityRepository
+					.getDigitalDealValueBySalesStage(fromDate, toDate,
+							displayGeography, geography, serviceLine, iou,
+							custName, currency);
+			List<Object[]> digitalDealValueByTimeLineList = new ArrayList<Object[]>();
+			logger.debug("Digital Deal Value has "
+					+ digitalDealValueList.size() + " values");
+			if (!quarter.isEmpty()) {
+				logger.debug("financial year is empty");
+				for (Object[] quarterDigitalDealValue : digitalDealValueList) {
+					if (quarterDigitalDealValue[0] != null) {
+						Object[] quarterArray = new Object[2];
+						quarterArray[0] = DateUtils
+								.getFormattedMonth((Date) quarterDigitalDealValue[0]);
+						quarterArray[1] = quarterDigitalDealValue[1];
+						digitalDealValueByTimeLineList.add(quarterArray);
+					}
+				}
+			} else {
+				logger.debug("financial year is empty");
+				for (Object[] quarterDigitalDealValue : digitalDealValueList) {
+					if (quarterDigitalDealValue[0] != null) {
+						Object[] quarterArray = new Object[2];
+						quarterArray[0] = DateUtils
+								.getQuarterForMonth(DateUtils
+										.getFormattedMonth((Date) quarterDigitalDealValue[0]));
+						quarterArray[1] = quarterDigitalDealValue[1];
+						digitalDealValueByTimeLineList.add(quarterArray);
+					}
+				}
+			}
+			Map<String, BigDecimal> quarterMap = getSumUpInMap(digitalDealValueByTimeLineList);
 
 			List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
 
-			populateResponseList(targetRevenueList, targetList, true, currency);
-
-			List<TargetVsActualResponse> tarActResponseList = mergeLists(
-					targetList, actualProjectedList);
-			if (tarActResponseList.isEmpty()) {
-				logger.error("NOT_FOUND: No Relevent Data Found in the database");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
-			}
-			return tarActResponseList;
-		} else {
-			if (actualProjectedList.isEmpty()) {
-				logger.error("NOT_FOUND: No Relevent Data Found in the database");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
-			}
-			return actualProjectedList;
+			populateResponseList(quarterMap, targetList);
+			return targetList;
 		}
+	}
+
+	private Map<String, BigDecimal> getSumUpInMap(
+			List<Object[]> digitalDealValueByTimeLineList) {
+
+		Map<String, BigDecimal> map = new TreeMap<String, BigDecimal>();
+		for (int i = 0; i < digitalDealValueByTimeLineList.size(); i++) {
+			Object[] obj = digitalDealValueByTimeLineList.get(i);
+			logger.debug("In item " + i + "  Obj [0] : " + obj[0]
+					+ " Obj [1] : " + obj[1]);
+			if (obj[0] != null) {
+				String dispName = (String) obj[0];
+				BigDecimal rev = null;
+				if (obj[1] != null) {
+					rev = new BigDecimal(obj[1].toString());
+					if (dispName != null) {
+						if (map.containsKey(dispName)) {
+							rev.add(map.get(dispName));
+						}
+						map.put(dispName, rev);
+					}
+				}
+			}
+
+		}
+		return map;
+
+	}
+
+	private void populateResponseList(Map<String, BigDecimal> quarterMap,
+			List<TargetVsActualResponse> targetList) {
+		for (String quarterKeyset : quarterMap.keySet()) {
+			TargetVsActualResponse targetVsActual = new TargetVsActualResponse();
+			targetVsActual.setSubTimeLine(quarterKeyset);
+			targetVsActual.setDigitalDealValue(quarterMap.get(quarterKeyset));
+			targetList.add(targetVsActual);
+		}
+
 	}
 
 	private List<TargetVsActualResponse> convertMaptoTargetvsActualResponse(
@@ -306,7 +389,7 @@ public class PerformanceReportService {
 			map = new TreeMap<String, BigDecimal>();
 		for (Object[] obj : projObjList) {
 			String dispName = (String) obj[0];
-			if (obj[1] != null&&dispName!=null) {
+			if (obj[1] != null && dispName != null) {
 				BigDecimal projRev = new BigDecimal(obj[1].toString());
 				if (map.containsKey(dispName)) {
 					BigDecimal actual = map.get(dispName);
