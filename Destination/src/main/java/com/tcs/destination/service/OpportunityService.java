@@ -1299,7 +1299,7 @@ public class OpportunityService {
 
 			try {
 				// Create the query and execute
-				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.sales_stage_code between 9 and 13)) order by "
+				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.salesStageCode between 9 and 13)) order by "
 						+ sortBy + " " + order;
 				Query query = entityManager.createQuery(queryString)
 						.setParameter(
