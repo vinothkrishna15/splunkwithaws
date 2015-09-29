@@ -83,7 +83,7 @@ public class PerformanceReportService {
 		} else {
 			custName.add(customerName);
 		}
-		
+
 		logger.debug("Financial Year: " + financialYear);
 		if (!wins) {
 			if (financialYear.equals("")) {
@@ -159,7 +159,7 @@ public class PerformanceReportService {
 				return actualProjectedList;
 			}
 		} else {
-			if (financialYear.equals("")&&quarter.isEmpty()) {
+			if (financialYear.equals("") && quarter.isEmpty()) {
 				logger.debug("Financial Year is Empty");
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
@@ -216,14 +216,14 @@ public class PerformanceReportService {
 					+ " Obj [1] : " + obj[1]);
 			if (obj[0] != null) {
 				String dispName = (String) obj[0];
-				BigDecimal rev = null;
 				if (obj[1] != null) {
-					rev = new BigDecimal(obj[1].toString());
+					BigDecimal rev = new BigDecimal(obj[1].toString());
 					if (dispName != null) {
 						if (map.containsKey(dispName)) {
-							rev.add(map.get(dispName));
+							rev=rev.add(map.get(dispName));
 						}
 						map.put(dispName, rev);
+						logger.info("Get value for " + dispName + " is " + rev);
 					}
 				}
 			}
@@ -799,7 +799,8 @@ public class PerformanceReportService {
 
 		opportunitiesBySubSpReports = opportunityRepository
 				.findPipelinePerformanceByServiceLine(displayGeography,
-						geography, iou, currency, salesStageFrom, salesStageTo,fromDate,toDate);
+						geography, iou, currency, salesStageFrom, salesStageTo,
+						fromDate, toDate);
 
 		if (opportunitiesBySubSpReports != null) {
 			for (Object[] opportunityBySubSp : opportunitiesBySubSpReports) {
@@ -833,7 +834,7 @@ public class PerformanceReportService {
 		List<Object[]> opportunitiesByGeographyReports = null;
 		opportunitiesByGeographyReports = opportunityRepository
 				.findPipelinePerformanceByGeography(subSp, iou, currency,
-						 salesStageFrom, salesStageTo,fromDate,toDate);
+						salesStageFrom, salesStageTo, fromDate, toDate);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
