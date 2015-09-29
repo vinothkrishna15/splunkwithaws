@@ -799,7 +799,7 @@ public class PerformanceReportService {
 
 		opportunitiesBySubSpReports = opportunityRepository
 				.findPipelinePerformanceByServiceLine(displayGeography,
-						geography, iou, currency, salesStageFrom, salesStageTo);
+						geography, iou, currency, salesStageFrom, salesStageTo,fromDate,toDate);
 
 		if (opportunitiesBySubSpReports != null) {
 			for (Object[] opportunityBySubSp : opportunitiesBySubSpReports) {
@@ -833,7 +833,7 @@ public class PerformanceReportService {
 		List<Object[]> opportunitiesByGeographyReports = null;
 		opportunitiesByGeographyReports = opportunityRepository
 				.findPipelinePerformanceByGeography(subSp, iou, currency,
-						 salesStageFrom, salesStageTo);
+						 salesStageFrom, salesStageTo,fromDate,toDate);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
