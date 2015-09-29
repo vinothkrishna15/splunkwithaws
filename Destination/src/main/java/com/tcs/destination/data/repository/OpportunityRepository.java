@@ -910,4 +910,31 @@ public interface OpportunityRepository extends
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("serviceLine") String serviceLine,
 			@Param("iou") String iou,@Param("custName")  List<String> custName,@Param("currencyName") String currencyName);
 
+	@Query(value = " SELECT USER_ID,SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue,SUM(SALES_VALUE) as salesOwnerDealValue "
+			+ " FROM(select opportunity_owner AS USER_ID , sum(digital_deal_value) AS PRIMARY_BID_VALUE, (0.0) AS SALES_VALUE from opportunity_t OPP "
+			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " left outer join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+			+ " where sales_stage_code = '9' and (OPP.opportunity_owner = (:userId) or (bofg.bid_office_group_owner = (:userId))) "
+			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) group by opportunity_owner "
+			+ " UNION select sales_support_owner AS USER_ID , (0.0) AS PRIMARY_BID_VALUE, sum(digital_deal_value) AS SALES_VALUE "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " where sales_stage_code = '9' and OSSLT.sales_support_owner = (:userId) "
+			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+			+ " group by sales_support_owner) AS OppWinValue GROUP BY USER_ID ", nativeQuery = true)
+	Object[][] findOpportunityWinValueByOpportunityOwnerOrSalesSupportOwner(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
+
+	@Query(value = "SELECT USER_ID, SUM(OpportunitiesCount.PRIMARY) as oppOwnerCount, SUM(OpportunitiesCount.SECONDARY) as salesOwnerOppCount FROM "
+			+ " (select opportunity_owner as USER_ID ,count(OPP.opportunity_id) as PRIMARY, (0) as SECONDARY from opportunity_t OPP "
+			+ " where sales_stage_code < 9 and OPP.opportunity_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+			+ " group by opportunity_owner UNION select sales_support_owner AS USER_ID , (0) AS PRIMARY, count(OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP " 
+			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id where sales_stage_code < 9 "
+			+ " and OSSLT.sales_support_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) group by sales_support_owner "
+			+ " ) AS OpportunitiesCount GROUP BY USER_ID", nativeQuery =true)
+	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwner(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
 }
