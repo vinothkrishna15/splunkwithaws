@@ -157,8 +157,7 @@ public interface OpportunityRepository extends
 			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo)) "
-			+ "where OPP.digital_deal_value <> 0 group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByServiceLine(
 			@Param("displayGeography") String displayGeography,
 			@Param("geography") String geography, @Param("iou") String iou,
@@ -190,12 +189,10 @@ public interface OpportunityRepository extends
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByGeography(
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
 			@Param("currency") String currency,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStageFrom") int salesStageFrom,
 			@Param("salesStageTo") int salesStageTo);
 
@@ -904,9 +901,9 @@ public interface OpportunityRepository extends
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id and (CMT.customer_name in (:custName) or ('') in (:custName) ) "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "where OPP.deal_closure_date between (:fromDate)  and (:toDate) "
+			+ "where OPP.deal_closure_date between (:fromDate) and (:toDate) and OPP.sales_stage_code=9 "
 			+ "group by OPP.deal_closure_date", nativeQuery = true)
-	List<Object[]> getDigitalDealValueBySalesStage(@Param("fromDate") Date fromDate,@Param("toDate") Date toDate,
+	List<Object[]> getDigitalDealValueByClosureDate(@Param("fromDate") Date fromDate,@Param("toDate") Date toDate,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("serviceLine") String serviceLine,
 			@Param("iou") String iou,@Param("custName")  List<String> custName,@Param("currencyName") String currencyName);
 

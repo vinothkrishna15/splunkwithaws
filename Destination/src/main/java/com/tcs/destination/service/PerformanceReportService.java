@@ -167,7 +167,7 @@ public class PerformanceReportService {
 			Date toDate = DateUtils.getDate("", quarter, financialYear, false);
 			// TODO:
 			List<Object[]> digitalDealValueList = opportunityRepository
-					.getDigitalDealValueBySalesStage(fromDate, toDate,
+					.getDigitalDealValueByClosureDate(fromDate, toDate,
 							displayGeography, geography, serviceLine, iou,
 							custName, currency);
 			List<Object[]> digitalDealValueByTimeLineList = new ArrayList<Object[]>();
@@ -833,7 +833,7 @@ public class PerformanceReportService {
 		List<Object[]> opportunitiesByGeographyReports = null;
 		opportunitiesByGeographyReports = opportunityRepository
 				.findPipelinePerformanceByGeography(subSp, iou, currency,
-						fromDate, toDate, salesStageFrom, salesStageTo);
+						 salesStageFrom, salesStageTo);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
