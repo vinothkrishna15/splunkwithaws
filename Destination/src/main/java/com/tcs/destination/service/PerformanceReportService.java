@@ -83,12 +83,13 @@ public class PerformanceReportService {
 		} else {
 			custName.add(customerName);
 		}
-		if (financialYear.equals("")&&quarter.isEmpty()) {
-			logger.debug("Financial Year is Empty");
-			financialYear = DateUtils.getCurrentFinancialYear();
-		}
+		
 		logger.debug("Financial Year: " + financialYear);
 		if (!wins) {
+			if (financialYear.equals("")) {
+				logger.debug("Financial Year is Empty");
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
 			// Get get data of actuals
 			List<Object[]> actualObjList = null;
 			if (quarter.isEmpty()) {
@@ -158,6 +159,10 @@ public class PerformanceReportService {
 				return actualProjectedList;
 			}
 		} else {
+			if (financialYear.equals("")&&quarter.isEmpty()) {
+				logger.debug("Financial Year is Empty");
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
 			Date fromDate = DateUtils.getDate("", quarter, financialYear, true);
 			Date toDate = DateUtils.getDate("", quarter, financialYear, false);
 			// TODO:
