@@ -223,7 +223,6 @@ public class PerformanceReportService {
 							rev=rev.add(map.get(dispName));
 						}
 						map.put(dispName, rev);
-						logger.info("Get value for " + dispName + " is " + rev);
 					}
 				}
 			}
