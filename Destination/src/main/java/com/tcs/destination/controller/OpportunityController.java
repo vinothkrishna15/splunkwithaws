@@ -313,6 +313,7 @@ public class OpportunityController {
 	public @ResponseBody String findTeamOpportunityDetailsBySupervisorId(
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "isCurrentFinancialYear", defaultValue = "false") boolean isCurrentFinancialYear,
+			@RequestParam(value = "salesStageCode", defaultValue = "all") String salesStageCode,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -331,7 +332,7 @@ public class OpportunityController {
 
 		teamOpportunityDetails = opportunityService
 				.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
-						page, count, isCurrentFinancialYear);
+						page, count, isCurrentFinancialYear, salesStageCode);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				teamOpportunityDetails);
@@ -452,6 +453,7 @@ public class OpportunityController {
 	public ResponseEntity<InputStreamResource> downloadOpportunity(
 			@RequestParam("userId") String userId,
 			@RequestParam("downloadOpportunities") boolean oppFlag,
+			@RequestParam("isDealValuesInUSDRequired") boolean dealValueFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -459,7 +461,7 @@ public class OpportunityController {
 		InputStreamResource opportunityDownloadExcel = null;
 		try {
 			opportunityDownloadExcel = opportunityDownloadService
-					.downloadDocument(oppFlag, userId);
+					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
 			respHeaders.setContentDispositionFormData("attachment",
 					"opportunityDownload" + DateUtils.getCurrentDate()

@@ -31,6 +31,7 @@ import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.CustomerRevenueValues;
 import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
+import com.tcs.destination.bean.OpportunitySummaryValue;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.ReportSummaryOpportunity;
 import com.tcs.destination.bean.TargetVsActualDetailed;
@@ -161,14 +162,14 @@ public class ReportsService {
 	// TargetVsActual Detailed Report
 	private static final String TARGET_VS_ACTUAL_PROJECTED_QUERY_PREFIX = "select RCMT.customer_name,PRDT.quarter,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
-			+ "and RCMT.customer_geography = PRDT.finance_geography "
+			+ "and RCMT.customer_geography = PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_ACTUAL_QUERY_PREFIX = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "and RCMT.customer_geography = ARDT.finance_geography "
+			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
@@ -176,6 +177,7 @@ public class ReportsService {
 	private static final String TARGET_VS_ACTUAL_TARGET_QUERY_PREFIX = "select BCMT.customer_name,BDT.quarter,sum(BDT.target) from beacon_data_t BDT "
 			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
 			+ "and BCMT.customer_geography = BDT.beacon_geography "
+			+ "and BDT.beacon_iou = BCMT.beacon_iou "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou  "
 			+ "where BCMT.customer_name not like 'UNKNOWN%' and ";
@@ -190,33 +192,37 @@ public class ReportsService {
 			"select sum(actual_revenue) as revenue from ( "
 			+ "(select sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ "and RCMT.customer_geography=ARDT.finance_geography)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou " 
+			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
+			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp where	";
 
 	private static final String TARGET_VS_ACTUAL_TOTAL_UNION_PROJECTED_REVENUE_QUERY_PREFIX = 
 			"UNION (select case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue from projected_revenues_data_t PRDT " 
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
-			+ "and RCMT.customer_geography=PRDT.finance_geography) "
+			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou ) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp where ";
 	
 	private static final String TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX = "select sum(revenue) as top_revenue from (select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
+			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where ";
 	
 	private static final String TOP_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
+			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
 	private static final String OVER_ALL_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
+			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where ";
@@ -228,7 +234,8 @@ public class ReportsService {
 	private static final String TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 
 		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
 			+ "from projected_revenues_data_t PRDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and " ;
@@ -236,7 +243,8 @@ public class ReportsService {
 	private static final String OVER_ALL_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 
 		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
 			+ "from projected_revenues_data_t PRDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where " ;
@@ -244,7 +252,8 @@ public class ReportsService {
 	private static final String TOP_CUSTOMER_REVENUE_SUM_UNION_QUERY_PREFIX = 
 		"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue "
 			+ "from projected_revenues_data_t PRDT " 
-			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography)"
+			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography = PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where " ;
@@ -256,13 +265,15 @@ public class ReportsService {
 			+ " as RVNU group by RVNU.customer_name order by revenue desc  ";
 	
 	private static final String TARGET_VS_ACTUAL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
-			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN beacon_customer_mapping_t BCMT on (BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "and BCMT.customer_geography = BDT.beacon_geography and BDT.beacon_iou = BCMT.beacon_iou) "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
 			+ "where BCMT.customer_name not like 'UNKNOWN%' and ";
 
 	private static final String TARGET_VS_ACTUAL_OVERALL_TARGET_REVENUE_QUERY_PREFIX = "select BCMT.customer_name,sum(BDT.target) as revenue_sum from beacon_data_t BDT  "
-			+ "JOIN beacon_customer_mapping_t BCMT on BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "JOIN beacon_customer_mapping_t BCMT on (BCMT.beacon_customer_name=BDT.beacon_customer_name "
+			+ "and BCMT.customer_geography = BDT.beacon_geography and BDT.beacon_iou = BCMT.beacon_iou) "
 			+ "JOIN geography_mapping_t GMT on BDT.beacon_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
 			+ "where ";
@@ -270,7 +281,7 @@ public class ReportsService {
 	private static final String OVERALL_REVENUE_BY_GEO_QUERY_PREFIX = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue, RVNU.display_geography from  "
 			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue, GMT.display_geography from actual_revenues_data_t ARDT " 
 			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
-			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou) "
 			+ " JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
@@ -281,7 +292,8 @@ public class ReportsService {
 			"UNION (select RCMT.customer_name, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue " 
 			+ ", GMT.display_geography from projected_revenues_data_t PRDT " 
 			+ " JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
-			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
+			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
+			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou) "
 			+ " JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where ";
 	
@@ -292,7 +304,7 @@ public class ReportsService {
 	private static final String GROUP_CUST_GEO_IOU_QUERY_PREFIX = "select RVNU.customer_name, RVNU.finance_customer_name, RVNU.display_iou, RVNU.display_geography "
 			+ "from ((select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, " 
 			+ "gmt.display_geography from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on "
-			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography) "
+			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou) "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "JOIN iou_customer_mapping_t ICMT on "
 			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp " 
@@ -301,7 +313,7 @@ public class ReportsService {
 	private static final String GROUP_CUST_GEO_IOU_UNION_QUERY_PREFIX = " UNION (select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
 			+ "from projected_revenues_data_t PRDT JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
-			+ "and RCMT.customer_geography=PRDT.finance_geography) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
+			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
@@ -346,11 +358,11 @@ public class ReportsService {
 			+ " where ";
 
 	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX =
-			"select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			"select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+//			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -359,11 +371,11 @@ public class ReportsService {
 			+ " where ";
 
 	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX =
-			"select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			"select distinct SSMT.display_sub_sp,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+//			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -372,11 +384,11 @@ public class ReportsService {
 			+ " where ";
 
 	public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
-			"select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+			"select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
+//			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -660,20 +672,20 @@ public class ReportsService {
 			String customerName = targetObj[0].toString();
 			String quarter = targetObj[1].toString();
 			BigDecimal target = (BigDecimal) targetObj[2];
-
+//k
 			// target=target*(4-monthIndex)/3 ; monthIndex={1,2,3}
-			if (quarter.equals(fromQuarter)) {
-				target = target.multiply(
-						new BigDecimal(4 - DateUtils
-								.getMonthIndexOnQuarter(fromMonth))).divide(
-						new BigDecimal(3), 5, RoundingMode.HALF_UP);
-			}
-			if (quarter.equals(toQuarter)) {
-				target = target.multiply(
-						new BigDecimal(4 - DateUtils
-								.getMonthIndexOnQuarter(toMonth))).divide(
-						new BigDecimal(3), 5, RoundingMode.HALF_UP);
-			}
+//			if (quarter.equals(fromQuarter)) {
+//				target = target.multiply(
+//						new BigDecimal(4 - DateUtils
+//								.getMonthIndexOnQuarter(fromMonth))).divide(
+//						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+//			}
+//			if (quarter.equals(toQuarter)) {
+//				target = target.multiply(
+//						new BigDecimal(4 - DateUtils
+//								.getMonthIndexOnQuarter(toMonth))).divide(
+//						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+//			}
 			if (customerIdQuarterMap.containsKey(customerName)) {
 				List<TargetVsActualQuarter> targetVsActualQuarterList = customerIdQuarterMap
 						.get(customerName);
@@ -907,18 +919,18 @@ public class ReportsService {
 			BigDecimal target = (BigDecimal) targetObj[2];
 
 			// target=target*(4-monthIndex)/3 ; monthIndex={1,2,3}
-			if (quarter.equals(fromQuarter)) {
-				target = target.multiply(
-						new BigDecimal(4 - DateUtils
-								.getMonthIndexOnQuarter(fromMonth))).divide(
-						new BigDecimal(3), 5, RoundingMode.HALF_UP);
-			}
-			if (quarter.equals(toQuarter)) {
-				target = target.multiply(
-						new BigDecimal(4 - DateUtils
-								.getMonthIndexOnQuarter(toMonth))).divide(
-						new BigDecimal(3), 5, RoundingMode.HALF_UP);
-			}
+//			if (quarter.equals(fromQuarter)) {
+//				target = target.multiply(
+//						new BigDecimal(4 - DateUtils
+//								.getMonthIndexOnQuarter(fromMonth))).divide(
+//						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+//			}
+//			if (quarter.equals(toQuarter)) {
+//				target = target.multiply(
+//						new BigDecimal(4 - DateUtils
+//								.getMonthIndexOnQuarter(toMonth))).divide(
+//						new BigDecimal(3), 5, RoundingMode.HALF_UP);
+//			}
 			if (customerIdQuarterMap.containsKey(customerName)) {
 				List<TargetVsActualQuarter> targetVsActualQuarterList = customerIdQuarterMap
 						.get(customerName);
@@ -2638,10 +2650,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return queryBuffer.toString();
 	}
 
-	public InputStreamResource getBdmDetailedReport(String from, String to,
-			List<String> geography, List<String> country,
-			List<String> currency, List<String> serviceLines,
-			List<Integer> salesStage, List<String> opportunityOwnerIds,
+	public InputStreamResource getBdmDetailedReport(String from, String to, List<String> geography, List<String> country,
+			List<String> currency, List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwnerIds,
 			String supervisorId) {
 		// TODO Auto-generated method stub
 		return null;
@@ -2820,7 +2830,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							List<String> serviceLines, List<Integer> salesStage, String userId) throws Exception {
 						
 						
-						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
 						List<Integer> salesStageCodeList=new ArrayList<Integer>();
@@ -2847,7 +2857,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							List<Integer> salesStage, List<String> currency, String userId,
 							List<String> fields, String toDate) throws Exception {
 						
-						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
 						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
@@ -2869,7 +2879,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							List<String> country, List<String> iou, List<String> currency,
 							List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
 						
-						if (salesStage.size() == 2 && salesStage.contains(9) && salesStage.contains(10)) {
+						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
 							year = DateUtils.getCurrentFinancialYear();
 						}
 						List<Integer> salesStageCodeList=new ArrayList<Integer>();
@@ -2909,8 +2919,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							String userId, SXSSFWorkbook workbook) throws DestinationException, Exception {
 						logger.debug("Inside Report Service getReportSummaryOpportunities method");
 						
-						String[] fromYear = null;
-						String[] toYear = null;
 						Boolean isDistinctIou = true;
 						List<Object[]> opportunityList = new ArrayList<Object[]>();
 						List<Integer> pipilineAntiSalesStageList = new ArrayList<Integer>(salesStageList);
@@ -3015,28 +3023,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							reportSummaryOppMap.put("pipelineAnticipatingIou", pipelineAntiIou);
 						}
 						
-						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
-							if (salesStageList.isEmpty()) {
-								salesStageList.add(9);
-								salesStageList.add(10);
-							}
-							List<OpportunityT> oppList = opportunityRepository.getAllYear();
-							if(oppList.size() != 0){
-							fromYear = oppList.get(0).getDealClosureDate().toString().split("-");
-							toYear = oppList.get(oppList.size() - 1).getDealClosureDate().toString().split("-");
-							int startingYear = ExcelUtils.getStartingAndEndingYear(fromYear, true);
-							int endingYear = ExcelUtils.getStartingAndEndingYear(toYear, false);
-							for (; startingYear < endingYear; startingYear++) {
-								String endingFinancialYear = ((startingYear + 1) + "");
-								year = "FY'" + startingYear + "-"+ (endingFinancialYear.substring(2, 4));
-								reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month,year, quarter, geography, country,
-									iou, serviceLines,salesStageList, userIds, userId, isDistinctIou, userGroup);
-								if (reportSummaryOpportunities.size() > 0) {
-									reportSummaryOppMap.put(year, reportSummaryOpportunities);
-								}
-							}
-							}
-						} else {
 							reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month, year,
 									quarter, geography, country, iou, serviceLines,
 									salesStageList, userIds, userId, isDistinctIou, userGroup);
@@ -3051,7 +3037,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 									reportSummaryOppMap.put(year, reportSummaryOpportunities);
 								}
 							}
-						}
 						if (reportSummaryOppMap.size() > 0) {
 							buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
 						}else{
@@ -3077,5 +3062,4 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					}
 
 
-	
 }

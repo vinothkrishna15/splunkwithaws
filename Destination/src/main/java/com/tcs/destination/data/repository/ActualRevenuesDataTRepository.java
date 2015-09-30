@@ -19,9 +19,9 @@ public interface ActualRevenuesDataTRepository extends
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
-			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
+			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou) and "
 			+ "(RCMT.customer_name in (:customerName) or ('') in (:customerName))  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
-			+ "and (GMT.display_geography = (:displayGeography) or (:geography) = '')"
+			+ "and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')"
 			+ "group by ARDT.quarter order by ARDT.quarter asc ", nativeQuery = true)
 	List<Object[]> findActualRevenue(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
@@ -29,7 +29,7 @@ public interface ActualRevenuesDataTRepository extends
 
 	@Query(value = "select RCMT.customer_name,ARDT.quarter,sum(ARDT.revenue) from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=ARDT.finance_customer_name "
-			+ "and RCMT.customer_geography = ARDT.finance_geography "
+			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
@@ -41,7 +41,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select sum(revenue) as top_revenue from (select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ "(((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ "and RCMT.customer_geography=ARDT.finance_geography)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where upper(ARDT.month) in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
@@ -65,7 +65,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from  "
 			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
 			+ "where upper(ARDT.month) in (:monthList) "
@@ -89,7 +89,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from  "
 			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and upper(ARDT.month) in (:monthList) "
@@ -113,7 +113,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select sum(actual_revenue) as revenue from ( "
 			+ "(select sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ "and RCMT.customer_geography=ARDT.finance_geography)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ "where upper(ARDT.month) in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
@@ -133,7 +133,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue, RVNU.display_geography from  "
 			+ "((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue, GMT.display_geography from actual_revenues_data_t ARDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
-			+ " and RCMT.customer_geography=ARDT.finance_geography) "
+			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ " JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
@@ -159,7 +159,7 @@ public interface ActualRevenuesDataTRepository extends
 	@Query(value = "select RVNU.customer_name, RVNU.finance_customer_name, RVNU.display_iou, RVNU.display_geography "
 			+ "from ((select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, "
 			+ "gmt.display_geography from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on "
-			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography) "
+			+ "(RCMT.finance_customer_name = ARDT.finance_customer_name and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "JOIN iou_customer_mapping_t ICMT on "
 			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
@@ -184,7 +184,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
 			+ "join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
-			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography) and "
+			+ "(ARDT.finance_customer_name = RCMT.finance_customer_name and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou) and "
 			+ "(RCMT.customer_name in (:customerName) or ('') in (:customerName))  where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by ARDT.month order by ARDT.month asc ", nativeQuery = true)
 	List<Object[]> findActualRevenueByQuarter(@Param("financialYear") String financialYear,@Param("quarter") String quarter,

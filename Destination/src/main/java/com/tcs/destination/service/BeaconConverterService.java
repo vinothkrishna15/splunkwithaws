@@ -3,7 +3,9 @@ package com.tcs.destination.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -154,6 +156,74 @@ public class BeaconConverterService {
 			bidDetailsT.getOpportunityT().setOpportunityDealValues(opportunityDealValues);
 		}
 		return bidDetailsT;
+	}
+	
+	/**
+	 * This method returns a map of Currency Name and Rate with Name as key and Rate as value
+	 * 
+	 * @return
+	 */
+	public Map<String, BigDecimal> getCurrencyNameAndRate(){
+		
+		Map<String, BigDecimal> map =null;
+		
+		List<Object[]> listOfObjects = converterRepository.getCurrencyNameAndRate();
+		
+		if((listOfObjects!=null)&&(!listOfObjects.isEmpty())){
+			
+			map = new HashMap<String, BigDecimal>();
+
+				for (Object[] ob : listOfObjects) {
+				    map.put(ob[0].toString().trim(), new BigDecimal(ob[1].toString().trim()));
+				}
+
+		}
+		return map;
+	}
+	
+	/**
+	 * Convert to required currency
+	 * 
+	 * @param base
+	 * @param target
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public BigDecimal convertCurrencyRate(String base, String target, double value) throws Exception {
+
+		Map<String, BigDecimal> mapOfBeaconConverter = getCurrencyNameAndRate();
+		
+		BigDecimal sourceVal = BigDecimal.valueOf(value);
+		BigDecimal convertedVal = null;
+		
+		BigDecimal conversionBaseRate = getMapValuesForKey(mapOfBeaconConverter, base);
+		if (conversionBaseRate != null) {
+			sourceVal = conversionBaseRate.multiply(sourceVal);
+		}
+
+		BigDecimal conversionTargetRate = getMapValuesForKey(mapOfBeaconConverter, target);
+		if (conversionTargetRate != null) {
+			convertedVal = sourceVal.divide(conversionTargetRate, 2, RoundingMode.HALF_UP);
+		} 
+		return convertedVal;
+	}
+	
+	/**
+     * This method retrieves the value for the key
+     * 
+     * @param map
+     * @param key
+     * @return BigDecimal
+     * @throws Exception
+     */
+    private BigDecimal getMapValuesForKey(Map<String, BigDecimal> map, String key)
+			throws Exception {
+    	BigDecimal value = null;
+		if (map.containsKey(key)) {
+			value = map.get(key);
+		}
+		return value;
 	}
 	
 }

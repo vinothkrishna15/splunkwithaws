@@ -8,10 +8,15 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+
 import com.tcs.destination.exception.DestinationException;
+
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 public class PartnerService {
@@ -33,6 +38,97 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No such partner found.");
 		}
 		return partner;
+	}
+	
+	/*@Transactional
+	public boolean save(PartnerMasterT partner, boolean isUpdate) throws Exception {
+		if (isUpdate) 
+		{
+			if (partner.getPartnerId() == null) 
+			{
+				throw new DestinationException(HttpStatus.BAD_REQUEST,"Cannot Update Partner without partnerId");
+			}
+			
+		} else 
+		{
+			if (partner.getPartnerId() != null) 
+			{
+				throw new DestinationException(HttpStatus.BAD_REQUEST,"PartnerId should not be passed");
+			}
+		}
+
+		// Validate input parameters
+		validateRequest(partner);
+        
+		PartnerMasterT managedPartner = saveBasePartner(partner);
+		return true;
+	}
+   
+	private PartnerMasterT saveBasePartner(PartnerMasterT requestPartner)
+			throws CloneNotSupportedException, Exception {
+		PartnerMasterT partner =requestPartner.clone();
+		partner.setPartnerId(partnerRepository.save(requestPartner).getPartnerId());
+		return partner;
+	}*/
+	
+	/**
+	 * This method is used to validate contact input parameters.
+	 * 
+	 * @param contact
+	 * @return
+	 */
+	private void validateRequest(PartnerMasterT partner) throws DestinationException {
+
+		if(partner.getPartnerName().isEmpty()||partner.getPartnerName()==null)
+		{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"PartnerName is required");
+		}
+		if(partner.getGeographyMappingT()==null)
+		{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Geography is required");
+		}
+		
+	}
+
+
+	/**
+	 * This method inserts partner to the database
+	 * 
+	 * @param partnerToInsert
+	 * @return PartnerMasterT
+	 * @throws Exception
+	 */
+	@Transactional
+	public PartnerMasterT addPartner(PartnerMasterT partnerToInsert) throws Exception{
+
+		PartnerMasterT partnerMasterT = null;
+		List<PartnerMasterT> partners = null;
+		
+		if(partnerToInsert!=null)
+		{
+			partnerMasterT = new PartnerMasterT();
+			partners = partnerRepository.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(partnerToInsert.getPartnerName());
+			partnerMasterT.setCorporateHqAddress(partnerToInsert.getCorporateHqAddress());
+			partnerMasterT.setCreatedModifiedBy(partnerToInsert.getCreatedModifiedBy());
+			if (partners.isEmpty()) 
+			{
+			partnerMasterT.setPartnerName(partnerToInsert.getPartnerName());
+			}
+			else
+			{
+				logger.error("EXISTS: Partner Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,"Partner Already Exist!");
+			}
+			partnerMasterT.setWebsite(partnerToInsert.getWebsite());
+			partnerMasterT.setFacebook(partnerToInsert.getFacebook());
+			partnerMasterT.setGeographyMappingT(partnerToInsert.getGeographyMappingT());
+			partnerMasterT.setDocumentsAttached("NO");
+			partnerMasterT = partnerRepository.save(partnerMasterT);
+			logger.debug("Partner Saved .... "+partnerMasterT.getPartnerId());
+			
+		 }
+		
+		return 	partnerMasterT;
 	}
 
 	public List<PartnerMasterT> findByNameContaining(String nameWith) throws Exception {

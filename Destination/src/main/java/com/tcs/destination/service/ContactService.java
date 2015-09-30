@@ -69,10 +69,10 @@ public class ContactService {
 	public ContactT findById(String contactId, String userId) throws Exception {
 		logger.debug("Inside findTaskById Service");
 		ContactT contact = contactRepository.findOne(contactId);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contact == null) {
 			logger.error("NOT_FOUND: No contact found for the ContactId");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -103,10 +103,10 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -133,10 +133,10 @@ public class ContactService {
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
+//		if (!userId
+//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+//			throw new DestinationException(HttpStatus.FORBIDDEN,
+//					"User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,

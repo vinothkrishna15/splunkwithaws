@@ -87,7 +87,7 @@ public interface OpportunityRepository extends
 			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code=9 and OPP.deal_closure_date between (:fromDate) and (:toDate)", nativeQuery = true)
 	List<Object[]> findWinsPerformance(@Param("geography") String geography,
 			@Param("iou") String iou, @Param("serviceLine") String serviceLine,
-			@Param("currency") String currency, 
+			@Param("currency") String currency,
 			@Param("customer") List<String> customer,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
@@ -100,7 +100,7 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner,
 			String salesSupportOwner, String bidOfficeOwner);
 
-	@Query(value = "select OTH.sales_stage_code as SalesStage, count(*) as Bids, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+	@Query(value = "select OPP.sales_stage_code as SalesStage, count(*) as Bids, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
 			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
@@ -108,30 +108,34 @@ public interface OpportunityRepository extends
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customer) OR ('') in (:customer)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by SalesStage order by SalesStage", nativeQuery = true)
+			+ "where ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
+			+ "group by SalesStage order by SalesStage", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySalesStage(
 			@Param("geography") String geography, @Param("iou") String iou,
 			@Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
 			@Param("customer") List<String> customer,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo);
 
 	@Query(value = "select ICMT.display_iou, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
 			+ "where OPP.digital_deal_value <> 0 group by ICMT.display_iou order by ICMT.display_iou", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByIOU(
 			@Param("geography") String geography,
 			@Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo);
 
 	@Query(value = "select ICMT.display_iou, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
@@ -147,7 +151,6 @@ public interface OpportunityRepository extends
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
@@ -155,12 +158,15 @@ public interface OpportunityRepository extends
 			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8) "
-			+ "where OPP.digital_deal_value <> 0 group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
+			+ "and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) group by SSMT.display_sub_sp order by SSMT.display_sub_sp", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByServiceLine(
 			@Param("displayGeography") String displayGeography,
 			@Param("geography") String geography, @Param("iou") String iou,
-			@Param("currency") String currency);
+			@Param("currency") String currency,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo,
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
 			+ "(:currency))) as Mean, median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median from opportunity_t OPP "
@@ -179,18 +185,19 @@ public interface OpportunityRepository extends
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value = "select GMT.display_geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
+			+ "and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) group by GMT.display_geography order by GMT.display_geography", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByGeography(
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
 			@Param("currency") String currency,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value = "select GMT.display_geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV, avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = "
@@ -208,24 +215,24 @@ public interface OpportunityRepository extends
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
 	@Query(value = "select GMT.geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '')"
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
 			+ "where OPP.digital_deal_value <> 0 group by GMT.geography order by GMT.geography", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySubGeography(
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
 			@Param("geography") String geography,
 			@Param("currency") String currency,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo);
 
 	@Query(value = "select GMT.geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
@@ -253,10 +260,12 @@ public interface OpportunityRepository extends
 			+ " 	and OTH.updated_datetime between (:dateFrom) and (:dateTo))"
 			+ " where OPP.digital_deal_value <> 0"
 			+ " order by OPP.digital_deal_value DESC limit (:count)", nativeQuery = true)
-	public List<OpportunityT> getTopOpportunities(@Param("geography") String geography,
-			@Param("subSp") String subSp, @Param("iou") String iou, @Param("dateFrom") Date dateFrom, 
-			@Param("dateTo") Date dateTo, @Param("stageFrom") int stageFrom, @Param("stageTo") int stageTo,
-			@Param("count") int count, @Param("customerName") List<String> customerName);
+	public List<OpportunityT> getTopOpportunities(
+			@Param("geography") String geography, @Param("subSp") String subSp,
+			@Param("iou") String iou, @Param("dateFrom") Date dateFrom,
+			@Param("dateTo") Date dateTo, @Param("stageFrom") int stageFrom,
+			@Param("stageTo") int stageTo, @Param("count") int count,
+			@Param("customerName") List<String> customerName);
 
 	public List<OpportunityT> findBySalesStageCode(int salesStageCode);
 
@@ -312,6 +321,22 @@ public interface OpportunityRepository extends
 	 * opportunity_t, opportunity_sales_support_link_t and bid_details_t
 	 * 
 	 * @param users
+	 * @param salesStageCode
+	 * @return
+	 */
+	@Query(value = "select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) and (sales_stage_code = (:salesStageCode)) order by OPP.created_datetime desc", nativeQuery = true)
+	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(
+			@Param("users") List<String> users,
+			@Param("salesStageCode") int salesStageCode);
+
+	/**
+	 * This query retrieves the opportunities for the users in the tables
+	 * opportunity_t, opportunity_sales_support_link_t and bid_details_t
+	 * 
+	 * @param users
 	 * @return
 	 */
 	@Query(value = "select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
@@ -321,13 +346,44 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findTeamOpportunityDetailsBySupervisorId(
 			@Param("users") List<String> users);
 
+	/**
+	 * This query retrieves the opportunities for the users in the tables
+	 * opportunity_t, opportunity_sales_support_link_t and bid_details_t
+	 * 
+	 * @param users
+	 * @param startTs
+	 * @param endTs
+	 * @param salesStageCode
+	 * @return
+	 */
+	@Query(value = "select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) and "
+			+ "((OPP.deal_closure_date between (:startTs) and (:endTs) and OPP.sales_stage_code between 9 and 13) or (OPP.sales_stage_code < 9)) and (sales_stage_code = (:salesStageCode)) order by OPP.created_datetime desc", nativeQuery = true)
+	List<OpportunityT> findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
+			@Param("users") List<String> users,
+			@Param("startTs") Timestamp startTs,
+			@Param("endTs") Timestamp endTs,
+			@Param("salesStageCode") int salesStageCode);
+
+	/**
+	 * This query retrieves the opportunities for the users in the tables
+	 * opportunity_t, opportunity_sales_support_link_t and bid_details_t
+	 * 
+	 * @param users
+	 * @param startTs
+	 * @param endTs
+	 * @return
+	 */
 	@Query(value = "select * from opportunity_t OPP WHERE OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
 			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
 			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
 			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) and "
 			+ "((OPP.deal_closure_date between (:startTs) and (:endTs) and OPP.sales_stage_code between 9 and 13) or (OPP.sales_stage_code < 9)) order by OPP.created_datetime desc", nativeQuery = true)
 	List<OpportunityT> findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
-			@Param("users") List<String> users,@Param("startTs") Timestamp startTs,@Param("endTs") Timestamp endTs);
+			@Param("users") List<String> users,
+			@Param("startTs") Timestamp startTs, @Param("endTs") Timestamp endTs);
 
 	@Query(value = "select distinct(OPP.*) from opportunity_t OPP,customer_master_t CMT "
 			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) "
@@ -582,13 +638,12 @@ public interface OpportunityRepository extends
 
 	// Win or Loss ends here
 
-	// Anticipating or Pipeline Querys
+	// Anticipating or Pipeline Query
 
-	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -610,11 +665,10 @@ public interface OpportunityRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,GMT.display_geography,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -633,11 +687,10 @@ public interface OpportunityRepository extends
 			@Param("serviceLines") List<String> serviceLines,
 			@Param("salesStage") int salesStage);
 
-	@Query(value = "select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SSMT.display_sub_sp,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP "
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
@@ -659,11 +712,10 @@ public interface OpportunityRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = "select distinct SSMT.display_sub_sp,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SSMT.display_sub_sp,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " inner join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -682,11 +734,10 @@ public interface OpportunityRepository extends
 			@Param("serviceLines") List<String> serviceLines,
 			@Param("salesStage") List<Integer> salesStage);
 
-	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP "
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
@@ -707,11 +758,10 @@ public interface OpportunityRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = "select distinct SASMT.sales_stage_description,case when count(BDT.bid_id) is not null then count(BDT.bid_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
+	@Query(value = "select distinct SASMT.sales_stage_description,case when count(opp.opportunity_id) is not null then count(opp.opportunity_id) else 0 end as noOfBids,ICM.display_iou,case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) is not null then sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('INR'))) else 0 end as bidValue"
 			+ " from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
-			+ " inner join bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp"
 			+ " inner join customer_master_t CMT on opp.customer_id = CMT.customer_id"
@@ -731,11 +781,11 @@ public interface OpportunityRepository extends
 
 	// Anticipating or pipeline ends here
 
-	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
-	List<OpportunityT> getAllYear();
+//	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
+//	List<OpportunityT> getAllYear();
 
-	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10,11,12,13) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
-	List<OpportunityT> getAllYearInDetailed();
+//	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10,11,12,13) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
+//	List<OpportunityT> getAllYearInDetailed();
 
 	@Query(value = "select distinct UT.user_name,count(OPP.opportunity_id),"
 			+ "case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / "
@@ -806,21 +856,22 @@ public interface OpportunityRepository extends
 			String keyword);
 
 	@Query(value = "select OPP.country, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
-			+ "JOIN geography_mapping_t GMT on (GCMT.geography =(:geography) OR (:geography) = '')"
+			+ "and (GCMT.geography =(:geography) OR (:geography) = '')"
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
+			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
 			+ "where OPP.digital_deal_value <> 0 group by OPP.country order by OPP.country", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByCountry(
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
 			@Param("geography") String geography,
 			@Param("currency") String currency,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo);
 
 	@Query(value = "select OPP.country, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
 			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
@@ -844,4 +895,44 @@ public interface OpportunityRepository extends
 			+ "select bid_office_group_owner as user_id from bid_office_group_owner_link_t  where bid_id  in (select bid_id from bid_details_t where opportunity_id =(:opportunityId))) as opportunity_owners", nativeQuery = true)
 	List<String> getAllOwners(@Param("opportunityId") String opportunityId);
 
+	@Query(value = "select OPP.deal_closure_date, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currencyName)))  as digitalDealCalue from opportunity_t OPP"
+			+ "	join geography_country_mapping_t GCMT on GCMT.country=OPP.country and (GCMT.geography=(:geography) or (:geography) = '') "
+			+ " join geography_mapping_t GMT on GMT.geography=GCMT.geography and (GMT.display_geography=(:displayGeography) or (:displayGeography)='') "
+			+ " join opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id=OPP.opportunity_id "
+			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
+			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id and (CMT.customer_name in (:custName) or ('') in (:custName) ) "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
+			+ "where OPP.deal_closure_date between (:fromDate) and (:toDate) and OPP.sales_stage_code=9 "
+			+ "group by OPP.deal_closure_date", nativeQuery = true)
+	List<Object[]> getDigitalDealValueByClosureDate(@Param("fromDate") Date fromDate,@Param("toDate") Date toDate,
+			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("serviceLine") String serviceLine,
+			@Param("iou") String iou,@Param("custName")  List<String> custName,@Param("currencyName") String currencyName);
+
+	@Query(value = " SELECT USER_ID,SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue,SUM(SALES_VALUE) as salesOwnerDealValue "
+			+ " FROM(select opportunity_owner AS USER_ID , sum(digital_deal_value) AS PRIMARY_BID_VALUE, (0.0) AS SALES_VALUE from opportunity_t OPP "
+			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " left outer join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+			+ " where sales_stage_code = '9' and (OPP.opportunity_owner = (:userId) or (bofg.bid_office_group_owner = (:userId))) "
+			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) group by opportunity_owner "
+			+ " UNION select sales_support_owner AS USER_ID , (0.0) AS PRIMARY_BID_VALUE, sum(digital_deal_value) AS SALES_VALUE "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " where sales_stage_code = '9' and OSSLT.sales_support_owner = (:userId) "
+			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+			+ " group by sales_support_owner) AS OppWinValue GROUP BY USER_ID ", nativeQuery = true)
+	Object[][] findOpportunityWinValueByOpportunityOwnerOrSalesSupportOwner(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
+
+	@Query(value = "SELECT USER_ID, SUM(OpportunitiesCount.PRIMARY) as oppOwnerCount, SUM(OpportunitiesCount.SECONDARY) as salesOwnerOppCount FROM "
+			+ " (select opportunity_owner as USER_ID ,count(OPP.opportunity_id) as PRIMARY, (0) as SECONDARY from opportunity_t OPP "
+			+ " where sales_stage_code < 9 and OPP.opportunity_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+			+ " group by opportunity_owner UNION select sales_support_owner AS USER_ID , (0) AS PRIMARY, count(OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP " 
+			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id where sales_stage_code < 9 "
+			+ " and OSSLT.sales_support_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) group by sales_support_owner "
+			+ " ) AS OpportunitiesCount GROUP BY USER_ID", nativeQuery =true)
+	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwner(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
 }

@@ -37,6 +37,10 @@ public class GeographyCountryMappingT implements Serializable {
 	private String country;
 
 	private String geography;
+	
+	private String latitude;
+
+	private String longitude;
 
 	//bi-directional many-to-one association to ConnectT
 	@JsonIgnore
@@ -71,6 +75,22 @@ public class GeographyCountryMappingT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
 	}
 
 	public List<ConnectT> getConnectTs() {

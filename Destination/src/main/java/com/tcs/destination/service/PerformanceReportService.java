@@ -61,111 +61,186 @@ public class PerformanceReportService {
 
 	@Autowired
 	SalesStageMappingRepository salesStageMappingRepository;
-	
+
 	@Autowired
 	CustomerRepository customerRepository;
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
-			String financialYear, String quarter, String displayGeography,String geography,
-			String serviceLine, String iou, String customerName, String currency, String groupCustomer)
-			throws Exception {
+			String financialYear, String quarter, String displayGeography,
+			String geography, String serviceLine, String iou,
+			String customerName, String currency, String groupCustomer,
+			boolean wins) throws Exception {
 		logger.info("Inside getRevenueSummary Service");
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
-		if (financialYear.equals("")) {
-			logger.debug("Financial Year is Empty");
-			financialYear = DateUtils.getCurrentFinancialYear();
-		}
+
 		logger.debug("Financial Year: " + financialYear);
-
-		List<Object[]> actualObjList = null;
-		if (quarter.isEmpty()) {
-			actualObjList = actualsRepository.findActualRevenue(financialYear,
-					quarter, displayGeography, geography, iou, custName, serviceLine);
-		} else {
-			actualObjList = actualsRepository.findActualRevenueByQuarter(
-					financialYear, quarter, displayGeography,geography, iou, custName,
-					serviceLine);
-		}
-		logger.info("Actual Revenue has " + actualObjList.size() + " values");
-
-		Map<String, BigDecimal> quarterMap = getMapFromObjList(actualObjList);
-
-		List<Object[]> projectedObjList = null;
-
-		if (quarter.isEmpty()) {
-			projectedObjList = projectedRepository.findProjectedRevenue(
-					financialYear, quarter, displayGeography,geography, iou, custName,
-					serviceLine);
-		} else {
-			projectedObjList = projectedRepository
-					.findProjectedRevenueByQuarter(financialYear, quarter,
-							displayGeography,geography, iou, custName, serviceLine);
-		}
-		logger.info("Projected Revenue has " + projectedObjList.size()
-				+ " values");
-
-		mergeProjectedRevenue(quarterMap, projectedObjList);
-
-		List<TargetVsActualResponse> actualProjectedList = convertMaptoTargetvsActualResponse(
-				quarterMap, currency);
-
-		// service line does not have target revenue
-		if (serviceLine.equals("")) {
-
-			List<Object[]> targetRevenueList = null;
-//			if (quarter.isEmpty()) {
-				targetRevenueList = beaconDataTRepository.findTargetRevenue(
-						financialYear, quarter, displayGeography,geography, iou, custName);
-//			} else {
-//				targetRevenueList = new ArrayList<Object[]>();
-//				List<Object[]> targetList = beaconDataTRepository
-//						.findTargetRevenue(financialYear, quarter, geography,
-//								iou, customerName);
-//				List<String> months = DateUtils.getMonths(quarter);
-//				// Since asked for one Quarter, Target will return only one row
-//				if (targetList.size() == 1) {
-//					for (String month : months) {
-//						Object[] targetRevenue = new Object[2];
-//						targetRevenue[0] = month;
-//						targetRevenue[1] = ((BigDecimal) targetList.get(0)[1])
-//								.divide(new BigDecimal(3),2,RoundingMode.UP);
-//						targetRevenueList.add(targetRevenue);
-//					}
-//				}
-//			}
-
-			logger.debug("Target Revenue has " + targetRevenueList.size()
+		if (!wins) {
+			if (financialYear.equals("")) {
+				logger.debug("Financial Year is Empty");
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
+			// Get get data of actuals
+			List<Object[]> actualObjList = null;
+			if (quarter.isEmpty()) {
+				actualObjList = actualsRepository.findActualRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			} else {
+				actualObjList = actualsRepository.findActualRevenueByQuarter(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			}
+			logger.info("Actual Revenue has " + actualObjList.size()
 					+ " values");
+
+			Map<String, BigDecimal> quarterMap = getMapFromObjList(actualObjList);
+
+			List<Object[]> projectedObjList = null;
+
+			if (quarter.isEmpty()) {
+				projectedObjList = projectedRepository.findProjectedRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName, serviceLine);
+			} else {
+				projectedObjList = projectedRepository
+						.findProjectedRevenueByQuarter(financialYear, quarter,
+								displayGeography, geography, iou, custName,
+								serviceLine);
+			}
+			logger.info("Projected Revenue has " + projectedObjList.size()
+					+ " values");
+
+			mergeProjectedRevenue(quarterMap, projectedObjList);
+
+			List<TargetVsActualResponse> actualProjectedList = convertMaptoTargetvsActualResponse(
+					quarterMap, currency);
+
+			// service line does not have target revenue
+			if (serviceLine.equals("")) {
+
+				List<Object[]> targetRevenueList = null;
+				targetRevenueList = beaconDataTRepository.findTargetRevenue(
+						financialYear, quarter, displayGeography, geography,
+						iou, custName);
+
+				logger.debug("Target Revenue has " + targetRevenueList.size()
+						+ " values");
+
+				List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
+
+				populateResponseList(targetRevenueList, targetList, true,
+						currency);
+
+				List<TargetVsActualResponse> tarActResponseList = mergeLists(
+						targetList, actualProjectedList);
+				if (tarActResponseList.isEmpty()) {
+					logger.error("NOT_FOUND: No Relevent Data Found in the database");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Relevent Data Found in the database");
+				}
+				return tarActResponseList;
+			} else {
+				if (actualProjectedList.isEmpty()) {
+					logger.error("NOT_FOUND: No Relevent Data Found in the database");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No Relevent Data Found in the database");
+				}
+				return actualProjectedList;
+			}
+		} else {
+			if (financialYear.equals("") && quarter.isEmpty()) {
+				logger.debug("Financial Year is Empty");
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
+			Date fromDate = DateUtils.getDate("", quarter, financialYear, true);
+			Date toDate = DateUtils.getDate("", quarter, financialYear, false);
+			// TODO:
+			List<Object[]> digitalDealValueList = opportunityRepository
+					.getDigitalDealValueByClosureDate(fromDate, toDate,
+							displayGeography, geography, serviceLine, iou,
+							custName, currency);
+			List<Object[]> digitalDealValueByTimeLineList = new ArrayList<Object[]>();
+			logger.debug("Digital Deal Value has "
+					+ digitalDealValueList.size() + " values");
+			if (!quarter.isEmpty()) {
+				logger.debug("financial year is empty");
+				for (Object[] quarterDigitalDealValue : digitalDealValueList) {
+					if (quarterDigitalDealValue[0] != null) {
+						Object[] quarterArray = new Object[2];
+						quarterArray[0] = DateUtils
+								.getFormattedMonth((Date) quarterDigitalDealValue[0]);
+						quarterArray[1] = quarterDigitalDealValue[1];
+						digitalDealValueByTimeLineList.add(quarterArray);
+					}
+				}
+			} else {
+				logger.debug("financial year is empty");
+				for (Object[] quarterDigitalDealValue : digitalDealValueList) {
+					if (quarterDigitalDealValue[0] != null) {
+						Object[] quarterArray = new Object[2];
+						quarterArray[0] = DateUtils
+								.getQuarterForMonth(DateUtils
+										.getFormattedMonth((Date) quarterDigitalDealValue[0]));
+						quarterArray[1] = quarterDigitalDealValue[1];
+						digitalDealValueByTimeLineList.add(quarterArray);
+					}
+				}
+			}
+			Map<String, BigDecimal> quarterMap = getSumUpInMap(digitalDealValueByTimeLineList);
 
 			List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
 
-			populateResponseList(targetRevenueList, targetList, true, currency);
-
-			List<TargetVsActualResponse> tarActResponseList = mergeLists(
-					targetList, actualProjectedList);
-			if (tarActResponseList.isEmpty()) {
-				logger.error("NOT_FOUND: No Relevent Data Found in the database");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
-			}
-			return tarActResponseList;
-		} else {
-			if (actualProjectedList.isEmpty()) {
-				logger.error("NOT_FOUND: No Relevent Data Found in the database");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Relevent Data Found in the database");
-			}
-			return actualProjectedList;
+			populateResponseList(quarterMap, targetList);
+			return targetList;
 		}
+	}
+
+	private Map<String, BigDecimal> getSumUpInMap(
+			List<Object[]> digitalDealValueByTimeLineList) {
+
+		Map<String, BigDecimal> map = new TreeMap<String, BigDecimal>();
+		for (int i = 0; i < digitalDealValueByTimeLineList.size(); i++) {
+			Object[] obj = digitalDealValueByTimeLineList.get(i);
+			logger.debug("In item " + i + "  Obj [0] : " + obj[0]
+					+ " Obj [1] : " + obj[1]);
+			if (obj[0] != null) {
+				String dispName = (String) obj[0];
+				if (obj[1] != null) {
+					BigDecimal rev = new BigDecimal(obj[1].toString());
+					if (dispName != null) {
+						if (map.containsKey(dispName)) {
+							rev=rev.add(map.get(dispName));
+						}
+						map.put(dispName, rev);
+					}
+				}
+			}
+
+		}
+		return map;
+
+	}
+
+	private void populateResponseList(Map<String, BigDecimal> quarterMap,
+			List<TargetVsActualResponse> targetList) {
+		for (String quarterKeyset : quarterMap.keySet()) {
+			TargetVsActualResponse targetVsActual = new TargetVsActualResponse();
+			targetVsActual.setSubTimeLine(quarterKeyset);
+			targetVsActual.setDigitalDealValue(quarterMap.get(quarterKeyset));
+			targetList.add(targetVsActual);
+		}
+
 	}
 
 	private List<TargetVsActualResponse> convertMaptoTargetvsActualResponse(
@@ -288,6 +363,9 @@ public class PerformanceReportService {
 
 		List<IOUReport> iouRevenuesList = convertMaptoIOUList(iouMap, currency);
 
+		if (iouRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 		return iouRevenuesList;
 	}
 
@@ -311,17 +389,20 @@ public class PerformanceReportService {
 
 	private void mergeProjectedRevenue(Map<String, BigDecimal> map,
 			List<Object[]> projObjList) throws Exception {
+		if (map == null)
+			map = new TreeMap<String, BigDecimal>();
 		for (Object[] obj : projObjList) {
 			String dispName = (String) obj[0];
-			BigDecimal projRev = new BigDecimal(obj[1].toString());
-			if (map.containsKey(dispName)) {
-				BigDecimal actual = map.get(dispName);
-				map.put(dispName, actual.add(projRev));
-			} else {
-				// if subsp/iou/geography/quarter does not have actuals data
-				map.put(dispName, projRev);
+			if (obj[1] != null && dispName != null) {
+				BigDecimal projRev = new BigDecimal(obj[1].toString());
+				if (map.containsKey(dispName)) {
+					BigDecimal actual = map.get(dispName);
+					map.put(dispName, actual.add(projRev));
+				} else {
+					// if subsp/iou/geography/quarter does not have actuals data
+					map.put(dispName, projRev);
+				}
 			}
-
 		}
 	}
 
@@ -340,33 +421,40 @@ public class PerformanceReportService {
 	}
 
 	public List<SubSpReport> getRevenuesBySubSp(String financialYear,
-			String quarter, String displayGeography,String geography, String customerName, String iou,
-			String currency, String groupCustomer) throws Exception {
+			String quarter, String displayGeography, String geography,
+			String customerName, String iou, String currency,
+			String groupCustomer) throws Exception {
 
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
 		List<Object[]> subObjList = perfRepo.getRevenuesBySubSp(financialYear,
-				quarter,displayGeography, geography, custName, iou);
+				quarter, displayGeography, geography, custName, iou);
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> subSpMap = getMapFromObjList(subObjList);
 
 		List<Object[]> subProjObjList = projectedRepository.getRevenuesBySubSp(
-				financialYear, quarter,displayGeography, geography, custName, iou);
+				financialYear, quarter, displayGeography, geography, custName,
+				iou);
 
 		// adding projected revenue
 		mergeProjectedRevenue(subSpMap, subProjObjList);
 
 		List<SubSpReport> subSpRevenuesList = convertMaptoSubSpList(subSpMap,
 				currency);
+		if (subSpRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return subSpRevenuesList;
 	}
@@ -392,15 +480,18 @@ public class PerformanceReportService {
 
 	public List<GeographyReport> getRevenuesByDispGeography(
 			String financialYear, String quarter, String customerName,
-			String subSp, String iou, String currency, String groupCustomer) throws Exception {
-		
+			String subSp, String iou, String currency, String groupCustomer)
+			throws Exception {
+
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
@@ -419,6 +510,10 @@ public class PerformanceReportService {
 
 		List<GeographyReport> geoRevenuesList = convertMaptoGeographyList(
 				dispGeoMap, currency);
+
+		if (geoRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return geoRevenuesList;
 	}
@@ -445,39 +540,40 @@ public class PerformanceReportService {
 	public List<GeographyReport> getRevenuesBySubGeography(
 			String financialYear, String quarter, String customerName,
 			String subSp, String iou, String displayGeography,
-			String geography, String currency, String groupCustomer) throws Exception {
+			String geography, String currency, String groupCustomer)
+			throws Exception {
 
 		List<Object[]> geoObjList = null;
-		List<Object[]> geoProjObjList =null;
-		
+		List<Object[]> geoProjObjList = null;
+
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
 		if (geography.isEmpty()) {
 			geoObjList = perfRepo.getRevenuesBySubGeo(financialYear, quarter,
 					custName, subSp, iou, displayGeography);
-			geoProjObjList = projectedRepository
-					.getRevenuesBySubGeo(financialYear, quarter, custName, subSp,
-							iou, displayGeography);
+			geoProjObjList = projectedRepository.getRevenuesBySubGeo(
+					financialYear, quarter, custName, subSp, iou,
+					displayGeography);
 		} else {
 			geoObjList = perfRepo.getRevenuesByCountry(financialYear, quarter,
 					custName, subSp, iou, geography);
-			geoProjObjList = projectedRepository
-					.getRevenuesByCountry(financialYear, quarter, custName, subSp,
-							iou, displayGeography);
+			geoProjObjList = projectedRepository.getRevenuesByCountry(
+					financialYear, quarter, custName, subSp, iou,
+					displayGeography);
 		}
 
 		// initializing the map with actuals data
 		Map<String, BigDecimal> dispGeoMap = getMapFromObjList(geoObjList);
-
-		
 
 		// adding projected revenue
 		mergeProjectedRevenue(dispGeoMap, geoProjObjList);
@@ -485,60 +581,72 @@ public class PerformanceReportService {
 		List<GeographyReport> geoRevenuesList = convertMaptoGeographyList(
 				dispGeoMap, currency);
 
+		if (geoRevenuesList.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
+
 		return geoRevenuesList;
 	}
 
 	public List<OpportunityT> getTopOpportunities(String currency,
 			String geography, int stageFrom, int stageTo, String subSp,
-			String iou, Date dateFrom, Date dateTo, int count, String customerName, String groupCustomer) throws Exception {
+			String iou, Date dateFrom, Date dateTo, int count,
+			String customerName, String groupCustomer) throws Exception {
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
 		List<OpportunityT> topOppList = new ArrayList<OpportunityT>();
 		topOppList = opportunityRepository.getTopOpportunities(geography,
-				subSp, iou, dateFrom, dateTo, stageFrom, stageTo, count, custName);
+				subSp, iou, dateFrom, dateTo, stageFrom, stageTo, count,
+				custName);
 		return topOppList;
 
 	}
 
 	public ReportsOpportunity getOpportunity(String financialYear,
 			String quarter, String geography, String iou, String serviceLine,
-			String currency, boolean pipelines, String customerName, String groupCustomer) throws Exception {
+			String currency, int salesStageFrom, int salesStageTo,
+			String customerName, String groupCustomer) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		ReportsOpportunity reportsOpportunity = new ReportsOpportunity();
 		List<ReportsSalesStage> salesStageList = new ArrayList<ReportsSalesStage>();
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
-		if (pipelines) {
-			List<Object[]> pipelineData = opportunityRepository
-					.findPipelinePerformance(geography, iou, serviceLine,
-							currency, custName, fromDate, toDate);
-			if (pipelineData != null) {
-				Object[] pipeline = pipelineData.get(0);
-				if (pipeline[1] != null) {
-					reportsOpportunity.setOverallBidValue(pipeline[1]
-							.toString());
-				}
+//			List<Object[]> pipelineData = opportunityRepository
+//					.findPipelinePerformance(geography, iou, serviceLine,
+//							currency, custName, fromDate, toDate,
+//							salesStageFrom, salesStageTo);
+//			if (pipelineData != null) {
+//				Object[] pipeline = pipelineData.get(0);
+//				if (pipeline[1] != null) {
+//					reportsOpportunity.setOverallBidValue(pipeline[1]
+//							.toString());
+//				}
 
 				List<Object[]> pipeLinesBySalesStage = opportunityRepository
 						.findPipelinePerformanceBySalesStage(geography, iou,
-								serviceLine, currency, custName, fromDate, toDate);
+								serviceLine, currency, custName, fromDate,
+								toDate,salesStageFrom,salesStageTo);
 				if (pipeLinesBySalesStage != null) {
 					for (Object[] pipeLineBySalesStage : pipeLinesBySalesStage) {
 						ReportsSalesStage reportsSalesStage = new ReportsSalesStage();
@@ -562,7 +670,7 @@ public class PerformanceReportService {
 							}
 							if (pipeLineBySalesStage[2] != null) {
 								reportsSalesStage
-										.setOverallBidValue(pipeLineBySalesStage[2]
+										.setDigitalDealValue(pipeLineBySalesStage[2]
 												.toString());
 							}
 
@@ -571,52 +679,6 @@ public class PerformanceReportService {
 					}
 				}
 
-			}
-		} else {
-			// Setting values for Pipeline
-
-			List<Object[]> pipelineData = opportunityRepository
-					.findPipelinePerformance(geography, iou, serviceLine,
-							currency, custName, fromDate, toDate);
-			ReportsSalesStage pipeLineReports = new ReportsSalesStage();
-			Object[] pipeline = pipelineData.get(0);
-			if (pipeline != null) {
-				if (pipeline[0] != null)
-					pipeLineReports.setBidCount(pipelineData.get(0)[0]
-							.toString());
-				if (pipeline[1] != null)
-					pipeLineReports.setOverallBidValue(pipelineData.get(0)[1]
-							.toString());
-			}
-			pipeLineReports.setSalesStageCode("04 - 08");
-			pipeLineReports.setSalesStageCodeDescription("Pipeline");
-			salesStageList.add(pipeLineReports);
-
-			// Setting values for Wins
-			List<Object[]> winsList = opportunityRepository
-					.findWinsPerformance(geography, iou, serviceLine, currency, custName,
-							fromDate, toDate);
-			Object[] win = winsList.get(0);
-			ReportsSalesStage winReports = new ReportsSalesStage();
-			winReports.setSalesStageCode("9");
-			winReports.setSalesStageCodeDescription(salesStageMappingRepository
-					.findBySalesStageCode(9).getSalesStageDescription());
-			if (win != null) {
-				if (win[0] != null) {
-					winReports.setCount(win[0].toString());
-				}
-				if (win[1] != null) {
-					winReports.setOverallBidValue(win[1].toString());
-				}
-				if (win[2] != null) {
-					winReports.setMean(win[2].toString());
-				}
-				if (win[3] != null) {
-					winReports.setMedian(win[3].toString());
-				}
-			}
-			salesStageList.add(winReports);
-		}
 		reportsOpportunity.setSalesStageList(salesStageList);
 		return reportsOpportunity;
 	}
@@ -646,20 +708,15 @@ public class PerformanceReportService {
 
 	public List<IOUReport> getOpportunitiesByIOU(String financialYear,
 			String quarter, String geography, String serviceLine,
-			String currency, boolean isPipeline) throws Exception {
+			String currency, int salesStageFrom, int salesStageTo)
+			throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<IOUReport> iouReports = new ArrayList<IOUReport>();
 		List<Object[]> opportunitiesByIOU = null;
-		if (isPipeline) {
-			opportunitiesByIOU = opportunityRepository
-					.findPipelinePerformanceByIOU(geography, serviceLine,
-							currency, fromDate, toDate);
-		} else {
-			opportunitiesByIOU = opportunityRepository
-					.findWinsPerformanceByIOU(geography, serviceLine, currency,
-							fromDate, toDate);
-		}
+		opportunitiesByIOU = opportunityRepository
+				.findPipelinePerformanceByIOU(geography, serviceLine, currency,
+						fromDate, toDate, salesStageFrom, salesStageTo);
 		if (opportunitiesByIOU != null) {
 			for (Object[] opportunityByIOU : opportunitiesByIOU) {
 				IOUReport iouReport = new IOUReport();
@@ -675,28 +732,29 @@ public class PerformanceReportService {
 			}
 
 		}
+		if (iouReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return iouReports;
 	}
 
 	public List<SubSpReport> getOpportunitiesBySubSp(String financialYear,
-			String quarter,String displayGeography, String geography, String iou, String currency,
-			boolean isPipeline) throws Exception {
-		if(!quarter.isEmpty())
-			financialYear="";
+			String quarter, String displayGeography, String geography,
+			String iou, String currency, int salesStageFrom, int salesStageTo)
+			throws Exception {
+		if (!quarter.isEmpty())
+			financialYear = "";
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<SubSpReport> subSpReports = new ArrayList<SubSpReport>();
 		List<Object[]> opportunitiesBySubSpReports = null;
-		if (isPipeline) {
-			opportunitiesBySubSpReports = opportunityRepository
-					.findPipelinePerformanceByServiceLine(displayGeography,geography, iou,
-							currency);
-		} else {
-			opportunitiesBySubSpReports = opportunityRepository
-					.findWinsPerformanceByServiceLine(displayGeography,geography, iou, currency,
-							fromDate, toDate);
-		}
+
+		opportunitiesBySubSpReports = opportunityRepository
+				.findPipelinePerformanceByServiceLine(displayGeography,
+						geography, iou, currency, salesStageFrom, salesStageTo,
+						fromDate, toDate);
+
 		if (opportunitiesBySubSpReports != null) {
 			for (Object[] opportunityBySubSp : opportunitiesBySubSpReports) {
 				SubSpReport subSpReport = new SubSpReport();
@@ -712,28 +770,24 @@ public class PerformanceReportService {
 				subSpReports.add(subSpReport);
 			}
 		}
-		if(subSpReports.isEmpty())
-			throw new DestinationException(HttpStatus.NOT_FOUND, "No Data Found");
+		if (subSpReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return subSpReports;
 	}
 
 	public List<GeographyReport> getOpportunitiesByDispGeography(
 			String financialYear, String quarter, String subSp, String iou,
-			String currency, boolean isPipeline) throws Exception {
+			String currency, int salesStageFrom, int salesStageTo)
+			throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
-		if (isPipeline) {
-			opportunitiesByGeographyReports = opportunityRepository
-					.findPipelinePerformanceByGeography(subSp, iou, currency,
-							fromDate, toDate);
-		} else {
-			opportunitiesByGeographyReports = opportunityRepository
-					.findWinsPerformanceByGeography(subSp, iou, currency,
-							fromDate, toDate);
-		}
+		opportunitiesByGeographyReports = opportunityRepository
+				.findPipelinePerformanceByGeography(subSp, iou, currency,
+						salesStageFrom, salesStageTo, fromDate, toDate);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
@@ -749,22 +803,27 @@ public class PerformanceReportService {
 			}
 		}
 
+		if (geographyReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 		return geographyReports;
 	}
 
 	public List<GeographyReport> getOpportunitiesBySubGeography(
 			String financialYear, String quarter, String customerName,
 			String serviceLine, String iou, String displayGeography,
-			String geography, String currency, boolean isPipeline, String groupCustomer)
-			throws Exception {
-		
+			String geography, String currency, int salesStageFrom,
+			int salesStageTo, String groupCustomer) throws Exception {
+
 		List<String> custName = new ArrayList<String>();
-		if(customerName.length()==0 && groupCustomer.length()>0){
-		custName = customerRepository.findByGroupCustomerName(groupCustomer);
-		if(custName.isEmpty()){
-			logger.error("NOT_FOUND: Invalid Group Customer");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer");
-		}
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
 		} else {
 			custName.add(customerName);
 		}
@@ -772,30 +831,16 @@ public class PerformanceReportService {
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
-		if (isPipeline) {
-			if (geography.isEmpty()) {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findPipelinePerformanceBySubGeography(custName,
-								serviceLine, iou, displayGeography, currency,
-								fromDate, toDate);
-			} else {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findPipelinePerformanceByCountry(custName,
-								serviceLine, iou, geography, currency,
-								fromDate, toDate);
-			}
+		if (geography.isEmpty()) {
+			opportunitiesByGeographyReports = opportunityRepository
+					.findPipelinePerformanceBySubGeography(custName,
+							serviceLine, iou, displayGeography, currency,
+							fromDate, toDate, salesStageFrom, salesStageTo);
 		} else {
-			if (geography.isEmpty()) {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findWinsPerformanceBySubGeography(custName,
-								serviceLine, iou, displayGeography, currency,
-								fromDate, toDate);
-			} else {
-				opportunitiesByGeographyReports = opportunityRepository
-						.findWinsPerformanceByCountry(custName,
-								serviceLine, iou, geography, currency,
-								fromDate, toDate);
-			}
+			opportunitiesByGeographyReports = opportunityRepository
+					.findPipelinePerformanceByCountry(custName, serviceLine,
+							iou, geography, currency, fromDate, toDate,
+							salesStageFrom, salesStageTo);
 		}
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
@@ -811,6 +856,10 @@ public class PerformanceReportService {
 				geographyReports.add(geographyReport);
 			}
 		}
+
+		if (geographyReports.isEmpty())
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Data Found");
 
 		return geographyReports;
 	}

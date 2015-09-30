@@ -1111,7 +1111,7 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(
-			String supervisorUserId, int page, int count, boolean isCurrentFinancialYear) throws Exception {
+			String supervisorUserId, int page, int count, boolean isCurrentFinancialYear, String salesStageCode) throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
@@ -1128,14 +1128,22 @@ public class OpportunityService {
 
 			// Retrieve opportunities from users
 			if(!isCurrentFinancialYear){
-				opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users);
+				if(salesStageCode.equalsIgnoreCase("ALL")){
+					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users);
+				} else {
+					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users, Integer.parseInt(salesStageCode));
+				}
 			} else if(isCurrentFinancialYear){
 				String financialYear = DateUtils.getCurrentFinancialYear();
 				
 				Timestamp startTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, true).getTime());
 				Timestamp endTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, false).getTime() + Constants.ONE_DAY_IN_MILLIS - 1);
 				
-				opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp);
+				if(salesStageCode.equalsIgnoreCase("ALL")){
+					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp);
+				} else {
+					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp, Integer.parseInt(salesStageCode));
+				}
 			}
 
 			if ((opportunities != null) && (!opportunities.isEmpty())) {
@@ -1291,7 +1299,7 @@ public class OpportunityService {
 
 			try {
 				// Create the query and execute
-				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.sales_stage_code between 9 and 13)) order by "
+				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.salesStageCode between 9 and 13)) order by "
 						+ sortBy + " " + order;
 				Query query = entityManager.createQuery(queryString)
 						.setParameter(

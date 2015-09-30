@@ -35,6 +35,7 @@ public class NotificationEventGroupMappingT implements Serializable {
 
 	// bi-directional many-to-one association to
 	// NotificationSettingsEventMappingT
+	@OrderBy("event_id ASC")
 	@ManyToOne
 	@JoinColumn(name = "event_id", insertable = false, updatable = false)
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;

@@ -6,7 +6,7 @@ public class ReportsSalesStage {
 
 	private String salesStageCodeDescription;
 
-	private String overallBidValue;
+	private String digitalDealValue;
 
 	private String count;
 
@@ -24,12 +24,12 @@ public class ReportsSalesStage {
 		this.salesStageCode = salesStageCode;
 	}
 
-	public String getOverallBidValue() {
-		return overallBidValue;
+	public String getDigitalDealValue() {
+		return digitalDealValue;
 	}
 
-	public void setOverallBidValue(String overallBidValue) {
-		this.overallBidValue = overallBidValue;
+	public void setDigitalDealValue(String digitalDealValue) {
+		this.digitalDealValue = digitalDealValue;
 	}
 
 	public String getCount() {

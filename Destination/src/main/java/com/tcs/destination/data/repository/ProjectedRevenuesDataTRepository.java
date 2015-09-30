@@ -20,7 +20,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography) and "
-			+ "(RCMT.customer_name  in (:customerName) or ('') in (:customerName))  where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
+			+ "(RCMT.customer_name  in (:customerName) or ('') in (:customerName) and RCMT.finance_iou =PRDT.finance_iou)  where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by PRDT.quarter order by PRDT.quarter asc ", nativeQuery = true)
 	List<Object[]> findProjectedRevenue(
 			@Param("financialYear") String financialYear,
@@ -51,7 +51,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography) ='')"
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and "
-			+ " (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " (RCMT.customer_name in (:customerName) or ('') in (:customerName)) and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
 			+ " group by SSMT.display_sub_sp"
 			+ " order by actualRevenue desc) Result"
 			+ " on SSMT.display_sub_sp = Result.displaySubSp order by revenue desc", nativeQuery = true)
@@ -70,7 +70,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and"
-			+ " (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " (RCMT.customer_name in (:customer) or ('') in (:customer)) and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
 			+ " group by GMT.display_geography"
 			+ " order by actualRevenue desc) Result"
 			+ " on GMT.display_geography = Result.displayGeography order by revenue desc", nativeQuery = true)
@@ -86,10 +86,11 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
 			+ " where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " group by GMT.geography"
 			+ " order by actualRevenue desc) Result on GMT.geography = Result.displayGeography"
-			+ " where GMT.display_geography = ?6 order by revenue desc", nativeQuery = true)
+			+ " where GMT.display_geography = (:geography) order by revenue desc", nativeQuery = true)
 	public List<Object[]> getRevenuesBySubGeo(@Param("financialYear") String financialYear,
 			@Param("quarter") String quarter, @Param("customer") List<String> customer, 
 			@Param("subSp") String subSp, @Param("iou") String iou,
@@ -97,7 +98,7 @@ public interface ProjectedRevenuesDataTRepository extends
 
 	@Query(value = "select RCMT.customer_name,PRDT.quarter,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
-			+ "and RCMT.customer_geography = PRDT.finance_geography "
+			+ "and RCMT.customer_geography = PRDT.finance_geography and RCMT.finance_iou =PRDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(PRDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,PRDT.quarter", nativeQuery = true)
@@ -116,7 +117,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("monthList") List<String> monthList);
 
 	@Query(value = "select RCMT.customer_name,case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as revenue_sum from projected_revenues_data_t PRDT "
-			+ " JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name "
+			+ " JOIN revenue_customer_mapping_t RCMT on RCMT.finance_customer_name=PRDT.finance_customer_name and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "where upper(PRDT.month) in (:monthList) "
@@ -133,7 +134,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
 			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '') "
 			+ "join revenue_customer_mapping_t RCMT on "
-			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography) and "
+			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou) and "
 			+ "(RCMT.customer_name  in (:customerName) or ('') in (:customerName))  where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
 			+ "group by PRDT.month order by PRDT.month asc ", nativeQuery = true)
 	public List<Object[]> findProjectedRevenueByQuarter(
@@ -144,15 +145,14 @@ public interface ProjectedRevenuesDataTRepository extends
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine);
 
-	@Query(value = "select Result.country, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue from geography_mapping_t GMT "
-			+ "left outer join "
-			+ "(select (PRDT.client_country) as country,(GCMT.geography) as geography, sum(PRDT.revenue) as actualRevenue from geography_country_mapping_t GCMT "
-			+ "left outer join projected_revenues_data_t PRDT on (GCMT.geography=PRDT.finance_geography)"
-			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '') "
-			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
-			+ "join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer)) "
-			+ "where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') "
-			+ "group by PRDT.client_country,GCMT.geography order by actualRevenue desc) Result on GMT.geography = Result.geography where GMT.geography = (:geography) order by revenue desc", nativeQuery = true)
+	@Query(value = "select PRDT.client_country,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '') "
+			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
+			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer)) "
+			+ " and PRDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou "
+			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "
+			+ " where PRDT.financial_year=(:financialYear) and (PRDT.quarter=(:quarter) or (:quarter)= '') "
+			+ " and (RCMT.customer_geography=(:geography) or (:geography)='') group by PRDT.client_country", nativeQuery = true)
 	public List<Object[]> getRevenuesByCountry(@Param("financialYear") String financialYear,
 			@Param("quarter") String quarter, @Param("customer") List<String> customer,
 			@Param("subSp") String subSp, @Param("iou") String iou,

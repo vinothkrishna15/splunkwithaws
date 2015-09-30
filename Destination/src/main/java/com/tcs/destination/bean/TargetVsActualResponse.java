@@ -3,13 +3,15 @@ package com.tcs.destination.bean;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class TargetVsActualResponse implements Serializable{
+public class TargetVsActualResponse implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private BigDecimal target;
 
 	private BigDecimal actual;
+
+	private BigDecimal digitalDealValue;
 
 	private String subTimeLine;
 
@@ -32,9 +34,17 @@ public class TargetVsActualResponse implements Serializable{
 	public String getSubTimeLine() {
 		return subTimeLine;
 	}
-	
+
 	public void setSubTimeLine(String subTimeLine) {
 		this.subTimeLine = subTimeLine;
+	}
+
+	public BigDecimal getDigitalDealValue() {
+		return digitalDealValue;
+	}
+
+	public void setDigitalDealValue(BigDecimal digitalDealValue) {
+		this.digitalDealValue = digitalDealValue;
 	}
 
 }
