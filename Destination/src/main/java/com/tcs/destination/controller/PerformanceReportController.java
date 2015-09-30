@@ -51,8 +51,9 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
 		List<TargetVsActualResponse> response = perfService
-				.getTargetVsActualRevenueSummary(financialYear, quarter,displayGeography,
-						geography, serviceLine, iou, customerName, currency, groupCustomer,wins);
+				.getTargetVsActualRevenueSummary(financialYear, quarter,
+						displayGeography, geography, serviceLine, iou,
+						customerName, currency, groupCustomer, wins);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						response), HttpStatus.OK);
@@ -74,7 +75,7 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<IOUReport> iouList = null;
-		if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
+		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
 					geography, serviceLine, currency, salesStageFrom,
 					salesStageTo);
@@ -86,7 +87,7 @@ public class PerformanceReportController {
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				iouList);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.GET, value = "/subsp")
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -106,14 +107,15 @@ public class PerformanceReportController {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<SubSpReport> subSpList = null;
-		if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
+		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
 					quarter, displayGeography, geography, iou, currency,
 					salesStageFrom, salesStageTo);
 
 		} else {
 			subSpList = perfService.getRevenuesBySubSp(financialYear, quarter,
-					displayGeography,geography, customerName, iou, currency, groupCustomer);
+					displayGeography, geography, customerName, iou, currency,
+					groupCustomer);
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				subSpList);
@@ -137,31 +139,36 @@ public class PerformanceReportController {
 			throws Exception {
 		List<GeographyReport> geoList = null;
 		if (displayGeography.equals("") && geography.isEmpty()) {
-			if (financialYear.isEmpty()) {
-				financialYear = DateUtils.getCurrentFinancialYear();
-			}
-			if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
+
+			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+				if (financialYear.isEmpty() && quarter.isEmpty()) {
+					financialYear = DateUtils.getCurrentFinancialYear();
+				}
 				geoList = perfService.getOpportunitiesByDispGeography(
 						financialYear, quarter, serviceLine, iou, currency,
 						salesStageFrom, salesStageTo);
 			} else {
+				if (financialYear.isEmpty()) {
+					financialYear = DateUtils.getCurrentFinancialYear();
+				}
 				geoList = perfService.getRevenuesByDispGeography(financialYear,
-						quarter, customerName, serviceLine, iou, currency, groupCustomer);
+						quarter, customerName, serviceLine, iou, currency,
+						groupCustomer);
 			}
 
 		} else {
 			if (financialYear.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
-			if (salesStageFrom != salesStageTo || salesStageFrom!=-1) {
+			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 				geoList = perfService.getOpportunitiesBySubGeography(
 						financialYear, quarter, customerName, serviceLine, iou,
 						displayGeography, geography, currency, salesStageFrom,
-						salesStageTo,groupCustomer);
+						salesStageTo, groupCustomer);
 			} else {
 				geoList = perfService.getRevenuesBySubGeography(financialYear,
 						quarter, customerName, serviceLine, iou,
-						displayGeography, geography, currency,groupCustomer);
+						displayGeography, geography, currency, groupCustomer);
 			}
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
