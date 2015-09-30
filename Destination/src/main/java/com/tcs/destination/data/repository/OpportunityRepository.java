@@ -100,7 +100,7 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findOpportunityTsByOwnerAndRole(String primaryOwner,
 			String salesSupportOwner, String bidOfficeOwner);
 
-	@Query(value = "select OTH.sales_stage_code as SalesStage, count(*) as Bids, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+	@Query(value = "select OPP.sales_stage_code as SalesStage, count(*) as Bids, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
 			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
@@ -108,14 +108,17 @@ public interface OpportunityRepository extends
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customer) OR ('') in (:customer)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between 4 and 8 and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by SalesStage order by SalesStage", nativeQuery = true)
+			+ "where ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
+			+ "group by SalesStage order by SalesStage", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySalesStage(
 			@Param("geography") String geography, @Param("iou") String iou,
 			@Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
 			@Param("customer") List<String> customer,
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("salesStageFrom") int salesStageFrom,
+			@Param("salesStageTo") int salesStageTo);
 
 	@Query(value = "select ICMT.display_iou, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
 			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "

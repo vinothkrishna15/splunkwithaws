@@ -176,7 +176,8 @@ public class PerformanceReportController {
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "pipelines", defaultValue = "false") boolean pipelines,
+			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
+			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -184,7 +185,7 @@ public class PerformanceReportController {
 			throws Exception {
 		ReportsOpportunity reportsOpportunity = perfService.getOpportunity(
 				financialYear, quarter, geography, iou, serviceLine, currency,
-				pipelines, customerName, groupCustomer);
+				salesStageFrom,salesStageTo, customerName, groupCustomer);
 		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 				reportsOpportunity);
 

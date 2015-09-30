@@ -615,8 +615,8 @@ public class PerformanceReportService {
 
 	public ReportsOpportunity getOpportunity(String financialYear,
 			String quarter, String geography, String iou, String serviceLine,
-			String currency, boolean pipelines, String customerName,
-			String groupCustomer) throws Exception {
+			String currency, int salesStageFrom, int salesStageTo,
+			String customerName, String groupCustomer) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		ReportsOpportunity reportsOpportunity = new ReportsOpportunity();
@@ -633,21 +633,21 @@ public class PerformanceReportService {
 		} else {
 			custName.add(customerName);
 		}
-		if (pipelines) {
-			List<Object[]> pipelineData = opportunityRepository
-					.findPipelinePerformance(geography, iou, serviceLine,
-							currency, custName, fromDate, toDate);
-			if (pipelineData != null) {
-				Object[] pipeline = pipelineData.get(0);
-				if (pipeline[1] != null) {
-					reportsOpportunity.setOverallBidValue(pipeline[1]
-							.toString());
-				}
+//			List<Object[]> pipelineData = opportunityRepository
+//					.findPipelinePerformance(geography, iou, serviceLine,
+//							currency, custName, fromDate, toDate,
+//							salesStageFrom, salesStageTo);
+//			if (pipelineData != null) {
+//				Object[] pipeline = pipelineData.get(0);
+//				if (pipeline[1] != null) {
+//					reportsOpportunity.setOverallBidValue(pipeline[1]
+//							.toString());
+//				}
 
 				List<Object[]> pipeLinesBySalesStage = opportunityRepository
 						.findPipelinePerformanceBySalesStage(geography, iou,
 								serviceLine, currency, custName, fromDate,
-								toDate);
+								toDate,salesStageFrom,salesStageTo);
 				if (pipeLinesBySalesStage != null) {
 					for (Object[] pipeLineBySalesStage : pipeLinesBySalesStage) {
 						ReportsSalesStage reportsSalesStage = new ReportsSalesStage();
@@ -671,7 +671,7 @@ public class PerformanceReportService {
 							}
 							if (pipeLineBySalesStage[2] != null) {
 								reportsSalesStage
-										.setOverallBidValue(pipeLineBySalesStage[2]
+										.setDigitalDealValue(pipeLineBySalesStage[2]
 												.toString());
 							}
 
@@ -680,52 +680,6 @@ public class PerformanceReportService {
 					}
 				}
 
-			}
-		} else {
-			// Setting values for Pipeline
-
-			List<Object[]> pipelineData = opportunityRepository
-					.findPipelinePerformance(geography, iou, serviceLine,
-							currency, custName, fromDate, toDate);
-			ReportsSalesStage pipeLineReports = new ReportsSalesStage();
-			Object[] pipeline = pipelineData.get(0);
-			if (pipeline != null) {
-				if (pipeline[0] != null)
-					pipeLineReports.setBidCount(pipelineData.get(0)[0]
-							.toString());
-				if (pipeline[1] != null)
-					pipeLineReports.setOverallBidValue(pipelineData.get(0)[1]
-							.toString());
-			}
-			pipeLineReports.setSalesStageCode("04 - 08");
-			pipeLineReports.setSalesStageCodeDescription("Pipeline");
-			salesStageList.add(pipeLineReports);
-
-			// Setting values for Wins
-			List<Object[]> winsList = opportunityRepository
-					.findWinsPerformance(geography, iou, serviceLine, currency,
-							custName, fromDate, toDate);
-			Object[] win = winsList.get(0);
-			ReportsSalesStage winReports = new ReportsSalesStage();
-			winReports.setSalesStageCode("9");
-			winReports.setSalesStageCodeDescription(salesStageMappingRepository
-					.findBySalesStageCode(9).getSalesStageDescription());
-			if (win != null) {
-				if (win[0] != null) {
-					winReports.setCount(win[0].toString());
-				}
-				if (win[1] != null) {
-					winReports.setOverallBidValue(win[1].toString());
-				}
-				if (win[2] != null) {
-					winReports.setMean(win[2].toString());
-				}
-				if (win[3] != null) {
-					winReports.setMedian(win[3].toString());
-				}
-			}
-			salesStageList.add(winReports);
-		}
 		reportsOpportunity.setSalesStageList(salesStageList);
 		return reportsOpportunity;
 	}
