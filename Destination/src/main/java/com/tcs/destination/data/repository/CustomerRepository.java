@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface CustomerRepository extends
@@ -16,6 +17,8 @@ public interface CustomerRepository extends
 	CustomerMasterT findByCustomerName(String customerName);
 
 	List<CustomerMasterT> findByCustomerId(String customerid);
+	
+	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(String customerName);
 
 	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
 			String name, String nameNot);
@@ -65,6 +68,9 @@ public interface CustomerRepository extends
 
 	 @Query(value ="select customer_name, customer_id from customer_master_t", nativeQuery = true)
 	 List<Object[]> getNameAndId();
+
+	 @Query(value ="select customer_id from customer_master_t", nativeQuery = true)
+	 List<String> getCustomerIds();
 
 	 @Query(value ="select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
 	 List<String> findByGroupCustomerName(String groupCustName);

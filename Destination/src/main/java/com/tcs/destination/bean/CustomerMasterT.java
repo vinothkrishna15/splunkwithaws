@@ -1,3 +1,4 @@
+
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
@@ -61,6 +62,8 @@ public class CustomerMasterT implements Serializable {
 	private byte[] logo;
 
 	private String website;
+	private String iou;
+	private String geography;
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy = "customerMasterT")
@@ -80,7 +83,7 @@ public class CustomerMasterT implements Serializable {
 
 	// bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
-	@JoinColumn(name = "geography")
+	@JoinColumn(name = "geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
 
 	// bi-directional many-to-one association to IouCustomerMappingT
@@ -412,6 +415,22 @@ public class CustomerMasterT implements Serializable {
 		userFavoritesT.setCustomerMasterT(null);
 
 		return userFavoritesT;
+	}
+
+	public String getGeography() {
+		return geography;
+	}
+
+	public void setGeography(String geography) {
+		this.geography = geography;
+	}
+
+	public String getIou() {
+		return iou;
+	}
+
+	public void setIou(String iou) {
+		this.iou = iou;
 	}
 
 }
