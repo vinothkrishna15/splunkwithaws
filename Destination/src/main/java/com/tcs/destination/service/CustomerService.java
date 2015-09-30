@@ -13,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ContactCustomerLinkT;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.TargetVsActualResponse;
@@ -483,4 +485,41 @@ public class CustomerService {
 		return queryBuffer.toString();
 	}
 
+	/**
+	 * This method inserts customer to the database
+	 * @param customerToInsert
+	 * @return CustomerMasterT
+	 * @throws Exception
+	 */
+	@Transactional
+	public CustomerMasterT addCustomer(CustomerMasterT customerToInsert) throws Exception{
+		CustomerMasterT customerT = null;
+		 List<CustomerMasterT> customers = null;
+		if(customerToInsert!=null){
+			customerT = new CustomerMasterT();
+			  customers = customerRepository.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(customerToInsert.getCustomerName());
+			 if (customers.isEmpty()) 
+	            {
+				 customerT.setCustomerName(customerToInsert.getCustomerName());
+	            }
+	            else
+	            {
+	                logger.error("EXISTS: customer Already Exist!");
+	                throw new DestinationException(HttpStatus.CONFLICT,"customer Already Exist!");
+	            }
+			
+			customerT.setDocumentsAttached("NO");
+			customerT.setCorporateHqAddress(customerToInsert.getCorporateHqAddress());
+			customerT.setCreatedModifiedBy(customerToInsert.getCreatedModifiedBy());
+			customerT.setGroupCustomerName(customerToInsert.getGroupCustomerName());
+			customerT.setFacebook(customerToInsert.getFacebook());
+			customerT.setWebsite(customerToInsert.getWebsite());
+			customerT.setLogo(customerToInsert.getLogo());
+			customerT.setGeography(customerToInsert.getGeography());
+			customerT.setIou(customerToInsert.getIou());
+			customerT = customerRepository.save(customerT);
+			logger.info("Customer Saved .... "+customerT.getCustomerId());
+		}
+		return customerT;
+	}
 }
