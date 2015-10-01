@@ -173,6 +173,14 @@ public class UserT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<FrequentlySearchedCustomerPartnerT> frequentlySearchedCustomerPartnerTs;
+	
+	//bi-directional many-to-one association to GoalGroupMappingT
+	@OneToMany(mappedBy="userT")
+	private List<GoalGroupMappingT> goalGroupMappingTs;
+
+	//bi-directional many-to-one association to GoalMappingT
+	@OneToMany(mappedBy="userT")
+	private List<GoalMappingT> goalMappingTs;
 
 	// bi-directional many-to-one association to LoginHistoryT
 	@JsonIgnore
@@ -242,6 +250,14 @@ public class UserT implements Serializable {
 	@JsonIgnore
 	@OneToOne(mappedBy = "userT")
 	private UserGeneralSettingsT userGeneralSettingsT;
+	
+	//bi-directional many-to-one association to UserGoalsT
+	@OneToMany(mappedBy="userT1")
+	private List<UserGoalsT> userGoalsTs1;
+
+	//bi-directional many-to-one association to UserGoalsT
+	@OneToMany(mappedBy="userT2")
+	private List<UserGoalsT> userGoalsTs2;
 
 	// bi-directional many-to-one association to
 	// UserNotificationSettingsConditionsT
@@ -1309,5 +1325,37 @@ public class UserT implements Serializable {
 	public void setPreviledgedCustomerNameList(
 			List<String> previledgedCustomerNameList) {
 		this.previledgedCustomerNameList = previledgedCustomerNameList;
+	}
+
+	public List<GoalGroupMappingT> getGoalGroupMappingTs() {
+		return goalGroupMappingTs;
+	}
+
+	public void setGoalGroupMappingTs(List<GoalGroupMappingT> goalGroupMappingTs) {
+		this.goalGroupMappingTs = goalGroupMappingTs;
+	}
+
+	public List<GoalMappingT> getGoalMappingTs() {
+		return goalMappingTs;
+	}
+
+	public void setGoalMappingTs(List<GoalMappingT> goalMappingTs) {
+		this.goalMappingTs = goalMappingTs;
+	}
+
+	public List<UserGoalsT> getUserGoalsTs1() {
+		return userGoalsTs1;
+	}
+
+	public void setUserGoalsTs1(List<UserGoalsT> userGoalsTs1) {
+		this.userGoalsTs1 = userGoalsTs1;
+	}
+
+	public List<UserGoalsT> getUserGoalsTs2() {
+		return userGoalsTs2;
+	}
+
+	public void setUserGoalsTs2(List<UserGoalsT> userGoalsTs2) {
+		this.userGoalsTs2 = userGoalsTs2;
 	}
 }

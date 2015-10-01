@@ -35,6 +35,10 @@ public class UserGroupMappingT implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="user_group")
 	private String userGroup;
+	
+	//bi-directional many-to-one association to GoalGroupMappingT
+	@OneToMany(mappedBy="userGroupMappingT")
+	private List<GoalGroupMappingT> goalGroupMappingTs;
 
 	//bi-directional many-to-one association to UserT
 	@JsonIgnore
@@ -50,6 +54,28 @@ public class UserGroupMappingT implements Serializable {
 
 	public void setUserGroup(String userGroup) {
 		this.userGroup = userGroup;
+	}
+	
+	public List<GoalGroupMappingT> getGoalGroupMappingTs() {
+		return this.goalGroupMappingTs;
+	}
+
+	public void setGoalGroupMappingTs(List<GoalGroupMappingT> goalGroupMappingTs) {
+		this.goalGroupMappingTs = goalGroupMappingTs;
+	}
+
+	public GoalGroupMappingT addGoalGroupMappingT(GoalGroupMappingT goalGroupMappingT) {
+		getGoalGroupMappingTs().add(goalGroupMappingT);
+		goalGroupMappingT.setUserGroupMappingT(this);
+
+		return goalGroupMappingT;
+	}
+
+	public GoalGroupMappingT removeGoalGroupMappingT(GoalGroupMappingT goalGroupMappingT) {
+		getGoalGroupMappingTs().remove(goalGroupMappingT);
+		goalGroupMappingT.setUserGroupMappingT(null);
+
+		return goalGroupMappingT;
 	}
 
 	public List<UserT> getUserTs() {
