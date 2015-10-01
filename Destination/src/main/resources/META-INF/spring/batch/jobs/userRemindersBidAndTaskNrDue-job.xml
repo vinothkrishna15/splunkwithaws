@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="userRemindersBidAndTaskNrDue">
+		<batch:step id="TargetDateDue" next="OutcomeDateDue">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailTargetReader" processor= "bidDetailTargetProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="OutcomeDateDue" next="TaskDateDue">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailOutcomeReader" processor= "bidDetailOutcomeProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="TaskDateDue">
+			<batch:tasklet>
+				<batch:chunk reader="taskReader" processor= "taskProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="bidDetailTargetReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDetailsRemindersForTrgtDt"/>
+	</bean>
+	<bean id="bidDetailOutcomeReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDetailsRemindersForOutcomeDt"/>
+	</bean>
+	<bean id="taskReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="taskRepository"/>
+		<property name="methodName" value="getTaskReminders"/>
+	</bean>
+	<!-- Processor -->
+	<bean id="bidDetailTargetProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="5"/>
+	</bean>
+	<bean id="bidDetailOutcomeProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Outcome date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="5"/>
+	</bean>
+	<bean id="taskProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">TASK</value>
+		</property>
+		<property name="eventId" value="5"/>
+	</bean>
+	<!-- Writers -->
+	<bean id="notificationWriter" class="org.springframework.batch.item.data.RepositoryItemWriter">
+		<property name="repository" ref="userNotificationsRepository"/>
+		<property name="methodName" value="save"/>
+	</bean>
+	
+	<!-- scheduler  -->
+	<bean id="bidAndTaskScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userRemindersBidAndTaskNrDue"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="bidAndTaskScheduler" method="run" cron="${reminder.job.bid.and.task.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

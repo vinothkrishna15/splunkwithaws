@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="userRemindersConnectUpdate">
+		<batch:step id="connectUpdate">
+			<batch:tasklet>
+				<batch:chunk reader="connectReader" processor= "connectProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<!-- Reader -->
+	<bean id="connectReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="contactRepository"/>
+		<property name="methodName" value="getConnectReminders"/>
+	</bean>
+	<!-- Processor -->
+	<bean id="connectProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">CONNECT</value>
+		</property>
+		<property name="eventId" value="6"/>
+	</bean>
+	
+	<!-- scheduler  -->
+	<bean id="connectScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userRemindersConnectUpdate"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="connectScheduler" method="run" cron="${reminder.job.connect.cron}" />
+    </task:scheduled-tasks> 
+
+</beans>
+	
