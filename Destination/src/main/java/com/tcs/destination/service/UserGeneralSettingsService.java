@@ -35,15 +35,32 @@ public class UserGeneralSettingsService {
 
 	}
 
-	public boolean updateUserGeneralSettings(
-			UserGeneralSettingsT userGeneralSettings)
-			throws DestinationException {
-		try {
+	public boolean updateUserGeneralSettings(UserGeneralSettingsT userGeneralSettings)
+			throws Exception {
+		if(userGeneralSettings.getUserId()!=null){
+		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository
+				.findByUserId(userGeneralSettings.getUserId());
+		if (userGenSettings!= null) {
 			return userGeneralSettingsRepository.save(userGeneralSettings) != null;
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+
+		} else {
+			logger.error("BAD_REQUEST: Invalid Settings ID");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Settings ID");
+		}
+	} else {
+		logger.error("BAD_REQUEST: userId is Required");
+		throw new DestinationException(HttpStatus.BAD_REQUEST, "userId is Required");
+	}
+		
+	}
+
+	public UserGeneralSettingsT findGeneralSettingsByUserId(String userId) throws Exception {
+		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository.findByUserId(userId);
+		if(userGenSettings!=null){
+			return userGenSettings;
+		} else {
+			logger.error("NOT_FOUND: Settings Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Settings Not Found");
 		}
 	}
 }

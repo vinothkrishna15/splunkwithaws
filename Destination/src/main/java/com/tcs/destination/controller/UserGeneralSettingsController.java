@@ -18,22 +18,32 @@ import com.tcs.destination.service.UserGeneralSettingsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
-@RequestMapping("/userGeneral")
+@RequestMapping("/general")
 public class UserGeneralSettingsController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(UserGeneralSettingsController.class);
 
 	@Autowired
 	UserGeneralSettingsService userGeneralSettingsService;
-
-		
+	
+	@RequestMapping(method = RequestMethod.GET)
+	public @ResponseBody String ConnectSearchByName(
+			@RequestParam("userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside UserGeneralSettingsController /general?userId GET");
+		UserGeneralSettingsT userGeneralSettingsT = userGeneralSettingsService.findGeneralSettingsByUserId(userId);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, userGeneralSettingsT);
+	}
+	
 	@RequestMapping(value = "/setting",method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUserGeneralSetting(
 			@RequestBody UserGeneralSettingsT userGeneralSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside UserGeneralSettingsController /userGeneral/setting POST");
+		logger.debug("Inside UserGeneralSettingsController /general/setting POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (userGeneralSettingsService.addUserGeneralSettings(userGeneralSettings)) {
@@ -50,7 +60,7 @@ public class UserGeneralSettingsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside UserGeneralSettingsController /userGeneral/setting PUT");
+		logger.debug("Inside UserGeneralSettingsController /general/setting PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (userGeneralSettingsService.updateUserGeneralSettings(userGeneralSettings)) {
