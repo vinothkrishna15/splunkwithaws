@@ -18,7 +18,7 @@ public class BeaconCustomerMappingTPK implements Serializable {
 	// default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	@Column(name = "beacon_customer_name")
+	@Column(name = "beacon_customer_name", insertable=false, updatable=false)
 	private String beaconCustomerName;
 
 	@Column(name="beacon_iou", insertable=false, updatable=false)
