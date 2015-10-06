@@ -104,4 +104,6 @@
 		<property name="queueCapacity" value="50" />
 	</bean>
 	
+	<import resource="/META-INF/spring/batch/batch-jobs.xml"/>
+	
 </beans>

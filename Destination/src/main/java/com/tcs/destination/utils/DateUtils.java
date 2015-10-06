@@ -31,7 +31,7 @@ public class DateUtils {
 			"yyyy-MM-dd");
 	private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat(
 			"MMM-yy");
-
+	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);
@@ -46,6 +46,10 @@ public class DateUtils {
 		monthMap.put("OCT", Calendar.OCTOBER);
 		monthMap.put("NOV", Calendar.NOVEMBER);
 		monthMap.put("DEC", Calendar.DECEMBER);
+	}
+	
+	public static String convertDtToStringForUser(Date date) {
+		return dateFormat.format(date);
 	}
 
 	/**

@@ -63,5 +63,15 @@ public class Constants {
 	public static final String CONNECT = "Connect";
 	public static final String OPPORTUNITY = "Opportunity";
 	public static final String TASK = "Task";
+	
+	public static final String PATTERN = "\\<(.+?)\\>";
+	public static final String TOKEN_USER = "user";
+	public static final String TOKEN_ENTITY_NAME = "entityName";
+	public static final String TOKEN_ENTITY_TYPE = "entityType";
+	public static final String TOKEN_FROM = "from";
+	public static final String TOKEN_TO = "to";
+	public static final String DATE_TYPE = "dateType";
+	public static final String DATE = "date";
+	public static final String SALES_STAGE = "sales_stage";
 
 }

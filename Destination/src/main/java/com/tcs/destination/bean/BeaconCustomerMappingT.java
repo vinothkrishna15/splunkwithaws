@@ -3,6 +3,7 @@ package com.tcs.destination.bean;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -36,6 +37,18 @@ public class BeaconCustomerMappingT implements Serializable {
 		insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
+	@Column(name = "customer_name")
+	private String customerName;
+	
+	@Column(name = "beacon_customer_name", insertable = false, updatable = false)
+	private String beaconCustomerName;
+	
+	@Column(name = "customer_geography", insertable = false, updatable = false)
+	private String customerGeography;
+	
+	@Column(name = "beacon_iou", insertable = false, updatable = false)
+	private String beaconIou;
+	
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
 	@JoinColumn(name="customer_geography", insertable = false, updatable = false)
@@ -106,6 +119,38 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	public void setIouBeaconMappingT(IouBeaconMappingT iouBeaconMappingT) {
 		this.iouBeaconMappingT = iouBeaconMappingT;
+	}
+
+	public String getCustomerName() {
+		return customerName;
+	}
+
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+
+	public String getBeaconIou() {
+		return beaconIou;
+	}
+
+	public void setBeaconIou(String beaconIou) {
+		this.beaconIou = beaconIou;
+	}
+
+	public String getCustomerGeography() {
+		return customerGeography;
+	}
+
+	public void setCustomerGeography(String customerGeography) {
+		this.customerGeography = customerGeography;
+	}
+
+	public String getBeaconCustomerName() {
+		return beaconCustomerName;
+	}
+
+	public void setBeaconCustomerName(String beaconCustomerName) {
+		this.beaconCustomerName = beaconCustomerName;
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.tcs.destination.data.repository;
 
+import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
+
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +31,7 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	@Query(value ="select c.contactId from ContactT c")
 	List<String> findContactIdFromContactT();
+	
+	@Query(value = CONNECT_REMINDER, nativeQuery = true)
+	List<Object[]> getConnectReminders();
 }

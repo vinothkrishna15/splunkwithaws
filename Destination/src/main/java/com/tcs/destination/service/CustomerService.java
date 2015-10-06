@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
+import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
@@ -22,6 +24,7 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
+import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
@@ -62,7 +65,7 @@ public class CustomerService {
 	ContactService contactService;
 
 	@Autowired
-	BeaconConvertorRepository beaconRepository;
+	BeaconRepository beaconRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -522,4 +525,41 @@ public class CustomerService {
 		}
 		return customerT;
 	}
+
+	/**
+	 * This method inserts Beacon customers to the database
+	 * @param beaconCustomerToInsert
+	 * @return BeaconCustomerMappingT
+	 * @throws Exception
+	 */
+	@Transactional
+	public BeaconCustomerMappingT addBeaconCustomer(BeaconCustomerMappingT beaconCustomerToInsert) throws Exception{
+		BeaconCustomerMappingT beaconT = null;
+		BeaconCustomerMappingTPK beaconTPK = null;
+		 List<BeaconCustomerMappingT> beaconCustomers = null;
+		if(beaconCustomerToInsert!=null){
+			beaconT = new BeaconCustomerMappingT();
+			beaconTPK = new BeaconCustomerMappingTPK();
+			
+			// to find the uniqueness of the primary key (here composite key)
+			beaconCustomers = beaconRepository.findbeaconDuplicates(beaconCustomerToInsert.getBeaconCustomerName(),beaconCustomerToInsert.getBeaconIou(),beaconCustomerToInsert.getCustomerGeography());
+			if (beaconCustomers.isEmpty()) 
+            {
+				beaconT.setCustomerName(beaconCustomerToInsert.getCustomerName());
+				beaconTPK.setBeaconCustomerName(beaconCustomerToInsert.getBeaconCustomerName());
+				beaconTPK.setBeaconIou(beaconCustomerToInsert.getBeaconIou());
+				beaconTPK.setCustomerGeography(beaconCustomerToInsert.getCustomerGeography());
+            }
+            else
+            {
+                logger.error("EXISTS: Beacon Already Exist!");
+                throw new DestinationException(HttpStatus.CONFLICT,"Beacon Already Exist!");
+            }
+			beaconT.setId(beaconTPK);
+			beaconT = beaconRepository.save(beaconT);
+			logger.info("Beacon Saved .... "+ "beacon primary key" + beaconT.getId());
+		}
+		return beaconT;
+	}
+
 }

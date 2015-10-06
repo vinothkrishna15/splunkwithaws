@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="userRemindersBidAndTaskPostDue">
+		<batch:step id="TargetDatePost" next="OutcomeDatePost">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailTgtPostReader" processor= "bidDetailTgtPostProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="OutcomeDatePost" next="TaskDatePost">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailOutcomePostReader" processor= "bidDetailOutcomePostProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="TaskDatePost">
+			<batch:tasklet>
+				<batch:chunk reader="taskPostReader" processor= "taskPostProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="bidDetailTgtPostReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDetailsRemindersPostTrgtDt"/>
+	</bean>
+	<bean id="bidDetailOutcomePostReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDetailsRemindersPostOutcomeDt"/>
+	</bean>
+	<bean id="taskPostReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="taskRepository"/>
+		<property name="methodName" value="getTaskRemindersPost"/>
+	</bean>
+	<!-- Processor -->
+	<bean id="bidDetailTgtPostProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="7"/>
+	</bean>
+	<bean id="bidDetailOutcomePostProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Outcome date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="7"/>
+	</bean>
+	<bean id="taskPostProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">TASK</value>
+		</property>
+		<property name="eventId" value="7"/>
+	</bean>
+	
+	<!-- scheduler  -->
+	<bean id="bidAndTaskPostScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userRemindersBidAndTaskPostDue"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="bidAndTaskPostScheduler" method="run" cron="${reminder.job.bid.and.task.past.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

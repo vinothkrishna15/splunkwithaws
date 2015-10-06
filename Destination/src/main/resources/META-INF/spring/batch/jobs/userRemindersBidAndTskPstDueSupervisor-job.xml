@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="userRemindersBidAndTskPstDueSupervisor">
+		<batch:step id="TargetDateSPost" next="OutcomeDateSPost">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailTgtPostSReader" processor= "bidDetailTgtPostSProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="OutcomeDateSPost" next="TaskDateSPost">
+			<batch:tasklet>
+				<batch:chunk reader="bidDetailOutcomePostSReader" processor= "bidDetailOutcomePostSProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="TaskDateSPost">
+			<batch:tasklet>
+				<batch:chunk reader="taskPostSReader" processor= "taskPostSProcessor" writer="notificationWriter" 
+				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="bidDetailTgtPostSReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDtRmdsPostTrgtDtSupervisor"/>
+	</bean>
+	<bean id="bidDetailOutcomePostSReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="batchOpportunityRepository"/>
+		<property name="methodName" value="getBidDtRmdsPostOutcomeDtSupervisor"/>
+	</bean>
+	<bean id="taskPostSReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="taskRepository"/>
+		<property name="methodName" value="getTaskRemindersSupervisorPost"/>
+	</bean>
+	<!-- Processor -->
+	<bean id="bidDetailTgtPostSProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="12"/>
+	</bean>
+	<bean id="bidDetailOutcomePostSProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Outcome date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
+		</property>
+		<property name="eventId" value="12"/>
+	</bean>
+	<bean id="taskPostSProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="dateType" value="Target date"/>
+		<property name="entityType">
+			<value type="com.tcs.destination.enums.EntityType">TASK</value>
+		</property>
+		<property name="eventId" value="12"/>
+	</bean>
+	<!-- scheduler  -->
+	<bean id="bidAndTaskPostSupervisorScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userRemindersBidAndTskPstDueSupervisor"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="bidAndTaskPostSupervisorScheduler" method="run" cron="${reminder.job.bdandTsk.past.supervisor.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

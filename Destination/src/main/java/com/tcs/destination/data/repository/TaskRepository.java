@@ -1,5 +1,9 @@
 package com.tcs.destination.data.repository;
 
+import static com.tcs.destination.utils.QueryConstants.TASK_TRGT_DT_DUE_QUERY;
+import static com.tcs.destination.utils.QueryConstants.TASK_TRGT_DT_POST_QUERY;
+import static com.tcs.destination.utils.QueryConstants.TASK_TRGT_DT_POST_SUPERVISOR;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -98,4 +102,13 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	@Query(value = "select user_id from ( select task_owner as user_id from task_t where task_id=(:taskId) "
 			+ "union select bdms_tagged as user_id from task_bdms_tagged_link_t where task_id=(:taskId)) as users", nativeQuery = true)
 	List<String> findOwnersOfTask(@Param("taskId") String taskId);
+	
+	@Query(value = TASK_TRGT_DT_DUE_QUERY, nativeQuery = true)
+	List<Object[]> getTaskReminders();
+	
+	@Query(value = TASK_TRGT_DT_POST_QUERY, nativeQuery = true)
+	List<Object[]> getTaskRemindersPost();
+	
+	@Query(value = TASK_TRGT_DT_POST_SUPERVISOR, nativeQuery = true)
+	List<Object[]> getTaskRemindersSupervisorPost();
 }
