@@ -85,7 +85,7 @@ public class UserNotificationSettingsService {
 			String userId) throws Exception {
 
 		if(!userId.equalsIgnoreCase(DestinationUtils.getCurrentUserDetails().getUserId())){
-			throw new DestinationException(HttpStatus.UNAUTHORIZED, "This user is not authorised to view the deetings of the specified user");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED, "This user is not authorised to view the settings of the specified user");
 		}
 		
 		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs = (List<NotificationSettingsGroupMappingT>) notificationSettingsGroupMappingRepository
@@ -117,7 +117,7 @@ public class UserNotificationSettingsService {
 		if(UserGroup.contains(userT.getUserGroup()))
 		{
 			int index=Integer.MAX_VALUE;
-			switch(UserGroup.valueOf(userT.getUserGroup())){
+			switch(UserGroup.valueOf(UserGroup.getName(userT.getUserGroup()))){
 			case BDM:
 				index=3;
 				removeNotificationSettingsFromIndex(
