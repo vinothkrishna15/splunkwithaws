@@ -31,7 +31,7 @@ public class CollaborationCommentsController {
 		logger.debug("Inside CollaborationCommentsController /comments POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-			if (commentsService.insertComments(comments)) {
+			if (commentsService.insertComments(comments)!=null) {
 				logger.debug("Comments Inserted Successfully");
 				status.setStatus(Status.SUCCESS,comments.getCommentId());
 			}

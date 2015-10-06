@@ -16,4 +16,7 @@ public interface SearchKeywordsRepository extends
 	
 	@Query(value = "select distinct(search_keywords) from search_keywords_t where UPPER(search_keywords) like UPPER(?1) order by search_keywords asc", nativeQuery=true)
 	List<String> findKeywordsWithNameContaining(String keyword);
+	
+	
+	List<String> findSearchKeywordsByEntityTypeAndEntityId(String entityType, String entityId);
 }

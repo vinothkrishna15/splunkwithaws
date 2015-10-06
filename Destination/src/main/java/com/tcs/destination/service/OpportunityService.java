@@ -51,7 +51,9 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
+import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
@@ -64,6 +66,7 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -184,6 +187,18 @@ public class OpportunityService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	CollaborationCommentsService collaborationCommentsService;
+	
+	@Autowired
+	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
+	
+	@Autowired
+	FollowedService followService;
+	
+	@Autowired
+	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 
 	public List<OpportunityT> findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
@@ -999,6 +1014,7 @@ public class OpportunityService {
 		autoCommentsHelper.setCrudRepository(opportunityRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
+		autoCommentsHelper.setCollCommentsService(collaborationCommentsService);
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 
@@ -1022,6 +1038,12 @@ public class OpportunityService {
 		notificationsHelper.setCrudRepository(opportunityRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
+		notificationsHelper.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		notificationsHelper.setUserRepository(userRepository);
+		notificationsHelper.setFollowService(followService);
+		notificationsHelper.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		notificationsHelper.setSearchKeywordsRepository(searchKeywordsRepository);
+		notificationsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}

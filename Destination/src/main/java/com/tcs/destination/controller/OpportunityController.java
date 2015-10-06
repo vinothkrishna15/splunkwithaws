@@ -75,7 +75,6 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
 			@RequestParam(value = "userId") String userId,
-
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="

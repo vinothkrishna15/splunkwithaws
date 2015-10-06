@@ -20,9 +20,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepo
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
-import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Service
@@ -39,7 +37,7 @@ public class UserNotificationSettingsService {
 
 	@Autowired
 	NotificationSettingsGroupMappingRepository notificationSettingsGroupMappingRepository;
-	
+
 	@Autowired
 	UserRepository userRepository;
 
@@ -51,11 +49,11 @@ public class UserNotificationSettingsService {
 		// Save notification settings conditions first
 		for (UserNotificationSettingsT userNotificationSettings : userNotificationSettingsList) {
 			if (userNotificationSettings
-					.getUserNotificationSettingsConditionsT() != null) {
+					.getUserNotificationSettingsConditionsTs() != null) {
 				try {
 					userNotificationSettingsConditionRepository
 							.save(userNotificationSettings
-									.getUserNotificationSettingsConditionsT());
+									.getUserNotificationSettingsConditionsTs());
 				} catch (Exception e) {
 					logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 					throw new DestinationException(
@@ -84,12 +82,14 @@ public class UserNotificationSettingsService {
 	public List<NotificationSettingsGroupMappingT> getUserNotificationSettings(
 			String userId) throws Exception {
 
-		if(!userId.equalsIgnoreCase(DestinationUtils.getCurrentUserDetails().getUserId())){
-			throw new DestinationException(HttpStatus.UNAUTHORIZED, "This user is not authorised to view the deetings of the specified user");
+		if (!userId.equalsIgnoreCase(DestinationUtils.getCurrentUserDetails()
+				.getUserId())) {
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					"This user is not authorised to view the deetings of the specified user");
 		}
-		
+
 		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs = (List<NotificationSettingsGroupMappingT>) notificationSettingsGroupMappingRepository
-				.findAll(new Sort(Sort.Direction.ASC,"groupId"));
+				.findAll(new Sort(Sort.Direction.ASC, "groupId"));
 		if (notificationSettingsGroupMappingTs != null)
 			for (NotificationSettingsGroupMappingT notificationSettingsGroupMappingT : notificationSettingsGroupMappingTs) {
 				List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationSettingsGroupMappingT
@@ -98,48 +98,53 @@ public class UserNotificationSettingsService {
 					for (NotificationEventGroupMappingT notificationEventGroupMappingT : notificationEventGroupMappingTs) {
 						NotificationSettingsEventMappingT notificationSettingsEventMappingT = notificationEventGroupMappingT
 								.getNotificationSettingsEventMappingT();
-						List<UserNotificationSettingsT> userNotificationSettingsTs=userNotificationSettingsRepository
-								.findByUserIdAndEventIdOrderByEventIdAsc(userId,
+						List<UserNotificationSettingsT> userNotificationSettingsTs = userNotificationSettingsRepository
+								.findByUserIdAndEventIdOrderByEventIdAsc(
+										userId,
 										notificationSettingsEventMappingT
 												.getEventId());
-						if(userNotificationSettingsTs!=null)
-							for(UserNotificationSettingsT userNotificationSettingsT:userNotificationSettingsTs)
-							{
-								userNotificationSettingsT.getUserT().setUserNotificationSettingsTs(null);
+						if (userNotificationSettingsTs != null)
+							for (UserNotificationSettingsT userNotificationSettingsT : userNotificationSettingsTs) {
+								userNotificationSettingsT.getUserT()
+										.setUserNotificationSettingsTs(null);
+								userNotificationSettingsT
+										.setUserNotificationSettingsConditionsT(userNotificationSettingsConditionRepository
+												.findByUserIdAndEventId(userId,
+														userNotificationSettingsT
+																.getEventId()));
 							}
 						notificationSettingsEventMappingT
 								.setUserNotificationSettingsTs(userNotificationSettingsTs);
 					}
 				}
 			}
-		
-		UserT userT=userRepository.findOne(userId);
-		if(UserGroup.contains(userT.getUserGroup()))
-		{
-			int index=Integer.MAX_VALUE;
-			switch(UserGroup.valueOf(userT.getUserGroup())){
+
+		UserT userT = userRepository.findOne(userId);
+		if (UserGroup.contains(userT.getUserGroup())) {
+			int index = Integer.MAX_VALUE;
+			switch (UserGroup.valueOf(userT.getUserGroup())) {
 			case BDM:
-				index=3;
+				index = 3;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
 				break;
 			case BDM_SUPERVISOR:
-				index=4;
+				index = 4;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
 				break;
 			}
 		}
-		
+
 		return notificationSettingsGroupMappingTs;
 	}
 
 	private void removeNotificationSettingsFromIndex(
 			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs,
 			int index) {
-		if(index<notificationSettingsGroupMappingTs.size())
-		notificationSettingsGroupMappingTs.remove(index);
+		if (index < notificationSettingsGroupMappingTs.size())
+			notificationSettingsGroupMappingTs.remove(index);
 	}
 }
