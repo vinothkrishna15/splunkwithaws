@@ -52,8 +52,11 @@ public class UserGeneralSettingsT implements Serializable {
 
 	//bi-directional many-to-one association to TimeZoneMappingT
 	@ManyToOne
-	@JoinColumn(name="time_zone_desc")
+	@JoinColumn(name="time_zone_desc",insertable = false, updatable = false)
 	private TimeZoneMappingT timeZoneMappingT;
+	
+	@Column(name="time_zone_desc")
+	private String timeZoneDesc;
 
 	//bi-directional one-to-one association to UserT
 	@OneToOne
@@ -133,6 +136,14 @@ public class UserGeneralSettingsT implements Serializable {
 
 	public void setTimeZoneMappingT(TimeZoneMappingT timeZoneMappingT) {
 		this.timeZoneMappingT = timeZoneMappingT;
+	}
+
+	public String getTimeZoneDesc() {
+		return timeZoneDesc;
+	}
+
+	public void setTimeZoneDesc(String timeZoneDesc) {
+		this.timeZoneDesc = timeZoneDesc;
 	}
 
 	public UserT getUserT() {
