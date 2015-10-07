@@ -45,6 +45,10 @@ public class BeaconDataT implements Serializable {
 
 	@Column(name="beacon_iou")
 	private String beaconIou;
+	
+
+	@Column(name="beacon_customer_name")
+	private String beaconCustomerName;
 
 	@Column(name="financial_year")
 	private String financialYear;
@@ -132,6 +136,22 @@ public class BeaconDataT implements Serializable {
 
 	public void setIouBeaconMappingT(IouBeaconMappingT iouBeaconMappingT) {
 		this.iouBeaconMappingT = iouBeaconMappingT;
+	}
+
+	public String getBeaconIou() {
+		return beaconIou;
+	}
+
+	public void setBeaconIou(String beaconIou) {
+		this.beaconIou = beaconIou;
+	}
+
+	public String getBeaconCustomerName() {
+		return beaconCustomerName;
+	}
+
+	public void setBeaconCustomerName(String beaconCustomerName) {
+		this.beaconCustomerName = beaconCustomerName;
 	}
 
 }

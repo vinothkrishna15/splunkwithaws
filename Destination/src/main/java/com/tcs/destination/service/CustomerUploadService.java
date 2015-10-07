@@ -159,8 +159,8 @@ public class CustomerUploadService {
 	}
 
 	/**
-	 * This method creates a geography Map
-	 * @return geographyMap
+	 * This method creates a IOU Map
+	 * @return iouMap
 	 */
 	private Map<String, IouCustomerMappingT> getIouMappingT() {
 		List<IouCustomerMappingT> listOfIouMappingT = null;
