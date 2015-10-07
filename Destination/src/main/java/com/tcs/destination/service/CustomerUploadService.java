@@ -149,7 +149,6 @@ public class CustomerUploadService {
 	 * @return geographyMap
 	 */
 	private Map<String, GeographyMappingT> getGeographyMappingT() {
-		// TODO Auto-generated method stub
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
 		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();

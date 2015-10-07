@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.ContactT;
@@ -34,4 +35,10 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	@Query(value = CONNECT_REMINDER, nativeQuery = true)
 	List<Object[]> getConnectReminders();
+	
+	List<ContactT> findByContactName(String contactName);
+	
+	@Query(value ="select * from contact_t where contact_name in (:names)",
+			 nativeQuery = true)
+	List<ContactT> findByContactNames(@Param("names") String[] name);
 }

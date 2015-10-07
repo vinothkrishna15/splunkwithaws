@@ -69,7 +69,7 @@ public class CollaborationCommentsService {
 	@Autowired
 	UserRepository userRepository;
 
-	public boolean insertComments(CollaborationCommentT comments)
+	public String insertComments(CollaborationCommentT comments)
 			throws Exception {
 		if (isValidComment(comments)) {
 			logger.debug("Inside insertComments Service");
@@ -77,14 +77,14 @@ public class CollaborationCommentsService {
 				CollaborationCommentT collaborationCommentT = commentsRepository
 						.save(comments);
 				processNotifications(collaborationCommentT.getCommentId());
-				return collaborationCommentT != null;
+				return collaborationCommentT.getCommentId();
 			} catch (Exception e) {
 				logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		}
-		return false;
+		return null;
 	}
 
 	private void processNotifications(String commentId) {

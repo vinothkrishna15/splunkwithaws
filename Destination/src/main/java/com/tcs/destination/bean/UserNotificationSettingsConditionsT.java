@@ -36,7 +36,7 @@ public class UserNotificationSettingsConditionsT implements Serializable {
 	private Timestamp createdDatetime;
 
 	@Column(name="condition_id")
-	private String conditionId;
+	private Integer conditionId;
 
 	//bi-directional many-to-one association to NotificationSettingsEventConditionsT
 	@ManyToOne
@@ -62,11 +62,11 @@ public class UserNotificationSettingsConditionsT implements Serializable {
 	public UserNotificationSettingsConditionsT() {
 	}
 
-	public String getConditionId() {
+	public Integer getConditionId() {
 		return conditionId;
 	}
 
-	public void setConditionId(String conditionId) {
+	public void setConditionId(Integer conditionId) {
 		this.conditionId = conditionId;
 	}
 

@@ -58,6 +58,12 @@ public class Constants {
 	public static final String OPPORTUNITY_TEMPLATE_WIN_LOSS_SHEET_NAME = "Win Loss Factor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_BID_REQUEST_DEAL_TYPE_SHEET_NAME = "Bid Request  & Deal Type(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME = "Opportunity";
+	
+	
+	public static final String CONNECT = "Connect";
+	public static final String OPPORTUNITY = "Opportunity";
+	public static final String TASK = "Task";
+	
 	public static final String PATTERN = "\\<(.+?)\\>";
 	public static final String TOKEN_USER = "user";
 	public static final String TOKEN_ENTITY_NAME = "entityName";
@@ -67,5 +73,12 @@ public class Constants {
 	public static final String DATE_TYPE = "dateType";
 	public static final String DATE = "date";
 	public static final String SALES_STAGE = "sales_stage";
+	public static final String FILE_DIR_SEPERATOR = "/";
+	public static final String FILE_PATH = "FILE_PATH";
+	public static final String USER_ID = "USER_ID";
+	public static final String NEXT_STEP = "NEXT_STEP";
+	public static final String REQUEST_ID = "REQUEST_ID";
+	public static final String REQUEST = "REQUEST";
+	
 
 }

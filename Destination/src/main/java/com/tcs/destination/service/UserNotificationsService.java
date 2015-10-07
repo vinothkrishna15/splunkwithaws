@@ -16,6 +16,7 @@ import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.exception.DestinationException;
@@ -30,6 +31,9 @@ public class UserNotificationsService {
 
 	@Autowired
 	UserNotificationsRepository userNotificationsRepository;
+
+	@Autowired
+	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
@@ -54,7 +58,7 @@ public class UserNotificationsService {
 			toCalendar.set(Calendar.DATE, toCalendar.get(Calendar.DATE) + 1);
 			toTime = toCalendar.getTimeInMillis();
 		}
-		
+
 		if (read.equals("")) {
 			userNotificationsTs = userNotificationsRepository
 					.getOptedPortalNotifications(userId,
@@ -67,30 +71,29 @@ public class UserNotificationsService {
 		if (userNotificationsTs == null || userNotificationsTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Notification is available.");
-		
-		for(UserNotificationsT notification : userNotificationsTs){
-			NotificationSettingsEventMappingT notificationSettingsEventMappingT = 
-					notification.getNotificationSettingsEventMappingT();
 
-			if(notificationSettingsEventMappingT != null){
-				List<NotificationEventGroupMappingT> notificationEventGroupMappingTs =
-						notificationSettingsEventMappingT.getNotificationEventGroupMappingTs();
-				if(notificationEventGroupMappingTs != null && !notificationEventGroupMappingTs.isEmpty()){
-					for(NotificationEventGroupMappingT 
-							notificationEventGroupMappingT : notificationEventGroupMappingTs){
-						NotificationSettingsGroupMappingT notificationSettingsGroupMappingT = 
-								notificationEventGroupMappingT.getNotificationSettingsGroupMappingT();
-						if(notificationSettingsGroupMappingT != null){
-							notificationSettingsGroupMappingT.setNotificationEventGroupMappingTs(null);
+		for (UserNotificationsT notification : userNotificationsTs) {
+			NotificationSettingsEventMappingT notificationSettingsEventMappingT = notification
+					.getNotificationSettingsEventMappingT();
+
+			if (notificationSettingsEventMappingT != null) {
+				List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationSettingsEventMappingT
+						.getNotificationEventGroupMappingTs();
+				if (notificationEventGroupMappingTs != null
+						&& !notificationEventGroupMappingTs.isEmpty()) {
+					for (NotificationEventGroupMappingT notificationEventGroupMappingT : notificationEventGroupMappingTs) {
+						NotificationSettingsGroupMappingT notificationSettingsGroupMappingT = notificationEventGroupMappingT
+								.getNotificationSettingsGroupMappingT();
+						if (notificationSettingsGroupMappingT != null) {
+							notificationSettingsGroupMappingT
+									.setNotificationEventGroupMappingTs(null);
 						}
 
 					}
 				}
 			}
 		}
-		
 		return userNotificationsTs;
-
 	}
 
 	/**
@@ -110,6 +113,20 @@ public class UserNotificationsService {
 			if (userNotificationSettingsT.getUserNotificationSettingsId() != null) {
 				userNotificationSettingsRepository
 						.save(userNotificationSettingsT);
+
+				if (userNotificationSettingsT
+						.getUserNotificationSettingsConditionsTs() != null) {
+					userNotificationSettingsConditionRepository
+							.save(userNotificationSettingsT
+									.getUserNotificationSettingsConditionsTs());
+				}
+
+				if (userNotificationSettingsT
+						.getDeleteUserNotificationSettingsConditionsTs() != null)
+					userNotificationSettingsConditionRepository
+							.delete(userNotificationSettingsT
+									.getDeleteUserNotificationSettingsConditionsTs());
+
 				logger.debug("User notification settings have been added successfully for "
 						+ userNotificationSettingsT
 								.getUserNotificationSettingsId());
@@ -138,10 +155,10 @@ public class UserNotificationsService {
 		String message = "No User Notification Id provided";
 
 		if (userNotificationIds != null && userNotificationIds.size() != 0) {
-			if (read.equalsIgnoreCase(Constants.YES)) {
+			if (read.equalsIgnoreCase(Constants.NO)) {
 				status = Constants.YES;
 				message = "Marked as read";
-			} else if (read.equalsIgnoreCase(Constants.NO)) {
+			} else if (read.equalsIgnoreCase(Constants.YES)) {
 				status = Constants.NO;
 				message = "Marked as unread";
 			} else {

@@ -3,11 +3,15 @@ package com.tcs.destination.service;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +32,6 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
-import com.tcs.destination.bean.OpportunityNameKeywordSearch;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
@@ -46,8 +48,10 @@ import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -63,7 +67,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
-@Service
+@Service("connectService")
 public class ConnectService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
@@ -128,19 +132,39 @@ public class ConnectService {
 	@Autowired
 	ThreadPoolTaskExecutor notificationsTaskExecutor;
 	// Required beans for Notifications - end
-	
-	
+
 	@Autowired
 	UserRepository userRepository;
 
 	@Autowired
 	ConnectOpportunityLinkTRepository connectOpportunityLinkTRepository;
-	
+
 	@Autowired
 	NotesTRepository notesRepository;
-	
+
 	@Autowired
 	CityMappingRepository cityMappingRepository;
+	
+	@Autowired
+	ConnectOfferingLinkRepository connectOfferingLinkRepository;
+	
+	@Autowired
+	ConnectSubSpLinkRepository connectSubSpLinkRepository;
+	
+	@Autowired
+	ConnectCustomerContactLinkTRepository connectCustomerContactLinkTRepository;
+	
+	@Autowired
+	ConnectTcsAccountContactLinkTRepository connectTcsAccountContactLinkTRepository;
+
+	@Autowired
+	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
+
+	@Autowired
+	CollaborationCommentsService collaborationCommentsService;
+
+	@Autowired
+	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -354,8 +378,8 @@ public class ConnectService {
 				if (!isBulkDataLoad) {
 					// Invoke Asynchronous Auto Comments Thread
 					processAutoComments(connect.getConnectId(), null);
-					//Invoke Asynchronous Notifications Thread
-					processNotifications(connect.getConnectId(),null);
+					// Invoke Asynchronous Notifications Thread
+					processNotifications(connect.getConnectId(), null);
 				}
 				return true;
 			}
@@ -364,7 +388,7 @@ public class ConnectService {
 		logger.debug("Connect not Saved");
 		return false;
 	}
-	
+
 	private void processNotifications(String connectId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
@@ -373,11 +397,23 @@ public class ConnectService {
 		if (oldObject != null) {
 			notificationsHelper.setOldObject(oldObject);
 		}
-		notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
-		notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
-		notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper
+				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		notificationsHelper
+				.setUserNotificationsTRepository(userNotificationsTRepository);
+		notificationsHelper
+				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		notificationsHelper
+				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setCrudRepository(connectRepository);
-		notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		notificationsHelper.setEntityManagerFactory(entityManager
+				.getEntityManagerFactory());
+		notificationsHelper
+				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		notificationsHelper
+				.setSearchKeywordsRepository(searchKeywordsRepository);
+		notificationsHelper
+				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -436,7 +472,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-		
+
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -444,26 +480,27 @@ public class ConnectService {
 			throws DestinationException {
 		String location = connect.getLocation();
 		CityMapping cityMapping = connect.getCityMapping();
-		if(cityMapping != null){
+		if (cityMapping != null) {
 			String city = cityMapping.getCity();
-			if(!city.equalsIgnoreCase(location)){
+			if (!city.equalsIgnoreCase(location)) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Location mismatch with city Mapping");
 			}
 			CityMapping cityMappingDB = cityMappingRepository.findOne(city);
-			//CityMapping cityMappingDB = cityMappingRepository.getCityByCityName(city.toUpperCase());
-			if(cityMappingDB == null){
+			// CityMapping cityMappingDB =
+			// cityMappingRepository.getCityByCityName(city.toUpperCase());
+			if (cityMappingDB == null) {
 				String latitude = cityMapping.getLatitude();
-				if(StringUtils.isEmpty(latitude)){
+				if (StringUtils.isEmpty(latitude)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"latitude is required");
-				}		
+				}
 				String longitude = cityMapping.getLongitude();
-				if(StringUtils.isEmpty(longitude)){
+				if (StringUtils.isEmpty(longitude)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"longitude is required");
 				}
-				
+
 				cityMappingRepository.save(cityMapping);
 			}
 		}
@@ -591,8 +628,8 @@ public class ConnectService {
 			logger.info("Connect has been updated successfully: " + connectId);
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(connectId, oldObject);
-			//Invoke Asynchronous Notifications Thread
-			processNotifications(connectId,oldObject);
+			// Invoke Asynchronous Notifications Thread
+			processNotifications(connectId, oldObject);
 			return true;
 		}
 		return false;
@@ -682,7 +719,8 @@ public class ConnectService {
 		}
 
 		if (connect.getDeleteConnectOpportunityLinkIdTs() != null) {
-			deleteConnectOpportunityLinkIdTs(connect.getDeleteConnectOpportunityLinkIdTs());
+			deleteConnectOpportunityLinkIdTs(connect
+					.getDeleteConnectOpportunityLinkIdTs());
 			logger.debug("ConnectOpportunityLinkIdTs deleted");
 		}
 
@@ -853,6 +891,7 @@ public class ConnectService {
 		autoCommentsHelper.setCrudRepository(connectRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
+		autoCommentsHelper.setCollCommentsService(collaborationCommentsService);
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 	}
@@ -922,7 +961,8 @@ public class ConnectService {
 				// throw an exception if connects is empty and
 				// size of monthConnects and weekConnects are zero
 				if ((connects == null || connects.isEmpty())
-						&& dashBoardConnectsResponse.getWeekCount() == 0 && dashBoardConnectsResponse.getMonthCount() == 0) {
+						&& dashBoardConnectsResponse.getWeekCount() == 0
+						&& dashBoardConnectsResponse.getMonthCount() == 0) {
 					logger.error(
 							"NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
 									+ "days of week between {} and {}, days of month between {} and {}",
@@ -1002,12 +1042,12 @@ public class ConnectService {
 		removeCyclicConnectsInCustomerMappingT(dashBoardConnectsResponse);
 		return dashBoardConnectsResponse;
 	}
-	
+
 	/**
-	* This method removes the ConnectTs present in CustomerMappingT in ConnectT
-	* 
-	* @param dashBoardConnectsResponse
-	*/
+	 * This method removes the ConnectTs present in CustomerMappingT in ConnectT
+	 * 
+	 * @param dashBoardConnectsResponse
+	 */
 	public void removeCyclicConnectsInCustomerMappingT(
 			DashBoardConnectsResponse dashBoardConnectsResponse) {
 
@@ -1027,56 +1067,72 @@ public class ConnectService {
 			}
 		}
 	}
-	
+
 	/**
-	 * This method retrieves all the connects for the Financial Year and status 
-	 *  
+	 * This method retrieves all the connects for the Financial Year and status
+	 * 
 	 * @param status
 	 * @param financialYear
 	 * @return
 	 * @throws Exception
 	 */
 	public List<ConnectT> getAllConnectsForDashbaord(String status,
-	    String financialYear) throws Exception {
+			String financialYear) throws Exception {
 
-	List<ConnectT> listOfConnects = null;
-	List<String> connectIds = null;
-	try {
-	    if (StringUtils.isEmpty(financialYear)) {
-		financialYear = DateUtils.getCurrentFinancialYear();
-	    }
+		List<ConnectT> listOfConnects = null;
+		List<String> connectIds = null;
+		try {
+			if (StringUtils.isEmpty(financialYear)) {
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
 
-	    Timestamp startTimestamp = new Timestamp(DateUtils
-		    .getDateFromFinancialYear(financialYear, true).getTime());
-	    Timestamp endTimestamp = new Timestamp(DateUtils
-		    .getDateFromFinancialYear(financialYear, false).getTime()
-		    + Constants.ONE_DAY_IN_MILLIS - 1);
+			Timestamp startTimestamp = new Timestamp(DateUtils
+					.getDateFromFinancialYear(financialYear, true).getTime());
+			Timestamp endTimestamp = new Timestamp(DateUtils
+					.getDateFromFinancialYear(financialYear, false).getTime()
+					+ Constants.ONE_DAY_IN_MILLIS - 1);
 
-	    if ((status != null)&&(ConnectStatusType.contains(status))) {
-		// Retrieve all connectIds present within the FY
-		connectIds = connectRepository.getAllConnectsForDashbaord(startTimestamp, endTimestamp);
-		if ((connectIds != null) && (!connectIds.isEmpty())) {
-		    List<String> connectIdsForStatusOpenClosed = null;
-		    if (status.equalsIgnoreCase(ConnectStatusType.OPEN.toString())) { // If Status is open, check for connects which has no notes in notes_t table
-		    	connectIdsForStatusOpenClosed = connectRepository.getAllConnectsForDashbaordStatusOpen(connectIds, startTimestamp, endTimestamp);
-				listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
-		    } else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED.toString())) { // If Status is closed, check for connects which has notes in notes_t table
-		    	connectIdsForStatusOpenClosed = notesRepository.getAllConnectsForDashbaordStatusClosed(connectIds);
-				listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
-		    } else if (status.equalsIgnoreCase(ConnectStatusType.ALL.toString())) { // If status is ALL, get connects from connect_t
-		    	listOfConnects = connectRepository.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
-		    }
+			if ((status != null) && (ConnectStatusType.contains(status))) {
+				// Retrieve all connectIds present within the FY
+				connectIds = connectRepository.getAllConnectsForDashbaord(
+						startTimestamp, endTimestamp);
+				if ((connectIds != null) && (!connectIds.isEmpty())) {
+					List<String> connectIdsForStatusOpenClosed = null;
+					if (status.equalsIgnoreCase(ConnectStatusType.OPEN
+							.toString())) { // If Status is open, check for
+											// connects which has no notes in
+											// notes_t table
+						connectIdsForStatusOpenClosed = connectRepository
+								.getAllConnectsForDashbaordStatusOpen(
+										connectIds, startTimestamp,
+										endTimestamp);
+						listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
+							.toString())) { // If Status is closed, check for
+											// connects which has notes in
+											// notes_t table
+						connectIdsForStatusOpenClosed = notesRepository
+								.getAllConnectsForDashbaordStatusClosed(connectIds);
+						listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
+							.toString())) { // If status is ALL, get connects
+											// from connect_t
+						listOfConnects = connectRepository
+								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
+					}
+				}
+			} else {
+				logger.error("BAD_REQUEST: Invalid Status Type");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Status Type");
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-	    } else {
-		    logger.error("BAD_REQUEST: Invalid Status Type");
-		    throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Status Type");
-	    }
-	} catch (Exception e) {
-	    logger.error("INTERNAL_SERVER_ERROR: "+e.getMessage());
-	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+		return listOfConnects;
 	}
-	return listOfConnects;
-    }
 
 	/**
 	 * This method retrieves list of Connects based on the connectIds provided
@@ -1084,19 +1140,22 @@ public class ConnectService {
 	 * @param connectIds
 	 * @return List<ConnectT>
 	 */
-	private List<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(List<String> connectIds) {
-	    
-	    List<ConnectT> listOfConnects = null;
-	    
-	    if ((connectIds != null) && (!connectIds.isEmpty())) {
-	        listOfConnects = connectRepository.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
-	    }
-	    
-	    return listOfConnects;
+	private List<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(
+			List<String> connectIds) {
+
+		List<ConnectT> listOfConnects = null;
+
+		if ((connectIds != null) && (!connectIds.isEmpty())) {
+			listOfConnects = connectRepository
+					.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
+		}
+
+		return listOfConnects;
 	}
 
 	/**
-	 * This service performs search of connects and searchKeywords based on name and keyword
+	 * This service performs search of connects and searchKeywords based on name
+	 * and keyword
 	 * 
 	 * @param name
 	 * @param keyword
@@ -1109,12 +1168,12 @@ public class ConnectService {
 		List<ConnectNameKeywordSearch> connectNameKeywordSearchList = null;
 
 		try {
-			
+
 			if (name.length() > 0)
 				name = "%" + name + "%";
 			if (keyword.length() > 0)
 				keyword = "%" + keyword + "%";
-			
+
 			List<Object[]> results = connectRepository
 					.findConnectNameOrKeywords(name.toUpperCase(),
 							keyword.toUpperCase());
@@ -1138,5 +1197,127 @@ public class ConnectService {
 					e.getMessage());
 		}
 		return connectNameKeywordSearchList;
+	}
+
+	public void save(List<ConnectT> insertList) throws Exception {
+		
+		logger.debug("Inside save method");
+		
+		Map<Integer,List<ConnectOfferingLinkT>> mapConnectOffering  = new HashMap<Integer,List<ConnectOfferingLinkT>> (insertList.size());
+		Map<Integer,List<ConnectOpportunityLinkIdT>> mapOpportunityLink  = new HashMap<Integer,List<ConnectOpportunityLinkIdT>> (insertList.size());
+		Map<Integer,List<ConnectSecondaryOwnerLinkT>> mapSecondaryOwner  = new HashMap<Integer,List<ConnectSecondaryOwnerLinkT>>(insertList.size());
+		Map<Integer,List<ConnectSubSpLinkT>> mapSubSp  = new HashMap<Integer,List<ConnectSubSpLinkT>> (insertList.size());
+		Map<Integer,List<ConnectTcsAccountContactLinkT>> mapTcsContact  = new HashMap<Integer,List<ConnectTcsAccountContactLinkT>> (insertList.size());
+		Map<Integer,List<ConnectCustomerContactLinkT>> mapCustomerContact  = new HashMap<Integer,List<ConnectCustomerContactLinkT>> (insertList.size());
+		
+		int i = 0;
+		for (ConnectT connectT: insertList) {
+			mapConnectOffering.put(i, connectT.getConnectOfferingLinkTs());
+			mapOpportunityLink.put(i, connectT.getConnectOpportunityLinkIdTs());
+			mapSecondaryOwner.put(i, connectT.getConnectSecondaryOwnerLinkTs());
+			mapSubSp.put(i, connectT.getConnectSubSpLinkTs());
+			mapTcsContact.put(i, connectT.getConnectTcsAccountContactLinkTs());
+			mapCustomerContact.put(i, connectT.getConnectCustomerContactLinkTs());
+			
+			setNullForReferencedObjects(connectT);
+			
+			i++;
+		}
+		
+		Iterable<ConnectT> savedList = connectRepository.save(insertList);
+		Iterator<ConnectT> saveIterator = savedList.iterator();
+		i = 0;
+		while(saveIterator.hasNext()) {
+			ConnectT connectT = saveIterator.next();
+			List<ConnectOfferingLinkT> offeringList = mapConnectOffering.get(i);
+			if(CollectionUtils.isNotEmpty(offeringList)) {
+				populateConnectOfferingLinks(connectT.getConnectId(), offeringList);
+			}
+			List<ConnectOpportunityLinkIdT> oppourtunityList = mapOpportunityLink.get(i);
+			if(CollectionUtils.isNotEmpty(oppourtunityList)) {
+				populateOppLinks(connectT.getConnectId(), oppourtunityList);
+			}
+			List<ConnectSecondaryOwnerLinkT> secOwnerList = mapSecondaryOwner.get(i);
+			if(CollectionUtils.isNotEmpty(secOwnerList)) {
+				populateConnectSecondaryOwnerLinks(connectT.getConnectId(), secOwnerList);
+			}
+			List<ConnectSubSpLinkT> subSpList = mapSubSp.get(i);
+			if(CollectionUtils.isNotEmpty(subSpList)) {
+				populateConnectSubSpLinks(connectT.getConnectId(), subSpList);
+			}
+			List<ConnectTcsAccountContactLinkT> tcsContactList = mapTcsContact.get(i);
+			if(CollectionUtils.isNotEmpty(tcsContactList)) {
+				populateConnectTcsAccountContactLinks(connectT.getConnectId(), tcsContactList);
+			}
+			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact.get(i);
+			if(CollectionUtils.isNotEmpty(custContactList)) {
+				populateConnectCustomerContactLinks(connectT.getConnectId(), custContactList);
+			}
+			
+			i++;
+		}
+		
+		
+		List<ConnectOpportunityLinkIdT> connectOppList = new ArrayList<ConnectOpportunityLinkIdT>();
+		for(List<ConnectOpportunityLinkIdT> list: mapOpportunityLink.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectOppList.addAll(list);
+			}
+		}
+		if(CollectionUtils.isNotEmpty(connectOppList)) {
+			connectOpportunityLinkTRepository.save(connectOppList);
+		}
+		
+		List<ConnectOfferingLinkT> connectOfferings = new ArrayList<ConnectOfferingLinkT>(); 
+		for(List<ConnectOfferingLinkT> list: mapConnectOffering.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectOfferings.addAll(list);
+			}
+			
+		}
+		if(CollectionUtils.isNotEmpty(connectOfferings)) {
+			connectOfferingLinkRepository.save(connectOfferings);
+		}
+		
+		List<ConnectSecondaryOwnerLinkT> connectSecOwner = new ArrayList<ConnectSecondaryOwnerLinkT>();
+		for(List<ConnectSecondaryOwnerLinkT> list: mapSecondaryOwner.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectSecOwner.addAll(list);
+			}
+		}
+		if(CollectionUtils.isNotEmpty(connectSecOwner)) {
+			connectSecondaryOwnerRepository.save(connectSecOwner);
+		}
+		
+		List<ConnectSubSpLinkT> connectSubSps = new ArrayList<ConnectSubSpLinkT>(); 
+		for(List<ConnectSubSpLinkT> list: mapSubSp.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectSubSps.addAll(list);
+			}
+		}
+		if(CollectionUtils.isNotEmpty(connectSubSps)) {
+			connectSubSpLinkRepository.save(connectSubSps);
+		}
+		
+		List<ConnectTcsAccountContactLinkT> connectTcsContacts = new ArrayList<ConnectTcsAccountContactLinkT>();
+		for(List<ConnectTcsAccountContactLinkT> list: mapTcsContact.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectTcsContacts.addAll(list);
+			}
+		}
+		if(CollectionUtils.isNotEmpty(connectTcsContacts)) {
+			connectTcsAccountContactLinkTRepository.save(connectTcsContacts);
+		}
+		
+		List<ConnectCustomerContactLinkT> connectCustContacts = new ArrayList<ConnectCustomerContactLinkT>();
+		for(List<ConnectCustomerContactLinkT> list: mapCustomerContact.values()) {
+			if(CollectionUtils.isNotEmpty(list)) {
+				connectCustContacts.addAll(list);
+			}
+		}
+		if(CollectionUtils.isNotEmpty(connectCustContacts)) {
+			connectCustomerContactLinkTRepository.save(connectCustContacts);
+		}
+		
 	}
 }

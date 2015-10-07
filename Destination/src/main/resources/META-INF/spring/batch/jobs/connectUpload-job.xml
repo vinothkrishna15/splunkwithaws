@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="connectUpload">
+		<batch:step id="preprocess" next="decider">
+			<batch:tasklet ref="connectPreprocessor"/>
+		</batch:step>
+		
+		<batch:step id="connectProcessing" next="preprocess">
+			<batch:tasklet>
+				<batch:chunk reader="spreadSheetReader" writer="connectWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="decider" decider="connectFlowdecider">
+              <batch:next on="PREPROCESS" to="preprocess" />
+              <batch:next on="CONNECT_PROCESSING" to="connectProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="spreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="connect"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="connectWriter" class="com.tcs.destination.writer.ConnectCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="connectUploadHelper"/>
+		<property name="connectService" ref="connectService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="connectFlowdecider" class="com.tcs.destination.decider.ConnectDecider" />
+	
+	<!-- scheduler  -->
+	<bean id="connectUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="connectUpload"/>
+	</bean>
+	
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="connectUploadScheduler" method="run" cron="${connect.upload.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

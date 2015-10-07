@@ -37,6 +37,18 @@ public class UploadErrorReport {
 		InputStreamResource inputStream = new InputStreamResource(new ByteArrayInputStream(bytes));
 		return inputStream;
 	}
+	
+	/**
+	 * This Method converts the errorDetailsDTOs into Input Stream
+	 * @param errorDetailsDTOs
+	 * @return input stream
+	 * @throws Exception
+	 */
+	public XSSFWorkbook writeErrorToWorkbook(List<UploadServiceErrorDetailsDTO> errorDetailsDTOs) throws Exception {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		writeErrorReportIntoExcel(workbook, errorDetailsDTOs);
+		return workbook;
+	}
 
 	/**
 	 * This method write the Row number and Corresponding Error into the excel sheet 
