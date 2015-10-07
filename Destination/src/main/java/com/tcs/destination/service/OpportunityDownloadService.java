@@ -21,7 +21,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,14 +192,6 @@ public class OpportunityDownloadService {
 	    //Opportunity Id
 	    Cell cellOppId = row.createCell(1);
 	    cellOppId.setCellValue(opp.getOpportunityId().trim());
-	    
-	    //IOU
-	    Cell cellIOU = row.createCell(3);
-	    cellIOU.setCellValue(opp.getCustomerMasterT().getIouCustomerMappingT().getIou().trim());
-	   
-	    //Geography
-	    Cell cellGeography = row.createCell(4);
-	    cellGeography.setCellValue(opp.getCustomerMasterT().getGeographyMappingT().getGeography().trim());
 	    
 	    // Country
 	    Cell cellCountry = row.createCell(5);

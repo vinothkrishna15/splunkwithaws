@@ -1,8 +1,11 @@
 package com.tcs.destination.helper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,25 +16,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
 
+import com.tcs.destination.bean.BidDetailsT;
+import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.CollaborationCommentT;
+import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.NotificationEventFieldsT;
 import com.tcs.destination.bean.NotificationEventGroupMappingT;
+import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.UserTaggedFollowedT;
+import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
+import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.TaskRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserGroup;
+import com.tcs.destination.service.FollowedService;
 import com.tcs.destination.utils.Constants;
 
 public class NotificationHelper implements Runnable {
@@ -45,6 +61,11 @@ public class NotificationHelper implements Runnable {
 	private static final String TOKEN_FROM = "from";
 	private static final String TOKEN_TO = "to";
 	private static final String PATTERN = "\\<(.+?)\\>";
+
+	private static final String TOKEN_OWNERSHIP = "ownership";
+	private static final String TOKEN_STATUS = "status";
+
+	private static final String TOKEN_SALES_STAGE = "sales_stage";
 
 	private Object oldObject;
 	private String entityId;
@@ -61,6 +82,10 @@ public class NotificationHelper implements Runnable {
 	private TaskRepository taskRepository;
 	private UserRepository userRepository;
 	private FollowedRepository taggedFollowedRepository;
+	private FollowedService followService;
+	private UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
+	private SearchKeywordsRepository searchKeywordsRepository;
+	private AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
 
 	public Object getOldObject() {
 		return oldObject;
@@ -155,6 +180,8 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.contains(entityType)) {
 					switch (EntityType.valueOf(entityType)) {
 					case COMMENT:
+						// This is both for Manual Comments as well as Auto
+						// Comments (Notification on Key fields change)
 						notifyForComments();
 						break;
 					default:
@@ -227,7 +254,7 @@ public class NotificationHelper implements Runnable {
 			OpportunityT opportunityT = opportunityRepository.findOne(commentT
 					.getOpportunityId());
 			commentedEntityName = opportunityT.getOpportunityName();
-			commentedEntityType = EntityType.OPPORTUNITY.name();
+			commentedEntityType = Constants.OPPORTUNITY;
 			commentedEntityId = commentT.getOpportunityId();
 			ownerIdList = opportunityRepository.getAllOwners(commentT
 					.getOpportunityId());
@@ -244,7 +271,7 @@ public class NotificationHelper implements Runnable {
 			ConnectT connectT = connectRepository.findOne(commentT
 					.getConnectId());
 			commentedEntityName = connectT.getConnectName();
-			commentedEntityType = EntityType.CONNECT.name();
+			commentedEntityType = Constants.CONNECT;
 			commentedEntityId = commentT.getConnectId();
 			ownerIdList = connectRepository.findOwnersOfConnect(commentT
 					.getConnectId());
@@ -256,7 +283,7 @@ public class NotificationHelper implements Runnable {
 		} else if (commentT.getTaskId() != null) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
-			commentedEntityType = EntityType.TASK.name();
+			commentedEntityType = Constants.TASK;
 			commentedEntityId = commentT.getTaskId();
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
@@ -266,51 +293,67 @@ public class NotificationHelper implements Runnable {
 		}
 
 		{
-			String msgTemplate = replaceTokens(
-					ownerMessageTemplate,
-					populateTokens(commentT.getUserT().getUserName(),
-							commentedEntityName, null, null,
-							commentedEntityType));
-			logger.error("Owners " + ownerIdList.size());
-			if (msgTemplate != null) {
-				for (String recipient : ownerIdList) {
-					logger.error(msgTemplate + " is sent to " + recipient
-							+ " for event " + ownerEventId);
-					addUserNotifications(msgTemplate, recipient, ownerEventId,
-							commentedEntityType, commentedEntityId);
+			if (commentT.getUserT().getUserName()
+					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+				ownerMessageTemplate = commentT.getComments().replace(
+						"[Auto Comment]: ", "");
+				ownerMessageTemplate = ownerMessageTemplate.trim();
+				ownerMessageTemplate += " - <entityType> : <entityName>";
+				taggedFollowedMessageTemplate = ownerMessageTemplate;
+			}
+			// Notify Entity Owners about the Comment
+			{
+				String msgTemplate = replaceTokens(
+						ownerMessageTemplate,
+						populateTokens(commentT.getUserT().getUserName(),
+								commentedEntityName, null, null,
+								commentedEntityType, null, null, null));
+				if (msgTemplate != null) {
+					for (String recipient : ownerIdList) {
+						if (!commentT.getUserId().equals(recipient)) {
+							addUserNotifications(msgTemplate, recipient,
+									ownerEventId, commentedEntityType,
+									commentedEntityId);
+						}
+					}
 				}
 			}
-		}
 
-		{
-			List<String> ownersSupervisorIds = userRepository
-					.getSupervisorUserId(ownerIdList);
-			String msgTemplate = replaceTokens(
-					ownersSupervisorMessageTemplate,
-					populateTokens(commentT.getUserT().getUserName(),
-							commentedEntityName, null, null,
-							commentedEntityType));
-			if (msgTemplate != null) {
-				for (String recipient : ownersSupervisorIds) {
-					addUserNotifications(msgTemplate, recipient, ownerSupervisorEventId,
-							commentedEntityType, commentedEntityId);
+			// Notify Entity Owners supervisor about the Comment from USERS
+			if (!commentT.getUserT().getUserName()
+					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+				List<String> ownersSupervisorIds = userRepository
+						.getSupervisorUserId(ownerIdList);
+				String msgTemplate = replaceTokens(
+						ownersSupervisorMessageTemplate,
+						populateTokens(commentT.getUserT().getUserName(),
+								commentedEntityName, null, null,
+								commentedEntityType, null, null, null));
+				if (msgTemplate != null) {
+					for (String recipient : ownersSupervisorIds) {
+						addUserNotifications(msgTemplate, recipient,
+								ownerSupervisorEventId, commentedEntityType,
+								commentedEntityId);
+					}
 				}
 			}
-		}
 
-		{
-			String msgTemplate = replaceTokens(
-					taggedFollowedMessageTemplate,
-					populateTokens(commentT.getUserT().getUserName(),
-							commentedEntityName, null, null,
-							commentedEntityType));
-			logger.error("tagged : " + taggedUserList.size());
-			if (msgTemplate != null) {
-				for (String recipient : taggedUserList) {
-					logger.error(msgTemplate + " is sent to " + recipient
-							+ " for event " + taggedEventId);
-					addUserNotifications(msgTemplate, recipient, taggedEventId,
-							commentedEntityType, commentedEntityId);
+			// Notify Entity Owners supervisor about the Comment
+			{
+				String msgTemplate = replaceTokens(
+						taggedFollowedMessageTemplate,
+						populateTokens(commentT.getUserT().getUserName(),
+								commentedEntityName, null, null,
+								commentedEntityType, null, null, null));
+				logger.error("tagged : " + taggedUserList.size());
+				if (msgTemplate != null) {
+					for (String recipient : taggedUserList) {
+						logger.error(msgTemplate + " is sent to " + recipient
+								+ " for event " + taggedEventId);
+						addUserNotifications(msgTemplate, recipient,
+								taggedEventId, commentedEntityType,
+								commentedEntityId);
+					}
 				}
 			}
 		}
@@ -353,10 +396,10 @@ public class NotificationHelper implements Runnable {
 							entityId);
 					ConnectT connect = (ConnectT) dbObject;
 					// ((ConnectRepository) crudRepository).findOne(entityId);
-					user = connect.getModifiedByUser().getUserName();
-					entityName = connect.getConnectName();
 					String fieldType = null;
 					if (connect != null) {
+						user = connect.getModifiedByUser().getUserName();
+						entityName = connect.getConnectName();
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
@@ -395,12 +438,17 @@ public class NotificationHelper implements Runnable {
 								msgTemplate = replaceTokens(
 										notificationField.getMessageTemplate(),
 										populateTokens(user, entityName, null,
-												null, null));
+												null, null, null, null, null));
 								if (msgTemplate != null) {
-									addUserNotifications(msgTemplate,
-											recipient,
-											notificationField
-													.getNotificationEventId());
+									if (((connect.getModifiedBy() != null) && (!connect
+											.getModifiedBy().equals(recipient)))
+											|| (!connect.getCreatedBy().equals(
+													recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												notificationField
+														.getNotificationEventId());
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -408,6 +456,12 @@ public class NotificationHelper implements Runnable {
 										notificationField, oldObject, connect);
 							}
 						}
+
+						// Primary Owner Or Secondary Owner check
+						sendNotificationsToSupervisorForConnectForSubordinateOwnerAddision(connect);
+
+						if (oldObject == null)
+							notifyNewDesiredConnects(connect);
 					} else {
 						logger.error("Invalid Connect Id: {}", entityId);
 						throw new Exception("Invalid Connect Id: " + entityId);
@@ -419,10 +473,10 @@ public class NotificationHelper implements Runnable {
 							"Processing Notifications for Add, OpportunityId: {}",
 							entityId);
 					OpportunityT opportunity = (OpportunityT) dbObject;
-					user = opportunity.getModifiedByUser().getUserName();
-					entityName = opportunity.getOpportunityName();
 					String fieldType = null;
 					if (opportunity != null) {
+						user = opportunity.getModifiedByUser().getUserName();
+						entityName = opportunity.getOpportunityName();
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
@@ -461,12 +515,17 @@ public class NotificationHelper implements Runnable {
 								msgTemplate = replaceTokens(
 										notificationField.getMessageTemplate(),
 										populateTokens(user, entityName, null,
-												null, null));
+												null, null, null, null, null));
 								if (msgTemplate != null) {
-									addUserNotifications(msgTemplate,
-											recipient,
-											notificationField
-													.getNotificationEventId());
+									if (((opportunity.getModifiedBy() != null) && (!opportunity
+											.getModifiedBy().equals(recipient)))
+											|| (!opportunity.getCreatedBy()
+													.equals(recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												notificationField
+														.getNotificationEventId());
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -475,6 +534,23 @@ public class NotificationHelper implements Runnable {
 										opportunity);
 							}
 						}
+
+						// Primary Owner Or Secondary Owner check
+						sendNotificationsToSupervisorForOpportunityForSubordinateOwnerAddision(opportunity);
+
+						// Send Win or lost notifications
+						sendNotificationWhenSubordinateOwnedOpportunitiesWonOrLost(opportunity);
+
+						// Send Notification for Digital Re-imagination
+						followDigitalReimaginationOpportunities(opportunity);
+
+						// Send Notification for Strategic Initiatives
+						followStategicInitiativeOpportunities(opportunity);
+
+						// Send Notification for Strategic Initiatives
+						if (oldObject == null)
+							notifyNewDesiredOpportunities(opportunity);
+
 					} else {
 						logger.error("Invalid Opportunity Id: {}", entityId);
 						throw new Exception("Invalid Opportunity Id: "
@@ -487,10 +563,10 @@ public class NotificationHelper implements Runnable {
 							"Processing Notifications for Add, TaskId: {}",
 							entityId);
 					TaskT task = (TaskT) dbObject;
-					user = task.getModifiedByUser().getUserName();
-					entityName = task.getTaskDescription();
 					String fieldType = null;
 					if (task != null) {
+						user = task.getModifiedByUser().getUserName();
+						entityName = task.getTaskDescription();
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
@@ -536,12 +612,17 @@ public class NotificationHelper implements Runnable {
 								msgTemplate = replaceTokens(
 										notificationField.getMessageTemplate(),
 										populateTokens(user, entityName, null,
-												null, null));
+												null, null, null, null, null));
 								if (msgTemplate != null) {
-									addUserNotifications(msgTemplate,
-											recipient,
-											notificationField
-													.getNotificationEventId());
+									if (((task.getModifiedBy() != null) && (!task
+											.getModifiedBy().equals(recipient)))
+											|| (!task.getCreatedBy().equals(
+													recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												notificationField
+														.getNotificationEventId());
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -549,6 +630,7 @@ public class NotificationHelper implements Runnable {
 										notificationField, oldObject, task);
 							}
 						}
+						sendNotificationsToSupervisorForTaskForSubordinateOwnerAddision(task);
 					} else {
 						logger.error("Invalid Task Id: {}", entityId);
 						throw new Exception("Invalid Task Id: " + entityId);
@@ -562,6 +644,473 @@ public class NotificationHelper implements Runnable {
 			} else {
 				logger.error("Invalid Entity Type: " + entityType);
 				throw new Exception("Invalid Entity Type: " + entityType);
+			}
+		}
+	}
+
+	private void notifyNewDesiredOpportunities(OpportunityT opportunity)
+			throws Exception {
+		// TODO: User Notification Settings Condition Update
+		String customerName = opportunity.getCustomerMasterT()
+				.getCustomerName();
+		List<String> searchKeywords = searchKeywordsRepository
+				.findSearchKeywordsByEntityTypeAndEntityId(
+						EntityType.OPPORTUNITY.name(),
+						opportunity.getOpportunityId());
+		String displayIOU = opportunity.getCustomerMasterT()
+				.getIouCustomerMappingT().getDisplayIou();
+		Integer digitalDealValue = opportunity.getDigitalDealValue();
+		String geography = opportunity.getGeographyCountryMappingT()
+				.getGeography();
+		String country = opportunity.getCountry();
+		Set<String> userIds = userNotificationSettingsConditionRepository
+				.findUserIdByConditionIdAndConditionValue(1, customerName);
+		for (String searchKeyword : searchKeywords) {
+			addToList(userIds,
+					userNotificationSettingsConditionRepository
+							.findUserIdByConditionIdAndConditionValue(2,
+									searchKeyword));
+		}
+		addToList(
+				userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(3, displayIOU));
+
+		addToList(userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(4, geography));
+
+		addToList(userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(5, country));
+
+		addToList(
+				userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByDigitalDealValueGreaterThan(digitalDealValue));
+
+		List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
+				.getAllOwners(opportunity.getOpportunityId());
+		for (String userId : userIds) {
+			if ((!opportunityOwners.contains(userId))
+					&& (!opportunity.getCreatedBy().equals(userId))) {
+				String addMessageTemplate = autoCommentsEntityFieldsTRepository
+						.findOne(105).getAddMessageTemplate();
+				String notificationMessage = replaceTokens(
+						addMessageTemplate,
+						populateTokens(opportunity.getCreatedByUser()
+								.getUserName(), opportunity
+								.getOpportunityName(), null, null, null, null,
+								null, null));
+				notificationMessage = notificationMessage.replace(
+						"[Auto Comment]: ", "");
+				addUserNotifications(notificationMessage, userId, 10,
+						EntityType.OPPORTUNITY.name(),
+						opportunity.getOpportunityId());
+			}
+		}
+
+	}
+
+	private void notifyNewDesiredConnects(ConnectT connectT) throws Exception {
+		// TODO: User Notification Settings Condition Update
+		String customerName = connectT.getCustomerMasterT().getCustomerName();
+		List<String> searchKeywords = searchKeywordsRepository
+				.findSearchKeywordsByEntityTypeAndEntityId(
+						EntityType.CONNECT.name(), connectT.getConnectId());
+		String displayIOU = connectT.getCustomerMasterT()
+				.getIouCustomerMappingT().getDisplayIou();
+		String geography = connectT.getGeographyCountryMappingT()
+				.getGeography();
+		String country = connectT.getCountry();
+		Set<String> userIds = userNotificationSettingsConditionRepository
+				.findUserIdByConditionIdAndConditionValue(1, customerName);
+		for (String searchKeyword : searchKeywords) {
+			addToList(userIds,
+					userNotificationSettingsConditionRepository
+							.findUserIdByConditionIdAndConditionValue(2,
+									searchKeyword));
+		}
+		addToList(
+				userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(3, displayIOU));
+
+		addToList(userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(4, geography));
+
+		addToList(userIds,
+				userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(5, country));
+
+		List<String> connectOwners = ((ConnectRepository) crudRepository)
+				.findOwnersOfConnect(connectT.getConnectId());
+		for (String userId : userIds) {
+			if ((!connectOwners.contains(userId))
+					&& (!connectT.getCreatedBy().equals(userId))) {
+				String addMessageTemplate = autoCommentsEntityFieldsTRepository
+						.findOne(209).getAddMessageTemplate();
+				String notificationMessage = replaceTokens(
+						addMessageTemplate,
+						populateTokens(connectT.getCreatedByUser()
+								.getUserName(), connectT.getConnectName(),
+								null, null, null, null, null, null));
+				notificationMessage = notificationMessage.replace(
+						"[Auto Comment]: ", "");
+				addUserNotifications(notificationMessage, userId, 10,
+						EntityType.CONNECT.name(), connectT.getConnectId());
+			}
+		}
+
+	}
+
+	private void addToList(Set<String> mainList, Set<String> listToBeAdded) {
+		if (mainList == null)
+			mainList = new TreeSet<String>();
+		if (listToBeAdded != null)
+			mainList.addAll(listToBeAdded);
+
+	}
+
+	private void followDigitalReimaginationOpportunities(
+			OpportunityT opportunity) throws Exception {
+		if (opportunity.getDigitalFlag() != null)
+			if (opportunity.getDigitalFlag().equals("Y")) {
+				List<String> owners = ((OpportunityRepository) crudRepository)
+						.getAllOwners(opportunity.getOpportunityId());
+				List<String> userIds = userRepository
+						.getSupervisorUserId(owners);
+				followOpportunity(opportunity, userIds);
+			}
+	}
+
+	private void followOpportunity(OpportunityT opportunity,
+			List<String> userIds) throws Exception {
+		for (String userId : userIds) {
+			UserTaggedFollowedT followed = new UserTaggedFollowedT();
+			followed.setOpportunityId(opportunity.getOpportunityId());
+			followed.setEntityType(EntityType.OPPORTUNITY.name());
+			followed.setUserId(userId);
+			followed.setCreatedModifiedBy(Constants.SYSTEM_USER);
+			followService.addFollow(followed);
+		}
+	}
+
+	private void followOpportunity(OpportunityT opportunity, Set<String> userIds)
+			throws Exception {
+		for (String userId : userIds) {
+			UserTaggedFollowedT followed = new UserTaggedFollowedT();
+			followed.setOpportunityId(opportunity.getOpportunityId());
+			followed.setEntityType(EntityType.OPPORTUNITY.name());
+			followed.setCreatedModifiedBy(Constants.SYSTEM_USER);
+			followed.setUserId(userId);
+			followService.addFollow(followed);
+		}
+	}
+
+	private void followStategicInitiativeOpportunities(OpportunityT opportunity)
+			throws Exception {
+		if (opportunity.getStrategicInitiative() != null)
+			if (opportunity.getStrategicInitiative().equals("YES")) {
+				List<String> userIds = userRepository
+						.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
+								.toString());
+				followOpportunity(opportunity, userIds);
+			}
+	}
+
+	private void sendNotificationWhenSubordinateOwnedOpportunitiesWonOrLost(
+			OpportunityT opportunity) throws Exception {
+		List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationEventGroupMappingTRepository
+				.findByEventId(14);
+		String notificationTemplate = notificationEventGroupMappingTs.get(0)
+				.getMessageTemplate();
+		List<String> userIds = new ArrayList<String>();
+		userIds.add(opportunity.getPrimaryOwnerUser().getUserId());
+		String userNames = opportunity.getPrimaryOwnerUser().getUserName()
+				+ " (Primary)";
+		int size = opportunity.getOpportunitySalesSupportLinkTs().size();
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				size += bidDetailsT.getBidOfficeGroupOwnerLinkTs().size();
+			}
+		}
+
+		if (opportunity.getOpportunitySalesSupportLinkTs() != null) {
+			for (int i = 0; i < size; i++) {
+				if (i < (size - 1)) {
+					userNames += " , ";
+				} else {
+					userNames += " and ";
+				}
+				userNames += opportunity.getOpportunitySalesSupportLinkTs()
+						.get(i).getSalesSupportOwnerUser().getUserName()
+						+ " (Sales)";
+				userIds.add(opportunity.getOpportunitySalesSupportLinkTs()
+						.get(i).getSalesSupportOwnerUser().getUserId());
+			}
+		}
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				for (int i = 0; i < bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+						.size(); i++) {
+
+					if (i < (size - 1)) {
+						userNames += " , ";
+					} else {
+						userNames += " and ";
+					}
+					userNames += bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+							.get(i).getBidOfficeGroupOwnerUser().getUserName()
+							+ " (Bid)";
+					userIds.add(bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+							.get(i).getBidOfficeGroupOwnerUser().getUserId());
+
+				}
+			}
+		}
+		String supervisorOwnerWonOrLost = null;
+		if (opportunity.getSalesStageCode() == 9) {
+			supervisorOwnerWonOrLost = replaceTokens(
+					notificationTemplate,
+					populateTokens(userNames, opportunity.getOpportunityName(),
+							null, null, null, null, "won", null));
+		} else if (opportunity.getSalesStageCode() == 10) {
+			supervisorOwnerWonOrLost = replaceTokens(
+					notificationTemplate,
+					populateTokens(userNames, opportunity.getOpportunityName(),
+							null, null, null, null, "lost", null));
+		}
+		List<String> supervisorIdList = userRepository
+				.getSupervisorUserId(userIds);
+
+		for (String supervisorId : supervisorIdList) {
+			if (supervisorOwnerWonOrLost != null) {
+				addUserNotifications(supervisorOwnerWonOrLost, supervisorId,
+						14, EntityType.OPPORTUNITY.name(),
+						opportunity.getOpportunityId());
+			}
+		}
+
+	}
+
+	private void sendNotificationsToSupervisorForConnectForSubordinateOwnerAddision(
+			ConnectT connect) throws Exception {
+		List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationEventGroupMappingTRepository
+				.findByEventId(11);
+		String notificationTemplate = notificationEventGroupMappingTs.get(0)
+				.getMessageTemplate();
+		String oldPrimaryOwner = null;
+		List<String> oldSecondaryOwners = null;
+		if (oldObject != null) {
+			ConnectT oldConnect = (ConnectT) oldObject;
+			oldPrimaryOwner = oldConnect.getPrimaryOwner();
+			oldSecondaryOwners = new ArrayList<String>();
+			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+					.getConnectSecondaryOwnerLinkTs()) {
+				oldSecondaryOwners.add(connectSecondaryOwnerLinkT
+						.getSecondaryOwner());
+			}
+		}
+		if (oldPrimaryOwner == null
+				|| connect.getPrimaryOwner() != oldPrimaryOwner) {
+
+			String supervisorOwner = replaceTokens(
+					notificationTemplate,
+					populateTokens(connect.getPrimaryOwnerUser().getUserName(),
+							connect.getConnectName(), null, null,
+							Constants.CONNECT, "Primary Owner", null, null));
+			if (supervisorOwner != null) {
+				addUserNotifications(supervisorOwner, connect
+						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
+						EntityType.CONNECT.name(), connect.getConnectId());
+			}
+		}
+		if (connect.getConnectSecondaryOwnerLinkTs() != null
+				&& connect.getConnectSecondaryOwnerLinkTs().size() > 0) {
+			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+					.getConnectSecondaryOwnerLinkTs()) {
+				if ((oldSecondaryOwners != null && !oldSecondaryOwners
+						.contains(connectSecondaryOwnerLinkT
+								.getSecondaryOwner()))
+						|| oldSecondaryOwners == null) {
+					String supervisorOwner = replaceTokens(
+							notificationTemplate,
+							populateTokens(connectSecondaryOwnerLinkT
+									.getSecondaryOwnerUser().getUserName(),
+									connect.getConnectName(), null, null,
+									EntityType.CONNECT.name(),
+									"Secondary Owner", null, null));
+					if (supervisorOwner != null) {
+						addUserNotifications(supervisorOwner,
+								connectSecondaryOwnerLinkT
+										.getSecondaryOwnerUser()
+										.getSupervisorUserId(), 11,
+								EntityType.CONNECT.name(),
+								connect.getConnectId());
+					}
+				}
+			}
+
+		}
+	}
+
+	private void sendNotificationsToSupervisorForTaskForSubordinateOwnerAddision(
+			TaskT taskT) throws Exception {
+		List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationEventGroupMappingTRepository
+				.findByEventId(11);
+		String notificationTemplate = notificationEventGroupMappingTs.get(0)
+				.getMessageTemplate();
+		String oldPrimaryOwner = null;
+		List<String> oldSecondaryOwners = null;
+		if (oldObject != null) {
+			TaskT oldTask = (TaskT) oldObject;
+			oldPrimaryOwner = oldTask.getTaskOwner();
+			oldSecondaryOwners = new ArrayList<String>();
+			for (TaskBdmsTaggedLinkT taskBdmsTaggedLinkT : taskT
+					.getTaskBdmsTaggedLinkTs()) {
+				oldSecondaryOwners.add(taskBdmsTaggedLinkT.getUserT()
+						.getUserId());
+			}
+		}
+		if (oldPrimaryOwner == null || taskT.getTaskOwner() != oldPrimaryOwner) {
+
+			String supervisorOwner = replaceTokens(
+					notificationTemplate,
+					populateTokens(taskT.getTaskOwnerT().getUserName(),
+							taskT.getTaskDescription(), null, null,
+							Constants.TASK, "Primary Owner", null, null));
+			if (supervisorOwner != null) {
+				addUserNotifications(supervisorOwner, taskT.getTaskOwnerT()
+						.getSupervisorUserId(), 11, EntityType.TASK.name(),
+						taskT.getTaskId());
+			}
+		}
+		if (taskT.getTaskBdmsTaggedLinkTs() != null
+				&& taskT.getTaskBdmsTaggedLinkTs().size() > 0) {
+			for (TaskBdmsTaggedLinkT taskBdmsTaggedLinkT : taskT
+					.getTaskBdmsTaggedLinkTs()) {
+				if ((oldSecondaryOwners != null && !oldSecondaryOwners
+						.contains(taskBdmsTaggedLinkT.getUserT().getUserId()))
+						|| oldSecondaryOwners == null) {
+					String supervisorOwner = replaceTokens(
+							notificationTemplate,
+							populateTokens(taskBdmsTaggedLinkT.getUserT()
+									.getUserName(), taskT.getTaskDescription(),
+									null, null, EntityType.TASK.name(),
+									"Secondary Owner", null, null));
+					if (supervisorOwner != null) {
+						addUserNotifications(supervisorOwner,
+								taskBdmsTaggedLinkT.getUserT()
+										.getSupervisorUserId(), 11,
+								EntityType.TASK.name(), taskT.getTaskId());
+					}
+				}
+			}
+
+		}
+	}
+
+	private void sendNotificationsToSupervisorForOpportunityForSubordinateOwnerAddision(
+			OpportunityT opportunity) throws Exception {
+		List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationEventGroupMappingTRepository
+				.findByEventId(11);
+		String notificationTemplate = notificationEventGroupMappingTs.get(0)
+				.getMessageTemplate();
+		String oldPrimaryOwner = null;
+		List<String> oldSalesSupportOwners = null;
+		List<String> oldBidOfficeGroupOwners = null;
+		if (oldObject != null) {
+			OpportunityT oldOpportunity = (OpportunityT) oldObject;
+			oldPrimaryOwner = oldOpportunity.getOpportunityOwner();
+			oldSalesSupportOwners = new ArrayList<String>();
+			oldBidOfficeGroupOwners = new ArrayList<String>();
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+				oldSalesSupportOwners.add(opportunitySalesSupportLinkT
+						.getSalesSupportOwner());
+			}
+
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT
+						.getBidOfficeGroupOwnerLinkTs())
+					oldBidOfficeGroupOwners.add(bidOfficeGroupOwnerLinkT
+							.getBidOfficeGroupOwner());
+			}
+		}
+		if (oldPrimaryOwner == null
+				|| opportunity.getOpportunityOwner() != oldPrimaryOwner) {
+
+			String supervisorOwner = replaceTokens(
+					notificationTemplate,
+					populateTokens(opportunity.getPrimaryOwnerUser()
+							.getUserName(), opportunity.getOpportunityName(),
+							null, null, Constants.OPPORTUNITY, "Primary Owner",
+							null, null));
+			if (supervisorOwner != null) {
+				addUserNotifications(supervisorOwner, opportunity
+						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
+						EntityType.OPPORTUNITY.name(),
+						opportunity.getOpportunityId());
+			}
+		}
+		if (opportunity.getOpportunitySalesSupportLinkTs() != null
+				&& opportunity.getOpportunitySalesSupportLinkTs().size() > 0) {
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+				if ((oldSalesSupportOwners != null && !oldSalesSupportOwners
+						.contains(opportunitySalesSupportLinkT
+								.getSalesSupportOwner()))
+						|| oldSalesSupportOwners == null) {
+					String supervisorOwner = replaceTokens(
+							notificationTemplate,
+							populateTokens(opportunitySalesSupportLinkT
+									.getSalesSupportOwnerUser().getUserName(),
+									opportunity.getOpportunityName(), null,
+									null, EntityType.OPPORTUNITY.name(),
+									"Sales Support Owner", null, null));
+					if (supervisorOwner != null) {
+						addUserNotifications(supervisorOwner,
+								opportunitySalesSupportLinkT
+										.getSalesSupportOwnerUser()
+										.getSupervisorUserId(), 11,
+								EntityType.OPPORTUNITY.name(),
+								opportunity.getOpportunityId());
+					}
+				}
+			}
+
+		}
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
+					for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT
+							.getBidOfficeGroupOwnerLinkTs()) {
+						if ((oldBidOfficeGroupOwners != null && oldBidOfficeGroupOwners
+								.contains(bidOfficeGroupOwnerLinkT
+										.getBidOfficeGroupOwner()))
+								|| (oldBidOfficeGroupOwners == null)) {
+							String supervisorOwner = replaceTokens(
+									notificationTemplate,
+									populateTokens(bidOfficeGroupOwnerLinkT
+											.getBidOfficeGroupOwnerUser()
+											.getUserName(), opportunity
+											.getOpportunityName(), null, null,
+											EntityType.OPPORTUNITY.name(),
+											"Bid Office Owner", null, null));
+							if (supervisorOwner != null) {
+								addUserNotifications(supervisorOwner,
+										bidOfficeGroupOwnerLinkT
+												.getBidOfficeGroupOwnerUser()
+												.getSupervisorUserId(), 11,
+										EntityType.OPPORTUNITY.name(),
+										opportunity.getOpportunityId());
+							}
+						}
+
+					}
+				}
 			}
 		}
 	}
@@ -694,10 +1243,43 @@ public class NotificationHelper implements Runnable {
 							msgTemplate = replaceTokens(
 									eventField.getMessageTemplate(),
 									populateTokens(user, entityName, null,
-											null, null));
+											null, null, null, null, null));
 							if (msgTemplate != null) {
-								addUserNotifications(msgTemplate, recipient,
-										eventField.getNotificationEventId());
+								if (newObj instanceof OpportunityT) {
+									OpportunityT opportunityT = (OpportunityT) newObj;
+									if (((opportunityT.getModifiedBy() != null) && (!opportunityT
+											.getModifiedBy().equals(recipient)))
+											|| (!opportunityT.getCreatedBy()
+													.equals(recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												eventField
+														.getNotificationEventId());
+								} else if (newObj instanceof ConnectT) {
+									ConnectT connectT = (ConnectT) newObj;
+									if (((connectT.getModifiedBy() != null) && (!connectT
+											.getModifiedBy().equals(recipient)))
+											|| (!connectT.getCreatedBy()
+													.equals(recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												eventField
+														.getNotificationEventId());
+								} else if (newObj instanceof TaskT) {
+									TaskT taskT = (TaskT) newObj;
+									if (((taskT.getModifiedBy() != null) && (!taskT
+											.getModifiedBy().equals(recipient)))
+											|| (!taskT.getCreatedBy().equals(
+													recipient)))
+										addUserNotifications(
+												msgTemplate,
+												recipient,
+												eventField
+														.getNotificationEventId());
+								}
+
 							}
 						}
 					}
@@ -731,498 +1313,11 @@ public class NotificationHelper implements Runnable {
 		}
 	}
 
-	// if (EntityType.contains(entityType)) {
-	// switch (EntityType.valueOf(entityType)) {
-	// case TASK: {
-	// logger.debug("Processing Notifications for Add, TaskId: {}", entityId);
-	// TaskT task = ((TaskRepository) crudRepository).findOne(entityId);
-	// if (task != null) {
-	// user = task.getModifiedByUser().getUserName();
-	// entityName = task.getTaskDescription();
-	// if (task.getConnectT() != null) {
-	// parentEntityName = task.getConnectT().getConnectName();
-	// } else if (task.getOpportunityT() != null) {
-	// parentEntityName = task.getOpportunityT().getOpportunityName();
-	// } else {
-	// logger.error("Invalid Task Parent Entity");
-	// throw new Exception("Invalid Task Parent Entity");
-	// }
-	// msgTemplate = replaceTokens(notificationEventFields.getMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, null, null));
-	// } else {
-	// logger.error("Invalid Task Id: {}", entityId);
-	// throw new Exception("Invalid Task Id: " + entityId);
-	// }
-	// break;
-	// }
-	// case CONNECT: {
-	// logger.debug("Processing Notifications for Add, ConnectId: {}",
-	// entityId);
-	// ConnectT connect = ((ConnectRepository)
-	// crudRepository).findOne(entityId);
-	// if (connect != null) {
-	// user = connect.getModifiedByUser().getUserName();
-	// entityName = connect.getConnectName();
-	// if (connect.getCustomerMasterT() != null) {
-	// parentEntityName = connect.getCustomerMasterT().getCustomerName();
-	// } else if (connect.getPartnerMasterT() != null) {
-	// parentEntityName = connect.getPartnerMasterT().getPartnerName();
-	// } else {
-	// logger.error("Invalid Connect Parent Entity");
-	// throw new Exception("Invalid Connect Parent Entity");
-	// }
-	// msgTemplate = replaceTokens(notificationEventFields.getMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, null, null));
-	// } else {
-	// logger.error("Invalid Connect Id: {}", entityId);
-	// throw new Exception("Invalid Connect Id: " + entityId);
-	// }
-	// break;
-	// }
-	// case OPPORTUNITY: {
-	// logger.debug("Processing Notifications for Add, OpportunityId: {}",
-	// entityId);
-	// OpportunityT opportunity = ((OpportunityRepository)
-	// crudRepository).findOne(entityId);
-	// if (opportunity != null) {
-	// user = opportunity.getModifiedByUser().getUserName();
-	// entityName = opportunity.getOpportunityName();
-	// if (opportunity.getCustomerMasterT() != null) {
-	// parentEntityName = opportunity.getCustomerMasterT().getCustomerName();
-	// } else {
-	// logger.error("Invalid Opportunity Parent Entity");
-	// throw new Exception("Invalid Opportunity Parent Entity");
-	// }
-	// msgTemplate = replaceTokens(notificationEventFields.getMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, null, null));
-	// } else {
-	// logger.error("Invalid Opportunity Id: {}", entityId);
-	// throw new Exception("Invalid Opportunity Id: " + entityId);
-	// }
-	// break;
-	// }
-	// default:
-	// logger.error("Invalid Entity Type: " + entityType);
-	// throw new Exception("Invalid Entity Type: " + entityType);
-	// }
-	// Add auto comments
-	// if (msgTemplate != null) {
-	// addUserNotifications(msgTemplate);
-	// }
-	// } else {
-	// logger.error("Invalid Entity Type: " + entityType);
-	// throw new Exception("Invalid Entity Type: " + entityType);
-	// }
-	// }
-
-	// This method is used to process auto comments for entity updates
-	// public void processUpdates(AutoCommentsEntityT autoCommentsEntity) throws
-	// Exception {
-	// logger.info("Inside processUpdates() method");
-	//
-	// if (EntityType.contains(entityType)) {
-	// switch (EntityType.valueOf(entityType)) {
-	// case TASK: {
-	// processTaskUpdate(autoCommentsEntity);
-	// break;
-	// }
-	// case CONNECT: {
-	// processConnectUpdate(autoCommentsEntity);
-	// break;
-	// }
-	// case OPPORTUNITY: {
-	// processOpportunityUpdate(autoCommentsEntity);
-	// break;
-	// }
-	// default:
-	// logger.error("Invalid Entity Type: " + entityType);
-	// throw new Exception("Invalid Entity Type: " + entityType);
-	// }
-	// }
-	// }
-
-	// This method is used to process auto comments events for Task
-	// private void processTaskUpdate(AutoCommentsEntityT autoCommentsEntity)
-	// throws Exception {
-	// logger.info("Processing Auto comments for Update, TaskId: {}", entityId);
-	// String user = null;
-	// String entityName = null;
-	// String parentEntityName = null;
-	//
-	// // Get the fields eligible for Auto comments
-	// List<AutoCommentsEntityFieldsT> fields =
-	// notificationsEventFieldsTRepository.
-	// findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(),
-	// Constants.Y);
-	// if (fields != null && !fields.isEmpty()) {
-	// TaskT task = ((TaskRepository) crudRepository).findOne(entityId);;
-	// if (task != null) {
-	// user = task.getModifiedByUser().getUserName();
-	// entityName = task.getTaskDescription();
-	// // Iterate auto comments eligible fields and add auto comments
-	// for (AutoCommentsEntityFieldsT field: fields) {
-	// if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-	// processEntityFieldUpdate(user, entityName, parentEntityName, field,
-	// oldObject, task);
-	// } else {
-	// // To-Do for Child Objects
-	// }
-	// }
-	// } else {
-	// logger.error("Invalid Task Id: {}", entityId);
-	// throw new Exception("Invalid Task Id: " + entityId);
-	// }
-	// } else {
-	// logger.info("No eligible fields for Auto comments, TaskId :{}",
-	// entityId);
-	// }
-	// logger.debug("Finished processing Auto comments for Update, TaskId: {}",
-	// entityId);
-	// }
-	//
-	// // This method is used to process auto comments events for Connect
-	// public void processConnectUpdate(AutoCommentsEntityT autoCommentsEntity)
-	// throws Exception {
-	// logger.info("Processing Auto comments for Update, ConnectId: {}",
-	// entityId);
-	// String user = null;
-	// String entityName = null;
-	// String parentEntityName = null;
-	//
-	// // Get the fields eligible for Auto comments
-	// List<AutoCommentsEntityFieldsT> fields =
-	// notificationsEventFieldsTRepository.
-	// findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(),
-	// Constants.Y);
-	// if (fields != null && !fields.isEmpty()) {
-	// // Load object with auto comments eligible lazy collections
-	// ConnectT connect = (ConnectT)
-	// NotificationsLazyLoader.loadLazyCollections(entityId,
-	// EntityType.CONNECT.name(),
-	// crudRepository, notificationsEventFieldsTRepository,
-	// entityManagerFactory);
-	// if (connect != null) {
-	// user = connect.getModifiedByUser().getUserName();
-	// entityName = connect.getConnectName();
-	// // Iterate auto comments eligible fields and add auto comments
-	// for (AutoCommentsEntityFieldsT field: fields) {
-	// if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-	// processEntityFieldUpdate(user, entityName, parentEntityName, field,
-	// oldObject, connect);
-	// } else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)){
-	// // Handle Collections Objects
-	// processCollections(user, entityName, entityName, field, oldObject,
-	// connect);
-	// } else {
-	// logger.error("Invalid Field Type: {}", field.getType());
-	// throw new Exception("Invalid Field Type: " + field.getType());
-	// }
-	// }
-	// } else {
-	// logger.error("Invalid Connect Id: {}", entityId);
-	// throw new Exception("Invalid Connect Id: " + entityId);
-	// }
-	// } else {
-	// logger.info("No eligible fields for Auto comments, ConnectId :{}",
-	// entityId);
-	// }
-	// logger.debug("Finished processing Auto comments for Update, ConnectId: {}",
-	// entityId);
-	// }
-	//
-	// // This method is used to process auto comments events for Opportunity
-	// private void processOpportunityUpdate(AutoCommentsEntityT
-	// autoCommentsEntity) throws Exception {
-	// logger.info("Processing Auto comments for Update, OpportunityId: {}",
-	// entityId);
-	// String user = null;
-	// String entityName = null;
-	// String parentEntityName = null;
-	//
-	// // Get the fields eligible for Auto comments
-	// List<AutoCommentsEntityFieldsT> fields =
-	// n+otificationsEventFieldsTRepository.
-	// findByEntityIdAndIsactiveOrderByTypeAsc(autoCommentsEntity.getEntityId(),
-	// Constants.Y);
-	// if (fields != null && !fields.isEmpty()) {
-	// OpportunityT opportunity = (OpportunityT)
-	// AutoCommentsLazyLoader.loadLazyCollections(entityId,
-	// EntityType.OPPORTUNITY.name(),
-	// crudRepository, autoCommentsEntityTRepository,
-	// n+otificationsEventFieldsTRepository, entityManagerFactory);
-	// if (opportunity != null) {
-	// user = opportunity.getModifiedByUser().getUserName();
-	// entityName = opportunity.getOpportunityName();
-	// // Iterate auto comments eligible fields and add auto comments
-	// for (AutoCommentsEntityFieldsT field: fields) {
-	// if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-	// processEntityFieldUpdate(user, entityName, parentEntityName, field,
-	// oldObject, opportunity);
-	// } else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)){
-	// // Handle Collections Objects
-	// processCollections(user, entityName, entityName, field, oldObject,
-	// opportunity);
-	// } else {
-	// logger.error("Invalid Field Type: {}", field.getType());
-	// throw new Exception("Invalid Field Type: " + field.getType());
-	// }
-	// }
-	// } else {
-	// logger.error("Invalid Opportunity Id: {}", entityId);
-	// throw new Exception("Invalid Opportunity Id: " + entityId);
-	// }
-	// } else {
-	// logger.info("No eligible fields for Auto comments, OpportunityId :{}",
-	// entityId);
-	// }
-	// logger.debug("Finished processing Auto comments for Update, OpportunityId: {}",
-	// entityId);
-	// }
-	//
-	// // This method is used to add auto comments for a particular entity field
-	// update
-	// private void processEntityFieldUpdate(String user, String entityName,
-	// String parentEntityName, AutoCommentsEntityFieldsT field, Object
-	// oldEntity, Object newEntity)
-	// throws Exception {
-	// logger.debug("Inside processEntityFieldUpdate() method");;
-	// Object fromValue = null;
-	// Object toValue = null;
-	// String msgTemplate = null;
-	//
-	// if (field != null) {
-	// logger.debug("Field: {}", field.getName());
-	// fromValue = PropertyUtils.getProperty(oldEntity, field.getName());
-	// toValue = PropertyUtils.getProperty(newEntity, field.getName());
-	// logger.debug("fromValue: {}", fromValue);
-	// logger.debug("toValue: {}", toValue);
-	// // Field value updated in update
-	// if (fromValue != null) {
-	// if (toValue != null && !fromValue.equals(toValue)) {
-	// msgTemplate = replaceTokens(field.getUpdateMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, fromValue.toString(),
-	// toValue.toString()));
-	// }
-	// } else {
-	// // Field value add newly in update
-	// if (toValue != null) {
-	// msgTemplate = replaceTokens(field.getAddMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, null,
-	// toValue.toString()));
-	// }
-	// }
-	// //Add auto comments
-	// if (msgTemplate != null) {
-	// addCollaborationComments(msgTemplate);
-	// }
-	// }
-	// }
-	//
-	// // This method is used to add auto comments for collections objects
-	// public void processCollections(String user, String entityName, String
-	// parentEntityName, AutoCommentsEntityFieldsT entityField, Object
-	// oldEntity, Object newEntity)
-	// throws Exception {
-	// logger.debug("Inside processCollections() method");;
-	// Object beforeUpdate = null;
-	// Object afterUpdate = null;
-	//
-	// if (entityField != null) {
-	// logger.debug("Field: {}", entityField.getName());
-	// beforeUpdate = PropertyUtils.getProperty(oldEntity,
-	// entityField.getName());
-	// afterUpdate = PropertyUtils.getProperty(newEntity,
-	// entityField.getName());
-	//
-	// // Handle empty collections
-	// if (beforeUpdate != null && (beforeUpdate instanceof List)) {
-	// if (((List) beforeUpdate).size() == 0)
-	// beforeUpdate = null;
-	// }
-	// if (afterUpdate != null && (afterUpdate instanceof List)) {
-	// if (((List) afterUpdate).size() == 0)
-	// afterUpdate = null;
-	// }
-	//
-	// if (beforeUpdate == null) {
-	// // No add or update during update
-	// if (afterUpdate == null) {
-	// logger.debug("No values before and after update");
-	// return;
-	// }
-	// } else {
-	// // All db values were deleted during update
-	// if (afterUpdate == null) {
-	// logger.debug("All db values before update were deleted during update");
-	// return;
-	// }
-	// }
-	//
-	// // Linked entity is required
-	// AutoCommentsEntityT linkedEntity = null;
-	// if (entityField.getLinkedEntity() != null) {
-	// linkedEntity = entityField.getLinkedEntity();
-	// }
-	// if (linkedEntity == null) {
-	// logger.error("Missing Linked Entity for field: {}",
-	// entityField.getName());
-	// throw new Exception("Missing Linked Entity for field: " +
-	// entityField.getName());
-	// }
-	//
-	// // Get the fields for linkedEntity
-	// List<NotificationEventFieldsT> linkedEntityFields =
-	// notificationsEventFieldsTRepository.
-	// findByEntityIdAndIsactiveOrderByTypeAsc(linkedEntity.getEntityId(),
-	// Constants.Y);
-	//
-	// // Linked entity should have fields to compare
-	// // It must have a record with type as I (Objects Identifier) with compare
-	// field
-	// if ((linkedEntityFields == null)
-	// || (linkedEntityFields.size() == 0)) {
-	// logger.error("Missing Linked Entity Fields for field: {}",
-	// entityField.getName());
-	// throw new Exception("Missing Linked Entity Fields for field: " +
-	// entityField.getName());
-	// }
-	//
-	// // Get the entity field record with Identifier
-	// NotificationEventFieldsT keyIdField = null;
-	// for (NotificationEventFieldsT field: linkedEntityFields) {
-	// if (field.getType().equalsIgnoreCase(Constants.ID_FIELD)) {
-	// keyIdField = field;
-	// logger.debug("Key ID Entity Field: {}" , keyIdField.getName());
-	// break;
-	// }
-	// }
-	//
-	// // Key ID field is required for HashMap comparison
-	// if (keyIdField == null) {
-	// logger.error("Missing Key ID Entity Field for field: {}",
-	// entityField.getName());
-	// throw new Exception("Missing Key ID Entity Field for field: " +
-	// entityField.getName());
-	// }
-	//
-	// // Compare field is also required for Key ID field
-	// if (keyIdField.getCompareField() == null) {
-	// logger.error("Missing Compare Field for Linked Entity Field: {}",
-	// keyIdField.getName());
-	// throw new Exception("Missing Compare Field for Linked Entity Field: " +
-	// keyIdField.getName());
-	// }
-	// logger.debug("Key ID Entity Compare Field: {}" ,
-	// keyIdField.getCompareField());
-	//
-	// // Create a map with db objects before update for comparison
-	// HashMap<String, Object> beforeObjectMap = null;
-	// if (beforeUpdate != null) {
-	// String key = null;
-	// beforeObjectMap = new HashMap<String, Object>();
-	// List<Object> beforeUpdateObjectList = (List<Object>) beforeUpdate;
-	// logger.debug("fromObjectList collection size: {}",
-	// beforeUpdateObjectList.size());
-	// for (Object beforeUpdateObject: beforeUpdateObjectList) {
-	// key = PropertyUtils.getProperty(beforeUpdateObject,
-	// keyIdField.getName()).toString();
-	// logger.info("Key ID: {}", key);
-	// beforeObjectMap.put(key, beforeUpdateObject);
-	// }
-	// logger.debug("beforeObjectMap size: {}", beforeObjectMap.size());
-	// }
-	//
-	// // Process db objects after update
-	// if (afterUpdate != null) {
-	// List<Object> afterUpdateObjectList = (List<Object>) afterUpdate;
-	// logger.debug("toObjectList collection size: {}",
-	// afterUpdateObjectList.size());
-	// // Process Key ID compare field first
-	// // Remove the Key ID field from the list as it is processed first
-	// linkedEntityFields.remove(keyIdField);
-	//
-	// StringBuffer newAdds = new StringBuffer();
-	// String key = null;
-	// String newValue = null;
-	// String oldValue = null;
-	// for (Object afterUpdateObject: afterUpdateObjectList) {
-	// key = PropertyUtils.getProperty(afterUpdateObject,
-	// keyIdField.getName()).toString();
-	// newValue = PropertyUtils.getProperty(afterUpdateObject,
-	// keyIdField.getCompareField()).toString();
-	// if (beforeObjectMap != null) {
-	// // Check if the Key ID already exists before update in db
-	// // Same Key ID
-	// if (beforeObjectMap.containsKey(key)) {
-	// oldValue = PropertyUtils.getProperty(beforeObjectMap.get(key),
-	// keyIdField.getCompareField()).toString();
-	// // Value not changed
-	// if (oldValue.equalsIgnoreCase(newValue)) {
-	// logger.debug("Value not changed for Key ID: {}, Value: {}", key,
-	// newValue);
-	// // continue;
-	// } else {
-	// // Value changed, add auto comments
-	// logger.debug("Value changed for Key ID: {}, adding auto comments", key);
-	// logger.debug("Old Value: {}, New Value: {}", oldValue, newValue);
-	// String msgTemplate = replaceTokens(keyIdField.getUpdateMessageTemplate(),
-	// populateTokens(user, entityName, parentEntityName, oldValue, newValue));
-	// //Add auto comments
-	// if (msgTemplate != null) {
-	// addCollaborationComments(msgTemplate);
-	// }
-	// }
-	//
-	// // Process other fields in the collection object eligible for auto
-	// comments after removing Key ID field
-	// if (linkedEntityFields.size() > 0) {
-	// logger.debug("Linked Entity has more fields eligible for auto comments");
-	// for (NotificationEventFieldsT field: linkedEntityFields) {
-	// if (field.getType().equalsIgnoreCase(Constants.FIELD)) {
-	// processEntityFieldUpdate(user, entityName, parentEntityName, field,
-	// beforeObjectMap.get(key), afterUpdateObject);
-	// } else if (field.getType().equalsIgnoreCase(Constants.COLLECTION)) {
-	// // Handle Collections Objects
-	// processCollections(user, entityName, parentEntityName, field,
-	// beforeObjectMap.get(key), afterUpdateObject);
-	// } else {
-	// logger.error("Invalid Field Type: {}", field.getType());
-	// throw new Exception("Invalid Field Type: " + field.getType());
-	// }
-	// }
-	// }
-	// } else {
-	// logger.debug("Inside new adds during update");
-	// // New add during update
-	// newAdds.append(newValue).append(",");
-	// }
-	// } else {
-	// logger.debug("Only new adds during update");
-	// // beforeImage did not have any objects
-	// // Only new adds during update
-	// newAdds.append(newValue).append(",");
-	// }
-	// }
-	//
-	// // Add auto comments for new Adds during update
-	// if (newAdds.length() > 0) {
-	// logger.debug("Adding auto comments for new Adds during update");
-	// String entityValues = newAdds.substring(0, newAdds.length()-1);
-	// String msgTemplate = replaceTokens(keyIdField.getAddMessageTemplate(),
-	// populateTokens(user, entityValues, parentEntityName, null, null));
-	// //Add auto comments
-	// if (msgTemplate != null) {
-	// addCollaborationComments(msgTemplate);
-	// }
-	// }
-	// }
-	// }
-	// }
-
 	// This method is used to populate the replacement tokens in the auto
 	// comments message template
 	private HashMap<String, String> populateTokens(String user,
-			String entityName, String from, String to, String entityType)
+			String entityName, String from, String to, String entityType,
+			String ownership, String status, String salesStageDesc)
 			throws Exception {
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
@@ -1236,6 +1331,12 @@ public class NotificationHelper implements Runnable {
 			tokensMap.put(TOKEN_TO, to);
 		if (entityType != null)
 			tokensMap.put(TOKEN_ENTITY_TYPE, entityType);
+		if (ownership != null)
+			tokensMap.put(TOKEN_OWNERSHIP, ownership);
+		if (status != null)
+			tokensMap.put(TOKEN_STATUS, status);
+		if (salesStageDesc != null)
+			tokensMap.put(TOKEN_SALES_STAGE, salesStageDesc);
 		return tokensMap;
 	}
 
@@ -1349,7 +1450,6 @@ public class NotificationHelper implements Runnable {
 	public void setOpportunityRepository(
 			OpportunityRepository opportunityRepository) {
 		this.opportunityRepository = opportunityRepository;
-
 	}
 
 	public void setTaggedFollowedRepostory(
@@ -1370,8 +1470,33 @@ public class NotificationHelper implements Runnable {
 	public void setTaskRepository(TaskRepository taskRepository) {
 		this.taskRepository = taskRepository;
 	}
-	
+
 	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
+	}
+
+	public void setFollowService(FollowedService followService) {
+		this.followService = followService;
+	}
+
+	public FollowedService getFollowService() {
+		return followService;
+	}
+
+	public void setUserNotificationSettingsConditionsRepository(
+			UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository) {
+		this.userNotificationSettingsConditionRepository = userNotificationSettingsConditionRepository;
+	}
+
+	public void setSearchKeywordsRepository(
+			SearchKeywordsRepository searchKeywordsRepository) {
+		this.searchKeywordsRepository = searchKeywordsRepository;
+
+	}
+
+	public void setAutoCommentsEntityFieldsTRepository(
+			AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository) {
+		this.autoCommentsEntityFieldsTRepository = autoCommentsEntityFieldsTRepository;
+
 	}
 }

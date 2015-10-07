@@ -42,4 +42,6 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct(supervisor_user_id) from user_t where user_id in (:userIds) and supervisor_user_id <> ''", nativeQuery = true)
 	List<String> getSupervisorUserId(@Param("userIds") List<String> userIds);
 
+	@Query(value = "select user_id from user_t where user_group=?1", nativeQuery = true)
+	List<String> findUserIdByUserGroup(String userGroup);
 }

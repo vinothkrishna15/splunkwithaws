@@ -50,6 +50,9 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	@Column(name = "task_id")
 	private String taskId;
 
+	@Column(name = "bdms_tagged")
+	private String bdmsTagged;
+
 	// bi-directional many-to-one association to TaskT
 	@ManyToOne
 	@JoinColumn(name = "task_id", insertable = false, updatable = false)
@@ -61,12 +64,12 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	private UserT createdByUser;
 
 	@ManyToOne
-	@JoinColumn(name = "modified_by",insertable = false, updatable = false)
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
 
 	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name = "bdms_tagged")
+	@JoinColumn(name = "bdms_tagged", insertable = false, updatable = false)
 	private UserT userT;
 
 	public TaskBdmsTaggedLinkT() {
@@ -151,5 +154,13 @@ public class TaskBdmsTaggedLinkT implements Serializable {
 	public void setModifiedDatetime(Timestamp modifiedDatetime) {
 		this.modifiedDatetime = modifiedDatetime;
 	}
-	
+
+	public String getBdmsTagged() {
+		return bdmsTagged;
+	}
+
+	public void setBdmsTagged(String bdmsTagged) {
+		this.bdmsTagged = bdmsTagged;
+	}
+
 }

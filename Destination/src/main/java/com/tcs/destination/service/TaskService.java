@@ -22,6 +22,7 @@ import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskBdmsTaggedLinkRepository;
@@ -96,6 +97,13 @@ public class TaskService {
 
 	@Autowired
 	ThreadPoolTaskExecutor notificationsTaskExecutor;
+	
+	@Autowired
+	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
+
+	@Autowired
+	CollaborationCommentsService collaborationCommentsService;
+	
 	// Required beans for Notifications - end
 
 	/**
@@ -503,6 +511,7 @@ public class TaskService {
 		autoCommentsHelper.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(taskRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		autoCommentsHelper.setCollCommentsService(collaborationCommentsService);
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
 	}
@@ -519,6 +528,7 @@ public class TaskService {
 			notificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
 			notificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
 			notificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+			notificationsHelper.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 			notificationsHelper.setCrudRepository(taskRepository);
 			notificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			// Invoking notifications Task Executor Thread

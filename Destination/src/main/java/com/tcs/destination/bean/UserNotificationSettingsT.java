@@ -27,59 +27,64 @@ import com.tcs.destination.utils.Constants;
 @JsonFilter(Constants.FILTER)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userNotificationSettingsId")
 @Entity
-@Table(name="user_notification_settings_t")
-@NamedQuery(name="UserNotificationSettingsT.findAll", query="SELECT u FROM UserNotificationSettingsT u")
+@Table(name = "user_notification_settings_t")
+@NamedQuery(name = "UserNotificationSettingsT.findAll", query = "SELECT u FROM UserNotificationSettingsT u")
 public class UserNotificationSettingsT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	@Column(name="user_notification_settings_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "user_notification_settings_id")
 	private String userNotificationSettingsId;
 
-	@Column(name="created_modified_datetime")
+	@Column(name = "created_modified_datetime")
 	private Timestamp createdModifiedDatetime;
 
-	@Column(name="isactive")
+	@Column(name = "isactive")
 	private String isactive;
 
-	@Column(name="event_id")
+	@Column(name = "event_id")
 	private Integer eventId;
 
-	//bi-directional many-to-one association to NotificationSettingsEventMappingT
+	// bi-directional many-to-one association to
+	// NotificationSettingsEventMappingT
 	@ManyToOne
-	@JoinColumn(name="event_id", insertable=false, updatable=false)
+	@JoinColumn(name = "event_id", insertable = false, updatable = false)
 	private NotificationSettingsEventMappingT notificationSettingsEventMappingT;
 
-	@Column(name="mode_id")
+	@Column(name = "mode_id")
 	private Integer modeId;
 
-	//bi-directional many-to-one association to NotificationSettingsModeMappingT
+	// bi-directional many-to-one association to
+	// NotificationSettingsModeMappingT
 	@ManyToOne
-	@JoinColumn(name="mode_id", insertable=false, updatable=false)
+	@JoinColumn(name = "mode_id", insertable = false, updatable = false)
 	private NotificationSettingsModeMappingT notificationSettingsModeMappingT;
 
-	@Column(name="user_id")
+	@Column(name = "user_id")
 	private String userId;
 
-	//bi-directional many-to-one association to UserT
+	// bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id", insertable=false, updatable=false)
+	@JoinColumn(name = "user_id", insertable = false, updatable = false)
 	private UserT userT;
 
 	@Transient
-	private List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsT;
+	private List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs;
+
+	@Transient
+	private List<UserNotificationSettingsConditionsT> deleteUserNotificationSettingsConditionsTs;
 
 	public UserNotificationSettingsT() {
 	}
 
-	public List<UserNotificationSettingsConditionsT> getUserNotificationSettingsConditionsT() {
-		return userNotificationSettingsConditionsT;
+	public List<UserNotificationSettingsConditionsT> getUserNotificationSettingsConditionsTs() {
+		return userNotificationSettingsConditionsTs;
 	}
 
 	public void setUserNotificationSettingsConditionsT(
-			List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsT) {
-		this.userNotificationSettingsConditionsT = userNotificationSettingsConditionsT;
+			List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs) {
+		this.userNotificationSettingsConditionsTs = userNotificationSettingsConditionsTs;
 	}
 
 	public Integer getEventId() {
@@ -134,7 +139,8 @@ public class UserNotificationSettingsT implements Serializable {
 		return this.notificationSettingsEventMappingT;
 	}
 
-	public void setNotificationSettingsEventMappingT(NotificationSettingsEventMappingT notificationSettingsEventMappingT) {
+	public void setNotificationSettingsEventMappingT(
+			NotificationSettingsEventMappingT notificationSettingsEventMappingT) {
 		this.notificationSettingsEventMappingT = notificationSettingsEventMappingT;
 	}
 
@@ -142,7 +148,8 @@ public class UserNotificationSettingsT implements Serializable {
 		return this.notificationSettingsModeMappingT;
 	}
 
-	public void setNotificationSettingsModeMappingT(NotificationSettingsModeMappingT notificationSettingsModeMappingT) {
+	public void setNotificationSettingsModeMappingT(
+			NotificationSettingsModeMappingT notificationSettingsModeMappingT) {
 		this.notificationSettingsModeMappingT = notificationSettingsModeMappingT;
 	}
 
@@ -154,4 +161,12 @@ public class UserNotificationSettingsT implements Serializable {
 		this.userT = userT;
 	}
 
+	public List<UserNotificationSettingsConditionsT> getDeleteUserNotificationSettingsConditionsTs() {
+		return deleteUserNotificationSettingsConditionsTs;
+	}
+
+	public void setDeleteUserNotificationSettingsConditionsTs(
+			List<UserNotificationSettingsConditionsT> deleteUserNotificationSettingsConditionsTs) {
+		this.deleteUserNotificationSettingsConditionsTs = deleteUserNotificationSettingsConditionsTs;
+	}
 }
