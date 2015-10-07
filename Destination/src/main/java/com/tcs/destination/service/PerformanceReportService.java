@@ -613,7 +613,7 @@ public class PerformanceReportService {
 	}
 
 	public ReportsOpportunity getOpportunity(String financialYear,
-			String quarter, String geography, String iou, String serviceLine,
+			String quarter, String displayGeography,String geography, String iou, String serviceLine,
 			String currency, int salesStageFrom, int salesStageTo,
 			String customerName, String groupCustomer) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
@@ -644,7 +644,7 @@ public class PerformanceReportService {
 //				}
 
 				List<Object[]> pipeLinesBySalesStage = opportunityRepository
-						.findPipelinePerformanceBySalesStage(geography, iou,
+						.findPipelinePerformanceBySalesStage(displayGeography,geography, iou,
 								serviceLine, currency, custName, fromDate,
 								toDate,salesStageFrom,salesStageTo);
 				if (pipeLinesBySalesStage != null) {

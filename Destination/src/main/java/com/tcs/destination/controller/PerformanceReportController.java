@@ -179,19 +179,20 @@ public class PerformanceReportController {
 	public @ResponseBody String getOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
-			@RequestParam(value = "displayGeography", defaultValue = "") String geography,
+			@RequestParam(value = "displayGeography", defaultValue = "") String displayGeography,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "serviceline", defaultValue = "") String serviceLine,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
-			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
+			@RequestParam(value = "stagefrom") int salesStageFrom,
+			@RequestParam(value = "stageto") int salesStageTo,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		ReportsOpportunity reportsOpportunity = perfService.getOpportunity(
-				financialYear, quarter, geography, iou, serviceLine, currency,
+				financialYear, quarter, displayGeography,geography, iou, serviceLine, currency,
 				salesStageFrom,salesStageTo, customerName, groupCustomer);
 		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 				reportsOpportunity);

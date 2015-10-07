@@ -105,14 +105,16 @@ public interface OpportunityRepository extends
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp and (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
-			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '') "
+			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:displayGeography) OR (:displayGeography) = '') and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customer) OR ('') in (:customer)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ "where ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
 			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
 			+ "group by SalesStage order by SalesStage", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySalesStage(
-			@Param("geography") String geography, @Param("iou") String iou,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography,
+			@Param("iou") String iou,
 			@Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
 			@Param("customer") List<String> customer,
