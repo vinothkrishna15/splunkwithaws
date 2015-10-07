@@ -17,7 +17,7 @@ public class FileManager {
 		
 		File fileSaveDir = new File(path);
         if (!fileSaveDir.exists()) {
-            fileSaveDir.mkdir();
+            fileSaveDir.mkdirs();
         }
         String filePath = path + file.getOriginalFilename(); 
         File dest = new File(filePath);
@@ -26,6 +26,21 @@ public class FileManager {
 		} catch (IllegalStateException | IOException e) {
 			logger.error("Error while saving the file" + e.getMessage());
 		}
+	}
+	
+	public static File createFile(String errorPath,
+			String errorFileName) {
+		
+		logger.debug("Storing the file:");
+		
+		File fileSaveDir = new File(errorPath);
+        if (!fileSaveDir.exists()) {
+            fileSaveDir.mkdirs();
+        }
+        String filePath = errorPath + errorFileName; 
+        File dest = new File(filePath);
+        
+		return dest;
 	}
 
 }

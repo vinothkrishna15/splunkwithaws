@@ -1,7 +1,8 @@
 package com.tcs.destination.service;
 
+import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -17,10 +18,10 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,9 +36,11 @@ import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.ContactTMapDTO;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.RequestStatusDTO;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -49,6 +52,7 @@ import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
@@ -59,10 +63,13 @@ import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.RequestStatus;
+import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
+import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
 @Service
@@ -115,6 +122,12 @@ public class ConnectUploadService {
 	
 	@Autowired
 	TimezoneMappingRepository timeZoneMappingRepository;
+	
+	@Autowired
+	DataProcessingRequestRepository dataProcessingRequestRepository;
+	
+	@Value("${fileserver.path}")
+	private String fileServerPath;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectUploadService.class);
@@ -769,6 +782,28 @@ public class ConnectUploadService {
 			}
 		}
 		return notesTs;
+	}
+
+	public RequestStatusDTO saveConnectRequest(MultipartFile file, String userId) {
+		
+		RequestStatusDTO status = new RequestStatusDTO();
+		
+		String path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		
+		FileManager.saveFile(file, path);
+		
+		DataProcessingRequestT request = new DataProcessingRequestT();
+		request.setFileName(file.getOriginalFilename());
+		request.setFilePath(path);
+		request.setUserT(userRepository.findByUserId(userId));
+		request.setStatus(RequestStatus.SUBMITTED.getStatus());
+		request.setRequestType(RequestType.CONNECT_UPLOAD.getType());
+		
+		dataProcessingRequestRepository.save(request);
+		
+		status.setMessage("Connect upload request is submitted successfully");
+		
+		return status;
 	}
 
 }

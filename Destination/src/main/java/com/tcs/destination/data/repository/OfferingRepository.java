@@ -15,5 +15,7 @@ public interface OfferingRepository extends
     
     @Query(value="select subSp, offering from OfferingMappingT")
     List<Object[]> getSubSpOffering();
+    
+    OfferingMappingT findByOffering(String offering);
 
 }

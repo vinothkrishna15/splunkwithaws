@@ -1,5 +1,6 @@
 package com.tcs.destination.data.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -7,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconDataT;
 
 @Repository
@@ -73,6 +75,11 @@ public interface BeaconDataTRepository extends
 			@Param("geoList") List<String> geoList,
 			@Param("quarterList") List<String> quarterList);
 
-
-
+	@Query(value="select * from beacon_data_t where (beacon_iou = (:beaconIou) and quarter = (:quarter) and financial_year=(:financialYear) and beacon_geography = (:beaconGeography) and  beacon_customer_name = (:beaconCustomerName))", nativeQuery = true)
+	List<BeaconDataT> checkBeaconDuplicatesForPKey(
+			@Param("beaconIou") String beaconIou, 
+			@Param("quarter")String quarter,
+			@Param("financialYear")String financialYear, 
+			@Param("beaconGeography")String beaconGeography, 
+			@Param("beaconCustomerName")String beaconCustomerName);
 }
