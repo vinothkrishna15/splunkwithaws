@@ -2,6 +2,8 @@ package com.tcs.destination.bean;
 
 import java.io.Serializable;
 
+import com.tcs.destination.utils.StringUtils;
+
 public class UploadServiceErrorDetailsDTO implements Serializable{
 
     private static final long serialVersionUID = 8124830922686791666L;
@@ -23,7 +25,12 @@ public class UploadServiceErrorDetailsDTO implements Serializable{
     }
 
     public void setMessage(String message) {
-        this.message = message;
+    	if (!StringUtils.isEmpty(this.message)) {
+    		this.message = this.message.concat(message);
+    	} else {
+    		this.message = message;
+    	}
+        
     }
 
 }

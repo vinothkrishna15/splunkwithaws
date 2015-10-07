@@ -429,7 +429,7 @@ public class DateUtils {
 	 */
 	public static String getCurrentDate() {
 		Date date=new Date();
-		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd MMM yyyy");
+		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
 		return formatDate.format(date);
 	}
 	

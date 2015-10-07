@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
+import com.tcs.destination.bean.RequestStatusDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -266,6 +267,27 @@ public class ConnectController {
 	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
 	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+}
+	@RequestMapping(value = "/batch/upload", method = RequestMethod.POST)
+    public @ResponseBody ResponseEntity<String> batchUploadConnect(
+	    @RequestParam("file") MultipartFile file,
+	    @RequestParam("userId") String userId,
+	    @RequestParam(value = "fields", defaultValue = "all") String fields,
+	    @RequestParam(value = "view", defaultValue = "") String view)
+	    throws Exception {
+	logger.debug("Upload request Received : docName ");
+	RequestStatusDTO status = null;
+	try {
+	    status = connectUploadService.saveConnectRequest(file, userId);
+	    logger.debug("UPLOAD SUCCESS - Record Created ");
+	} catch (Exception e) {
+	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+		    e.getMessage());
+	}
+	return new ResponseEntity<String>(
+			ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					status), HttpStatus.OK);
 }
 	
 	/**
