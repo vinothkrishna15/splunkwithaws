@@ -122,7 +122,7 @@ public class UserNotificationSettingsService {
 		UserT userT = userRepository.findOne(userId);
 		if (UserGroup.contains(userT.getUserGroup())) {
 			int index = Integer.MAX_VALUE;
-			switch (UserGroup.valueOf(userT.getUserGroup())) {
+			switch (UserGroup.valueOf(UserGroup.getName(userT.getUserGroup()))) {
 			case BDM:
 				index = 3;
 				removeNotificationSettingsFromIndex(
