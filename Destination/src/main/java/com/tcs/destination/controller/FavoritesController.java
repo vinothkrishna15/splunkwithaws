@@ -16,6 +16,7 @@ import com.tcs.destination.bean.FavoritesResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.ContactService;
 import com.tcs.destination.service.FavoritesService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -28,6 +29,9 @@ public class FavoritesController {
 
 	@Autowired
 	FavoritesService myFavService;
+
+	@Autowired
+	ContactService contactService;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
@@ -44,8 +48,9 @@ public class FavoritesController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid pagination request");
 		}
-		FavoritesResponse favourites = myFavService.findFavoritesFor(
-				userId, entityType, page, count);
+		FavoritesResponse favourites = myFavService.findFavoritesFor(userId,
+				entityType, page, count);
+		prepareFavorites(favourites);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				favourites);
 	}
@@ -84,4 +89,14 @@ public class FavoritesController {
 				status);
 
 	}
+
+	private void prepareFavorites(FavoritesResponse favourites) {
+		for (UserFavoritesT userFavoritesT : favourites.getUserFavoritesTs()) {
+			if (userFavoritesT.getContactT() != null) {
+				contactService.preventSensitiveInfo(userFavoritesT
+						.getContactT());
+			}
+		}
+	}
+
 }
