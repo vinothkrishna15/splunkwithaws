@@ -157,7 +157,7 @@ public class PerformanceReportController {
 			}
 
 		} else {
-			if (financialYear.isEmpty()) {
+			if (financialYear.isEmpty() && quarter.isEmpty()) {
 				financialYear = DateUtils.getCurrentFinancialYear();
 			}
 			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
@@ -192,8 +192,9 @@ public class PerformanceReportController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		ReportsOpportunity reportsOpportunity = perfService.getOpportunity(
-				financialYear, quarter, displayGeography,geography, iou, serviceLine, currency,
-				salesStageFrom,salesStageTo, customerName, groupCustomer);
+				financialYear, quarter, displayGeography, geography, iou,
+				serviceLine, currency, salesStageFrom, salesStageTo,
+				customerName, groupCustomer);
 		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 				reportsOpportunity);
 
