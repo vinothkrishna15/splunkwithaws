@@ -250,11 +250,12 @@ public class NotificationHelper implements Runnable {
 				this.entityType, crudRepository,
 				notificationsEventFieldsTRepository, entityManagerFactory);
 		CollaborationCommentT commentT = (CollaborationCommentT) dbObject;
-		if (commentT.getOpportunityId() != null) {
+		if (commentT.getOpportunityId() != null
+				&& (!commentT.getOpportunityId().isEmpty())) {
 			OpportunityT opportunityT = opportunityRepository.findOne(commentT
 					.getOpportunityId());
 			commentedEntityName = opportunityT.getOpportunityName();
-			commentedEntityType = Constants.OPPORTUNITY;
+			commentedEntityType = EntityType.OPPORTUNITY.name();
 			commentedEntityId = commentT.getOpportunityId();
 			ownerIdList = opportunityRepository.getAllOwners(commentT
 					.getOpportunityId());
@@ -273,11 +274,12 @@ public class NotificationHelper implements Runnable {
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
-		} else if (commentT.getConnectId() != null) {
+		} else if (commentT.getConnectId() != null
+				&& (!commentT.getConnectId().isEmpty())) {
 			ConnectT connectT = connectRepository.findOne(commentT
 					.getConnectId());
 			commentedEntityName = connectT.getConnectName();
-			commentedEntityType = Constants.CONNECT;
+			commentedEntityType = EntityType.CONNECT.name();
 			commentedEntityId = commentT.getConnectId();
 			ownerIdList = connectRepository.findOwnersOfConnect(commentT
 					.getConnectId());
@@ -292,10 +294,11 @@ public class NotificationHelper implements Runnable {
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
-		} else if (commentT.getTaskId() != null) {
+		} else if (commentT.getTaskId() != null
+				&& (!commentT.getOpportunityId().isEmpty())) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
-			commentedEntityType = Constants.TASK;
+			commentedEntityType = EntityType.TASK.name();
 			commentedEntityId = commentT.getTaskId();
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
@@ -330,7 +333,8 @@ public class NotificationHelper implements Runnable {
 					for (String recipient : ownerIdList) {
 						if (!commentT.getUserId().equals(recipient)) {
 							addUserNotifications(msgTemplate, recipient,
-									ownerEventId, commentedEntityType,
+									ownerEventId,
+									getActualEntityType(commentedEntityType),
 									commentedEntityId);
 						}
 					}
@@ -374,6 +378,19 @@ public class NotificationHelper implements Runnable {
 					}
 				}
 			}
+		}
+	}
+
+	private String getActualEntityType(String commentedEntityType) {
+		switch (commentedEntityType) {
+		case Constants.CONNECT:
+			return EntityType.CONNECT.name();
+		case Constants.TASK:
+			return EntityType.TASK.name();
+		case Constants.OPPORTUNITY:
+			return EntityType.OPPORTUNITY.name();
+		default:
+			return null;
 		}
 	}
 
