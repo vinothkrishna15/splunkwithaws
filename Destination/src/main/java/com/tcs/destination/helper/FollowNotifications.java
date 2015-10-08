@@ -221,7 +221,7 @@ public class FollowNotifications implements Runnable{
 						OpportunityT opportunity = (OpportunityT) dbObject;
 						entityName = opportunity.getOpportunityName();
 						String msgTemplate = replaceTokens(notificationEventField.getMessageTemplate(),
-								populateTokensFollow(createdUser.getUserName(),entityName));
+								populateTokensFollow(followUser.getUserName(),entityName));
 						List<String> recipientList = getRecipientsList(opportunity, entityType);
 						for (String recipientId : recipientList) {
 							if (msgTemplate != null) {
