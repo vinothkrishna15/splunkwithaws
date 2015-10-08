@@ -34,6 +34,12 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	@Column(name = "customer_geography", insertable = false, updatable = false)
 	private String customerGeography;
+	
+	@Column(name = "customer_name")
+	private String customerName;
+	
+	@Column(name = "finance_iou", insertable = false, updatable = false)
+	private String financeIou;
 
 	@EmbeddedId
 	private RevenueCustomerMappingTPK id;
@@ -50,7 +56,7 @@ public class RevenueCustomerMappingT implements Serializable {
 	
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name")
+	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name", insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
 
 	//bi-directional many-to-one association to GeographyMappingT
@@ -159,6 +165,22 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setIouCustomerMappingT(IouCustomerMappingT iouCustomerMappingT) {
 		this.iouCustomerMappingT = iouCustomerMappingT;
+	}
+
+	public String getFinanceIou() {
+		return financeIou;
+	}
+
+	public void setFinanceIou(String financeIou) {
+		this.financeIou = financeIou;
+	}
+
+	public String getCustomerName() {
+		return customerName;
+	}
+
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
 	}
 
 }
