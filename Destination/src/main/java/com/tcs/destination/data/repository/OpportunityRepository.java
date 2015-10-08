@@ -113,8 +113,7 @@ public interface OpportunityRepository extends
 			+ "group by SalesStage order by SalesStage", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySalesStage(
 			@Param("displayGeography") String displayGeography,
-			@Param("geography") String geography,
-			@Param("iou") String iou,
+			@Param("geography") String geography, @Param("iou") String iou,
 			@Param("serviceLine") String serviceLine,
 			@Param("currency") String currency,
 			@Param("customer") List<String> customer,
@@ -223,8 +222,9 @@ public interface OpportunityRepository extends
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography and (GMT.display_geography = (:geography) OR (:geography) = '')"
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by GMT.geography order by GMT.geography", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 "
+			+ "AND ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) "
+			+ "AND (OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)) group by GMT.geography order by GMT.geography", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceBySubGeography(
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
@@ -783,11 +783,15 @@ public interface OpportunityRepository extends
 
 	// Anticipating or pipeline ends here
 
-//	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
-//	List<OpportunityT> getAllYear();
+	// @Query(value =
+	// "select * from opportunity_t where sales_stage_code in (9,10) and deal_closure_date is not null order by deal_closure_date",
+	// nativeQuery = true)
+	// List<OpportunityT> getAllYear();
 
-//	@Query(value = "select * from opportunity_t where sales_stage_code in (9,10,11,12,13) and deal_closure_date is not null order by deal_closure_date", nativeQuery = true)
-//	List<OpportunityT> getAllYearInDetailed();
+	// @Query(value =
+	// "select * from opportunity_t where sales_stage_code in (9,10,11,12,13) and deal_closure_date is not null order by deal_closure_date",
+	// nativeQuery = true)
+	// List<OpportunityT> getAllYearInDetailed();
 
 	@Query(value = "select distinct UT.user_name,count(OPP.opportunity_id),"
 			+ "case when sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / "
@@ -906,9 +910,13 @@ public interface OpportunityRepository extends
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ "where OPP.deal_closure_date between (:fromDate) and (:toDate) and OPP.sales_stage_code=9 "
 			+ "group by OPP.deal_closure_date", nativeQuery = true)
-	List<Object[]> getDigitalDealValueByClosureDate(@Param("fromDate") Date fromDate,@Param("toDate") Date toDate,
-			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("serviceLine") String serviceLine,
-			@Param("iou") String iou,@Param("custName")  List<String> custName,@Param("currencyName") String currencyName);
+	List<Object[]> getDigitalDealValueByClosureDate(
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
+			@Param("displayGeography") String displayGeography,
+			@Param("geography") String geography,
+			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
+			@Param("custName") List<String> custName,
+			@Param("currencyName") String currencyName);
 
 	@Query(value = " SELECT USER_ID,SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue,SUM(SALES_VALUE) as salesOwnerDealValue "
 			+ " FROM(select opportunity_owner AS USER_ID , sum(digital_deal_value) AS PRIMARY_BID_VALUE, (0.0) AS SALES_VALUE from opportunity_t OPP "
@@ -922,19 +930,17 @@ public interface OpportunityRepository extends
 			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) "
 			+ " group by sales_support_owner) AS OppWinValue GROUP BY USER_ID ", nativeQuery = true)
 	Object[][] findOpportunityWinValueByOpportunityOwnerOrSalesSupportOwner(
-			@Param("userId") String userId,
-			@Param("fromDate") Date fromDate,
+			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 
 	@Query(value = "SELECT USER_ID, SUM(OpportunitiesCount.PRIMARY) as oppOwnerCount, SUM(OpportunitiesCount.SECONDARY) as salesOwnerOppCount FROM "
 			+ " (select opportunity_owner as USER_ID ,count(OPP.opportunity_id) as PRIMARY, (0) as SECONDARY from opportunity_t OPP "
 			+ " where sales_stage_code < 9 and OPP.opportunity_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
-			+ " group by opportunity_owner UNION select sales_support_owner AS USER_ID , (0) AS PRIMARY, count(OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP " 
+			+ " group by opportunity_owner UNION select sales_support_owner AS USER_ID , (0) AS PRIMARY, count(OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP "
 			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id where sales_stage_code < 9 "
 			+ " and OSSLT.sales_support_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) group by sales_support_owner "
-			+ " ) AS OpportunitiesCount GROUP BY USER_ID", nativeQuery =true)
+			+ " ) AS OpportunitiesCount GROUP BY USER_ID", nativeQuery = true)
 	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwner(
-			@Param("userId") String userId,
-			@Param("fromDate") Date fromDate,
+			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 }
