@@ -868,8 +868,9 @@ public interface OpportunityRepository extends
 			+ "and (GCMT.geography =(:geography) OR (:geography) = '')"
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "JOIN opportunity_timeline_history_t OTH ON (OTH.opportunity_id = OPP.opportunity_id and OTH.sales_stage_code between (:salesStageFrom) and (:salesStageTo) and OTH.updated_datetime between (:fromDate) and (:toDate)) "
-			+ "where OPP.digital_deal_value <> 0 group by OPP.country order by OPP.country", nativeQuery = true)
+			+ "where OPP.digital_deal_value <> 0 and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
+			+ "group by OPP.country order by OPP.country", nativeQuery = true)
 	List<Object[]> findPipelinePerformanceByCountry(
 			@Param("customerName") List<String> customerName,
 			@Param("serviceLine") String serviceLine, @Param("iou") String iou,
