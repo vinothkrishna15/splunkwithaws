@@ -255,7 +255,7 @@ public class NotificationHelper implements Runnable {
 			OpportunityT opportunityT = opportunityRepository.findOne(commentT
 					.getOpportunityId());
 			commentedEntityName = opportunityT.getOpportunityName();
-			commentedEntityType = EntityType.OPPORTUNITY.name();
+			commentedEntityType = Constants.OPPORTUNITY;
 			commentedEntityId = commentT.getOpportunityId();
 			ownerIdList = opportunityRepository.getAllOwners(commentT
 					.getOpportunityId());
@@ -279,7 +279,7 @@ public class NotificationHelper implements Runnable {
 			ConnectT connectT = connectRepository.findOne(commentT
 					.getConnectId());
 			commentedEntityName = connectT.getConnectName();
-			commentedEntityType = EntityType.CONNECT.name();
+			commentedEntityType = Constants.CONNECT;
 			commentedEntityId = commentT.getConnectId();
 			ownerIdList = connectRepository.findOwnersOfConnect(commentT
 					.getConnectId());
@@ -298,7 +298,7 @@ public class NotificationHelper implements Runnable {
 				&& (!commentT.getOpportunityId().isEmpty())) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
-			commentedEntityType = EntityType.TASK.name();
+			commentedEntityType = Constants.TASK;
 			commentedEntityId = commentT.getTaskId();
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
