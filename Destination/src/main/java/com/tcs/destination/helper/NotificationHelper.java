@@ -265,8 +265,14 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
 							.getOpportunityId());
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					taggedUserList.remove(opportunityT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
 		} else if (commentT.getConnectId() != null) {
 			ConnectT connectT = connectRepository.findOne(commentT
 					.getConnectId());
@@ -278,8 +284,14 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getConnectTaggedFollowedUsers(commentT.getConnectId());
 
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					taggedUserList.remove(connectT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
 		} else if (commentT.getTaskId() != null) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
@@ -288,8 +300,14 @@ public class NotificationHelper implements Runnable {
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
 					.getTasksTaggedFollowedUsers(commentT.getTaskId());
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					taggedUserList.remove(taskT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
 		}
 
 		{
