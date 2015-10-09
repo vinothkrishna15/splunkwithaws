@@ -144,16 +144,16 @@ public class ConnectService {
 
 	@Autowired
 	CityMappingRepository cityMappingRepository;
-	
+
 	@Autowired
 	ConnectOfferingLinkRepository connectOfferingLinkRepository;
-	
+
 	@Autowired
 	ConnectSubSpLinkRepository connectSubSpLinkRepository;
-	
+
 	@Autowired
 	ConnectCustomerContactLinkTRepository connectCustomerContactLinkTRepository;
-	
+
 	@Autowired
 	ConnectTcsAccountContactLinkTRepository connectTcsAccountContactLinkTRepository;
 
@@ -263,17 +263,10 @@ public class ConnectService {
 								toTimestamp, customerId, partnerId);
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner is ALL");
-				connects.addAll(connectRepository
-						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
+				connects = connectRepository
+						.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
-								toTimestamp, customerId, partnerId));
-				if (customerId.equals("") || partnerId.equals("")) {
-					logger.debug("CustomerId or partnerId are empty");
-					connects.addAll(connectSecondaryOwnerRepository
-							.findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
-									userId, new Timestamp(fromDate.getTime()),
-									toTimestamp, customerId, partnerId));
-				}
+								toTimestamp, customerId, partnerId);
 			}
 			if (connects.isEmpty() && !isForCount) {
 				logger.error("NOT_FOUND: Connects not found");
@@ -1200,124 +1193,139 @@ public class ConnectService {
 	}
 
 	public void save(List<ConnectT> insertList) throws Exception {
-		
+
 		logger.debug("Inside save method");
-		
-		Map<Integer,List<ConnectOfferingLinkT>> mapConnectOffering  = new HashMap<Integer,List<ConnectOfferingLinkT>> (insertList.size());
-		Map<Integer,List<ConnectOpportunityLinkIdT>> mapOpportunityLink  = new HashMap<Integer,List<ConnectOpportunityLinkIdT>> (insertList.size());
-		Map<Integer,List<ConnectSecondaryOwnerLinkT>> mapSecondaryOwner  = new HashMap<Integer,List<ConnectSecondaryOwnerLinkT>>(insertList.size());
-		Map<Integer,List<ConnectSubSpLinkT>> mapSubSp  = new HashMap<Integer,List<ConnectSubSpLinkT>> (insertList.size());
-		Map<Integer,List<ConnectTcsAccountContactLinkT>> mapTcsContact  = new HashMap<Integer,List<ConnectTcsAccountContactLinkT>> (insertList.size());
-		Map<Integer,List<ConnectCustomerContactLinkT>> mapCustomerContact  = new HashMap<Integer,List<ConnectCustomerContactLinkT>> (insertList.size());
-		
+
+		Map<Integer, List<ConnectOfferingLinkT>> mapConnectOffering = new HashMap<Integer, List<ConnectOfferingLinkT>>(
+				insertList.size());
+		Map<Integer, List<ConnectOpportunityLinkIdT>> mapOpportunityLink = new HashMap<Integer, List<ConnectOpportunityLinkIdT>>(
+				insertList.size());
+		Map<Integer, List<ConnectSecondaryOwnerLinkT>> mapSecondaryOwner = new HashMap<Integer, List<ConnectSecondaryOwnerLinkT>>(
+				insertList.size());
+		Map<Integer, List<ConnectSubSpLinkT>> mapSubSp = new HashMap<Integer, List<ConnectSubSpLinkT>>(
+				insertList.size());
+		Map<Integer, List<ConnectTcsAccountContactLinkT>> mapTcsContact = new HashMap<Integer, List<ConnectTcsAccountContactLinkT>>(
+				insertList.size());
+		Map<Integer, List<ConnectCustomerContactLinkT>> mapCustomerContact = new HashMap<Integer, List<ConnectCustomerContactLinkT>>(
+				insertList.size());
+
 		int i = 0;
-		for (ConnectT connectT: insertList) {
+		for (ConnectT connectT : insertList) {
 			mapConnectOffering.put(i, connectT.getConnectOfferingLinkTs());
 			mapOpportunityLink.put(i, connectT.getConnectOpportunityLinkIdTs());
 			mapSecondaryOwner.put(i, connectT.getConnectSecondaryOwnerLinkTs());
 			mapSubSp.put(i, connectT.getConnectSubSpLinkTs());
 			mapTcsContact.put(i, connectT.getConnectTcsAccountContactLinkTs());
-			mapCustomerContact.put(i, connectT.getConnectCustomerContactLinkTs());
-			
+			mapCustomerContact.put(i,
+					connectT.getConnectCustomerContactLinkTs());
+
 			setNullForReferencedObjects(connectT);
-			
+
 			i++;
 		}
-		
+
 		Iterable<ConnectT> savedList = connectRepository.save(insertList);
 		Iterator<ConnectT> saveIterator = savedList.iterator();
 		i = 0;
-		while(saveIterator.hasNext()) {
+		while (saveIterator.hasNext()) {
 			ConnectT connectT = saveIterator.next();
 			List<ConnectOfferingLinkT> offeringList = mapConnectOffering.get(i);
-			if(CollectionUtils.isNotEmpty(offeringList)) {
-				populateConnectOfferingLinks(connectT.getConnectId(), offeringList);
+			if (CollectionUtils.isNotEmpty(offeringList)) {
+				populateConnectOfferingLinks(connectT.getConnectId(),
+						offeringList);
 			}
-			List<ConnectOpportunityLinkIdT> oppourtunityList = mapOpportunityLink.get(i);
-			if(CollectionUtils.isNotEmpty(oppourtunityList)) {
+			List<ConnectOpportunityLinkIdT> oppourtunityList = mapOpportunityLink
+					.get(i);
+			if (CollectionUtils.isNotEmpty(oppourtunityList)) {
 				populateOppLinks(connectT.getConnectId(), oppourtunityList);
 			}
-			List<ConnectSecondaryOwnerLinkT> secOwnerList = mapSecondaryOwner.get(i);
-			if(CollectionUtils.isNotEmpty(secOwnerList)) {
-				populateConnectSecondaryOwnerLinks(connectT.getConnectId(), secOwnerList);
+			List<ConnectSecondaryOwnerLinkT> secOwnerList = mapSecondaryOwner
+					.get(i);
+			if (CollectionUtils.isNotEmpty(secOwnerList)) {
+				populateConnectSecondaryOwnerLinks(connectT.getConnectId(),
+						secOwnerList);
 			}
 			List<ConnectSubSpLinkT> subSpList = mapSubSp.get(i);
-			if(CollectionUtils.isNotEmpty(subSpList)) {
+			if (CollectionUtils.isNotEmpty(subSpList)) {
 				populateConnectSubSpLinks(connectT.getConnectId(), subSpList);
 			}
-			List<ConnectTcsAccountContactLinkT> tcsContactList = mapTcsContact.get(i);
-			if(CollectionUtils.isNotEmpty(tcsContactList)) {
-				populateConnectTcsAccountContactLinks(connectT.getConnectId(), tcsContactList);
+			List<ConnectTcsAccountContactLinkT> tcsContactList = mapTcsContact
+					.get(i);
+			if (CollectionUtils.isNotEmpty(tcsContactList)) {
+				populateConnectTcsAccountContactLinks(connectT.getConnectId(),
+						tcsContactList);
 			}
-			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact.get(i);
-			if(CollectionUtils.isNotEmpty(custContactList)) {
-				populateConnectCustomerContactLinks(connectT.getConnectId(), custContactList);
+			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact
+					.get(i);
+			if (CollectionUtils.isNotEmpty(custContactList)) {
+				populateConnectCustomerContactLinks(connectT.getConnectId(),
+						custContactList);
 			}
-			
+
 			i++;
 		}
-		
-		
+
 		List<ConnectOpportunityLinkIdT> connectOppList = new ArrayList<ConnectOpportunityLinkIdT>();
-		for(List<ConnectOpportunityLinkIdT> list: mapOpportunityLink.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+		for (List<ConnectOpportunityLinkIdT> list : mapOpportunityLink.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectOppList.addAll(list);
 			}
 		}
-		if(CollectionUtils.isNotEmpty(connectOppList)) {
+		if (CollectionUtils.isNotEmpty(connectOppList)) {
 			connectOpportunityLinkTRepository.save(connectOppList);
 		}
-		
-		List<ConnectOfferingLinkT> connectOfferings = new ArrayList<ConnectOfferingLinkT>(); 
-		for(List<ConnectOfferingLinkT> list: mapConnectOffering.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+
+		List<ConnectOfferingLinkT> connectOfferings = new ArrayList<ConnectOfferingLinkT>();
+		for (List<ConnectOfferingLinkT> list : mapConnectOffering.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectOfferings.addAll(list);
 			}
-			
+
 		}
-		if(CollectionUtils.isNotEmpty(connectOfferings)) {
+		if (CollectionUtils.isNotEmpty(connectOfferings)) {
 			connectOfferingLinkRepository.save(connectOfferings);
 		}
-		
+
 		List<ConnectSecondaryOwnerLinkT> connectSecOwner = new ArrayList<ConnectSecondaryOwnerLinkT>();
-		for(List<ConnectSecondaryOwnerLinkT> list: mapSecondaryOwner.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+		for (List<ConnectSecondaryOwnerLinkT> list : mapSecondaryOwner.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectSecOwner.addAll(list);
 			}
 		}
-		if(CollectionUtils.isNotEmpty(connectSecOwner)) {
+		if (CollectionUtils.isNotEmpty(connectSecOwner)) {
 			connectSecondaryOwnerRepository.save(connectSecOwner);
 		}
-		
-		List<ConnectSubSpLinkT> connectSubSps = new ArrayList<ConnectSubSpLinkT>(); 
-		for(List<ConnectSubSpLinkT> list: mapSubSp.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+
+		List<ConnectSubSpLinkT> connectSubSps = new ArrayList<ConnectSubSpLinkT>();
+		for (List<ConnectSubSpLinkT> list : mapSubSp.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectSubSps.addAll(list);
 			}
 		}
-		if(CollectionUtils.isNotEmpty(connectSubSps)) {
+		if (CollectionUtils.isNotEmpty(connectSubSps)) {
 			connectSubSpLinkRepository.save(connectSubSps);
 		}
-		
+
 		List<ConnectTcsAccountContactLinkT> connectTcsContacts = new ArrayList<ConnectTcsAccountContactLinkT>();
-		for(List<ConnectTcsAccountContactLinkT> list: mapTcsContact.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+		for (List<ConnectTcsAccountContactLinkT> list : mapTcsContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectTcsContacts.addAll(list);
 			}
 		}
-		if(CollectionUtils.isNotEmpty(connectTcsContacts)) {
+		if (CollectionUtils.isNotEmpty(connectTcsContacts)) {
 			connectTcsAccountContactLinkTRepository.save(connectTcsContacts);
 		}
-		
+
 		List<ConnectCustomerContactLinkT> connectCustContacts = new ArrayList<ConnectCustomerContactLinkT>();
-		for(List<ConnectCustomerContactLinkT> list: mapCustomerContact.values()) {
-			if(CollectionUtils.isNotEmpty(list)) {
+		for (List<ConnectCustomerContactLinkT> list : mapCustomerContact
+				.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
 				connectCustContacts.addAll(list);
 			}
 		}
-		if(CollectionUtils.isNotEmpty(connectCustContacts)) {
+		if (CollectionUtils.isNotEmpty(connectCustContacts)) {
 			connectCustomerContactLinkTRepository.save(connectCustContacts);
 		}
-		
+
 	}
 }
