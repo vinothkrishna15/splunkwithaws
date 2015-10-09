@@ -12,6 +12,9 @@ public class CustomerUploadConstants {
 	
 	public static final String BEACON_DATA_SHEET_NAME = "Beacon - DATA";
 	public static final int BEACON_DATA_COLUMN_COUNT = 11;
+
+	public static final String ACTUAL_REVENUE_DATA_SHEET_NAME = "Actual Revenue - DATA";
+	public static final int ACTUAL_REVENUE_DATA_COLUMN_COUNT = 13;
 	
 	public static final String VALIDATION_ERROR_MESSAGE = "Validation Errors are found in the workbook. Please rectify them before you upload again";
 }

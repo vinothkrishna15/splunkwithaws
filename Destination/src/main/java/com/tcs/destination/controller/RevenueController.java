@@ -10,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,18 +17,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.BeaconCustomerUploadService;
-import com.tcs.destination.service.CustomerService;
-import com.tcs.destination.service.CustomerUploadService;
+import com.tcs.destination.service.ActualRevenueDataUploadService;
 import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.service.UploadErrorReport;
-import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * Controller to handle Revenue module related requests.
@@ -44,9 +36,13 @@ public class RevenueController {
 	
 	@Autowired
 	RevenueUploadService revenueUploadService;
+	
+	@Autowired
+	ActualRevenueDataUploadService actualRevenueDataUplaodService;
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
 	/**
 	 * This controller uploads the Revenue Deatils to the database
 	 * @param userId
@@ -65,7 +61,6 @@ public class RevenueController {
 			throws Exception {
 
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		logger.info("inside revenue controller");
 		UploadStatusDTO status = revenueUploadService.upload(file, userId);
 		if (status != null) {
 			System.out.println(status.isStatusFlag());
@@ -80,6 +75,42 @@ public class RevenueController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment","revenue_mapping_upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+	}
+	
+	/**
+	 * This controller uploads the ActualRevenue Details to the database
+	 * @param userId
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return ResponseEntity<InputStreamResource>
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/uploadActualRevenueData", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadActualRevenueData(
+			@RequestParam("userId") String userId,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		logger.info("inside uploadActualRevenueData controller");
+		UploadStatusDTO status = actualRevenueDataUplaodService.upload(file, userId);
+		if (status != null) {
+			System.out.println(status.isStatusFlag());
+			errorDetailsDTOs = status.getListOfErrors();
+			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
+				System.out.println(err.getRowNumber());
+				    System.out.println(err.getMessage());
+				}
+		}
+		
+		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment","actual_revenue_data_mapping_upload_error.xlsx");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
 	
