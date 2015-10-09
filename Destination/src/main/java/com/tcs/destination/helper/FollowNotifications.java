@@ -192,7 +192,7 @@ public class FollowNotifications implements Runnable {
 							Constants.FIELD)) {
 				switch (EntityType.valueOf(entityType)) {
 				case TASK: {
-					if (createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						TaskT task = (TaskT) dbObject;
 						entityName = task.getTaskDescription();
 						String msgTemplate = replaceTokens(
@@ -208,7 +208,7 @@ public class FollowNotifications implements Runnable {
 					break;
 				}
 				case CONNECT: {
-					if (createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						ConnectT connect = (ConnectT) dbObject;
 						entityName = connect.getConnectName();
 						String msgTemplate = replaceTokens(
@@ -228,7 +228,7 @@ public class FollowNotifications implements Runnable {
 					break;
 				}
 				case OPPORTUNITY: {
-					if (createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						OpportunityT opportunity = (OpportunityT) dbObject;
 						entityName = opportunity.getOpportunityName();
 						String msgTemplate = replaceTokens(
