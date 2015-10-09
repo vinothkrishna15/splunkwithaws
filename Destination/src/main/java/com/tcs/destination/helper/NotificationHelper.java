@@ -479,9 +479,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if ((connect.getModifiedBy() != null)
-											&& (!connect.getModifiedBy()
-													.equals(recipient)))
+									if (!connect.getModifiedBy()
+													.equals(recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,
@@ -555,9 +554,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if ((opportunity.getModifiedBy() != null)
-											&& (!opportunity.getModifiedBy()
-													.equals(recipient)))
+									if (!opportunity.getModifiedBy()
+													.equals(recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,
@@ -651,9 +649,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if ((task.getModifiedBy() != null)
-											&& (!task.getModifiedBy().equals(
-													recipient)))
+									if (!task.getModifiedBy().equals(
+													recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,
