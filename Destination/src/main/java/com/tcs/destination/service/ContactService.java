@@ -33,17 +33,18 @@ import com.tcs.destination.utils.DestinationUtils;
 @Service
 public class ContactService {
 
-	private static final Logger logger = LoggerFactory.getLogger(ContactService.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(ContactService.class);
 
 	private static final String CONACT_QUERY_PREFIX = "select distinct(CONT.contact_id) from contact_t CONT "
-			+" JOIN contact_customer_link_t CCLT on CONT.contact_id=CCLT.contact_id " 
-			+" JOIN customer_master_t CMT on CMT.customer_id=CCLT.customer_id "
-			+" JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou ";
+			+ " JOIN contact_customer_link_t CCLT on CONT.contact_id=CCLT.contact_id "
+			+ " JOIN customer_master_t CMT on CMT.customer_id=CCLT.customer_id "
+			+ " JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou ";
 
 	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
 	private static final String CONTACT_ID_COND_SUFFIX = "CONT.contact_id in ";
-	
+
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -52,40 +53,38 @@ public class ContactService {
 
 	@Autowired
 	ContactCustomerLinkTRepository contactCustomerLinkTRepository;
-	
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
-	
+
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 
 	 * @param contactId
-	 * @param userId 
+	 * @param userId
 	 * @return contact details for the given contact id.
 	 */
 	public ContactT findById(String contactId, String userId) throws Exception {
 		logger.debug("Inside findTaskById Service");
 		ContactT contact = contactRepository.findOne(contactId);
-//		if (!userId
-//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-//			throw new DestinationException(HttpStatus.FORBIDDEN,
-//					"User Id and Login User Detail does not match");
+		// if (!userId
+		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+		// throw new DestinationException(HttpStatus.FORBIDDEN,
+		// "User Id and Login User Detail does not match");
 		if (contact == null) {
 			logger.error("NOT_FOUND: No contact found for the ContactId");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contact found");
 		}
 		removeCyclicForLinkedContactTs(contact);
-		if(contact.getContactCategory().equals(EntityType.CUSTOMER.name())){
-		prepareContactDetails(contact, null);
+		if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
+			prepareContactDetails(contact, null);
 		}
 		return contact;
 	}
-
-	
 
 	/**
 	 * This method is used to find all the contacts with the given contact name
@@ -93,20 +92,20 @@ public class ContactService {
 	 * 
 	 * @param contactName
 	 *            , customerId, partnerId
-	 * @param userId 
+	 * @param userId
 	 * @return contacts.
 	 */
 	public List<ContactT> findContactsWithNameContaining(String contactName,
-			String customerId, String partnerId, String contactType, String userId)
-			throws Exception {
+			String customerId, String partnerId, String contactType,
+			String userId) throws Exception {
 		logger.debug("Inside findContactsWithNameContaining Service");
 
 		List<ContactT> contactList = contactRepository.findByContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
-//		if (!userId
-//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-//			throw new DestinationException(HttpStatus.FORBIDDEN,
-//					"User Id and Login User Detail does not match");
+		// if (!userId
+		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+		// throw new DestinationException(HttpStatus.FORBIDDEN,
+		// "User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -117,26 +116,26 @@ public class ContactService {
 		return contactList;
 	}
 
-
 	/**
 	 * This method is used to find all the contacts with the given contact type
 	 * and/or for a specific Customer / Partner.
 	 * 
 	 * @param customerId
 	 *            , partnerId, contactType
-	 * @param userId 
+	 * @param userId
 	 * @return contacts.
 	 */
 	public List<ContactT> findContactsByContactType(String customerId,
-			String partnerId, String contactType, String userId) throws Exception {
+			String partnerId, String contactType, String userId)
+			throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
-//		if (!userId
-//				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-//			throw new DestinationException(HttpStatus.FORBIDDEN,
-//					"User Id and Login User Detail does not match");
+		// if (!userId
+		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
+		// throw new DestinationException(HttpStatus.FORBIDDEN,
+		// "User Id and Login User Detail does not match");
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -152,11 +151,11 @@ public class ContactService {
 	 * alphabet .
 	 * 
 	 * @param startsWith
-	 * @param userId 
+	 * @param userId
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsWithNameStarting(String startsWith, String userId)
-			throws Exception {
+	public List<ContactT> findContactsWithNameStarting(String startsWith,
+			String userId) throws Exception {
 		logger.debug("Inside findContactsWithNameStarting Service");
 		List<ContactT> contactList = contactRepository
 				.findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith);
@@ -321,14 +320,16 @@ public class ContactService {
 
 	public void preventSensitiveInfo(ContactT contactT) {
 		if (contactT != null) {
-			if (contactT.getContactType().equals(ContactType.EXTERNAL.name())) {
+			if (contactT.getContactType().equals(ContactType.EXTERNAL.name())
+					&& contactT.getContactCategory().equalsIgnoreCase(
+							EntityType.CUSTOMER.name())) {
 				contactT.setContactEmailId(null);
 				contactT.setContactTelephone(null);
 			}
 		}
 	}
-	
-	private void prepareContactDetails(ContactT contact,
+
+	public void prepareContactDetails(ContactT contact,
 			ArrayList<String> contactIdList) throws DestinationException {
 		logger.debug("Inside prepareContactDetails() method");
 		try {
@@ -336,7 +337,8 @@ public class ContactService {
 				contactIdList = new ArrayList<String>();
 				contactIdList.add(contact.getContactId());
 				contactIdList = getPreviledgedContactIds(DestinationUtils
-						.getCurrentUserDetails().getUserId(), contactIdList,	true);
+						.getCurrentUserDetails().getUserId(), contactIdList,
+						true);
 			}
 			if (contactIdList == null || contactIdList.isEmpty()
 					|| (!contactIdList.contains(contact.getContactId()))) {
@@ -375,7 +377,8 @@ public class ContactService {
 
 		// Get WHERE clause string
 		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,	queryPrefixMap);
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
 
 		if ((whereClause != null && !whereClause.isEmpty())
 				|| (contactIdList != null && contactIdList.size() > 0)) {
@@ -386,14 +389,14 @@ public class ContactService {
 			String contactIdQueryList = "(";
 			{
 				for (String contactId : contactIdList)
-					contactIdQueryList += "'"
-							+ contactId.replace("\'", "\'\'") + "',";
+					contactIdQueryList += "'" + contactId.replace("\'", "\'\'")
+							+ "',";
 			}
 			contactIdQueryList = contactIdQueryList.substring(0,
 					contactIdQueryList.length() - 1);
 			contactIdQueryList += ")";
 
-			queryBuffer.append(CONTACT_ID_COND_SUFFIX  + contactIdQueryList);
+			queryBuffer.append(CONTACT_ID_COND_SUFFIX + contactIdQueryList);
 		}
 
 		if ((whereClause != null && !whereClause.isEmpty())
@@ -408,8 +411,9 @@ public class ContactService {
 		logger.info("queryString = " + queryBuffer.toString());
 		return queryBuffer.toString();
 	}
-	
-	private void prepareContactDetails(List<ContactT> contactList) throws Exception {
+
+	private void prepareContactDetails(List<ContactT> contactList)
+			throws Exception {
 		removeCyclicForLinkedContactTs(contactList);
 		logger.debug("Inside prepareContactDetails() method");
 
@@ -422,13 +426,14 @@ public class ContactService {
 					.getCurrentUserDetails().getUserId(), contactIdList, true);
 
 			for (ContactT contactT : contactList) {
-				if(contactT.getContactCategory().equals(EntityType.CUSTOMER.name())){
-				prepareContactDetails(contactT, contactIdList);
+				if (contactT.getContactCategory().equals(
+						EntityType.CUSTOMER.name())) {
+					prepareContactDetails(contactT, contactIdList);
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * This method inserts contact to the database
 	 * 
@@ -437,16 +442,17 @@ public class ContactService {
 	 * @throws Exception
 	 */
 	@Transactional
-	public ContactT addContact(ContactT contactToInsert) throws Exception{
+	public ContactT addContact(ContactT contactToInsert) throws Exception {
 
 		ContactT contactT = null;
-		
-		if(contactToInsert!=null){
-			
+
+		if (contactToInsert != null) {
+
 			contactT = new ContactT();
-			
+
 			contactT.setContactCategory(contactToInsert.getContactCategory());
-			contactT.setCreatedModifiedBy(contactToInsert.getCreatedModifiedBy());
+			contactT.setCreatedModifiedBy(contactToInsert
+					.getCreatedModifiedBy());
 			contactT.setContactType(contactToInsert.getContactType());
 			contactT.setEmployeeNumber(contactToInsert.getEmployeeNumber());
 			contactT.setContactName(contactToInsert.getContactName());
@@ -454,32 +460,36 @@ public class ContactService {
 			contactT.setOtherRole(contactToInsert.getOtherRole());
 			contactT.setContactEmailId(contactToInsert.getContactEmailId());
 			contactT.setContactTelephone(contactToInsert.getContactTelephone());
-			contactT.setContactLinkedinProfile(contactToInsert.getContactLinkedinProfile());
+			contactT.setContactLinkedinProfile(contactToInsert
+					.getContactLinkedinProfile());
 			contactT.setPartnerId(contactToInsert.getPartnerId());
-			
+
 			contactT = contactRepository.save(contactT);
-			logger.debug("Contact Saved .... "+contactT.getContactId());
-			
-			if((contactToInsert.getContactCustomerLinkTs()!=null)&&(!contactToInsert.getContactCustomerLinkTs().isEmpty())){
+			logger.debug("Contact Saved .... " + contactT.getContactId());
+
+			if ((contactToInsert.getContactCustomerLinkTs() != null)
+					&& (!contactToInsert.getContactCustomerLinkTs().isEmpty())) {
 				logger.debug("Inside getContactCustomerLinkTs save");
-				
-				String contactId =contactT.getContactId();
-				
+
+				String contactId = contactT.getContactId();
+
 				List<ContactCustomerLinkT> listOfCclt = new ArrayList<ContactCustomerLinkT>();
-				
-				for(ContactCustomerLinkT cclt : contactToInsert.getContactCustomerLinkTs()){
+
+				for (ContactCustomerLinkT cclt : contactToInsert
+						.getContactCustomerLinkTs()) {
 					cclt.setContactId(contactId);
 					listOfCclt.add(cclt);
 				}
-				
-				listOfCclt = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository.save(listOfCclt);
-				
+
+				listOfCclt = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository
+						.save(listOfCclt);
+
 				contactT.setContactCustomerLinkTs(listOfCclt);
 				logger.debug("ContactCustomerLinkTs saved...");
 			}
-			
+
 		}
-		
+
 		return contactT;
 	}
 
@@ -491,11 +501,11 @@ public class ContactService {
 	 */
 	@Transactional
 	public void remove(ContactT contactT) throws Exception {
-		
-		if(contactT != null){
+
+		if (contactT != null) {
 			contactRepository.delete(contactT);
 		}
 
 	}
-	
+
 }

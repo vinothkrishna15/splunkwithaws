@@ -1,5 +1,7 @@
 package com.tcs.destination.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +47,7 @@ public class FavoritesService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
 			} else {
-				for (UserFavoritesT userFavorite : userFavorites) {
-					if (userFavorite.getContactT() != null) {
-						contactService
-								.removeCyclicForLinkedContactTs(userFavorite
-										.getContactT());
-					}
-				}
+				prepareFavorites(userFavorites);
 				favorites = new FavoritesResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
 				logger.debug("Total Favorites: "
@@ -214,4 +210,19 @@ public class FavoritesService {
 		}
 	}
 
+	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
+			throws DestinationException {
+		for (UserFavoritesT userFavoritesT : userFavorites) {
+			if (userFavoritesT.getContactT() != null) {
+				if (userFavoritesT.getContactT() != null) {
+					contactService
+							.removeCyclicForLinkedContactTs(userFavoritesT
+									.getContactT());
+					contactService.prepareContactDetails(
+							userFavoritesT.getContactT(), null);
+				}
+
+			}
+		}
+	}
 }

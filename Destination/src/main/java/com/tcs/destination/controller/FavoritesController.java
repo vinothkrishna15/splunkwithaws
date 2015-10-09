@@ -30,8 +30,6 @@ public class FavoritesController {
 	@Autowired
 	FavoritesService myFavService;
 
-	@Autowired
-	ContactService contactService;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
@@ -50,7 +48,6 @@ public class FavoritesController {
 		}
 		FavoritesResponse favourites = myFavService.findFavoritesFor(userId,
 				entityType, page, count);
-		prepareFavorites(favourites);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				favourites);
 	}
@@ -90,13 +87,5 @@ public class FavoritesController {
 
 	}
 
-	private void prepareFavorites(FavoritesResponse favourites) {
-		for (UserFavoritesT userFavoritesT : favourites.getUserFavoritesTs()) {
-			if (userFavoritesT.getContactT() != null) {
-				contactService.preventSensitiveInfo(userFavoritesT
-						.getContactT());
-			}
-		}
-	}
 
 }

@@ -269,6 +269,7 @@ public class NotificationHelper implements Runnable {
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(opportunityT.getModifiedBy());
 					taggedUserList.remove(opportunityT.getModifiedBy());
 				} else {
 					taggedUserList.remove(commentT.getUserId());
@@ -289,6 +290,7 @@ public class NotificationHelper implements Runnable {
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(connectT.getModifiedBy());
 					taggedUserList.remove(connectT.getModifiedBy());
 				} else {
 					taggedUserList.remove(commentT.getUserId());
@@ -306,6 +308,7 @@ public class NotificationHelper implements Runnable {
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(taskT.getModifiedBy());
 					taggedUserList.remove(taskT.getModifiedBy());
 				} else {
 					taggedUserList.remove(commentT.getUserId());
@@ -353,9 +356,10 @@ public class NotificationHelper implements Runnable {
 								commentedEntityType, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownersSupervisorIds) {
-						addUserNotifications(msgTemplate, recipient,
-								ownerSupervisorEventId, commentedEntityType,
-								commentedEntityId);
+						if (!commentT.getUserId().equalsIgnoreCase(recipient))
+							addUserNotifications(msgTemplate, recipient,
+									ownerSupervisorEventId,
+									commentedEntityType, commentedEntityId);
 					}
 				}
 			}
