@@ -16,6 +16,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
+import org.neo4j.cypher.internal.compiler.v2_1.ast.False;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -26,7 +28,7 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="partnerId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerId")
 @Entity
 @Table(name = "partner_master_t")
 @NamedQuery(name = "PartnerMasterT.findAll", query = "SELECT p FROM PartnerMasterT p")
@@ -54,13 +56,16 @@ public class PartnerMasterT implements Serializable {
 
 	private byte[] logo;
 
+	@Column(insertable = false, updatable = false)
+	private String geography;
+
 	@Column(name = "partner_name")
 	private String partnerName;
 
 	private String website;
 
-	//bi-directional many-to-one association to CommentsT
-	@OneToMany(mappedBy="partnerMasterT")
+	// bi-directional many-to-one association to CommentsT
+	@OneToMany(mappedBy = "partnerMasterT")
 	private List<CommentsT> commentsTs;
 
 	// bi-directional many-to-one association to ConnectT
@@ -348,6 +353,14 @@ public class PartnerMasterT implements Serializable {
 		userFavoritesT.setPartnerMasterT(null);
 
 		return userFavoritesT;
+	}
+
+	public String getGeography() {
+		return geography;
+	}
+
+	public void setGeography(String geography) {
+		this.geography = geography;
 	}
 
 }
