@@ -1,5 +1,6 @@
 package com.tcs.destination.utils;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,17 +12,21 @@ import java.util.Map;
 
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
+import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunityT;
@@ -29,8 +34,12 @@ import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
+
+import static com.tcs.destination.utils.Constants.CONNECT_UPLOAD_SUBJECT;
 
 @Component
 public class DestinationMailUtils {
@@ -49,6 +58,9 @@ public class DestinationMailUtils {
 	
 	@Value("${reopenOpportunityTemplateLoc}")
 	private String reopenOpportunityTemplateLoc;
+	
+	@Value("${upload.download.template}")
+	private String uploadTemplateLoc;
 	
 	@Autowired
 	private UserService userService;
@@ -102,6 +114,79 @@ public class DestinationMailUtils {
         logger.info("Subject : " + subject);
         //df.setTimeZone(TimeZone.getTimeZone("GMT+5.30"));  
 		sendPasswordMail(message,user,dateStr);
+	}
+	
+	/**
+	 * @param request
+	 * @param subject
+	 * @param template
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean sendUserRequestResponse(DataProcessingRequestT request) throws Exception {
+		
+		logger.debug("inside sendUserRequestResponse method");
+		
+		boolean status = false;
+		
+		UserT user = request.getUserT();
+        
+		List<String> recipientIdList = new ArrayList<String>();
+		recipientIdList.add(user.getUserId());
+		
+        DateFormat df = new SimpleDateFormat(dateFormatStr);
+        String dateStr = df.format(request.getSubmittedDatetime());
+	    String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+	    
+	    MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+		
+		try{
+			MimeMessageHelper helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			helper.setTo(recipientMailIdsArray);
+			
+			helper.setFrom(senderEmailId);
+			
+			String template = null;
+			StringBuffer subject  = new StringBuffer("Admin: ");
+			
+			String userName = null;
+			String entity = null;
+			String fileName = null;
+			
+			switch (request.getRequestType()) {
+			
+				case 3: {
+					//Connect upload
+					template = uploadTemplateLoc;
+					subject.append(CONNECT_UPLOAD_SUBJECT);
+					userName = user.getUserName();
+					entity = WordUtils.capitalize(EntityType.CONNECT.name().toLowerCase());
+					fileName = request.getFileName();
+				}
+				break;
+				
+			}
+			Map userRequestMap = new HashMap();
+			userRequestMap.put("userName", userName);
+			userRequestMap.put("entity", entity);
+			userRequestMap.put("fileName", fileName);
+			userRequestMap.put("submittedDate", dateStr);
+			
+			String text = VelocityEngineUtils.mergeTemplateIntoString(
+					velocityEngine, template, Constants.UTF8, userRequestMap);
+			
+			helper.setSubject(subject.toString());
+			helper.setText(text, true);
+			helper.addAttachment(request.getFileName(), new FileSystemResource(request.getFilePath() + request.getFileName()));
+			logMailDetails(recipientMailIdsArray, null, null, subject.toString(), text);
+			mailSender.send(automatedMIMEMessage);
+			status = true;
+		} catch(Exception e){
+			logger.error("Error sending mail message",e.getMessage());
+			status = false;
+		} 
+		
+		return status;
 	}
 	
 	/**

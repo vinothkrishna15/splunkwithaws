@@ -17,6 +17,9 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.tcs.destination.enums.Switch;
+import com.tcs.destination.utils.PropertyUtil;
+
 public class JobScheduler {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JobScheduler.class);
@@ -32,16 +35,20 @@ public class JobScheduler {
 
 		Format dtFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     	try {
-
-    	    String dateParam = dtFormat.format(new Date());
-			JobParameters param = 
-			  new JobParametersBuilder().addString("date", dateParam).toJobParameters();
-					
-			logger.info("Job: {} starting with parameters: {}.", job.getName() ,dateParam );
-					
-			JobExecution execution = jobLauncher.run(job, param);
-			
-			logger.info("Job: {} exit status:{}.", job.getName() ,execution.getStatus() );
+    		if (Switch.ON.checkSwitch(PropertyUtil.getProperty(job.getName()))) {
+    			
+	    	    String dateParam = dtFormat.format(new Date());
+				JobParameters param = 
+				  new JobParametersBuilder().addString("date", dateParam).toJobParameters();
+						
+				logger.info("Job: {} starting with parameters: {}.", job.getName() ,dateParam );
+				
+				JobExecution execution = jobLauncher.run(job, param);
+				
+				logger.info("Job: {} exit status:{}.", job.getName() ,execution.getStatus() );
+    		} else {
+    			logger.info("Job: {} not started as the switch is OFF.", job.getName());
+    		}
     	} catch (JobExecutionAlreadyRunningException e) {
     		logger.error("Error while lauching:{}",e);
 		} catch (JobRestartException e) {
