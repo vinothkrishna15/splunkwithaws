@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
-import com.tcs.destination.bean.RequestStatusDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -276,7 +275,7 @@ public class ConnectController {
 	    @RequestParam(value = "view", defaultValue = "") String view)
 	    throws Exception {
 	logger.debug("Upload request Received : docName ");
-	RequestStatusDTO status = null;
+	Status status = null;
 	try {
 	    status = connectUploadService.saveConnectRequest(file, userId);
 	    logger.debug("UPLOAD SUCCESS - Record Created ");

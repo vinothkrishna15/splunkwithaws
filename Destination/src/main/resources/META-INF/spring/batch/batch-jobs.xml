@@ -16,7 +16,8 @@
 	<import resource="/jobs/userRemindersConnectUpdate-job.xml"/>
 	<import resource="/jobs/userRemindersBidAndTaskPostDue-job.xml"/>
 	<import resource="/jobs/userRemindersBidAndTskPstDueSupervisor-job.xml"/>
-	<!-- import resource="/jobs/connectUpload-job.xml"/-->	
+	<import resource="/jobs/email-job.xml"/>
+	<import resource="/jobs/connectUpload-job.xml"/>	
 	
 	
 </beans>

@@ -82,5 +82,9 @@ public class Constants {
 	public static final String REQUEST_ID = "REQUEST_ID";
 	public static final String REQUEST = "REQUEST";
 	
+	//Email subjects
+	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
+	
+	
 
 }

@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.servlet.WriteListener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
-import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.enums.UploadOperation;
@@ -74,7 +74,10 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 			}
 		}
 		
-		connectService.save(insertList);
+		if (CollectionUtils.isNotEmpty(insertList)) {
+			connectService.save(insertList);
+		}
+		
 	}
 
 
