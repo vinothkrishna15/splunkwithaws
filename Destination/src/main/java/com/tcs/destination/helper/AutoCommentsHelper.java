@@ -1,5 +1,6 @@
 package com.tcs.destination.helper;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import com.tcs.destination.enums.CommentType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.service.CollaborationCommentsService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -468,6 +470,12 @@ public class AutoCommentsHelper implements Runnable {
 			// Field value updated in update
 			if (fromValue != null) {
 				if (toValue != null && !fromValue.equals(toValue)) {
+					if(fromValue instanceof Date) {
+						fromValue = DateUtils.getFormattedTime(fromValue);
+					}
+					if(toValue instanceof Date) {
+						toValue = DateUtils.getFormattedTime(toValue);
+					}
 					msgTemplate = replaceTokens(
 							field.getUpdateMessageTemplate(),
 							populateTokens(user, entityName, parentEntityName,

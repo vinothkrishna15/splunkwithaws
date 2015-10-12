@@ -19,15 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.BeaconCustomerUploadService;
+import com.tcs.destination.service.CustomerDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -48,9 +48,8 @@ public class CustomerController {
 	CustomerUploadService customerUploadService;
 	
 	@Autowired
-	BeaconCustomerUploadService beaconCustomerUploadService;
+	CustomerDownloadService	customerDownloadService;
 	
-
 	@Autowired
 	UploadErrorReport uploadErrorReport;
 	
@@ -186,7 +185,7 @@ public class CustomerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-
+		System.out.println("inside upload of customer controller");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		
 		UploadStatusDTO status = customerUploadService.upload(file, userId);
@@ -205,42 +204,4 @@ public class CustomerController {
 		respHeaders.setContentDispositionFormData("attachment","customer_upload_error.xlsx");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
-	
-	/**
-	 * This controller uploads the Beacon Customers to the database
-	 * @param userId
-	 * @param file
-	 * @param fields
-	 * @param view
-	 * @return ResponseEntity<InputStreamResource>
-	 * @throws Exception
-	 */
-	@RequestMapping(value = "/uploadBeacon", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<InputStreamResource> uploadBeaconCustomers(
-			@RequestParam("userId") String userId,
-			@RequestParam("file") MultipartFile file,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-
-		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		
-		UploadStatusDTO status = beaconCustomerUploadService.upload(file, userId);
-		if (status != null) {
-			System.out.println(status.isStatusFlag());
-			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-				System.out.println(err.getRowNumber());
-				    System.out.println(err.getMessage());
-				}
-		}
-		
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","customer_beacon_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
-	}
-	
-
 }

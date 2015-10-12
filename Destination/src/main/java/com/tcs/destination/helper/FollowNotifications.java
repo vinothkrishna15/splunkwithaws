@@ -30,9 +30,10 @@ import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.utils.Constants;
 
-public class FollowNotifications implements Runnable{
+public class FollowNotifications implements Runnable {
 
-	private static final Logger logger = LoggerFactory.getLogger(FollowNotifications.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(FollowNotifications.class);
 
 	private static final String TOKEN_USER = "user";
 	private static final String TOKEN_ENTITY_NAME = "entityName";
@@ -47,7 +48,7 @@ public class FollowNotifications implements Runnable{
 	private UserT createdUser;
 
 	private int eventId;
-	private CrudRepository crudRepository; 
+	private CrudRepository crudRepository;
 	private NotificationsEventFieldsTRepository notificationsEventFieldsTRepository;
 	private UserNotificationsRepository userNotificationsTRepository;
 	private UserNotificationSettingsRepository userNotificationSettingsRepo;
@@ -92,7 +93,6 @@ public class FollowNotifications implements Runnable{
 	public void setCreatedUserId(String createdUserId) {
 		this.createdUserId = createdUserId;
 	}
-
 
 	public UserT getFollowUser() {
 		return followUser;
@@ -157,20 +157,24 @@ public class FollowNotifications implements Runnable{
 		return entityManagerFactory;
 	}
 
-	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+	public void setEntityManagerFactory(
+			EntityManagerFactory entityManagerFactory) {
 		this.entityManagerFactory = entityManagerFactory;
 	}
 
 	@Override
 	public void run() {
 		logger.debug("Inside processFollowNotifications() method");
-		logger.info("Processing Notification events for entity: {}: {}", entityName, entityId);
+		logger.info("Processing Notification events for entity: {}: {}",
+				entityName, entityId);
 		try {
 			processFollowNotifications();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		logger.info("Finished processing Notification events for entity: {}: {}", entityName, entityId);
+		logger.info(
+				"Finished processing Notification events for entity: {}: {}",
+				entityName, entityId);
 	}
 
 	private void processFollowNotifications() throws Exception {
@@ -188,45 +192,60 @@ public class FollowNotifications implements Runnable{
 							Constants.FIELD)) {
 				switch (EntityType.valueOf(entityType)) {
 				case TASK: {
-					if (!createdUserId.equalsIgnoreCase(followUserId)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						TaskT task = (TaskT) dbObject;
 						entityName = task.getTaskDescription();
-						String msgTemplate = replaceTokens(notificationEventField.getMessageTemplate(),
-								populateTokensFollow(createdUser.getUserName(),entityName));
+						String msgTemplate = replaceTokens(
+								notificationEventField.getMessageTemplate(),
+								populateTokensFollow(createdUser.getUserName(),
+										entityName));
 						if (msgTemplate != null) {
 							addUserNotifications(msgTemplate, followUserId,
-									notificationEventField.getNotificationEventId());
+									notificationEventField
+											.getNotificationEventId());
 						}
 					}
 					break;
 				}
 				case CONNECT: {
-					if (!createdUserId.equalsIgnoreCase(followUserId)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						ConnectT connect = (ConnectT) dbObject;
 						entityName = connect.getConnectName();
-						String msgTemplate = replaceTokens(notificationEventField.getMessageTemplate(),
-								populateTokensFollow(createdUser.getUserName(),entityName));
-						List<String> recipientList = getRecipientsList(connect,entityType);
+						String msgTemplate = replaceTokens(
+								notificationEventField.getMessageTemplate(),
+								populateTokensFollow(createdUser.getUserName(),
+										entityName));
+						List<String> recipientList = getRecipientsList(connect,
+								entityType);
 						for (String recipientId : recipientList) {
 							if (msgTemplate != null) {
 								addUserNotifications(msgTemplate, recipientId,
-										notificationEventField.getNotificationEventId());
+										notificationEventField
+												.getNotificationEventId());
 							}
 						}
 					}
 					break;
 				}
 				case OPPORTUNITY: {
-					if (!createdUserId.equalsIgnoreCase(followUserId)) {
+					if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 						OpportunityT opportunity = (OpportunityT) dbObject;
 						entityName = opportunity.getOpportunityName();
-						String msgTemplate = replaceTokens(notificationEventField.getMessageTemplate(),
-								populateTokensFollow(createdUser.getUserName(),entityName));
-						List<String> recipientList = getRecipientsList(opportunity, entityType);
+						String msgTemplate = replaceTokens(
+								notificationEventField.getMessageTemplate(),
+								populateTokensFollow(followUser.getUserName(),
+										entityName));
+						List<String> recipientList = getRecipientsList(
+								opportunity, entityType);
 						for (String recipientId : recipientList) {
 							if (msgTemplate != null) {
-								addUserNotifications(msgTemplate, recipientId,
-										notificationEventField.getNotificationEventId());
+								if (!recipientId
+										.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+									addUserNotifications(msgTemplate,
+											recipientId,
+											notificationEventField
+													.getNotificationEventId());
+								}
 							}
 						}
 					}
@@ -238,44 +257,51 @@ public class FollowNotifications implements Runnable{
 	}
 
 	/**
-	 * @param obj - actual connect / opportunity object (collections loaded) for which the notification recipients are to be retrieved
-	 * @param entityType - type of the entity i.e connect or opportunity
+	 * @param obj
+	 *            - actual connect / opportunity object (collections loaded) for
+	 *            which the notification recipients are to be retrieved
+	 * @param entityType
+	 *            - type of the entity i.e connect or opportunity
 	 * @return - list of recipients ids to whom notifications are to be sent
 	 */
-	private List<String> getRecipientsList(Object obj,String entityType) {
+	private List<String> getRecipientsList(Object obj, String entityType) {
 		List<String> recipientsList = new ArrayList<String>();
-		if(entityType.equalsIgnoreCase(EntityType.CONNECT.name())){
-			ConnectT connect = (ConnectT) obj;	
-			//obtaining primary owner 
+		if (entityType.equalsIgnoreCase(EntityType.CONNECT.name())) {
+			ConnectT connect = (ConnectT) obj;
+			// obtaining primary owner
 			String primaryOwner = connect.getPrimaryOwner();
 			recipientsList.add(primaryOwner);
-			//obtaining secondary owners
-			List<ConnectSecondaryOwnerLinkT> secondaryOwners = connect.getConnectSecondaryOwnerLinkTs();
-			if(secondaryOwners!=null && !secondaryOwners.isEmpty()){
-				for(ConnectSecondaryOwnerLinkT secondaryOwner : secondaryOwners){
+			// obtaining secondary owners
+			List<ConnectSecondaryOwnerLinkT> secondaryOwners = connect
+					.getConnectSecondaryOwnerLinkTs();
+			if (secondaryOwners != null && !secondaryOwners.isEmpty()) {
+				for (ConnectSecondaryOwnerLinkT secondaryOwner : secondaryOwners) {
 					recipientsList.add(secondaryOwner.getSecondaryOwner());
 				}
 			}
-		} else if(entityType.equalsIgnoreCase(EntityType.OPPORTUNITY.name())){
+		} else if (entityType.equalsIgnoreCase(EntityType.OPPORTUNITY.name())) {
 			OpportunityT opportunity = (OpportunityT) obj;
-			//obtaining primary owner
+			// obtaining primary owner
 			String primaryOwner = opportunity.getOpportunityOwner();
 			recipientsList.add(primaryOwner);
-			//obtaining secondary owners - sales support owners
-			List<OpportunitySalesSupportLinkT> salesSupportOwners = opportunity.getOpportunitySalesSupportLinkTs();
-			if(salesSupportOwners!=null && !salesSupportOwners.isEmpty()){
-				for(OpportunitySalesSupportLinkT salesSupport : salesSupportOwners) {
+			// obtaining secondary owners - sales support owners
+			List<OpportunitySalesSupportLinkT> salesSupportOwners = opportunity
+					.getOpportunitySalesSupportLinkTs();
+			if (salesSupportOwners != null && !salesSupportOwners.isEmpty()) {
+				for (OpportunitySalesSupportLinkT salesSupport : salesSupportOwners) {
 					recipientsList.add(salesSupport.getSalesSupportOwner());
 				}
 			}
-			//obtaining secondary owners - bid office group owners
+			// obtaining secondary owners - bid office group owners
 			List<BidDetailsT> bidsList = opportunity.getBidDetailsTs();
-			if(bidsList != null && !bidsList.isEmpty()){
-				for(BidDetailsT bidDetails : bidsList) {
-					List<BidOfficeGroupOwnerLinkT> bidOwners = bidDetails.getBidOfficeGroupOwnerLinkTs();
-					if(bidOwners != null && !bidOwners.isEmpty()){
-						for(BidOfficeGroupOwnerLinkT bidOwner : bidOwners) {
-							recipientsList.add(bidOwner.getBidOfficeGroupOwner());
+			if (bidsList != null && !bidsList.isEmpty()) {
+				for (BidDetailsT bidDetails : bidsList) {
+					List<BidOfficeGroupOwnerLinkT> bidOwners = bidDetails
+							.getBidOfficeGroupOwnerLinkTs();
+					if (bidOwners != null && !bidOwners.isEmpty()) {
+						for (BidOfficeGroupOwnerLinkT bidOwner : bidOwners) {
+							recipientsList.add(bidOwner
+									.getBidOfficeGroupOwner());
 						}
 					}
 				}
@@ -285,15 +311,18 @@ public class FollowNotifications implements Runnable{
 		return recipientsList;
 	}
 
-	// This method is used to get NotificationEventFieldsT details for the given EntityType
-	private List<NotificationEventFieldsT> getNotificationEventFields(int eventId, String entityType) throws Exception {
+	// This method is used to get NotificationEventFieldsT details for the given
+	// EntityType
+	private List<NotificationEventFieldsT> getNotificationEventFields(
+			int eventId, String entityType) throws Exception {
 		logger.debug("Inside getEntity() method");
-		return(notificationsEventFieldsTRepository.findByNotificationEventIdAndEntityTypeAndIsactive(eventId, entityType, Constants.Y));
+		return (notificationsEventFieldsTRepository
+				.findByNotificationEventIdAndEntityTypeAndIsactive(eventId,
+						entityType, Constants.Y));
 	}
 
-
-	private HashMap<String, String> populateTokensFollow(String user, String entityName) 
-			throws Exception {
+	private HashMap<String, String> populateTokensFollow(String user,
+			String entityName) throws Exception {
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
 		if (user != null)
@@ -304,8 +333,10 @@ public class FollowNotifications implements Runnable{
 		return tokensMap;
 	}
 
-	// This method is used to replace tokens in the notifications message template
-	private String replaceTokens(String message, Map<String, String> tokens) throws Exception {
+	// This method is used to replace tokens in the notifications message
+	// template
+	private String replaceTokens(String message, Map<String, String> tokens)
+			throws Exception {
 		logger.debug("Inside replaceTokens() method");
 		Pattern pattern = Pattern.compile(PATTERN);
 		Matcher matcher = pattern.matcher(message);
@@ -324,13 +355,18 @@ public class FollowNotifications implements Runnable{
 		return builder.toString();
 	}
 
-	// This method is used to add user notifications based on the message, eventId and the recipient
-	private void addUserNotifications(String message, String recipient, int eventId) throws Exception {
+	// This method is used to add user notifications based on the message,
+	// eventId and the recipient
+	private void addUserNotifications(String message, String recipient,
+			int eventId) throws Exception {
 		logger.debug("Inside addUserNotifications() method");
 
-		List<UserNotificationSettingsT> userNotificationSettingsList = userNotificationSettingsRepo.findByUserIdAndEventIdAndIsactive(recipient, eventId, Constants.Y);
-		if( userNotificationSettingsList != null && !userNotificationSettingsList.isEmpty() ){
-			if ( (entityId != null) && (entityType != null) & (message != null) ) {
+		List<UserNotificationSettingsT> userNotificationSettingsList = userNotificationSettingsRepo
+				.findByUserIdAndEventIdAndIsactive(recipient, eventId,
+						Constants.Y);
+		if (userNotificationSettingsList != null
+				&& !userNotificationSettingsList.isEmpty()) {
+			if ((entityId != null) && (entityType != null) & (message != null)) {
 				UserNotificationsT notification = new UserNotificationsT();
 				notification.setEntityType(entityType);
 				notification.setRead(Constants.NO);
@@ -346,11 +382,16 @@ public class FollowNotifications implements Runnable{
 				else if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository.save(notification);
-					logger.info("User notifications added successfully, notificationId: {}", notification.getUserNotificationId());
+					notification = userNotificationsTRepository
+							.save(notification);
+					logger.info(
+							"User notifications added successfully, notificationId: {}",
+							notification.getUserNotificationId());
 				} catch (Exception e) {
-					logger.error("Error occurred while saving User notifications: " + e.getMessage());
-					throw new Exception("Error occurred while saving User notifications");
+					logger.error("Error occurred while saving User notifications: "
+							+ e.getMessage());
+					throw new Exception(
+							"Error occurred while saving User notifications");
 				}
 			}
 		} else {

@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.FavoritesResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.enums.EntityType;
@@ -28,9 +28,9 @@ public class FavoritesService {
 	@Autowired
 	ContactService contactService;
 
-	public FavoritesResponse findFavoritesFor(String userId, String entityType,
+	public PaginatedResponse findFavoritesFor(String userId, String entityType,
 			int start, int count) throws Exception {
-		FavoritesResponse favorites = null;
+		PaginatedResponse favorites = null;
 
 		logger.debug("Inside findFavoritesFor Service");
 		if (EntityType.contains(entityType)) {
@@ -45,14 +45,8 @@ public class FavoritesService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Favorites found");
 			} else {
-				for (UserFavoritesT userFavorite : userFavorites) {
-					if (userFavorite.getContactT() != null) {
-						contactService
-								.removeCyclicForLinkedContactTs(userFavorite
-										.getContactT());
-					}
-				}
-				favorites = new FavoritesResponse();
+				prepareFavorites(userFavorites);
+				favorites = new PaginatedResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
 				logger.debug("Total Favorites: "
 						+ userFavorites.getTotalElements());
@@ -214,4 +208,19 @@ public class FavoritesService {
 		}
 	}
 
+	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
+			throws DestinationException {
+		for (UserFavoritesT userFavoritesT : userFavorites) {
+			if (userFavoritesT.getContactT() != null) {
+				if (userFavoritesT.getContactT() != null) {
+					contactService
+							.removeCyclicForLinkedContactTs(userFavoritesT
+									.getContactT());
+					contactService.prepareContactDetails(
+							userFavoritesT.getContactT(), null);
+				}
+
+			}
+		}
+	}
 }

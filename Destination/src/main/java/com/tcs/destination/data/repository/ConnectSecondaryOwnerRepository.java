@@ -19,7 +19,7 @@ import com.tcs.destination.bean.ConnectT;
 public interface ConnectSecondaryOwnerRepository extends
 		CrudRepository<ConnectSecondaryOwnerLinkT, String> {
 
-	@Query(value = "select c from ConnectT c,ConnectSecondaryOwnerLinkT cs where (cs.secondaryOwner=(:secondaryOwner) OR (:secondaryOwner)='') and c.connectId=cs.connectId and c.startDatetimeOfConnect between (:startTime) and (:endTime) and (c.customerId=(:customerId) OR (:customerId)='') and (c.partnerId=(:partnerId) OR (:partnerId)='')")
+	@Query(value = "select c from ConnectT c,ConnectSecondaryOwnerLinkT cs where (cs.secondaryOwner=(:secondaryOwner) OR (:secondaryOwner)='') and c.connectId=cs.connectId and c.startDatetimeOfConnect between (:startTime) and (:endTime) and (c.customerId=(:customerId) OR (:customerId)='') and (c.partnerId=(:partnerId) OR (:partnerId)='') order by c.startDatetimeOfConnect asc")
 	List<ConnectT> findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
 			@Param("secondaryOwner") String secondaryOwner,
 			@Param("startTime") Timestamp startTime,

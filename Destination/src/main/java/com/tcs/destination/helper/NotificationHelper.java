@@ -250,7 +250,8 @@ public class NotificationHelper implements Runnable {
 				this.entityType, crudRepository,
 				notificationsEventFieldsTRepository, entityManagerFactory);
 		CollaborationCommentT commentT = (CollaborationCommentT) dbObject;
-		if (commentT.getOpportunityId() != null) {
+		if (commentT.getOpportunityId() != null
+				&& (!commentT.getOpportunityId().isEmpty())) {
 			OpportunityT opportunityT = opportunityRepository.findOne(commentT
 					.getOpportunityId());
 			commentedEntityName = opportunityT.getOpportunityName();
@@ -265,9 +266,17 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
 							.getOpportunityId());
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
-		} else if (commentT.getConnectId() != null) {
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(opportunityT.getModifiedBy());
+					taggedUserList.remove(opportunityT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
+		} else if (commentT.getConnectId() != null
+				&& (!commentT.getConnectId().isEmpty())) {
 			ConnectT connectT = connectRepository.findOne(commentT
 					.getConnectId());
 			commentedEntityName = connectT.getConnectName();
@@ -278,9 +287,17 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getConnectTaggedFollowedUsers(commentT.getConnectId());
 
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
-		} else if (commentT.getTaskId() != null) {
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(connectT.getModifiedBy());
+					taggedUserList.remove(connectT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
+		} else if (commentT.getTaskId() != null
+				&& (!commentT.getOpportunityId().isEmpty())) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
 			commentedEntityType = Constants.TASK;
@@ -288,8 +305,15 @@ public class NotificationHelper implements Runnable {
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
 					.getTasksTaggedFollowedUsers(commentT.getTaskId());
-			if (taggedUserList != null && !taggedUserList.isEmpty())
-				taggedUserList.remove(commentT.getUserId());
+			if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(taskT.getModifiedBy());
+					taggedUserList.remove(taskT.getModifiedBy());
+				} else {
+					taggedUserList.remove(commentT.getUserId());
+				}
+			}
 		}
 
 		{
@@ -312,7 +336,8 @@ public class NotificationHelper implements Runnable {
 					for (String recipient : ownerIdList) {
 						if (!commentT.getUserId().equals(recipient)) {
 							addUserNotifications(msgTemplate, recipient,
-									ownerEventId, commentedEntityType,
+									ownerEventId,
+									getActualEntityType(commentedEntityType),
 									commentedEntityId);
 						}
 					}
@@ -331,9 +356,10 @@ public class NotificationHelper implements Runnable {
 								commentedEntityType, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownersSupervisorIds) {
-						addUserNotifications(msgTemplate, recipient,
-								ownerSupervisorEventId, commentedEntityType,
-								commentedEntityId);
+						if (!commentT.getUserId().equalsIgnoreCase(recipient))
+							addUserNotifications(msgTemplate, recipient,
+									ownerSupervisorEventId,
+									commentedEntityType, commentedEntityId);
 					}
 				}
 			}
@@ -356,6 +382,19 @@ public class NotificationHelper implements Runnable {
 					}
 				}
 			}
+		}
+	}
+
+	private String getActualEntityType(String commentedEntityType) {
+		switch (commentedEntityType) {
+		case Constants.CONNECT:
+			return EntityType.CONNECT.name();
+		case Constants.TASK:
+			return EntityType.TASK.name();
+		case Constants.OPPORTUNITY:
+			return EntityType.OPPORTUNITY.name();
+		default:
+			return null;
 		}
 	}
 
@@ -440,10 +479,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if (((connect.getModifiedBy() != null) && (!connect
-											.getModifiedBy().equals(recipient)))
-											|| (!connect.getCreatedBy().equals(
-													recipient)))
+									if (!connect.getModifiedBy()
+													.equals(recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,
@@ -517,10 +554,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if (((opportunity.getModifiedBy() != null) && (!opportunity
-											.getModifiedBy().equals(recipient)))
-											|| (!opportunity.getCreatedBy()
-													.equals(recipient)))
+									if (!opportunity.getModifiedBy()
+													.equals(recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,
@@ -614,10 +649,8 @@ public class NotificationHelper implements Runnable {
 										populateTokens(user, entityName, null,
 												null, null, null, null, null));
 								if (msgTemplate != null) {
-									if (((task.getModifiedBy() != null) && (!task
-											.getModifiedBy().equals(recipient)))
-											|| (!task.getCreatedBy().equals(
-													recipient)))
+									if (!task.getModifiedBy().equals(
+													recipient))
 										addUserNotifications(
 												msgTemplate,
 												recipient,

@@ -75,5 +75,12 @@ public class Constants {
 	public static final String DATE_TYPE = "dateType";
 	public static final String DATE = "date";
 	public static final String SALES_STAGE = "sales_stage";
+	public static final String FILE_DIR_SEPERATOR = "/";
+	public static final String FILE_PATH = "FILE_PATH";
+	public static final String USER_ID = "USER_ID";
+	public static final String NEXT_STEP = "NEXT_STEP";
+	public static final String REQUEST_ID = "REQUEST_ID";
+	public static final String REQUEST = "REQUEST";
+	
 
 }

@@ -2,8 +2,6 @@ package com.tcs.destination.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
-import com.tcs.destination.bean.OpportunityResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
@@ -339,6 +337,8 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String searchOpportunities(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "customerIdList", defaultValue = "") List<String> customerIdList,
 			@RequestParam(value = "displayIou", defaultValue = "") List<String> displayIou,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
@@ -362,14 +362,15 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		List<OpportunityT> opportunity = opportunityService.getByOpportunities(
-				customerIdList, salesStageCode, strategicInitiative, newLogo,
-				minDigitalDealValue, maxDigitalDealValue, dealCurrency,
-				digitalFlag, displayIou, country, partnerId, competitorName,
-				searchKeywords, bidRequestType, offering, displaySubSp,
-				opportunityName, userId, currency);
+		PaginatedResponse opportunityResponse = opportunityService
+				.getByOpportunities(customerIdList, salesStageCode,
+						strategicInitiative, newLogo, minDigitalDealValue,
+						maxDigitalDealValue, dealCurrency, digitalFlag,
+						displayIou, country, partnerId, competitorName,
+						searchKeywords, bidRequestType, offering, displaySubSp,
+						opportunityName, userId, currency, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunity);
+				opportunityResponse);
 	}
 
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
@@ -383,7 +384,7 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
-		OpportunityResponse opportunityResponse = opportunityService.findAll(
+		PaginatedResponse opportunityResponse = opportunityService.findAll(
 				sortBy, order, isCurrentFinancialYear, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunityResponse);

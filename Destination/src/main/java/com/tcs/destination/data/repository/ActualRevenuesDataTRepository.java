@@ -190,4 +190,17 @@ public interface ActualRevenuesDataTRepository extends
 	List<Object[]> findActualRevenueByQuarter(@Param("financialYear") String financialYear,@Param("quarter") String quarter,
 			@Param("displayGeography") String displayGeography,@Param("geography") String geography,@Param("iou") String iou,
 			@Param("customerName") List<String> customerName,@Param("serviceLine") String serviceLine);
+
+	@Query(value="select * from actual_revenues_data_t where (quarter = (:quarter) and month = (:month) and financial_year = (:financialYear) "
+			+ "and client_country = (:clientCountry) and finance_geography = (:financeGeography) and sub_sp = (:subSp) and finance_iou = (:financeIou) and "
+			+ "finance_customer_name = (:financeCustomerName))", nativeQuery=true)
+	List<ActualRevenuesDataT> checkRevenueDataMappingPK(
+			@Param("quarter") String quarter,
+			@Param("month") String month,
+			@Param("financialYear") String financialYear, 
+			@Param("clientCountry") String clientCountry,
+			@Param("financeGeography") String financeGeography,
+			@Param("subSp") String subSp,
+			@Param("financeIou") String financeIou, 
+			@Param("financeCustomerName") String financeCustomerName);
 }

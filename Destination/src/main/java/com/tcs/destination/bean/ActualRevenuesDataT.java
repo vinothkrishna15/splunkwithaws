@@ -38,6 +38,9 @@ public class ActualRevenuesDataT implements Serializable {
 
 	@Column(name = "client_country")
 	private String clientCountry;
+	
+	@Column(name = "finance_customer_name")
+	private String financeCustomerName;
 
 	@Column(name = "finance_geography")
 	private String financeGeography;
@@ -175,6 +178,14 @@ public class ActualRevenuesDataT implements Serializable {
 
 	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
 		this.subSpMappingT = subSpMappingT;
+	}
+
+	public String getFinanceCustomerName() {
+		return financeCustomerName;
+	}
+
+	public void setFinanceCustomerName(String financeCustomerName) {
+		this.financeCustomerName = financeCustomerName;
 	}
 
 }

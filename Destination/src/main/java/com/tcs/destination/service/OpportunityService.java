@@ -35,7 +35,7 @@ import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.OpportunityResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -187,16 +187,16 @@ public class OpportunityService {
 
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	CollaborationCommentsService collaborationCommentsService;
-	
+
 	@Autowired
 	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
-	
+
 	@Autowired
 	FollowedService followService;
-	
+
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 
@@ -963,8 +963,7 @@ public class OpportunityService {
 
 		if (opportunityT != null) {
 			if (opportunityT.getCustomerMasterT() != null) {
-				opportunityT
-				.getCustomerMasterT().setOpportunityTs(null);
+				opportunityT.getCustomerMasterT().setOpportunityTs(null);
 			}
 		}
 	}
@@ -1038,12 +1037,16 @@ public class OpportunityService {
 		notificationsHelper.setCrudRepository(opportunityRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
-		notificationsHelper.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		notificationsHelper
+				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setUserRepository(userRepository);
 		notificationsHelper.setFollowService(followService);
-		notificationsHelper.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
-		notificationsHelper.setSearchKeywordsRepository(searchKeywordsRepository);
-		notificationsHelper.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		notificationsHelper
+				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		notificationsHelper
+				.setSearchKeywordsRepository(searchKeywordsRepository);
+		notificationsHelper
+				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -1133,7 +1136,9 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(
-			String supervisorUserId, int page, int count, boolean isCurrentFinancialYear, String salesStageCode) throws Exception {
+			String supervisorUserId, int page, int count,
+			boolean isCurrentFinancialYear, String salesStageCode)
+			throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
@@ -1149,22 +1154,35 @@ public class OpportunityService {
 		if ((users != null) && (users.size() > 0)) {
 
 			// Retrieve opportunities from users
-			if(!isCurrentFinancialYear){
-				if(salesStageCode.equalsIgnoreCase("ALL")){
-					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users);
+			if (!isCurrentFinancialYear) {
+				if (salesStageCode.equalsIgnoreCase("ALL")) {
+					opportunities = opportunityRepository
+							.findTeamOpportunityDetailsBySupervisorId(users);
 				} else {
-					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorId(users, Integer.parseInt(salesStageCode));
+					opportunities = opportunityRepository
+							.findTeamOpportunityDetailsBySupervisorId(users,
+									Integer.parseInt(salesStageCode));
 				}
-			} else if(isCurrentFinancialYear){
+			} else if (isCurrentFinancialYear) {
 				String financialYear = DateUtils.getCurrentFinancialYear();
-				
-				Timestamp startTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, true).getTime());
-				Timestamp endTimestamp = new Timestamp(DateUtils.getDateFromFinancialYear(financialYear, false).getTime() + Constants.ONE_DAY_IN_MILLIS - 1);
-				
-				if(salesStageCode.equalsIgnoreCase("ALL")){
-					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp);
+
+				Timestamp startTimestamp = new Timestamp(DateUtils
+						.getDateFromFinancialYear(financialYear, true)
+						.getTime());
+				Timestamp endTimestamp = new Timestamp(DateUtils
+						.getDateFromFinancialYear(financialYear, false)
+						.getTime()
+						+ Constants.ONE_DAY_IN_MILLIS - 1);
+
+				if (salesStageCode.equalsIgnoreCase("ALL")) {
+					opportunities = opportunityRepository
+							.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
+									users, startTimestamp, endTimestamp);
 				} else {
-					opportunities = opportunityRepository.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(users, startTimestamp, endTimestamp, Integer.parseInt(salesStageCode));
+					opportunities = opportunityRepository
+							.findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
+									users, startTimestamp, endTimestamp,
+									Integer.parseInt(salesStageCode));
 				}
 			}
 
@@ -1242,7 +1260,7 @@ public class OpportunityService {
 		return teamOpportunityDetails;
 	}
 
-	public List<OpportunityT> getByOpportunities(List<String> customerIdList,
+	public PaginatedResponse getByOpportunities(List<String> customerIdList,
 			List<Integer> salesStageCode, String strategicInitiative,
 			String newLogo, double minDigitalDealValue,
 			double maxDigitalDealValue, String dealCurrency,
@@ -1251,7 +1269,9 @@ public class OpportunityService {
 			List<String> searchKeywords, List<String> bidRequestType,
 			List<String> offering, List<String> displaySubSp,
 			List<String> opportunityName, List<String> userId,
-			List<String> toCurrency) throws DestinationException {
+			List<String> toCurrency, int page, int count)
+			throws DestinationException {
+		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
 		customerIdList = fillIfEmpty(customerIdList);
@@ -1282,10 +1302,27 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities Found.");
 		}
+		opportunityResponse.setTotalCount(opportunity.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, opportunity.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					opportunity.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					opportunity.size()) + 1;
+			opportunity = opportunity.subList(fromIndex, toIndex);
+			opportunityResponse.setOpportunityTs(opportunity);
+			logger.debug("OpportunityT  after pagination size is "
+					+ opportunity.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Opportunity available for the specified page");
+		}
 		prepareOpportunity(opportunity);
 		beaconConverterService.convertOpportunityCurrency(opportunity,
 				toCurrency);
-		return opportunity;
+		// TODO: Find all method
+
+		return opportunityResponse;
 	}
 
 	private String searchForContaining(List<String> containingWords) {
@@ -1309,11 +1346,11 @@ public class OpportunityService {
 
 	}
 
-	public OpportunityResponse findAll(String sortBy, String order,
+	public PaginatedResponse findAll(String sortBy, String order,
 			Boolean isCurrentFinancialYear, int page, int count)
 			throws DestinationException {
 
-		OpportunityResponse opportunityResponse = new OpportunityResponse();
+		PaginatedResponse opportunityResponse = new PaginatedResponse();
 
 		List<OpportunityT> opportunityTs = null;
 

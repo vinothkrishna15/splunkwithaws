@@ -32,6 +32,8 @@ public class DateUtils {
 	private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat(
 			"MMM-yy");
 	
+	private static final SimpleDateFormat commentFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);
@@ -279,6 +281,12 @@ public class DateUtils {
 	public static String getFormattedMonth(Date date) {
 		return dbDateFormat.format(date).toUpperCase();
 	}
+	
+	public static String getFormattedTime(Object fromValue) throws ParseException {
+		String timeStr = fromValue.toString();  
+		Date time = commentFormat.parse(timeStr);
+		return commentFormat.format(time);
+	}
 
 	/**
 	 * Gets current month in the format as per database
@@ -429,7 +437,7 @@ public class DateUtils {
 	 */
 	public static String getCurrentDate() {
 		Date date=new Date();
-		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd MMM yyyy");
+		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
 		return formatDate.format(date);
 	}
 	

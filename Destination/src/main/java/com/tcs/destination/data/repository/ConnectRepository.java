@@ -42,7 +42,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	List<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerId(String name,
 			String customerId);
 
-	@Query(value = "select c from ConnectT c where (primaryOwner=(:primaryOwner) OR (:primaryOwner)='')and startDatetimeOfConnect between (:fromDate) and (:toDate) and (customer_id=(:customerId) OR (:customerId)='') and (partner_id=(:partnerId) OR (:partnerId)='')")
+	@Query(value = "select c from ConnectT c where (primaryOwner=(:primaryOwner) OR (:primaryOwner)='')and startDatetimeOfConnect between (:fromDate) and (:toDate) and (customer_id=(:customerId) OR (:customerId)='') and (partner_id=(:partnerId) OR (:partnerId)='') order by startDatetimeOfConnect asc")
 	List<ConnectT> findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 			@Param("primaryOwner") String primaryOwner,
 			@Param("fromDate") Timestamp fromDate,
@@ -420,6 +420,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "union select secondary_owner as user_id from connect_secondary_owner_link_t  where connect_id =(:userId)) as users", nativeQuery = true)
 	List<String> findOwnersOfConnect(@Param("userId") String connectId);
 
+
 	
 	@Query(value = "select USER_ID, SUM(primaryConnectsCount) as PCOUNT, SUM(secondaryConnectsCount) as SCOUNT from ( "
 			+ " select primary_owner as USER_ID, count(c.connect_id) as primaryConnectsCount, (0) as secondaryConnectsCount from connect_t c "
@@ -433,4 +434,20 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("fromDate") Timestamp fromDate, 
 			@Param("toDate") Timestamp toDate);
 
+
+	@Query(value = "select CNN.* from (select CON.* from connect_t  CON where CON.start_datetime_of_connect between (:fromDate) and (:toDate) "
+			+ "and (CON.primary_owner=(:owner) or (:owner)='' ) and"
+			+ "	(CON.customer_id = (:customerId) or (:customerId)='') and (CON.partner_id = (:partnerId) or (:partnerId)='') "
+			+ "union "
+			+ "select CON.* from connect_t  CON "
+			+ "JOIN connect_secondary_owner_link_t CSOLT on CON.connect_id = CSOLT.connect_id "
+			+ "where CON.start_datetime_of_connect between (:fromDate) and (:toDate) and "
+			+ "(CSOLT.secondary_owner=(:owner) or (:owner)='') and "
+			+ "(CON.customer_id = (:customerId) or (:customerId)='') and (CON.partner_id = (:partnerId) or (:partnerId)='')) as CNN order by CNN.start_datetime_of_connect asc",nativeQuery=true)
+	List<ConnectT> findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
+			@Param("owner") String owner,
+			@Param("fromDate") Timestamp fromDate,
+			@Param("toDate") Timestamp toDate,
+			@Param("customerId") String customerId,
+			@Param("partnerId") String partnerId);
 }

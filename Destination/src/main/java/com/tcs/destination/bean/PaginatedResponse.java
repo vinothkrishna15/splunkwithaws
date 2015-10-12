@@ -7,11 +7,13 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
 
 @JsonFilter(Constants.FILTER)
-public class OpportunityResponse implements Serializable {
+public class PaginatedResponse implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	private List<OpportunityT> opportunityTs;
-	
+
+	private List<UserFavoritesT> userFavoritesTs;
+
 	private long totalCount;
 
 	public List<OpportunityT> getOpportunityTs() {
@@ -28,5 +30,13 @@ public class OpportunityResponse implements Serializable {
 
 	public void setTotalCount(long totalCount) {
 		this.totalCount = totalCount;
+	}
+
+	public List<UserFavoritesT> getUserFavoritesTs() {
+		return userFavoritesTs;
+	}
+
+	public void setUserFavoritesTs(List<UserFavoritesT> userFavoritesTs) {
+		this.userFavoritesTs = userFavoritesTs;
 	}
 }

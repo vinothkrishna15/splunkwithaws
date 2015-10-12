@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.FavoritesResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
@@ -44,8 +44,8 @@ public class FavoritesController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid pagination request");
 		}
-		FavoritesResponse favourites = myFavService.findFavoritesFor(
-				userId, entityType, page, count);
+		PaginatedResponse favourites = myFavService.findFavoritesFor(userId,
+				entityType, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				favourites);
 	}
@@ -84,4 +84,5 @@ public class FavoritesController {
 				status);
 
 	}
+
 }
