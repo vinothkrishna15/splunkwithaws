@@ -23,7 +23,6 @@ import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.CustomerDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
@@ -46,9 +45,6 @@ public class CustomerController {
 
 	@Autowired
 	CustomerUploadService customerUploadService;
-	
-	@Autowired
-	CustomerDownloadService	customerDownloadService;
 	
 	@Autowired
 	UploadErrorReport uploadErrorReport;
