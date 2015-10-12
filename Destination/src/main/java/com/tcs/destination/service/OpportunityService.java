@@ -35,7 +35,7 @@ import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.OpportunityResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -1260,7 +1260,7 @@ public class OpportunityService {
 		return teamOpportunityDetails;
 	}
 
-	public OpportunityResponse getByOpportunities(List<String> customerIdList,
+	public PaginatedResponse getByOpportunities(List<String> customerIdList,
 			List<Integer> salesStageCode, String strategicInitiative,
 			String newLogo, double minDigitalDealValue,
 			double maxDigitalDealValue, String dealCurrency,
@@ -1271,7 +1271,7 @@ public class OpportunityService {
 			List<String> opportunityName, List<String> userId,
 			List<String> toCurrency, int page, int count)
 			throws DestinationException {
-		OpportunityResponse opportunityResponse = new OpportunityResponse();
+		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
 		customerIdList = fillIfEmpty(customerIdList);
@@ -1346,11 +1346,11 @@ public class OpportunityService {
 
 	}
 
-	public OpportunityResponse findAll(String sortBy, String order,
+	public PaginatedResponse findAll(String sortBy, String order,
 			Boolean isCurrentFinancialYear, int page, int count)
 			throws DestinationException {
 
-		OpportunityResponse opportunityResponse = new OpportunityResponse();
+		PaginatedResponse opportunityResponse = new PaginatedResponse();
 
 		List<OpportunityT> opportunityTs = null;
 

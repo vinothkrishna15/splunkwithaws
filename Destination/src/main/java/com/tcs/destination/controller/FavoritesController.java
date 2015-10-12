@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.FavoritesResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.ContactService;
 import com.tcs.destination.service.FavoritesService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -29,7 +28,6 @@ public class FavoritesController {
 
 	@Autowired
 	FavoritesService myFavService;
-
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
@@ -46,7 +44,7 @@ public class FavoritesController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid pagination request");
 		}
-		FavoritesResponse favourites = myFavService.findFavoritesFor(userId,
+		PaginatedResponse favourites = myFavService.findFavoritesFor(userId,
 				entityType, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				favourites);
@@ -86,6 +84,5 @@ public class FavoritesController {
 				status);
 
 	}
-
 
 }

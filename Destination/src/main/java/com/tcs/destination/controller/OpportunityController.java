@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
-import com.tcs.destination.bean.OpportunityResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
@@ -362,7 +362,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		OpportunityResponse opportunityResponse = opportunityService
+		PaginatedResponse opportunityResponse = opportunityService
 				.getByOpportunities(customerIdList, salesStageCode,
 						strategicInitiative, newLogo, minDigitalDealValue,
 						maxDigitalDealValue, dealCurrency, digitalFlag,
@@ -384,7 +384,7 @@ public class OpportunityController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityService /all GET");
-		OpportunityResponse opportunityResponse = opportunityService.findAll(
+		PaginatedResponse opportunityResponse = opportunityService.findAll(
 				sortBy, order, isCurrentFinancialYear, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunityResponse);

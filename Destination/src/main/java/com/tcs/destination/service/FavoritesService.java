@@ -1,7 +1,5 @@
 package com.tcs.destination.service;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.FavoritesResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
 import com.tcs.destination.enums.EntityType;
@@ -30,9 +28,9 @@ public class FavoritesService {
 	@Autowired
 	ContactService contactService;
 
-	public FavoritesResponse findFavoritesFor(String userId, String entityType,
+	public PaginatedResponse findFavoritesFor(String userId, String entityType,
 			int start, int count) throws Exception {
-		FavoritesResponse favorites = null;
+		PaginatedResponse favorites = null;
 
 		logger.debug("Inside findFavoritesFor Service");
 		if (EntityType.contains(entityType)) {
@@ -48,7 +46,7 @@ public class FavoritesService {
 						"No Favorites found");
 			} else {
 				prepareFavorites(userFavorites);
-				favorites = new FavoritesResponse();
+				favorites = new PaginatedResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
 				logger.debug("Total Favorites: "
 						+ userFavorites.getTotalElements());
