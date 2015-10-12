@@ -601,4 +601,20 @@ public class DateUtils {
 		return date;
 
 	}
+
+	public static String getCurrentQuarter() throws Exception {
+		return getQuarterForMonth(getCurrentMonth());
+	}
+	
+	
+	public static List<String> getMonthsFromQuarter(String quarter) throws Exception {
+		List<String> months = new ArrayList<String>();
+			List<String> quarterMonths = getMonths(quarter);
+			for(String mon : quarterMonths){
+				String temp = getFormattedMonth(getDateFromDBFormattedString(mon));
+				quarterMonths.set(quarterMonths.indexOf(mon),temp);
+			}
+			months.addAll(quarterMonths);
+		return months;
+	}	
 }

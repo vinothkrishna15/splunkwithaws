@@ -420,4 +420,17 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "union select secondary_owner as user_id from connect_secondary_owner_link_t  where connect_id =(:userId)) as users", nativeQuery = true)
 	List<String> findOwnersOfConnect(@Param("userId") String connectId);
 
+	
+	@Query(value = "select USER_ID, SUM(primaryConnectsCount) as PCOUNT, SUM(secondaryConnectsCount) as SCOUNT from ( "
+			+ " select primary_owner as USER_ID, count(c.connect_id) as primaryConnectsCount, (0) as secondaryConnectsCount from connect_t c "
+			+ " where primary_owner = (:userId) and start_datetime_of_connect between (:fromDate) and (:toDate) group by primary_owner "
+			+ " union select distinct secondary_owner as USER_ID, (0) as primaryConnectsCount, count(CSOL.connect_id) as secondaryConnectsCount from connect_t c " 
+			+ " JOIN connect_secondary_owner_link_t CSOL ON c.connect_id=CSOL.connect_id "
+			+ " where secondary_owner = (:userId) and start_datetime_of_connect between (:fromDate) and (:toDate) group by secondary_owner "
+			+ " ) AS ConnectsCount GROUP BY USER_ID",nativeQuery = true)
+	Object[][] findConnectsByPrimaryOwnerOrSecondaryOwner(
+			@Param("userId") String userId, 
+			@Param("fromDate") Timestamp fromDate, 
+			@Param("toDate") Timestamp toDate);
+
 }
