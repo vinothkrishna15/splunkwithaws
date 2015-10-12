@@ -119,7 +119,6 @@ public class PartnerController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "name", defaultValue = "") String name,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
-			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {

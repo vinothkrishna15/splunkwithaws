@@ -17,8 +17,9 @@ public interface CustomerRepository extends
 	CustomerMasterT findByCustomerName(String customerName);
 
 	List<CustomerMasterT> findByCustomerId(String customerid);
-	
-	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(String customerName);
+
+	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(
+			String customerName);
 
 	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
 			String name, String nameNot);
@@ -57,22 +58,32 @@ public interface CustomerRepository extends
 			+ "and (CMT.customer_id = (?6) OR (?6) ='')) group by ART.QUARTER", nativeQuery = true)
 	List<Object[]> findActualRevenue(String financialYear, String quarter,
 			String geography, String serviceLine, String iou, String customerId);
-	
-	@Query(value = "select * from customer_master_t where customer_id in (:custIds)",nativeQuery=true)
-	List<CustomerMasterT> getCustomersByIds(@Param("custIds") List<String> customerIds);
-	
-	 @Query(value =
-		 "update customer_master_t set logo = ?1  where customer_id=?2",
-		 nativeQuery = true)
-	 void addImage(byte[] imageBytes, String id);
 
-	 @Query(value ="select customer_name, customer_id from customer_master_t", nativeQuery = true)
-	 List<Object[]> getNameAndId();
+	@Query(value = "select * from customer_master_t where customer_id in (:custIds)", nativeQuery = true)
+	List<CustomerMasterT> getCustomersByIds(
+			@Param("custIds") List<String> customerIds);
 
-	 @Query(value ="select customer_id from customer_master_t", nativeQuery = true)
-	 List<String> getCustomerIds();
+	@Query(value = "update customer_master_t set logo = ?1  where customer_id=?2", nativeQuery = true)
+	void addImage(byte[] imageBytes, String id);
 
-	 @Query(value ="select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
-	 List<String> findByGroupCustomerName(String groupCustName);
+	@Query(value = "select customer_name, customer_id from customer_master_t", nativeQuery = true)
+	List<Object[]> getNameAndId();
+
+	@Query(value = "select customer_id from customer_master_t", nativeQuery = true)
+	List<String> getCustomerIds();
+
+	@Query(value = "select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
+	List<String> findByGroupCustomerName(String groupCustName);
+
+	@Query(value = "select * from customer_master_t where "
+			+ "(customer_name = (:customerName) or (:customerName)='') "
+			+ "and (group_customer_name =(:groupCustomerName) or (:customerName)='') "
+			+ "and (geography=(:geography) or (:customerName)='')"
+			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou = (:displayIOU) or (:customerName)=''))", nativeQuery = true)
+	List<CustomerMasterT> advancedSearch(
+			@Param("groupCustomerName") String groupCustomerName,
+			@Param("customerName") String name,
+			@Param("geography") String geography,
+			@Param("displayIOU") String displayIOU);
 
 }

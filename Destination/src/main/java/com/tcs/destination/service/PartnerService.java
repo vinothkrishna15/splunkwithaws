@@ -181,7 +181,10 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
 				.findByPartnerNameAndGeographyNonMandatory(name, geography);
-
+		if(partnerMasterTs.isEmpty()){
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Partner available");
+		}
 		paginatedResponse.setTotalCount(partnerMasterTs.size());
 		// Code for pagination
 		if (PaginationUtils.isValidPagination(page, count,
@@ -196,7 +199,7 @@ public class PartnerService {
 					+ partnerMasterTs.size());
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Opportunity available for the specified page");
+					"No Partner available for the specified page");
 		}
 		return paginatedResponse;
 	}
