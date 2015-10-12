@@ -21,6 +21,8 @@ import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -32,6 +34,7 @@ import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PaginationUtils;
 
 @Service
 public class CustomerService {
@@ -50,9 +53,9 @@ public class CustomerService {
 	private static final String CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.customer_name in (";
 	private static final String GROUP_CUSTOMER_NAME_QUERY_PREFIX = "select distinct CMT.group_customer_name from customer_master_t CMT "
 			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
-	
+
 	private static final String GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.group_customer_name like ";
-	
+
 	private static final String ORDERBY_SUFFIX = " order by CMT.group_customer_name";
 
 	@Autowired
@@ -75,7 +78,7 @@ public class CustomerService {
 
 	@Autowired
 	ReportsService reportsService;
-	
+
 	@Autowired
 	BeaconConverterService beaconConverterService;
 
@@ -85,7 +88,8 @@ public class CustomerService {
 	@Autowired
 	PerformanceReportService performanceReportService;
 
-	public CustomerMasterT findById(String customerId,String userId, List<String> toCurrency) throws Exception {
+	public CustomerMasterT findById(String customerId, String userId,
+			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
@@ -99,7 +103,8 @@ public class CustomerService {
 					"Customer not found: " + customerId);
 		}
 		prepareCustomerDetails(customerMasterT, null);
-		beaconConverterService.convertOpportunityCurrency(customerMasterT.getOpportunityTs(), toCurrency);
+		beaconConverterService.convertOpportunityCurrency(
+				customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;
 	}
 
@@ -216,14 +221,16 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User does not have access to view this information");
 		return performanceReportService.getTargetVsActualRevenueSummary(
-				financialYear, quarter, "", "","", "", customerName, currency, "",false);
+				financialYear, quarter, "", "", "", "", customerName, currency,
+				"", false);
 	}
 
 	public List<CustomerMasterT> findByNameContaining(String nameWith)
 			throws Exception {
 		logger.debug("Inside findByNameContaining() service");
 		List<CustomerMasterT> custList = customerRepository
-				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(nameWith, Constants.UNKNOWN_CUSTOMER);
+				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+						nameWith, Constants.UNKNOWN_CUSTOMER);
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: Customer not found with given name: {}",
 					nameWith);
@@ -237,8 +244,9 @@ public class CustomerService {
 	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName)
 			throws Exception {
 		logger.debug("Inside findByGroupCustomerName() service");
-		List<CustomerMasterT> custList = customerRepository.
-				findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(groupCustName, Constants.UNKNOWN_CUSTOMER);
+		List<CustomerMasterT> custList = customerRepository
+				.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
+						groupCustName, Constants.UNKNOWN_CUSTOMER);
 		if (custList.isEmpty()) {
 			logger.error(
 					"NOT_FOUND: Customer not found with given group customer name: {}",
@@ -257,12 +265,13 @@ public class CustomerService {
 		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
 		if (!startsWith.equals("@"))
 			custList.addAll(customerRepository
-					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(startsWith, Constants.UNKNOWN_CUSTOMER));
+					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+							startsWith, Constants.UNKNOWN_CUSTOMER));
 		else
 			for (int i = 0; i <= 9; i++) {
 				List<CustomerMasterT> customerMasterTs = customerRepository
-						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(i
-								+ "", Constants.UNKNOWN_CUSTOMER);
+						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+								i + "", Constants.UNKNOWN_CUSTOMER);
 				custList.addAll(customerMasterTs);
 			}
 
@@ -340,15 +349,17 @@ public class CustomerService {
 			String customerNameQueryList = "(";
 			{
 				for (String customerName : customerNameList)
-					customerNameQueryList += "'" + customerName.replace("\'", "\'\'") + "',";
+					customerNameQueryList += "'"
+							+ customerName.replace("\'", "\'\'") + "',";
 			}
 			customerNameQueryList = customerNameQueryList.substring(0,
 					customerNameQueryList.length() - 1);
 			customerNameQueryList += ")";
 
-			queryBuffer.append(" CMT.customer_name in " + customerNameQueryList);
+			queryBuffer
+					.append(" CMT.customer_name in " + customerNameQueryList);
 		}
-		
+
 		if ((whereClause != null && !whereClause.isEmpty())
 				&& (customerNameList != null && customerNameList.size() > 0)) {
 			queryBuffer.append(Constants.AND_CLAUSE);
@@ -432,8 +443,11 @@ public class CustomerService {
 	}
 
 	/**
-	 * @param nameWith - string to be searched
-	 * @param userId - userId for which the privilege restrictions are to be applied 
+	 * @param nameWith
+	 *            - string to be searched
+	 * @param userId
+	 *            - userId for which the privilege restrictions are to be
+	 *            applied
 	 * @return - List of distinct group customer names based on privileges
 	 * @throws Exception
 	 */
@@ -442,25 +456,26 @@ public class CustomerService {
 		// TODO Auto-generated method stub
 		String queryString = null;
 		List<String> resultList = null;
-		
-		if(!DestinationUtils.getCurrentUserDetails().getUserId().equalsIgnoreCase(userId))
-		{
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid user Id"); 
+
+		if (!DestinationUtils.getCurrentUserDetails().getUserId()
+				.equalsIgnoreCase(userId)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Invalid user Id");
+		} else {
+
+			queryString = getGroupCustomerPrivilegeQueryString(userId, "'%"
+					+ nameWith + "%'");
+			logger.info("Query string: {}", queryString);
+			// Execute the native revenue query string
+			Query groupCustomerPrivilegeQuery = entityManager
+					.createNativeQuery(queryString);
+
+			resultList = groupCustomerPrivilegeQuery.getResultList();
 		}
-		else{
-			
-		queryString = getGroupCustomerPrivilegeQueryString(userId, "'%"+nameWith+"%'");
-		logger.info("Query string: {}", queryString);
-		// Execute the native revenue query string
-		Query groupCustomerPrivilegeQuery = entityManager.createNativeQuery(queryString);
-		
-		resultList = groupCustomerPrivilegeQuery.getResultList();
-		}
-		
-		
+
 		return resultList;
 	}
-	
+
 	private String getGroupCustomerPrivilegeQueryString(String userId,
 			String nameWith) throws Exception {
 		logger.debug("Inside getGroupCustomerPrivilegeQueryString() method");
@@ -480,8 +495,9 @@ public class CustomerService {
 
 		if ((whereClause != null && !whereClause.isEmpty())
 				|| (nameWith != null && !nameWith.isEmpty())) {
-			queryBuffer.append(" and "+GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX + 
-					 nameWith + " and " + whereClause + ORDERBY_SUFFIX);
+			queryBuffer.append(" and "
+					+ GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX + nameWith
+					+ " and " + whereClause + ORDERBY_SUFFIX);
 		}
 
 		logger.info("queryString = " + queryBuffer.toString());
@@ -490,76 +506,120 @@ public class CustomerService {
 
 	/**
 	 * This method inserts customer to the database
+	 * 
 	 * @param customerToInsert
 	 * @return CustomerMasterT
 	 * @throws Exception
 	 */
 	@Transactional
-	public CustomerMasterT addCustomer(CustomerMasterT customerToInsert) throws Exception{
+	public CustomerMasterT addCustomer(CustomerMasterT customerToInsert)
+			throws Exception {
 		CustomerMasterT customerT = null;
-		 List<CustomerMasterT> customers = null;
-		if(customerToInsert!=null){
+		List<CustomerMasterT> customers = null;
+		if (customerToInsert != null) {
 			customerT = new CustomerMasterT();
-			  customers = customerRepository.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(customerToInsert.getCustomerName());
-			 if (customers.isEmpty()) 
-	            {
-				 customerT.setCustomerName(customerToInsert.getCustomerName());
-	            }
-	            else
-	            {
-	                logger.error("EXISTS: customer Already Exist!");
-	                throw new DestinationException(HttpStatus.CONFLICT,"customer Already Exist!");
-	            }
-			
+			customers = customerRepository
+					.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(customerToInsert
+							.getCustomerName());
+			if (customers.isEmpty()) {
+				customerT.setCustomerName(customerToInsert.getCustomerName());
+			} else {
+				logger.error("EXISTS: customer Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,
+						"customer Already Exist!");
+			}
+
 			customerT.setDocumentsAttached("NO");
-			customerT.setCorporateHqAddress(customerToInsert.getCorporateHqAddress());
-			customerT.setCreatedModifiedBy(customerToInsert.getCreatedModifiedBy());
-			customerT.setGroupCustomerName(customerToInsert.getGroupCustomerName());
+			customerT.setCorporateHqAddress(customerToInsert
+					.getCorporateHqAddress());
+			customerT.setCreatedModifiedBy(customerToInsert
+					.getCreatedModifiedBy());
+			customerT.setGroupCustomerName(customerToInsert
+					.getGroupCustomerName());
 			customerT.setFacebook(customerToInsert.getFacebook());
 			customerT.setWebsite(customerToInsert.getWebsite());
 			customerT.setLogo(customerToInsert.getLogo());
 			customerT.setGeography(customerToInsert.getGeography());
 			customerT.setIou(customerToInsert.getIou());
 			customerT = customerRepository.save(customerT);
-			logger.info("Customer Saved .... "+customerT.getCustomerId());
+			logger.info("Customer Saved .... " + customerT.getCustomerId());
 		}
 		return customerT;
 	}
 
 	/**
 	 * This method inserts Beacon customers to the database
+	 * 
 	 * @param beaconCustomerToInsert
 	 * @return BeaconCustomerMappingT
 	 * @throws Exception
 	 */
 	@Transactional
-	public BeaconCustomerMappingT addBeaconCustomer(BeaconCustomerMappingT beaconCustomerToInsert) throws Exception{
+	public BeaconCustomerMappingT addBeaconCustomer(
+			BeaconCustomerMappingT beaconCustomerToInsert) throws Exception {
 		BeaconCustomerMappingT beaconT = null;
 		BeaconCustomerMappingTPK beaconTPK = null;
-		 List<BeaconCustomerMappingT> beaconCustomers = null;
-		if(beaconCustomerToInsert!=null){
+		List<BeaconCustomerMappingT> beaconCustomers = null;
+		if (beaconCustomerToInsert != null) {
 			beaconT = new BeaconCustomerMappingT();
 			beaconTPK = new BeaconCustomerMappingTPK();
-			
+
 			// to find the uniqueness of the primary key (here composite key)
-			beaconCustomers = beaconRepository.findbeaconDuplicates(beaconCustomerToInsert.getBeaconCustomerName(),beaconCustomerToInsert.getBeaconIou(),beaconCustomerToInsert.getCustomerGeography());
-			if (beaconCustomers.isEmpty()) 
-            {
-				beaconT.setCustomerName(beaconCustomerToInsert.getCustomerName());
-				beaconTPK.setBeaconCustomerName(beaconCustomerToInsert.getBeaconCustomerName());
+			beaconCustomers = beaconRepository.findbeaconDuplicates(
+					beaconCustomerToInsert.getBeaconCustomerName(),
+					beaconCustomerToInsert.getBeaconIou(),
+					beaconCustomerToInsert.getCustomerGeography());
+			if (beaconCustomers.isEmpty()) {
+				beaconT.setCustomerName(beaconCustomerToInsert
+						.getCustomerName());
+				beaconTPK.setBeaconCustomerName(beaconCustomerToInsert
+						.getBeaconCustomerName());
 				beaconTPK.setBeaconIou(beaconCustomerToInsert.getBeaconIou());
-				beaconTPK.setCustomerGeography(beaconCustomerToInsert.getCustomerGeography());
-            }
-            else
-            {
-                logger.error("EXISTS: Beacon Already Exist!");
-                throw new DestinationException(HttpStatus.CONFLICT,"Beacon Already Exist!");
-            }
+				beaconTPK.setCustomerGeography(beaconCustomerToInsert
+						.getCustomerGeography());
+			} else {
+				logger.error("EXISTS: Beacon Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,
+						"Beacon Already Exist!");
+			}
 			beaconT.setId(beaconTPK);
 			beaconT = beaconRepository.save(beaconT);
-			logger.info("Beacon Saved .... "+ "beacon primary key" + beaconT.getId());
+			logger.info("Beacon Saved .... " + "beacon primary key"
+					+ beaconT.getId());
 		}
 		return beaconT;
+	}
+
+	public PaginatedResponse search(String groupCustomerName, String name,
+			String geography, String displayIOU, int page, int count)
+			throws DestinationException {
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		List<CustomerMasterT> customerMasterTs = customerRepository
+				.advancedSearch(groupCustomerName, name, geography, displayIOU);
+
+		if (customerMasterTs.isEmpty()) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Customer available");
+		}
+
+		paginatedResponse.setTotalCount(customerMasterTs.size());
+
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count,
+				customerMasterTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					customerMasterTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					customerMasterTs.size()) + 1;
+			customerMasterTs = customerMasterTs.subList(fromIndex, toIndex);
+			paginatedResponse.setCustomerMasterTs(customerMasterTs);
+			logger.debug("Partners after pagination size is "
+					+ customerMasterTs.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Partner available for the specified page");
+		}
+		return paginatedResponse;
 	}
 
 }

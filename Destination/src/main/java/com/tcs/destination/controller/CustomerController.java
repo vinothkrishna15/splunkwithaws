@@ -19,15 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.CustomerDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
-import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -46,9 +45,6 @@ public class CustomerController {
 
 	@Autowired
 	CustomerUploadService customerUploadService;
-	
-	@Autowired
-	CustomerDownloadService	customerDownloadService;
 	
 	@Autowired
 	UploadErrorReport uploadErrorReport;
@@ -203,5 +199,25 @@ public class CustomerController {
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment","customer_upload_error.xlsx");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String advancedSearch(
+			@RequestParam(value = "groupCustomerName", defaultValue = "") String groupCustomerName,
+			@RequestParam(value = "name", defaultValue = "") String name,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "displayIOU", defaultValue = "") String displayIOU,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside PartnerController /partner/search?name=" + name
+				+ "&geograph=" + geography + " GET");
+		PaginatedResponse paginatedResponse = customerService.search(groupCustomerName,name,
+				geography,displayIOU, page, count);
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				paginatedResponse);
 	}
 }

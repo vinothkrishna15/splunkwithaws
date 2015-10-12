@@ -37,10 +37,14 @@ public class DataProcessingRequestT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
+	
+	@Column(name="submitted_datetime")
+	private Timestamp submittedDatetime;
 
 	@Column(name="request_type")
 	private int requestType;
 
+	@Column(name="status")
 	private int status;
 
 	//bi-directional many-to-one association to UserT
@@ -121,6 +125,14 @@ public class DataProcessingRequestT implements Serializable {
 
 	public void setErrorFilePath(String errorFilePath) {
 		this.errorFilePath = errorFilePath;
+	}
+
+	public Timestamp getSubmittedDatetime() {
+		return submittedDatetime;
+	}
+
+	public void setSubmittedDatetime(Timestamp submittedDatetime) {
+		this.submittedDatetime = submittedDatetime;
 	}
 	
 

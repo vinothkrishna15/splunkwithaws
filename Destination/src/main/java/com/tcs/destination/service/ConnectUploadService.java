@@ -40,7 +40,7 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.RequestStatusDTO;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -784,9 +784,9 @@ public class ConnectUploadService {
 		return notesTs;
 	}
 
-	public RequestStatusDTO saveConnectRequest(MultipartFile file, String userId) {
+	public Status saveConnectRequest(MultipartFile file, String userId) {
 		
-		RequestStatusDTO status = new RequestStatusDTO();
+		Status status = new Status();
 		
 		String path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
 		
@@ -801,7 +801,7 @@ public class ConnectUploadService {
 		
 		dataProcessingRequestRepository.save(request);
 		
-		status.setMessage("Connect upload request is submitted successfully");
+		status.setStatus(Status.SUCCESS, "Connect upload request is submitted successfully");
 		
 		return status;
 	}

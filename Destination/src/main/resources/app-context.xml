@@ -17,8 +17,7 @@
 
 
 	<context:component-scan base-package="com.tcs.destination" />
-
-
+	
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml" />
@@ -27,6 +26,13 @@
 		<property name="jpaVendorAdapter" ref="jpaVendorAdapter" />
 		<property name="packagesToScan" value="org.springframework.data.repository" />
 		<property name="jpaDialect" ref="jpaDialect" />
+		<property name="jpaProperties">
+       		<props>
+	            <prop key="hibernate.format_sql">true</prop>
+	            <prop key="hibernate.show_sql">true</prop>
+	            <!-- prop key="hibernate.hbm2ddl.auto">update</prop-->
+	        </props>
+   		 </property>
 	</bean>
 
 	<bean id="jpaVendorAdapter"
@@ -79,9 +85,18 @@
 			</property>
 		</bean>
 
-
-	<context:property-placeholder location="classpath:application.properties,classpath:mailsubject.properties" />
-	<tx:annotation-driven transaction-manager="transactionManager" />
+	<bean id="propertyUtil" class="com.tcs.destination.utils.PropertyUtil">
+        <property name="locations">
+            <list>
+                <value>classpath:application.properties</value>
+                <value>classpath:mailsubject.properties</value>
+                <value>classpath:batch.properties</value>
+            </list>
+        </property>
+        <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_NEVER" />
+        <property name="order" value="1" />
+    </bean> 
+	
 
 	<bean id="autoCommentsTaskExecutor"
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
@@ -103,6 +118,8 @@
 		<property name="maxPoolSize" value="15" />
 		<property name="queueCapacity" value="50" />
 	</bean>
+	
+	<tx:annotation-driven transaction-manager="transactionManager" />
 	
 	<import resource="/META-INF/spring/batch/batch-jobs.xml"/>
 	
