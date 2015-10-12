@@ -2,8 +2,6 @@ package com.tcs.destination.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -339,6 +337,8 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String searchOpportunities(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "customerIdList", defaultValue = "") List<String> customerIdList,
 			@RequestParam(value = "displayIou", defaultValue = "") List<String> displayIou,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
@@ -362,14 +362,15 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		List<OpportunityT> opportunity = opportunityService.getByOpportunities(
-				customerIdList, salesStageCode, strategicInitiative, newLogo,
-				minDigitalDealValue, maxDigitalDealValue, dealCurrency,
-				digitalFlag, displayIou, country, partnerId, competitorName,
-				searchKeywords, bidRequestType, offering, displaySubSp,
-				opportunityName, userId, currency);
+		OpportunityResponse opportunityResponse = opportunityService
+				.getByOpportunities(customerIdList, salesStageCode,
+						strategicInitiative, newLogo, minDigitalDealValue,
+						maxDigitalDealValue, dealCurrency, digitalFlag,
+						displayIou, country, partnerId, competitorName,
+						searchKeywords, bidRequestType, offering, displaySubSp,
+						opportunityName, userId, currency, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunity);
+				opportunityResponse);
 	}
 
 	@RequestMapping(value = "/all", method = RequestMethod.GET)

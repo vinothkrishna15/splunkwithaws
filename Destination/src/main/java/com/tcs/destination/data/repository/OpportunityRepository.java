@@ -390,7 +390,7 @@ public interface OpportunityRepository extends
 			+ "(select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:userId)) "
 			+ "or OPP.opportunity_id in (select BDT.opportunity_id from bid_details_t BDT where BDT.bid_id in "
 			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:userId))) or ('') in (:userId))"
-			+ "and CMT.customer_id=OPP.customer_id", nativeQuery = true)
+			+ "and CMT.customer_id=OPP.customer_id order by OPP.modified_datetime", nativeQuery = true)
 	List<OpportunityT> findByOpportunitiesIgnoreCaseLike(
 			@Param("customerIdList") List<String> customerIdList,
 			@Param("salesStageCode") List<Integer> salesStageCode,
