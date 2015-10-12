@@ -12,6 +12,10 @@ public class PaginatedResponse implements Serializable {
 
 	private List<OpportunityT> opportunityTs;
 
+	private List<PartnerMasterT> partnerMasterTs;
+
+	private List<CustomerMasterT> customerMasterTs;
+
 	private List<UserFavoritesT> userFavoritesTs;
 
 	private long totalCount;
@@ -39,4 +43,21 @@ public class PaginatedResponse implements Serializable {
 	public void setUserFavoritesTs(List<UserFavoritesT> userFavoritesTs) {
 		this.userFavoritesTs = userFavoritesTs;
 	}
+
+	public List<PartnerMasterT> getPartnerMasterTs() {
+		return partnerMasterTs;
+	}
+
+	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
+		this.partnerMasterTs = partnerMasterTs;
+	}
+
+	public List<CustomerMasterT> getCustomerMasterTs() {
+		return customerMasterTs;
+	}
+
+	public void setCustomerMasterTs(List<CustomerMasterT> customerMasterTs) {
+		this.customerMasterTs = customerMasterTs;
+	}
+
 }

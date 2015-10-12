@@ -24,6 +24,7 @@ import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.service.PartnerUploadService;
@@ -32,46 +33,54 @@ import com.tcs.destination.service.PartnerUploadService;
 @RequestMapping("/partner")
 public class PartnerController {
 
-	private static final Logger logger = LoggerFactory.getLogger(PartnerController.class);
-	
+	private static final Logger logger = LoggerFactory
+			.getLogger(PartnerController.class);
+
 	@Autowired
 	PartnerService partnerService;
-	
+
 	@Autowired
 	PartnerUploadService partnerUploadService;
-	
+
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("id") String partnerid,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.debug("Inside PartnerController /partner/id="+partnerid+" GET");
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside PartnerController /partner/id=" + partnerid
+				+ " GET");
 		PartnerMasterT partner = partnerService.findById(partnerid);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partner);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				partner);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findByNameContaining(
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
-		logger.debug("Inside PartnerController /partner?nameWith="+nameWith+" GET");
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside PartnerController /partner?nameWith=" + nameWith
+				+ " GET");
 		List<PartnerMasterT> partners = null;
-		
+
 		if (!nameWith.isEmpty()) {
 			partners = partnerService.findByNameContaining(nameWith);
 		} else if (!startsWith.isEmpty()) {
 			partners = partnerService.findByNameStarting(startsWith);
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "Either nameWith / startsWith is required");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Either nameWith / startsWith is required");
 		}
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partners);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				partners);
 	}
+
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> uploadPartner(
 			@RequestParam("userId") String userId,
@@ -79,23 +88,47 @@ public class PartnerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-//		UploadStatusDTO status = null;
+		// UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		
-		 UploadStatusDTO status = partnerUploadService.upload(file, userId);
-			if (status != null) {
-				errorDetailsDTOs = status.getListOfErrors();
-				for (UploadServiceErrorDetailsDTO up : status.getListOfErrors()) {
-					System.out.println(up.getRowNumber() + "   " + up.getMessage());
-				}
-			}
-			InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-			HttpHeaders respHeaders = new HttpHeaders();
-//			respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
-//			respHeaders.setContentDispositionFormData("attachment","upload_error.xls");
-			respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-			respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
-	        return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(fields, view,status), HttpStatus.OK);
 
-}
+		UploadStatusDTO status = partnerUploadService.upload(file, userId);
+		if (status != null) {
+			errorDetailsDTOs = status.getListOfErrors();
+			for (UploadServiceErrorDetailsDTO up : status.getListOfErrors()) {
+				System.out.println(up.getRowNumber() + "   " + up.getMessage());
+			}
+		}
+		InputStreamResource excelFile = uploadErrorReport
+				.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		// respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+		// respHeaders.setContentDispositionFormData("attachment","upload_error.xls");
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment",
+				"upload_error.xlsx");
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						status), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String advancedSearch(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "name", defaultValue = "") String name,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside PartnerController /partner/search?name=" + name
+				+ "&geograph=" + geography + " GET");
+		PaginatedResponse paginatedResponse = partnerService.search(name,
+				geography, page, count);
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				paginatedResponse);
+	}
 }

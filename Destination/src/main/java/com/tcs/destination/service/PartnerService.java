@@ -9,10 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.PaginationUtils;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -172,5 +174,30 @@ public class PartnerService {
 
 		}
 
+	}
+
+	public PaginatedResponse search(String name, String geography, int page,
+			int count) throws DestinationException {
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		List<PartnerMasterT> partnerMasterTs = partnerRepository
+				.findByPartnerNameAndGeographyNonMandatory(name, geography);
+
+		paginatedResponse.setTotalCount(partnerMasterTs.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count,
+				partnerMasterTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					partnerMasterTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					partnerMasterTs.size()) + 1;
+			partnerMasterTs = partnerMasterTs.subList(fromIndex, toIndex);
+			paginatedResponse.setPartnerMasterTs(partnerMasterTs);
+			logger.debug("Partners after pagination size is "
+					+ partnerMasterTs.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Opportunity available for the specified page");
+		}
+		return paginatedResponse;
 	}
 }
