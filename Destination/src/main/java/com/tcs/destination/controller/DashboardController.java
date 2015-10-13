@@ -119,7 +119,7 @@ public class DashboardController {
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
-			@RequestParam(value = "toDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -149,7 +149,7 @@ public class DashboardController {
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
-			@RequestParam(value = "toDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {

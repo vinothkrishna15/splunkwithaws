@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="emailJob">
+		<batch:step id="emailProcessing" >
+			<batch:tasklet>
+				<batch:chunk reader="emailReader" processor= "emailProcessor" writer="emailWriter" 
+				commit-interval="${email.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+	</batch:job>
+	
+	<!-- Reader -->
+	<bean id="emailReader" class="org.springframework.batch.item.data.RepositoryItemReader" scope="step">
+		<property name="repository" ref="dataProcessingRequestRepository"/>
+		<property name="methodName" value="findByStatus"/>
+		<property name="pageSize" value="1"/>
+		<property name="arguments">
+			<list>
+				<value>#{T(com.tcs.destination.enums.RequestStatus).PROCESSED.getStatus()}</value>
+			</list>
+		</property>
+		<property name="sort">
+			<map>
+				<entry key="processRequestId" value="ASC"/>
+			</map>
+ 		</property>
+	</bean>
+	
+	<!-- Writer -->
+	<bean id="emailWriter" class="org.springframework.batch.item.data.RepositoryItemWriter">
+		<property name="repository" ref="dataProcessingRequestRepository"/>
+		<property name="methodName" value="save"/>
+    </bean>
+	
+	<!-- scheduler  -->
+	<bean id="emailScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="emailJob"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="emailScheduler" method="run" cron="${email.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

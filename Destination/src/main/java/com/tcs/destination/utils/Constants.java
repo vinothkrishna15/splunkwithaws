@@ -28,6 +28,8 @@ public class Constants {
 	public static final int ONE_DAY_IN_MILLIS = 86400000;
 	public static final Double FIVE_MILLION = 5000000.0;
 	public static final Double ONE_MILLION = 1000000.0;
+	public static final Double TEN_MILLION = 10000000.0;
+	public static final Double TWENTY_MILLION = 20000000.0;
 	public static final String USD = "USD";
 	public static final String SPACE = "";
 	public static final String VALIDATOR_SHEET_NAME="Validate";
@@ -86,5 +88,7 @@ public class Constants {
 	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
 	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
 	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
+	//Email subjects
+	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
 	
 }

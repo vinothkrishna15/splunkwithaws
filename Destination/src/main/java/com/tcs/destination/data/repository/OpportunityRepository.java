@@ -901,21 +901,61 @@ public interface OpportunityRepository extends
 			@Param("custName") List<String> custName,
 			@Param("currencyName") String currencyName);
 
-	@Query(value = " SELECT USER_ID,SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue,SUM(SALES_VALUE) as salesOwnerDealValue "
-			+ " FROM(select opportunity_owner AS USER_ID , sum(digital_deal_value) AS PRIMARY_BID_VALUE, (0.0) AS SALES_VALUE from opportunity_t OPP "
-			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
-			+ " left outer join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+	@Query(value = "SELECT USER_ID,SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue,SUM(SALES_VALUE) as salesOwnerDealValue FROM (select opportunity_owner AS USER_ID , opp.opportunity_id, "
+			+ " opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / "
+			+ " (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE, (0.0) AS SALES_VALUE from opportunity_t OPP "
+			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id left outer join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
 			+ " where sales_stage_code = '9' and (OPP.opportunity_owner = (:userId) or (bofg.bid_office_group_owner = (:userId))) "
-			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) group by opportunity_owner "
-			+ " UNION select sales_support_owner AS USER_ID , (0.0) AS PRIMARY_BID_VALUE, sum(digital_deal_value) AS SALES_VALUE "
-			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ " where sales_stage_code = '9' and OSSLT.sales_support_owner = (:userId) "
-			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) "
-			+ " group by sales_support_owner) AS OppWinValue GROUP BY USER_ID ", nativeQuery = true)
+			+ " and opportunity_request_receive_date between (:fromDate) and (:toDate) group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
+			+ " UNION select sales_support_owner AS USER_ID , OPP.opportunity_id ,opp.deal_currency, (0.0) AS PRIMARY_BID_VALUE , sum((digital_deal_value * (select conversion_rate from "
+			+ " beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS SALES_VALUE "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id where sales_stage_code = '9' and OSSLT.sales_support_owner = "
+			+ " (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) group by sales_support_owner, OPP.opportunity_id, opp.deal_currency "
+			+ " ) AS OppWinValue GROUP BY USER_ID ", nativeQuery = true)
 	Object[][] findOpportunityWinValueByOpportunityOwnerOrSalesSupportOwner(
 			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 
+	@Query(value = " select SUM(noOfPrimaryBids) as primarySum, SUM(noOfSecondaryBids) as secondarySum from ( "
+			+ " select OPPTLH.opportunity_id, count(distinct(sales_stage_code)) as noOfPrimaryBids, (0) as noOfSecondaryBids "
+			+ " from Opportunity_timeline_history_t  OPPTLH where sales_stage_code in (2,4) and opportunity_id in ( "
+			+ " select distinct OPP.opportunity_id from opportunity_t OPP where OPP.opportunity_owner = (:userId) and (sales_stage_code>8 and deal_closure_date " 
+			+ " between (:fromDate) and (:toDate)) UNION select distinct OPP.opportunity_id from opportunity_t OPP " 
+			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id " 
+			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+			+ " where bofg.bid_office_group_owner = (:userId) and (sales_stage_code>8 and deal_closure_date " 
+			+ " between (:fromDate) and (:toDate))) group by OPPTLH.opportunity_id UNION select opportunity_id, (0) as noOfPrimaryBids, "
+			+ " count(distinct(sales_stage_code)) as noOfSecondaryBids from Opportunity_timeline_history_t "
+			+ " where sales_stage_code in (2,4) and opportunity_id in (select (OSSLT.opportunity_id) AS SECONDARY "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " where OSSLT.sales_support_owner = (:userId) and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate))) "
+			+ " group by opportunity_id) as ProposalsSupported ", nativeQuery =true)
+	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwnerByPreviousQuarterOrYear(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
+	
+	
+	@Query(value = " select SUM(noOfPrimaryBids) as primarySum, SUM(noOfSecondaryBids) as secondarySum from ( "
+			+ " select OPPTLH.opportunity_id, count(distinct(sales_stage_code)) as noOfPrimaryBids, (0) as noOfSecondaryBids "
+			+ " from Opportunity_timeline_history_t  OPPTLH where sales_stage_code in (2,4) and opportunity_id in ( "
+			+ " select distinct OPP.opportunity_id from opportunity_t OPP where OPP.opportunity_owner = (:userId) and (sales_stage_code>8 and deal_closure_date " 
+			+ " between (:fromDate) and (:toDate)  or (sales_stage_code<9)) UNION select distinct OPP.opportunity_id from opportunity_t OPP " 
+			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id " 
+			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+			+ " where bofg.bid_office_group_owner = (:userId) and (sales_stage_code>8 and deal_closure_date " 
+			+ " between (:fromDate) and (:toDate)) or (sales_stage_code<9)) group by OPPTLH.opportunity_id UNION select opportunity_id, (0) as noOfPrimaryBids, "
+			+ " count(distinct(sales_stage_code)) as noOfSecondaryBids from Opportunity_timeline_history_t "
+			+ " where sales_stage_code in (2,4) and opportunity_id in (select distinct (OSSLT.opportunity_id) AS SECONDARY "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " where OSSLT.sales_support_owner = (:userId) and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) "
+			+ " group by opportunity_id) as ProposalsSupported ", nativeQuery =true)
+	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwnerByCurrentQuarterOrYear(
+			@Param("userId") String userId,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate);
+	
+	
 	@Query(value = "SELECT USER_ID, SUM(OpportunitiesCount.PRIMARY) as oppOwnerCount, SUM(OpportunitiesCount.SECONDARY) as salesOwnerOppCount FROM "
 			+ " (select opportunity_owner as USER_ID ,count(OPP.opportunity_id) as PRIMARY, (0) as SECONDARY from opportunity_t OPP "
 			+ " where sales_stage_code < 9 and OPP.opportunity_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) "

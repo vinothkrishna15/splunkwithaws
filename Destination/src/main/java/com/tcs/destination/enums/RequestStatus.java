@@ -2,7 +2,7 @@ package com.tcs.destination.enums;
 
 public enum RequestStatus {
 	
-	SUBMITTED(1), INPROGRESS(2), PROCESSED(3);
+	SUBMITTED(1), INPROGRESS(2), PROCESSED(3), EMAILED(4);
 	
 	private final int status;
 
