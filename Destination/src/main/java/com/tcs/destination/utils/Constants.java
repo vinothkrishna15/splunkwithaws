@@ -80,5 +80,11 @@ public class Constants {
 	public static final String REQUEST_ID = "REQUEST_ID";
 	public static final String REQUEST = "REQUEST";
 	
-
+	public static final String CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME = "customerSheetTemplate";
+	public static final String CUSTOMER_MASTER_SHEET_NAME = "Customer Master";
+	public static final String FINANCE_MAPPING_SHEET_NAME = "Finance Mappping";
+	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
+	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
+	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
+	
 }
