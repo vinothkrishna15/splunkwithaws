@@ -160,73 +160,76 @@ public class UserUploadService {
 		Row userRow = userMasterIterator.next();
 		logger.info("Row : " + (userRow.getRowNum()+1));
 		List<CellModel> CellModelList = new ArrayList<CellModel>();
-		CellModel userIdCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userId,true,"userId");
-		CellModelList.add(userIdCellModel);
-		CellModel userNameCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userName,true,"");
-		CellModelList.add(userNameCellModel);
-		CellModel tempPasswordCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_tempPassword,true,"");
-		CellModelList.add(tempPasswordCellModel);
-		CellModel baseLocationCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_baseLocation,true,"");
-		CellModelList.add(baseLocationCellModel);
-		CellModel supervisorIdCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_supervisorUserId,false,"");
-		CellModelList.add(supervisorIdCellModel);
-		CellModel supervisorNameCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_supervisorUserName,false,"");
-		CellModelList.add(supervisorNameCellModel);
-		CellModel userTelephoneCellModel = validateEmptyStrAndLength(userRow, FieldValidator.UserT_userTelephone, false, "");
-		CellModelList.add(userTelephoneCellModel);
-		CellModel userEmailIdCellModel = validateEmptyStrAndLength(userRow, FieldValidator.UserT_userEmailId, false, "");
-		CellModelList.add(userEmailIdCellModel);
-		CellModel userRoleCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userRole,true,"userRole");
-		CellModelList.add(userRoleCellModel);
-		CellModel userGroupCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userGroup,true,"userGroup");
-		CellModelList.add(userGroupCellModel);
-		CellModel userGenTimeZoneCellModel = validateEmptyStrAndLength(userRow,FieldValidator.User_General_SettingsT_timeZoneDesc,false,"timeZoneDesc");
-		CellModelList.add(userGenTimeZoneCellModel);
-		
-		if(isRowHasErrors(CellModelList)){
-			populateErrorListForRow(userRow,sheetErrors,CellModelList);
-		} else {
-			try {
-				UserT user = new UserT();
-				user.setUserId(validateAndRectifyValue(userIdCellModel.getCellValue()));
-				user.setUserName(userNameCellModel.getCellValue());
-				user.setTempPassword(tempPasswordCellModel.getCellValue());
-				user.setBaseLocation(baseLocationCellModel.getCellValue());
-				user.setUserEmailId(userEmailIdCellModel.getCellValue());
-				user.setUserTelephone(userTelephoneCellModel.getCellValue());
-				user.setUserRole(userRoleCellModel.getCellValue());
-				user.setUserGroup(userGroupCellModel.getCellValue());
-				user.setSupervisorUserId(validateAndRectifyValue(supervisorIdCellModel.getCellValue()));
-				user.setSupervisorUserName(supervisorNameCellModel.getCellValue());
-				userRepository.save(user);
-				logger.info(userNameCellModel.getCellValue());
-				logger.info(userGroupCellModel.getCellValue());
-				logger.info("User : saved");
-				
-				//saving user general settings for the user
-				UserGeneralSettingsT userGenSettings = DestinationUserDefaultObjectsHelper.getDefaultSettings
-						(validateAndRectifyValue(userIdCellModel.getCellValue()),
-								userGenTimeZoneCellModel.getCellValue());
-				userGenSettingsRepository.save(userGenSettings);
-				logger.info("User General Settings : saved");
-				
-				// saving user notification settings for the user
-				List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user);
-				userNotificationSettingsRepository.save(userNotificationSettingsList);
-				logger.info("User Notification Settings : saved");
-				
-				// saving privileges for the user
-				populateAndSavePrivileges(workbook, user, sheetErrors);
-				
-				
-			} catch(Exception e) {
-				logger.error("Error Processing the user upload " + e.getMessage());
-				UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				errorDTO.setSheetName(userRow.getSheet().getSheetName());
-				errorDTO.setRowNumber(userRow.getRowNum()+1);
-				errorDTO.setMessage(e.getMessage());
-				sheetErrors.add(errorDTO);
-				//throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+		String action = userRow.getCell(0).getStringCellValue();
+		if(action.equalsIgnoreCase(Constants.ACTION_ADD)){		
+			CellModel userIdCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userId,true,"userId");
+			CellModelList.add(userIdCellModel);
+			CellModel userNameCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userName,true,"");
+			CellModelList.add(userNameCellModel);
+			CellModel tempPasswordCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_tempPassword,true,"");
+			CellModelList.add(tempPasswordCellModel);
+			CellModel baseLocationCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_baseLocation,true,"");
+			CellModelList.add(baseLocationCellModel);
+			CellModel supervisorIdCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_supervisorUserId,false,"");
+			CellModelList.add(supervisorIdCellModel);
+			CellModel supervisorNameCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_supervisorUserName,false,"");
+			CellModelList.add(supervisorNameCellModel);
+			CellModel userTelephoneCellModel = validateEmptyStrAndLength(userRow, FieldValidator.UserT_userTelephone, false, "");
+			CellModelList.add(userTelephoneCellModel);
+			CellModel userEmailIdCellModel = validateEmptyStrAndLength(userRow, FieldValidator.UserT_userEmailId, false, "");
+			CellModelList.add(userEmailIdCellModel);
+			CellModel userRoleCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userRole,true,"userRole");
+			CellModelList.add(userRoleCellModel);
+			CellModel userGroupCellModel = validateEmptyStrAndLength(userRow,FieldValidator.UserT_userGroup,true,"userGroup");
+			CellModelList.add(userGroupCellModel);
+			CellModel userGenTimeZoneCellModel = validateEmptyStrAndLength(userRow,FieldValidator.User_General_SettingsT_timeZoneDesc,false,"timeZoneDesc");
+			CellModelList.add(userGenTimeZoneCellModel);
+
+			if(isRowHasErrors(CellModelList)){
+				populateErrorListForRow(userRow,sheetErrors,CellModelList);
+			} else {
+				try {
+					UserT user = new UserT();
+					user.setUserId(validateAndRectifyValue(userIdCellModel.getCellValue()));
+					user.setUserName(userNameCellModel.getCellValue());
+					user.setTempPassword(tempPasswordCellModel.getCellValue());
+					user.setBaseLocation(baseLocationCellModel.getCellValue());
+					user.setUserEmailId(userEmailIdCellModel.getCellValue());
+					user.setUserTelephone(userTelephoneCellModel.getCellValue());
+					user.setUserRole(userRoleCellModel.getCellValue());
+					user.setUserGroup(userGroupCellModel.getCellValue());
+					user.setSupervisorUserId(validateAndRectifyValue(supervisorIdCellModel.getCellValue()));
+					user.setSupervisorUserName(supervisorNameCellModel.getCellValue());
+					userRepository.save(user);
+					logger.info(userNameCellModel.getCellValue());
+					logger.info(userGroupCellModel.getCellValue());
+					logger.info("User : saved");
+
+					//saving user general settings for the user
+					UserGeneralSettingsT userGenSettings = DestinationUserDefaultObjectsHelper.getDefaultSettings
+							(validateAndRectifyValue(userIdCellModel.getCellValue()),
+									userGenTimeZoneCellModel.getCellValue());
+					userGenSettingsRepository.save(userGenSettings);
+					logger.info("User General Settings : saved");
+
+					// saving user notification settings for the user
+					List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user);
+					userNotificationSettingsRepository.save(userNotificationSettingsList);
+					logger.info("User Notification Settings : saved");
+
+					// saving privileges for the user
+					populateAndSavePrivileges(workbook, user, sheetErrors);
+
+
+				} catch(Exception e) {
+					logger.error("Error Processing the user upload " + e.getMessage());
+					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					errorDTO.setSheetName(userRow.getSheet().getSheetName());
+					errorDTO.setRowNumber(userRow.getRowNum()+1);
+					errorDTO.setMessage(e.getMessage());
+					sheetErrors.add(errorDTO);
+					//throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
+				}
 			}
 		}
 		
