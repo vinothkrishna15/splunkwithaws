@@ -402,13 +402,14 @@ public class DashBoardService {
 				TEAM_CONNECTS_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
-			.getUserAccessPrivilegeWhereConditionClause(supervisorId,
+             .getUserAccessPrivilegeWhereConditionClause(supervisorId,
 				queryPrefixMap);
 
 		if (whereClause != null && !whereClause.isEmpty()) {
-		    privilegesQuery = Constants.AND_CLAUSE + whereClause;
+		    privilegesQuery = Constants.AND_CLAUSE + whereClause; 
+			//privilegesQuery =  whereClause;
 		}
-
+        System.out.println("PrivilegesQuery"+ privilegesQuery );
 		return privilegesQuery;
 	    }
 
@@ -521,34 +522,41 @@ public class DashBoardService {
         
         	Timestamp fromDateTs = new Timestamp(fromDate.getTime());
         	Timestamp toDateTs = new Timestamp(toDate.getTime()
-        		+ Constants.ONE_DAY_IN_MILLIS - 1);
+                  + Constants.ONE_DAY_IN_MILLIS - 1);
         
         	// Get the privileges for the user and append to the query constructed
         	// above
         	privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
-        	
+        	//System.out.println("Query1"+privilegesQuery);
         
         	// Construct the Query for Wins
         	StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
         		userId, geography, fromDateTs, toDateTs, privilegesQuery);
+        	//System.out.println("Query2"+queryBufferForWins);
+        	
         	// Get wins using the constructed query
         	LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(
         		queryBufferForWins, userId);
 
-        	// Get Wins Greater than 5 Million and 1 Million
+        	// Get Wins Greater than 5 Million and 1 Million and upto 1 Million
         	List<OpportunityT> oppWinsFiveMillion = null;
         	List<OpportunityT> oppWinsOneMillion = null;
+        	List<OpportunityT> oppWinsUptoOneMillion = null;
         	Double sumOfDigitalDealValueFiveMillion = null;
         	Double sumOfDigitalDealValueOneMillion = null;
+        	Double sumOfDigitalDealValueUptoOneMillion=null;
         	LeadershipWinsDTO leadershipWinsAboveFiveMillion = null;
         	LeadershipWinsDTO leadershipWinsAboveOneMillion = null;
+        	LeadershipWinsDTO leadershipWinsUptoOneMillion = null;
         
         	if ((leadershipWins != null)
         		&& (!leadershipWins.getListOfWins().isEmpty())) {
         	    oppWinsFiveMillion = new ArrayList<OpportunityT>();
         	    oppWinsOneMillion = new ArrayList<OpportunityT>();
+        	    oppWinsUptoOneMillion=new ArrayList<OpportunityT>();
         	    sumOfDigitalDealValueFiveMillion = 0.0;
         	    sumOfDigitalDealValueOneMillion = 0.0;
+        	    sumOfDigitalDealValueUptoOneMillion=0.0;
         
         	    // Loop through the win list and get the digital deal value greater
         	    // than 1M and 5M
@@ -562,7 +570,7 @@ public class DashBoardService {
         				    oppWins.getDigitalDealValue())
         			    .doubleValue();
         
-        		    if (convertedDigitalDealValue >= Constants.FIVE_MILLION) {
+        		    if (convertedDigitalDealValue > Constants.FIVE_MILLION) {
         			if (leadershipWinsAboveFiveMillion == null) {
         			    leadershipWinsAboveFiveMillion = new LeadershipWinsDTO();
         			}
@@ -571,7 +579,7 @@ public class DashBoardService {
         			oppWinsFiveMillion.add(oppWins);
         
         		    }
-        		    if (convertedDigitalDealValue >= Constants.ONE_MILLION) {
+        		    if (convertedDigitalDealValue > Constants.ONE_MILLION && convertedDigitalDealValue <= Constants.FIVE_MILLION) {
         			if (leadershipWinsAboveOneMillion == null) {
         			    leadershipWinsAboveOneMillion = new LeadershipWinsDTO();
         			}
@@ -580,6 +588,15 @@ public class DashBoardService {
         			oppWinsOneMillion.add(oppWins);
         
         		    }
+        		    if (convertedDigitalDealValue <= Constants.ONE_MILLION) {
+            			if (leadershipWinsUptoOneMillion == null) {
+            				leadershipWinsUptoOneMillion = new LeadershipWinsDTO();
+            			}
+            			sumOfDigitalDealValueUptoOneMillion = sumOfDigitalDealValueUptoOneMillion
+            				+ convertedDigitalDealValue;
+            			oppWinsUptoOneMillion.add(oppWins);
+            
+            		    }
         		}
         	    }
         	    // Populate the bean if not empty
@@ -600,12 +617,19 @@ public class DashBoardService {
         		leadershipWinsAboveOneMillion
         			.setSumOfdigitalDealValue(Double.parseDouble((new DecimalFormat("##.##").format(sumOfDigitalDealValueOneMillion))));
         	    }
+        	    if ((leadershipWinsUptoOneMillion != null)
+                     && (!oppWinsUptoOneMillion.isEmpty())) {
+            		leadershipWinsUptoOneMillion.setListOfWins(oppWinsUptoOneMillion);
+            		leadershipWinsUptoOneMillion.setSizeOfWins(oppWinsUptoOneMillion.size());
+            		leadershipWinsUptoOneMillion.setSumOfdigitalDealValue(Double.parseDouble((new DecimalFormat("##.##").format(sumOfDigitalDealValueUptoOneMillion))));
+            	    }
         	}
         
         	// Throw Exception if both list are null else populate the bean
         	if ((leadershipWins == null)
         		&& (leadershipWinsAboveFiveMillion == null)
-        		&& (leadershipWinsAboveOneMillion == null)) {
+        		&& (leadershipWinsAboveOneMillion == null)
+        		&& (leadershipWinsUptoOneMillion == null)) {
         	    logger.error("NOT_FOUND: No Opportunity found for user : {}" + userId);
         	    throw new DestinationException(HttpStatus.NOT_FOUND,
         		    "No Opportunity found for user : " + userId);
@@ -620,8 +644,13 @@ public class DashBoardService {
         	    }
         	    if (leadershipWinsAboveOneMillion != null) {
         		leadershipTotalWinsDTO
-        			.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
+                   .setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
         	    }
+        	    if (leadershipWinsUptoOneMillion != null) {
+            	leadershipTotalWinsDTO
+                     .setLeadershipWinsUptoOneMillion(leadershipWinsUptoOneMillion);
+            	    }
+        	    
         	}
         
         	return leadershipTotalWinsDTO;
@@ -649,6 +678,8 @@ public class DashBoardService {
         		geography, fromDateTs, toDateTs));
         
         	query.append(privileges);
+        	
+        	
         
         	return query;
         
@@ -721,26 +752,29 @@ public class DashBoardService {
         
         	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
         
-        	queryBuffer.append(userId);
+        	//queryBuffer.append(userId);
+        	
+        	queryBuffer.append(fromDateTs);
+        
+        	//queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
+        
+        	//queryBuffer.append(userId);
+        
+        	//queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
+        
+        	//queryBuffer.append(userId);
+        
+        	//queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
+        
+        	//queryBuffer.append(fromDateTs);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
         
-        	queryBuffer.append(userId);
+        	queryBuffer.append(toDateTs);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
         
-        	queryBuffer.append(userId);
-        
-        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
-        
-        	queryBuffer.append(fromDateTs);
-        
-        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART6);
-        
-        	queryBuffer.append(toDateTs);
-        
-        	queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART7);
-        
+        	//System.out.println("Query AFTER CHANGES"+queryBuffer);
         	return queryBuffer;
         
             }
