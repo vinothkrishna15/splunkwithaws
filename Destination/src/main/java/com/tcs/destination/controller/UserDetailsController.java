@@ -9,8 +9,10 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,15 +20,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
+import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.service.UserUploadService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
@@ -45,12 +52,18 @@ public class UserDetailsController {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	UserUploadService userUploadService;
 
 	@Autowired
 	ApplicationSettingsService applicationSettingsService;
 
 	@Autowired
 	ApplicationSettingsRepository applicationSettingsRepository;
+	
+	@Autowired
+	UploadErrorReport uploadErrorReport;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -288,6 +301,57 @@ public class UserDetailsController {
 	    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
 	    }
 	}
+	
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> insertUser(@RequestBody UserT user) throws Exception{
+		logger.info("Inside UserDetailsController /user POST");
+		Status status = new Status();
+		
+		if(userService.insertUser(user, false)){
+			status.setStatus(Status.SUCCESS, user.getUserId());
+			logger.debug("USER CREATED SUCCESS" + user.getUserId());
+		}
+		
+		return new ResponseEntity<String>
+		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadUser(
+			@RequestParam("userId") String userId,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Upload request Received : docName - ");
+		UploadStatusDTO status = null;
+	
+			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		try {
+			status = userUploadService.saveDocument(file, userId);
+			if (status != null && !status.isStatusFlag()) {
+				errorDetailsDTOs = status.getListOfErrors();
+				for (UploadServiceErrorDetailsDTO up : status.getListOfErrors()) {
+					logger.error(up.getRowNumber() + "   " + up.getMessage());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		InputStreamResource excelFile = uploadErrorReport
+				.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment",
+				"upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+				HttpStatus.OK);
+	}
+	
 
 
 }

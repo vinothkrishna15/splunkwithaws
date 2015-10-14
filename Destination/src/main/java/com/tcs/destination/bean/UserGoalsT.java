@@ -39,19 +39,28 @@ public class UserGoalsT implements Serializable {
 
 	//bi-directional many-to-one association to GoalMappingT
 	@ManyToOne
-	@JoinColumn(name="goal_id")
+	@JoinColumn(name="goal_id",insertable=false,updatable=false)
 	private GoalMappingT goalMappingT;
+	
+	@Column(name="goal_id")
+	private String goalId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id" , insertable = false, updatable = false)
 	private UserT userT1;
+	
+	@Column(name="user_id")
+	private String userId;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_modified_by")
+	@JoinColumn(name="created_modified_by", insertable = false, updatable = false)
 	private UserT userT2;
 
+	@Column(name="created_modified_by")
+	private String createdModifiedBy;
+	
 	public UserGoalsT() {
 	}
 
@@ -109,6 +118,30 @@ public class UserGoalsT implements Serializable {
 
 	public void setUserT2(UserT userT2) {
 		this.userT2 = userT2;
+	}
+
+	public String getGoalId() {
+		return goalId;
+	}
+
+	public void setGoalId(String goalId) {
+		this.goalId = goalId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getCreatedModifiedBy() {
+		return createdModifiedBy;
+	}
+
+	public void setCreatedModifiedBy(String createdModifiedBy) {
+		this.createdModifiedBy = createdModifiedBy;
 	}
 
 }
