@@ -209,7 +209,7 @@ public class ReportsService {
 			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where ";
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
 	private static final String TOP_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ " (((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT " 
@@ -256,7 +256,7 @@ public class ReportsService {
 			+ "and RCMT.customer_geography = PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where " ;
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and " ;
 
 	private static final String RCMT_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by projected_revenue desc)))"
 			+ " as RVNU group by RVNU.customer_name order by revenue desc LIMIT ";
@@ -742,7 +742,8 @@ public class ReportsService {
 
 	private void generateReponseFromMap(
 			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
-			List<TargetVsActualDetailed> targetVsActualDetails) {
+			List<TargetVsActualDetailed> targetVsActualDetails) throws Exception {
+		try{
 		for (String customerName : customerIdQuarterMap.keySet()) {
 			TargetVsActualDetailed targetVsActualDetailed = new TargetVsActualDetailed();
 			List<TargetVsActualYearToDate> targetVsActualYtds = getTargetVsActualYtdList(customerIdQuarterMap
@@ -752,6 +753,9 @@ public class ReportsService {
 			targetVsActualDetailed.setCustomerMasterT(customerMasterT);
 			targetVsActualDetailed.setYearToDate(targetVsActualYtds);
 			targetVsActualDetails.add(targetVsActualDetailed);
+		}
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 
@@ -1374,14 +1378,16 @@ public class ReportsService {
 		logger.debug("Inside getTotalTargetRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(TOP30_CUSTOMERS_REVENUE_SUM_QUERY_PREFIX);
 //		queryBuffer.append(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		
 		String formattedMonthsList = getStringListWithSingleQuotes(formattedMonths);
 		// Get WHERE clause string
 		queryBuffer.append(TARVSACT_REVENUE_MONTHS_COND_PREFIX
 				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
+		
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
 						queryPrefixMap);
@@ -1393,12 +1399,13 @@ public class ReportsService {
 		
 		queryBuffer.append(TOP_CUSTOMER_REVENUE_SUM_UNION_QUERY_PREFIX);
 		
+		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
+				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
+		
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixProjectedMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX,null,IOU_COND_PREFIX,null);
 		// Get WHERE clause string
-		queryBuffer.append(TARVSACT_MONTHS_PROJECTED_COND_PREFIX
-				+ formattedMonthsList + Constants.RIGHT_PARANTHESIS);
 		
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);

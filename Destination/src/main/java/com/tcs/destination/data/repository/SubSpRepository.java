@@ -13,5 +13,7 @@ public interface SubSpRepository extends CrudRepository<SubSpMappingT, String> {
     List<String> getSubSp();
     
     SubSpMappingT findBySubSp(String subSp);
+    
+    List<SubSpMappingT> findByDisplaySubSp(String displaySubSp);
 
 }

@@ -16,6 +16,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
+import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
@@ -36,9 +37,6 @@ public class FollowedService {
 
 	@Autowired
 	FollowedRepository followedRepository;
-	
-	@Autowired
-	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
 
 	@Autowired
 	UserNotificationsRepository userNotificationsTRepository;
@@ -48,19 +46,22 @@ public class FollowedService {
 
 	@Autowired
 	ThreadPoolTaskExecutor notificationsTaskExecutor;
-	
+
 	@Autowired
 	TaskRepository taskRepository;
-	
+
 	@Autowired
 	ConnectRepository connectRepository;
-	
+
 	@Autowired
 	OpportunityRepository opportunityRepository;
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
+
+	@Autowired
+	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
+
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -152,8 +153,9 @@ public class FollowedService {
 			followed.setCreatedModifiedDatetime(DateUtils.getCurrentTimeStamp());
 			try {
 				logger.debug("Saving the UserTaggedFollowed");
-				UserTaggedFollowedT followDBObj = followedRepository.save(followed);
-                processNotification(followDBObj);				
+				UserTaggedFollowedT followDBObj = followedRepository
+						.save(followed);
+				processNotification(followDBObj);
 				return followDBObj != null;
 			} catch (Exception e) {
 				logger.error("BAD_REQUEST" + e.getMessage());
@@ -166,7 +168,8 @@ public class FollowedService {
 				"Invalid Entity Type");
 	}
 
-	// This method initializes the required fields(according to each entity) for the notifications executor and starts it
+	// This method initializes the required fields(according to each entity) for
+	// the notifications executor and starts it
 	private void processNotification(UserTaggedFollowedT followDBObj) {
 		logger.debug("Calling processNotifications() method");
 
@@ -185,26 +188,35 @@ public class FollowedService {
 		followNotificationsHelper.setCreatedUserId(createdUserId);
 		followNotificationsHelper.setFollowUser(followUser);
 		followNotificationsHelper.setCreatedUser(createdUser);
-		followNotificationsHelper.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
-		followNotificationsHelper.setUserNotificationsTRepository(userNotificationsTRepository);
-		followNotificationsHelper.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
-		followNotificationsHelper.setEntityManagerFactory(entityManager.getEntityManagerFactory());
+		followNotificationsHelper
+				.setOpportunityRepository(opportunityRepository);
+		followNotificationsHelper.setConnectRepository(connectRepository);
+		followNotificationsHelper.setTaskRepository(taskRepository);
+		followNotificationsHelper
+				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		followNotificationsHelper
+				.setUserNotificationsTRepository(userNotificationsTRepository);
+		followNotificationsHelper
+				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		followNotificationsHelper.setEntityManagerFactory(entityManager
+				.getEntityManagerFactory());
 
-		if (taskId != null){
+		if (taskId != null) {
 			followNotificationsHelper.setEntityId(taskId);
 			followNotificationsHelper.setEntityType(EntityType.TASK.name());
 			followNotificationsHelper.setCrudRepository(taskRepository);
 			followNotificationsHelper.setEventId(2);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
-		} else if (connectId != null){
+		} else if (connectId != null) {
 			followNotificationsHelper.setEntityId(connectId);
 			followNotificationsHelper.setEntityType(EntityType.CONNECT.name());
 			followNotificationsHelper.setCrudRepository(connectRepository);
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
-		} else if(opportunityId != null) {
+		} else if (opportunityId != null) {
 			followNotificationsHelper.setEntityId(opportunityId);
-			followNotificationsHelper.setEntityType(EntityType.OPPORTUNITY.name());
+			followNotificationsHelper.setEntityType(EntityType.OPPORTUNITY
+					.name());
 			followNotificationsHelper.setCrudRepository(opportunityRepository);
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);

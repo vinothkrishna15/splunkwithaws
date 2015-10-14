@@ -68,6 +68,9 @@ public interface CustomerRepository extends
 
 	@Query(value = "select customer_name, customer_id from customer_master_t", nativeQuery = true)
 	List<Object[]> getNameAndId();
+	
+	@Query(value = "select distinct group_customer_name, customer_name, iou, geography, customer_id from customer_master_t", nativeQuery = true)
+	List<Object[]> getCustomerNameAndIouAndGeography();
 
 	@Query(value = "select customer_id from customer_master_t", nativeQuery = true)
 	List<String> getCustomerIds();

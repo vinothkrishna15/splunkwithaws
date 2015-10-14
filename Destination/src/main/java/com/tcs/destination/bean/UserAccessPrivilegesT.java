@@ -85,6 +85,14 @@ public class UserAccessPrivilegesT implements Serializable {
 		this.privilegeValue = privilegeValue;
 	}
 
+	public String getIsactive() {
+		return isactive;
+	}
+
+	public void setIsactive(String isactive) {
+		this.isactive = isactive;
+	}
+
 	public UserAccessPrivilegesT getUserAccessPrivilegesT() {
 		return this.userAccessPrivilegesT;
 	}

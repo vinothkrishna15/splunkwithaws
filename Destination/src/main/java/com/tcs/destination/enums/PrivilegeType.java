@@ -25,4 +25,8 @@ public enum PrivilegeType {
 		}
 		return false;
 	}
+	
+	public String getValue() {
+		return name;
+	}
 }
