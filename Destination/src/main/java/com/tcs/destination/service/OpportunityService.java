@@ -1046,7 +1046,7 @@ public class OpportunityService {
 		notificationsHelper
 				.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
