@@ -1,7 +1,7 @@
 package com.tcs.destination.enums;
 
 public enum UserRole {
-	USER("USER"), SYSTEM_ADMIN("System Admin"), STRATEGIC_GROUP_ADMIN(
+	USER("User"), SYSTEM_ADMIN("System Admin"), STRATEGIC_GROUP_ADMIN(
 			"Strategic Group Admin"), SYSTEM("System");
 
 	private final String value;
@@ -21,7 +21,7 @@ public enum UserRole {
 	public static boolean contains(String otherValue) {
 
 		for (UserRole c : UserRole.values()) {
-			if (c.name().equals(otherValue)) {
+			if (c.getValue().equals(otherValue)) {
 				return true;
 			}
 		}

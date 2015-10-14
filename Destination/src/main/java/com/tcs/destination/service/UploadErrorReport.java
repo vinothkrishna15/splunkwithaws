@@ -63,22 +63,29 @@ public class UploadErrorReport {
 		int currentRow = 0;
 		XSSFRow row = null;
 		row = spreadSheet.createRow((short) currentRow);
-		row.createCell(0).setCellValue(Constants.ROWNUMBER);
+		row.createCell(0).setCellValue(Constants.SHEETNAME);
 		row.getCell(0).setCellStyle(headerSyle);
 		spreadSheet.autoSizeColumn(0);
-		row.createCell(1).setCellValue(Constants.ERROR_MESSAGE);
+		row.createCell(1).setCellValue(Constants.ROWNUMBER);
 		row.getCell(1).setCellStyle(headerSyle);
 		spreadSheet.autoSizeColumn(1);
+		row.createCell(2).setCellValue(Constants.ERROR_MESSAGE);
+		row.getCell(2).setCellStyle(headerSyle);
+		spreadSheet.autoSizeColumn(2);
 		currentRow++;
 		if (errorDetailsDTOs != null) {
 			for (UploadServiceErrorDetailsDTO upErorDto : errorDetailsDTOs) {
 				row = spreadSheet.createRow((short) currentRow);
-				row.createCell(0).setCellValue(upErorDto.getRowNumber());
+				row.createCell(0).setCellValue(upErorDto.getSheetName());
 				row.getCell(0).setCellStyle(rowStyle);
 				spreadSheet.autoSizeColumn(0);
-				row.createCell(1).setCellValue(upErorDto.getMessage());
+				row.createCell(1).setCellValue(upErorDto.getRowNumber());
 				row.getCell(1).setCellStyle(rowStyle);
 				spreadSheet.autoSizeColumn(1);
+				row.createCell(2).setCellValue(upErorDto.getMessage());
+				row.getCell(2).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(2);
+				
 				currentRow++;
 			}
 		}

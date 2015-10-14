@@ -38,6 +38,7 @@ public class Constants {
 	public static final int NOTEST_MAX_SIZE = 1000;
 	public static final int CORE_ATTRIBUTES_MAX_VALUE = 300;
 	public static final String ROWNUMBER = "Row Number";
+	public static final String SHEETNAME = "Sheet Name";
 	public static final String ERROR_MESSAGE = "Error Message";
 	public static final String UPLOAD_ERRORS = "upload errors";
 	public static final String UNKNOWN_CUSTOMER = "UNKNOWN%";
