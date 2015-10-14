@@ -2,7 +2,10 @@ package com.tcs.destination.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +147,10 @@ public class PerformanceReportService {
 
 				List<TargetVsActualResponse> tarActResponseList = mergeLists(
 						targetList, actualProjectedList);
+
+				if (!quarter.isEmpty()) {
+					Collections.sort(tarActResponseList, new MonthComparator());
+				}
 				if (tarActResponseList.isEmpty()) {
 					logger.error("NOT_FOUND: No Relevent Data Found in the database");
 					throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -165,7 +172,6 @@ public class PerformanceReportService {
 			}
 			Date fromDate = DateUtils.getDate("", quarter, financialYear, true);
 			Date toDate = DateUtils.getDate("", quarter, financialYear, false);
-			// TODO:
 			List<Object[]> digitalDealValueList = opportunityRepository
 					.getDigitalDealValueByClosureDate(fromDate, toDate,
 							displayGeography, geography, serviceLine, iou,
@@ -202,6 +208,10 @@ public class PerformanceReportService {
 			List<TargetVsActualResponse> targetList = new ArrayList<TargetVsActualResponse>();
 
 			populateResponseList(quarterMap, targetList);
+
+			if (!quarter.isEmpty()) {
+				Collections.sort(targetList, new MonthComparator());
+			}
 			return targetList;
 		}
 	}
@@ -220,7 +230,7 @@ public class PerformanceReportService {
 					BigDecimal rev = new BigDecimal(obj[1].toString());
 					if (dispName != null) {
 						if (map.containsKey(dispName)) {
-							rev=rev.add(map.get(dispName));
+							rev = rev.add(map.get(dispName));
 						}
 						map.put(dispName, rev);
 					}
@@ -366,6 +376,9 @@ public class PerformanceReportService {
 		if (iouRevenuesList.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Data Found");
+
+		Collections.sort(iouRevenuesList, new IOUComparator());
+
 		return iouRevenuesList;
 	}
 
@@ -613,9 +626,10 @@ public class PerformanceReportService {
 	}
 
 	public ReportsOpportunity getOpportunity(String financialYear,
-			String quarter, String displayGeography,String geography, String iou, String serviceLine,
-			String currency, int salesStageFrom, int salesStageTo,
-			String customerName, String groupCustomer) throws Exception {
+			String quarter, String displayGeography, String geography,
+			String iou, String serviceLine, String currency,
+			int salesStageFrom, int salesStageTo, String customerName,
+			String groupCustomer) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		ReportsOpportunity reportsOpportunity = new ReportsOpportunity();
@@ -632,52 +646,49 @@ public class PerformanceReportService {
 		} else {
 			custName.add(customerName);
 		}
-//			List<Object[]> pipelineData = opportunityRepository
-//					.findPipelinePerformance(geography, iou, serviceLine,
-//							currency, custName, fromDate, toDate,
-//							salesStageFrom, salesStageTo);
-//			if (pipelineData != null) {
-//				Object[] pipeline = pipelineData.get(0);
-//				if (pipeline[1] != null) {
-//					reportsOpportunity.setOverallBidValue(pipeline[1]
-//							.toString());
-//				}
+		// List<Object[]> pipelineData = opportunityRepository
+		// .findPipelinePerformance(geography, iou, serviceLine,
+		// currency, custName, fromDate, toDate,
+		// salesStageFrom, salesStageTo);
+		// if (pipelineData != null) {
+		// Object[] pipeline = pipelineData.get(0);
+		// if (pipeline[1] != null) {
+		// reportsOpportunity.setOverallBidValue(pipeline[1]
+		// .toString());
+		// }
 
-				List<Object[]> pipeLinesBySalesStage = opportunityRepository
-						.findPipelinePerformanceBySalesStage(displayGeography,geography, iou,
-								serviceLine, currency, custName, fromDate,
-								toDate,salesStageFrom,salesStageTo);
-				if (pipeLinesBySalesStage != null) {
-					for (Object[] pipeLineBySalesStage : pipeLinesBySalesStage) {
-						ReportsSalesStage reportsSalesStage = new ReportsSalesStage();
-						if (pipeLineBySalesStage[0] != null) {
-							int salesStageCode = Integer
-									.parseInt(pipeLineBySalesStage[0]
-											.toString());
-							reportsSalesStage.setSalesStageCode(salesStageCode
-									+ "");
-							SalesStageMappingT salesStageMapping = salesStageMappingRepository
-									.findBySalesStageCode(salesStageCode);
-							if (salesStageMapping != null) {
-								reportsSalesStage
-										.setSalesStageCodeDescription(salesStageMapping
-												.getSalesStageDescription());
-							}
-							if (pipeLineBySalesStage[1] != null) {
-								reportsSalesStage
-										.setBidCount(pipeLineBySalesStage[1]
-												.toString());
-							}
-							if (pipeLineBySalesStage[2] != null) {
-								reportsSalesStage
-										.setDigitalDealValue(pipeLineBySalesStage[2]
-												.toString());
-							}
-
-						}
-						salesStageList.add(reportsSalesStage);
+		List<Object[]> pipeLinesBySalesStage = opportunityRepository
+				.findPipelinePerformanceBySalesStage(displayGeography,
+						geography, iou, serviceLine, currency, custName,
+						fromDate, toDate, salesStageFrom, salesStageTo);
+		if (pipeLinesBySalesStage != null) {
+			for (Object[] pipeLineBySalesStage : pipeLinesBySalesStage) {
+				ReportsSalesStage reportsSalesStage = new ReportsSalesStage();
+				if (pipeLineBySalesStage[0] != null) {
+					int salesStageCode = Integer
+							.parseInt(pipeLineBySalesStage[0].toString());
+					reportsSalesStage.setSalesStageCode(salesStageCode + "");
+					SalesStageMappingT salesStageMapping = salesStageMappingRepository
+							.findBySalesStageCode(salesStageCode);
+					if (salesStageMapping != null) {
+						reportsSalesStage
+								.setSalesStageCodeDescription(salesStageMapping
+										.getSalesStageDescription());
 					}
+					if (pipeLineBySalesStage[1] != null) {
+						reportsSalesStage.setBidCount(pipeLineBySalesStage[1]
+								.toString());
+					}
+					if (pipeLineBySalesStage[2] != null) {
+						reportsSalesStage
+								.setDigitalDealValue(pipeLineBySalesStage[2]
+										.toString());
+					}
+
 				}
+				salesStageList.add(reportsSalesStage);
+			}
+		}
 
 		reportsOpportunity.setSalesStageList(salesStageList);
 		return reportsOpportunity;
@@ -735,7 +746,7 @@ public class PerformanceReportService {
 		if (iouReports.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Data Found");
-
+		Collections.sort(iouReports, new IOUComparator());
 		return iouReports;
 	}
 
@@ -862,5 +873,38 @@ public class PerformanceReportService {
 					"No Data Found");
 
 		return geographyReports;
+	}
+
+	public class MonthComparator implements Comparator<TargetVsActualResponse> {
+		public int compare(TargetVsActualResponse a, TargetVsActualResponse b) {
+			int firstIndex = 0;
+			int secondIndex = 0;
+			try {
+				firstIndex = DateUtils.getMonthIndexOnQuarter(a
+						.getSubTimeLine());
+
+				secondIndex = DateUtils.getMonthIndexOnQuarter(b
+						.getSubTimeLine());
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (firstIndex < secondIndex)
+				return -1;
+
+			return 1;
+
+		}
+	}
+
+	public class IOUComparator implements Comparator<IOUReport> {
+		public int compare(IOUReport a, IOUReport b) {
+
+			if (a.getActualRevenue().compareTo(b.getActualRevenue()) < 0)
+				return 1;
+
+			return -1;
+
+		}
 	}
 }
