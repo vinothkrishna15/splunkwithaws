@@ -88,6 +88,11 @@ public class Constants {
 	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
 	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
 	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
+	
+	// Actual Revenues Data template
+	public static final String ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME = "actualRevenueDataTemplate";
+	public static final String CUSTOMER_IOU_MAPPING_REF= "Customer IOU Map(Ref)";
+	public static final String SUB_SP_MAP_REF = "Sub Sp Map(Ref)";
 	//Email subjects
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
 	
