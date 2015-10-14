@@ -85,6 +85,8 @@ public class Constants {
 	//Email subjects
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
 	
-	
+	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
+	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
+	public static final String PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contacts";
 
 }
