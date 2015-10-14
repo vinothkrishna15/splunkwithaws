@@ -593,7 +593,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 				
 				totalTargetRevenueUSD=beaconConverterService.convert(ReportConstants.INR, ReportConstants.USD,  totalTargetRevenueINR.doubleValue());
 				totalActualRevenueUSD=beaconConverterService.convert(ReportConstants.INR, ReportConstants.USD,  totalActualRevenueINR.doubleValue());
-				if (!targetRevenueINR.equals(new BigDecimal(0))) {
+				if (targetRevenueINR.doubleValue()!=0.00) {
 					percentAchieved = actualRevenueINR.divide(targetRevenueINR, 4,
 							RoundingMode.HALF_DOWN);
 					percentAchieve = percentAchieved.doubleValue() * 100;

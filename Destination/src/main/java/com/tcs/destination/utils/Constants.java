@@ -47,6 +47,7 @@ public class Constants {
 	
 	public static final String APPLICATION_PROPERTIES_FILENAME = "application";
 	public static final String OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME = "opportunitySheetTemplate";
+	public static final String CONNECT_TEMPLATE_LOCATION_PROPERTY_NAME = "connectSheetTemplate";
 	public static final String OPPORTUNITY_TEMPLATE_COMPETITOR_SHEET_NAME = "Competitor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_GEOGRAPHY_COUNTRY_SHEET_NAME = "Geography Country(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OFFERING_SHEET_NAME = "Offering(Ref)";

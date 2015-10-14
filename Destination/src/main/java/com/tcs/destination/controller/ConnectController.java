@@ -261,8 +261,6 @@ public class ConnectController {
 	}
 	InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
 	HttpHeaders respHeaders = new HttpHeaders();
-//	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
-//	respHeaders.setContentDispositionFormData("attachment","upload_error.xls");
 	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
 	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
@@ -354,14 +352,15 @@ public class ConnectController {
     	}
     	
     	@RequestMapping(value = "/download", method = RequestMethod.GET)
-    	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect() throws Exception {
+    	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
+    			@RequestParam("userId") String userId) throws Exception {
     		logger.debug("Download request Received : docName ");
-    		InputStreamResource excelFile = connectDownloadService.getConnects();
+    		InputStreamResource excelFile = connectDownloadService.getConnects(userId);
     		HttpHeaders respHeaders = new HttpHeaders();
-    		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+    		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
     		String todaysDate = DateUtils.getCurrentDate();
-    		logger.debug("Download Header - Attachment : " + "Connect" + todaysDate + ".xlsm");
-    		respHeaders.setContentDispositionFormData("attachment", "Connect" + todaysDate + ".xlsm");
+    		logger.debug("Download Header - Attachment : " + "Connect_Template_Data" + todaysDate + ".xlsm");
+    		respHeaders.setContentDispositionFormData("attachment", "Connect_Template_Data" + todaysDate + ".xlsm");
     		logger.debug("Connect Downloaded Successfully ");
     		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
     	}
