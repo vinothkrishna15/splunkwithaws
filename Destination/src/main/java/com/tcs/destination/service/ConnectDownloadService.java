@@ -26,7 +26,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.sun.jna.platform.win32.Sspi.TimeStamp;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
 import com.tcs.destination.bean.ConnectSubSpLinkT;
