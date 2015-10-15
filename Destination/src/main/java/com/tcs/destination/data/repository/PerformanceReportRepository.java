@@ -66,7 +66,7 @@ public interface PerformanceReportRepository extends
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou "
-			+ " where ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " where (ARDT.financial_year = (:financialYear) or (:financialYear) = '') and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " group by GMT.geography"
 			+ " order by actualRevenue desc) Result on GMT.geography = Result.displayGeography"
 			+ " where GMT.display_geography = (:geography) order by revenue desc", nativeQuery = true)

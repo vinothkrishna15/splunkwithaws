@@ -16,7 +16,7 @@ public class DashBoardBDMResponse implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private String userId;
+	private UserT userT;
 	
 	private BigDecimal winsTarget;
 	
@@ -60,12 +60,12 @@ public class DashBoardBDMResponse implements Serializable{
 		this.connectSupportedTarget = connectSupportedTarget;
 	}
 
-	public String getUserId() {
-		return userId;
+	public UserT getUserT() {
+		return userT;
 	}
 
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 
 }
