@@ -27,7 +27,7 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.enums.UploadOperation;
+import com.tcs.destination.enums.Operation;
 import com.tcs.destination.helper.ConnectUploadHelper;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.UploadErrorReport;
@@ -60,7 +60,7 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		
 		for (String[] data: items) {
 			String operation = (String) data[1];
-			if (operation.equalsIgnoreCase(UploadOperation.ADD.name())) {
+			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				ConnectT connect =  new ConnectT();
 				UploadServiceErrorDetailsDTO errorDTO = helper.validateConnectData(data, request.getUserT().getUserId() ,connect);
