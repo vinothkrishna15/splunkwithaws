@@ -173,7 +173,7 @@ public class BuildOpportunityReportService {
 			List<String> fields, List<String> currency, SXSSFWorkbook workbook)
 			throws Exception {
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Complete Data");
-		spreadSheet.setDefaultColumnWidth(30);
+//		spreadSheet.setDefaultColumnWidth(30);
 		SXSSFRow headerRow = null;
 		int currentRow = 0;
 		int headerColumnValue = 0;
