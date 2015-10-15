@@ -25,6 +25,8 @@ public class BeaconConverterService {
 	public static final String ACTUALS_REVENUE_CURRENCY = "INR";
 
 	public static final String TARGET_REVENUE_CURRENCY = "INR";
+	
+	public Map<String, BigDecimal> currencyMap = null;
 
 	@Autowired
 	BeaconConvertorRepository converterRepository;
@@ -65,19 +67,20 @@ public class BeaconConverterService {
 		BigDecimal convertedVal = null;
 		Status status = new Status();
 		status.setStatus("FAILED", "Currency Conversion Failed");
-		BeaconConvertorMappingT converterBase = converterRepository
-				.findByCurrencyName(base);
-		if (converterBase != null)
-			sourceVal = converterBase.getConversionRate().multiply(sourceVal);
+		if (currencyMap == null) {
+			currencyMap = populateCurrencyMap();
+		} 
+		
+		BigDecimal currRateBase = currencyMap.get(base);
+		if (currRateBase != null)
+			sourceVal = currRateBase.multiply(sourceVal);
 		else
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Currency Type " + base + " Not Found");
 
-		BeaconConvertorMappingT converterTarget = converterRepository
-				.findByCurrencyName(target);
-		if (converterTarget != null) {
-			convertedVal = sourceVal.divide(
-					converterTarget.getConversionRate(), 2,
+		BigDecimal currRateTarget = currencyMap.get(target);
+		if (currRateTarget != null) {
+			convertedVal = sourceVal.divide(currRateTarget, 2,
 					RoundingMode.HALF_UP);
 			status.setStatus("SUCCESS", convertedVal.toString());
 		} else {
@@ -85,6 +88,20 @@ public class BeaconConverterService {
 					"Currency Type " + target + " Not Found");
 		}
 		return convertedVal;
+	}
+
+	private Map<String, BigDecimal> populateCurrencyMap() {
+		
+		List<Object[]> result = converterRepository
+				.getCurrencyNameAndRate();
+		
+		Map<String, BigDecimal> currencyMap = new HashMap<String, BigDecimal>();
+		
+		for(Object[] val : result) {
+			currencyMap.put((String)val[0], (BigDecimal)val[1]);
+		}
+		
+		return currencyMap;
 	}
 
 	public List<OpportunityT> convertOpportunityCurrency(
