@@ -322,7 +322,8 @@ public class BDMService {
 		}
 		Date fDate = DateUtils.getDateFromFinancialYear(financialYear, true);
 		Date tDate = DateUtils.getDateFromFinancialYear(financialYear, false);
-		dashBoardBDMResponse.setUserId(userId);
+		UserT userT=userRepository.findByUserId(userId);
+		dashBoardBDMResponse.setUserT(userT);
 
 		setBDMOrSupervisorDashboardTarget(userId, financialYear, dashBoardBDMResponse);
 		
@@ -349,7 +350,8 @@ public class BDMService {
 			logger.debug("Financial Year is Empty");
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
-		dashBoardBDMResponse.setUserId(userId);
+		UserT userT=userRepository.findByUserId(userId);
+		dashBoardBDMResponse.setUserT(userT);
 		//
 		setBDMOrSupervisorDashboardTarget(userId, financialYear, dashBoardBDMResponse);
 		
@@ -477,7 +479,7 @@ public class BDMService {
     			   countOfOpportunitiesAboveTwentyMillion++;
     		   }
     		  
-    		   if(dealValue > Constants.TEN_MILLION){
+    		   if(dealValue > Constants.TEN_MILLION && dealValue<=Constants.TWENTY_MILLION){
     			   countOfOpportunitiesAboveTenMillion++;
     		   }
     	   }

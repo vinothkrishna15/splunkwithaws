@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,11 +21,11 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(
 			List<String> opportunityId);
 
-	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
-			String opportunityname);
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLike(
+			String opportunityname,Pageable page);
 
-	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
-			String opportunityname, String customerId);
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
+			String opportunityname, String customerId,Pageable pageable);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 			String customerId, Date fromDate);
@@ -425,11 +427,11 @@ public interface OpportunityRepository extends
 
 	// Detailed
 
-	@Query(value = "select distinct (opp.*) from opportunity_t opp where opportunity_id in (:opportunityIds) order by opp.opportunity_id", nativeQuery = true)
-	List<OpportunityT> findByOpportunityIds(
-			@Param("opportunityIds") List<String> opportunityIds);
+	@Query(value = "select * from opportunity_t where opportunity_id = (:opportunityId)", nativeQuery = true)
+	OpportunityT findOpportunityById(
+			@Param("opportunityId") String opportunityId);
 
-	@Query(value = "select distinct OPP.* from opportunity_t OPP"
+	@Query(value = "select distinct OPP.opportunity_id from opportunity_t OPP"
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " left outer join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id = OPP.opportunity_id"
@@ -444,7 +446,7 @@ public interface OpportunityRepository extends
 			+ " AND  (GMT.geography IN (:geoList) OR ('') in (:geoList))"
 			+ " AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)) "
 			+ " AND ((OPP.opportunity_owner IN (:userIds) OR OSSLT.sales_support_owner IN (:userIds)) OR ('') in (:userIds))", nativeQuery = true)
-	List<OpportunityT> findOpportunitiesByRoleWith(
+	List<String> findOpportunitiesByRoleWith(
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate,
 			@Param("salesStage") List<Integer> salesStage,
 			@Param("userIds") List<String> userIds,
@@ -453,7 +455,7 @@ public interface OpportunityRepository extends
 			@Param("iouList") List<String> iouList,
 			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = "select distinct OPP.* from opportunity_t OPP"
+	@Query(value = "select distinct OPP.opportunity_id from opportunity_t OPP"
 			+ " inner join geography_country_mapping_t GCMT on GCMT.country=OPP.country"
 			+ " inner join geography_mapping_t GMT on GMT.geography = GCMT.geography"
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id"
@@ -465,7 +467,7 @@ public interface OpportunityRepository extends
 			+ " AND ((OPP.sales_stage_code in (:salesStage)) AND ((OPP.sales_stage_code between 0 and 8) OR  (OPP.deal_closure_date between (:fromDate) AND (:toDate))))"
 			+ " AND (OPP.country IN (:country) OR ('') in (:country)) "
 			+ " AND (ICM.display_iou IN (:iou) OR ('') in (:iou)) ", nativeQuery = true)
-	List<OpportunityT> findOpportunitiesWith(@Param("fromDate") Date fromDate,
+	List<String> findOpportunitiesWith(@Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate,
 			@Param("geography") List<String> geography,
 			@Param("country") List<String> country,

@@ -1,6 +1,6 @@
 package com.tcs.destination.enums;
 
-public enum UploadOperation {
+public enum Operation {
 	
 	ADD, UPDATE, DELETE
 

@@ -229,7 +229,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "opportunityT")
 	private List<UserNotificationsT> userNotificationsTs;
 
 	// bi-directional many-to-one association to UserTaggedFollowedT

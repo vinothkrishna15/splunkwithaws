@@ -2,6 +2,7 @@ package com.tcs.destination.bean;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -24,6 +25,7 @@ public class BDMSupervisorDashboardDTO implements Serializable{
 	private List<DashBoardBDMResponse> bdmSupervisorDashboard;
 
 	public BigDecimal getTotalOpportunityWinsAchieved() {
+		totalOpportunityWinsAchieved = totalOpportunityWinsAchieved.setScale(2, RoundingMode.CEILING);
 		return totalOpportunityWinsAchieved;
 	}
 

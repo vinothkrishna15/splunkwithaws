@@ -1,11 +1,8 @@
 package com.tcs.destination.controller;
 
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,10 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.BDMPerfromanceGeoIouDashboardResponse;
 import com.tcs.destination.bean.BDMSupervisorDashboardDTO;
 import com.tcs.destination.bean.DashBoardBDMResponse;
-import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
-import com.tcs.destination.bean.LeadershipOverallWinsDTO;
 import com.tcs.destination.service.BDMService;
-import com.tcs.destination.service.DashBoardService;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -30,8 +24,6 @@ public class BDMController {
 	@Autowired
 	BDMService bdmService;
 
-	@Autowired
-	DashBoardService dashboardService;
 
 	/**
 	 * This Controller retrieves the BDM Performance Details

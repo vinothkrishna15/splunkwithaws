@@ -19,9 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ActualRevenueDataUploadService;
+import com.tcs.destination.service.RevenueDownloadService;
 import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DateUtils;
 
 /**
  * Controller to handle Revenue module related requests.
@@ -39,6 +42,9 @@ public class RevenueController {
 	
 	@Autowired
 	ActualRevenueDataUploadService actualRevenueDataUplaodService;
+	
+	@Autowired
+	RevenueDownloadService revenueDownloadService;
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
@@ -114,5 +120,27 @@ public class RevenueController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/download", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadActualRevenueTemplate(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws Exception {
+		HttpHeaders respHeaders = null;
+		InputStreamResource ActualRevenueDownloadExcel = null;
+		try {
+			ActualRevenueDownloadExcel = revenueDownloadService.getActualRevenueData();
+			respHeaders = new HttpHeaders();
+			respHeaders.setContentDispositionFormData("attachment","Actual_Revenue_Template_Download" + DateUtils.getCurrentDate() + ".xlsm");
+			respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+			logger.info("Actual Revenue Template Report Downloaded Successfully ");
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<InputStreamResource>(
+				ActualRevenueDownloadExcel, respHeaders, HttpStatus.OK);
+
+	}
 
 }
