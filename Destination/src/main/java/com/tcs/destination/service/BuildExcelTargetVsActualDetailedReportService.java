@@ -85,21 +85,21 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		if (fields.contains(ReportConstants.GEOGRAPHY)) {
 			row.createCell(2 + columnValue).setCellValue(ReportConstants.GEO);
 			row.getCell(2+columnValue).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(2 + columnValue);
+//			spreadSheet.autoSizeColumn(2 + columnValue);
 			columnValue++;
 		}
 		row.createCell(2 + columnValue).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(2+columnValue).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(2 + columnValue);
+//		spreadSheet.autoSizeColumn(2 + columnValue);
 		if (fields.contains(ReportConstants.IOU)) {
 			row.createCell(3 + columnValue).setCellValue(ReportConstants.Iou);
 			row.getCell(3+columnValue).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(3 + columnValue);
+//			spreadSheet.autoSizeColumn(3 + columnValue);
 			columnValue++;
 		}
 		row.createCell(3 + columnValue).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(3 + columnValue).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(3 + columnValue);
+//		spreadSheet.autoSizeColumn(3 + columnValue);
 		List<String> headerList = new ArrayList<String>();
 		headerList.add(ReportConstants.Q1  + currentFinancialYear + ReportConstants.BEACONTARGET);
 		headerList.add(ReportConstants.Q2  + currentFinancialYear + ReportConstants.BEACONTARGET);
@@ -141,7 +141,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		for (int i = 0; i < headerList.size(); i++) {
 			row.createCell(columnNo).setCellValue(headerList.get(i));
 			row.getCell(columnNo).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo
 					+ currencyList.size() - 1));
 			for (int j = 0; j < currencyList.size(); j++) {
@@ -154,33 +154,33 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q1  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q2  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q3  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q4  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		if (fields.contains(ReportConstants.YTDTARGETACHIEVED)) {
 			row.createCell(columnNo).setCellValue(
 					ReportConstants.YTDFY  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 			row.getCell(columnNo).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			columnNo++;
 		}
 		row.createCell(columnNo).setCellValue(ReportConstants.PERCENTACHIEVEDBRACKET);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 	}
 
 	public Boolean getProjectedValue(List<TargetVsActualDetailed> targetVsActualDetailedList){
@@ -242,33 +242,33 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		//setting customer name
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getCustomerName());
 		row.getCell(columnNo).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		//setting group customer name
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGroupCustomerName());
 		row.getCell(columnNo).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		
 		//if geographyFlag is true this will write geography value in excel
 		if (geographyFlag) {
 			row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGeographyMappingT().getGeography());
 			row.getCell(columnNo).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			offset++;
 			columnNo = columnNo + offset;
 		}
 		
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
 		row.getCell(columnNo).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		
 		//if iouFlag is true this will write iou value in excel
 		if (iouFlag) {
 			row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getIouCustomerMappingT().getIou());
 			row.getCell(columnNo).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			offset++;
 			columnNo++;
 		}
@@ -918,12 +918,12 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row = (SXSSFRow) spreadsheet.createRow(8);
 		spreadsheet.addMergedRegion(new CellRangeAddress(8, 8, 4, 10));
 		row.createCell(4).setCellValue("Beacon Target Vs Actual report as on " + tillDate);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		row.getCell(4).setCellStyle(headinStyle);
 		row =  (SXSSFRow) spreadsheet.createRow(9);
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 10, dataRow);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.IOU, iou, 11, dataRow);
 		row = (SXSSFRow) spreadsheet.createRow(12);
@@ -940,7 +940,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row =  (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = Constants.GEOGRAPHY;

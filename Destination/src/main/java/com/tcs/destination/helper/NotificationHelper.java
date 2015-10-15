@@ -315,12 +315,14 @@ public class NotificationHelper implements Runnable {
 				ownerIdList.add(taskT.getCreatedBy());
 			if (commentT.getUserT().getUserName()
 					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-				if (taggedUserList != null && !taggedUserList.isEmpty()) {
-					taggedUserList.removeAll(Collections.singleton(taskT
-							.getModifiedBy()));
-				}
-				ownerIdList.removeAll(Collections.singleton(taskT
-						.getModifiedBy()));
+				taggedUserList.clear();
+				ownerIdList.clear();
+				// if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				// taggedUserList.removeAll(Collections.singleton(taskT
+				// .getModifiedBy()));
+				// }
+				// ownerIdList.removeAll(Collections.singleton(taskT
+				// .getModifiedBy()));
 			} else {
 				taggedUserList.removeAll(Collections.singleton(commentT
 						.getUserId()));
@@ -663,6 +665,7 @@ public class NotificationHelper implements Runnable {
 					break;
 				}
 				case TASK: {
+					List<String> taskOwners = new ArrayList<String>();
 					logger.debug(
 							"Processing Notifications for Add, TaskId: {}",
 							entityId);
@@ -690,11 +693,9 @@ public class NotificationHelper implements Runnable {
 											.toString();
 									if (!oldValue.equalsIgnoreCase(newValue)) {
 										// Get notification recipient user id
-										addRecipient = (String) PropertyUtils
-												.getProperty(
-														task,
-														notificationField
-																.getUseridField());
+										taskOwners = ((TaskRepository) crudRepository)
+												.findOwnersOfTask(entityId);
+										taskOwners.add(task.getCreatedBy());
 										// Sending Removed Notification for
 										// Primary Owner
 										if (notificationField.getFieldId() == 301) {
@@ -707,29 +708,31 @@ public class NotificationHelper implements Runnable {
 									// Get notification recipient user id
 									if (notificationField
 											.getNotificationEventId() != 4) {
-										addRecipient = (String) PropertyUtils
-												.getProperty(
-														task,
-														notificationField
-																.getUseridField());
+										taskOwners = ((TaskRepository) crudRepository)
+												.findOwnersOfTask(entityId);
+										taskOwners.add(task.getCreatedBy());
 									} else {
 
 									}
 								}
-
-								if (!task.getModifiedBy().equals(addRecipient)) {
-									msgTemplate = replaceTokens(
-											notificationField
-													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"added", null, null));
-									if (msgTemplate != null) {
-										addUserNotifications(
-												msgTemplate,
-												addRecipient,
+								Set<String> taskOwnerSet = new HashSet<String>(
+										taskOwners);
+								for (String recipient : taskOwnerSet) {
+									if (!task.getModifiedBy().equals(recipient)) {
+										msgTemplate = replaceTokens(
 												notificationField
-														.getNotificationEventId());
+														.getMessageTemplate(),
+												populateTokens(user,
+														entityName, null, null,
+														null, null, "added",
+														null, null));
+										if (msgTemplate != null) {
+											addUserNotifications(
+													msgTemplate,
+													recipient,
+													notificationField
+															.getNotificationEventId());
+										}
 									}
 								}
 
