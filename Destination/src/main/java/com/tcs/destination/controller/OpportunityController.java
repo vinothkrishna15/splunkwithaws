@@ -67,6 +67,8 @@ public class OpportunityController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -77,9 +79,9 @@ public class OpportunityController {
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
-		List<OpportunityT> opportunities = opportunityService
+		PaginatedResponse opportunities = opportunityService
 				.findByOpportunityName(nameWith, customerId, currencies,
-						isAjax, userId);
+						isAjax, userId, page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				opportunities);
 	}
