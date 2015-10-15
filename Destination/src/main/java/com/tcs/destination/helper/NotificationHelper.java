@@ -267,8 +267,10 @@ public class NotificationHelper implements Runnable {
 					.getOpportunityId());
 			// Don't send notifications to the user who
 			// Commented
-			if (ownerIdList != null && !ownerIdList.isEmpty())
+			if (ownerIdList != null && !ownerIdList.isEmpty()){
 				ownerIdList.remove(commentT.getUserId());
+				ownerIdList.remove(opportunityT.getModifiedBy());
+			}
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
 							.getOpportunityId());
@@ -350,7 +352,7 @@ public class NotificationHelper implements Runnable {
 								commentedEntityType, null, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownerIdList) {
-						if (!commentT.getUserId().equals(recipient)) {
+						if (!commentT.getUserId().equals(recipient) ) {
 							addUserNotifications(msgTemplate, recipient,
 									ownerEventId,
 									getActualEntityType(commentedEntityType),
@@ -1593,11 +1595,11 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
+					userNotificationsTRepository
 							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+//					logger.info(
+//							"User notifications added successfully, notificationId: {}",
+//							notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
@@ -1635,11 +1637,11 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
+					userNotificationsTRepository
 							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+//					logger.info(
+//							"User notifications added successfully, notificationId: {}",
+//							notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
