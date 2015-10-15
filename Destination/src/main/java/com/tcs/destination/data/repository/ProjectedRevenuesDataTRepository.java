@@ -87,7 +87,7 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name and (RCMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
-			+ " where PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " where (PRDT.financial_year = (:financialYear) or (:financialYear)='') and (PRDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " group by GMT.geography"
 			+ " order by actualRevenue desc) Result on GMT.geography = Result.displayGeography"
 			+ " where GMT.display_geography = (:geography) order by revenue desc", nativeQuery = true)
