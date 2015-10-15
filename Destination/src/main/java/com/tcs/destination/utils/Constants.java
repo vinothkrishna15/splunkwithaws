@@ -94,6 +94,8 @@ public class Constants {
 	
 	// Actual Revenues Data template
 	public static final String ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME = "actualRevenueDataTemplate";
+	public static final String ACTUAL_REVENUE_DATA = "Actual Revenue - DATA";
+	public static final String FINANCE_MAP_REF = "Finance Map(Ref)";
 	public static final String CUSTOMER_IOU_MAPPING_REF= "Customer IOU Map(Ref)";
 	public static final String SUB_SP_MAP_REF = "Sub Sp Map(Ref)";
 	//Email subjects
