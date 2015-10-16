@@ -21,9 +21,12 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.service.BeaconCustomerUploadService;
 import com.tcs.destination.service.BeaconDataUploadService;
+import com.tcs.destination.service.BeaconDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
+import com.tcs.destination.service.PartnerDownloadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DateUtils;
 
 /**
  * Controller to handle Customer module related requests.
@@ -50,6 +53,9 @@ public class BeaconController {
 	
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
+	@Autowired
+	BeaconDownloadService beaconDownloadService;
 	
 	/**
 	 * This controller uploads the Beacon Customers to the database
@@ -121,6 +127,21 @@ public class BeaconController {
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment","beacon_data_upload_error.xlsx");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/download", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadBeaconData() throws Exception 
+	{
+		logger.info("Download request Received : docName ");
+		InputStreamResource excelFile = beaconDownloadService.getBeaconData();
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+		String todaysDate = DateUtils.getCurrentDate();
+		logger.info("Download Header - Attachment : " + "Beacon - DATA " + todaysDate + ".xlsm");
+		respHeaders.setContentDispositionFormData("attachment", "Beacon - DATA" + todaysDate + ".xlsm");
+		logger.info("Beacon - DATA Downloaded Successfully ");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
+		
 	}
 	
 
