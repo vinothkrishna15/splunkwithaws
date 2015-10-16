@@ -75,6 +75,7 @@ public class Constants {
 	public static final String TOKEN_ENTITY_TYPE = "entityType";
 	public static final String TOKEN_FROM = "from";
 	public static final String TOKEN_TO = "to";
+	public static final String TOKEN_SUBORDINATE = "subordinate";
 	public static final String DATE_TYPE = "dateType";
 	public static final String DATE = "date";
 	public static final String SALES_STAGE = "sales_stage";

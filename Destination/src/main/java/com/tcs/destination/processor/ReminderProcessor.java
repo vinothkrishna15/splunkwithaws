@@ -29,8 +29,10 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 		logger.debug("Inside process method:");
 		
 		String date = null;
-		String userId = null;
-		String recipient = null;
+		String subordinateId = null;
+		String subordinateName = null;
+		String recipientId= null;
+		String recipientName= null;
 		String entityId = null;
 		String entityName = null;
 		int i = 0;
@@ -45,13 +47,19 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 					entityName = (String)item;
 					break;
 				case 2:
-					recipient = (String)item;
+					recipientId = (String)item;
 					break;
 				case 3:
-					date = DateUtils.convertDtToStringForUser((Date) item);
+					recipientName = (String)item;
 					break;
 				case 4:
-					userId = (String)item;
+					date = DateUtils.convertDtToStringForUser((Date) item);
+					break;
+				case 5:
+					subordinateId = (String)item;
+					break;
+				case 6:
+					subordinateName = (String)item;
 					break;
 				default: break;
 			}
@@ -59,7 +67,7 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 				
 		}
 		
-		return notificationProcessHelper.processNotification(userId, entityType, entityId, entityName, eventId, dateType, date, recipient);
+		return notificationProcessHelper.processNotification(entityType, entityId, entityName, eventId, dateType, date, recipientId, recipientName, subordinateId, subordinateName);
 	}
 
 	public NotificationProcessHelper getNotificationProcessHelper() {
