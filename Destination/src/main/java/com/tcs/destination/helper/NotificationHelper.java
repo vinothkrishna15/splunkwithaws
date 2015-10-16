@@ -280,6 +280,7 @@ public class NotificationHelper implements Runnable {
 					ownerIdList.remove(opportunityT.getModifiedBy());
 					taggedUserList.remove(opportunityT.getModifiedBy());
 				} else {
+					ownerIdList.remove(commentT.getUserId());
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
@@ -301,6 +302,7 @@ public class NotificationHelper implements Runnable {
 					ownerIdList.remove(connectT.getModifiedBy());
 					taggedUserList.remove(connectT.getModifiedBy());
 				} else {
+					ownerIdList.remove(commentT.getUserId());
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
@@ -317,7 +319,6 @@ public class NotificationHelper implements Runnable {
 				ownerIdList.add(taskT.getCreatedBy());
 			if (commentT.getUserT().getUserName()
 					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-				taggedUserList.clear();
 				ownerIdList.clear();
 				// if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				// taggedUserList.removeAll(Collections.singleton(taskT
@@ -377,7 +378,7 @@ public class NotificationHelper implements Runnable {
 						if (!commentT.getUserId().equalsIgnoreCase(recipient))
 							addUserNotifications(msgTemplate, recipient,
 									ownerSupervisorEventId,
-									commentedEntityType, commentedEntityId);
+									getActualEntityType(commentedEntityType), commentedEntityId);
 					}
 				}
 			}
