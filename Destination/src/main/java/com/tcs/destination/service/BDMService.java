@@ -479,7 +479,7 @@ public class BDMService {
     			   countOfOpportunitiesAboveTwentyMillion++;
     		   }
     		  
-    		   if(dealValue > Constants.TEN_MILLION){
+    		   if(dealValue > Constants.TEN_MILLION && dealValue<=Constants.TWENTY_MILLION){
     			   countOfOpportunitiesAboveTenMillion++;
     		   }
     	   }

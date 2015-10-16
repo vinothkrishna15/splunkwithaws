@@ -200,38 +200,51 @@ public class OpportunityService {
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 
-	public List<OpportunityT> findByOpportunityName(String nameWith,
+	public PaginatedResponse findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
-			String userId) throws Exception {
+			String userId, int page, int count) throws Exception {
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count, new Sort(
+				Sort.Direction.DESC, "modifiedDatetime"));
 		logger.debug("Inside findByOpportunityName() service");
 		if (!userId
 				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User Id and Login User detail does not match");
 
-		List<OpportunityT> opportunities = null;
+		Page<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%");
+					.findByOpportunityNameIgnoreCaseLike("%" + nameWith + "%",
+							pageable);
 		} else {
 			opportunities = opportunityRepository
 					.findByOpportunityNameIgnoreCaseLikeAndCustomerId("%"
-							+ nameWith + "%", customerId);
+							+ nameWith + "%", customerId, pageable);
 		}
-		if (opportunities.isEmpty()) {
+		List<OpportunityT> opportunityTs = opportunities.getContent();
+
+		paginatedResponse.setTotalCount(opportunities.getTotalElements());
+
+		if (opportunityTs.isEmpty()) {
 			logger.error(
 					"NOT_FOUND: Opportunities not found with the given name: {}",
 					nameWith);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportunities not found with the given name: " + nameWith);
 		}
-
 		if (!isAjax) {
-			beaconConverterService.convertOpportunityCurrency(opportunities,
+			beaconConverterService.convertOpportunityCurrency(opportunityTs,
 					toCurrency);
-			prepareOpportunity(opportunities);
+			prepareOpportunity(opportunityTs);
+		} else {
+			// Don't perform the check and hide sensitive information without
+			// checking the privilege as it is might reduce te performance.
+			preventSensitiveInfo(opportunityTs);
 		}
-		return opportunities;
+
+		paginatedResponse.setOpportunityTs(opportunityTs);
+		return paginatedResponse;
 	}
 
 	public List<OpportunityT> findRecentOpportunities(String customerId,

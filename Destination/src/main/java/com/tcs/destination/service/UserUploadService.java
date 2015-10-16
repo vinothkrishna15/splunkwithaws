@@ -237,60 +237,58 @@ public class UserUploadService {
 	
 	
 
-	private void populateAndSavePrivileges(Workbook workbook, UserT user, List<UploadServiceErrorDetailsDTO> sheetErrors) {
-		Sheet userPrivilegesSheet = workbook.getSheetAt(3);	
-		
-		Row userPrivilegeRow = getPrivilegeRow(user,userPrivilegesSheet);
-		List<CellModel> privilegeModelList = new ArrayList<CellModel>();
-		if(userPrivilegeRow == null) {
-			logger.info("No Access privileges defined");
-		} else {
-			CellModel parentTypeCellModel = validateEmptyStrAndLength(userPrivilegeRow,FieldValidator.User_PrivilegesT_ParentType,true,"parentPrivilegeType");
-			privilegeModelList.add(parentTypeCellModel);
+    private void populateAndSavePrivileges(Workbook workbook, UserT user, List<UploadServiceErrorDetailsDTO> sheetErrors) {
+    	Sheet userPrivilegesSheet = workbook.getSheetAt(3);	
 
-			CellModel parentValueCellModel = validateEmptyStrAndLengthForPrivilegeValue(userPrivilegeRow,FieldValidator.User_PrivilegesT_ParentValues,true);
-			populateInvalidPrivileges(privilegeModelList,parentValueCellModel,parentTypeCellModel);
+    	List<Row> userPrivilegeRows = getPrivilegeRows(user,userPrivilegesSheet);
+    	if(userPrivilegeRows.isEmpty()){
+    		logger.info("No Access privileges defined");
+    	} else {
+    		for(Row userPrivilegeRow : userPrivilegeRows){
+    			List<CellModel> privilegeModelList = new ArrayList<CellModel>();
 
-			CellModel childTypeCell = validateEmptyStrAndLength(userPrivilegeRow,FieldValidator.User_PrivilegesT_ChildType,false,"childPrivilegeType");
-			privilegeModelList.add(childTypeCell);
+    			CellModel parentTypeCellModel = validateEmptyStrAndLength(userPrivilegeRow,FieldValidator.User_PrivilegesT_ParentType,true,"parentPrivilegeType");
+    			privilegeModelList.add(parentTypeCellModel);
 
-			CellModel childValueCellModel = validateEmptyStrAndLengthForPrivilegeValue(userPrivilegeRow,FieldValidator.User_PrivilegesT_ChildValues,false);
-			populateInvalidPrivileges(privilegeModelList,childValueCellModel,childTypeCell);
+    			CellModel parentValueCellModel = validateEmptyStrAndLengthForPrivilegeValue(userPrivilegeRow,FieldValidator.User_PrivilegesT_ParentValues,true);
+    			populateInvalidPrivileges(privilegeModelList,parentValueCellModel,parentTypeCellModel);
 
-			if(isRowHasErrors(privilegeModelList)){
-				populateErrorListForRow(userPrivilegeRow,sheetErrors,privilegeModelList);
-			} else {
-				List<String> parentValuesList = parentValueCellModel.getCellValues();
-				for(String parentPrivilege : parentValuesList){
-					UserAccessPrivilegesT parentAccessPrivilege = new UserAccessPrivilegesT();
-					parentAccessPrivilege.setPrivilegeType(parentTypeCellModel.getCellValue());
-                    parentAccessPrivilege.setPrivilegeValue(parentPrivilege);
-                    parentAccessPrivilege.setUserId(user.getUserId());
-                    parentAccessPrivilege.setIsactive(Constants.Y);
-                    parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
-                    Integer parentAccessPrivilegeId = parentAccessPrivilege.getPrivilegeId();
-                    logger.info("Parent Privilege saved : Id - " + parentAccessPrivilegeId + ", " + parentTypeCellModel.getCellValue() + " - "+ parentPrivilege);
-                    List<String> childValuesList = childValueCellModel.getCellValues();
-                    for(String childPrivilege : childValuesList){
-                    	UserAccessPrivilegesT childAccessPrivilege = new UserAccessPrivilegesT();
-                    	childAccessPrivilege.setPrivilegeType(childTypeCell.getCellValue());
-                    	childAccessPrivilege.setPrivilegeValue(childPrivilege);
-                    	childAccessPrivilege.setParentPrivilegeId(parentAccessPrivilegeId);
-                    	childAccessPrivilege.setUserId(user.getUserId());
-                    	childAccessPrivilege.setIsactive(Constants.Y);
-                    	childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
-                    	Integer childAccessPrivilegeId = childAccessPrivilege.getPrivilegeId();
-                    	logger.info("Child Privilege saved : Id - " + childAccessPrivilegeId + ", parent Id - " + parentAccessPrivilegeId + ", "+ childTypeCell.getCellValue() + " - "+ childPrivilege);
-                    }
-				}
-				
-				
-			}
+    			CellModel childTypeCell = validateEmptyStrAndLength(userPrivilegeRow,FieldValidator.User_PrivilegesT_ChildType,false,"childPrivilegeType");
+    			privilegeModelList.add(childTypeCell);
 
+    			CellModel childValueCellModel = validateEmptyStrAndLengthForPrivilegeValue(userPrivilegeRow,FieldValidator.User_PrivilegesT_ChildValues,false);
+    			populateInvalidPrivileges(privilegeModelList,childValueCellModel,childTypeCell);
 
-		}
-		
-	}
+    			if(isRowHasErrors(privilegeModelList)){
+    				populateErrorListForRow(userPrivilegeRow,sheetErrors,privilegeModelList);
+    			} else {
+    				List<String> parentValuesList = parentValueCellModel.getCellValues();
+    				for(String parentPrivilege : parentValuesList){
+    					UserAccessPrivilegesT parentAccessPrivilege = new UserAccessPrivilegesT();
+    					parentAccessPrivilege.setPrivilegeType(parentTypeCellModel.getCellValue());
+    					parentAccessPrivilege.setPrivilegeValue(parentPrivilege);
+    					parentAccessPrivilege.setUserId(user.getUserId());
+    					parentAccessPrivilege.setIsactive(Constants.Y);
+    					parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
+    					Integer parentAccessPrivilegeId = parentAccessPrivilege.getPrivilegeId();
+    					logger.info("Parent Privilege saved : Id - " + parentAccessPrivilegeId + ", " + parentTypeCellModel.getCellValue() + " - "+ parentPrivilege);
+    					List<String> childValuesList = childValueCellModel.getCellValues();
+    					for(String childPrivilege : childValuesList){
+    						UserAccessPrivilegesT childAccessPrivilege = new UserAccessPrivilegesT();
+    						childAccessPrivilege.setPrivilegeType(childTypeCell.getCellValue());
+    						childAccessPrivilege.setPrivilegeValue(childPrivilege);
+    						childAccessPrivilege.setParentPrivilegeId(parentAccessPrivilegeId);
+    						childAccessPrivilege.setUserId(user.getUserId());
+    						childAccessPrivilege.setIsactive(Constants.Y);
+    						childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
+    						Integer childAccessPrivilegeId = childAccessPrivilege.getPrivilegeId();
+    						logger.info("Child Privilege saved : Id - " + childAccessPrivilegeId + ", parent Id - " + parentAccessPrivilegeId + ", "+ childTypeCell.getCellValue() + " - "+ childPrivilege);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
 
 	private void populateInvalidPrivileges(List<CellModel> privilegeModelList,
 			CellModel cellModel, CellModel parentTypeCellModel) {
@@ -396,7 +394,7 @@ public class UserUploadService {
 		return values;
 	}
 
-	private Row getPrivilegeRow(UserT user, Sheet userPrivilegesSheet) {
+	private List<Row> getPrivilegeRows(UserT user, Sheet userPrivilegesSheet) {
 		Iterator<Row> userPrivilegesIterator = userPrivilegesSheet.iterator();
 		int lastPrivilegeValidRow = userPrivilegesSheet.getPhysicalNumberOfRows();
 		int privilegeProcessedCount = 1;
@@ -404,17 +402,23 @@ public class UserUploadService {
 		if(userPrivilegesIterator.hasNext()){
 			userPrivilegesIterator.next();
 		}
+		
+		List<Row> userPrivilegeRows = new ArrayList<Row>();
+		
 		while(privilegeProcessedCount < lastPrivilegeValidRow && userPrivilegesIterator.hasNext()){
+			
 			Row privilegeRow = userPrivilegesIterator.next();
 			Cell cell = privilegeRow.getCell(FieldValidator.FIELD_INDEX_MAP.get(FieldValidator.User_PrivilegesT_UserId));
 			String excelStr = validateAndRectifyValue(getIndividualCellValue(cell));
-			if(excelStr.equalsIgnoreCase(user.getUserId())){
+			String action = privilegeRow.getCell(0).getStringCellValue();
+			if(excelStr.equalsIgnoreCase(user.getUserId()) && action.equalsIgnoreCase(Constants.ACTION_ADD)){
 				logger.info("privilege found");
-				return privilegeRow;
+				userPrivilegeRows.add(privilegeRow);
 			}
+			privilegeProcessedCount++;
 		}
 		
-		return null;
+		return userPrivilegeRows;
 	}
 
 	private void populateErrorListForRow(Row userRow,

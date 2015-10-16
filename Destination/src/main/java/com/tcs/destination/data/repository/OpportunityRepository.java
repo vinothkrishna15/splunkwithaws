@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,11 +21,11 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(
 			List<String> opportunityId);
 
-	List<OpportunityT> findByOpportunityNameIgnoreCaseLike(
-			String opportunityname);
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLike(
+			String opportunityname,Pageable page);
 
-	List<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
-			String opportunityname, String customerId);
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
+			String opportunityname, String customerId,Pageable pageable);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
 			String customerId, Date fromDate);
