@@ -267,9 +267,13 @@ public class NotificationHelper implements Runnable {
 					.getOpportunityId());
 			// Don't send notifications to the user who
 			// Commented
-			if (ownerIdList != null && !ownerIdList.isEmpty()){
-				ownerIdList.remove(commentT.getUserId());
-				ownerIdList.remove(opportunityT.getModifiedBy());
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(opportunityT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
 			}
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
@@ -277,10 +281,8 @@ public class NotificationHelper implements Runnable {
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-					ownerIdList.remove(opportunityT.getModifiedBy());
 					taggedUserList.remove(opportunityT.getModifiedBy());
 				} else {
-					ownerIdList.remove(commentT.getUserId());
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
@@ -295,6 +297,17 @@ public class NotificationHelper implements Runnable {
 					.getConnectId());
 			taggedUserList = taggedFollowedRepository
 					.getConnectTaggedFollowedUsers(commentT.getConnectId());
+
+			// Don't send notifications to the user who
+			// Commented
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(connectT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
+			}
 
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
@@ -353,7 +366,7 @@ public class NotificationHelper implements Runnable {
 								commentedEntityType, null, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownerIdList) {
-						if (!commentT.getUserId().equals(recipient) ) {
+						if (!commentT.getUserId().equals(recipient)) {
 							addUserNotifications(msgTemplate, recipient,
 									ownerEventId,
 									getActualEntityType(commentedEntityType),
@@ -378,7 +391,8 @@ public class NotificationHelper implements Runnable {
 						if (!commentT.getUserId().equalsIgnoreCase(recipient))
 							addUserNotifications(msgTemplate, recipient,
 									ownerSupervisorEventId,
-									getActualEntityType(commentedEntityType), commentedEntityId);
+									getActualEntityType(commentedEntityType),
+									commentedEntityId);
 					}
 				}
 			}
@@ -1596,11 +1610,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					userNotificationsTRepository
-							.save(notification);
-//					logger.info(
-//							"User notifications added successfully, notificationId: {}",
-//							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
@@ -1638,11 +1651,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					userNotificationsTRepository
-							.save(notification);
-//					logger.info(
-//							"User notifications added successfully, notificationId: {}",
-//							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
