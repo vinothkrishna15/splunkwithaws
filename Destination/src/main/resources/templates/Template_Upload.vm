@@ -1,0 +1,19 @@
+<html>
+	<body>
+		<h3>Dear ${userName},</h3>
+		<p>
+		Your ${entity} upload file "${fileName}" submitted on ${submittedDate} is processed.
+		</p>
+		<p>
+		Please refer the attached error report for the data issues.
+		</p>
+		<p>
+		Regards,<br>
+		Destination Team.
+		<p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

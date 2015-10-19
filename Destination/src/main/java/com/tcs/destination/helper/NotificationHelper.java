@@ -1,7 +1,11 @@
 package com.tcs.destination.helper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,6 +71,8 @@ public class NotificationHelper implements Runnable {
 
 	private static final String TOKEN_SALES_STAGE = "sales_stage";
 
+	private static final String TOKEN_PARENT_ENTITY_NAME = "parentEntityName";
+
 	private Object oldObject;
 	private String entityId;
 	private String entityType;
@@ -85,7 +91,7 @@ public class NotificationHelper implements Runnable {
 	private FollowedService followService;
 	private UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 	private SearchKeywordsRepository searchKeywordsRepository;
-	private AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository;
+	private AutoCommentsEntityTRepository autoCommentsEntityTRepository;
 
 	public Object getOldObject() {
 		return oldObject;
@@ -261,15 +267,20 @@ public class NotificationHelper implements Runnable {
 					.getOpportunityId());
 			// Don't send notifications to the user who
 			// Commented
-			if (ownerIdList != null && !ownerIdList.isEmpty())
-				ownerIdList.remove(commentT.getUserId());
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(opportunityT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
+			}
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
 							.getOpportunityId());
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-					ownerIdList.remove(opportunityT.getModifiedBy());
 					taggedUserList.remove(opportunityT.getModifiedBy());
 				} else {
 					taggedUserList.remove(commentT.getUserId());
@@ -287,17 +298,29 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getConnectTaggedFollowedUsers(commentT.getConnectId());
 
+			// Don't send notifications to the user who
+			// Commented
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(connectT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
+			}
+
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 					ownerIdList.remove(connectT.getModifiedBy());
 					taggedUserList.remove(connectT.getModifiedBy());
 				} else {
+					ownerIdList.remove(commentT.getUserId());
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
 		} else if (commentT.getTaskId() != null
-				&& (!commentT.getOpportunityId().isEmpty())) {
+				&& (!commentT.getTaskId().isEmpty())) {
 			TaskT taskT = taskRepository.findOne(commentT.getTaskId());
 			commentedEntityName = taskT.getTaskDescription();
 			commentedEntityType = Constants.TASK;
@@ -305,18 +328,27 @@ public class NotificationHelper implements Runnable {
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
 			taggedUserList = taggedFollowedRepository
 					.getTasksTaggedFollowedUsers(commentT.getTaskId());
-			if (taggedUserList != null && !taggedUserList.isEmpty()) {
-				if (commentT.getUserT().getUserName()
-						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-					ownerIdList.remove(taskT.getModifiedBy());
-					taggedUserList.remove(taskT.getModifiedBy());
-				} else {
-					taggedUserList.remove(commentT.getUserId());
-				}
+			if (!ownerIdList.contains(taskT.getCreatedBy()))
+				ownerIdList.add(taskT.getCreatedBy());
+			if (commentT.getUserT().getUserName()
+					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+				ownerIdList.clear();
+				// if (taggedUserList != null && !taggedUserList.isEmpty()) {
+				// taggedUserList.removeAll(Collections.singleton(taskT
+				// .getModifiedBy()));
+				// }
+				// ownerIdList.removeAll(Collections.singleton(taskT
+				// .getModifiedBy()));
+			} else {
+				taggedUserList.removeAll(Collections.singleton(commentT
+						.getUserId()));
+				ownerIdList.removeAll(Collections.singleton(commentT
+						.getUserId()));
 			}
 		}
 
 		{
+
 			if (commentT.getUserT().getUserName()
 					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 				ownerMessageTemplate = commentT.getComments().replace(
@@ -331,7 +363,7 @@ public class NotificationHelper implements Runnable {
 						ownerMessageTemplate,
 						populateTokens(commentT.getUserT().getUserName(),
 								commentedEntityName, null, null,
-								commentedEntityType, null, null, null));
+								commentedEntityType, null, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownerIdList) {
 						if (!commentT.getUserId().equals(recipient)) {
@@ -353,13 +385,14 @@ public class NotificationHelper implements Runnable {
 						ownersSupervisorMessageTemplate,
 						populateTokens(commentT.getUserT().getUserName(),
 								commentedEntityName, null, null,
-								commentedEntityType, null, null, null));
+								commentedEntityType, null, null, null, null));
 				if (msgTemplate != null) {
 					for (String recipient : ownersSupervisorIds) {
 						if (!commentT.getUserId().equalsIgnoreCase(recipient))
 							addUserNotifications(msgTemplate, recipient,
 									ownerSupervisorEventId,
-									commentedEntityType, commentedEntityId);
+									getActualEntityType(commentedEntityType),
+									commentedEntityId);
 					}
 				}
 			}
@@ -370,14 +403,15 @@ public class NotificationHelper implements Runnable {
 						taggedFollowedMessageTemplate,
 						populateTokens(commentT.getUserT().getUserName(),
 								commentedEntityName, null, null,
-								commentedEntityType, null, null, null));
+								commentedEntityType, null, null, null, null));
 				logger.error("tagged : " + taggedUserList.size());
 				if (msgTemplate != null) {
 					for (String recipient : taggedUserList) {
 						logger.error(msgTemplate + " is sent to " + recipient
 								+ " for event " + taggedEventId);
 						addUserNotifications(msgTemplate, recipient,
-								taggedEventId, commentedEntityType,
+								taggedEventId,
+								getActualEntityType(commentedEntityType),
 								commentedEntityId);
 					}
 				}
@@ -421,7 +455,8 @@ public class NotificationHelper implements Runnable {
 		String user = null;
 		String entityName = null;
 		String msgTemplate = null;
-		String recipient = null;
+		String addRecipient = null;
+		String removeReceipient = null;
 		Object dbObject = NotificationsLazyLoader.loadLazyCollections(entityId,
 				entityType, crudRepository,
 				notificationsEventFieldsTRepository, entityManagerFactory);
@@ -458,34 +493,60 @@ public class NotificationHelper implements Runnable {
 											.toString();
 									if (!oldValue.equalsIgnoreCase(newValue)) {
 										// Get notification recipient user id
-										recipient = (String) PropertyUtils
+										addRecipient = (String) PropertyUtils
 												.getProperty(
 														connect,
 														notificationField
 																.getUseridField());
+										// Sending Removed Notification for
+										// Primary Owner
+										if (notificationField.getFieldId() == 101) {
+											removeReceipient = oldValue;
+										}
 									} else {
 										continue;
 									}
 								} else {
 									// Get notification recipient user id
-									recipient = (String) PropertyUtils
+									addRecipient = (String) PropertyUtils
 											.getProperty(connect,
 													notificationField
 															.getUseridField());
 								}
 
-								msgTemplate = replaceTokens(
-										notificationField.getMessageTemplate(),
-										populateTokens(user, entityName, null,
-												null, null, null, null, null));
-								if (msgTemplate != null) {
-									if (!connect.getModifiedBy()
-													.equals(recipient))
+								if (!connect.getModifiedBy().equals(
+										addRecipient)) {
+									msgTemplate = replaceTokens(
+											notificationField
+													.getMessageTemplate(),
+											populateTokens(user, entityName,
+													null, null, null, null,
+													"added", null, null));
+									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
-												recipient,
+												addRecipient,
 												notificationField
 														.getNotificationEventId());
+									}
+								}
+
+								if (!connect.getModifiedBy().equals(
+										removeReceipient)) {
+
+									msgTemplate = replaceTokens(
+											notificationField
+													.getMessageTemplate(),
+											populateTokens(user, entityName,
+													null, null, null, null,
+													"removed", null, null));
+									if (msgTemplate != null) {
+										addUserNotifications(
+												msgTemplate,
+												removeReceipient,
+												notificationField
+														.getNotificationEventId());
+									}
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -532,35 +593,60 @@ public class NotificationHelper implements Runnable {
 															.getFieldName())
 											.toString();
 									if (!oldValue.equalsIgnoreCase(newValue)) {
-										// Get notification recipient user id
-										recipient = (String) PropertyUtils
+										addRecipient = (String) PropertyUtils
 												.getProperty(
 														opportunity,
 														notificationField
 																.getUseridField());
+										// Sending Removed Notification for
+										// Primary Owner
+										if (notificationField.getFieldId() == 201) {
+											removeReceipient = oldValue;
+										}
 									} else {
 										continue;
 									}
 								} else {
 									// Get notification recipient user id
-									recipient = (String) PropertyUtils
+									addRecipient = (String) PropertyUtils
 											.getProperty(opportunity,
 													notificationField
 															.getUseridField());
 								}
 
-								msgTemplate = replaceTokens(
-										notificationField.getMessageTemplate(),
-										populateTokens(user, entityName, null,
-												null, null, null, null, null));
-								if (msgTemplate != null) {
-									if (!opportunity.getModifiedBy()
-													.equals(recipient))
+								if (!opportunity.getModifiedBy().equals(
+										addRecipient)) {
+									msgTemplate = replaceTokens(
+											notificationField
+													.getMessageTemplate(),
+											populateTokens(user, entityName,
+													null, null, null, null,
+													"added", null, null));
+									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
-												recipient,
+												addRecipient,
 												notificationField
 														.getNotificationEventId());
+									}
+								}
+
+								if (!opportunity.getModifiedBy().equals(
+										removeReceipient)) {
+
+									msgTemplate = replaceTokens(
+											notificationField
+													.getMessageTemplate(),
+											populateTokens(user, entityName,
+													null, null, null, null,
+													"removed", null, null));
+									if (msgTemplate != null) {
+										addUserNotifications(
+												msgTemplate,
+												removeReceipient,
+												notificationField
+														.getNotificationEventId());
+									}
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -576,15 +662,17 @@ public class NotificationHelper implements Runnable {
 						// Send Win or lost notifications
 						sendNotificationWhenSubordinateOwnedOpportunitiesWonOrLost(opportunity);
 
-						// Send Notification for Digital Re-imagination
-						followDigitalReimaginationOpportunities(opportunity);
-
-						// Send Notification for Strategic Initiatives
-						followStategicInitiativeOpportunities(opportunity);
-
-						// Send Notification for Strategic Initiatives
-						if (oldObject == null)
+						if (oldObject == null) {
+							// Send Notification for users selected customers,
+							// IOU , Geo ,Digital deal value...
 							notifyNewDesiredOpportunities(opportunity);
+
+							// Send Notification for Digital Re-imagination
+							notifyNewDigitalReimaginationOpportunities(opportunity);
+
+							// Send Notification for Strategic Initiatives
+							notifyNewStategicInitiativeOpportunities(opportunity);
+						}
 
 					} else {
 						logger.error("Invalid Opportunity Id: {}", entityId);
@@ -594,6 +682,7 @@ public class NotificationHelper implements Runnable {
 					break;
 				}
 				case TASK: {
+					List<String> taskOwners = new ArrayList<String>();
 					logger.debug(
 							"Processing Notifications for Add, TaskId: {}",
 							entityId);
@@ -621,41 +710,65 @@ public class NotificationHelper implements Runnable {
 											.toString();
 									if (!oldValue.equalsIgnoreCase(newValue)) {
 										// Get notification recipient user id
-										recipient = (String) PropertyUtils
-												.getProperty(
-														task,
-														notificationField
-																.getUseridField());
+										taskOwners = ((TaskRepository) crudRepository)
+												.findOwnersOfTask(entityId);
+										taskOwners.add(task.getCreatedBy());
+										// Sending Removed Notification for
+										// Primary Owner
+										if (notificationField.getFieldId() == 301) {
+											removeReceipient = oldValue;
+										}
 									} else {
 										continue;
 									}
 								} else {
 									// Get notification recipient user id
-									if (!notificationField.getUseridField()
-											.equalsIgnoreCase(
-													"targetDateForCompletion")) {
-										recipient = (String) PropertyUtils
-												.getProperty(
-														task,
-														notificationField
-																.getUseridField());
+									if (notificationField
+											.getNotificationEventId() != 4) {
+										taskOwners = ((TaskRepository) crudRepository)
+												.findOwnersOfTask(entityId);
+										taskOwners.add(task.getCreatedBy());
 									} else {
 
 									}
 								}
+								Set<String> taskOwnerSet = new HashSet<String>(
+										taskOwners);
+								for (String recipient : taskOwnerSet) {
+									if (!task.getModifiedBy().equals(recipient)) {
+										msgTemplate = replaceTokens(
+												notificationField
+														.getMessageTemplate(),
+												populateTokens(user,
+														entityName, null, null,
+														null, null, "added",
+														null, null));
+										if (msgTemplate != null) {
+											addUserNotifications(
+													msgTemplate,
+													recipient,
+													notificationField
+															.getNotificationEventId());
+										}
+									}
+								}
 
-								msgTemplate = replaceTokens(
-										notificationField.getMessageTemplate(),
-										populateTokens(user, entityName, null,
-												null, null, null, null, null));
-								if (msgTemplate != null) {
-									if (!task.getModifiedBy().equals(
-													recipient))
+								if (!task.getModifiedBy().equals(
+										removeReceipient)) {
+
+									msgTemplate = replaceTokens(
+											notificationField
+													.getMessageTemplate(),
+											populateTokens(user, entityName,
+													null, null, null, null,
+													"removed", null, null));
+									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
-												recipient,
+												removeReceipient,
 												notificationField
 														.getNotificationEventId());
+									}
 								}
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
@@ -683,7 +796,6 @@ public class NotificationHelper implements Runnable {
 
 	private void notifyNewDesiredOpportunities(OpportunityT opportunity)
 			throws Exception {
-		// TODO: User Notification Settings Condition Update
 		String customerName = opportunity.getCustomerMasterT()
 				.getCustomerName();
 		List<String> searchKeywords = searchKeywordsRepository
@@ -724,29 +836,41 @@ public class NotificationHelper implements Runnable {
 
 		List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
 				.getAllOwners(opportunity.getOpportunityId());
-		for (String userId : userIds) {
+		int eventId = 10;
+		int fieldId = 201;
+		String messageTemplate = notificationEventGroupMappingTRepository
+				.findByEventId(eventId).get(0).getMessageTemplate();
+		notifyForNewOpportunities(opportunity, userIds, opportunityOwners,
+				eventId, fieldId, messageTemplate);
+
+	}
+
+	private void notifyForNewOpportunities(OpportunityT opportunity,
+			Set<String> notifyUserIds, List<String> opportunityOwners,
+			int eventId, int fieldId, String addMessageTemplate)
+			throws Exception {
+		for (String userId : notifyUserIds) {
 			if ((!opportunityOwners.contains(userId))
 					&& (!opportunity.getCreatedBy().equals(userId))) {
-				String addMessageTemplate = autoCommentsEntityFieldsTRepository
-						.findOne(105).getAddMessageTemplate();
+				// autoCommentsEntityTRepository
+				// .findOne(fieldId).getAddMessageTemplate();
 				String notificationMessage = replaceTokens(
 						addMessageTemplate,
 						populateTokens(opportunity.getCreatedByUser()
 								.getUserName(), opportunity
 								.getOpportunityName(), null, null, null, null,
-								null, null));
+								null, null, opportunity.getCustomerMasterT()
+										.getCustomerName()));
 				notificationMessage = notificationMessage.replace(
 						"[Auto Comment]: ", "");
-				addUserNotifications(notificationMessage, userId, 10,
+				addUserNotifications(notificationMessage, userId, eventId,
 						EntityType.OPPORTUNITY.name(),
 						opportunity.getOpportunityId());
 			}
 		}
-
 	}
 
 	private void notifyNewDesiredConnects(ConnectT connectT) throws Exception {
-		// TODO: User Notification Settings Condition Update
 		String customerName = connectT.getCustomerMasterT().getCustomerName();
 		List<String> searchKeywords = searchKeywordsRepository
 				.findSearchKeywordsByEntityTypeAndEntityId(
@@ -779,23 +903,31 @@ public class NotificationHelper implements Runnable {
 
 		List<String> connectOwners = ((ConnectRepository) crudRepository)
 				.findOwnersOfConnect(connectT.getConnectId());
-		for (String userId : userIds) {
+		int fieldId = 101;
+		int eventId = 10;
+		notifyForNewConnects(connectT, userIds, connectOwners, fieldId, eventId);
+
+	}
+
+	private void notifyForNewConnects(ConnectT connectT,
+			Set<String> notifyUserIds, List<String> connectOwners, int fieldId,
+			int eventId) throws Exception {
+		for (String userId : notifyUserIds) {
 			if ((!connectOwners.contains(userId))
 					&& (!connectT.getCreatedBy().equals(userId))) {
-				String addMessageTemplate = autoCommentsEntityFieldsTRepository
-						.findOne(209).getAddMessageTemplate();
+				String addMessageTemplate = autoCommentsEntityTRepository
+						.findOne(fieldId).getAddMessageTemplate();
 				String notificationMessage = replaceTokens(
 						addMessageTemplate,
 						populateTokens(connectT.getCreatedByUser()
 								.getUserName(), connectT.getConnectName(),
-								null, null, null, null, null, null));
+								null, null, null, null, null, null, null));
 				notificationMessage = notificationMessage.replace(
 						"[Auto Comment]: ", "");
-				addUserNotifications(notificationMessage, userId, 10,
+				addUserNotifications(notificationMessage, userId, eventId,
 						EntityType.CONNECT.name(), connectT.getConnectId());
 			}
 		}
-
 	}
 
 	private void addToList(Set<String> mainList, Set<String> listToBeAdded) {
@@ -806,50 +938,42 @@ public class NotificationHelper implements Runnable {
 
 	}
 
-	private void followDigitalReimaginationOpportunities(
+	private void notifyNewDigitalReimaginationOpportunities(
 			OpportunityT opportunity) throws Exception {
+		int eventId = 15;
+		int fieldId = 201;
 		if (opportunity.getDigitalFlag() != null)
 			if (opportunity.getDigitalFlag().equals("Y")) {
 				List<String> owners = ((OpportunityRepository) crudRepository)
 						.getAllOwners(opportunity.getOpportunityId());
 				List<String> userIds = userRepository
 						.getSupervisorUserId(owners);
-				followOpportunity(opportunity, userIds);
+				List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
+						.getAllOwners(entityId);
+				String messageTemplate = notificationEventGroupMappingTRepository
+						.findByEventId(eventId).get(0).getMessageTemplate();
+				notifyForNewOpportunities(opportunity, new HashSet<String>(
+						userIds), opportunityOwners, eventId, fieldId,
+						messageTemplate);
 			}
 	}
 
-	private void followOpportunity(OpportunityT opportunity,
-			List<String> userIds) throws Exception {
-		for (String userId : userIds) {
-			UserTaggedFollowedT followed = new UserTaggedFollowedT();
-			followed.setOpportunityId(opportunity.getOpportunityId());
-			followed.setEntityType(EntityType.OPPORTUNITY.name());
-			followed.setUserId(userId);
-			followed.setCreatedModifiedBy(Constants.SYSTEM_USER);
-			followService.addFollow(followed);
-		}
-	}
-
-	private void followOpportunity(OpportunityT opportunity, Set<String> userIds)
-			throws Exception {
-		for (String userId : userIds) {
-			UserTaggedFollowedT followed = new UserTaggedFollowedT();
-			followed.setOpportunityId(opportunity.getOpportunityId());
-			followed.setEntityType(EntityType.OPPORTUNITY.name());
-			followed.setCreatedModifiedBy(Constants.SYSTEM_USER);
-			followed.setUserId(userId);
-			followService.addFollow(followed);
-		}
-	}
-
-	private void followStategicInitiativeOpportunities(OpportunityT opportunity)
-			throws Exception {
+	private void notifyNewStategicInitiativeOpportunities(
+			OpportunityT opportunity) throws Exception {
+		int eventId = 16;
+		int fieldId = 201;
 		if (opportunity.getStrategicInitiative() != null)
 			if (opportunity.getStrategicInitiative().equals("YES")) {
 				List<String> userIds = userRepository
 						.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
 								.toString());
-				followOpportunity(opportunity, userIds);
+				List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
+						.getAllOwners(entityId);
+				String messageTemplate = notificationEventGroupMappingTRepository
+						.findByEventId(eventId).get(0).getMessageTemplate();
+				notifyForNewOpportunities(opportunity, new HashSet<String>(
+						userIds), opportunityOwners, eventId, fieldId,
+						messageTemplate);
 			}
 	}
 
@@ -908,12 +1032,12 @@ public class NotificationHelper implements Runnable {
 			supervisorOwnerWonOrLost = replaceTokens(
 					notificationTemplate,
 					populateTokens(userNames, opportunity.getOpportunityName(),
-							null, null, null, null, "won", null));
+							null, null, null, null, "won", null, null));
 		} else if (opportunity.getSalesStageCode() == 10) {
 			supervisorOwnerWonOrLost = replaceTokens(
 					notificationTemplate,
 					populateTokens(userNames, opportunity.getOpportunityName(),
-							null, null, null, null, "lost", null));
+							null, null, null, null, "lost", null, null));
 		}
 		List<String> supervisorIdList = userRepository
 				.getSupervisorUserId(userIds);
@@ -953,7 +1077,8 @@ public class NotificationHelper implements Runnable {
 					notificationTemplate,
 					populateTokens(connect.getPrimaryOwnerUser().getUserName(),
 							connect.getConnectName(), null, null,
-							Constants.CONNECT, "Primary Owner", null, null));
+							Constants.CONNECT, "Primary Owner", null, null,
+							null));
 			if (supervisorOwner != null) {
 				addUserNotifications(supervisorOwner, connect
 						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
@@ -974,7 +1099,7 @@ public class NotificationHelper implements Runnable {
 									.getSecondaryOwnerUser().getUserName(),
 									connect.getConnectName(), null, null,
 									EntityType.CONNECT.name(),
-									"Secondary Owner", null, null));
+									"Secondary Owner", null, null, null));
 					if (supervisorOwner != null) {
 						addUserNotifications(supervisorOwner,
 								connectSecondaryOwnerLinkT
@@ -1013,7 +1138,7 @@ public class NotificationHelper implements Runnable {
 					notificationTemplate,
 					populateTokens(taskT.getTaskOwnerT().getUserName(),
 							taskT.getTaskDescription(), null, null,
-							Constants.TASK, "Primary Owner", null, null));
+							Constants.TASK, "Primary Owner", null, null, null));
 			if (supervisorOwner != null) {
 				addUserNotifications(supervisorOwner, taskT.getTaskOwnerT()
 						.getSupervisorUserId(), 11, EntityType.TASK.name(),
@@ -1032,7 +1157,7 @@ public class NotificationHelper implements Runnable {
 							populateTokens(taskBdmsTaggedLinkT.getUserT()
 									.getUserName(), taskT.getTaskDescription(),
 									null, null, EntityType.TASK.name(),
-									"Secondary Owner", null, null));
+									"Secondary Owner", null, null, null));
 					if (supervisorOwner != null) {
 						addUserNotifications(supervisorOwner,
 								taskBdmsTaggedLinkT.getUserT()
@@ -1080,7 +1205,7 @@ public class NotificationHelper implements Runnable {
 					populateTokens(opportunity.getPrimaryOwnerUser()
 							.getUserName(), opportunity.getOpportunityName(),
 							null, null, Constants.OPPORTUNITY, "Primary Owner",
-							null, null));
+							null, null, null));
 			if (supervisorOwner != null) {
 				addUserNotifications(supervisorOwner, opportunity
 						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
@@ -1102,7 +1227,7 @@ public class NotificationHelper implements Runnable {
 									.getSalesSupportOwnerUser().getUserName(),
 									opportunity.getOpportunityName(), null,
 									null, EntityType.OPPORTUNITY.name(),
-									"Sales Support Owner", null, null));
+									"Sales Support Owner", null, null, null));
 					if (supervisorOwner != null) {
 						addUserNotifications(supervisorOwner,
 								opportunitySalesSupportLinkT
@@ -1131,7 +1256,8 @@ public class NotificationHelper implements Runnable {
 											.getUserName(), opportunity
 											.getOpportunityName(), null, null,
 											EntityType.OPPORTUNITY.name(),
-											"Bid Office Owner", null, null));
+											"Bid Office Owner", null, null,
+											null));
 							if (supervisorOwner != null) {
 								addUserNotifications(supervisorOwner,
 										bidOfficeGroupOwnerLinkT
@@ -1152,7 +1278,6 @@ public class NotificationHelper implements Runnable {
 			NotificationEventFieldsT notificationField, Object oldObj,
 			Object newObj) throws Exception {
 		logger.debug("Inside processCollections() method");
-		;
 		Object beforeUpdate = null;
 		Object afterUpdate = null;
 
@@ -1185,7 +1310,6 @@ public class NotificationHelper implements Runnable {
 				// All db values were deleted during update
 				if (afterUpdate == null) {
 					logger.debug("All db values before update were deleted during update");
-					return;
 				}
 			}
 
@@ -1272,50 +1396,25 @@ public class NotificationHelper implements Runnable {
 										afterUpdateObject,
 										eventField.getUseridField());
 							}
+
 							// Add Notification with the message template
 							msgTemplate = replaceTokens(
 									eventField.getMessageTemplate(),
 									populateTokens(user, entityName, null,
-											null, null, null, null, null));
-							if (msgTemplate != null) {
-								if (newObj instanceof OpportunityT) {
-									OpportunityT opportunityT = (OpportunityT) newObj;
-									if (((opportunityT.getModifiedBy() != null) && (!opportunityT
-											.getModifiedBy().equals(recipient)))
-											|| (!opportunityT.getCreatedBy()
-													.equals(recipient)))
-										addUserNotifications(
-												msgTemplate,
-												recipient,
-												eventField
-														.getNotificationEventId());
-								} else if (newObj instanceof ConnectT) {
-									ConnectT connectT = (ConnectT) newObj;
-									if (((connectT.getModifiedBy() != null) && (!connectT
-											.getModifiedBy().equals(recipient)))
-											|| (!connectT.getCreatedBy()
-													.equals(recipient)))
-										addUserNotifications(
-												msgTemplate,
-												recipient,
-												eventField
-														.getNotificationEventId());
-								} else if (newObj instanceof TaskT) {
-									TaskT taskT = (TaskT) newObj;
-									if (((taskT.getModifiedBy() != null) && (!taskT
-											.getModifiedBy().equals(recipient)))
-											|| (!taskT.getCreatedBy().equals(
-													recipient)))
-										addUserNotifications(
-												msgTemplate,
-												recipient,
-												eventField
-														.getNotificationEventId());
-								}
-
-							}
+											null, null, null, "added", null,
+											null));
+							sendNotificationForCollections(newObj, recipient,
+									msgTemplate, eventField);
 						}
 					}
+					// Secondary owners are removed
+					List<Object> afterUpdateObjectList = null;
+					if (afterUpdate != null)
+						afterUpdateObjectList = (List<Object>) afterUpdate;
+					sendRemovedNotificationToSecondaryOwners(user, entityName,
+							notificationField, newObj, afterUpdate,
+							beforeObjectMap, msgTemplate, eventField,
+							afterUpdateObjectList);
 				} else if (fieldType.equalsIgnoreCase(Constants.COLLECTION)) {
 					// Process inner collections
 					if (afterUpdate != null) {
@@ -1346,12 +1445,100 @@ public class NotificationHelper implements Runnable {
 		}
 	}
 
+	private void sendRemovedNotificationToSecondaryOwners(String user,
+			String entityName, NotificationEventFieldsT notificationField,
+			Object newObj, Object afterUpdate,
+			HashMap<String, Object> beforeObjectMap, String msgTemplate,
+			NotificationEventFieldsT eventField,
+			List<Object> afterUpdateObjectList) throws IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, Exception {
+		if (Arrays.asList(103, 203, 206, 311).contains(eventField.getFieldId())
+				&& beforeObjectMap != null) {
+			HashMap<String, Object> afterObjectMap = new HashMap<String, Object>();
+			if (afterUpdate != null) {
+				String key = null;
+				logger.debug("fromObjectList collection size: {}",
+						afterUpdateObjectList.size());
+				for (Object afterTempUpdateObject : afterUpdateObjectList) {
+					key = PropertyUtils.getProperty(afterTempUpdateObject,
+							notificationField.getPrimaryKeyField()).toString();
+					logger.info("Key ID: {}", key);
+					afterObjectMap.put(key, afterTempUpdateObject);
+				}
+				logger.debug("afterObjectMap size: {}", afterObjectMap.size());
+			}
+
+			for (String key : beforeObjectMap.keySet()) {
+				if (!afterObjectMap.containsKey(key)) {
+					String deleteRecipient = null;
+					switch (eventField.getFieldId()) {
+					case 103:
+						deleteRecipient = ((ConnectSecondaryOwnerLinkT) beforeObjectMap
+								.get(key)).getSecondaryOwner();
+						break;
+					case 203:
+						deleteRecipient = ((OpportunitySalesSupportLinkT) beforeObjectMap
+								.get(key)).getSalesSupportOwner();
+
+						break;
+					case 206:
+						deleteRecipient = ((BidOfficeGroupOwnerLinkT) beforeObjectMap
+								.get(key)).getBidOfficeGroupOwner();
+						break;
+					case 311:
+						deleteRecipient = ((TaskBdmsTaggedLinkT) beforeObjectMap
+								.get(key)).getBdmsTagged();
+						break;
+					}
+					// Add Notification with the message
+					// template
+					msgTemplate = replaceTokens(
+							eventField.getMessageTemplate(),
+							populateTokens(user, entityName, null, null, null,
+									null, "removed", null, null));
+					sendNotificationForCollections(newObj, deleteRecipient,
+							msgTemplate, eventField);
+				}
+			}
+		}
+	}
+
+	private void sendNotificationForCollections(Object newObj,
+			String recipient, String msgTemplate,
+			NotificationEventFieldsT eventField) throws Exception {
+		if (msgTemplate != null) {
+			if (newObj instanceof OpportunityT || newObj instanceof BidDetailsT) {
+				OpportunityT opportunityT = (OpportunityT) newObj;
+				if (((opportunityT.getModifiedBy() != null) && (!opportunityT
+						.getModifiedBy().equals(recipient)))
+						|| (!opportunityT.getCreatedBy().equals(recipient)))
+					addUserNotifications(msgTemplate, recipient,
+							eventField.getNotificationEventId());
+			} else if (newObj instanceof ConnectT) {
+				ConnectT connectT = (ConnectT) newObj;
+				if (((connectT.getModifiedBy() != null) && (!connectT
+						.getModifiedBy().equals(recipient)))
+						|| (!connectT.getCreatedBy().equals(recipient)))
+					addUserNotifications(msgTemplate, recipient,
+							eventField.getNotificationEventId());
+			} else if (newObj instanceof TaskT) {
+				TaskT taskT = (TaskT) newObj;
+				if (((taskT.getModifiedBy() != null) && (!taskT.getModifiedBy()
+						.equals(recipient)))
+						|| (!taskT.getCreatedBy().equals(recipient)))
+					addUserNotifications(msgTemplate, recipient,
+							eventField.getNotificationEventId());
+			}
+
+		}
+	}
+
 	// This method is used to populate the replacement tokens in the auto
 	// comments message template
 	private HashMap<String, String> populateTokens(String user,
 			String entityName, String from, String to, String entityType,
-			String ownership, String status, String salesStageDesc)
-			throws Exception {
+			String ownership, String status, String salesStageDesc,
+			String parentEntityName) throws Exception {
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
 		if (user != null)
@@ -1370,6 +1557,8 @@ public class NotificationHelper implements Runnable {
 			tokensMap.put(TOKEN_STATUS, status);
 		if (salesStageDesc != null)
 			tokensMap.put(TOKEN_SALES_STAGE, salesStageDesc);
+		if (parentEntityName != null)
+			tokensMap.put(TOKEN_PARENT_ENTITY_NAME, parentEntityName);
 		return tokensMap;
 	}
 
@@ -1421,11 +1610,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
-							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
@@ -1463,11 +1651,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
-							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
@@ -1527,9 +1714,8 @@ public class NotificationHelper implements Runnable {
 
 	}
 
-	public void setAutoCommentsEntityFieldsTRepository(
-			AutoCommentsEntityFieldsTRepository autoCommentsEntityFieldsTRepository) {
-		this.autoCommentsEntityFieldsTRepository = autoCommentsEntityFieldsTRepository;
-
+	public void setAutoCommentsEntityTRepository(
+			AutoCommentsEntityTRepository autoCommentsEntityTRepository) {
+		this.autoCommentsEntityTRepository = autoCommentsEntityTRepository;
 	}
 }

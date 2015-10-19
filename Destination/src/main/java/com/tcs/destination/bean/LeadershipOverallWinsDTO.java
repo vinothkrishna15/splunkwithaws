@@ -22,6 +22,8 @@ public class LeadershipOverallWinsDTO implements Serializable {
     private LeadershipWinsDTO leadershipWinsAboveFiveMillions;
     
     private LeadershipWinsDTO leadershipWinsAboveOneMillion;
+    
+    private LeadershipWinsDTO leadershipWinsUptoOneMillion;
 
     public LeadershipWinsDTO getLeadershipWins() {
         return leadershipWins;
@@ -47,6 +49,15 @@ public class LeadershipOverallWinsDTO implements Serializable {
     public void setLeadershipWinsAboveOneMillion(
     	LeadershipWinsDTO leadershipWinsAboveOneMillion) {
         this.leadershipWinsAboveOneMillion = leadershipWinsAboveOneMillion;
+    }
+    
+    public LeadershipWinsDTO getLeadershipWinsUptoOneMillion() {
+        return leadershipWinsUptoOneMillion;
+    }
+
+    public void setLeadershipWinsUptoOneMillion(
+    	LeadershipWinsDTO leadershipWinsUptoOneMillion) {
+        this.leadershipWinsUptoOneMillion = leadershipWinsUptoOneMillion;
     }
     
 

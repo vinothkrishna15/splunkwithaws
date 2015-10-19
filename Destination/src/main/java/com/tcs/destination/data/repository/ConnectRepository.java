@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
@@ -450,4 +451,16 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("toDate") Timestamp toDate,
 			@Param("customerId") String customerId,
 			@Param("partnerId") String partnerId);
+	
+	@Query(value = " select sum(PCOUNT) from (select distinct connect_id, SUM((connectsCount)) as PCOUNT from ( "
+			+ " select c.connect_id , count(c.connect_id) as connectsCount "
+			+ " from connect_t c where primary_owner in (:userIds) and start_datetime_of_connect between (:fromDate) and (:toDate) "
+			+ " group by c.connect_id union select distinct CSOL.connect_id, count(CSOL.connect_id) as connectsCount from connect_t c " 
+			+ " JOIN connect_secondary_owner_link_t CSOL ON c.connect_id=CSOL.connect_id where secondary_owner in (:userIds) and "
+			+ " start_datetime_of_connect between (:fromDate) and (:toDate)  group by CSOL.connect_id ) " 
+			+ " AS ConnectsCount GROUP BY connect_id ) as connectsSupported ", nativeQuery = true)
+	BigInteger getTotalConnectsSupported(
+			@Param("userIds") List<String> userIds, 
+			@Param("fromDate") Timestamp fromDate, 
+			@Param("toDate") Timestamp toDate);
 }

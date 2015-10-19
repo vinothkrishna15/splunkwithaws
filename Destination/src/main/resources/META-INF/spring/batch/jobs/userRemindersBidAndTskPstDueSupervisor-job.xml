@@ -29,6 +29,9 @@
 				commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip"/>
 			</batch:tasklet>
 		</batch:step>
+		<batch:listeners>
+			<batch:listener ref= "destinationStpListener"/>
+		</batch:listeners>
 	</batch:job>
 	
 	<!-- Readers -->

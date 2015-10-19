@@ -74,28 +74,32 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			SXSSFRow row, SXSSFRow row1, SXSSFSheet spreadSheet,
 			List<String> currencyList, String currentFinancialYear, List<String> fields) {
 		int columnValue = 0;
-		int c = 18;
+		int revColStartNo = 19;
 		CellStyle headerStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
 		row.createCell(0).setCellValue(ReportConstants.CUSTOMERNAME);
 		row.getCell(0).setCellStyle(headerStyle);
+		
+		row.createCell(1).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
+		row.getCell(1).setCellStyle(headerStyle);
+		
 		if (fields.contains(ReportConstants.GEOGRAPHY)) {
-			row.createCell(1 + columnValue).setCellValue(ReportConstants.GEO);
-			row.getCell(1+columnValue).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(1 + columnValue);
-			columnValue++;
-		}
-		row.createCell(1 + columnValue).setCellValue(ReportConstants.DISPLAYGEO);
-		row.getCell(1+columnValue).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(1 + columnValue);
-		if (fields.contains(ReportConstants.IOU)) {
-			row.createCell(2 + columnValue).setCellValue(ReportConstants.Iou);
+			row.createCell(2 + columnValue).setCellValue(ReportConstants.GEO);
 			row.getCell(2+columnValue).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(2 + columnValue);
+//			spreadSheet.autoSizeColumn(2 + columnValue);
 			columnValue++;
 		}
-		row.createCell(2 + columnValue).setCellValue(ReportConstants.DISPLAYIOU);
-		row.getCell(2 + columnValue).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(2 + columnValue);
+		row.createCell(2 + columnValue).setCellValue(ReportConstants.DISPLAYGEO);
+		row.getCell(2+columnValue).setCellStyle(headerStyle);
+//		spreadSheet.autoSizeColumn(2 + columnValue);
+		if (fields.contains(ReportConstants.IOU)) {
+			row.createCell(3 + columnValue).setCellValue(ReportConstants.Iou);
+			row.getCell(3+columnValue).setCellStyle(headerStyle);
+//			spreadSheet.autoSizeColumn(3 + columnValue);
+			columnValue++;
+		}
+		row.createCell(3 + columnValue).setCellValue(ReportConstants.DISPLAYIOU);
+		row.getCell(3 + columnValue).setCellStyle(headerStyle);
+//		spreadSheet.autoSizeColumn(3 + columnValue);
 		List<String> headerList = new ArrayList<String>();
 		headerList.add(ReportConstants.Q1  + currentFinancialYear + ReportConstants.BEACONTARGET);
 		headerList.add(ReportConstants.Q2  + currentFinancialYear + ReportConstants.BEACONTARGET);
@@ -111,8 +115,8 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		if (fields.contains(ReportConstants.YTDACTUAL)) {
 			headerList.add(9, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.ACTUAL);
 		}
-		Boolean isTrue = getProjectedValue(targetVsActualDetailedList);
-		if (isTrue) {
+		Boolean isProjectedIsEmpty = getProjectedValue(targetVsActualDetailedList);
+		if (isProjectedIsEmpty) {
 			headerList.add(ReportConstants.Q1  + currentFinancialYear + ReportConstants.PROJECTED);
 			headerList.add(ReportConstants.Q2  + currentFinancialYear + ReportConstants.PROJECTED);
 			headerList.add(ReportConstants.Q3  + currentFinancialYear + ReportConstants.PROJECTED);
@@ -121,21 +125,23 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				headerList.add(14, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.PROJECTED);
 			}
 		}
-		if (isTrue != true) {
-			c = 14;
+		if(isProjectedIsEmpty){
+		if (isProjectedIsEmpty != true) {
+			revColStartNo = 15;
 		}
 		headerList.add(ReportConstants.Q1  + currentFinancialYear + ReportConstants.REVENUE);
 		headerList.add(ReportConstants.Q2  + currentFinancialYear + ReportConstants.REVENUE);
 		headerList.add(ReportConstants.Q3  + currentFinancialYear + ReportConstants.REVENUE);
 		headerList.add(ReportConstants.Q4  + currentFinancialYear + ReportConstants.REVENUE);
 		if (fields.contains(ReportConstants.YTDREVENUE)) {
-			headerList.add(c, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.REVENUE);
+			headerList.add(revColStartNo, ReportConstants.YTDFY + currentFinancialYear + ReportConstants.REVENUE);
+			}
 		}
-		int columnNo = 3 + columnValue;
+		int columnNo = 4 + columnValue;
 		for (int i = 0; i < headerList.size(); i++) {
 			row.createCell(columnNo).setCellValue(headerList.get(i));
 			row.getCell(columnNo).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo
 					+ currencyList.size() - 1));
 			for (int j = 0; j < currencyList.size(); j++) {
@@ -148,37 +154,37 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q1  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q2  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q3  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		row.createCell(columnNo)
 				.setCellValue(ReportConstants.Q4  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		if (fields.contains(ReportConstants.YTDTARGETACHIEVED)) {
 			row.createCell(columnNo).setCellValue(
 					ReportConstants.YTDFY  + currentFinancialYear + ReportConstants.TARGETACHIEVEDPERCENT);
 			row.getCell(columnNo).setCellStyle(headerStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			columnNo++;
 		}
 		row.createCell(columnNo).setCellValue(ReportConstants.PERCENTACHIEVEDBRACKET);
 		row.getCell(columnNo).setCellStyle(headerStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 	}
 
 	public Boolean getProjectedValue(List<TargetVsActualDetailed> targetVsActualDetailedList){
-		Boolean str=false;
+		Boolean isProjectedIsEmpty=false;
 		BigDecimal projectedValue= new BigDecimal(0); 
 		for (TargetVsActualDetailed targetVsActual : targetVsActualDetailedList) {
 			for (TargetVsActualYearToDate targetVsActualYearToDate : targetVsActual
@@ -186,11 +192,11 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				if (targetVsActualYearToDate.getProjected() != null
 						&& targetVsActualYearToDate.getProjected()
 								.doubleValue() != projectedValue.doubleValue())
-					str = true;
+					isProjectedIsEmpty = true;
 				break;
 			}
 		}
-		return str;
+		return isProjectedIsEmpty;
 	}
 	
 	public int createTargetVsActualReportExcelFormat(
@@ -211,11 +217,13 @@ public class BuildExcelTargetVsActualDetailedReportService {
 	public void getTargetVsActualReportWithOrWithOutFields(SXSSFSheet spreadSheet,
 			SXSSFRow row, List<String> currencyList,
 			List<TargetVsActualDetailed> targetVsActualDetailedList,
-			TargetVsActualDetailed targetVsActual, List<String> fields, Boolean isTrue) {
+			TargetVsActualDetailed targetVsActual, List<String> fields, Boolean isProjectedValuesIsNotEmpty) {
 		int columnNo = 0;
 		int offset = 0;
 		int projectedOffset = 0;
-		int targetAchievedOffset=0;
+		int revenueOffset = 0;
+//		int targetAchievedOffset=0;
+		int revCurrencyOffset=0;
 		BigDecimal actualProjectedRevenue=new BigDecimal(0);
 		BigDecimal targetRevenue=new BigDecimal(0);
 		String percentAchievedBracket=null;
@@ -228,38 +236,46 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		boolean yTdProjectedFlag=fields.contains(ReportConstants.YTDPROJECTED);
 		boolean yTdTargetAchievedFlag=fields.contains(ReportConstants.YTDTARGETACHIEVED);
 		boolean yTdRevenueFlag=fields.contains(ReportConstants.YTDREVENUE);
+		
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+		
+		//setting customer name
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getCustomerName());
 		row.getCell(columnNo).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
+		columnNo++;
+		//setting group customer name
+		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGroupCustomerName());
+		row.getCell(columnNo).setCellStyle(rowStyle);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		
 		//if geographyFlag is true this will write geography value in excel
 		if (geographyFlag) {
 			row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGeographyMappingT().getGeography());
 			row.getCell(columnNo).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			offset++;
 			columnNo = columnNo + offset;
 		}
 		
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
 		row.getCell(columnNo).setCellStyle(rowStyle);
-		spreadSheet.autoSizeColumn(columnNo);
+//		spreadSheet.autoSizeColumn(columnNo);
 		columnNo++;
 		
 		//if iouFlag is true this will write iou value in excel
 		if (iouFlag) {
 			row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getIouCustomerMappingT().getIou());
 			row.getCell(columnNo).setCellStyle(rowStyle);
-			spreadSheet.autoSizeColumn(columnNo);
+//			spreadSheet.autoSizeColumn(columnNo);
 			offset++;
 			columnNo++;
 		}
 		row.createCell(columnNo).setCellValue(targetVsActual.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 		row.getCell(columnNo).setCellStyle(rowStyle);
 		for (TargetVsActualYearToDate targetVsActualYearToDate : targetVsActual.getYearToDate()) {
-			columnNo = 3;
+			columnNo = 4;
 			for (CurrencyValue targetCurrency : targetVsActualYearToDate.getTargetValues()) {
 				if (!targetVsActualYearToDate.getTargetValues().isEmpty()) {
 					targetRevenue=targetCurrency.getValue();
@@ -278,30 +294,30 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				String quarter = targetVsActualYearToDate.getQuarterList().get(i).getQuarter();
 				switch (quarter.substring(0, 2)) {
 				case ReportConstants.Q1:
-					columnNo = 3 + offset;
+					columnNo = 4 + offset;
 					columnNo = writeTargetValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q2:
 					if (currencyList.size() > 1) {
-						columnNo = 5 + offset;
+						columnNo = 6 + offset;
 					} else {
-						columnNo = 4 + offset;
+						columnNo = 5 + offset;
 					}
 					columnNo = writeTargetValuesIntoExcel(spreadSheet, row,	columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q3:
 					if (currencyList.size() > 1) {
-						columnNo = 7 + offset;
+						columnNo = 8 + offset;
 					} else {
-						columnNo = 5 + offset;
+						columnNo = 6 + offset;
 					}
 					columnNo = writeTargetValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q4:
 					if (currencyList.size() > 1) {
-						columnNo = 9 + offset;
+						columnNo = 10 + offset;
 					} else {
-						columnNo = 6 + offset;
+						columnNo = 7 + offset;
 					}
 					columnNo = writeTargetValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 					break;
@@ -311,9 +327,9 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			//If fields contains beaconTarget , Write the targetValues for the financial year into Excel
 			if (yTdBeaconTargetFlag) {
 				if (currencyList.size() > 1) {
-					columnNo = 11 + offset;
+					columnNo = 12 + offset;
 				} else {
-					columnNo = 7 + offset;
+					columnNo = 8 + offset;
 				}
 				int targetOffset = 0;
 				for (CurrencyValue currency : targetVsActualYearToDate.getTargetValues()) {
@@ -322,20 +338,15 @@ public class BuildExcelTargetVsActualDetailedReportService {
 						row.getCell(columnNo + targetOffset).setCellStyle(rowStyle);
 						targetOffset++;
 						offset++;
-//					} else {
-//						row.createCell(columnNo + targetOffset).setCellValue(0);
-//						row.getCell(columnNo + targetOffset).setCellStyle(rowStyle);
-//						targetOffset++;
-//						offset++;
 					}
 				}
 			}
 			
 			//Write the ActualRevenue Values Into Excel for The Respective Quarter
 			if (currencyList.size() > 1) {
-				columnNo = 11;
+				columnNo = 12;
 			} else {
-				columnNo = 7;
+				columnNo = 8;
 			}
 			setZerosToExcell(targetVsActualYearToDate, columnNo, offset, row, currencyList,rowStyle);
 			for (int i = 0; i < targetVsActualYearToDate.getQuarterList().size(); i++) {
@@ -344,35 +355,35 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				switch (quarter.substring(0, 2)) {
 				case ReportConstants.Q1:
 					if (currencyList.size() > 1) {
-						columnNo = 11 + offset;
+						columnNo = 12 + offset;
 					} else {
-						columnNo = 7 + offset;
+						columnNo = 8 + offset;
 					}
 					columnNo = writeActualValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q2:
 					if (currencyList.size() > 1) {
-						columnNo = 13 + offset;
-					} else {
-						columnNo = 8 + offset;
-					}
-					columnNo = writeActualValuesIntoExcel(spreadSheet, row,
-							columnNo, targetVsActualYearToDate, i);
-					break;
-				case ReportConstants.Q3:
-					if (currencyList.size() > 1) {
-						columnNo = 15 + offset;
+						columnNo = 14 + offset;
 					} else {
 						columnNo = 9 + offset;
 					}
 					columnNo = writeActualValuesIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
-				case ReportConstants.Q4:
+				case ReportConstants.Q3:
 					if (currencyList.size() > 1) {
-						columnNo = 17 + offset;
+						columnNo = 16 + offset;
 					} else {
 						columnNo = 10 + offset;
+					}
+					columnNo = writeActualValuesIntoExcel(spreadSheet, row,
+							columnNo, targetVsActualYearToDate, i);
+					break;
+				case ReportConstants.Q4:
+					if (currencyList.size() > 1) {
+						columnNo = 18 + offset;
+					} else {
+						columnNo = 11 + offset;
 					}
 					columnNo = writeActualValuesIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
@@ -383,9 +394,9 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			//If fields contains Actual , Write the actualRevenue for the financial year into Excel
 			if (yTdActualFlag) {
 				if (currencyList.size() > 1) {
-					columnNo = 19 + offset;
+					columnNo = 20 + offset;
 				} else {
-					columnNo = 11 + offset;
+					columnNo = 12 + offset;
 				}
 				int actualOffset = 0;
 				for (CurrencyValue currency : targetVsActualYearToDate.getActualValues()) {
@@ -394,21 +405,16 @@ public class BuildExcelTargetVsActualDetailedReportService {
 						row.getCell(columnNo + actualOffset).setCellStyle(rowStyle);
 						actualOffset++;
 						offset++;
-//					} else {
-//						row.createCell(columnNo + actualOffset).setCellValue(0);
-//						row.getCell(columnNo + actualOffset).setCellStyle(rowStyle);
-//						actualOffset++;
-//						offset++;
 					}
 				}
 			}
 
 			//Write the Projected Values Into Excel for The Respective Quarter
-			if (isTrue) {
+			if (isProjectedValuesIsNotEmpty) {
 				if (currencyList.size() > 1) {
-					columnNo = 19;
+					columnNo = 20;
 				} else {
-					columnNo = 11;
+					columnNo = 12;
 				}
 				setZerosToExcell(targetVsActualYearToDate, columnNo, offset,
 						row, currencyList,rowStyle);
@@ -417,33 +423,33 @@ public class BuildExcelTargetVsActualDetailedReportService {
 					switch (quarter.substring(0, 2)) {
 					case ReportConstants.Q1:
 						if (currencyList.size() > 1) {
-							columnNo = 19 + offset;
-						} else {
-							columnNo = 11 + offset;
-						}
-						columnNo = writeProjectedValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
-						break;
-					case ReportConstants.Q2:
-						if (currencyList.size() > 1) {
-							columnNo = 21 + offset;
+							columnNo = 20 + offset;
 						} else {
 							columnNo = 12 + offset;
 						}
 						columnNo = writeProjectedValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 						break;
-					case ReportConstants.Q3:
+					case ReportConstants.Q2:
 						if (currencyList.size() > 1) {
-							columnNo = 23 + offset;
+							columnNo = 22 + offset;
 						} else {
 							columnNo = 13 + offset;
 						}
 						columnNo = writeProjectedValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 						break;
-					case ReportConstants.Q4:
+					case ReportConstants.Q3:
 						if (currencyList.size() > 1) {
-							columnNo = 25 + offset;
+							columnNo = 24 + offset;
 						} else {
 							columnNo = 14 + offset;
+						}
+						columnNo = writeProjectedValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
+						break;
+					case ReportConstants.Q4:
+						if (currencyList.size() > 1) {
+							columnNo = 26 + offset;
+						} else {
+							columnNo = 15 + offset;
 						}
 						columnNo = writeProjectedValuesIntoExcel(spreadSheet, row, columnNo, targetVsActualYearToDate, i);
 						break;
@@ -454,15 +460,14 @@ public class BuildExcelTargetVsActualDetailedReportService {
 					} else {
 						projectedOffset = projectedOffset + 4;
 					}
-			}
 
 			//If fields contains Projected, Write the ProjectedRevenue for the financial year into Excel
-			if (isTrue) {
+//			if (isProjectedValuesIsNotEmpty) {
 				if (yTdProjectedFlag) {
 					if (currencyList.size() > 1) {
-						columnNo = 19 + offset + projectedOffset;
+						columnNo = 20 + offset + projectedOffset;
 					} else {
-						columnNo = 11 + offset + projectedOffset;
+						columnNo = 12 + offset + projectedOffset;
 					}
 					int projectOffset = 0;
 					for (CurrencyValue currency : targetVsActualYearToDate.getProjectedValues()) {
@@ -471,21 +476,16 @@ public class BuildExcelTargetVsActualDetailedReportService {
 							row.getCell(columnNo + projectOffset).setCellStyle(rowStyle);
 							projectOffset++;
 							offset++;
-//						} else {
-//							row.createCell(columnNo + projectOffset).setCellValue(0);
-//							row.getCell(columnNo + projectOffset).setCellStyle(rowStyle);
-//							projectOffset++;
-//							offset++;
 						}
 					}
 				}
-			}
+//			}
 		
 			//Write the Revenue Values Into Excel for The Respective Quarter
 			if (currencyList.size() > 1) {
-				columnNo = 19 + projectedOffset;
+				columnNo = 20 + projectedOffset;
 			} else {
-				columnNo = 11 + projectedOffset;
+				columnNo = 12 + projectedOffset;
 			}
 			setZerosToExcell(targetVsActualYearToDate, columnNo, offset, row,
 					currencyList,rowStyle);
@@ -496,71 +496,73 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				switch (quarter.substring(0, 2)) {
 				case ReportConstants.Q1:
 					if (currencyList.size() > 1) {
-						columnNo = 19 + offset + projectedOffset;
-					} else {
-						columnNo = 11 + offset + projectedOffset;
-					}
-					columnNo = writeRevenueValuesIntoExcel(spreadSheet, row,
-							columnNo, targetVsActualYearToDate, i);
-					break;
-				case ReportConstants.Q2:
-					if (currencyList.size() > 1) {
-						columnNo = 21 + offset + projectedOffset;
+						columnNo = 20 + offset + projectedOffset;
 					} else {
 						columnNo = 12 + offset + projectedOffset;
 					}
 					columnNo = writeRevenueValuesIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
-				case ReportConstants.Q3:
+				case ReportConstants.Q2:
 					if (currencyList.size() > 1) {
-						columnNo = 23 + offset + projectedOffset;
+						columnNo = 22 + offset + projectedOffset;
 					} else {
 						columnNo = 13 + offset + projectedOffset;
 					}
 					columnNo = writeRevenueValuesIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
-				case ReportConstants.Q4:
+				case ReportConstants.Q3:
 					if (currencyList.size() > 1) {
-						columnNo = 25 + offset + projectedOffset;
+						columnNo = 24 + offset + projectedOffset;
 					} else {
 						columnNo = 14 + offset + projectedOffset;
 					}
 					columnNo = writeRevenueValuesIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
-				}
-			}
-				 
-			//If fields contains Revenue, Write the Revenue for the financial year into Excel
-			if (yTdRevenueFlag) {
-				if (currencyList.size() > 1) {
-					columnNo = 27 + offset + projectedOffset;
-				} else {
-					columnNo = 15 + offset + projectedOffset;
-				}
-				int revenueOffset = 0;
-				for (CurrencyValue currency : targetVsActualYearToDate.getProjectedValues()) {
-					if (currency.getValue() != null) {
-						row.createCell(columnNo + revenueOffset).setCellValue(currency.getValue().doubleValue());
-						row.getCell(columnNo + revenueOffset).setCellStyle(rowStyle);
-						revenueOffset++;
-						offset++;
-//					} else {
-//						row.createCell(columnNo + revenueOffset).setCellValue(0);
-//						row.getCell(columnNo + revenueOffset).setCellStyle(rowStyle);
-//						revenueOffset++;
-//						offset++;
+				case ReportConstants.Q4:
+					if (currencyList.size() > 1) {
+						columnNo = 26 + offset + projectedOffset;
+					} else {
+						columnNo = 15 + offset + projectedOffset;
 					}
+					columnNo = writeRevenueValuesIntoExcel(spreadSheet, row,
+							columnNo, targetVsActualYearToDate, i);
+					break;
 				}
 			}
 			
-			//Write the Projected Values Into Excel for The Respective Quarter
 			if (currencyList.size() > 1) {
-				columnNo = 27 + projectedOffset;
+				revenueOffset = revenueOffset + 8;
 			} else {
-				columnNo = 15 + projectedOffset;
+				revenueOffset = revenueOffset + 4;
+			}
+			
+			//If fields contains Revenue, Write the Revenue for the financial year into Excel
+			if (yTdRevenueFlag) {
+				if (currencyList.size() > 1) {
+					columnNo = 28 + offset + projectedOffset;
+				} else {
+					columnNo = 16 + offset + projectedOffset;
+				}
+				for (CurrencyValue currency : targetVsActualYearToDate.getRevenueValues()) {
+					if (currency.getValue() != null) {
+						row.createCell(columnNo+revCurrencyOffset).setCellValue(currency.getValue().doubleValue());
+						row.getCell(columnNo).setCellStyle(rowStyle);
+						revCurrencyOffset++;
+//						revenueOffset++;
+						offset++;
+					}
+				}
+			}
+		}
+			
+			//Write the Target Achieved Values Into Excel for The Respective Quarter
+			if (currencyList.size() > 1) {
+				columnNo = 20 + projectedOffset + revenueOffset;
+			} else {
+				columnNo = 12 + projectedOffset + revenueOffset;
 			}
 			setZerosTargetAchievedToExcell(targetVsActualYearToDate, columnNo,
 					offset, row, currencyList,rowStyle);
@@ -571,60 +573,57 @@ public class BuildExcelTargetVsActualDetailedReportService {
 				switch (quarter.substring(0, 2)) {
 				case ReportConstants.Q1:
 					if (currencyList.size() > 1) {
-						columnNo = 27 + offset + projectedOffset;
+						columnNo = 20 + offset + projectedOffset + revenueOffset;
 					} else {
-						columnNo = 15 + offset + projectedOffset;
+						columnNo = 12 + offset + projectedOffset + revenueOffset;
 					}
 					columnNo = writeTargetAchievedIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q2:
 					if (currencyList.size() > 1) {
-						columnNo = 28 + offset + projectedOffset;
+						columnNo = 21 + offset + projectedOffset + revenueOffset;
 					} else {
-						columnNo = 16 + offset + projectedOffset;
+						columnNo = 13 + offset + projectedOffset + revenueOffset;
 					}
 					columnNo = writeTargetAchievedIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q3:
 					if (currencyList.size() > 1) {
-						columnNo = 29 + offset + projectedOffset;
+						columnNo = 22 + offset + projectedOffset + revenueOffset;
 					} else {
-						columnNo = 17 + offset + projectedOffset;
+						columnNo = 14 + offset + projectedOffset + revenueOffset;
 					}
 					columnNo = writeTargetAchievedIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
 				case ReportConstants.Q4:
 					if (currencyList.size() > 1) {
-						columnNo = 30 + offset + projectedOffset;
+						columnNo = 23 + offset + projectedOffset + revenueOffset;
 					} else {
-						columnNo = 18 + offset + projectedOffset;
+						columnNo = 15 + offset + projectedOffset + revenueOffset;
 					}
 					columnNo = writeTargetAchievedIntoExcel(spreadSheet, row,
 							columnNo, targetVsActualYearToDate, i);
 					break;
 				}
-			}
 			
 			//If fields contains TargetAchieved , Write the targetAchieved for the financial year into Excel
 		 	if (yTdTargetAchievedFlag) {
 				if (currencyList.size() > 1) {
-					columnNo = 31 + offset + projectedOffset;
+					columnNo = 24 + offset + projectedOffset + revenueOffset;
 				} else {
-					columnNo = 19 + offset + projectedOffset;
+					columnNo = 16 + offset + projectedOffset + revenueOffset;
 				}
 				if (targetVsActualYearToDate.getTargetAchieved() != null) {
 					row.createCell(columnNo).setCellValue(targetVsActualYearToDate.getTargetAchieved().doubleValue());
-					targetAchievedOffset++;
-//				} else {
-//					row.createCell(columnNo).setCellValue(0);
 //					targetAchievedOffset++;
 				}
 				row.getCell(columnNo).setCellStyle(rowStyle);
 			}
-			
+		}
+		 	
 			//write percentage Achieved Bracket into Excel
 			if (targetRevenue.doubleValue()!=0) {
 				percentAchieved = actualProjectedRevenue.divide(targetRevenue, 4,	RoundingMode.HALF_DOWN);
@@ -632,9 +631,9 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			}
 			percentAchievedBracket = buildExcelTargetVsActualSummaryReportService.setPercentageAchievedBracket(percentAchievedBracket, percentAchieve);
 			if (currencyList.size() > 1) {
-				columnNo = 31 + offset + projectedOffset + targetAchievedOffset;
+				columnNo = 25 + offset + projectedOffset + revenueOffset;
 			} else {
-				columnNo = 19 + offset + projectedOffset + targetAchievedOffset;
+				columnNo = 20 + offset + projectedOffset + revenueOffset;
 			}
 			row.createCell(columnNo).setCellValue(percentAchievedBracket);
 			row.getCell(columnNo).setCellStyle(rowStyle);
@@ -919,12 +918,12 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row = (SXSSFRow) spreadsheet.createRow(8);
 		spreadsheet.addMergedRegion(new CellRangeAddress(8, 8, 4, 10));
 		row.createCell(4).setCellValue("Beacon Target Vs Actual report as on " + tillDate);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		row.getCell(4).setCellStyle(headinStyle);
 		row =  (SXSSFRow) spreadsheet.createRow(9);
 		row.createCell(4).setCellValue("User Selection Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 10, dataRow);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.IOU, iou, 11, dataRow);
 		row = (SXSSFRow) spreadsheet.createRow(12);
@@ -941,7 +940,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 		row =  (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
+//		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = Constants.GEOGRAPHY;

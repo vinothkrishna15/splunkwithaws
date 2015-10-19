@@ -121,7 +121,7 @@ public class TaskT implements Serializable {
 	private UserT taskOwnerT;
 
 	// bi-directional many-to-one association to UserNotificationsT
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany
 	@JoinColumn(name = "task_id")
 	private List<UserNotificationsT> userNotificationsTs;
 

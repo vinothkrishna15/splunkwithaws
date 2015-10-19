@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -15,11 +16,16 @@ import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
+import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
+import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserRole;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
+//import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
+import com.tcs.destination.utils.StringUtils;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 
 @Service
@@ -36,6 +42,11 @@ public class UserService {
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
+	
+	@Autowired
+	UserNotificationSettingsRepository userNotificationSettingsRepository;
+	
+	UserGeneralSettingsRepository userGeneralSettingsRepository;
 
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -218,5 +229,112 @@ public class UserService {
 		return (userAccessPrivilegesRepository
 				.findByUserIdAndParentPrivilegeIdAndIsactive(userId, parentPrivilegeId, Constants.Y));
 	}
+
+	public boolean insertUser(UserT user, boolean isBulkUpload) throws Exception {
+		logger.debug("inside insertUser method");
+		//validate user
+		validateUser(user,true);
+		if(userRepository.save(user) != null) {
+			logger.debug("user Saved : " + user.getUserId());
+			//saving user general settings
+		//	userGeneralSettingsRepository.save(DestinationUserDefaultObjectsHelper.getUserGeneralSettings(user.getUserId()));
+			
+			//saving user notification settings condition
+			
+			
+			//saving default user notifications settings
+			//userNotificationSettingsRepository.save(DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user));
+			
+			//saving user access privileges
+			//List<UserAccessPrivilegesT> accessPrivilegesList = new ArrayList<UserAccessPrivilegesT>();
+			//userAccessPrivilegesRepository.save(accessPrivilegesList);
+			
+			//saving bdm target
+			
+			
+			return true;
+		}
+		logger.debug("user not Saved");
+		return false;
+	}
+
+	public void validateUser(UserT user,boolean isInsert) throws Exception{
+	 //check for not null fields
+		//user_id character varying(10) NOT NULL,
+		if(StringUtils.isEmpty(user.getUserId())){
+			logger.error("user id is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"User Id cannot be empty");
+		}
+		
+		  //user_name character varying(50) NOT NULL,
+		  if(StringUtils.isEmpty(user.getUserName())){
+				logger.error("user name is null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User Name cannot be empty");
+			}
+		  
+		  
+		 // temp_password character varying(20) NOT NULL,
+		  if(StringUtils.isEmpty(user.getTempPassword())){
+				logger.error("password is null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Password cannot be empty");
+			}
+		 
+		  //base_location character varying(50) NOT NULL,
+		  if(StringUtils.isEmpty(user.getBaseLocation())){
+				logger.error("base_location is null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Base location cannot be empty");
+			}
+		  
+		  //user_role character varying(30) NOT NULL
+		  if( StringUtils.isEmpty(user.getUserRole()) ){
+				logger.error("user role is null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User Role cannot be empty");
+		  } else {
+			  //check if valid entry
+			  String userRole = user.getUserRole();
+			    boolean validRole = false;
+				for(UserRole role : UserRole.values()){
+					if(userRole.equalsIgnoreCase(role.getValue())){
+						validRole = true;
+					}
+				}
+			  
+			  if( !validRole ){
+				  logger.error("user role invalid");
+				  throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"User Role is invalid");
+			  }
+		  }
+		  
+		  //user_group character varying(30) NOT NULL
+		  if(StringUtils.isEmpty(user.getUserGroup())){
+				logger.error("user group is null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User Group cannot be empty");
+		  } else {
+			  //check if entry present in the table
+			  String userGroup = user.getUserGroup();
+			  boolean validGroup = false;
+				for(UserGroup group : UserGroup.values()){
+					if(userGroup.equalsIgnoreCase(group.getValue())){
+						validGroup = true;
+					}
+				}
+			  if( !validGroup ){
+				  logger.error("user group invalid");
+				  throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"User Group is invalid");
+			  }
+		  }
+		  
+				
+	}
+	
+	
 
 }

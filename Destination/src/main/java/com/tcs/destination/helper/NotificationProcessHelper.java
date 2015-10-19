@@ -10,6 +10,7 @@ import static com.tcs.destination.utils.Constants.TOKEN_ENTITY_TYPE;
 import static com.tcs.destination.utils.Constants.TOKEN_FROM;
 import static com.tcs.destination.utils.Constants.TOKEN_TO;
 import static com.tcs.destination.utils.Constants.TOKEN_USER;
+import static com.tcs.destination.utils.Constants.TOKEN_SUBORDINATE;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +40,8 @@ public class NotificationProcessHelper {
 	@Autowired
 	private NotificationEventGroupMappingTRepository notificationEvtGrpMTRepository;
 
-	public UserNotificationsT processNotification(String userId,
-			final EntityType entity, String entityId, String entityName, int eventId,
-			String dateType, String date, String recipient) throws DestinationException {
+	public UserNotificationsT processNotification(EntityType entity, String entityId, String entityName, int eventId, String dateType,
+			String date, String recipientId, String recipientName, String subordinateId, String subordinateName) throws DestinationException {
 
 		logger.debug("Inside processNotification() method");
 
@@ -54,8 +54,8 @@ public class NotificationProcessHelper {
 			try {
 				String msgTemplate = replaceTokens(
 						notificationTemplateList.get(0).getMessageTemplate(),
-						populateTokens(userId, entityName, null, null,
-								WordUtils.capitalize(entity.toString().toLowerCase()), dateType, date));
+						populateTokens(recipientName, entityName, null, null,
+								WordUtils.capitalize(entity.toString().toLowerCase()), dateType, date, subordinateName));
 
 				if (msgTemplate != null) {
 
@@ -64,7 +64,7 @@ public class NotificationProcessHelper {
 					notification.setRead(NO);
 					notification.setComments(msgTemplate);
 					notification.setUserId(SYSTEM_USER);
-					notification.setRecipient(recipient);
+					notification.setRecipient(recipientId);
 
 					switch (entity) {
 
@@ -121,7 +121,7 @@ public class NotificationProcessHelper {
 
 	private HashMap<String, String> populateTokens(String user,
 			String entityName, String from, String to, String entityType,
-			String dateType, String date) throws Exception {
+			String dateType, String date, String subordinateName) throws Exception {
 		
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
@@ -145,6 +145,9 @@ public class NotificationProcessHelper {
 		}
 		if (entityType != null) {
 			tokensMap.put(DATE, date);
+		}
+		if (subordinateName != null) {
+			tokensMap.put(TOKEN_SUBORDINATE, subordinateName);
 		}
 
 		return tokensMap;

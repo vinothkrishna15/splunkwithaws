@@ -420,7 +420,7 @@ public class ConnectService {
 		notificationsHelper
 				.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}

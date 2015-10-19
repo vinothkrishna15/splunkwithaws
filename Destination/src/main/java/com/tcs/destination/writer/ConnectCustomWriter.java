@@ -63,7 +63,11 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		List<ConnectT> connectList = new ArrayList<ConnectT>();
 		String operation = null; 
 		for (String[] data: items) {
+
 			operation = (String) data[1];
+
+//			String operation = (String) data[1];
+
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				ConnectT connect =  new ConnectT();

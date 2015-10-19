@@ -38,6 +38,8 @@ public class Constants {
 	public static final int NOTEST_MAX_SIZE = 1000;
 	public static final int CORE_ATTRIBUTES_MAX_VALUE = 300;
 	public static final String ROWNUMBER = "Row Number";
+	public static final String SHEETNAME = "Sheet Name";
+	public static final String ACTION_ADD = "Add"; 
 	public static final String ERROR_MESSAGE = "Error Message";
 	public static final String UPLOAD_ERRORS = "upload errors";
 	public static final String UNKNOWN_CUSTOMER = "UNKNOWN%";
@@ -47,6 +49,7 @@ public class Constants {
 	
 	public static final String APPLICATION_PROPERTIES_FILENAME = "application";
 	public static final String OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME = "opportunitySheetTemplate";
+	public static final String CONNECT_TEMPLATE_LOCATION_PROPERTY_NAME = "connectSheetTemplate";
 	public static final String OPPORTUNITY_TEMPLATE_COMPETITOR_SHEET_NAME = "Competitor(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_GEOGRAPHY_COUNTRY_SHEET_NAME = "Geography Country(Ref)";
 	public static final String OPPORTUNITY_TEMPLATE_OFFERING_SHEET_NAME = "Offering(Ref)";
@@ -72,6 +75,7 @@ public class Constants {
 	public static final String TOKEN_ENTITY_TYPE = "entityType";
 	public static final String TOKEN_FROM = "from";
 	public static final String TOKEN_TO = "to";
+	public static final String TOKEN_SUBORDINATE = "subordinate";
 	public static final String DATE_TYPE = "dateType";
 	public static final String DATE = "date";
 	public static final String SALES_STAGE = "sales_stage";
@@ -82,9 +86,30 @@ public class Constants {
 	public static final String REQUEST_ID = "REQUEST_ID";
 	public static final String REQUEST = "REQUEST";
 	
-	//Email subjects
+	public static final String CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME = "customerSheetTemplate";
+	public static final String CUSTOMER_MASTER_SHEET_NAME = "Customer Master";
+	public static final String FINANCE_MAPPING_SHEET_NAME = "Finance Mappping";
+	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
+	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
+	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
+	
+	// Actual Revenues Data template
+	public static final String ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME = "actualRevenueDataTemplate";
+	public static final String ACTUAL_REVENUE_DATA = "Actual Revenue - DATA";
+	public static final String FINANCE_MAP_REF = "Finance Map(Ref)";
+	public static final String CUSTOMER_IOU_MAPPING_REF= "Customer IOU Map(Ref)";
+	public static final String SUB_SP_MAP_REF = "Sub Sp Map(Ref)";
+	// Email subjects
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
 	
+	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
+	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
+	public static final String PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contacts";
 	
+	// Beacon Data template
+	public static final String BEACON_TEMPLATE_LOCATION_PROPERTY_NAME = "beaconSheetTemplate";
+	public static final String BEACON_TEMPLATE_BEACON_SHEET_NAME = "BEACON - DATA";
+	public static final String BEACON_MAPPING_TEMPLATE_BEACON_SHEET_NAME = "Beacon Mapping(Ref)";
+	public static final String BEACON_IOU_MAPPING_TEMPLATE_BEACON_SHEET_NAME="IOU Map(Ref)";
 
 }
