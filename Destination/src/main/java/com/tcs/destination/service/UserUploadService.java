@@ -1,10 +1,15 @@
 package com.tcs.destination.service;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.Cell;
@@ -24,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.CellModel;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.TimeZoneMappingT;
@@ -31,15 +37,18 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGeneralSettingsT;
+import com.tcs.destination.bean.UserGoalsT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.IOURepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
+import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
@@ -48,6 +57,7 @@ import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldValidator;
 import com.tcs.destination.utils.StringUtils;
@@ -87,6 +97,14 @@ public class UserUploadService {
 
     @Autowired
 	CustomerRepository custRepository;
+    
+    @Autowired
+    GoalMappingRepository goalMappingRepository;
+    
+    @Autowired
+    UserGoalsRepository userGoalsRepository;
+    
+    Map<String,HashMap<String, GoalMappingT>> defaultGoalsMap;
 
     private static final Logger logger = LoggerFactory
 	    .getLogger(UserUploadService.class);
@@ -125,9 +143,11 @@ public class UserUploadService {
     	// Validates the spreadsheet for errors after validating the excel sheet
     		uploadStatus = null;
     		if (validateSheet(workbook)) {
-    			uploadStatus = new UploadStatusDTO();
-        		uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
+
+    			defaultGoalsMap = populateGoalsMap();
     			
+    			uploadStatus = new UploadStatusDTO();
+    			uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
         		List<UploadServiceErrorDetailsDTO> sheetErrors = uploadStatus.getListOfErrors();
         		
         		//reading user master table
@@ -139,9 +159,14 @@ public class UserUploadService {
     			if(userMasterIterator.hasNext()){
     				userMasterIterator.next();
     			}
+    			
     			while(processedCount < lastValidRow && userMasterIterator.hasNext()){
-    				saveUser(workbook, sheetErrors, userMasterIterator, processedCount);
-    				processedCount++;
+    				try{
+    					saveUser(workbook, sheetErrors, userMasterIterator, processedCount);
+    					processedCount++;
+    				} catch(Exception e){
+    					logger.error(e.getMessage());
+    				}
     			}
     			
     			uploadStatus.setListOfErrors(sheetErrors);
@@ -153,10 +178,74 @@ public class UserUploadService {
     		return uploadStatus;
     }
 
-    @Transactional
+    private Map<String, HashMap<String, GoalMappingT>> populateGoalsMap() {
+		
+    	Map<String, HashMap<String, GoalMappingT>> goalsMap = new HashMap<String, HashMap<String, GoalMappingT>>(); 
+    	
+    	String[] groupArr = 
+    		{
+    			UserGroup.BDM.getValue(),UserGroup.BDM_SUPERVISOR.getValue(),
+    			UserGroup.GEO_HEADS.getValue(),UserGroup.IOU_HEADS.getValue(),
+    			UserGroup.BID_OFFICE.getValue(),UserGroup.STRATEGIC_INITIATIVES.getValue()
+    		};
+    	
+    	for( String group : groupArr){
+    		goalsMap.put(group, getGoalsForGroup(group));
+    	}
+    	
+    	return goalsMap;
+    	
+	}
+
+	private HashMap<String, GoalMappingT> getGoalsForGroup(String group) {
+		
+		HashMap<String, GoalMappingT> goals;
+		
+		List<Object[]> goalObjArr = getGoalObjArr(group);
+		
+		goals = convertObjArrToGoalMapping(goalObjArr);
+		
+		return goals;
+	}
+
+	private HashMap<String, GoalMappingT> convertObjArrToGoalMapping(List<Object[]> goalObjArr) {
+		
+		HashMap<String, GoalMappingT> goals = new HashMap<String, GoalMappingT>();
+		
+		if(!goalObjArr.isEmpty()){
+
+			for(Object[] objArr : goalObjArr){
+				GoalMappingT goal = new GoalMappingT();
+				String goalId = (String) objArr[0];
+				goal.setGoalId(goalId);
+				String goalName = (String) objArr[1];
+				goal.setGoalName(goalName);
+				String finYear = (String) objArr[2];
+				goal.setFinancialyear(finYear);
+				String dUnit = (String) objArr[3];
+				goal.setDisplayUnit(dUnit);
+				BigDecimal value = (BigDecimal)objArr[4];
+				goal.setDefaultTarget(value);
+				String createdModifiedBy = (String) objArr[5];
+				goal.setCreatedModifiedBy(createdModifiedBy);
+				Timestamp createdModifiedDateTime = (Timestamp)objArr[6];
+				goal.setCreatedModifiedDatetime(createdModifiedDateTime);
+				goals.put(goalId,goal);
+			}
+		}
+		
+		return goals;
+		
+	}
+
+	private List<Object[]> getGoalObjArr(String group) {
+		return goalMappingRepository.findGoalsByGroup(group);
+	}
+
+	@Transactional
 	private void saveUser(Workbook workbook,
 			List<UploadServiceErrorDetailsDTO> sheetErrors,
-			Iterator<Row> userMasterIterator, int processedCount) {
+			Iterator<Row> userMasterIterator, int processedCount) throws Exception{
 		Row userRow = userMasterIterator.next();
 		logger.info("Row : " + (userRow.getRowNum()+1));
 		List<CellModel> CellModelList = new ArrayList<CellModel>();
@@ -187,6 +276,7 @@ public class UserUploadService {
 
 			if(isRowHasErrors(CellModelList)){
 				populateErrorListForRow(userRow,sheetErrors,CellModelList);
+				throw new DestinationException("Error in record processing");
 			} else {
 				try {
 					UserT user = new UserT();
@@ -219,6 +309,9 @@ public class UserUploadService {
 
 					// saving privileges for the user
 					populateAndSavePrivileges(workbook, user, sheetErrors);
+					
+					//saving goals for the user
+					populateAndSaveGoals(workbook, user, sheetErrors);
 
 
 				} catch(Exception e) {
@@ -235,12 +328,111 @@ public class UserUploadService {
 		
 	}
 	
-	
+    private void populateAndSaveGoals(Workbook workbook, UserT user,
+			List<UploadServiceErrorDetailsDTO> sheetErrors) {
+		Sheet userGoalsSheet = workbook.getSheetAt(4);
+		
+		BigDecimal pipeline_value_for_heads = null;
+		
+		String userGroup = user.getUserGroup();
+		HashMap<String, GoalMappingT> defaultGoalsForCurrentUser = defaultGoalsMap.get(userGroup);
+		
+		HashMap<String, GoalMappingT> specificGoalsForCurrentUser = (HashMap<String, GoalMappingT>) defaultGoalsForCurrentUser.clone();
+		
+		List<Row> userGoalsRows = getUserRows(user,userGoalsSheet,FieldValidator.UserGoals_UserId);
+		
+		List<CellModel> goalModelList = new ArrayList<CellModel>();
+		
+		List<UserGoalsT> userGoals = new ArrayList<UserGoalsT>();
+		for(Row userGoalRow : userGoalsRows){
+			CellModel userIdModel = validateEmptyStrAndLength(userGoalRow, FieldValidator.UserGoals_UserId, true, "");
+			goalModelList.add(userIdModel);
+			
+			CellModel finYrModel = validateEmptyStrAndLength(userGoalRow, FieldValidator.UserGoals_FinYear, true, "");
+			goalModelList.add(finYrModel);
+			
+			CellModel goalNameModel = validateEmptyStrAndLength(userGoalRow, FieldValidator.UserGoals_GoalName, true, "");
+			List<GoalMappingT> goalNameObj = goalMappingRepository.
+					findByGoalNameAndFinancialyear(goalNameModel.getCellValue(),finYrModel.getCellValue());
+			if(goalNameObj.isEmpty()){
+				goalNameModel.getErrors().add("Invalid Goal Name");
+			}
+			goalModelList.add(goalNameModel);
+			
+			Cell targetCell = userGoalRow.getCell(FieldValidator.FIELD_INDEX_MAP.get(FieldValidator.UserGoals_Target));
+			
+			CellModel targetModel = new CellModel();
+			try{
+				BigDecimal target = new BigDecimal(getIndividualCellValue(targetCell));
+				targetModel.setCellValue(getIndividualCellValue(targetCell));
+			} catch(Exception e){
+				List<String> errors = new ArrayList<String>();
+				errors.add(e.getMessage());
+				targetModel.setErrors(errors);
+			}
+			goalModelList.add(targetModel);
+			
+			if(isRowHasErrors(goalModelList)){
+				populateErrorListForRow(userGoalRow,sheetErrors,goalModelList);
+				throw new DestinationException("Error in Goal processing");
+			} else {
+				UserGoalsT userGoal = new UserGoalsT();
+				userGoal.setUserId(validateAndRectifyValue(userIdModel.getCellValue()));
+				userGoal.setFinancialYear(finYrModel.getCellValue());
+				userGoal.setGoalId(goalNameObj.get(0).getGoalId());
+				if(goalNameObj.get(0).getGoalId().equalsIgnoreCase("G4")){
+					pipeline_value_for_heads = new BigDecimal(targetModel.getCellValue()).multiply(new BigDecimal(5));
+				} else if(goalNameObj.get(0).getGoalId().equalsIgnoreCase("G5")){
+					userGoal.setTargetValue(pipeline_value_for_heads);
+				}
+				userGoal.setTargetValue(new BigDecimal(targetModel.getCellValue()));
+				userGoal.setCreatedModifiedBy("System");
+				userGoals.add(userGoal);
+			}
+			
+		}
+		
+		//eliminating the goals taken from Excel
+		Set<String> specificGoalsSet = specificGoalsForCurrentUser.keySet();
+		for (UserGoalsT userGoalsT : userGoals) {
+			specificGoalsSet.remove(userGoalsT.getGoalId());
+		}
+		
+		if(!specificGoalsSet.isEmpty()){
+			if(!(userGroup.equalsIgnoreCase(UserGroup.BID_OFFICE.getValue())) &&
+					!(userGroup.equalsIgnoreCase(UserGroup.STRATEGIC_INITIATIVES.getValue()))){
+			for(String goalId : specificGoalsSet){
+				logger.info("Not found Value for : " + goalId);
+				GoalMappingT defaultgoal = specificGoalsForCurrentUser.get(goalId);
+				UserGoalsT usergoal = new UserGoalsT();
+				usergoal.setUserId(user.getUserId());
+				usergoal.setGoalId(defaultgoal.getGoalId());
+				usergoal.setTargetValue(defaultgoal.getDefaultTarget());
+				if(usergoal.getGoalId().equalsIgnoreCase("G4")){
+					pipeline_value_for_heads = defaultgoal.getDefaultTarget().multiply(new BigDecimal(5));
+				} else if(usergoal.getGoalId().equalsIgnoreCase("G5")){
+					usergoal.setTargetValue(pipeline_value_for_heads);
+				}
+				usergoal.setFinancialYear(defaultgoal.getFinancialyear());
+				usergoal.setCreatedModifiedBy("System");
+				userGoals.add(usergoal);
+				logger.info("Added goal : " + goalId);
+				//userGoals.add(defaultUserGoals.get(goalId));
+			}
+			}
+		}
+		
+		for(UserGoalsT userGoal : userGoals){
+			logger.info("Saving Goal : " + userGoal.getGoalId());
+			userGoalsRepository.save(userGoal);
+		}
+		
+	}
 
-    private void populateAndSavePrivileges(Workbook workbook, UserT user, List<UploadServiceErrorDetailsDTO> sheetErrors) {
+	private void populateAndSavePrivileges(Workbook workbook, UserT user, List<UploadServiceErrorDetailsDTO> sheetErrors) {
     	Sheet userPrivilegesSheet = workbook.getSheetAt(3);	
 
-    	List<Row> userPrivilegeRows = getPrivilegeRows(user,userPrivilegesSheet);
+    	List<Row> userPrivilegeRows = getUserRows(user,userPrivilegesSheet,FieldValidator.User_PrivilegesT_UserId);
     	if(userPrivilegeRows.isEmpty()){
     		logger.info("No Access privileges defined");
     	} else {
@@ -261,6 +453,7 @@ public class UserUploadService {
 
     			if(isRowHasErrors(privilegeModelList)){
     				populateErrorListForRow(userPrivilegeRow,sheetErrors,privilegeModelList);
+    				throw new DestinationException("Error in Privilege processing");
     			} else {
     				List<String> parentValuesList = parentValueCellModel.getCellValues();
     				for(String parentPrivilege : parentValuesList){
@@ -394,31 +587,31 @@ public class UserUploadService {
 		return values;
 	}
 
-	private List<Row> getPrivilegeRows(UserT user, Sheet userPrivilegesSheet) {
-		Iterator<Row> userPrivilegesIterator = userPrivilegesSheet.iterator();
-		int lastPrivilegeValidRow = userPrivilegesSheet.getPhysicalNumberOfRows();
-		int privilegeProcessedCount = 1;
+	private List<Row> getUserRows(UserT user, Sheet sheet, String idCol) {
+		Iterator<Row> iterator = sheet.iterator();
+		int lastValidRow = sheet.getPhysicalNumberOfRows();
+		int processedCount = 1;
 		
-		if(userPrivilegesIterator.hasNext()){
-			userPrivilegesIterator.next();
+		if(iterator.hasNext()){
+			iterator.next();
 		}
 		
-		List<Row> userPrivilegeRows = new ArrayList<Row>();
+		List<Row> userRows = new ArrayList<Row>();
 		
-		while(privilegeProcessedCount < lastPrivilegeValidRow && userPrivilegesIterator.hasNext()){
+		while(processedCount < lastValidRow && iterator.hasNext()){
 			
-			Row privilegeRow = userPrivilegesIterator.next();
-			Cell cell = privilegeRow.getCell(FieldValidator.FIELD_INDEX_MAP.get(FieldValidator.User_PrivilegesT_UserId));
+			Row row = iterator.next();
+			Cell cell = row.getCell(FieldValidator.FIELD_INDEX_MAP.get(idCol));
 			String excelStr = validateAndRectifyValue(getIndividualCellValue(cell));
-			String action = privilegeRow.getCell(0).getStringCellValue();
+			String action = row.getCell(0).getStringCellValue();
 			if(excelStr.equalsIgnoreCase(user.getUserId()) && action.equalsIgnoreCase(Constants.ACTION_ADD)){
-				logger.info("privilege found");
-				userPrivilegeRows.add(privilegeRow);
+				logger.info("record found in " + sheet.getSheetName());
+				userRows.add(row);
 			}
-			privilegeProcessedCount++;
+			processedCount++;
 		}
 		
-		return userPrivilegeRows;
+		return userRows;
 	}
 
 	private void populateErrorListForRow(Row userRow,
@@ -488,7 +681,7 @@ public class UserUploadService {
 				if(!PrivilegeType.contains(excelStr)){
 					errorList.add("Invalid Child Privilege Type");
 				}
-			}
+			} 
 		}
 		
 		CellModel cellModel = new CellModel();
@@ -501,6 +694,11 @@ public class UserUploadService {
 	}
 	
 	
+	private boolean isValidGoalName(String goalName) {
+		List<GoalMappingT> goals = goalMappingRepository.findByGoalName(goalName);
+		return goals != null && !goals.isEmpty();
+	}
+
 	private CellModel validateEmptyStrAndLengthForPrivilegeValue(Row userRow,String fieldName,boolean isMandatory) {
 		Cell cell = userRow.getCell(FieldValidator.FIELD_INDEX_MAP.get(fieldName));
 		String excelStr = getIndividualCellValue(cell);

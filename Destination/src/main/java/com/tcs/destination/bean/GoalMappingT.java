@@ -48,8 +48,11 @@ public class GoalMappingT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_modified_by")
+	@JoinColumn(name="created_modified_by",insertable = false,updatable = false)
 	private UserT userT;
+	
+	@Column(name="created_modified_by")
+	private String createdModifiedBy;
 
 	//bi-directional many-to-one association to UserGoalsT
 	@OneToMany(mappedBy="goalMappingT")
@@ -156,6 +159,14 @@ public class GoalMappingT implements Serializable {
 		userGoalsT.setGoalMappingT(null);
 
 		return userGoalsT;
+	}
+	
+	public String getCreatedModifiedBy() {
+		return createdModifiedBy;
+	}
+
+	public void setCreatedModifiedBy(String createdModifiedBy) {
+		this.createdModifiedBy = createdModifiedBy;
 	}
 
 }
