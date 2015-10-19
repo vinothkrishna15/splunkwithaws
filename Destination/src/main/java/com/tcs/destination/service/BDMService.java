@@ -340,7 +340,7 @@ public class BDMService {
 	}
 	
 	/**
-	 * This method used to get BDM Dashboard details by financial
+	 * This method used to get BDM Dashboard details by Year
 	 * @param userId
 	 * @param financialYear
 	 * @param bdmSupervisorDashboardDTO 
@@ -354,6 +354,7 @@ public class BDMService {
 //		boolean isCurrentFinancialYear=false;
 		DashBoardBDMResponse dashBoardBDMResponse = new DashBoardBDMResponse();
 		List<BDMDashBoardResponse> bdmOppWinValueDTO = new ArrayList<BDMDashBoardResponse>();
+		
 //		if (financialYear.equals("")) {
 //			logger.debug("Financial Year is Empty");
 //			financialYear = DateUtils.getCurrentFinancialYear();
@@ -365,9 +366,11 @@ public class BDMService {
 //		Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
 		UserT userT=userRepository.findByUserId(userId);
 		dashBoardBDMResponse.setUserT(userT);
-
 		setBDMOrSupervisorDashboardTarget(userId, financialYear, dashBoardBDMResponse);
 		
+		//Total Pipeline deal value
+		BigDecimal pipeline = opportunityRepository.getTotalPipelineByUser(userId, fromDate, toDate);
+		dashBoardBDMResponse.setPipeline(pipeline.doubleValue());
 		bdmOppWinValueDTO = getBDMPerformanceByUser(bdmOppWinValueDTO, userId, fromDate, toDate, financialYear, isCurrentFinancialYear);
 		dashBoardBDMResponse.setBdmDashboard(bdmOppWinValueDTO);
 		return dashBoardBDMResponse;
