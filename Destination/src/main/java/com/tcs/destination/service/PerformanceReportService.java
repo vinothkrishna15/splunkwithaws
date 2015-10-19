@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.neo4j.cypher.internal.compiler.v2_1.functions.Round;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -676,13 +674,21 @@ public class PerformanceReportService {
 										.getSalesStageDescription());
 					}
 					if (pipeLineBySalesStage[1] != null) {
-						reportsSalesStage.setBidCount(pipeLineBySalesStage[1]
+						reportsSalesStage.setCount(pipeLineBySalesStage[1]
 								.toString());
 					}
 					if (pipeLineBySalesStage[2] != null) {
 						reportsSalesStage
 								.setDigitalDealValue(pipeLineBySalesStage[2]
 										.toString());
+					}
+					if (pipeLineBySalesStage[3] != null) {
+						reportsSalesStage.setMedian(pipeLineBySalesStage[3]
+								.toString());
+					}
+					if (pipeLineBySalesStage[4] != null) {
+						reportsSalesStage.setMean(pipeLineBySalesStage[4]
+								.toString());
 					}
 
 				}
