@@ -123,12 +123,6 @@ public class ConnectUploadService {
 	@Autowired
 	TimezoneMappingRepository timeZoneMappingRepository;
 	
-	@Autowired
-	DataProcessingRequestRepository dataProcessingRequestRepository;
-	
-	@Value("${fileserver.path}")
-	private String fileServerPath;
-
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectUploadService.class);
 
@@ -782,28 +776,6 @@ public class ConnectUploadService {
 			}
 		}
 		return notesTs;
-	}
-
-	public Status saveConnectRequest(MultipartFile file, String userId) {
-		
-		Status status = new Status();
-		
-		String path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
-		
-		FileManager.saveFile(file, path);
-		
-		DataProcessingRequestT request = new DataProcessingRequestT();
-		request.setFileName(file.getOriginalFilename());
-		request.setFilePath(path);
-		request.setUserT(userRepository.findByUserId(userId));
-		request.setStatus(RequestStatus.SUBMITTED.getStatus());
-		request.setRequestType(RequestType.CONNECT_UPLOAD.getType());
-		
-		dataProcessingRequestRepository.save(request);
-		
-		status.setStatus(Status.SUCCESS, "Connect upload request is submitted successfully");
-		
-		return status;
 	}
 
 }
