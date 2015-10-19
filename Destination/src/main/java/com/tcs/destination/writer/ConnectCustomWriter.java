@@ -225,10 +225,12 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				
 				request.setErrorFileName(errorFileName);	
 				request.setErrorFilePath(errorPath);
-				request.setStatus(RequestStatus.PROCESSED.getStatus());
 				
-				dataProcessingRequestRepository.save(request);
 			}
+			
+			request.setStatus(RequestStatus.PROCESSED.getStatus());
+			dataProcessingRequestRepository.save(request);
+			
 			jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
