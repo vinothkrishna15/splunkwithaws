@@ -276,7 +276,7 @@ public class UserUploadService {
 
 			if(isRowHasErrors(CellModelList)){
 				populateErrorListForRow(userRow,sheetErrors,CellModelList);
-				throw new DestinationException("Error in record processing");
+//				throw new DestinationException("Error in record processing");
 			} else {
 				try {
 					UserT user = new UserT();
@@ -374,7 +374,7 @@ public class UserUploadService {
 			
 			if(isRowHasErrors(goalModelList)){
 				populateErrorListForRow(userGoalRow,sheetErrors,goalModelList);
-				throw new DestinationException("Error in Goal processing");
+//				throw new DestinationException("Error in Goal processing");
 			} else {
 				UserGoalsT userGoal = new UserGoalsT();
 				userGoal.setUserId(validateAndRectifyValue(userIdModel.getCellValue()));
@@ -453,7 +453,7 @@ public class UserUploadService {
 
     			if(isRowHasErrors(privilegeModelList)){
     				populateErrorListForRow(userPrivilegeRow,sheetErrors,privilegeModelList);
-    				throw new DestinationException("Error in Privilege processing");
+//    				throw new DestinationException("Error in Privilege processing");
     			} else {
     				List<String> parentValuesList = parentValueCellModel.getCellValues();
     				for(String parentPrivilege : parentValuesList){
