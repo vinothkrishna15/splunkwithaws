@@ -311,6 +311,8 @@ public class DashBoardService {
 		StringBuffer queryBufferForPastConnects = new StringBuffer();
 		queryBufferForPastConnects.append(constructQueryForLeadershipDashboardTeamConnects(
 			supervisorId, geography, fromDateTs, nowTs));
+		
+		
 
 		// Get the privileges for the user and append to the query constructed above
 		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(supervisorId);
@@ -321,8 +323,7 @@ public class DashBoardService {
 
 		// Construct the Query for Upcoming Connects 
 		StringBuffer queryBufferForUpcomingConnects = new StringBuffer();
-		queryBufferForUpcomingConnects
-			.append(constructQueryForLeadershipDashboardTeamConnects(supervisorId,
+		queryBufferForUpcomingConnects.append(constructQueryForLeadershipDashboardTeamConnects(supervisorId,
 				geography, nowNextMsTs, toDateTs));
 
 		// Append privileges obtained above
@@ -367,13 +368,18 @@ public class DashBoardService {
 		// Get the Connect Ids 
 		Query teamConnects = entityManager.createNativeQuery(queryBuffer
 			.toString());
+		
 
 		// Get list of Connects using the result of the above query
 		if ((teamConnects != null) && !(teamConnects.getResultList().isEmpty())) {
+			
 		    resultList = teamConnects.getResultList();
+		    
+
 		    if ((resultList != null) && !(resultList.isEmpty())) {
 			listOfConnects = connectRepository
 				.findByConnectIdInOrderByLocationAsc(resultList);
+			
 		    }
 		}
 		} catch(Exception e){
@@ -409,7 +415,7 @@ public class DashBoardService {
 		    privilegesQuery = Constants.AND_CLAUSE + whereClause; 
 			//privilegesQuery =  whereClause;
 		}
-        System.out.println("PrivilegesQuery"+ privilegesQuery );
+       
 		return privilegesQuery;
 	    }
 
@@ -428,29 +434,45 @@ public class DashBoardService {
 
 		StringBuffer queryBuffer = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
 
-		queryBuffer.append(supervisorId);
+	    queryBuffer.append(fromDateTs);
+		
+		//queryBuffer.append(supervisorId);
 
 		queryBuffer.append(TEAM_CONNECTS_QUERY_PART2);
+		
+		queryBuffer.append(toDateTs);
 
-		queryBuffer.append(supervisorId);
+		//queryBuffer.append(supervisorId);
 
 		queryBuffer.append(TEAM_CONNECTS_QUERY_PART3);
 
-		queryBuffer.append(fromDateTs);
-
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART4);
-
-		queryBuffer.append(toDateTs);
-
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART5);
-
 		queryBuffer.append(geography);
+		
+		queryBuffer.append(TEAM_CONNECTS_QUERY_PART5);
+		
+		queryBuffer.append(geography);
+		
+		//queryBuffer.append(geography);
 
 		queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
 
-		queryBuffer.append(geography);
+		
+		
+		//queryBuffer.append(geography);
 
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART7);
+		//queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
+
+		
+		//queryBuffer.append(geography);
+		
+		/*queryBuffer.append(geography);
+
+		queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
+
+		queryBuffer.append(geography);*/
+
+	//	queryBuffer.append(TEAM_CONNECTS_QUERY_PART7);
+		
 
 		return queryBuffer;
 	    }
@@ -1099,26 +1121,30 @@ public class DashBoardService {
         	queryBuffer.append(geography);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART2);
+        	
+        	queryBuffer.append(fromDateTs);
         
-        	queryBuffer.append(userId);
+        	//queryBuffer.append(userId);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
+        	
+        	queryBuffer.append(toDateTs);
         
-        	queryBuffer.append(userId);
+        	//queryBuffer.append(userId);
         
         	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
         
-        	queryBuffer.append(userId);
+        //	queryBuffer.append(userId);
         
-        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
+        //	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
         
-        	queryBuffer.append(fromDateTs);
+        //	queryBuffer.append(fromDateTs);
         
-        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART6);
+        //	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART6);
         
-        	queryBuffer.append(toDateTs);
+        //	queryBuffer.append(toDateTs);
         
-        	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART7);
+        //	queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART7);
         
         	queryBuffer.append(privilegesQueryString);
         

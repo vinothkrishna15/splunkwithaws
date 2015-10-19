@@ -11,7 +11,7 @@ public class FileManager {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FileManager.class);
 	
-	public static void saveFile(MultipartFile file, String path) {
+	public static void saveFile(MultipartFile file, String path) throws Exception {
 		
 		logger.debug("Storing the file:");
 		
@@ -25,6 +25,7 @@ public class FileManager {
 			file.transferTo(dest);
 		} catch (IllegalStateException | IOException e) {
 			logger.error("Error while saving the file" + e.getMessage());
+			throw e;
 		}
 	}
 	

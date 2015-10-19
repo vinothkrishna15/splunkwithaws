@@ -267,15 +267,20 @@ public class NotificationHelper implements Runnable {
 					.getOpportunityId());
 			// Don't send notifications to the user who
 			// Commented
-			if (ownerIdList != null && !ownerIdList.isEmpty())
-				ownerIdList.remove(commentT.getUserId());
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(opportunityT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
+			}
 			taggedUserList = taggedFollowedRepository
 					.getOpportunityTaggedFollowedUsers(commentT
 							.getOpportunityId());
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-					ownerIdList.remove(opportunityT.getModifiedBy());
 					taggedUserList.remove(opportunityT.getModifiedBy());
 				} else {
 					taggedUserList.remove(commentT.getUserId());
@@ -293,12 +298,24 @@ public class NotificationHelper implements Runnable {
 			taggedUserList = taggedFollowedRepository
 					.getConnectTaggedFollowedUsers(commentT.getConnectId());
 
+			// Don't send notifications to the user who
+			// Commented
+			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				if (commentT.getUserT().getUserName()
+						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
+					ownerIdList.remove(connectT.getModifiedBy());
+				} else {
+					ownerIdList.remove(commentT.getUserId());
+				}
+			}
+
 			if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 					ownerIdList.remove(connectT.getModifiedBy());
 					taggedUserList.remove(connectT.getModifiedBy());
 				} else {
+					ownerIdList.remove(commentT.getUserId());
 					taggedUserList.remove(commentT.getUserId());
 				}
 			}
@@ -315,7 +332,6 @@ public class NotificationHelper implements Runnable {
 				ownerIdList.add(taskT.getCreatedBy());
 			if (commentT.getUserT().getUserName()
 					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-				taggedUserList.clear();
 				ownerIdList.clear();
 				// if (taggedUserList != null && !taggedUserList.isEmpty()) {
 				// taggedUserList.removeAll(Collections.singleton(taskT
@@ -375,7 +391,8 @@ public class NotificationHelper implements Runnable {
 						if (!commentT.getUserId().equalsIgnoreCase(recipient))
 							addUserNotifications(msgTemplate, recipient,
 									ownerSupervisorEventId,
-									commentedEntityType, commentedEntityId);
+									getActualEntityType(commentedEntityType),
+									commentedEntityId);
 					}
 				}
 			}
@@ -1593,11 +1610,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
-							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
@@ -1635,11 +1651,10 @@ public class NotificationHelper implements Runnable {
 				if (EntityType.OPPORTUNITY.equalsName(entityType))
 					notification.setOpportunityId(entityId);
 				try {
-					notification = userNotificationsTRepository
-							.save(notification);
-					logger.info(
-							"User notifications added successfully, notificationId: {}",
-							notification.getUserNotificationId());
+					userNotificationsTRepository.save(notification);
+					// logger.info(
+					// "User notifications added successfully, notificationId: {}",
+					// notification.getUserNotificationId());
 				} catch (Exception e) {
 					logger.error("Error occurred while saving User notifications: "
 							+ e.getMessage());
