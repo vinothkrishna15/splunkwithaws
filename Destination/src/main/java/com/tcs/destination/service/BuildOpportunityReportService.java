@@ -415,7 +415,7 @@ public class BuildOpportunityReportService {
 			
 			initialMerge = true;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
-			getOpportunityReportMandatoryFields(spreadSheet, row, currency,
+			getOpportunityReportMandatoryFields(spreadSheet, row, currency, 
 					opportunity);
 			int colValue = 8;
 			if (currency.size() > 1) {

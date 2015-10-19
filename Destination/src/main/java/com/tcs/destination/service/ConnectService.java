@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.CityMapping;
+import com.tcs.destination.bean.CommentsT;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
@@ -35,10 +36,12 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
+import com.tcs.destination.data.repository.CommentsTRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
@@ -51,10 +54,12 @@ import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserTaggedFollowedRepository;
 import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
@@ -105,6 +110,15 @@ public class ConnectService {
 
 	@Autowired
 	ConnectSecondaryOwnerRepository connSecOwnerRepo;
+	
+	@Autowired
+	TaskRepository taskRepository;
+	
+	@Autowired
+	UserTaggedFollowedRepository userTaggedFollowedRepository;
+	
+	@Autowired
+	CommentsTRepository commentsTRepository;
 
 	// Required beans for Auto comments - start
 	@Autowired
@@ -1328,4 +1342,52 @@ public class ConnectService {
 		}
 
 	}
+	
+	
+	public void deleteConnect(List<ConnectT> deleteList) {
+		
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkT = new ArrayList<ConnectCustomerContactLinkT>();
+		List<ConnectOfferingLinkT> connectOfferingLinkT = new ArrayList<ConnectOfferingLinkT>();
+		List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdT = new ArrayList<ConnectOpportunityLinkIdT>();
+		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkT = new ArrayList<ConnectSecondaryOwnerLinkT>();
+		List<ConnectSubSpLinkT> connectSubSpLinkT = new ArrayList<ConnectSubSpLinkT>();
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkT = new ArrayList<ConnectTcsAccountContactLinkT>();
+		List<CommentsT> commentsT = new ArrayList<CommentsT>();
+		List<UserTaggedFollowedT> userTaggedFollowedT = new ArrayList<UserTaggedFollowedT>();
+		List<TaskT> taskList = new ArrayList<TaskT>();
+		
+		for (ConnectT connect: deleteList) {
+			connectSubSpLinkT.addAll(connect.getConnectSubSpLinkTs());
+			connectCustomerContactLinkT.addAll(connect.getConnectCustomerContactLinkTs());
+			connectOfferingLinkT.addAll(connect.getConnectOfferingLinkTs());
+			connectOpportunityLinkIdT.addAll(connect.getConnectOpportunityLinkIdTs());
+			connectSecondaryOwnerLinkT.addAll(connect.getConnectSecondaryOwnerLinkTs());
+			connectTcsAccountContactLinkT.addAll(connect.getConnectTcsAccountContactLinkTs());
+			commentsT.addAll(connect.getCommentsTs());
+			userTaggedFollowedT.addAll(connect.getUserTaggedFollowedTs());
+			taskList.addAll(connect.getTaskTs());
+		}
+		
+		
+		connCustContRepo.delete(connectCustomerContactLinkT);
+		connOffLinkRepo.delete(connectOfferingLinkT);
+		connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT);
+		connSecOwnerRepo.delete(connectSecondaryOwnerLinkT);
+		connSubSpRepo.delete(connectSubSpLinkT);
+		connTcsAcctContRepo.delete(connectTcsAccountContactLinkT);	
+		commentsTRepository.delete(commentsT);
+		userTaggedFollowedRepository.delete(userTaggedFollowedT);
+		taskRepository.delete(taskList);
+		
+		connectRepository.delete(deleteList);
+		
+	}
+
+	public void updateConnect(List<ConnectT> connectList) {
+		
+	  connectRepository.save(connectList);
+		
+	}
+		
+		
 }
