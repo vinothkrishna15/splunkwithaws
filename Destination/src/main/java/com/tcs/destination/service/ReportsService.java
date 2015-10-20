@@ -149,7 +149,7 @@ public class ReportsService {
 			+ "left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
 	
 	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
-			+ "	 left outer JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
+			+ "	 JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
 			+ "  JOIN opportunity_t OPP ON BID.opportunity_id=OPP.opportunity_id"
 			+ "  JOIN customer_master_t CMT ON  CMT.customer_id = OPP.customer_id"
 			+ "  JOIN iou_customer_mapping_t ICMT on  CMT.iou = ICMT.iou"
@@ -1921,7 +1921,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
 						IOU_COND_PREFIX, null);
-		// Get WHERE clause string
+		// Get WHERE clause string   
 		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
 				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
 		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
@@ -2490,7 +2490,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			throws Exception {
 		logger.info("Inside getBidDetailedReport Service");
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-//		workbook.setCompressTempFiles(true);
 		List<String> geographyList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
 		List<String> serviceLinesList = new ArrayList<String>();
@@ -2668,7 +2667,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	
 		public String getOpportunityDetailedQueryString(String userId, Date fromDate,
 				Date toDate, List<Integer> salesStage)throws Exception {
-			logger.debug("Inside getConnectSummaryQueryString() method" );
+			logger.debug("Inside getOpportunityDetailedQueryString() method" );
 			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_DETAILED_QUERY_PREFIX);
 				// Get user access privilege groups 
 			HashMap<String, String> queryPrefixMap = 
@@ -2696,7 +2695,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		
 		public String getOpportunityServiceLineSummaryQueryString(String userId, Date fromDate,
 				Date toDate, Integer salesStage)throws Exception {
-			logger.debug("Inside getConnectSummaryQueryString() method" );
+			logger.debug("Inside getOpportunityServiceLineSummaryQueryString() method" );
 			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX);
 				// Get user access privilege groups 
 			HashMap<String, String> queryPrefixMap = 
@@ -2721,7 +2720,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		
 		public String getOpportunityGeoSummaryQueryString(String userId, Date fromDate,
 				Date toDate, Integer salesStage)throws Exception {
-			logger.debug("Inside getConnectSummaryQueryString() method" );
+			logger.debug("Inside getOpportunityGeoSummaryQueryString() method" );
 			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_GEO_QUERY_PREFIX);
 				// Get user access privilege groups 
 			HashMap<String, String> queryPrefixMap = 
@@ -2746,7 +2745,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		
 			public String getOpportunityIouSummaryQueryString(String userId, Date fromDate,
 					Date toDate, Integer salesStage)throws Exception {
-				logger.debug("Inside getConnectSummaryQueryString() method" );
+				logger.debug("Inside getOpportunityIouSummaryQueryString() method" );
 				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_IOU_QUERY_PREFIX);
 					// Get user access privilege groups 
 				HashMap<String, String> queryPrefixMap = 
@@ -2770,7 +2769,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			// Anticipating or Pipeline Geography
 			
 			public String getPipelineAnticipatingOppGeoSummaryQueryString(String userId, Integer salesStage)throws Exception {
-				logger.debug("Inside getConnectSummaryQueryString() method" );
+				logger.debug("Inside getPipelineAnticipatingOppGeoSummaryQueryString() method" );
 				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_GEOGRAPHY_QUERY_PREFIX);
 					// Get user access privilege groups 
 				HashMap<String, String> queryPrefixMap = 
@@ -2792,7 +2791,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			// Anticipating or Pipeline Iou
 			
 					public String getPipelineAnticipatingOppIouSummaryQueryString(String userId, Integer salesStage)throws Exception {
-						logger.debug("Inside getConnectSummaryQueryString() method" );
+						logger.debug("Inside getPipelineAnticipatingOppIouSummaryQueryString() method" );
 						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX);
 							// Get user access privilege groups 
 						HashMap<String, String> queryPrefixMap = 
@@ -2813,7 +2812,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					// Anticipating or Pipeline Service Lines
 					
 					public String getPipelineAnticipatingOppServiceLineSummaryQueryString(String userId, List<Integer> salesStage)throws Exception {
-						logger.debug("Inside getConnectSummaryQueryString() method" );
+						logger.debug("Inside getPipelineAnticipatingOppServiceLineSummaryQueryString() method" );
 						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX);
 							// Get user access privilege groups 
 						HashMap<String, String> queryPrefixMap = 

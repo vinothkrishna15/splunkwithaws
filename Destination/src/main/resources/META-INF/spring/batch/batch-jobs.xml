@@ -10,6 +10,8 @@
 	<bean id="stepScope" class="org.springframework.batch.core.scope.StepScope">
 	    <property name="autoProxy" value="true"/>
 	</bean>
+	
+	<bean id="destinationStpListener" class="com.tcs.destination.listener.DestinationStepListener" />
 	 
 	<!-- batch jobs  -->
 	<import resource="/jobs/userRemindersBidAndTaskNrDue-job.xml"/>

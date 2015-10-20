@@ -25,6 +25,7 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.enums.Operation;
@@ -32,6 +33,7 @@ import com.tcs.destination.helper.ConnectUploadHelper;
 import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.StringUtils;
 
 public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
 	
@@ -52,14 +54,20 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	
 	private ConnectService connectService;
 	
+	private ConnectRepository connectRepository;
+	
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
 		
-		List<ConnectT> insertList = new ArrayList<ConnectT>();
-		
+		List<ConnectT> connectList = new ArrayList<ConnectT>();
+		String operation = null; 
 		for (String[] data: items) {
-			String operation = (String) data[1];
+
+			operation = (String) data[1];
+
+//			String operation = (String) data[1];
+
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				ConnectT connect =  new ConnectT();
@@ -68,14 +76,61 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
 				} else if (errorDTO.getMessage() == null) {
-					insertList.add(connect);
+					connectList.add(connect);
 				}
 				
+			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){
+				
+				String connectId = data[2];
+				UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				
+				if (!StringUtils.isEmpty(connectId)) {
+					ConnectT connect = connectRepository.findByConnectId(connectId);
+					if (connect != null) {
+						errorDTO = helper.validateConnectDataUpdate(data, request.getUserT().getUserId() ,connect);
+						if (errorDTO.getMessage() != null) {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						} else if (errorDTO.getMessage() == null) {
+							connectList.add(connect);
+						}
+					} else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Connect Id is invalid; ");
+						errorList.add(errorDTO);
+					}
+				} else {
+					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+					errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+					errorDTO.setMessage("Connect Id is mandatory; ");
+					errorList.add(errorDTO);
+				}
+				
+			} else if (operation.equalsIgnoreCase(Operation.DELETE.name())){
+				 ConnectT connect =  new ConnectT();
+				 connect = connectRepository.findByConnectId(data[2]);
+				 UploadServiceErrorDetailsDTO errorDTO = helper.validateConnectId(data, connect);
+				 
+				 if (errorDTO.getMessage() != null) {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorList.add(errorDTO);
+					} else if (errorDTO.getMessage() == null) {
+						connectList.add(connect);
+				}
+			
 			}
 		}
 		
-		if (CollectionUtils.isNotEmpty(insertList)) {
-			connectService.save(insertList);
+		if (CollectionUtils.isNotEmpty(connectList)) {
+			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+				connectService.save(connectList);
+			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+				connectService.updateConnect(connectList);
+			} else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+				connectService.deleteConnect(connectList);
+			}
+			
 		}
 		
 	}
@@ -132,6 +187,16 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		this.request = request;
 	}
 
+	public ConnectRepository getConnectRepository() {
+		return connectRepository;
+	}
+
+
+	public void setConnectRepository(ConnectRepository connectRepository) {
+		this.connectRepository = connectRepository;
+	}
+
+
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
 		this.stepExecution = stepExecution;
@@ -160,13 +225,14 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				
 				request.setErrorFileName(errorFileName);	
 				request.setErrorFilePath(errorPath);
-				request.setStatus(RequestStatus.PROCESSED.getStatus());
 				
-				dataProcessingRequestRepository.save(request);
-				jobContext.remove(REQUEST);
-				jobContext.remove(FILE_PATH);
 			}
 			
+			request.setStatus(RequestStatus.PROCESSED.getStatus());
+			dataProcessingRequestRepository.save(request);
+			
+			jobContext.remove(REQUEST);
+			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}

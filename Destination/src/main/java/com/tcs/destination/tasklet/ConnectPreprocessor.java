@@ -10,6 +10,7 @@ import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -42,18 +43,16 @@ public class ConnectPreprocessor implements Tasklet{
 		
 		logger.debug("Inside execute method:");
 		
-		if (requestList == null || requestList.isEmpty()) {
+		if (requestList == null) {
 			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CONNECT_UPLOAD.getType(), SUBMITTED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 		
-		if (!requestList.isEmpty()) {
+		if (CollectionUtils.isNotEmpty(requestList)) {
 			
 			DataProcessingRequestT request = requestList.remove(0);
 			String filePath = request.getFilePath() + request.getFileName();
-			String userId = request.getUserT().getUserId();
-			Long requestId = request.getProcessRequestId();
 		   
 		    jobContext.put(FILE_PATH,filePath);
 		    jobContext.put(REQUEST,request);

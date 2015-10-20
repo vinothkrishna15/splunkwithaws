@@ -93,6 +93,7 @@ public class BDMService {
 	private static final String DEAL_CLOSURE_DATE_BETWEEN = " and deal_closure_date between '";
 	
 	private static final String  CUSTOMER_NAME = "RCMT.customer_name in (";
+	
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
@@ -135,9 +136,19 @@ public class BDMService {
 		UserT user = userService.findByUserId(userId);
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			boolean isCurrentFinancialYear=false;
+			if (financialYear.equals("")) {
+				logger.debug("Financial Year is Empty");
+				financialYear = DateUtils.getCurrentFinancialYear();
+			}
+			Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+			Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
 			if (userGroup.equals("BDM")) {
 				if (isDashboardByYear) {
-					opportunityWinValueDTO = getBDMDashBoardByYear(userId, financialYear);
+					if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
+						isCurrentFinancialYear=true;
+					}
+					opportunityWinValueDTO = getBDMDashBoardByYear(userId, financialYear, fromDate, toDate, isCurrentFinancialYear);
 				} else {
 					opportunityWinValueDTO = getBDMDashBoardByQuarter(userId, financialYear);
 				}
@@ -258,9 +269,19 @@ public class BDMService {
 	public List<DashBoardBDMResponse> getBDMSupervisorDashBoardByUser(List<String> userIds,	String financialYear, boolean isDashboardByYear) throws Exception {
 		List<DashBoardBDMResponse> dashBoardBDMResponseList = new ArrayList<DashBoardBDMResponse>();
 		DashBoardBDMResponse dashBoardBDMResponse = new DashBoardBDMResponse();
+		boolean isCurrentFinancialYear=false;
+		if (financialYear.equals("")) {
+			logger.debug("Financial Year is Empty");
+			financialYear = DateUtils.getCurrentFinancialYear();
+		}
+		Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+		Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
 		for(String userId:userIds){
 			if(isDashboardByYear){
-				dashBoardBDMResponse = getBDMDashBoardByYear(userId, financialYear);
+				if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
+					isCurrentFinancialYear=true;
+				}
+				dashBoardBDMResponse = getBDMDashBoardByYear(userId, financialYear, fromDate, toDate, isCurrentFinancialYear);
 		    	} else {
 		    	dashBoardBDMResponse = getBDMDashBoardByQuarter(userId, financialYear);
 		    	}
@@ -277,29 +298,49 @@ public class BDMService {
 		BigDecimal totalOppOwnerWinValue=new BigDecimal(0);
 		int totalProposalsSupportedValue = 0;
 		int totalConnectsSupportedValue = 0;
+		boolean isCurrentFinancialYear=false;
+		if (financialYear.equals("")) {
+			logger.debug("Financial Year is Empty");
+			financialYear = DateUtils.getCurrentFinancialYear();
+		}
+		Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+		Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
 		for(String userId:userIds){
 			if(isDashboardByYear){
-				dashBoardBDMResponse = getBDMDashBoardByYear(userId, financialYear);
+				if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
+					isCurrentFinancialYear=true;
+				}
+				dashBoardBDMResponse = getBDMDashBoardByYear(userId, financialYear, fromDate, toDate, isCurrentFinancialYear);
 		    	} else {
 		    	dashBoardBDMResponse = getBDMDashBoardByQuarter(userId, financialYear);
 		    	}
-			for(BDMDashBoardResponse bdmDashBoardResponse:dashBoardBDMResponse.getBdmDashboard()){
-				totalOppOwnerWinValue=totalOppOwnerWinValue.add(bdmDashBoardResponse.getTotalOppWinsAchieved());
-				totalProposalsSupportedValue=totalProposalsSupportedValue+bdmDashBoardResponse.getTotalProposalSupportAchieved();
-				totalConnectsSupportedValue= totalConnectsSupportedValue+bdmDashBoardResponse.getTotalConnects();
-			}
+//			for(BDMDashBoardResponse bdmDashBoardResponse:dashBoardBDMResponse.getBdmDashboard()){
+//				totalOppOwnerWinValue=totalOppOwnerWinValue.add(bdmDashBoardResponse.getTotalOppWinsAchieved());
+//				totalProposalsSupportedValue=totalProposalsSupportedValue+bdmDashBoardResponse.getTotalProposalSupportAchieved();
+//				totalConnectsSupportedValue= totalConnectsSupportedValue+bdmDashBoardResponse.getTotalConnects();
+//			}
 			
 			dashBoardBDMResponseList.add(dashBoardBDMResponse);
 		}
+		//total opportunity wins achieved 
+		totalOppOwnerWinValue = opportunityRepository.getTotalOpportunityWinsByUserIds(userIds, fromDate, toDate);
 		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
+		
+		//total proposal achieved
+		totalProposalsSupportedValue = (opportunityRepository.getTotalProposalSupportedByUserIds(userIds, fromDate, toDate)).intValue();
 		bdmSupervisorDashboardDTO.setTotalProposalSupportedAchieved(totalProposalsSupportedValue);
+		
+		//total connects Supported
+		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+		Timestamp toDateTs = new Timestamp(toDate.getTime()	+ ONE_DAY_IN_MILLIS - 1);
+		totalConnectsSupportedValue = (connectRepository.getTotalConnectsSupported(userIds, fromDateTs, toDateTs)).intValue();
 		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);
 		bdmSupervisorDashboardDTO.setBdmSupervisorDashboard(dashBoardBDMResponseList);
 		return bdmSupervisorDashboardDTO;
 	}
 	
 	/**
-	 * This method used to get BDM Dashboard details by financial
+	 * This method used to get BDM Dashboard details by Year
 	 * @param userId
 	 * @param financialYear
 	 * @param bdmSupervisorDashboardDTO 
@@ -309,25 +350,28 @@ public class BDMService {
 	 * @return
 	 * @throws Exception
 	 */
-	private DashBoardBDMResponse getBDMDashBoardByYear(String userId, String financialYear) throws Exception {
-		boolean isCurrentFinancialYear=false;
+	private DashBoardBDMResponse getBDMDashBoardByYear(String userId, String financialYear, Date fromDate, Date toDate, boolean isCurrentFinancialYear) throws Exception {
+//		boolean isCurrentFinancialYear=false;
 		DashBoardBDMResponse dashBoardBDMResponse = new DashBoardBDMResponse();
 		List<BDMDashBoardResponse> bdmOppWinValueDTO = new ArrayList<BDMDashBoardResponse>();
-		if (financialYear.equals("")) {
-			logger.debug("Financial Year is Empty");
-			financialYear = DateUtils.getCurrentFinancialYear();
-		}
-		if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
-			isCurrentFinancialYear=true;
-		}
-		Date fDate = DateUtils.getDateFromFinancialYear(financialYear, true);
-		Date tDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+		
+//		if (financialYear.equals("")) {
+//			logger.debug("Financial Year is Empty");
+//			financialYear = DateUtils.getCurrentFinancialYear();
+//		}
+//		if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
+//			isCurrentFinancialYear=true;
+//		}
+//		Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+//		Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
 		UserT userT=userRepository.findByUserId(userId);
 		dashBoardBDMResponse.setUserT(userT);
-
 		setBDMOrSupervisorDashboardTarget(userId, financialYear, dashBoardBDMResponse);
 		
-		bdmOppWinValueDTO = getBDMPerformanceByUser(bdmOppWinValueDTO, userId, fDate, tDate, financialYear, isCurrentFinancialYear);
+		//Total Pipeline deal value
+		BigDecimal pipeline = opportunityRepository.getTotalPipelineByUser(userId, fromDate, toDate);
+		dashBoardBDMResponse.setPipeline(pipeline.doubleValue());
+		bdmOppWinValueDTO = getBDMPerformanceByUser(bdmOppWinValueDTO, userId, fromDate, toDate, financialYear, isCurrentFinancialYear);
 		dashBoardBDMResponse.setBdmDashboard(bdmOppWinValueDTO);
 		return dashBoardBDMResponse;
 	}
@@ -346,10 +390,10 @@ public class BDMService {
 	private DashBoardBDMResponse getBDMDashBoardByQuarter(String userId, String financialYear) throws Exception {
 		DashBoardBDMResponse dashBoardBDMResponse = new DashBoardBDMResponse();
 		List<BDMDashBoardResponse> bdmOppWinValueDTO = new ArrayList<BDMDashBoardResponse>();
-		if (financialYear.equals("")) {
-			logger.debug("Financial Year is Empty");
-			financialYear = DateUtils.getCurrentFinancialYear();
-		}
+//		if (financialYear.equals("")) {
+//			logger.debug("Financial Year is Empty");
+//			financialYear = DateUtils.getCurrentFinancialYear();
+//		}
 		UserT userT=userRepository.findByUserId(userId);
 		dashBoardBDMResponse.setUserT(userT);
 		//
@@ -653,7 +697,7 @@ public class BDMService {
 	
 	private List<Object[]> constructQueryForGeoIouPerformanceDashboardPipelineFunnelPrivileges(
 			String userId, Date fromDate, Date toDate, int salesStageCode) throws Exception {
-		BigDecimal lossSum=new BigDecimal(0);
+//		BigDecimal lossSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardPipelinFunnelQueryString(userId, fromDate, toDate, salesStageCode);
 		logger.info("Query string: {}", queryString);
@@ -665,7 +709,7 @@ public class BDMService {
 	
 	private BigInteger constructQueryForGeoIouPerformanceDashboardSubSpPenetrationPrivileges(
 			String userId, List<String> formattedMonths, boolean isSpPenetrationAboveThree) throws Exception {
-		BigDecimal lossSum=new BigDecimal(0);
+//		BigDecimal lossSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardSubSpPenetrationQueryString(userId, formattedMonths, isSpPenetrationAboveThree);
 		logger.info("Query string: {}", queryString);

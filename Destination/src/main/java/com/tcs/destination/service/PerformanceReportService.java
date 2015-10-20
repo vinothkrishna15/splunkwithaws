@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.neo4j.cypher.internal.compiler.v2_1.functions.Round;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -377,7 +375,7 @@ public class PerformanceReportService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Data Found");
 
-		Collections.sort(iouRevenuesList, new IOUComparator());
+		Collections.sort(iouRevenuesList, new IOUActualComparator());
 
 		return iouRevenuesList;
 	}
@@ -676,13 +674,21 @@ public class PerformanceReportService {
 										.getSalesStageDescription());
 					}
 					if (pipeLineBySalesStage[1] != null) {
-						reportsSalesStage.setBidCount(pipeLineBySalesStage[1]
+						reportsSalesStage.setCount(pipeLineBySalesStage[1]
 								.toString());
 					}
 					if (pipeLineBySalesStage[2] != null) {
 						reportsSalesStage
 								.setDigitalDealValue(pipeLineBySalesStage[2]
 										.toString());
+					}
+					if (pipeLineBySalesStage[3] != null) {
+						reportsSalesStage.setMedian(pipeLineBySalesStage[3]
+								.toString());
+					}
+					if (pipeLineBySalesStage[4] != null) {
+						reportsSalesStage.setMean(pipeLineBySalesStage[4]
+								.toString());
 					}
 
 				}
@@ -746,7 +752,7 @@ public class PerformanceReportService {
 		if (iouReports.isEmpty())
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Data Found");
-		Collections.sort(iouReports, new IOUComparator());
+		Collections.sort(iouReports, new IOUPipelineComparator());
 		return iouReports;
 	}
 
@@ -897,14 +903,32 @@ public class PerformanceReportService {
 		}
 	}
 
-	public class IOUComparator implements Comparator<IOUReport> {
+	public class IOUActualComparator implements Comparator<IOUReport> {
 		public int compare(IOUReport a, IOUReport b) {
 
-			if (a.getActualRevenue().compareTo(b.getActualRevenue()) < 0)
-				return 1;
-
+			if (a != null && b != null)
+				if (a.getActualRevenue() != null
+						&& b.getActualRevenue() != null) {
+					if (a.getActualRevenue().compareTo(b.getActualRevenue()) < 0)
+						return 1;
+				}
 			return -1;
 
 		}
 	}
+
+	public class IOUPipelineComparator implements Comparator<IOUReport> {
+		public int compare(IOUReport a, IOUReport b) {
+			if (a != null && b != null)
+				if (a.getDigitalDealValue() != null
+						&& b.getDigitalDealValue() != null) {
+					if (a.getDigitalDealValue().compareTo(
+							b.getDigitalDealValue()) < 0)
+						return 1;
+				}
+			return -1;
+
+		}
+	}
+
 }

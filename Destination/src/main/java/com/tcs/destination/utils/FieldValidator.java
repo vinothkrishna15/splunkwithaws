@@ -30,10 +30,14 @@ public class FieldValidator {
 	public static final String User_PrivilegesT_ChildType = "User_PrivilegesT_ChildType";
 	public static final String User_PrivilegesT_ChildValues = "User_PrivilegesT_ChildValues";
 	
-	
 	//user general settings fields
 	public static final String User_General_SettingsT_timeZoneDesc = "User_General_SettingsT_timeZoneDesc";
-	
+
+	//user goals fields
+	public static final String UserGoals_UserId = "UserGoals_UserId" ;
+	public static final String UserGoals_FinYear = "UserGoals_FinYear" ;
+	public static final String UserGoals_GoalName = "UserGoals_GoalName" ;
+	public static final String UserGoals_Target = "UserGoals_Target" ;
 	
 	private static final Map<String,Integer>FIELD_LENGTH_MAP;
 	public static final Map<String,Integer>FIELD_INDEX_MAP;
@@ -58,6 +62,9 @@ public class FieldValidator {
 	  fieldLengthMap.put(User_PrivilegesT_ParentValues, 100);
 	  fieldLengthMap.put(User_PrivilegesT_ChildType, 30);
 	  fieldLengthMap.put(User_PrivilegesT_ChildValues, 100);
+	  fieldLengthMap.put(UserGoals_UserId, 10);
+	  fieldLengthMap.put(UserGoals_FinYear, 20);
+	  fieldLengthMap.put(UserGoals_GoalName, 50);
 	 
 	  FIELD_LENGTH_MAP = Collections.unmodifiableMap(fieldLengthMap);
 	  Map<String,Integer> fieldIndexMap = new HashMap<String,Integer>();
@@ -77,6 +84,10 @@ public class FieldValidator {
 	  fieldIndexMap.put(User_PrivilegesT_ParentValues, 5);
 	  fieldIndexMap.put(User_PrivilegesT_ChildType, 6);
 	  fieldIndexMap.put(User_PrivilegesT_ChildValues, 7);
+	  fieldIndexMap.put(UserGoals_UserId, 1);
+	  fieldIndexMap.put(UserGoals_FinYear, 5);
+	  fieldIndexMap.put(UserGoals_GoalName, 4);
+	  fieldIndexMap.put(UserGoals_Target,6);
 	  
 	  FIELD_INDEX_MAP = Collections.unmodifiableMap(fieldIndexMap);
 	}

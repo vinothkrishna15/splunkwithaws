@@ -24,6 +24,8 @@ public class DashBoardBDMResponse implements Serializable{
 	
 	private int connectSupportedTarget;
 	
+	private double pipeline;
+	
 	private List<BDMDashBoardResponse> bdmDashboard;
 	
 	public List<BDMDashBoardResponse> getBdmDashboard() {
@@ -66,6 +68,14 @@ public class DashBoardBDMResponse implements Serializable{
 
 	public void setUserT(UserT userT) {
 		this.userT = userT;
+	}
+
+	public double getPipeline() {
+		return pipeline;
+	}
+
+	public void setPipeline(double pipeline) {
+		this.pipeline = pipeline;
 	}
 
 }
