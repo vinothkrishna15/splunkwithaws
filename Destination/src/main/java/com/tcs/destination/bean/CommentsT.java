@@ -48,7 +48,7 @@ public class CommentsT implements Serializable {
 
 	//bi-directional many-to-one association to ConnectT
 	@ManyToOne
-	@JoinColumn(name="connect_id")
+	@JoinColumn(name="connect_id", insertable = false, updatable = false)
 	private ConnectT connectT;
 
 	//bi-directional many-to-one association to CustomerMasterT
@@ -75,6 +75,9 @@ public class CommentsT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="user_id")
 	private UserT userT;
+	
+	@Column(name="connect_id")
+	private String connectId;
 
 	public CommentsT() {
 	}
