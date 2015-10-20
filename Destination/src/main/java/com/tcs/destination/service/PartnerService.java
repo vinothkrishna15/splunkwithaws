@@ -170,6 +170,8 @@ public class PartnerService {
 			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityPartnerLinkTs) {
 				opportunityPartnerLinkT.getOpportunityT()
 						.setOpportunityPartnerLinkTs(null);
+				opportunityPartnerLinkT.getOpportunityT().getCustomerMasterT()
+						.setOpportunityTs(null);
 			}
 
 		}
@@ -181,7 +183,7 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
 				.findByPartnerNameAndGeographyNonMandatory(name, geography);
-		if(partnerMasterTs.isEmpty()){
+		if (partnerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available");
 		}

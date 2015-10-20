@@ -231,12 +231,13 @@ public class TaskController {
 	 */
 	@RequestMapping(value="/team", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTeamTasks(
+			@RequestParam(value="status", defaultValue="all") String status,
 			@RequestParam(value="id") String supervisorId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
 		logger.debug("Inside TaskController /task/team?id="+supervisorId+" GET");
-		List<TaskT> taskList = taskService.findTeamTasks(supervisorId);
+		List<TaskT> taskList = taskService.findTeamTasks(supervisorId,status);
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
 	}
