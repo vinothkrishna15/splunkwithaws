@@ -95,8 +95,19 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	 *            , taskStatus
 	 * @return team tasks for the given supervisor.
 	 */
+	@Query(value = "select * from task_t where task_owner in (?1) and UPPER(task_status) = ?2 order by target_date_for_completion asc", nativeQuery = true)
+	List<TaskT> findTeamTasksBySupervisorIdAndStatus(List<String> userIds,
+			String taksStatus);
+	
+	/**
+	 * Finds all the team tasks for the given supervisor.
+	 * 
+	 * @param supervisorId
+	 *            , taskStatus
+	 * @return team tasks for the given supervisor.
+	 */
 	@Query(value = "select * from task_t where task_owner in (?1) and UPPER(task_status) != ?2 order by target_date_for_completion asc", nativeQuery = true)
-	List<TaskT> findTeamTasksBySupervisorId(List<String> userIds,
+	List<TaskT> findTeamTasksBySupervisorIdAndStatusNot(List<String> userIds,
 			String taksStatus);
 
 	@Query(value = "select user_id from ( select task_owner as user_id from task_t where task_id=(:taskId) "
