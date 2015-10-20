@@ -1,16 +1,17 @@
 package com.tcs.destination.data.repository;
 
-import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_QUERY;
+import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_POST_QUERY;
+import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_QUERY;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_QUERY;
-import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_POST_QUERY;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_SUPERVISOR;
-import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR;
+import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_QUERY;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import com.tcs.destination.bean.OpportunityT;
 
@@ -33,5 +34,8 @@ public interface BatchOpportunityRepository extends CrudRepository<OpportunityT,
 	
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR, nativeQuery = true)
 	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor();
+	
+	@Query(value = "select db_maintenance(:days)", nativeQuery = true)
+    Integer maintainDBTables(@Param("days") Integer days);
 
 }
