@@ -50,13 +50,13 @@ public class JobScheduler {
     			logger.info("Job: {} not started as the switch is OFF.", job.getName());
     		}
     	} catch (JobExecutionAlreadyRunningException e) {
-    		logger.error("Error while lauching job:{} - exception:{}",job.getName(), e);
+    		logger.error("Error while lauching job:{} - exception:{}",job.getName(), e.getMessage());
 		} catch (JobRestartException e) {
-			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e);
+			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e.getMessage());
 		} catch (JobInstanceAlreadyCompleteException e) {
-			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e);
+			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e.getMessage());
 		} catch (JobParametersInvalidException e) {
-			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e);
+			logger.error("Error while lauching job:{} - exception:{}",job.getName(), e.getMessage());
 		}
 
 	  }
