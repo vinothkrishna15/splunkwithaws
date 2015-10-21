@@ -305,9 +305,10 @@ public class ConnectUploadService {
 
 		// TIME ZONE
 		if(!StringUtils.isEmpty(listOfCellValues.get(9))){
-		if(timeZoneMap.containsKey(listOfCellValues.get(9))){
-			connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
-		}
+			connectT.setTimeZone(listOfCellValues.get(9));
+//		if(timeZoneMap.containsKey(listOfCellValues.get(9))){
+//			connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
+//		}
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Time Zone Is Mandatory");
 		}
@@ -347,17 +348,17 @@ public class ConnectUploadService {
 		}
 
 		// CONNECT CUSTOMER CONTACT
-		if(!StringUtils.isEmpty(listOfCellValues.get(15))){
-		
+//		if(!StringUtils.isEmpty(listOfCellValues.get(15))){
+//		
 //			if(contactTsMap.containsKey(listOfCellValues.get(15))){
-				connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
-					listOfCellValues.get(15), userId, mapOfCustomerContactT, mapOfContactT));
+//				connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
+//					listOfCellValues.get(15), userId, mapOfCustomerContactT, mapOfContactT));
 //			} else {
 //				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Connect Customer Contact");
 //			}
-		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Customer Contact Is Mandatory");
-		}
+//		} else {
+//			throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Customer Contact Is Mandatory");
+//		}
 		
 		// CONNECT NOTES
 		if(listOfCellValues.get(16).length()>0){
@@ -378,7 +379,7 @@ public class ConnectUploadService {
 		connectT.setModifiedBy(userId); 
 		
 		// DOCUMENTS ATTACHED
-		connectT.setDocumentsAttached(Constants.NO);
+		connectT.setDocumentsAttached(Constants.NO);connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
 			
 		connectService.insertConnect(connectT, isBulkDataLoad);
 		}
