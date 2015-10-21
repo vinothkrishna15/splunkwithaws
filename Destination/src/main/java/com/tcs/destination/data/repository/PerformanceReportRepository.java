@@ -81,7 +81,7 @@ public interface PerformanceReportRepository extends
 			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou"
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '')"
-			+ " where ARDT.financial_year=(:financialYear) and (ARDT.quarter=(:quarter) or (:quarter)= '') AND (RCMT.customer_geography=(:geography) or (:geography)='') group by ARDT.client_country", nativeQuery = true)
+			+ " where (ARDT.financial_year=(:financialYear) or (:financialYear)= '') and (ARDT.quarter=(:quarter) or (:quarter)= '') AND (RCMT.customer_geography=(:geography) or (:geography)='') group by ARDT.client_country", nativeQuery = true)
 	public List<Object[]> getRevenuesByCountry(@Param("financialYear") String financialYear,
 			@Param("quarter") String quarter, @Param("customer") List<String> customer,
 			@Param("subSp") String subSp, @Param("iou") String iou,
