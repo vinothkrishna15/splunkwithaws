@@ -107,16 +107,14 @@ public class UserNotificationSettingsService {
 							for (UserNotificationSettingsT userNotificationSettingsT : userNotificationSettingsTs) {
 								userNotificationSettingsT.getUserT()
 										.setUserNotificationSettingsTs(null);
-								userNotificationSettingsT
-										.setUserNotificationSettingsConditionsT(userNotificationSettingsConditionRepository
-												.findByUserIdAndEventId(userId,
-														userNotificationSettingsT
-																.getEventId()));
 							}
 						notificationSettingsEventMappingT
 								.setUserNotificationSettingsTs(userNotificationSettingsTs);
 						notificationSettingsEventMappingT
-								.setUserNotificationSettingsConditionsTs(null);
+								.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository
+										.findByUserIdAndEventId(userId,
+												notificationSettingsEventMappingT
+														.getEventId()));
 					}
 				}
 			}
