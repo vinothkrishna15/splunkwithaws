@@ -305,6 +305,7 @@ public class ConnectUploadService {
 
 		// TIME ZONE
 		if(!StringUtils.isEmpty(listOfCellValues.get(9))){
+			System.out.println("Time zone********"+listOfCellValues.get(9));
 			connectT.setTimeZone(listOfCellValues.get(9));
 //		if(timeZoneMap.containsKey(listOfCellValues.get(9))){
 //			connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
@@ -361,8 +362,8 @@ public class ConnectUploadService {
 //		}
 		
 		// CONNECT NOTES
-		if(listOfCellValues.get(16).length()>0){
-		connectT.setNotesTs(constructConnectNotes(listOfCellValues.get(16), userId));
+		if(listOfCellValues.get(15)!=null){
+		connectT.setNotesTs(constructConnectNotes(listOfCellValues.get(15), userId));
 		}
 
 		// CONNECT TYPE
@@ -379,7 +380,9 @@ public class ConnectUploadService {
 		connectT.setModifiedBy(userId); 
 		
 		// DOCUMENTS ATTACHED
-		connectT.setDocumentsAttached(Constants.NO);connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
+		connectT.setDocumentsAttached(Constants.NO);
+		
+//		connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
 			
 		connectService.insertConnect(connectT, isBulkDataLoad);
 		}
