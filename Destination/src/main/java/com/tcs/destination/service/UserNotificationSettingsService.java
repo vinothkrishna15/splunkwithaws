@@ -115,6 +115,8 @@ public class UserNotificationSettingsService {
 							}
 						notificationSettingsEventMappingT
 								.setUserNotificationSettingsTs(userNotificationSettingsTs);
+						notificationSettingsEventMappingT
+								.setNotificationSettingsEventConditionsMappingTs(null);
 					}
 				}
 			}
