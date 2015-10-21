@@ -427,12 +427,17 @@ public class OpportunityUploadService {
 				 * Commented on-demand
 				 */
 				// //OpportunitySalesSupportLinkT Params
-				// if(!StringUtils.isEmpty(listOfCellValues.get(22))){
+				 if(!StringUtils.isEmpty(listOfCellValues.get(22))){
 				// //opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT,
 				// listOfCellValues.get(21).trim()));
-				// opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22),
-				// userId));
-				// }
+					// System.out.println("Setting Value For Sales Support Link T");
+				 opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22),
+				 userId));
+				 }
+				 else
+				 {
+					 throw new DestinationException(HttpStatus.BAD_REQUEST,"Sales Support Owner is empty");
+				 }
 
 				// Bid Details
 				if (!StringUtils.isEmpty(listOfCellValues
@@ -867,7 +872,7 @@ public class OpportunityUploadService {
 	    String values, String userId) throws Exception {
 
 	List<OpportunitySalesSupportLinkT> listOfOppSubSpLink = null;
-	if (values != null) {
+	if (!StringUtils.isEmpty(values)) {
 
 	    listOfOppSubSpLink = new ArrayList<OpportunitySalesSupportLinkT>();
 
@@ -880,9 +885,9 @@ public class OpportunityUploadService {
 
 		// SalesSupportOwner comes with location separated by '-', hence
 		// split is used
-		String[] ssValue = value.split("-");
+		//String[] ssValue = value.split("-");
 		oclt.setSalesSupportOwner(getMapValuesForKey(mapOfUserT,
-			ssValue[0].trim()));
+			value.trim()));
 		oclt.setCreatedBy(userId);
 		oclt.setModifiedBy(userId);
 
