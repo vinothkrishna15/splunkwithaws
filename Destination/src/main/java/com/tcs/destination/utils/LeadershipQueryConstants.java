@@ -66,7 +66,7 @@ public class LeadershipQueryConstants {
     
     public static final String TEAM_OPPORTUNITY_QUERY_PART1a = "' or '";
     
-    public static final String TEAM_OPPORTUNITY_QUERY_PART2 = "' = '') where ((OPP.sales_stage_code > 9  and OPP.deal_closure_date between '";
+    public static final String TEAM_OPPORTUNITY_QUERY_PART2 = "' = '') where ((OPP.sales_stage_code >= 9  and OPP.deal_closure_date between '";
     
     public static final String TEAM_OPPORTUNITY_QUERY_PART3 =  TEAM_CONNECTS_QUERY_PART4;
     
