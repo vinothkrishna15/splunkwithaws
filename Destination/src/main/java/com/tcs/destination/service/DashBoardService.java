@@ -316,33 +316,13 @@ public class DashBoardService {
 																	// timestamp
 																	// w.r.t now
 
-		// Construct the Query for Past Connects
-		StringBuffer queryBufferForPastConnects = new StringBuffer();
-		queryBufferForPastConnects
-				.append(constructQueryForLeadershipDashboardTeamConnects(
-						supervisorId, geography, fromDateTs, nowTs));
+		// Get the Past connects
+		List<ConnectT> listOfPastConnects = getLeadershipDashboardTeamConnects(
+				supervisorId, geography, fromDateTs, nowTs);
 
-		// Get the privileges for the user and append to the query constructed
-		// above
-		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(supervisorId);
-		queryBufferForPastConnects.append(privilegesQuery);
-
-		// Get the connects using the constructed query
-		List<ConnectT> listOfPastConnects = getConnectsFromQueryBuffer(
-				queryBufferForPastConnects, supervisorId);
-
-		// Construct the Query for Upcoming Connects
-		StringBuffer queryBufferForUpcomingConnects = new StringBuffer();
-		queryBufferForUpcomingConnects
-				.append(constructQueryForLeadershipDashboardTeamConnects(
-						supervisorId, geography, nowNextMsTs, toDateTs));
-
-		// Append privileges obtained above
-		queryBufferForUpcomingConnects.append(privilegesQuery);
-
-		// Get the Connects using the constructed query
-		List<ConnectT> listOfUpcomingConnects = getConnectsFromQueryBuffer(
-				queryBufferForUpcomingConnects, supervisorId);
+		// Get the Future Connects using the constructed query
+		List<ConnectT> listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
+				supervisorId, geography, nowNextMsTs, toDateTs);
 
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
@@ -369,44 +349,44 @@ public class DashBoardService {
 		return leadershipConnectsDTO;
 	}
 
-	/**
-	 * This method returns a list of Connects based on the query string formed
-	 * 
-	 * @param queryBuffer
-	 * @return
-	 */
-	private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer,
-			String userId) throws Exception {
-		List<String> resultList = null;
-		List<ConnectT> listOfConnects = null;
-
-		try {
-			// Get the Connect Ids
-			Query teamConnects = entityManager.createNativeQuery(queryBuffer
-					.toString());
-
-			// Get list of Connects using the result of the above query
-			if ((teamConnects != null)
-					&& !(teamConnects.getResultList().isEmpty())) {
-
-				resultList = teamConnects.getResultList();
-
-				if ((resultList != null) && !(resultList.isEmpty())) {
-					listOfConnects = connectRepository
-							.findByConnectIdInOrderByLocationAsc(resultList);
-
-				}
-			}
-		} catch (Exception e) {
-			logger.error(
-					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
-					userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"An Internal Error has occured while processing request for userId "
-							+ userId);
-		}
-		return listOfConnects;
-	}
+//	/**
+//	 * This method returns a list of Connects based on the query string formed
+//	 * 
+//	 * @param queryBuffer
+//	 * @return
+//	 */
+//	private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer,
+//			String userId) throws Exception {
+//		List<String> resultList = null;
+//		List<ConnectT> listOfConnects = null;
+//
+//		try {
+//			// Get the Connect Ids
+//			Query teamConnects = entityManager.createNativeQuery(queryBuffer
+//					.toString());
+//
+//			// Get list of Connects using the result of the above query
+//			if ((teamConnects != null)
+//					&& !(teamConnects.getResultList().isEmpty())) {
+//
+//				resultList = teamConnects.getResultList();
+//
+//				if ((resultList != null) && !(resultList.isEmpty())) {
+//					listOfConnects = connectRepository
+//							.findByConnectIdInOrderByLocationAsc(resultList);
+//
+//				}
+//			}
+//		} catch (Exception e) {
+//			logger.error(
+//					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
+//					userId);
+//			throw new DestinationException(HttpStatus.NOT_FOUND,
+//					"An Internal Error has occured while processing request for userId "
+//							+ userId);
+//		}
+//		return listOfConnects;
+//	}
 
 	/**
 	 * This method returns the query string for privileges for a user
@@ -443,38 +423,51 @@ public class DashBoardService {
 	 * privileges.
 	 * 
 	 * @param supervisorId
-	 * @param geography
-	 * @param fromDateTs
-	 * @param toDateTs
+	 * @param displayGeography
+	 * @param fromDate
+	 * @param toDate
 	 * @return
 	 */
-	private StringBuffer constructQueryForLeadershipDashboardTeamConnects(
-			String supervisorId, String geography, Timestamp fromDateTs,
-			Timestamp toDateTs) throws Exception {
+	private List<ConnectT> getLeadershipDashboardTeamConnects(
+			String supervisorId, String displayGeography, Timestamp fromDate,
+			Timestamp toDate) throws Exception {
 
 		StringBuffer queryBuffer = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
 
-		queryBuffer.append(fromDateTs);
+		// Append privileges obtained above. Note that access privilege is only
+		// for customers and not for partners
+		queryBuffer
+				.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
+
+		// queryBuffer.append(fromDateTs);
 
 		// queryBuffer.append(supervisorId);
 
 		queryBuffer.append(TEAM_CONNECTS_QUERY_PART2);
 
-		queryBuffer.append(toDateTs);
+		Query query = entityManager.createNativeQuery(queryBuffer.toString(),
+				ConnectT.class);
+
+		query.setParameter("fromDate", fromDate);
+		query.setParameter("toDate", toDate);
+		query.setParameter("displayGeography", displayGeography);
+
+		return query.getResultList();
+		// queryBuffer.append(toDateTs);
 
 		// queryBuffer.append(supervisorId);
 
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART3);
-
-		queryBuffer.append(geography);
-
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART5);
-
-		queryBuffer.append(geography);
+		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART3);
+		//
+		// queryBuffer.append(geography);
+		//
+		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART5);
+		//
+		// queryBuffer.append(geography);
 
 		// queryBuffer.append(geography);
 
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
+		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
 
 		// queryBuffer.append(geography);
 
@@ -492,7 +485,7 @@ public class DashBoardService {
 
 		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART7);
 
-		return queryBuffer;
+		// return queryBuffer;
 	}
 
 	/**
@@ -912,7 +905,8 @@ public class DashBoardService {
 				userId);
 
 		// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
-		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won), 10,11,13(lost),
+		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
+		// 10,11,13(lost),
 		// 12(shelved)
 		listOfOppportunities = getOpportunitiesBySalesStageCode(
 				listOfOpportunitiesBySalesCode, userId);
