@@ -13,7 +13,7 @@ import com.tcs.destination.bean.UserTaggedFollowedT;
 public interface FollowedRepository extends
 		CrudRepository<UserTaggedFollowedT, String> {
 
-	List<UserTaggedFollowedT> findByUserIdAndEntityType(String userId,
+	List<UserTaggedFollowedT> findByUserIdAndEntityTypeOrderByCreatedModifiedDatetimeDesc(String userId,
 			String entityType);
 
 	@Query(value = "select distinct(user_id) from user_tagged_followed_t  where entity_type = 'OPPORTUNITY' and opportunity_id=(:opportunityId)", nativeQuery = true)
