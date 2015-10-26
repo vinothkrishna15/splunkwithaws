@@ -79,7 +79,8 @@ public class FollowedService {
 			case TASK:
 				logger.debug("EntityType is present");
 				List<UserTaggedFollowedT> userFollowed = followedRepository
-						.findByUserIdAndEntityType(userId, entityType);
+						.findByUserIdAndEntityTypeOrderByCreatedModifiedDatetimeDesc(
+								userId, entityType);
 
 				if (userFollowed.isEmpty()) {
 					logger.error("NOT_FOUND: No Relevent Data Found in the database");
