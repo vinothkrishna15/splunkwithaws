@@ -16,6 +16,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.data.repository.BatchOpportunityRepository;
@@ -29,6 +30,9 @@ public class DBMaintenanceTasklet implements Tasklet {
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(DBMaintenanceTasklet.class);
+	
+	@Value("${batch.table.purge.days}")
+	private int batchTablePurgeDays;
 	
 	@Autowired
 	private BatchOpportunityRepository batchOpportunityRepository;
@@ -44,7 +48,7 @@ public class DBMaintenanceTasklet implements Tasklet {
 		
 		RepeatStatus status = null;
 		
-		if (batchOpportunityRepository.maintainDBTables(7) == 1 ) {
+		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays) == 1 ) {
 			status = RepeatStatus.FINISHED;
 		}
 		
