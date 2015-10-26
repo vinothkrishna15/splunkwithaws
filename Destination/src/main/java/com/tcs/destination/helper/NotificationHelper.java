@@ -397,7 +397,7 @@ public class NotificationHelper implements Runnable {
 				}
 			}
 
-			// Notify Entity Owners supervisor about the Comment
+			// Notify Tagged Followed users about the Comment
 			{
 				String msgTemplate = replaceTokens(
 						taggedFollowedMessageTemplate,
@@ -1080,9 +1080,11 @@ public class NotificationHelper implements Runnable {
 							Constants.CONNECT, "Primary Owner", null, null,
 							null));
 			if (supervisorOwner != null) {
-				addUserNotifications(supervisorOwner, connect
-						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
-						EntityType.CONNECT.name(), connect.getConnectId());
+				if (!connect.getPrimaryOwnerUser().getSupervisorUserId()
+						.equals(connect.getModifiedBy()))
+					addUserNotifications(supervisorOwner, connect
+							.getPrimaryOwnerUser().getSupervisorUserId(), 11,
+							EntityType.CONNECT.name(), connect.getConnectId());
 			}
 		}
 		if (connect.getConnectSecondaryOwnerLinkTs() != null
@@ -1101,12 +1103,15 @@ public class NotificationHelper implements Runnable {
 									EntityType.CONNECT.name(),
 									"Secondary Owner", null, null, null));
 					if (supervisorOwner != null) {
-						addUserNotifications(supervisorOwner,
-								connectSecondaryOwnerLinkT
-										.getSecondaryOwnerUser()
-										.getSupervisorUserId(), 11,
-								EntityType.CONNECT.name(),
-								connect.getConnectId());
+						if (!connectSecondaryOwnerLinkT.getSecondaryOwnerUser()
+								.getSupervisorUserId()
+								.equals(connect.getModifiedBy()))
+							addUserNotifications(supervisorOwner,
+									connectSecondaryOwnerLinkT
+											.getSecondaryOwnerUser()
+											.getSupervisorUserId(), 11,
+									EntityType.CONNECT.name(),
+									connect.getConnectId());
 					}
 				}
 			}
@@ -1140,9 +1145,11 @@ public class NotificationHelper implements Runnable {
 							taskT.getTaskDescription(), null, null,
 							Constants.TASK, "Primary Owner", null, null, null));
 			if (supervisorOwner != null) {
-				addUserNotifications(supervisorOwner, taskT.getTaskOwnerT()
-						.getSupervisorUserId(), 11, EntityType.TASK.name(),
-						taskT.getTaskId());
+				if (!taskT.getTaskOwnerT().getSupervisorUserId()
+						.equals(taskT.getModifiedBy()))
+					addUserNotifications(supervisorOwner, taskT.getTaskOwnerT()
+							.getSupervisorUserId(), 11, EntityType.TASK.name(),
+							taskT.getTaskId());
 			}
 		}
 		if (taskT.getTaskBdmsTaggedLinkTs() != null
@@ -1159,10 +1166,13 @@ public class NotificationHelper implements Runnable {
 									null, null, EntityType.TASK.name(),
 									"Secondary Owner", null, null, null));
 					if (supervisorOwner != null) {
-						addUserNotifications(supervisorOwner,
-								taskBdmsTaggedLinkT.getUserT()
-										.getSupervisorUserId(), 11,
-								EntityType.TASK.name(), taskT.getTaskId());
+						if (!taskBdmsTaggedLinkT.getUserT()
+								.getSupervisorUserId()
+								.equals(taskT.getModifiedBy()))
+							addUserNotifications(supervisorOwner,
+									taskBdmsTaggedLinkT.getUserT()
+											.getSupervisorUserId(), 11,
+									EntityType.TASK.name(), taskT.getTaskId());
 					}
 				}
 			}
@@ -1207,10 +1217,12 @@ public class NotificationHelper implements Runnable {
 							null, null, Constants.OPPORTUNITY, "Primary Owner",
 							null, null, null));
 			if (supervisorOwner != null) {
-				addUserNotifications(supervisorOwner, opportunity
-						.getPrimaryOwnerUser().getSupervisorUserId(), 11,
-						EntityType.OPPORTUNITY.name(),
-						opportunity.getOpportunityId());
+				if (!opportunity.getPrimaryOwnerUser().getSupervisorUserId()
+						.equals(opportunity.getModifiedBy()))
+					addUserNotifications(supervisorOwner, opportunity
+							.getPrimaryOwnerUser().getSupervisorUserId(), 11,
+							EntityType.OPPORTUNITY.name(),
+							opportunity.getOpportunityId());
 			}
 		}
 		if (opportunity.getOpportunitySalesSupportLinkTs() != null
@@ -1229,12 +1241,16 @@ public class NotificationHelper implements Runnable {
 									null, EntityType.OPPORTUNITY.name(),
 									"Sales Support Owner", null, null, null));
 					if (supervisorOwner != null) {
-						addUserNotifications(supervisorOwner,
-								opportunitySalesSupportLinkT
-										.getSalesSupportOwnerUser()
-										.getSupervisorUserId(), 11,
-								EntityType.OPPORTUNITY.name(),
-								opportunity.getOpportunityId());
+						if (!opportunitySalesSupportLinkT
+								.getSalesSupportOwnerUser()
+								.getSupervisorUserId()
+								.equals(opportunity.getModifiedBy()))
+							addUserNotifications(supervisorOwner,
+									opportunitySalesSupportLinkT
+											.getSalesSupportOwnerUser()
+											.getSupervisorUserId(), 11,
+									EntityType.OPPORTUNITY.name(),
+									opportunity.getOpportunityId());
 					}
 				}
 			}
@@ -1259,12 +1275,17 @@ public class NotificationHelper implements Runnable {
 											"Bid Office Owner", null, null,
 											null));
 							if (supervisorOwner != null) {
-								addUserNotifications(supervisorOwner,
-										bidOfficeGroupOwnerLinkT
-												.getBidOfficeGroupOwnerUser()
-												.getSupervisorUserId(), 11,
-										EntityType.OPPORTUNITY.name(),
-										opportunity.getOpportunityId());
+								if (!bidOfficeGroupOwnerLinkT
+										.getBidOfficeGroupOwnerUser()
+										.getSupervisorUserId()
+										.equals(opportunity.getModifiedBy()))
+									addUserNotifications(
+											supervisorOwner,
+											bidOfficeGroupOwnerLinkT
+													.getBidOfficeGroupOwnerUser()
+													.getSupervisorUserId(), 11,
+											EntityType.OPPORTUNITY.name(),
+											opportunity.getOpportunityId());
 							}
 						}
 
