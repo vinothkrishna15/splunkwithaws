@@ -35,7 +35,7 @@ public interface BatchOpportunityRepository extends CrudRepository<OpportunityT,
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR, nativeQuery = true)
 	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor();
 	
-	@Query(value = "select db_maintenance(:days)", nativeQuery = true)
-    Integer maintainDBTables(@Param("days") Integer days);
+	@Query(value = "select db_maintenance(:btchPrugeDays, :usrNotiPurgeMonths)", nativeQuery = true)
+    Integer maintainDBTables(@Param("btchPrugeDays") Integer btchPrugeDays, @Param("usrNotiPurgeMonths") Integer usrNotiPurgeMonths);
 
 }
