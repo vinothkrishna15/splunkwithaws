@@ -6,7 +6,7 @@ package com.tcs.destination.utils;
  */
 public class LeadershipQueryConstants {
 
-    public static final String TEAM_CONNECTS_GEO_COND_PREFIX = "CMT.customer_geography in (";
+    public static final String TEAM_CONNECTS_GEO_COND_PREFIX = "CMT.geography in (";
     
     public static final String TEAM_CONNECTS_IOU_COND_PREFIX = "ICMT.display_iou in (";
     
