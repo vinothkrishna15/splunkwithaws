@@ -1371,14 +1371,20 @@ public class OpportunityService {
 
 			try {
 				// Create the query and execute
-				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or (OPP.dealClosureDate > ?1 and (OPP.salesStageCode between 9 and 13)) order by "
+				String queryString = "select OPP from OpportunityT OPP where (OPP.salesStageCode < 9) or ((OPP.dealClosureDate between ?1 and ?2) and (OPP.salesStageCode >= 9)) order by "
 						+ sortBy + " " + order;
-				Query query = entityManager.createQuery(queryString)
+				Query query = entityManager
+						.createQuery(queryString)
 						.setParameter(
 								1,
 								DateUtils.getDateFromFinancialYear(
 										DateUtils.getCurrentFinancialYear(),
-										true));
+										true))
+						.setParameter(
+								2,
+								DateUtils.getDateFromFinancialYear(
+										DateUtils.getCurrentFinancialYear(),
+										false));
 				opportunityTs = (List<OpportunityT>) query.getResultList();
 				opportunityResponse.setTotalCount(opportunityTs.size());
 			} catch (Exception e) {
@@ -1424,7 +1430,7 @@ public class OpportunityService {
 		if (opportunityTs == null || opportunityTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities found");
-		prepareOpportunity(opportunityTs);
+		 prepareOpportunity(opportunityTs);
 		return opportunityResponse;
 	}
 
