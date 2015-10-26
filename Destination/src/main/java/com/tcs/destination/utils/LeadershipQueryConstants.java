@@ -16,7 +16,7 @@ public class LeadershipQueryConstants {
     
     public static final String TEAM_CONNECTS_QUERY_PART1 = "select DISTINCT CONNECT.* FROM (SELECT DISTINCT c2.* FROM connect_t c2 JOIN customer_master_t CMT ON  CMT.customer_id=c2.customer_id JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography LEFT JOIN connect_sub_sp_link_t CSL on c2.connect_id=CSL.connect_id LEFT JOIN sub_sp_mapping_t SSMT on CSL.sub_sp=SSMT.sub_sp WHERE ((c2.start_datetime_of_connect between (:fromDate) AND (:toDate) )) AND (GMT.display_geography=(:displayGeography) OR (:displayGeography)= '')";
     
-    public static final String TEAM_CONNECTS_QUERY_PART2 = " UNION SELECT c2.* FROM connect_t c2 WHERE c2.connect_category='PARTNER') AS CONNECT order by location";
+    public static final String TEAM_CONNECTS_QUERY_PART2 = " UNION SELECT c2.* FROM connect_t c2 WHERE c2.connect_category='PARTNER' and c2.start_datetime_of_connect between (:fromDate) AND (:toDate)) AS CONNECT order by location";
     
 //    public static final String TEAM_CONNECTS_QUERY_PART3= "' )) AND (GMT.display_geography='";
 //
