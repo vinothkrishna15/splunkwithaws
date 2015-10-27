@@ -203,8 +203,7 @@ public class BuildOpportunityReportService {
 			row.createCell(7).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(7).setCellStyle(cellStyle);
 //			spreadSheet.autoSizeColumn(7);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 7,
-					7 + currency.size() - 1));
+			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 7, 7 + currency.size() - 1));
 			CellStyle cellStyle1 = ExcelUtils.createRowStyle(
 					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
 			SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
@@ -264,8 +263,7 @@ public class BuildOpportunityReportService {
 			row.createCell(7).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(7).setCellStyle(cellStyle);
 //			spreadSheet.autoSizeColumn(7);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 7,
-					7 + currency.size() - 1));
+			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 7, 7 + currency.size() - 1));
 			for (int i = 0; i < currency.size(); i++) {
 				row1.createCell((7 + i)).setCellValue(currency.get(i));
 				row1.getCell(7 + i).setCellStyle(cellStyle1);
@@ -953,8 +951,7 @@ public class BuildOpportunityReportService {
 //		spreadSheet.autoSizeColumn(7);
 		row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
 //		spreadSheet.autoSizeColumn(8);
-		spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency
-				.size() - 1));
+		spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
 		for (int i = 0; i < currency.size(); i++) {
 			row1.createCell((8 + i)).setCellValue(currency.get(i));
 		}
@@ -979,11 +976,9 @@ public class BuildOpportunityReportService {
 			row.createCell(colValue).setCellValue(
 					FieldsMap.fieldsMap.get(field));
 //			spreadSheet.autoSizeColumn(colValue);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, colValue,
-					colValue + listCount - 1));
+			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, colValue, colValue + listCount - 1));
 			for (int i = 0; i < listCount; i++) {
-				row1.createCell(colValue + i).setCellValue(
-						FieldsMap.childMap.get(field));
+				row1.createCell(colValue + i).setCellValue(FieldsMap.childMap.get(field));
 //				spreadSheet.autoSizeColumn(colValue + i);
 			}
 			colValue = colValue + listCount;
@@ -1592,42 +1587,30 @@ public class BuildOpportunityReportService {
 					}
 					row = (SXSSFRow) spreadsheet.createRow((short) 1);
 					if (!quarter.isEmpty() && currency.size() > 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1,
-								0, 12));
+						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 12));
 					} else if (!month.isEmpty() && currency.size() == 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1,
-								0, 6));
+						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 6));
 					} else if ((!year.isEmpty() || entry.getKey()
 							.contains("FY")) && currency.size() > 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1,
-								0, 15));
+						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 15));
 					} else if ((!year.isEmpty() || entry.getKey()
 							.contains("FY")) && currency.size() == 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1,
-								0, 10));
+						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 10));
 					} else {
-						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1,
-								0, 8));
+						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 8));
 					}
 					cell = (SXSSFCell) row.createCell(0);
 					cell.setCellStyle(headingStyle);
-					cell.setCellValue(map.get(repSummaryOpp
-							.getSalesStageDescription())
-							+ "( "
-							+ repSummaryOpp.getSalesStageDescription() + " )");
+					cell.setCellValue(map.get(repSummaryOpp.getSalesStageDescription()) + "( " + repSummaryOpp.getSalesStageDescription() + " )");
 					row = (SXSSFRow) spreadsheet.createRow((short) 3);
 					if (!quarter.isEmpty() && currency.size() > 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								3, 3, 0, 12));
+						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 12));
 					} else if (!quarter.isEmpty() && currency.size() == 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								3, 3, 0, 8));
+						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 8));
 					} else if (!year.isEmpty() && currency.size() > 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								3, 3, 0, 15));
+						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 15));
 					} else {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								3, 3, 0, 10));
+						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 10));
 					}
 					cell = (SXSSFCell) row.createCell(0);
 					cell.setCellStyle(headingStyle);
@@ -1700,11 +1683,9 @@ public class BuildOpportunityReportService {
 				rowValue = spreadsheet.getLastRowNum() + 2;
 				row = (SXSSFRow) spreadsheet.createRow((short) rowValue++);
 				if (!(currency.size() > 1)) {
-					spreadsheet.addMergedRegion(new CellRangeAddress(
-							rowValue - 1, rowValue - 1, 0, 2));
+					spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 0, 2));
 				} else {
-					spreadsheet.addMergedRegion(new CellRangeAddress(
-							rowValue - 1, rowValue - 1, 0, 3));
+					spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 0, 3));
 				}
 				cell = (SXSSFCell) row.createCell(0);
 				cell.setCellValue("SERVICE LINE WISE");
@@ -1916,11 +1897,9 @@ public class BuildOpportunityReportService {
 					else
 						row = (SXSSFRow) spreadsheet.getRow((short) 2);
 					if (currency.size() == 1) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(2, 2,
-								0, 6));
+						spreadsheet.addMergedRegion(new CellRangeAddress(2, 2, 0, 6));
 					} else {
-						spreadsheet.addMergedRegion(new CellRangeAddress(2, 2,
-								0, 8));
+						spreadsheet.addMergedRegion(new CellRangeAddress(2, 2, 	0, 8));
 					}
 					cell = (SXSSFCell) row.createCell(0);
 					cell.setCellStyle(headingStyle);
@@ -1930,13 +1909,9 @@ public class BuildOpportunityReportService {
 					else
 						row = (SXSSFRow) spreadsheet.getRow((short) rowValue++);
 					if ((currency.size() > 1)) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 0 + offsetValue,
-								3 + offsetValue));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 0 + offsetValue, 3 + offsetValue));
 					} else {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 0 + offsetValue,
-								2 + offsetValue));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 0 + offsetValue, 2 + offsetValue));
 					}
 					cell = (SXSSFCell) row.createCell(0 + offsetValue);
 					if (!(repSummaryOpp.getSubSp() == null))
@@ -2163,9 +2138,7 @@ public class BuildOpportunityReportService {
 					} else {
 							lastCell = 8;
 					}
-					spreadsheet.addMergedRegion(new CellRangeAddress(
-							rowValue - 1, rowValue - 1, 0,
-							lastCell));
+					spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 0,	lastCell));
 					if (row.getCell(0) == null) {
 						cell = (SXSSFCell) row.createCell(0);
 					} else {
@@ -2181,30 +2154,20 @@ public class BuildOpportunityReportService {
 						cell.setCellValue("IOU WISE");
 						row = (SXSSFRow) spreadsheet.createRow((short) rowValue++);
 					if (!(currency.size() > 1)) {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 1, 2));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 3, 4));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 5, 6));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 7, 8));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 1, 2));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 3, 4));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 5, 6));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 7, 8));
 						if (!year.isEmpty()) {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 9, 10));
+							spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 9, 10));
 						}
 					} else {
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 1, 3));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 4, 6));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 7, 9));
-						spreadsheet.addMergedRegion(new CellRangeAddress(
-								rowValue - 1, rowValue - 1, 10, 12));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 1, 3));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 4, 6));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 7, 9));
+						spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 10, 12));
 						if (!year.isEmpty()) {
-							spreadsheet.addMergedRegion(new CellRangeAddress(
-									rowValue - 1, rowValue - 1, 13, 15));
+							spreadsheet.addMergedRegion(new CellRangeAddress(rowValue - 1, rowValue - 1, 13, 15));
 						}
 					}
 					if ((currency.size() > 1)) {
@@ -2729,24 +2692,12 @@ public class BuildOpportunityReportService {
 							}
 						} else {
 							if (!(currency.size() > 1)) {
-								spreadsheet
-										.addMergedRegion(new CellRangeAddress(
-												headingRowAnticipating,
-												headingRowAnticipating,
-												columnValueAnticipating,
-												columnValueAnticipating + 1)); // including
-																				// Row
-																				// label
-																				// in
-																				// the
-																				// heading
+								spreadsheet.addMergedRegion(new CellRangeAddress(headingRowAnticipating,
+												headingRowAnticipating, columnValueAnticipating,
+												columnValueAnticipating + 1)); // including Row label in  the heading
 							} else {
-								spreadsheet
-										.addMergedRegion(new CellRangeAddress(
-												headingRowAnticipating,
-												headingRowAnticipating,
-												columnValueAnticipating,
-												columnValueAnticipating + 2));
+								spreadsheet.addMergedRegion(new CellRangeAddress(headingRowAnticipating,
+												headingRowAnticipating, columnValueAnticipating, columnValueAnticipating + 2));
 							}
 							spreadsheet.getRow(headingRowAnticipating)
 									.createCell(headingColAnticipating)
@@ -2982,25 +2933,21 @@ public class BuildOpportunityReportService {
 					}
 				}
 			}
+			/////////////////////////////////////
 			spreadsheet = (SXSSFSheet) workbook.getSheet(ReportConstants.PIPELINE);
 			if (spreadsheet != null) {
 				row = (SXSSFRow) spreadsheet.getRow(1);
-				if (currency.size() > 1) {
-					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,
-							(headingColPipeline - 1)));
-				} else {
-					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,
-							(headingColPipeline - 1)));
-				}
+//				if (currency.size() > 1) {
+//					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, headingColPipeline - 1));
+//				} else {
+//					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, headingColPipeline - 1));
+//				}
 				cell = (SXSSFCell) row.createCell(0);
 //				spreadsheet.autoSizeColumn(0);
 				cell.setCellValue("Summary - Pipeline(04-08)");
 				cell.setCellStyle(headingStyle);
 				row = (SXSSFRow) spreadsheet
-						.createRow((short) spreadsheet.getLastRowNum() + 1); // Heading
-																				// Row
-																				// for
-																				// iou
+						.createRow((short) spreadsheet.getLastRowNum() + 1); // Heading Row for iou
 				cell = (SXSSFCell) row.createCell(0);
 				cell.setCellValue("Total");
 //				spreadsheet.autoSizeColumn(0);
@@ -3016,13 +2963,11 @@ public class BuildOpportunityReportService {
 			spreadsheet = (SXSSFSheet) workbook.getSheet(ReportConstants.PROSPECTS);
 			if (spreadsheet != null) {
 				row = (SXSSFRow) spreadsheet.createRow((short) 1);
-				if (currency.size() > 1) {
-					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,
-							(headingColAnticipating - 1)));
-				} else {
-					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0,
-							(headingColAnticipating - 1)));
-				}
+//				if (currency.size() > 1) {
+//					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, (headingColAnticipating - 1)));
+//				} else {
+//					spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, (headingColAnticipating - 1)));
+//				}
 				cell = (SXSSFCell) row.createCell(0);
 				cell.setCellValue("Summary - Opportunities(00-03)");
 //				spreadsheet.autoSizeColumn(0);
