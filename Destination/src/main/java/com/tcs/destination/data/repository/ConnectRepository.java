@@ -3,6 +3,8 @@ package com.tcs.destination.data.repository;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -29,7 +31,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 *            is the connection name.
 	 * @return connection details.
 	 */
-	List<ConnectT> findByConnectNameIgnoreCaseLike(String name);
+	Page<ConnectT> findByConnectNameIgnoreCaseLike(String name,Pageable page);
 
 	/**
 	 * Finds the connection details for the given connection id.
@@ -40,8 +42,8 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	ConnectT findByConnectId(String connectid);
 
-	List<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerId(String name,
-			String customerId);
+	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerId(String name,
+			String customerId,Pageable page);
 
 	@Query(value = "select c from ConnectT c where (primaryOwner=(:primaryOwner) OR (:primaryOwner)='')and startDatetimeOfConnect between (:fromDate) and (:toDate) and (customer_id=(:customerId) OR (:customerId)='') and (partner_id=(:partnerId) OR (:partnerId)='') order by startDatetimeOfConnect asc")
 	List<ConnectT> findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(

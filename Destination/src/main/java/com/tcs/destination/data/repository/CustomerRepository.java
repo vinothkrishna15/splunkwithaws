@@ -2,13 +2,14 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface CustomerRepository extends
@@ -21,11 +22,11 @@ public interface CustomerRepository extends
 	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(
 			String customerName);
 
-	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+			String name, String nameNot,Pageable page);
 
-	List<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
+			String name, String nameNot,Pageable page);
 
 	@Query(value = "select * from customer_Master_T c ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
 	List<CustomerMasterT> findRecent(int count);
