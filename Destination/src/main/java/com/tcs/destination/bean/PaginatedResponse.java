@@ -18,6 +18,8 @@ public class PaginatedResponse implements Serializable {
 
 	private List<UserFavoritesT> userFavoritesTs;
 
+	private List<ConnectT> connectTs;
+
 	private long totalCount;
 
 	public List<OpportunityT> getOpportunityTs() {
@@ -60,4 +62,11 @@ public class PaginatedResponse implements Serializable {
 		this.customerMasterTs = customerMasterTs;
 	}
 
+	public List<ConnectT> getConnectTs() {
+		return connectTs;
+	}
+
+	public void setConnectTs(List<ConnectT> connectTs) {
+		this.connectTs = connectTs;
+	}
 }
