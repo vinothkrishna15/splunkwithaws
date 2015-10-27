@@ -2,6 +2,8 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -14,11 +16,11 @@ public interface PartnerRepository extends
 
 	List<PartnerMasterT> findByPartnerName(String partnername);
 
-	List<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
-			String partnername);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
+			String partnername,Pageable page);
 
-	List<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-			String startsWith);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
+			String startsWith,Pageable pageable);
 
 	@Query(value = "select * from partner_master_t p ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
 	List<PartnerMasterT> findRecent(int count);

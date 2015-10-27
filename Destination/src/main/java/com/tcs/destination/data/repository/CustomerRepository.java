@@ -81,9 +81,9 @@ public interface CustomerRepository extends
 
 	@Query(value = "select * from customer_master_t where "
 			+ "(customer_name = (:customerName) or (:customerName)='') "
-			+ "and (group_customer_name =(:groupCustomerName) or (:customerName)='') "
-			+ "and (geography=(:geography) or (:customerName)='')"
-			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou = (:displayIOU) or (:customerName)=''))", nativeQuery = true)
+			+ "and (group_customer_name =(:groupCustomerName) or (:groupCustomerName)='') "
+			+ "and (geography=(:geography) or (:geography)='')"
+			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou = (:displayIOU) or (:displayIOU)=''))", nativeQuery = true)
 	List<CustomerMasterT> advancedSearch(
 			@Param("groupCustomerName") String groupCustomerName,
 			@Param("customerName") String name,
