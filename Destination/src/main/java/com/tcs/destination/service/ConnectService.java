@@ -216,12 +216,12 @@ public class ConnectService {
 		List<ConnectT> connectList = null;
 		if (customerId.isEmpty()) {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLike("%" + name + "%", pageable);
+					.findByConnectNameIgnoreCaseLikeOrderByModifiedDateTime("%" + name + "%", pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
 		} else {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLikeAndCustomerId("%" + name
+					.findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDateTime("%" + name
 							+ "%", customerId, pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
