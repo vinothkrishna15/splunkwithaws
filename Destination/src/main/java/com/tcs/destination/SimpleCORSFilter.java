@@ -1,3 +1,12 @@
+/**
+ * 
+ * SimpleCORSFilter.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination;
 
 import java.io.BufferedReader;
@@ -26,6 +35,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
+/**
+ * This SimpleCORSFilter class filters the request for the acceptable parameters for the services
+ * 
+ */
 @Component
 public class SimpleCORSFilter implements Filter {
 
