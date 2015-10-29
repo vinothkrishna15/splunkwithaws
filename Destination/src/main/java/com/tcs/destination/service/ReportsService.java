@@ -149,7 +149,7 @@ public class ReportsService {
 			+ "left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where ";
 	
 	private static final String BID_REPORT_QUERY_PREFIX = " select distinct BID.bid_id from bid_details_t BID "
-			+ "	 JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
+			+ "	 left outer JOIN bid_office_group_owner_link_t BIDGO ON BIDGO.bid_id=BID.bid_id"
 			+ "  JOIN opportunity_t OPP ON BID.opportunity_id=OPP.opportunity_id"
 			+ "  JOIN customer_master_t CMT ON  CMT.customer_id = OPP.customer_id"
 			+ "  JOIN iou_customer_mapping_t ICMT on  CMT.iou = ICMT.iou"
@@ -2602,29 +2602,29 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return queryBuffer.toString();
 	}
 
-	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
-			Date startDate, Date endDate, String userId, List<String> bidOwner)
-			throws Exception {
-		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
-		// Form the native top revenue query string
-		String queryString = getBidDetailedQueryString(userId, startDate,
-				endDate, bidOwner);
-		logger.info("Query string: {}", queryString);
-		// Execute the native revenue query string
-		Query bidDetailedReportQuery = entityManager
-				.createNativeQuery(queryString);
-		List<String> resultList = bidDetailedReportQuery.getResultList();
-		// Retrieve connect details
-		List<BidDetailsT> bidDetailsList = null;
-		if ((resultList != null) && !(resultList.isEmpty())) {
-			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
-		}
-		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
-		}
-		return bidDetailsList;
-	}
+//	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
+//			Date startDate, Date endDate, String userId, List<String> bidOwner)
+//			throws Exception {
+//		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
+//		// Form the native top revenue query string
+//		String queryString = getBidDetailedQueryString(userId, startDate,
+//				endDate, bidOwner);
+//		logger.info("Query string: {}", queryString);
+//		// Execute the native revenue query string
+//		Query bidDetailedReportQuery = entityManager
+//				.createNativeQuery(queryString);
+//		List<String> resultList = bidDetailedReportQuery.getResultList();
+//		// Retrieve connect details
+//		List<BidDetailsT> bidDetailsList = null;
+//		if ((resultList != null) && !(resultList.isEmpty())) {
+//			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
+//		}
+//		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
+//			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
+//			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
+//		}
+//		return bidDetailsList;
+//	}
 
 	private String getBidDetailedQueryString(String userId, Date startDate,
 			Date endDate, List<String> bidOwner) throws Exception {
@@ -2656,13 +2656,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return queryBuffer.toString();
 	}
 
-	public InputStreamResource getBdmDetailedReport(String from, String to, List<String> geography, List<String> country,
-			List<String> currency, List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwnerIds,
-			String supervisorId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	// For Detailed Report
 	
 		public String getOpportunityDetailedQueryString(String userId, Date fromDate,
@@ -2790,282 +2783,304 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			
 			// Anticipating or Pipeline Iou
 			
-					public String getPipelineAnticipatingOppIouSummaryQueryString(String userId, Integer salesStage)throws Exception {
-						logger.debug("Inside getPipelineAnticipatingOppIouSummaryQueryString() method" );
-						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX);
-							// Get user access privilege groups 
-						HashMap<String, String> queryPrefixMap = 
-									userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
-											OPPORTUNITY_IOU_COND_PREFIX, null);
-						queryBuffer.append(Constants.SPACE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
-							// Get WHERE clause string
-							String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-							if (whereClause != null && !whereClause.isEmpty()) { 
-								queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-							}
-							queryBuffer.append(Constants.SPACE+ OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX + Constants.COMMA + OPPORTUNITY_SALES_STAGE_COND);
-							return queryBuffer.toString();
+			public String getPipelineAnticipatingOppIouSummaryQueryString(String userId, Integer salesStage)throws Exception {
+				logger.debug("Inside getPipelineAnticipatingOppIouSummaryQueryString() method" );
+				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX);
+					// Get user access privilege groups 
+				HashMap<String, String> queryPrefixMap = 
+							userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+									OPPORTUNITY_IOU_COND_PREFIX, null);
+				queryBuffer.append(Constants.SPACE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+					// Get WHERE clause string
+					String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+					if (whereClause != null && !whereClause.isEmpty()) { 
+						queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 					}
-					
-					
-					
-					// Anticipating or Pipeline Service Lines
-					
-					public String getPipelineAnticipatingOppServiceLineSummaryQueryString(String userId, List<Integer> salesStage)throws Exception {
-						logger.debug("Inside getPipelineAnticipatingOppServiceLineSummaryQueryString() method" );
-						StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX);
-							// Get user access privilege groups 
-						HashMap<String, String> queryPrefixMap = 
-									userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
-											OPPORTUNITY_IOU_COND_PREFIX, null);
-						queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
-							// Get WHERE clause string
-							String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-							if (whereClause != null && !whereClause.isEmpty()) { 
-								queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-							}
-							queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
-							return queryBuffer.toString();
+					queryBuffer.append(Constants.SPACE+ OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX + Constants.COMMA + OPPORTUNITY_SALES_STAGE_COND);
+					return queryBuffer.toString();
+			}
+			
+			
+			
+			// Anticipating or Pipeline Service Lines
+			
+			public String getPipelineAnticipatingOppServiceLineSummaryQueryString(String userId, List<Integer> salesStage)throws Exception {
+				logger.debug("Inside getPipelineAnticipatingOppServiceLineSummaryQueryString() method" );
+				StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_PIPELINE_PROSPECTS_SERVICELINES_QUERY_PREFIX);
+					// Get user access privilege groups 
+				HashMap<String, String> queryPrefixMap = 
+							userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+									OPPORTUNITY_IOU_COND_PREFIX, null);
+				queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+					// Get WHERE clause string
+					String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+					if (whereClause != null && !whereClause.isEmpty()) { 
+						queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 					}
-					
-					
+					queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
+					return queryBuffer.toString();
+			}
+			
+			
 
-					public InputStreamResource getOpportunitySummaryReport(String month,
-							String year, String quarter, List<String> geography,
-							List<String> country, List<String> iou, List<String> currency,
-							List<String> serviceLines, List<Integer> salesStage, String userId) throws Exception {
-						
-						
-						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
-							year = DateUtils.getCurrentFinancialYear();
-						}
-						List<Integer> salesStageCodeList=new ArrayList<Integer>();
-						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
-						
-						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-						String tillDate=DateUtils.getCurrentDate();
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary", month, quarter, year, currency);
-						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
-						ExcelUtils.arrangeSheetOrder(workbook);
-						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-						workbook.write(byteOutPutStream);
-						byteOutPutStream.flush();
-						byteOutPutStream.close();
-						byte[] bytes = byteOutPutStream.toByteArray();
-						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
-						return inputStreamResource;
-					}
-					
+			public InputStreamResource getOpportunitySummaryReport(String month,
+					String year, String quarter, List<String> geography,
+					List<String> country, List<String> iou, List<String> currency,
+					List<String> serviceLines, List<Integer> salesStage, String userId) throws Exception {
+				
+				
+				if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
+					year = DateUtils.getCurrentFinancialYear();
+				}
+				List<Integer> salesStageCodeList=new ArrayList<Integer>();
+				removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
+				
+				SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+				String tillDate=DateUtils.getCurrentDate();
+				buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary", month, quarter, year, currency);
+				getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
+				ExcelUtils.arrangeSheetOrder(workbook);
+				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+				workbook.write(byteOutPutStream);
+				byteOutPutStream.flush();
+				byteOutPutStream.close();
+				byte[] bytes = byteOutPutStream.toByteArray();
+				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				return inputStreamResource;
+			}
+			
 
-					public InputStreamResource getOpportunitiesWith(String month, String quarter,
-							String year, List<String> geography, List<String> country,
-							List<String> iou, List<String> serviceLines,
-							List<Integer> salesStage, List<String> currency, String userId,
-							List<String> fields, String toDate) throws Exception {
-						
-						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
-							year = DateUtils.getCurrentFinancialYear();
-						}
-						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate, country,"Detailed", month, quarter, year, currency);
-						buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
-						ExcelUtils.arrangeSheetOrder(workbook);
-						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-						workbook.write(byteOutPutStream);
-						byteOutPutStream.flush();
-						byteOutPutStream.close();
-						byte[] bytes = byteOutPutStream.toByteArray();
-						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
-						return inputStreamResource;
-					}
-					
+			public InputStreamResource getOpportunitiesWith(String month, String quarter,
+					String year, List<String> geography, List<String> country,
+					List<String> iou, List<String> serviceLines,
+					List<Integer> salesStage, List<String> currency, String userId,
+					List<String> fields, String toDate) throws Exception {
+				
+				if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
+					year = DateUtils.getCurrentFinancialYear();
+				}
+				SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+				buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate, country,"Detailed", month, quarter, year, currency);
+				buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
+				ExcelUtils.arrangeSheetOrder(workbook);
+				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+				workbook.write(byteOutPutStream);
+				byteOutPutStream.flush();
+				byteOutPutStream.close();
+				byte[] bytes = byteOutPutStream.toByteArray();
+				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				return inputStreamResource;
+			}
+			
 
-					public InputStreamResource getOpportunityBothReport(String month,
-							String year, String quarter, List<String> geography,
-							List<String> country, List<String> iou, List<String> currency,
-							List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
-						
-						if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
-							year = DateUtils.getCurrentFinancialYear();
-						}
-						List<Integer> salesStageCodeList=new ArrayList<Integer>();
-						removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
-						
-						String fyear=new String(year);
-						String fquarter=new String(quarter);
-						String fmonth=new String(month);
-						SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-						String tillDate = DateUtils.getCurrentDate();
-						buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary, Detailed", month, quarter, year, currency);
-						getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
-						buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
-						ExcelUtils.arrangeSheetOrder(workbook);
-						ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-						workbook.write(byteOutPutStream);
-						byteOutPutStream.flush();
-						byteOutPutStream.close();
-						byte[] bytes = byteOutPutStream.toByteArray();
-						InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
-						return inputStreamResource;
+			public InputStreamResource getOpportunityBothReport(String month,
+					String year, String quarter, List<String> geography,
+					List<String> country, List<String> iou, List<String> currency,
+					List<String> serviceLines, List<Integer> salesStage, String userId, List<String> fields) throws Exception{
+				
+				if (year.isEmpty() && month.isEmpty() && quarter.isEmpty()) {
+					year = DateUtils.getCurrentFinancialYear();
+				}
+				List<Integer> salesStageCodeList=new ArrayList<Integer>();
+				removeUnwantedSalesStageCodes(salesStage, salesStageCodeList);
+				
+				String fyear=new String(year);
+				String fquarter=new String(quarter);
+				String fmonth=new String(month);
+				SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+				String tillDate = DateUtils.getCurrentDate();
+				buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary, Detailed", month, quarter, year, currency);
+				getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
+				buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
+				ExcelUtils.arrangeSheetOrder(workbook);
+				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+				workbook.write(byteOutPutStream);
+				byteOutPutStream.flush();
+				byteOutPutStream.close();
+				byte[] bytes = byteOutPutStream.toByteArray();
+				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				return inputStreamResource;
+			}
+			
+			
+			public void removeUnwantedSalesStageCodes(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
+				for(Integer salesStage:salesStageList){
+					if(!salesStage.equals(11) && !salesStage.equals(12) && !salesStage.equals(13)){
+						salesStageCodeList.add(salesStage);
 					}
-					
-					
-					public void removeUnwantedSalesStageCodes(List<Integer> salesStageList, List<Integer> salesStageCodeList) {
-						for(Integer salesStage:salesStageList){
-							if(!salesStage.equals(11) && !salesStage.equals(12) && !salesStage.equals(13)){
-								salesStageCodeList.add(salesStage);
-							}
-						}
-					}
+				}
+			}
 
-					public void getOpportunitySummaryReportExcel(
-							String month, String year, String quarter, List<String> geography,
-							List<String> country, List<String> iou, List<String> currency,
-							List<String> serviceLines, List<Integer> salesStageList,
-							String userId, SXSSFWorkbook workbook) throws DestinationException, Exception {
-						logger.debug("Inside Report Service getReportSummaryOpportunities method");
-						
-						Boolean isDistinctIou = true;
-						List<Object[]> opportunityList = new ArrayList<Object[]>();
-						List<Integer> pipilineAntiSalesStageList = new ArrayList<Integer>(salesStageList);
-						List<ReportSummaryOpportunity> pipelineAntiIou = new ArrayList<ReportSummaryOpportunity>();
-						List<ReportSummaryOpportunity> pipelineAnticipatingGeography = new ArrayList<ReportSummaryOpportunity>();
-						List<ReportSummaryOpportunity> reportSummaryOpportunities = new ArrayList<ReportSummaryOpportunity>();
-						Map<String, List<ReportSummaryOpportunity>> reportSummaryOppMap = new TreeMap<String, List<ReportSummaryOpportunity>>();
-						List<String> userIds = new ArrayList<String>();
-						List<String> geoList = new ArrayList<String>();
-						List<String> iouList = new ArrayList<String>();
-						List<String> countryList = new ArrayList<String>();
-						List<String> serviceLinesList = new ArrayList<String>();
-						addItemToListGeo(geography,geoList);
-						addItemToList(iou,iouList);
-						addItemToList(country,countryList);
-						addItemToList(serviceLines,serviceLinesList);
-						// ADD USERIDS HERE ITSELF
-						UserT user = userRepository.findByUserId(userId);
-						if(user == null){
-							logger.error("User Id Not Found "+ userId );
-							throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
-						}
-						String userGroup = user.getUserGroupMappingT().getUserGroup();
+			public void getOpportunitySummaryReportExcel(
+					String month, String year, String quarter, List<String> geography,
+					List<String> country, List<String> iou, List<String> currency,
+					List<String> serviceLines, List<Integer> salesStageList,
+					String userId, SXSSFWorkbook workbook) throws DestinationException, Exception {
+				logger.debug("Inside Report Service getReportSummaryOpportunities method");
+				
+				Boolean isDistinctIou = true;
+				List<Object[]> opportunityList = new ArrayList<Object[]>();
+				List<Integer> pipilineAntiSalesStageList = new ArrayList<Integer>(salesStageList);
+				List<ReportSummaryOpportunity> pipelineAntiIou = new ArrayList<ReportSummaryOpportunity>();
+				List<ReportSummaryOpportunity> pipelineAnticipatingGeography = new ArrayList<ReportSummaryOpportunity>();
+				List<ReportSummaryOpportunity> reportSummaryOpportunities = new ArrayList<ReportSummaryOpportunity>();
+				Map<String, List<ReportSummaryOpportunity>> reportSummaryOppMap = new TreeMap<String, List<ReportSummaryOpportunity>>();
+				List<String> userIds = new ArrayList<String>();
+				List<String> geoList = new ArrayList<String>();
+				List<String> iouList = new ArrayList<String>();
+				List<String> countryList = new ArrayList<String>();
+				List<String> serviceLinesList = new ArrayList<String>();
+				addItemToListGeo(geography,geoList);
+				addItemToList(iou,iouList);
+				addItemToList(country,countryList);
+				addItemToList(serviceLines,serviceLinesList);
+				// ADD USERIDS HERE ITSELF
+				UserT user = userRepository.findByUserId(userId);
+				if(user == null){
+					logger.error("User Id Not Found "+ userId );
+					throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
+				}
+				String userGroup = user.getUserGroupMappingT().getUserGroup();
+				switch (userGroup) {
+				case ReportConstants.BDM:
+					userIds.add(userId);
+					break;
+				case ReportConstants.BDMSUPERVISOR:
+					List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
+					userIds.addAll(subOrdinatesList);
+					if(!userIds.contains(userId)){
+						userIds.add(userId);
+					}
+					break;
+				}
+
+				for (int i = 0; i <salesStageList.size();) {
+					if (salesStageList.get(i) < 9) {
 						switch (userGroup) {
 						case ReportConstants.BDM:
-							userIds.add(userId);
+							opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						case ReportConstants.BDMSUPERVISOR:
-							List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
-							userIds.addAll(subOrdinatesList);
-							if(!userIds.contains(userId)){
-								userIds.add(userId);
-							}
+							opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
+							break;
+						default:
+								if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
+									String queryString = getPipelineAnticipatingOppGeoSummaryQueryString(userId,salesStageList.get(i));
+									Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+									opportunityList = opportunitySummaryReportQuery.getResultList();
+								} else {
+									opportunityList = opportunityRepository.findSummaryGeography(geoList, countryList, iouList, serviceLinesList, 
+											salesStageList.get(i));
+								}
 							break;
 						}
-
-						for (int i = 0; i <salesStageList.size();) {
-							if (salesStageList.get(i) < 9) {
-								switch (userGroup) {
-								case ReportConstants.BDM:
-									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-									break;
-								case ReportConstants.BDMSUPERVISOR:
-									opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-									break;
-								default:
-										if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
-											String queryString = getPipelineAnticipatingOppGeoSummaryQueryString(userId,salesStageList.get(i));
-											Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
-											opportunityList = opportunitySummaryReportQuery.getResultList();
-										} else {
-											opportunityList = opportunityRepository.findSummaryGeography(geoList, countryList, iouList, serviceLinesList, 
-													salesStageList.get(i));
-										}
-									break;
-								}
-								if (opportunityList.size() > 0) {
-									pipelineAnticipatingGeography.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
-													opportunityList, salesStageList.get(i),false));
-								}
-								if (isDistinctIou) {
-									switch (userGroup) {
-									case ReportConstants.BDM:
-										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-										break;
-									case ReportConstants.BDMSUPERVISOR:
-										opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
-										break;
-									default:
-											if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
-												String queryString = getPipelineAnticipatingOppIouSummaryQueryString(userId,salesStageList.get(i));
-												Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
-												opportunityList = opportunitySummaryReportQuery.getResultList();
-												
-											} else {
-												opportunityList = opportunityRepository.findSummaryIou(geoList, countryList, iouList, serviceLinesList, 
-														salesStageList.get(i));
-											}
-										break;
+						if (opportunityList.size() > 0) {
+							pipelineAnticipatingGeography.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
+											opportunityList, salesStageList.get(i),false));
+						}
+						if (isDistinctIou) {
+							switch (userGroup) {
+							case ReportConstants.BDM:
+								opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
+								break;
+							case ReportConstants.BDMSUPERVISOR:
+								opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
+								break;
+							default:
+									if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
+										String queryString = getPipelineAnticipatingOppIouSummaryQueryString(userId,salesStageList.get(i));
+										Query opportunitySummaryReportQuery = entityManager.createNativeQuery(queryString);
+										opportunityList = opportunitySummaryReportQuery.getResultList();
+										
+									} else {
+										opportunityList = opportunityRepository.findSummaryIou(geoList, countryList, iouList, serviceLinesList, 
+												salesStageList.get(i));
 									}
-									if (opportunityList.size() > 0) {
-										pipelineAntiIou.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
-											opportunityList, salesStageList.get(i),isDistinctIou));
-									}
-								}
-								salesStageList.remove(salesStageList.get(i));
-							} else {
-								i++;
+								break;
+							}
+							if (opportunityList.size() > 0) {
+								pipelineAntiIou.addAll(buildOpportunityReportService.getPipelineAnticipatingOpportunities(
+									opportunityList, salesStageList.get(i),isDistinctIou));
 							}
 						}
-						
-						List<ReportSummaryOpportunity> serviceLinesOpp = buildOpportunityReportService.getServiceLineForPipelineAnticipating(currency, 
-								geography,country, iou, serviceLines, pipilineAntiSalesStageList,userIds, userId, userGroup);
-						if(serviceLinesOpp.size() > 0){
-						reportSummaryOppMap.put("pipelineAnticipatingServiceLine",serviceLinesOpp);
-						}
-						if (pipelineAnticipatingGeography.size() > 0) {
-							reportSummaryOppMap.put("pipelineAnticipatingGeography",
-									pipelineAnticipatingGeography);
-						}
-						if (pipelineAntiIou.size() > 0) {
-							reportSummaryOppMap.put("pipelineAnticipatingIou", pipelineAntiIou);
-						}
-						
-							reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month, year,
-									quarter, geography, country, iou, serviceLines,
-									salesStageList, userIds, userId, isDistinctIou, userGroup);
-							if (reportSummaryOpportunities.size() > 0) {
-								if (!month.isEmpty()) {
-									reportSummaryOppMap
-											.put("month", reportSummaryOpportunities);
-								} else if (!quarter.isEmpty()) {
-									reportSummaryOppMap
-											.put(quarter, reportSummaryOpportunities);
-								} else {
-									reportSummaryOppMap.put(year, reportSummaryOpportunities);
-								}
-							}
-						if (reportSummaryOppMap.size() > 0) {
-							buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
-						}else{
-							logger.error("Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
-							throw new DestinationException(HttpStatus.NOT_FOUND," Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
-						}
+						salesStageList.remove(salesStageList.get(i));
+					} else {
+						i++;
 					}
-
-					public void addItemToList(List<String> itemList, List<String> targetList){
-						if(itemList.contains("All") || itemList.isEmpty()){
-							targetList.add("");
+				}
+				
+				List<ReportSummaryOpportunity> serviceLinesOpp = buildOpportunityReportService.getServiceLineForPipelineAnticipating(currency, 
+						geography,country, iou, serviceLines, pipilineAntiSalesStageList,userIds, userId, userGroup);
+				if(serviceLinesOpp.size() > 0){
+				reportSummaryOppMap.put("pipelineAnticipatingServiceLine",serviceLinesOpp);
+				}
+				if (pipelineAnticipatingGeography.size() > 0) {
+					reportSummaryOppMap.put("pipelineAnticipatingGeography",
+							pipelineAnticipatingGeography);
+				}
+				if (pipelineAntiIou.size() > 0) {
+					reportSummaryOppMap.put("pipelineAnticipatingIou", pipelineAntiIou);
+				}
+				
+					reportSummaryOpportunities = buildOpportunityReportService.getWinLossOpportunities(month, year,
+							quarter, geography, country, iou, serviceLines,
+							salesStageList, userIds, userId, isDistinctIou, userGroup);
+					if (reportSummaryOpportunities.size() > 0) {
+						if (!month.isEmpty()) {
+							reportSummaryOppMap
+									.put("month", reportSummaryOpportunities);
+						} else if (!quarter.isEmpty()) {
+							reportSummaryOppMap
+									.put(quarter, reportSummaryOpportunities);
 						} else {
-							targetList.addAll(itemList);
+							reportSummaryOppMap.put(year, reportSummaryOpportunities);
 						}
 					}
-					
-					public void addItemToListGeo(List<String> itemList, List<String> targetList){
-						if(itemList.contains("All") || itemList.isEmpty()){
-							targetList.add("");
-						} else {
-							targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
-						}
-					}
+				if (reportSummaryOppMap.size() > 0) {
+					buildOpportunityReportService.buildExcelReport(reportSummaryOppMap,month,year,quarter,currency,geography,iou,workbook);
+				}else{
+					logger.error("Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
+					throw new DestinationException(HttpStatus.NOT_FOUND," Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
+				}
+			}
 
+			public void addItemToList(List<String> itemList, List<String> targetList){
+				if(itemList.contains("All") || itemList.isEmpty()){
+					targetList.add("");
+				} else {
+					targetList.addAll(itemList);
+				}
+			}
+			
+			public void addItemToListGeo(List<String> itemList, List<String> targetList){
+				if(itemList.contains("All") || itemList.isEmpty()){
+					targetList.add("");
+				} else {
+					targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
+				}
+			}
+
+		/**
+		 * 
+		 * @param from
+		 * @param to
+		 * @param geography
+		 * @param country
+		 * @param currency
+		 * @param serviceLines
+		 * @param salesStage
+		 * @param opportunityOwnerIds
+		 * @param supervisorId
+		 * @return
+		 */
+		public InputStreamResource getBdmDetailedReport(String from, String to, List<String> geography, List<String> country,
+				List<String> currency, List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwnerIds,
+				String supervisorId) {
+
+			
+			
+			return null;
+		}
+		
 
 }

@@ -1,6 +1,6 @@
 /**
  * 
- * BatchMaintenanceTasklet.java 
+ * DBMaintenanceTasklet.java 
  *
  * @author TCS
  * @Version 1.0 - 2015
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.data.repository.BatchOpportunityRepository;
 
 /**
- * This BatchMaintenanceTasklet class <description>
+ * This DBMaintenanceTasklet class provide the functionality for purging the database tables, as per the business requirements
  * 
  */
 @Component("dbMaintenanceTasklet")
