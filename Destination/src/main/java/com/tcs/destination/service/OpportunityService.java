@@ -215,11 +215,11 @@ public class OpportunityService {
 		Page<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLikeOrderByModifiedDateTime("%" + nameWith + "%",
+					.findByOpportunityNameIgnoreCaseLikeOrderByModifiedDatetimeDesc("%" + nameWith + "%",
 							pageable);
 		} else {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDateTime("%"
+					.findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc("%"
 							+ nameWith + "%", customerId, pageable);
 		}
 		List<OpportunityT> opportunityTs = opportunities.getContent();

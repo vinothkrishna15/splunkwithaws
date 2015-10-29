@@ -22,11 +22,11 @@ public interface OpportunityRepository extends
 
 	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(
 			List<String> opportunityId);
-
-	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeOrderByModifiedDateTime(
+	
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(
 			String opportunityname, Pageable page);
 
-	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDateTime(
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(
 			String opportunityname, String customerId, Pageable pageable);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
