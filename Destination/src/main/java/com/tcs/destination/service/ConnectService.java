@@ -212,17 +212,18 @@ public class ConnectService {
 			String customerId, int page, int count) throws Exception {
 		logger.debug("Inside searchforConnectsByNameContaining() service");
 		Pageable pageable = new PageRequest(page, count);
-		PaginatedResponse paginatedResponse=new PaginatedResponse();
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<ConnectT> connectList = null;
 		if (customerId.isEmpty()) {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLikeOrderByModifiedDatetimeDesc("%" + name + "%", pageable);
+					.findByConnectNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(
+							"%" + name + "%", pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
 		} else {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc("%" + name
-							+ "%", customerId, pageable);
+					.findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(
+							"%" + name + "%", customerId, pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
 		}
@@ -498,8 +499,9 @@ public class ConnectService {
 			throws DestinationException {
 		String location = connect.getLocation();
 		// validate only if the location info is set
-		// To remove the mandatory constraint for location and its co-ordinates while Location API doesn't return value
-		if(!StringUtils.isEmpty(location)){
+		// To remove the mandatory constraint for location and its co-ordinates
+		// while Location API doesn't return value
+		if (!StringUtils.isEmpty(location)) {
 			CityMapping cityMapping = connect.getCityMapping();
 			if (cityMapping != null) {
 				String city = cityMapping.getCity();
@@ -877,7 +879,19 @@ public class ConnectService {
 		if (connectT != null) {
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
+			removeCyclicForLinkedCustomerMasterTs(connectT);
 		}
+	}
+
+	/**
+	 * Remove cyclic data of list of connects for that customer who belongs to this connect
+	 * @param connectT
+	 */
+	private void removeCyclicForLinkedCustomerMasterTs(ConnectT connectT) {
+		if(connectT!=null)
+			if(connectT.getCustomerMasterT()!=null)
+				connectT.getCustomerMasterT().setConnectTs(null);
+		
 	}
 
 	private void removeCyclicForLinkedOpportunityTs(ConnectT connectT) {
