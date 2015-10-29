@@ -2,11 +2,15 @@ package com.tcs.destination.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -15,8 +19,6 @@ import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.PaginationUtils;
-
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PartnerService {
@@ -101,7 +103,7 @@ public class PartnerService {
 		if (partnerToInsert != null) {
 			partnerMasterT = new PartnerMasterT();
 			partners = partnerRepository
-					.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(partnerToInsert
+					.findByPartnerName(partnerToInsert
 							.getPartnerName());
 			partnerMasterT.setCorporateHqAddress(partnerToInsert
 					.getCorporateHqAddress());
@@ -127,34 +129,46 @@ public class PartnerService {
 		return partnerMasterT;
 	}
 
-	public List<PartnerMasterT> findByNameContaining(String nameWith)
-			throws Exception {
+	public PaginatedResponse findByNameContaining(String nameWith, int page,
+			int count) throws Exception {
 		logger.debug("Inside findByNameContaining Service");
-		List<PartnerMasterT> partners = partnerRepository
-				.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(nameWith);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count);
+		Page<PartnerMasterT> partnersPage = partnerRepository
+				.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
+						nameWith, pageable);
 
+		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
+		List<PartnerMasterT> partners = partnersPage.getContent();
 		if (partners.isEmpty()) {
 			logger.error("NOT_FOUND: No Partners found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
 		preparePartner(partners);
-		return partners;
+		paginatedResponse.setPartnerMasterTs(partners);
+		return paginatedResponse;
 	}
 
-	public List<PartnerMasterT> findByNameStarting(String startsWith)
-			throws Exception {
+	public PaginatedResponse findByNameStarting(String startsWith, int page,
+			int count) throws Exception {
 		logger.debug("Inside findByNameContaining Service");
-		List<PartnerMasterT> partners = partnerRepository
-				.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(startsWith);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count);
+		Page<PartnerMasterT> partnersPage = partnerRepository
+				.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
+						startsWith, pageable);
 
+		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
+		List<PartnerMasterT> partners = partnersPage.getContent();
 		if (partners.isEmpty()) {
 			logger.error("NOT_FOUND: No Partners found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
 		preparePartner(partners);
-		return partners;
+		paginatedResponse.setPartnerMasterTs(partners);
+		return paginatedResponse;
 	}
 
 	private void preparePartner(List<PartnerMasterT> partners) {

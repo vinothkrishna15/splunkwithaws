@@ -23,10 +23,10 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByOpportunityIdInOrderByCountryAsc(
 			List<String> opportunityId);
 
-	Page<OpportunityT> findByOpportunityNameIgnoreCaseLike(
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeOrderByModifiedDateTime(
 			String opportunityname, Pageable page);
 
-	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerId(
+	Page<OpportunityT> findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDateTime(
 			String opportunityname, String customerId, Pageable pageable);
 
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfter(
@@ -140,7 +140,7 @@ public interface OpportunityRepository extends
 			@Param("currency") String currency,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
-	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
+	@Query(value = "select SSMT.display_sub_sp, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / ((select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))*(select count(*) from opportunity_sub_sp_link_t where opportunity_id=OPP.opportunity_id)))  as OBV from opportunity_t OPP "
 			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
@@ -958,60 +958,79 @@ public interface OpportunityRepository extends
 			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 
+
 	
+//	@Query(value = "select sum(oppOwnerDealValue) from (SELECT (opportunity_id),SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue "
+//			+ " FROM (select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE "
+//			+ " from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+//			+ "where sales_stage_code = '9' and (OPP.opportunity_owner in (:userIds)) and deal_closure_date between (:fromDate) and (:toDate) " 
+//			+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency " 
+//			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE from opportunity_t OPP " 
+//			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+//			+ " where sales_stage_code = '9' and (bofg.bid_office_group_owner in (:userIds)) and deal_closure_date between (:fromDate) and (:toDate) " 
+//
+//	@Query(value = "SELECT USER_ID, SUM(OpportunitiesCount.PRIMARY) as oppOwnerCount, SUM(OpportunitiesCount.SECONDARY) as salesOwnerOppCount FROM "
+//			+ " (select opportunity_owner as USER_ID ,count(OPP.opportunity_id) as PRIMARY, (0) as SECONDARY from opportunity_t OPP "
+//			+ " where sales_stage_code < 9 and OPP.opportunity_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+//			+ " group by opportunity_owner UNION select sales_support_owner AS USER_ID , (0) AS PRIMARY, count(OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP "
+//			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id where sales_stage_code < 9 "
+//			+ " and OSSLT.sales_support_owner = (:userId) and opportunity_request_receive_date between (:fromDate) and (:toDate) group by sales_support_owner "
+//			+ " ) AS OpportunitiesCount GROUP BY USER_ID", nativeQuery = true)
+//	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwner(
+//			@Param("userId") String userId, @Param("fromDate") Date fromDate,
+//			@Param("toDate") Date toDate);
+
 	@Query(value = "select sum(oppOwnerDealValue) from (SELECT (opportunity_id),SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue "
 			+ " FROM (select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE "
 			+ " from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
-			+ "where sales_stage_code = '9' and (OPP.opportunity_owner in (:userIds)) and deal_closure_date between (:fromDate) and (:toDate) " 
-			+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency " 
-			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE from opportunity_t OPP " 
+			+ "where sales_stage_code = '9' and (OPP.opportunity_owner in (:userIds)) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
+			+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
+			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE from opportunity_t OPP "
 			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
-			+ " where sales_stage_code = '9' and (bofg.bid_office_group_owner in (:userIds)) and deal_closure_date between (:fromDate) and (:toDate) " 
+			+ " where sales_stage_code = '9' and (bofg.bid_office_group_owner in (:userIds)) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
 			+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
 			+ " UNION select OPP.opportunity_id ,opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
-			+ " where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS SALES_VALUE from opportunity_t OPP " 
+			+ " where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS SALES_VALUE from opportunity_t OPP "
 			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
 			+ " where sales_stage_code = '9' and OSSLT.sales_support_owner in (:userIds) and deal_closure_date between (:fromDate) and (:toDate) " 
 			+ " group by sales_support_owner, OPP.opportunity_id, opp.deal_currency) AS OppWinValue GROUP BY opportunity_id "
 			+ " ) as OppWins", nativeQuery = true)
 	BigDecimal getTotalOpportunityWinsByUserIds(
-			@Param("userIds") List<String> userIds, 
+			@Param("userIds") List<String> userIds,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
-	
-	
+
 	@Query(value = "select SUM(noOfPrimaryBids) as primarySum from ( "
 			+ " select  OPPTLH.opportunity_id as opp, count(distinct(sales_stage_code)) as noOfPrimaryBids "
 			+ " from Opportunity_timeline_history_t OPPTLH where sales_stage_code in (2,4) and opportunity_id in ( "
 			+ " select distinct OPP.opportunity_id from opportunity_t OPP where OPP.opportunity_owner in (:userIds) "
 			+ " and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)  or (sales_stage_code<9)) "
-			+ " UNION select distinct OPP.opportunity_id from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id " 
-			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id where bofg.bid_office_group_owner in (:userIds) " 
+			+ " UNION select distinct OPP.opportunity_id from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id where bofg.bid_office_group_owner in (:userIds) "
 			+ " and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) "
-			+ " group by OPPTLH.opportunity_id UNION select opportunity_id as opp, count(distinct(sales_stage_code)) as noOfPrimaryBids " 
+			+ " group by OPPTLH.opportunity_id UNION select opportunity_id as opp, count(distinct(sales_stage_code)) as noOfPrimaryBids "
 			+ " from Opportunity_timeline_history_t where sales_stage_code in (2,4) and opportunity_id in "
-			+ " (select distinct (OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on " 
+			+ " (select distinct (OSSLT.opportunity_id) AS SECONDARY from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on "
 			+ " OSSLT.opportunity_id=OPP.opportunity_id where OSSLT.sales_support_owner in (:userIds) "
-			+ " and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) " 
-			+ " group by opportunity_id) as ProposalsSupported",nativeQuery = true )
+			+ " and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) "
+			+ " group by opportunity_id) as ProposalsSupported", nativeQuery = true)
 	BigInteger getTotalProposalSupportedByUserIds(
-			@Param("userIds") List<String> userIds, 
+			@Param("userIds") List<String> userIds,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
-	
+
 	@Query(value = "select case when sum(oppOwnerDealValue) is not null then sum(oppOwnerDealValue) else 0.0 end as deal_value_sum from (SELECT (opportunity_id),SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue FROM ( "
-			+ " select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) " 
+			+ " select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) "
 			+ " AS PRIMARY_BID_VALUE from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
 			+ " where sales_stage_code in (4,5,6,7,8)  and (OPP.opportunity_owner = (:userId)) and deal_closure_date "
 			+ " between (:fromDate) and (:toDate)  group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
-			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) " 
+			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) "
 			+ " AS PRIMARY_BID_VALUE from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
-			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id where sales_stage_code in (4,5,6,7,8) and (bofg.bid_office_group_owner = (:userId)) and deal_closure_date " 
+			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id where sales_stage_code in (4,5,6,7,8) and (bofg.bid_office_group_owner = (:userId)) and deal_closure_date "
 			+ " between (:fromDate) and (:toDate)  group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
-			+ " UNION select OPP.opportunity_id ,opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) " 
+			+ " UNION select OPP.opportunity_id ,opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) "
 			+ " AS SALES_VALUE from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ " where sales_stage_code in (4,5,6,7,8) and OSSLT.sales_support_owner = (:userId) and deal_closure_date between  (:fromDate) and (:toDate) " 
+			+ " where sales_stage_code in (4,5,6,7,8) and OSSLT.sales_support_owner = (:userId) and deal_closure_date between  (:fromDate) and (:toDate) "
 			+ " group by sales_support_owner, OPP.opportunity_id, opp.deal_currency) AS OppWinValue GROUP BY opportunity_id ) as pipeline", nativeQuery = true)
-	BigDecimal getTotalPipelineByUser(
-			@Param("userId") String userId, 
+	BigDecimal getTotalPipelineByUser(@Param("userId") String userId,
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 	
 	@Query(value = "select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / "

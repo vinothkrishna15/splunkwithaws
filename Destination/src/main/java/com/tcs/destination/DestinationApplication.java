@@ -1,3 +1,12 @@
+/**
+ * 
+ * DestinationApplication.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -11,6 +20,10 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * This DestinationApplication class sets up the configuration and starts the application using spring boot
+ * 
+ */
 @ImportResource("classpath:app-context.xml")
 @SpringBootApplication
 @EnableJpaRepositories
@@ -19,7 +32,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class DestinationApplication extends SpringBootServletInitializer {
 
 	private static Class<DestinationApplication> applicationClass = DestinationApplication.class;
-	
+
 	@Autowired
 	JobRepository jobRepository;
 
@@ -33,5 +46,5 @@ public class DestinationApplication extends SpringBootServletInitializer {
 			SpringApplicationBuilder application) {
 		return application.sources(applicationClass);
 	}
-	
+
 }

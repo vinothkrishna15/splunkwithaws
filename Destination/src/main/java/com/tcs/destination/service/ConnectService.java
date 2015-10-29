@@ -15,6 +15,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
@@ -110,13 +114,13 @@ public class ConnectService {
 
 	@Autowired
 	ConnectSecondaryOwnerRepository connSecOwnerRepo;
-	
+
 	@Autowired
 	TaskRepository taskRepository;
-	
+
 	@Autowired
 	UserTaggedFollowedRepository userTaggedFollowedRepository;
-	
+
 	@Autowired
 	CommentsTRepository commentsTRepository;
 
@@ -204,17 +208,23 @@ public class ConnectService {
 		}
 	}
 
-	public List<ConnectT> searchforConnectsByNameContaining(String name,
-			String customerId) throws Exception {
+	public PaginatedResponse searchforConnectsByNameContaining(String name,
+			String customerId, int page, int count) throws Exception {
 		logger.debug("Inside searchforConnectsByNameContaining() service");
+		Pageable pageable = new PageRequest(page, count);
+		PaginatedResponse paginatedResponse=new PaginatedResponse();
 		List<ConnectT> connectList = null;
 		if (customerId.isEmpty()) {
-			connectList = connectRepository.findByConnectNameIgnoreCaseLike("%"
-					+ name + "%");
+			Page<ConnectT> connectPage = connectRepository
+					.findByConnectNameIgnoreCaseLikeOrderByModifiedDateTime("%" + name + "%", pageable);
+			paginatedResponse.setTotalCount(connectPage.getTotalElements());
+			connectList = connectPage.getContent();
 		} else {
-			connectList = connectRepository
-					.findByConnectNameIgnoreCaseLikeAndCustomerId("%" + name
-							+ "%", customerId);
+			Page<ConnectT> connectPage = connectRepository
+					.findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDateTime("%" + name
+							+ "%", customerId, pageable);
+			paginatedResponse.setTotalCount(connectPage.getTotalElements());
+			connectList = connectPage.getContent();
 		}
 
 		if (connectList.isEmpty()) {
@@ -225,7 +235,8 @@ public class ConnectService {
 					"Connects not found with the given name: " + name);
 		}
 		prepareConnect(connectList);
-		return connectList;
+		paginatedResponse.setConnectTs(connectList);
+		return paginatedResponse;
 	}
 
 	public DashBoardConnectsResponse searchDateRangwWithWeekAndMonthCount(
@@ -486,29 +497,32 @@ public class ConnectService {
 	private void validateAndUpdateCityMapping(ConnectT connect)
 			throws DestinationException {
 		String location = connect.getLocation();
-		CityMapping cityMapping = connect.getCityMapping();
-		if (cityMapping != null) {
-			String city = cityMapping.getCity();
-			if (!city.equalsIgnoreCase(location)) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Location mismatch with city Mapping");
-			}
-			CityMapping cityMappingDB = cityMappingRepository.findOne(city);
-			// CityMapping cityMappingDB =
-			// cityMappingRepository.getCityByCityName(city.toUpperCase());
-			if (cityMappingDB == null) {
-				String latitude = cityMapping.getLatitude();
-				if (StringUtils.isEmpty(latitude)) {
+		// validate only if the location info is set
+		// To remove the mandatory constraint for location and its co-ordinates while Location API doesn't return value
+		if(!StringUtils.isEmpty(location)){
+			CityMapping cityMapping = connect.getCityMapping();
+			if (cityMapping != null) {
+				String city = cityMapping.getCity();
+				if (!city.equalsIgnoreCase(location)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"latitude is required");
+							"Location mismatch with city Mapping");
 				}
-				String longitude = cityMapping.getLongitude();
-				if (StringUtils.isEmpty(longitude)) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"longitude is required");
-				}
+				CityMapping cityMappingDB = cityMappingRepository.findOne(city);
 
-				cityMappingRepository.save(cityMapping);
+				if (cityMappingDB == null) {
+					String latitude = cityMapping.getLatitude();
+					if (StringUtils.isEmpty(latitude)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"latitude is required");
+					}
+					String longitude = cityMapping.getLongitude();
+					if (StringUtils.isEmpty(longitude)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"longitude is required");
+					}
+
+					cityMappingRepository.save(cityMapping);
+				}
 			}
 		}
 	}
@@ -1342,10 +1356,9 @@ public class ConnectService {
 		}
 
 	}
-	
-	
+
 	public void deleteConnect(List<ConnectT> deleteList) {
-		
+
 		List<ConnectCustomerContactLinkT> connectCustomerContactLinkT = new ArrayList<ConnectCustomerContactLinkT>();
 		List<ConnectOfferingLinkT> connectOfferingLinkT = new ArrayList<ConnectOfferingLinkT>();
 		List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdT = new ArrayList<ConnectOpportunityLinkIdT>();
@@ -1355,39 +1368,41 @@ public class ConnectService {
 		List<CommentsT> commentsT = new ArrayList<CommentsT>();
 		List<UserTaggedFollowedT> userTaggedFollowedT = new ArrayList<UserTaggedFollowedT>();
 		List<TaskT> taskList = new ArrayList<TaskT>();
-		
-		for (ConnectT connect: deleteList) {
+
+		for (ConnectT connect : deleteList) {
 			connectSubSpLinkT.addAll(connect.getConnectSubSpLinkTs());
-			connectCustomerContactLinkT.addAll(connect.getConnectCustomerContactLinkTs());
+			connectCustomerContactLinkT.addAll(connect
+					.getConnectCustomerContactLinkTs());
 			connectOfferingLinkT.addAll(connect.getConnectOfferingLinkTs());
-			connectOpportunityLinkIdT.addAll(connect.getConnectOpportunityLinkIdTs());
-			connectSecondaryOwnerLinkT.addAll(connect.getConnectSecondaryOwnerLinkTs());
-			connectTcsAccountContactLinkT.addAll(connect.getConnectTcsAccountContactLinkTs());
+			connectOpportunityLinkIdT.addAll(connect
+					.getConnectOpportunityLinkIdTs());
+			connectSecondaryOwnerLinkT.addAll(connect
+					.getConnectSecondaryOwnerLinkTs());
+			connectTcsAccountContactLinkT.addAll(connect
+					.getConnectTcsAccountContactLinkTs());
 			commentsT.addAll(connect.getCommentsTs());
 			userTaggedFollowedT.addAll(connect.getUserTaggedFollowedTs());
 			taskList.addAll(connect.getTaskTs());
 		}
-		
-		
+
 		connCustContRepo.delete(connectCustomerContactLinkT);
 		connOffLinkRepo.delete(connectOfferingLinkT);
 		connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT);
 		connSecOwnerRepo.delete(connectSecondaryOwnerLinkT);
 		connSubSpRepo.delete(connectSubSpLinkT);
-		connTcsAcctContRepo.delete(connectTcsAccountContactLinkT);	
+		connTcsAcctContRepo.delete(connectTcsAccountContactLinkT);
 		commentsTRepository.delete(commentsT);
 		userTaggedFollowedRepository.delete(userTaggedFollowedT);
 		taskRepository.delete(taskList);
-		
+
 		connectRepository.delete(deleteList);
-		
+
 	}
 
 	public void updateConnect(List<ConnectT> connectList) {
-		
-	  connectRepository.save(connectList);
-		
+
+		connectRepository.save(connectList);
+
 	}
-		
-		
+
 }

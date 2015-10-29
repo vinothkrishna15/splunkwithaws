@@ -25,6 +25,7 @@ import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.service.PartnerUploadService;
@@ -60,17 +61,19 @@ public class PartnerController {
 	
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findByNameContaining(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
 		logger.debug("Inside PartnerController /partner?nameWith="+nameWith+" GET");
-		List<PartnerMasterT> partners = null;
+		PaginatedResponse partners = null;
 		
 		if (!nameWith.isEmpty()) {
-			partners = partnerService.findByNameContaining(nameWith);
+			partners = partnerService.findByNameContaining(nameWith,page,count);
 		} else if (!startsWith.isEmpty()) {
-			partners = partnerService.findByNameStarting(startsWith);
+			partners = partnerService.findByNameStarting(startsWith,page,count);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Either nameWith / startsWith is required");
 		}

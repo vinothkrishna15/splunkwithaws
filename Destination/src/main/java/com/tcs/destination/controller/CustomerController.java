@@ -71,6 +71,8 @@ public class CustomerController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -78,12 +80,12 @@ public class CustomerController {
 					throws Exception {
 		logger.debug("Inside CustomerController /customer?namewith=" + nameWith
 				+ "and starts with " + startsWith + " GET");
-		List<CustomerMasterT> customers = null;
+		PaginatedResponse customers = null;
 
 		if (!nameWith.isEmpty()) {
-			customers = customerService.findByNameContaining(nameWith);
+			customers = customerService.findByNameContaining(nameWith,page,count);
 		} else if (!startsWith.isEmpty()) {
-			customers = customerService.findByNameStarting(startsWith);
+			customers = customerService.findByNameStarting(startsWith,page,count);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");

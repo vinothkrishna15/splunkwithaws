@@ -103,7 +103,6 @@ public class FollowedService {
 	}
 
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
-
 		logger.debug("Inside addFollowed Service");
 		if (EntityType.contains(followed.getEntityType())) {
 			switch (EntityType.valueOf(followed.getEntityType())) {
@@ -116,7 +115,17 @@ public class FollowedService {
 				} else {
 					followed.setOpportunityId(null);
 					followed.setTaskId(null);
-
+					// Prevent users from following the same Connect once Again
+					if (followedRepository.findByUserIdAndConnectId(
+							followed.getUserId(), followed.getConnectId()) != null)
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"This Entity is already followed by the user");
+					// Prevent users from following their own entities
+					List<String> ownerIds = connectRepository
+							.findOwnersOfConnect(followed.getConnectId());
+					if (ownerIds.contains(followed.getUserId()))
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"You cannot follow your own Connect");
 				}
 				break;
 			case OPPORTUNITY:
@@ -128,7 +137,18 @@ public class FollowedService {
 				} else {
 					followed.setConnectId(null);
 					followed.setTaskId(null);
-
+					// Prevent users from following the same Opportunity once
+					// Again
+					if (followedRepository.findByUserIdAndOpportunityId(
+							followed.getUserId(), followed.getOpportunityId()) != null)
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"This Entity is already followed by the user");
+					// Prevent users from following their own entities
+					List<String> ownerIds = opportunityRepository
+							.getAllOwners(followed.getOpportunityId());
+					if (ownerIds.contains(followed.getUserId()))
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"You cannot follow your own Opportunity");
 				}
 				break;
 
@@ -141,7 +161,17 @@ public class FollowedService {
 				} else {
 					followed.setConnectId(null);
 					followed.setOpportunityId(null);
-
+					// Prevent users from following the same Task once Again
+					if (followedRepository.findByUserIdAndTaskId(
+							followed.getUserId(), followed.getTaskId()) != null)
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"This Entity is already followed by the user");
+					// Prevent users from following their own entities
+					List<String> ownerIds = taskRepository
+							.findOwnersOfTask(followed.getOpportunityId());
+					if (ownerIds.contains(followed.getUserId()))
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"You cannot follow your own Task");
 				}
 				break;
 

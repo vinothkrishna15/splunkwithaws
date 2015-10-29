@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -51,13 +52,13 @@ public class ConnectController {
 
 	@Autowired
 	ConnectUploadService connectUploadService;
-	
+
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-	
+
 	@Autowired
 	ConnectDownloadService connectDownloadService;
-	
+
 	/**
 	 * This Method is used to find connection details for the given connection
 	 * id.
@@ -90,6 +91,8 @@ public class ConnectController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam("nameWith") String connectName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -97,10 +100,11 @@ public class ConnectController {
 			throws Exception {
 		logger.debug("Inside ConnectController /connect?nameWith="
 				+ connectName + " GET");
-		List<ConnectT> connectlist = connectService
-				.searchforConnectsByNameContaining(connectName, customerId);
+		PaginatedResponse paginatedConnect = connectService
+				.searchforConnectsByNameContaining(connectName, customerId,
+						page, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				connectlist);
+				paginatedConnect);
 	}
 
 	/**
@@ -175,15 +179,15 @@ public class ConnectController {
 		logger.debug("Connect Edit Request Received /connect PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-        try{
-		if (connectService.updateConnect(connect)) {
-			status.setStatus(Status.SUCCESS, connect.getConnectId());
-		}
-        } catch(Exception e){
-        	logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-        	throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+		try {
+			if (connectService.updateConnect(connect)) {
+				status.setStatus(Status.SUCCESS, connect.getConnectId());
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
-        }
+		}
 
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -191,8 +195,9 @@ public class ConnectController {
 	}
 
 	/**
-	 * This controller retrieves all the connects of users under a supervisor between dates 
-	 * and also gives a count of connects on a weekly and monthly basis
+	 * This controller retrieves all the connects of users under a supervisor
+	 * between dates and also gives a count of connects on a weekly and monthly
+	 * basis
 	 * 
 	 * @param fromDate
 	 * @param toDate
@@ -234,39 +239,43 @@ public class ConnectController {
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
-	    @RequestParam("file") MultipartFile file,
-	    @RequestParam("userId") String userId,
-	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-	    @RequestParam(value = "view", defaultValue = "") String view)
-	    throws Exception {
-	logger.debug("Upload request Received : docName ");
-	UploadStatusDTO status = null;
-	List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-	try {
-	    status = connectUploadService.saveConnectDocument(file, userId);
-	    if(status!=null){
-		System.out.println(status.isStatusFlag());
-		errorDetailsDTOs = status.getListOfErrors();
-		for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-		System.out.println(err.getRowNumber());
-		    System.out.println(err.getMessage());
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Upload request Received : docName ");
+		UploadStatusDTO status = null;
+		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		try {
+			status = connectUploadService.saveConnectDocument(file, userId);
+			if (status != null) {
+				System.out.println(status.isStatusFlag());
+				errorDetailsDTOs = status.getListOfErrors();
+				for (UploadServiceErrorDetailsDTO err : errorDetailsDTOs) {
+					System.out.println(err.getRowNumber());
+					System.out.println(err.getMessage());
+				}
+			}
+			logger.debug("UPLOAD SUCCESS - Record Created ");
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
-	    }
-	    logger.debug("UPLOAD SUCCESS - Record Created ");
-	} catch (Exception e) {
-	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-		    e.getMessage());
+		InputStreamResource excelFile = uploadErrorReport
+				.getErrorSheet(errorDetailsDTOs);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment",
+				"upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+				HttpStatus.OK);
 	}
-	InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-	HttpHeaders respHeaders = new HttpHeaders();
-	respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-	respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
-	return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
-}
-	
-	
+
 	/**
 	 * This controller retrieves all the connects based on the status and FY
 	 * 
@@ -277,71 +286,86 @@ public class ConnectController {
 	 * @return ResponseEntity<String>
 	 * @throws Exception
 	 */
-        @RequestMapping(value = "/all", method = RequestMethod.GET)
-        public @ResponseBody ResponseEntity<String> getAllConnectsForDashboard(
-        	    @RequestParam(value = "fields", defaultValue = "") String fields,
-        	    @RequestParam(value = "view", defaultValue = "") String view,
-        	    @RequestParam(value ="status", defaultValue="ALL") String status,
-        	    @RequestParam("fy") String financialYear)
-        	    throws Exception {
-        
-        	List<ConnectT> listOfConnects = null;
-        	try {
-        	    listOfConnects = connectService.getAllConnectsForDashbaord(status, financialYear);
-        	    if(listOfConnects==null){
-        		logger.error("NOT_FOUND : No Connects found for the status {} and FY {}", status, financialYear);
-            	    	throw new DestinationException(HttpStatus.NOT_FOUND,"No Connects found for the status "+status+" and FY "+financialYear);
-        	    }
-        	} catch (Exception e) {
-        	    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-        	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
-        	}
-        	return new ResponseEntity<String>(
-			ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				listOfConnects), HttpStatus.OK);
-            }
-        
-        /**
-         * This controller performs search of connects and searchKeywords based on name and keyword
-         * 
-         * @param name
-         * @param keyword
-         * @param fields
-         * @param view
-         * @return String
-         * @throws Exception
-         */
-        @RequestMapping(value = "/name", method = RequestMethod.GET)
-    	public @ResponseBody String findConnectNameOrKeyword(
-    			@RequestParam(value = "name", defaultValue = "") String name,
-    			@RequestParam(value = "keyword", defaultValue = "") String keyword,
-    			@RequestParam(value = "fields", defaultValue = "all") String fields,
-    			@RequestParam(value = "view", defaultValue = "") String view)
-    			throws Exception {
-    		logger.debug("Inside ConnectService /name GET");
-    		List<ConnectNameKeywordSearch> searchResults = null;
-    		
-    		searchResults = connectService.findConnectNameOrKeywords(name, keyword);
-    		if((searchResults==null)||(searchResults.isEmpty())){
-    			logger.error("No Results found for name {} and keyword {}", name, keyword);
-    			throw new DestinationException(HttpStatus.NOT_FOUND, "No Results found for name "+name+" and keyword "+keyword);
-    		}
-    		
-    		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-    				searchResults);
-    	}
-    	
-    	@RequestMapping(value = "/download", method = RequestMethod.GET)
-    	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
-    			@RequestParam("userId") String userId) throws Exception {
-    		logger.debug("Download request Received : docName ");
-    		InputStreamResource excelFile = connectDownloadService.getConnects(userId);
-    		HttpHeaders respHeaders = new HttpHeaders();
-    		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
-    		String todaysDate = DateUtils.getCurrentDate();
-    		logger.debug("Download Header - Attachment : " + "Connect_Template_Data" + todaysDate + ".xlsm");
-    		respHeaders.setContentDispositionFormData("attachment", "Connect_Template_Data" + todaysDate + ".xlsm");
-    		logger.debug("Connect Downloaded Successfully ");
-    		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
-    	}
+	@RequestMapping(value = "/all", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getAllConnectsForDashboard(
+			@RequestParam(value = "fields", defaultValue = "") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "status", defaultValue = "ALL") String status,
+			@RequestParam("fy") String financialYear) throws Exception {
+
+		List<ConnectT> listOfConnects = null;
+		try {
+			listOfConnects = connectService.getAllConnectsForDashbaord(status,
+					financialYear);
+			if (listOfConnects == null) {
+				logger.error(
+						"NOT_FOUND : No Connects found for the status {} and FY {}",
+						status, financialYear);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Connects found for the status " + status
+								+ " and FY " + financialYear);
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+						listOfConnects), HttpStatus.OK);
+	}
+
+	/**
+	 * This controller performs search of connects and searchKeywords based on
+	 * name and keyword
+	 * 
+	 * @param name
+	 * @param keyword
+	 * @param fields
+	 * @param view
+	 * @return String
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/name", method = RequestMethod.GET)
+	public @ResponseBody String findConnectNameOrKeyword(
+			@RequestParam(value = "name", defaultValue = "") String name,
+			@RequestParam(value = "keyword", defaultValue = "") String keyword,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside ConnectService /name GET");
+		List<ConnectNameKeywordSearch> searchResults = null;
+
+		searchResults = connectService.findConnectNameOrKeywords(name, keyword);
+		if ((searchResults == null) || (searchResults.isEmpty())) {
+			logger.error("No Results found for name {} and keyword {}", name,
+					keyword);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Results found for name " + name + " and keyword "
+							+ keyword);
+		}
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				searchResults);
+	}
+
+	@RequestMapping(value = "/download", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
+			@RequestParam("userId") String userId) throws Exception {
+		logger.debug("Download request Received : docName ");
+		InputStreamResource excelFile = connectDownloadService
+				.getConnects(userId);
+		HttpHeaders respHeaders = new HttpHeaders();
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
+		String todaysDate = DateUtils.getCurrentDate();
+		logger.debug("Download Header - Attachment : "
+				+ "Connect_Template_Data" + todaysDate + ".xlsm");
+		respHeaders.setContentDispositionFormData("attachment",
+				"Connect_Template_Data" + todaysDate + ".xlsm");
+		logger.debug("Connect Downloaded Successfully ");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+				HttpStatus.OK);
+	}
 }

@@ -11,6 +11,10 @@ import javax.persistence.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -225,12 +229,16 @@ public class CustomerService {
 				"", false);
 	}
 
-	public List<CustomerMasterT> findByNameContaining(String nameWith)
-			throws Exception {
+	public PaginatedResponse findByNameContaining(String nameWith, int page,
+			int count) throws Exception {
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Inside findByNameContaining() service");
-		List<CustomerMasterT> custList = customerRepository
+		Page<CustomerMasterT> customerPage = customerRepository
 				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-						nameWith, Constants.UNKNOWN_CUSTOMER);
+						nameWith, Constants.UNKNOWN_CUSTOMER, pageable);
+		paginatedResponse.setTotalCount(customerPage.getTotalElements());
+		List<CustomerMasterT> custList = customerPage.getContent();
 		if (custList.isEmpty()) {
 			logger.error("NOT_FOUND: Customer not found with given name: {}",
 					nameWith);
@@ -238,7 +246,8 @@ public class CustomerService {
 					"Customer not found with given name: " + nameWith);
 		}
 		prepareCustomerDetails(custList);
-		return custList;
+		paginatedResponse.setCustomerMasterTs(custList);
+		return paginatedResponse;
 	}
 
 	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName)
@@ -259,20 +268,28 @@ public class CustomerService {
 		return custList;
 	}
 
-	public List<CustomerMasterT> findByNameStarting(String startsWith)
-			throws Exception {
+	public PaginatedResponse findByNameStarting(String startsWith, int page,
+			int count) throws Exception {
+		// TODO: Paginated Response
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Starts With" + startsWith);
 		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
-		if (!startsWith.equals("@"))
-			custList.addAll(customerRepository
+		if (!startsWith.equals("@")) {
+			Page<CustomerMasterT> customerPage = customerRepository
 					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-							startsWith, Constants.UNKNOWN_CUSTOMER));
-		else
+							startsWith, Constants.UNKNOWN_CUSTOMER, pageable);
+			custList.addAll(customerPage.getContent());
+			paginatedResponse.setTotalCount(paginatedResponse.getTotalCount()
+					+ customerPage.getTotalElements());
+		} else
 			for (int i = 0; i <= 9; i++) {
-				List<CustomerMasterT> customerMasterTs = customerRepository
+				Page<CustomerMasterT> customerPage = customerRepository
 						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-								i + "", Constants.UNKNOWN_CUSTOMER);
-				custList.addAll(customerMasterTs);
+								i + "", Constants.UNKNOWN_CUSTOMER, pageable);
+				custList.addAll(customerPage.getContent());
+				paginatedResponse.setTotalCount(paginatedResponse
+						.getTotalCount() + customerPage.getTotalElements());
 			}
 
 		if (custList.isEmpty()) {
@@ -284,7 +301,8 @@ public class CustomerService {
 							+ startsWith);
 		}
 		prepareCustomerDetails(custList);
-		return custList;
+		paginatedResponse.setCustomerMasterTs(custList);
+		return paginatedResponse;
 	}
 
 	private void removeCyclicForLinkedContactTs(
@@ -453,7 +471,6 @@ public class CustomerService {
 	 */
 	public List<String> findByGroupCustomerNameBasedOnPrivilege(
 			String nameWith, String userId) throws Exception {
-		// TODO Auto-generated method stub
 		String queryString = null;
 		List<String> resultList = null;
 

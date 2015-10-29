@@ -27,4 +27,10 @@ public interface FollowedRepository extends
 	@Query(value = "select distinct(user_id) from user_tagged_followed_t  where entity_type = 'TASK' and task_id=(:taskId)", nativeQuery = true)
 	List<String> getTasksTaggedFollowedUsers(
 			@Param("taskId") String taskId);
+
+	UserTaggedFollowedT findByUserIdAndConnectId(String userId, String connectId);
+
+	UserTaggedFollowedT findByUserIdAndOpportunityId(String userId, String opportunityId);
+
+	UserTaggedFollowedT findByUserIdAndTaskId(String userId, String taskId);
 }
