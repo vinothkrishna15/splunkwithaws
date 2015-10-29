@@ -120,4 +120,22 @@ public class PartnerController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
 		
 	}
+	
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String advancedSearch(
+			@RequestParam(value = "name", defaultValue = "") String name,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside PartnerController /partner/search?name=" + name
+				+ "&geograph=" + geography + " GET");
+		PaginatedResponse paginatedResponse = partnerService.search(name,
+				geography, page, count);
+
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				paginatedResponse);
+	}
 }
