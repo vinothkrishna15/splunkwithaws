@@ -1,22 +1,30 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-
 import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface PartnerRepository extends
-		CrudRepository<PartnerMasterT, String> {
+		CrudRepository<PartnerMasterT, String> 
+{
 
+	
+	/**
+	 * Finds the partner details for the given partner name.
+	 * 
+	 * @param partnername
+	 *            is the partner name.
+	 * @return partner details.
+	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
-
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
+	
+	
+    Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
 			String partnername,Pageable page);
 
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
@@ -37,5 +45,22 @@ public interface PartnerRepository extends
 	@Query(value = "select * from partner_master_t where (partner_name=?1 or ?1='') and (geography=?2 or ?2='')", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNameAndGeographyNonMandatory(String name,
 			String geography);
+	
+	@Query(value = "select partner_id from partner_master_t where partner_name=?1 and geography=?2", nativeQuery = true)
+	String findByPartnerNameAndGeography(String name,
+			String geography);
+	
+	@Query(value ="select p.partnerId from PartnerMasterT p")
+	List<String> findPartnerIdFromPartnerMasterT();
+	
+	
+	/**
+	 * Finds the partner details for the given partner id.
+	 * 
+	 * @param partnerid
+	 *            is the partner id.
+	 * @return partner details.
+	 */
+	PartnerMasterT findByPartnerId(String partnerid);
 
 }

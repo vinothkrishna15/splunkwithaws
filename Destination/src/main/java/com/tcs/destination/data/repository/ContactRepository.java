@@ -45,4 +45,7 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	@Query(value ="select * from contact_t where contact_name in (:names)",
 			 nativeQuery = true)
 	List<ContactT> findByContactNames(@Param("names") String[] name);
+	
+	@Query(value ="select * from contact_t where partner_id=?1 and contact_category='PARTNER'",nativeQuery = true)
+	List<ContactT> findByPartnerId(String partnerId);
 }

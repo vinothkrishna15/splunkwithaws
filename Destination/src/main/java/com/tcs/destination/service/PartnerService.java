@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,10 +13,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.ConnectCustomerContactLinkT;
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
+import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.PaginationUtils;
@@ -23,14 +31,37 @@ import com.tcs.destination.utils.PaginationUtils;
 @Service
 public class PartnerService {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(PartnerService.class);
+	private static final Logger logger = LoggerFactory.getLogger(PartnerService.class);
 
 	@Autowired
 	PartnerRepository partnerRepository;
 
 	@Autowired
 	BeaconConvertorRepository beaconRepository;
+	
+	@Autowired
+	OpportunityPartnerLinkTRepository opportunityPartnerLinkTRepository;  
+	
+	@Autowired
+	ContactRepository  contactRepository;
+	
+	@Autowired
+	ConnectRepository  connectRepository;
+	
+	@Autowired
+	ConnectCustomerContactLinkTRepository connectCustomerContactLinkTRepository;
+	
+	/**
+	 * This service saves partner details into partner_master_t 
+     * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void save(List<PartnerMasterT> insertList) throws Exception 
+	{
+		logger.debug("Inside save method");
+		partnerRepository.save(insertList);
+	}
 
 	public PartnerMasterT findById(String partnerId) throws Exception {
 		logger.debug("Inside findById Service");
@@ -43,12 +74,64 @@ public class PartnerService {
 		preparePartner(partner);
 		return partner;
 	}
+	
+	/**
+	 * This service updates partner details in partner_master_t 
+     * @param partnerList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void updatePartner(List<PartnerMasterT> partnerList) {
+
+		partnerRepository.save(partnerList);
+
+	}
+	
+	
+	/**
+	 * This service deletes partner details from partner_master_t 
+     * @param partnerList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void deletePartner(List<PartnerMasterT> partnerList) 
+	{
+		List<ContactT> contactListT = new ArrayList<ContactT>();
+		List<ConnectT> connectListT = new ArrayList<ConnectT>();
+		List<OpportunityPartnerLinkT> opportunityPartnerListT = new ArrayList<OpportunityPartnerLinkT>();
+		List<ConnectCustomerContactLinkT> connectCustomerContactListT = new ArrayList<ConnectCustomerContactLinkT>();
+		
+		if(!partnerList.isEmpty())
+		{
+			for (PartnerMasterT partnerT : partnerList) {  
+			 
+			  contactListT=contactRepository.findByPartnerId(partnerT.getPartnerId());
+			 
+			  connectListT=connectRepository.findByPartnerId(partnerT.getPartnerId());
+			 
+			  opportunityPartnerListT=opportunityPartnerLinkTRepository.findByPartnerId(partnerT.getPartnerId());
+			  
+			  for (ContactT contactT : contactListT) 
+			  {
+				  connectCustomerContactListT=connectCustomerContactLinkTRepository.findByContactId(contactT.getContactId());
+			  }
+			
+			}
+		}
+		connectCustomerContactLinkTRepository.delete(connectCustomerContactListT);
+		contactRepository.delete(contactListT);
+		connectRepository.delete(connectListT);
+		opportunityPartnerLinkTRepository.delete(opportunityPartnerListT);
+		partnerRepository.delete(partnerList);
+	}
 
 	/*
 	 * @Transactional public boolean save(PartnerMasterT partner, boolean
 	 * isUpdate) throws Exception { if (isUpdate) { if (partner.getPartnerId()
-	 * == null) { throw new DestinationException(HttpStatus.BAD_REQUEST,
-	 * "Cannot Update Partner without partnerId"); }
+	 * == null) { 
+	 * throw new DestinationException(HttpStatus.BAD_REQUEST,
+	 * "Cannot Update Partner without partnerId"); 
+	 * }
 	 * 
 	 * } else { if (partner.getPartnerId() != null) { throw new
 	 * DestinationException
@@ -71,10 +154,9 @@ public class PartnerService {
 	 * @param contact
 	 * @return
 	 */
-	private void validateRequest(PartnerMasterT partner)
-			throws DestinationException {
-
-		if (partner.getPartnerName().isEmpty()
+	private void validateRequest(PartnerMasterT partner) throws DestinationException 
+	{
+          if (partner.getPartnerName().isEmpty()
 				|| partner.getPartnerName() == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"PartnerName is required");
