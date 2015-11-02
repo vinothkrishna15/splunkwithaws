@@ -102,9 +102,8 @@ public class PartnerService {
 
 		if (partnerToInsert != null) {
 			partnerMasterT = new PartnerMasterT();
-			partners = partnerRepository
-					.findByPartnerName(partnerToInsert
-							.getPartnerName());
+			partners = partnerRepository.findByPartnerName(partnerToInsert
+					.getPartnerName());
 			partnerMasterT.setCorporateHqAddress(partnerToInsert
 					.getCorporateHqAddress());
 			partnerMasterT.setCreatedModifiedBy(partnerToInsert
@@ -192,11 +191,14 @@ public class PartnerService {
 
 	}
 
-	public PaginatedResponse search(String name, String geography, int page,
-			int count) throws DestinationException {
+	public PaginatedResponse search(String name, List<String> geography,
+			int page, int count) throws DestinationException {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		if(geography.isEmpty())
+			geography.add("");
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
-				.findByPartnerNameAndGeographyNonMandatory(name, geography);
+				.findByPartnerNameAndGeographyNonMandatory("%" + name.toUpperCase() + "%",
+						geography);
 		if (partnerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available");

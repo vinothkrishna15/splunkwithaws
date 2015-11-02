@@ -123,8 +123,8 @@ public class PartnerController {
 	
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String advancedSearch(
-			@RequestParam(value = "name", defaultValue = "") String name,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
+			@RequestParam(value = "nameWith", defaultValue = "") String name,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
