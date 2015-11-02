@@ -499,8 +499,7 @@ public class BuildOpportunityReportService {
 			
 			if (subFlag) {
 				List<String> subSpList = new ArrayList<String>();
-				for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
-						.getOpportunitySubSpLinkTs()) {
+				for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
 					subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
 				}
 				row.createCell(colValue).setCellValue(subSpList.toString().replace("]", "").replace("[", ""));
@@ -3212,7 +3211,7 @@ public class BuildOpportunityReportService {
 		String period=ExcelUtils.getPeriod(month, quarter, year);
 		row.createCell(5).setCellValue(period);
 		row = (SXSSFRow) spreadsheet.createRow(12);
-		if (salesStage.size() == 0) {
+		if (salesStage.size()>13) {
 			completeList = "All";
 		} else {
 			completeList = ExcelUtils.getSalesStageCode(salesStage);

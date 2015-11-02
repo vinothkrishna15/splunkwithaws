@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.TargetVsActualDetailed;
+import com.tcs.destination.service.BDMDetailedReportService;
 import com.tcs.destination.service.BDMReportsService;
 import com.tcs.destination.service.BuildExcelTargetVsActualDetailedReportService;
 import com.tcs.destination.service.ReportsService;
@@ -42,6 +43,9 @@ public class ReportsController {
 	
 	@Autowired
 	ReportsUploadService reportUploadService;
+	
+	@Autowired
+	BDMDetailedReportService bdmDetailedReportService;
 	
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
 	public @ResponseBody String targetVsActual(
@@ -160,8 +164,7 @@ public class ReportsController {
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		InputStreamResource connectSummaryReportExcel = reportsService
-				.connectSummaryReport(month, quarter, year, iou, geography,
+		InputStreamResource connectSummaryReportExcel = reportsService.connectSummaryReport(month, quarter, year, iou, geography,
 						country, serviceline, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
@@ -222,29 +225,6 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(bidReportExcel, respHeaders,HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/bdmPerformance/detailed", method = RequestMethod.GET)			
-	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummary(
-			@RequestParam(value = "from", defaultValue = "") String from,
-			@RequestParam(value = "to", defaultValue = "") String to,
-			@RequestParam(value = "year", defaultValue = "") String year,
-			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
-			@RequestParam(value = "country", defaultValue = "") List<String> country,
-			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
-			@RequestParam(value = "salesStage") List<Integer> salesStage,
-			@RequestParam(value = "owners",defaultValue = "") List<String> owners,
-			@RequestParam(value = "supervisorId") String supervisorId,
-			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		InputStreamResource inputStreamResource=reportsService.getBdmDetailedReport(from,to,geography,country,currency,
-				serviceline,salesStage,owners,supervisorId);
-		HttpHeaders respHeaders = new HttpHeaders();
-		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		  String toDate=DateUtils.getCurrentDate();
-	    respHeaders.setContentDispositionFormData("Excel", "BdmPerformanceReport_"+toDate+".xlsx");
-		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
-	}
 
 	/**
 	 * This method gives detailed report of all the opportunities for the given sales stage code.
@@ -326,27 +306,110 @@ public class ReportsController {
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 	}
 	
-	
-	@RequestMapping(value = "/bdmPerformance/summary", method = RequestMethod.GET)			
+	/**
+	 * This Controller retrieves the BDM Performance details in excel format
+	 * @param from
+	 * @param to
+	 * @param financialYear
+	 * @param geography
+	 * @param country
+	 * @param currency
+	 * @param serviceline
+	 * @param salesStage
+	 * @param owners
+	 * @param supervisorId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/bdmPerformance/detailed", method = RequestMethod.GET)			
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummary(
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
+			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "") List<String> country,
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
+			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
+			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
+			throws Exception {
+		InputStreamResource inputStreamResource=bdmDetailedReportService.getBdmDetailedReport(financialYear, from, to,
+				 geography,  country,  currency,  serviceline, salesStage, opportunityOwners, userId, fields);
+		HttpHeaders respHeaders = new HttpHeaders();
+		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		  String toDate=DateUtils.getCurrentDate();
+	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceDetailedReport_"+toDate+".xlsx");
+		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+	}
+	
+	/**
+	 * This Controller retrieves BDM Performance Summary details in excel format
+	 * @param supervisorId * @param financialYear * @param from
+	 * @param to * @param opportunityOwners * @param geography
+	 * @param country
+	 * @param currency
+	 * @param serviceLines
+	 * @param salesStage
+	 * @param fields
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/bdmPerformance/summary", method = RequestMethod.GET)			
+	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummaryReport(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "from", defaultValue = "") String from,
+			@RequestParam(value = "to", defaultValue = "") String to,
+			@RequestParam(value = "opportunityOwners",defaultValue = "All") List<String> opportunityOwners,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
-			@RequestParam(value = "salesStage") List<Integer> salesStage,
-			@RequestParam(value = "opportunityOwnerIds",defaultValue = "") List<String> opportunityOwnerIds,
-			@RequestParam(value = "supervisorId") String supervisorId,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
-		InputStreamResource inputStreamResource=bdmReportsService.getBdmSummaryReport(from,to,geography,country,currency,serviceLines,salesStage,opportunityOwnerIds,supervisorId);
+		InputStreamResource inputStreamResource=bdmReportsService.getBdmSummaryReport(financialYear, from, to, geography, country,
+				currency, serviceLines, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String toDate=DateUtils.getCurrentDate();
-	    respHeaders.setContentDispositionFormData("Excel", "BdmPerformanceReport_"+toDate+".xlsx");
+	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceSummaryReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 	}
 
+	/**
+	 * This Controller retrieves the BDM Performance details in excel format
+	 * @param from * @param to * @param financialYear * @param geography
+	 * @param country * @param currency * @param serviceline * @param salesStage
+	 * @param opportunityOwners * @param supervisorId * @param fields
+	 * @param view * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/bdmPerformance/both", method = RequestMethod.GET)			
+	public @ResponseBody ResponseEntity<InputStreamResource> getBdmsPerformanceReport(
+			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "from", defaultValue = "") String from,
+			@RequestParam(value = "to", defaultValue = "") String to,
+			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "") List<String> country,
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
+			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
+			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
+			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
+			throws Exception {
+		InputStreamResource inputStreamResource=bdmReportsService.getBdmsReport(financialYear, from, to,
+				 geography,  country,  currency,  serviceline, salesStage, opportunityOwners, userId, fields);
+		HttpHeaders respHeaders = new HttpHeaders();
+		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		  String toDate=DateUtils.getCurrentDate();
+	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceReport_"+toDate+".xlsx");
+		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+	}
+	
 }

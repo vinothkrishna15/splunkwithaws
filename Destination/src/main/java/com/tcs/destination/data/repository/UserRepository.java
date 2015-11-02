@@ -44,4 +44,13 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 
 	@Query(value = "select user_id from user_t where user_group=?1", nativeQuery = true)
 	List<String> findUserIdByUserGroup(String userGroup);
+	
+	@Query(value = "select user_name from user_t where user_id in (:userIds)", nativeQuery = true)
+	List<String> findUserNamesByUserIds(@Param("userIds")List<String> userIds);
+	
+	@Query(value = "select user_id from user_t ", nativeQuery = true)
+	List<String> findAllUserIds();
+	
+	@Query(value = "select user_id from user_t where user_group in (:userGroup)", nativeQuery = true)
+	List<String> findUserIdByuserGroup(@Param("userGroup") List<String> userGroup);
 }
