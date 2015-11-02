@@ -422,9 +422,6 @@ public class OpportunityService {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
-		if (!isUserOwner(userId, opportunity)) {
-			restrictOpportunity(opportunity);
-		}
 		if (opportunity != null) {
 			// Add Search Keywords
 			List<SearchKeywordsT> searchKeywords = searchKeywordsRepository
