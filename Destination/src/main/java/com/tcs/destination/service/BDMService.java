@@ -314,11 +314,6 @@ public class BDMService {
 		    	} else {
 		    	dashBoardBDMResponse = getBDMDashBoardByQuarter(userId, financialYear);
 		    	}
-//			for(BDMDashBoardResponse bdmDashBoardResponse:dashBoardBDMResponse.getBdmDashboard()){
-//				totalOppOwnerWinValue=totalOppOwnerWinValue.add(bdmDashBoardResponse.getTotalOppWinsAchieved());
-//				totalProposalsSupportedValue=totalProposalsSupportedValue+bdmDashBoardResponse.getTotalProposalSupportAchieved();
-//				totalConnectsSupportedValue= totalConnectsSupportedValue+bdmDashBoardResponse.getTotalConnects();
-//			}
 			
 			dashBoardBDMResponseList.add(dashBoardBDMResponse);
 		}
@@ -333,7 +328,10 @@ public class BDMService {
 		//total connects Supported
 		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 		Timestamp toDateTs = new Timestamp(toDate.getTime()	+ ONE_DAY_IN_MILLIS - 1);
-		totalConnectsSupportedValue = (connectRepository.getTotalConnectsSupported(userIds, fromDateTs, toDateTs)).intValue();
+		BigInteger totalConnects = connectRepository.getTotalConnectsSupported(userIds, fromDateTs, toDateTs);
+		if(totalConnects!=null){
+		totalConnectsSupportedValue = (totalConnects).intValue();
+		}
 		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);
 		bdmSupervisorDashboardDTO.setBdmSupervisorDashboard(dashBoardBDMResponseList);
 		return bdmSupervisorDashboardDTO;
@@ -480,7 +478,7 @@ public class BDMService {
 	}
 
 	
-	private BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboardBasedOnUserPrivileges(String userId, 
+	public BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboardBasedOnUserPrivileges(String userId, 
 		String financialYear, BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse) throws Exception {
 		
 		List<GeoIouDashboardDTO> geoIouDashboardList = new ArrayList<GeoIouDashboardDTO>();
@@ -502,6 +500,8 @@ public class BDMService {
 		
 		geoIouDashboardDTO = new GeoIouDashboardDTO();
 		//populate bean
+		
+		
 		geoIouDashboardDTO.setTimeLine(financialYear);
 		geoIouDashboardDTO.setWinsAchieved(wins);
 		
@@ -561,6 +561,8 @@ public class BDMService {
 		geoIouDashboardDTO.setAccountsWithSpPenetrationAboveThreeAchieved(supSpRatio*100);
 		
 		geoIouDashboardList.add(geoIouDashboardDTO);
+		UserT userT = userRepository.findByUserId(userId);
+		bdmPerfromanceGeoIouDashboardResponse.setUserName(userT.getUserName());
 		bdmPerfromanceGeoIouDashboardResponse.setGeoOrIouHeadAchieved(geoIouDashboardList);
     	return bdmPerfromanceGeoIouDashboardResponse;
     }

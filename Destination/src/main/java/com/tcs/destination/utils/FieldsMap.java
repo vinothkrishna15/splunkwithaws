@@ -7,6 +7,7 @@ public class FieldsMap {
 
 	public static Map<String, String> fieldsMap = new HashMap<String, String>();
 	public static Map<String, String> childMap = new HashMap<String, String>();
+	public static Map<String, String> bdmReportFieldMap = new HashMap<String, String>();
 	
 	static {
 		fieldsMap.put("iou", "Iou");
@@ -78,4 +79,13 @@ public class FieldsMap {
 //		childMap.put("task", "Task");
 	}
 	
+	static {
+		bdmReportFieldMap.put("projectDealValue", "Project Currency");
+		bdmReportFieldMap.put("opportunityName", "Opportunity Name");
+		bdmReportFieldMap.put("targetBidSubmissionDate", "Target BID Submission Date");
+		bdmReportFieldMap.put("winProbability", "Win probability");
+		bdmReportFieldMap.put("factorsForWinLoss", "Factors for Win/Loss");
+		bdmReportFieldMap.put("descriptionForWinLoss", "Description for Win/Loss");
+		bdmReportFieldMap.put("dealRemarksNotes", "Deal Remarks Notes");
+	}
 }

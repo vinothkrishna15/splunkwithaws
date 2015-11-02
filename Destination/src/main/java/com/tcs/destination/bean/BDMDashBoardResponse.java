@@ -38,7 +38,9 @@ public class BDMDashBoardResponse {
 	}
 
 	public BigDecimal getPrimaryOrBidOppWinsAchieved() {
+		if(primaryOrBidOppWinsAchieved!=null){
 		primaryOrBidOppWinsAchieved = primaryOrBidOppWinsAchieved.setScale(2, RoundingMode.CEILING);
+		}
 		return primaryOrBidOppWinsAchieved;
 	}
 
@@ -48,7 +50,9 @@ public class BDMDashBoardResponse {
 	}
 
 	public BigDecimal getSalesOwnerOppWinsAchieved() {
+		if(salesOwnerOppWinsAchieved!=null){
 		salesOwnerOppWinsAchieved = salesOwnerOppWinsAchieved.setScale(2, RoundingMode.CEILING);
+		}
 		return salesOwnerOppWinsAchieved;
 	}
 
