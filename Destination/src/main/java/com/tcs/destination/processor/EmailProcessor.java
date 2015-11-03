@@ -1,3 +1,12 @@
+/**
+ * 
+ * EmailProcessor.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.processor;
 
 import org.slf4j.Logger;
@@ -10,6 +19,10 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.utils.DestinationMailUtils;
 
+/**
+ * This EmailProcessor class has the functionality for sending completion email for uploads and downloads
+ * 
+ */
 @Component("emailProcessor")
 public class EmailProcessor implements ItemProcessor<DataProcessingRequestT, DataProcessingRequestT> {
 	

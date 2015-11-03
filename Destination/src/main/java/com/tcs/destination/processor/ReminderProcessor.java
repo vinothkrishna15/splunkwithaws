@@ -1,3 +1,12 @@
+/**
+ * 
+ * ReminderProcessor.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.processor;
 
 import java.util.Date;
@@ -11,6 +20,10 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.helper.NotificationProcessHelper;
 import com.tcs.destination.utils.DateUtils;
 
+/**
+ * This ReminderProcessor class holds the functionality for sending user notifications
+ * 
+ */
 public class ReminderProcessor implements ItemProcessor<Object[], UserNotificationsT> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ReminderProcessor.class);

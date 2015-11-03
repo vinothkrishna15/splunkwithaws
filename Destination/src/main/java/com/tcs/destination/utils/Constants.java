@@ -1,6 +1,19 @@
+/**
+ * 
+ * Constants.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.utils;
 
 
+/**
+ * This Constants class holds all the constants
+ * 
+ */
 public class Constants {
 
 	public static final String FILTER = "DestinationFilter";
