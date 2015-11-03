@@ -120,8 +120,6 @@
 		<property name="queueCapacity" value="50" />
 	</bean>
 	
-	<bean id="asyncTaskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
-	
 	<tx:annotation-driven transaction-manager="transactionManager" />
 	
 	<import resource="/META-INF/spring/batch/batch-jobs.xml"/>

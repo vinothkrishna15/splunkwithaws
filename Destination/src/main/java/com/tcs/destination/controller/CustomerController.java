@@ -233,18 +233,18 @@ public class CustomerController {
 	
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String advancedSearch(
-			@RequestParam(value = "groupCustomerName", defaultValue = "") String groupCustomerName,
-			@RequestParam(value = "name", defaultValue = "") String name,
-			@RequestParam(value = "geography", defaultValue = "") String geography,
-			@RequestParam(value = "displayIOU", defaultValue = "") String displayIOU,
+			@RequestParam(value = "groupCustomerNameWith", defaultValue = "") String groupCustomerNameWith,
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "displayIOU", defaultValue = "") List<String> displayIOU,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside PartnerController /partner/search?name=" + name
+		logger.debug("Inside PartnerController /customer/search?name=" + nameWith
 				+ "&geograph=" + geography + " GET");
-		PaginatedResponse paginatedResponse = customerService.search(groupCustomerName,name,
+		PaginatedResponse paginatedResponse = customerService.search(groupCustomerNameWith,nameWith,
 				geography,displayIOU, page, count);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,

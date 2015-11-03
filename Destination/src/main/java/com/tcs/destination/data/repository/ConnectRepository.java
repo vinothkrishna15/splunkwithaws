@@ -41,6 +41,9 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 * @return connection details.
 	 */
 	ConnectT findByConnectId(String connectid);
+	
+	@Query(value ="select * from connect_t where partner_id=?1",nativeQuery = true)
+	List<ConnectT> findByPartnerId(String partnerId);
 
 	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(String name,
 			String customerId,Pageable page);

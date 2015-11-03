@@ -940,20 +940,20 @@ public interface OpportunityRepository extends
 			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);
 
-	@Query(value = " select SUM(noOfPrimaryBids) as primarySum, SUM(noOfSecondaryBids) as secondarySum from ( "
+	@Query(value =  "select SUM(noOfPrimaryBids) as primarySum, SUM(noOfSecondaryBids) as secondarySum from ( "
 			+ " select OPPTLH.opportunity_id, count(distinct(sales_stage_code)) as noOfPrimaryBids, (0) as noOfSecondaryBids "
-			+ " from Opportunity_timeline_history_t  OPPTLH where sales_stage_code in (2,4) and opportunity_id in ( "
-			+ " select distinct OPP.opportunity_id from opportunity_t OPP where OPP.opportunity_owner = (:userId) and (sales_stage_code>8 and deal_closure_date "
-			+ " between (:fromDate) and (:toDate)  or (sales_stage_code<9)) UNION select distinct OPP.opportunity_id from opportunity_t OPP "
-			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
-			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
-			+ " where bofg.bid_office_group_owner = (:userId) and (sales_stage_code>8 and deal_closure_date "
-			+ " between (:fromDate) and (:toDate)) or (sales_stage_code<9)) group by OPPTLH.opportunity_id UNION select opportunity_id, (0) as noOfPrimaryBids, "
-			+ " count(distinct(sales_stage_code)) as noOfSecondaryBids from Opportunity_timeline_history_t "
-			+ " where sales_stage_code in (2,4) and opportunity_id in (select distinct (OSSLT.opportunity_id) AS SECONDARY "
-			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ " where OSSLT.sales_support_owner = (:userId) and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) "
-			+ " group by opportunity_id) as ProposalsSupported ", nativeQuery = true)
+			+ " from Opportunity_timeline_history_t OPPTLH where sales_stage_code in (2,4) and opportunity_id in ( "
+			+ " select distinct OPP.opportunity_id from opportunity_t OPP where (OPP.opportunity_owner = (:userId) and sales_stage_code>=0 and (sales_stage_code>8 and deal_closure_date " 
+			+ " between (:fromDate) and (:toDate) or (sales_stage_code<9)))  "
+			+ " UNION select distinct OPP.opportunity_id from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " join bid_office_group_owner_link_t bofg on (bidt.bid_id = bofg.bid_id and bofg.bid_office_group_owner = (:userId)) "
+			+ " where sales_stage_code>=0  and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or (sales_stage_code<9)) "
+			+ "  group by OPPTLH.opportunity_id UNION select opportunity_id, (0) as noOfPrimaryBids, "
+			+ "  count(distinct(sales_stage_code)) as noOfSecondaryBids from Opportunity_timeline_history_t "
+			+ "  where sales_stage_code in (2,4) and opportunity_id in (select distinct (OSSLT.opportunity_id) AS SECONDARY "
+			+ " from opportunity_t OPP join opportunity_sales_support_link_t OSSLT on (OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " and OSSLT.sales_support_owner = (:userId)) where sales_stage_code>=0 and (sales_stage_code>8 and deal_closure_date between (:fromDate) and (:toDate)) or "
+			+ " (sales_stage_code<9)) group by opportunity_id) as ProposalsSupported ", nativeQuery = true)
 	Object[][] findProposalSupportedByOpportunityOwnerOrSalesSupportOwnerByCurrentQuarterOrYear(
 			@Param("userId") String userId, @Param("fromDate") Date fromDate,
 			@Param("toDate") Date toDate);

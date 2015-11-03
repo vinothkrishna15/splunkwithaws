@@ -80,14 +80,14 @@ public interface CustomerRepository extends
 	List<String> findByGroupCustomerName(String groupCustName);
 
 	@Query(value = "select * from customer_master_t where "
-			+ "(customer_name = (:customerName) or (:customerName)='') "
-			+ "and (group_customer_name =(:groupCustomerName) or (:groupCustomerName)='') "
-			+ "and (geography=(:geography) or (:geography)='')"
-			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou = (:displayIOU) or (:displayIOU)=''))", nativeQuery = true)
+			+ "(upper(customer_name) like (:customerName)) "
+			+ "and (upper(group_customer_name) like (:groupCustomerName)) "
+			+ "and (geography in (:geography) or ('') in (:geography)) "
+			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou in (:displayIOU) or ('') in (:displayIOU)))", nativeQuery = true)
 	List<CustomerMasterT> advancedSearch(
-			@Param("groupCustomerName") String groupCustomerName,
-			@Param("customerName") String name,
-			@Param("geography") String geography,
-			@Param("displayIOU") String displayIOU);
+			@Param("groupCustomerName") String groupCustomerNameWith,
+			@Param("customerName") String nameWith,
+			@Param("geography") List<String> geography,
+			@Param("displayIOU") List<String> displayIOU);
 
 }
