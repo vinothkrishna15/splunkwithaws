@@ -100,7 +100,24 @@ public class Constants {
 	public static final String CUSTOMER_IOU_MAPPING_REF= "Customer IOU Map(Ref)";
 	public static final String SUB_SP_MAP_REF = "Sub Sp Map(Ref)";
 	// Email subjects
+	public static final String USER_UPLOAD_SUBJECT = "User upload request processed.";
+	public static final String CUSTOMER_UPLOAD_SUBJECT = "Customer upload request processed.";
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
+	public static final String OPPORTUNITY_UPLOAD_SUBJECT = "Opportunity upload request processed.";
+	public static final String ACTUAL_REVENUE_UPLOAD_SUBJECT = "Actual revenue upload request processed.";
+	public static final String CUSTOMER_CONTACT_UPLOAD_SUBJECT = "Customer contact upload request processed.";
+	public static final String PARTNER_UPLOAD_SUBJECT = "Partner upload request processed.";
+	public static final String PARTNER_CONTACT_UPLOAD_SUBJECT = "Partner contact upload request processed.";
+	public static final String BEACON_UPLOAD_SUBJECT = "Beacon upload request processed.";
+	public static final String USER_DOWNLOAD_SUBJECT = "User download request processed.";
+	public static final String CUSTOMER_DOWNLOAD_SUBJECT = "Customer download request processed.";
+	public static final String CONNECT_DOWNLOAD_SUBJECT = "Connect download request processed.";
+	public static final String OPPORTUNITY_DOWNLOAD_SUBJECT = "Opportunity download request processed.";
+	public static final String ACTUAL_REVENUE_DOWNLOAD_SUBJECT = "Actual revenue download request processed.";
+	public static final String CUSTOMER_CONTACT_DOWNLOAD_SUBJECT = "Customer contact download request processed.";
+	public static final String PARTNER_DOWNLOAD_SUBJECT = "Partner download request processed.";
+	public static final String PARTNER_CONTACT_DOWNLOAD_SUBJECT = "Partner contact download request processed.";
+	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";

@@ -1,0 +1,19 @@
+<html>
+	<body>
+		<h3>Dear ${userName},</h3>
+		<p>
+		Your ${entity} download request submitted on ${submittedDate} was processed.
+		</p>
+		<p>
+		Please find the details in the attachment.
+		</p>
+		<p>
+		Regards,<br>
+		Destination Team.
+		<p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>
