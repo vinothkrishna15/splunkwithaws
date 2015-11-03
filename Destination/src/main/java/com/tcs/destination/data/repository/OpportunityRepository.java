@@ -1119,4 +1119,48 @@ public interface OpportunityRepository extends
 			@Param("countryList") List<String> countryList, 
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 	
+	/**
+	 * This method used to retrieve list of opportunities by opportunity ids
+	 * @param opportunityIds
+	 * @return
+	 */
+	@Query(value = "select distinct opp.* from opportunity_t opp where opportunity_id in (:opportunityIds)",nativeQuery = true)
+	List<OpportunityT> findByOpportunityIds(
+			@Param("opportunityIds") List<String> opportunityIds);
+
+	/**
+	 * @param users
+	 * @param salesStage
+	 * @param geoList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	@Query(value = "select user_id, opportunity_id from ((select distinct user_id, (OPP.*) as opportunity from opportunity_t OPP "
+			+ " join user_t USR on (USR.user_id=OPP.opportunity_owner and (OPP.opportunity_owner in (:userIds))) "
+			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " where sales_stage_code in (:salesStageCodes) AND ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) " 
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))) "
+			+ " UNION (select distinct user_id, (OPP.*) as opportunity from opportunity_t OPP join geography_country_mapping_t GCMT on GCMT.country=OPP.country " 
+			+ " join geography_mapping_t GMT on GMT.geography = GCMT.geography join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id join user_t USR on (USR.user_id=OPP.opportunity_owner and (bofg.bid_office_group_owner in (:userIds))) "
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id " 
+			+ " where sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))) "
+			+ " UNION (select distinct sales_support_owner, (opp.*) as opportunity from opportunity_t OPP join opportunity_sales_support_link_t OSSLT "
+			+ " on OSSLT.opportunity_id=OPP.opportunity_id join user_t USR on (USR.user_id=OPP.opportunity_owner and (OSSLT.sales_support_owner in (:userIds))) "
+			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " where sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) " 
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines)))) as bdmUserAndOppId order by user_id",nativeQuery=true)
+	List<Object[]> getBDMAndOpportunities(@Param("userIds") List<String> userIds, 
+			@Param("salesStageCodes") List<Integer> salesStageCodes, 
+			@Param("geoList") List<String> geoList, 
+			@Param("serviceLines") List<String> serviceLines, 
+			@Param("countryList") List<String> countryList, 
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+	
 }

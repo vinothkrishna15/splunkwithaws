@@ -896,7 +896,9 @@ public class BDMService {
 				if(!pipelineFunnelDealValues.isEmpty()){
 					salesCode = pipelineFunnelDealValues.get(0)[0].toString();
 					pipelineAchieved = (BigDecimal) pipelineFunnelDealValues.get(0)[1];
+					if(pipelineAchieved!=null){
 					pipelineFunnelSum = pipelineFunnelSum.add(pipelineAchieved);
+					}
 				} else {
 					salesCode = salesStage+"";
 				}

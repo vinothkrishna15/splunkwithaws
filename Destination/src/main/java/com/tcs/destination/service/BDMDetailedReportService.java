@@ -57,19 +57,24 @@ public class BDMDetailedReportService {
 
 	private static final Logger logger = LoggerFactory.getLogger(BDMDetailedReportService.class);
 	
-	private static final String BDM_DETAILED_REPORT_PART1 = " (select distinct(OPP.opportunity_id) as opportunity from opportunity_t OPP "
+	private static final String BDM_DETAILED_REPORT_PREFIX = "select user_id, opportunity from ( ";
+	
+	private static final String BDM_DETAILED_REPORT_PART1 = " (select distinct user_id, (OPP.opportunity_id) as opportunity from opportunity_t OPP "
+			+ " join user_t USR on USR.user_id=OPP.opportunity_owner "
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography " 
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
 	
-	private static final String BDM_DETAILED_REPORT_PART2 = " UNION (select distinct(OPP.opportunity_id) as opportunity from opportunity_t OPP " 
+	private static final String BDM_DETAILED_REPORT_PART2 = " UNION (select distinct user_id, (OPP.opportunity_id) as opportunity from opportunity_t OPP " 
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography " 
 			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id " 
+			+ " join user_t USR on USR.user_id=bofg.bid_office_group_owner  "
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
 	
-	private static final String BDM_DETAILED_REPORT_PART3 = " UNION (select distinct(OPP.opportunity_id) as opportunity from opportunity_t OPP " 
+	private static final String BDM_DETAILED_REPORT_PART3 = " UNION (select distinct sales_support_owner, (OPP.opportunity_id) as opportunity from opportunity_t OPP " 
 			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+			+ " join user_t USR on USR.user_id=OSSLT.sales_support_owner "
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography "
 			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
 			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
@@ -91,6 +96,7 @@ public class BDMDetailedReportService {
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String COUNTRY_COND_PREFIX = "OPP.country in (";
 	
+	private static final String BDM_DETAILED_REPORT_SUFFIX =") as bdmUserAndOppId order by user_id ";
 	
 	@Autowired
 	UserRepository userRepository;
@@ -193,25 +199,29 @@ public class BDMDetailedReportService {
 					logger.error("NOT_FOUND, BDMs not present");
 					throw new DestinationException(HttpStatus.NOT_FOUND, "BDMs not present");
 				}
-				opportunityList = getBDMSupervisorPerformanceExcelReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, countryList, currency);
 				isIncludingSupervisor = false;
+				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList,
+						countryList, currency, workbook, fields, isIncludingSupervisor);
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
-				opportunityList = getOpportunityListBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-						serviceLinesList, countryList, currency, salesStage, users);
 				isIncludingSupervisor = true;
+				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
+						serviceLinesList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
 				break;
 			default :
-				List<String> userIdList = userRepository.findAllUserIds();
-				opportunityList = getOpportunityListBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-						serviceLinesList, countryList, currency, salesStage, userIdList);
+				List<String> userIdList = new ArrayList<String>();
+				if(opportunityOwners.isEmpty()){
+				userIdList = userRepository.findAllUserIds();
+				} else {
+					userIdList.addAll(opportunityOwners);
+				}
 				isIncludingSupervisor = true;
+				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
+						serviceLinesList, countryList, currency, salesStage, userIdList, fields, isIncludingSupervisor, workbook);
 				break;
 				}
 		    }
-		    //set the opportunity list to excel
-		    setBDMsOpportunitiesToExcel(opportunityList, currency, workbook, fields, isIncludingSupervisor);
 		} else {
 		    logger.error("NOT_FOUND: User not found: {}", userId);
 		    throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
@@ -228,24 +238,46 @@ public class BDMDetailedReportService {
 		 * @param fields 
 		 * @throws Exception 
 		 */
-		private List<OpportunityT> getBDMSupervisorPerformanceExcelReport(List<String> users, Date fromDate, Date toDate, List<String> geoList, List<Integer> salesStage, List<String> serviceLinesList,
-				List<String> countryList, List<String> currency) throws Exception {
-			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
-			List<OpportunityT> opportunityList = null; 
-			opportunityList = opportunityRepository.getBDMSupervisorOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate);
-			return opportunityList;
-		}
-
+//		private List<OpportunityT> getBDMSupervisorPerformanceExcelReport(List<String> users, Date fromDate, Date toDate, List<String> geoList, List<Integer> salesStage, List<String> serviceLinesList,
+//				List<String> countryList, List<String> currency) throws Exception {
+//			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
+//			List<OpportunityT> opportunityList = null; 
+//			opportunityList = opportunityRepository.getBDMSupervisorOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate);
+//			return opportunityList;
+//		}
+		
 		/**
-		 * 
-		 * @param opportunityList
-		 * @param workbook
-		 * @param fields 
+		 * This Method retrieves the BDM Supervisor performance details
+		 * @param users * @param financialYear * @param geoList * @param serviceLinesList
+		 * @param salesStage 
+		 * @param countryList * @param workbook
+		 * @param workbook 
 		 * @param isIncludingSupervisor 
+		 * @param fields 
+		 * @param fields 
 		 * @throws Exception 
 		 */
-		private void setBDMsOpportunitiesToExcel(List<OpportunityT> opportunityList, List<String> currency, 
-				SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) throws Exception {
+		private void getBDMSupervisorPerformanceReport(List<String> users, Date fromDate, Date toDate, List<String> geoList, List<Integer> salesStage, List<String> serviceLinesList,
+				List<String> countryList, List<String> currency, SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) throws Exception {
+			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
+			List<Object[]> userIdAndOppList = null; 
+			userIdAndOppList = opportunityRepository.getBDMAndOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate);
+		
+			setBDMsOpportunitiesAndNameToExcel(userIdAndOppList, currency, workbook, fields, isIncludingSupervisor);
+		}
+
+		
+		
+
+		/**
+		 * @param userIdAndOppList
+		 * @param currency
+		 * @param workbook
+		 * @param fields
+		 * @param isIncludingSupervisor
+		 */
+		private void setBDMsOpportunitiesAndNameToExcel(List<Object[]> userIdAndOppList, List<String> currency,
+				SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) {
 			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Detailed Report");
 			int currentRow = 0;
 			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
@@ -253,175 +285,32 @@ public class BDMDetailedReportService {
 			if(fields.isEmpty()){
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
+				for(Object[] userIdAndOpp:userIdAndOppList){
 				currentRow++;
-				for(OpportunityT opportunity:opportunityList){
-				setBDMSupervisorMandatoryDetails(row, opportunity, currentRow, spreadSheet, opportunityList, currency, isIncludingSupervisor);
+				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+				setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor);
 				}
 			} else {
 				setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(currentRow, spreadSheet, cellStyle, currency, fields, isIncludingSupervisor);
+				if(currency.size()>1){
 				currentRow++;
-				setBDMSupervisorAlongWithOptionalFieldsDetails(currentRow, spreadSheet, opportunityList, currency, fields, isIncludingSupervisor);
-			}
-		}
-
-
-		/**
-		 * 
-		 * @param row 
-		 * @param currentRow
-		 * @param spreadSheet
-		 * @param cellStyle
-		 * @param currency 
-		 */
-		private void setBDMSupervisorMandatoryHeaderToExcel(SXSSFRow row, int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle, List<String> currency, boolean isIncludingSupervisor) {
-//			SXSSFRow row = null;
-//			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-			CellStyle currencyStyle = ExcelUtils.createRowStyle(
-					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
-			List<String> headerList = new ArrayList<String>();
-			headerList.add("BDM");
-			if(isIncludingSupervisor){
-			headerList.add("Supervisor");
-			}
-			headerList.add("Display Service Line");
-			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");
-			headerList.add("Display Geography");headerList.add("Group Customer Name");
-			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");
-			int columnNo = 0;
-			for(String header:headerList) {
-				row.createCell(columnNo).setCellValue(header);
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				columnNo++;
-			}
-			if (currency.size() > 1) {
-				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE);
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo + currency.size() - 1));
-				
-				SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-				for (int i = 0; i < currency.size(); i++) {
-					row1.createCell((columnNo + i)).setCellValue(currency.get(i));
-					row1.getCell(columnNo + i).setCellStyle(currencyStyle);
 				}
-			} else {
-				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0) + ")");
-				row.getCell(columnNo).setCellStyle(cellStyle);
+				setBDMSupervisorAlongWithOptionalFieldsDetail(currentRow, spreadSheet, userIdAndOppList, currency, fields, isIncludingSupervisor);
 			}
 		}
 
 		/**
-		 * 
-		 * @param row 
-		 * @param opportunity 
+		 * This Method is used to set bdm supervisor details along with optional fields to excel
 		 * @param currentRow
 		 * @param spreadSheet
-		 * @param opportunityList
-		 * @param isIncludingSupervisor 
+		 * @param userIdAndOppList
 		 * @param currency
-		 * @throws Exception 
+		 * @param fields
+		 * @param isIncludingSupervisor
 		 */
-		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, OpportunityT opportunity, int currentRow, SXSSFSheet spreadSheet, List<OpportunityT> opportunityList,
-				List<String> currencyList, boolean isIncludingSupervisor) throws Exception {
-				List<String> salesSupportOwnerList = new ArrayList<String>();
-				List<String> supervisorList = new ArrayList<String>();
-				int columnNo = 0;
-				UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
-//				boolean isPrimaryOwner = isPrimaryOrSalesOwner(opportunity);
-//				String primaryOrSalesOnwer = getPrimaryOrSalesOwner(opportunity);
-//				UserT primaryOrSalesOwnerName = userRepository.findByUserId(primaryOrSalesOnwer);
-//				System.out.println("Ownersssssssssssssssssss" + primaryOrSalesOwnerName.getUserName());
-				
-				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
-					UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
-					salesSupportOwnerList.add(user.getUserName());
-					supervisorList.add(user.getSupervisorUserName());
-				}
-				String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
-				String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
-				
-				//set BDM
-				row.createCell(columnNo++).setCellValue(oppOwner.getUserName() + "," + salesOwner);
-				
-				//set supervisor
-				if(isIncludingSupervisor){
-				row.createCell(columnNo++).setCellValue(opportunity.getPrimaryOwnerUser().getSupervisorUserName() + "," + salesOwnerSupervisor);
-				}
-				//set display_sub_sp
-				row.createCell(columnNo++).setCellValue(opportunity.getOpportunitySubSpLinkTs().get(0).getSubSpMappingT().getDisplaySubSp());
-				//set opportunity owner name
-				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
-				//set sales support owners
-				row.createCell(columnNo++).setCellValue(salesOwner);
-				//set display geography
-				row.createCell(columnNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());
-				//set group customer name
-				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());
-				//set customer name
-				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
-				//set sales stage code
-				row.createCell(columnNo++).setCellValue(opportunity.getSalesStageCode());
-				//set expected date of outcome
-				if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
-				row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
-				} else {
-					row.createCell(columnNo++).setCellValue(Constants.SPACE);
-				}
-				//set Digital deal value
-				for(String currency : currencyList) {
-					int i = 0;
-					if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
-						row.createCell(columnNo + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency, 
-								opportunity.getDigitalDealValue().doubleValue()).doubleValue());
-					} else {
-						row.createCell(columnNo + i).setCellValue(0);
-					}
-//					row.getCell(columnNo + i).setCellStyle(cellStyle);
-					i++;
-				}
-				
-		}
-
-		
-		/**
-		 * 
-		 * @param currentRow
-		 * @param spreadSheet
-		 * @param cellStyle
-		 * @param currency
-		 * @param fields 
-		 * @param isIncludingSupervisor 
-		 */
-		private void setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(int currentRow, SXSSFSheet spreadSheet, 
-				CellStyle cellStyle, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
-			SXSSFRow row = null;
-			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-			setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-			int columnNo = 10;
-			if(isIncludingSupervisor){
-				columnNo=11;
-			}
-			if(fields.contains("projectDealValue")){
-				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				columnNo++;
-			}
-			for (String field : fields) {
-				if(fields.contains(field)){
-				row.createCell(columnNo).setCellValue(FieldsMap.bdmReportFieldMap.get(field));
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				columnNo++;
-				}
-			}
-		}
-
-		/**
-		 * 
-		 * @param currency * @param fields 
-		 * @param isIncludingSupervisor 
-		 * @throws Exception 
-		 */
-		private void setBDMSupervisorAlongWithOptionalFieldsDetails(int currentRow, SXSSFSheet spreadSheet,
-				List<OpportunityT> opportunityList, List<String> currency, List<String> fields, boolean isIncludingSupervisor) throws Exception {
+		private void setBDMSupervisorAlongWithOptionalFieldsDetail(int currentRow, SXSSFSheet spreadSheet,
+				List<Object[]> userIdAndOppList, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
+//			for(Object[] userIdAndOpp:userIdAndOppList){
 			SXSSFRow row = null;
 //			CellStyle dataRowStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 			boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
@@ -432,11 +321,11 @@ public class BDMDetailedReportService {
 			boolean descForWLFlag = fields.contains(ReportConstants.DESCRIPTIONFORWINLOSS);
 			boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
 			
-			for(OpportunityT opportunity:opportunityList){
+			for(Object[] userIdAndOpp:userIdAndOppList){
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-				setBDMSupervisorMandatoryDetails(row, opportunity,currentRow, spreadSheet, opportunityList, currency, isIncludingSupervisor);
-
+				setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor);
 //				row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
+				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
 				int currentCol=10;
 				if(isIncludingSupervisor){
 					currentCol=11;
@@ -550,6 +439,253 @@ public class BDMDetailedReportService {
 			}
 			}
 		}
+
+		/**
+		 * This Method used to set bdm supervisor details with mandatory fields to excel
+		 * @param row
+		 * @param userIdAndOpp
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param currencyList
+		 * @param isIncludingSupervisor
+		 */
+		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, Object[] userIdAndOpp, SXSSFSheet spreadSheet,
+				List<String> currencyList, boolean isIncludingSupervisor) {
+			List<String> salesSupportOwnerList = new ArrayList<String>();
+			List<String> supervisorList = new ArrayList<String>();
+			int columnNo = 0;
+			OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
+			UserT oppOwner = userRepository.findByUserId((String) userIdAndOpp[0]);
+			
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
+				UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
+				salesSupportOwnerList.add(user.getUserName());
+				supervisorList.add(user.getSupervisorUserName());
+			}
+			String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
+//			String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
+			
+			//set BDM
+			row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
+			
+			//set supervisor
+			if(isIncludingSupervisor){
+			row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName());
+			}
+			//set display_sub_sp
+			row.createCell(columnNo++).setCellValue(opportunity.getOpportunitySubSpLinkTs().get(0).getSubSpMappingT().getDisplaySubSp());
+			//set opportunity owner name
+			row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
+			//set sales support owners
+			row.createCell(columnNo++).setCellValue(salesOwner);
+			//set display geography
+			row.createCell(columnNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());
+			//set group customer name
+			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());
+			//set customer name
+			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
+			//set sales stage code
+			row.createCell(columnNo++).setCellValue(opportunity.getSalesStageCode());
+			//set expected date of outcome
+			if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
+			row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
+			} else {
+				row.createCell(columnNo++).setCellValue(Constants.SPACE);
+			}
+			//set Digital deal value
+			for(String currency : currencyList) {
+				int i = 0;
+				if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
+					row.createCell(columnNo + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency, 
+							opportunity.getDigitalDealValue().doubleValue()).doubleValue());
+				} else {
+					row.createCell(columnNo + i).setCellValue(0);
+				}
+//				row.getCell(columnNo + i).setCellStyle(cellStyle);
+				i++;
+			}
+			
+			
+		}
+
+		/**
+		 * This Method 
+		 * @param opportunityList
+		 * @param workbook
+		 * @param fields 
+		 * @param isIncludingSupervisor 
+		 * @throws Exception 
+		 */
+//		private void setBDMsOpportunitiesToExcel(List<OpportunityT> opportunityList, List<String> currency, 
+//				SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) throws Exception {
+//			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Detailed Report");
+//			int currentRow = 0;
+//			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
+//			SXSSFRow row = null;
+//			if(fields.isEmpty()){
+//				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+//				setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
+//				currentRow++;
+//				for(OpportunityT opportunity:opportunityList){
+//				setBDMSupervisorMandatoryDetails(row, opportunity, currentRow, spreadSheet, opportunityList, currency, isIncludingSupervisor);
+//				}
+//			} else {
+//				setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(currentRow, spreadSheet, cellStyle, currency, fields, isIncludingSupervisor);
+//				currentRow++;
+//				setBDMSupervisorAlongWithOptionalFieldsDetails(currentRow, spreadSheet, opportunityList, currency, fields, isIncludingSupervisor);
+//			}
+//		}
+//
+
+		/**
+		 * 
+		 * @param row 
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param cellStyle
+		 * @param currency 
+		 */
+		private void setBDMSupervisorMandatoryHeaderToExcel(SXSSFRow row, int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle, List<String> currency, boolean isIncludingSupervisor) {
+//			SXSSFRow row = null;
+//			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+			CellStyle currencyStyle = ExcelUtils.createRowStyle(
+					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
+			List<String> headerList = new ArrayList<String>();
+			headerList.add("BDM");
+			if(isIncludingSupervisor){
+			headerList.add("Supervisor");
+			}
+			headerList.add("Display Service Line");
+			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");
+			headerList.add("Display Geography");headerList.add("Group Customer Name");
+			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");
+			int columnNo = 0;
+			for(String header:headerList) {
+				row.createCell(columnNo).setCellValue(header);
+				row.getCell(columnNo).setCellStyle(cellStyle);
+				columnNo++;
+			}
+			if (currency.size() > 1) {
+				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE);
+				row.getCell(columnNo).setCellStyle(cellStyle);
+				spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo + currency.size() - 1));
+				
+				SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
+				for (int i = 0; i < currency.size(); i++) {
+					row1.createCell((columnNo + i)).setCellValue(currency.get(i));
+					row1.getCell(columnNo + i).setCellStyle(currencyStyle);
+				}
+			} else {
+				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0) + ")");
+				row.getCell(columnNo).setCellStyle(cellStyle);
+			}
+		}
+
+		/**
+		 * 
+		 * @param row 
+		 * @param opportunity 
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param opportunityList
+		 * @param isIncludingSupervisor 
+		 * @param currency
+		 * @throws Exception 
+		 */
+//		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, OpportunityT opportunity, int currentRow, SXSSFSheet spreadSheet, List<OpportunityT> opportunityList,
+//				List<String> currencyList, boolean isIncludingSupervisor) throws Exception {
+//				List<String> salesSupportOwnerList = new ArrayList<String>();
+//				List<String> supervisorList = new ArrayList<String>();
+//				int columnNo = 0;
+//				UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
+////				boolean isPrimaryOwner = isPrimaryOrSalesOwner(opportunity);
+////				String primaryOrSalesOnwer = getPrimaryOrSalesOwner(opportunity);
+////				UserT primaryOrSalesOwnerName = userRepository.findByUserId(primaryOrSalesOnwer);
+////				System.out.println("Ownersssssssssssssssssss" + primaryOrSalesOwnerName.getUserName());
+//				
+//				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
+//					UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
+//					salesSupportOwnerList.add(user.getUserName());
+//					supervisorList.add(user.getSupervisorUserName());
+//				}
+//				String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
+//				String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
+//				
+//				//set BDM
+//				row.createCell(columnNo++).setCellValue(oppOwner.getUserName() + "," + salesOwner);
+//				
+//				//set supervisor
+//				if(isIncludingSupervisor){
+//				row.createCell(columnNo++).setCellValue(opportunity.getPrimaryOwnerUser().getSupervisorUserName() + "," + salesOwnerSupervisor);
+//				}
+//				//set display_sub_sp
+//				row.createCell(columnNo++).setCellValue(opportunity.getOpportunitySubSpLinkTs().get(0).getSubSpMappingT().getDisplaySubSp());
+//				//set opportunity owner name
+//				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
+//				//set sales support owners
+//				row.createCell(columnNo++).setCellValue(salesOwner);
+//				//set display geography
+//				row.createCell(columnNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());
+//				//set group customer name
+//				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());
+//				//set customer name
+//				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
+//				//set sales stage code
+//				row.createCell(columnNo++).setCellValue(opportunity.getSalesStageCode());
+//				//set expected date of outcome
+//				if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
+//				row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
+//				} else {
+//					row.createCell(columnNo++).setCellValue(Constants.SPACE);
+//				}
+//				//set Digital deal value
+//				for(String currency : currencyList) {
+//					int i = 0;
+//					if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
+//						row.createCell(columnNo + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency, 
+//								opportunity.getDigitalDealValue().doubleValue()).doubleValue());
+//					} else {
+//						row.createCell(columnNo + i).setCellValue(0);
+//					}
+////					row.getCell(columnNo + i).setCellStyle(cellStyle);
+//					i++;
+//				}
+//				
+//		}
+
+		
+		/**
+		 * 
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param cellStyle
+		 * @param currency
+		 * @param fields 
+		 * @param isIncludingSupervisor 
+		 */
+		private void setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(int currentRow, SXSSFSheet spreadSheet, 
+				CellStyle cellStyle, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
+			SXSSFRow row = null;
+			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+			setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
+			int columnNo = 10;
+			if(isIncludingSupervisor){
+				columnNo=11;
+			}
+			if(fields.contains("projectDealValue")){
+				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
+				row.getCell(columnNo).setCellStyle(cellStyle);
+				columnNo++;
+			}
+			for (String field : fields) {
+				if(fields.contains(field)){
+				row.createCell(columnNo).setCellValue(FieldsMap.bdmReportFieldMap.get(field));
+				row.getCell(columnNo).setCellStyle(cellStyle);
+				columnNo++;
+				}
+			}
+		}
+
 		
 		/**
 		 * 
@@ -560,29 +696,52 @@ public class BDMDetailedReportService {
 		 * @param workbook * @throws Exception
 		 * @return 
 		 */
-		private List<OpportunityT> getOpportunityListBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList, List<String> countryList,
-				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList) throws Exception {
+//		private List<OpportunityT> getOpportunityListBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList, List<String> countryList,
+//				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList) throws Exception {
+//			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
+//			List<OpportunityT> opportunityList = new ArrayList<OpportunityT>();
+//			// Form the native top revenue query string
+//			String queryString = getOpportunityListQueryString(userId, fromDate, toDate, geoList, countryList, serviceLinesList, salesStage, opportunityOwnerList);
+//			logger.info("Query string: {}", queryString);
+//			// Execute the native revenue query string
+//			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
+//			List<String> opportunityIds = bdmReportQuery.getResultList();
+//			
+//			if(!opportunityIds.isEmpty()){
+//				opportunityList = opportunityRepository.findByOpportunityIdInOrderByCountryAsc(opportunityIds);
+//			}
+//			
+//			if (opportunityList == null || opportunityList.isEmpty()) {
+//				logger.error("NOT_FOUND: Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
+//				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
+//			}
+//			return opportunityList;
+//		}
+
+		
+		private void getBDMOpportunityIdsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList, List<String> countryList,
+				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList, List<String> fields, boolean isIncludingSupervisor, SXSSFWorkbook workbook) throws Exception {
 			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
-			List<OpportunityT> opportunityList = new ArrayList<OpportunityT>();
 			// Form the native top revenue query string
 			String queryString = getOpportunityListQueryString(userId, fromDate, toDate, geoList, countryList, serviceLinesList, salesStage, opportunityOwnerList);
 			logger.info("Query string: {}", queryString);
 			// Execute the native revenue query string
 			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
-			List<String> opportunityIds = bdmReportQuery.getResultList();
+			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
 			
-			if(!opportunityIds.isEmpty()){
-				opportunityList = opportunityRepository.findByOpportunityIdInOrderByCountryAsc(opportunityIds);
-			}
+//			if(!opportunityIds.isEmpty()){
+//				opportunityList = opportunityRepository.findByOpportunityIdInOrderByCountryAsc(opportunityIds);
+//			}
 			
-			if (opportunityList == null || opportunityList.isEmpty()) {
+			if (bdmUserAndOppId == null || bdmUserAndOppId.isEmpty()) {
 				logger.error("NOT_FOUND: Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
 			}
-			return opportunityList;
+			
+			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, countryList, currency, workbook, fields,isIncludingSupervisor);
+
 		}
 
-		
 
 		/**
 		 * 
@@ -596,7 +755,9 @@ public class BDMDetailedReportService {
 		private String getOpportunityListQueryString(String userId, Date fromDate, Date toDate, List<String> geoList,
 				List<String> countryList, List<String> serviceLinesList, List<Integer> salesStage, List<String> opportunityOwnerList) throws Exception {
 			logger.debug("Inside getBDMDetailedQueryString() method");
-			StringBuffer queryBuffer = new StringBuffer(BDM_DETAILED_REPORT_PART1);
+			
+			StringBuffer queryBuffer = new StringBuffer(BDM_DETAILED_REPORT_PREFIX);
+			queryBuffer.append(BDM_DETAILED_REPORT_PART1);
 			// Get user access privilege groups 
 			HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, null, null);
 			String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
@@ -667,6 +828,8 @@ public class BDMDetailedReportService {
 					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 				}
 			queryBuffer.append(Constants.RIGHT_PARANTHESIS);
+			
+			queryBuffer.append(BDM_DETAILED_REPORT_SUFFIX);
 			return queryBuffer.toString();
 		}
 
@@ -677,7 +840,7 @@ public class BDMDetailedReportService {
 		 * @param opportunityOwners
 		 * @return
 		 */
-		private List<String> getRequiredBDMs(String userId, List<String> opportunityOwners) {
+		public List<String> getRequiredBDMs(String userId, List<String> opportunityOwners) {
 			List<String> bdms = new ArrayList<String>();
 			bdms.add(userId);
 			List<String> userIds = null;
@@ -719,34 +882,4 @@ public class BDMDetailedReportService {
 				return appendedString;
 			}
 			
-//			private boolean isPrimaryOrSalesOwner(OpportunityT opportunity) throws Exception {
-//				Boolean isPrimaryOwner = false;
-//				List<String> userIds = userRepository.findUserIdByUserGroup("BDM");
-//					if(userIds.contains(opportunity.getPrimaryOwnerUser().getUserId())){
-//						isPrimaryOwner = true;
-//					} else {
-//						isPrimaryOwner = false;
-//					}
-//				return isPrimaryOwner;
-//				}
-//			
-//			private String getPrimaryOrSalesOwner(OpportunityT opportunity) throws Exception {
-//				String owner = null;
-//				List<String> userIds = userRepository.findUserIdByUserGroup("BDM");
-//				for(String user:userIds){
-//					if(user.equals(opportunity.getOpportunityOwner())){
-//						owner = user;
-//						break;
-//					} else {
-//						for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT:opportunity.getOpportunitySalesSupportLinkTs()){
-//						if(user.equals(opportunitySalesSupportLinkT.getSalesSupportOwner())){
-//							owner = user;
-//							break;
-//							}
-//						}
-//					}
-//				}
-//				System.out.println("userIds"+owner);
-//				return owner;
-//				}
 }

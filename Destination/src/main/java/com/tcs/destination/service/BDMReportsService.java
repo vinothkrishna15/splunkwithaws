@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -29,9 +27,7 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.BDMDealValueDTO;
 import com.tcs.destination.bean.BDMPerfromanceGeoIouDashboardResponse;
 import com.tcs.destination.bean.BDMSupervisorDashboardDTO;
-import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.DashBoardBDMResponse;
-import com.tcs.destination.bean.OpportunitySummaryValue;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
@@ -244,7 +240,7 @@ public class BDMReportsService {
 
 
 		/**
-		 * 
+		 * This method used to get bdms summary details based on user selection and privileges
 		 * @param financialYear  * @param from * @param to * @param geography * @param country * @param currency
 		 * @param serviceLines2 
 		 * @param serviceLines * @param salesStage * @param opportunityOwnerIds * @param supervisorId
@@ -293,14 +289,10 @@ public class BDMReportsService {
 				
 			    if (UserGroup.contains(userGroup)) {
 			    	
-			    	userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
-			    	userIds.add(userId);
-			    	System.out.println("UserIds"+userIds);
-//		    	if (userIds.isEmpty()) {
-//			    	logger.error("NOT_FOUND, Subordinates not present");
-//			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Subordinates not present");
-//			    }
-
+			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
+//			    	userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+//			    	userIds.add(userId);
+			    	
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
@@ -318,10 +310,23 @@ public class BDMReportsService {
 					break;
 				default :
 					List<String> userGroups = Arrays.asList("GEO Heads","IOU Heads");
-					List<String> userIdList = userRepository.findAllUserIds();
-					List<String> geoIouUserList = userRepository.findUserIdByuserGroup(userGroups);
-					getOpportunitySummaryDetails(userIdList, financialYear, geoList, serviceLinesList, workbook);
-					getBDMSupervisorPerformanceExcelReport(userIdList, financialYear, workbook);
+					List<String> userIdList = Arrays.asList("BDM", "BDM Supervisor");
+					List<String> bdmUser = Arrays.asList("BDM");
+					List<String> bdmsList = new ArrayList<String>();
+					List<String> geoIouUserList = new ArrayList<String>();
+					List<String> bdmSupervisorList = new ArrayList<String>();
+					
+					if(opportunityOwners.isEmpty()){
+						 bdmsList = userRepository.findUserIdByuserGroup(bdmUser);
+						 geoIouUserList = userRepository.findUserIdByuserGroup(userGroups);
+						 bdmSupervisorList = userRepository.findUserIdByuserGroup(userIdList);
+					} else {
+						 bdmsList.addAll(opportunityOwners);
+						 geoIouUserList.addAll(opportunityOwners);
+						 bdmSupervisorList.addAll(opportunityOwners);
+					}
+					getOpportunitySummaryDetails(bdmsList, financialYear, geoList, serviceLinesList, workbook);
+					getBDMSupervisorPerformanceExcelReport(bdmSupervisorList, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoIouUserList, userId, financialYear, workbook);
 					break;
 				}
@@ -336,7 +341,7 @@ public class BDMReportsService {
 				String financialYear, SXSSFWorkbook workbook) throws Exception {
 			List<BDMPerfromanceGeoIouDashboardResponse> bdmPerfromanceGeoIouList = 
 					new ArrayList<BDMPerfromanceGeoIouDashboardResponse>();
-			BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = null;
+			BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = new BDMPerfromanceGeoIouDashboardResponse();
 			for(String user:geoIouUserList) {
 				bdmPerfromanceGeoIouDashboardResponse = getGeoOrIouHeadPerformanceByUserAccessPrivileges(user, financialYear);
 				bdmPerfromanceGeoIouList.add(bdmPerfromanceGeoIouDashboardResponse);
@@ -715,7 +720,7 @@ public class BDMReportsService {
 			row.getCell(2).setCellStyle(cellStyle);
 			row.createCell(3).setCellValue("Achieved");
 			row.getCell(3).setCellStyle(cellStyle);
-			row.createCell(4).setCellValue("Gap");
+			row.createCell(4).setCellValue("Gap/Surplus");
 			row.getCell(4).setCellStyle(cellStyle);
 		}
 
@@ -797,11 +802,19 @@ public class BDMReportsService {
 				row.createCell(0).setCellValue(userName);
 				row.createCell(1).setCellValue("Opportunity Win value (USD)");
 				double oppWinsTarget = dashBoardBDMResponse.getWinsTarget().doubleValue();
-				double oppWinsGap = 0.0;
-				double primaryOwnerOppWins = 0.0;
-				double salesOwnerOppWins = 0.0;
+				double oppWinsGap = 0;
+				double primaryOwnerOppWins = 0;
+				double salesOwnerOppWins = 0;
+				String oppWinsGapOrSurplus = "";
+				String proposalSupportedGapOrSurplus = "";
+				String connectSupportedGapOrSurplus = "";
 				if(oppWinsTarget!=0.0){
 					oppWinsGap = (oppWinsTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved().doubleValue());
+				}
+				if(oppWinsGap>0.0){
+					oppWinsGapOrSurplus = "+"+oppWinsGap;
+				} else{
+					oppWinsGapOrSurplus =""+oppWinsGap;
 				}
 				row.createCell(2).setCellValue(oppWinsTarget);
 				System.out.println("Primary Achieved "+ dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved());
@@ -813,7 +826,7 @@ public class BDMReportsService {
 					salesOwnerOppWins = dashBoardBDMResponse.getBdmDashboard().get(0).getSalesOwnerOppWinsAchieved().doubleValue();
 				}
 				row.createCell(4).setCellValue(salesOwnerOppWins);
-				row.createCell(5).setCellValue(oppWinsGap);
+				row.createCell(5).setCellValue(oppWinsGapOrSurplus);
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -823,10 +836,15 @@ public class BDMReportsService {
 				if(proposalSupportedTarget!=0){
 					proposalSupportedGap = (proposalSupportedTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalProposalSupportAchieved());
 				}
+				if(proposalSupportedGap>0){
+					proposalSupportedGapOrSurplus = "+"+proposalSupportedGap;
+				} else{
+					proposalSupportedGapOrSurplus =""+proposalSupportedGap;
+				}
 				row.createCell(2).setCellValue(proposalSupportedTarget);
 				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryProposalSupportAchieved());
 				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getSalesProposalSupportAchieved());
-				row.createCell(5).setCellValue(proposalSupportedGap);
+				row.createCell(5).setCellValue(proposalSupportedGapOrSurplus);
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -836,10 +854,15 @@ public class BDMReportsService {
 				if(connectSupportedTarget!=0){
 				connectSupportedGap = (connectSupportedTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalConnects());
 				}
+				if(connectSupportedGap>0){
+					connectSupportedGapOrSurplus = "+"+connectSupportedGap;
+				} else{
+					connectSupportedGapOrSurplus =""+connectSupportedGap;
+				}
 				row.createCell(2).setCellValue(connectSupportedTarget);
 				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectPrimary());
 				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectSecondary());
-				row.createCell(5).setCellValue(connectSupportedGap);
+				row.createCell(5).setCellValue(connectSupportedGapOrSurplus);
 				currentRow++;
 			}
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
@@ -867,7 +890,7 @@ public class BDMReportsService {
 			row.createCell(3).setCellValue("Achieved");
 			row.getCell(3).setCellStyle(cellStyle);
 			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
-			row.createCell(5).setCellValue("Gap");
+			row.createCell(5).setCellValue("Gap/Surplus");
 			row.getCell(5).setCellStyle(cellStyle);
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 			row.createCell(3).setCellValue("Primary/Bid");
