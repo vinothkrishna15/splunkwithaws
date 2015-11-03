@@ -618,11 +618,13 @@ public class BDMReportsService {
 			double winsTarget = bdmPerfromanceGeoIouDashboardResponse.getWinsTarget().doubleValue();
 			double winsAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getWinsAchieved().doubleValue();
 			if(winsTarget!= 0.0){
-			winsGap = (winsTarget - winsAchieved);
+			winsGap = (winsAchieved - winsTarget);
 			}
 			row.createCell(2).setCellValue(winsTarget);
 			row.createCell(3).setCellValue(winsAchieved);
+			if(winsTarget!=0.0){
 			row.createCell(4).setCellValue(winsGap);
+			}
 			currentRow++;
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -630,11 +632,13 @@ public class BDMReportsService {
 			double pipelineTarget = bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelTarget().doubleValue();
 			double pipelineAchieved =  bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelAchieved().get(0).getAchieved().doubleValue();
 			if(pipelineTarget!= 0.0){
-			pipelineGap = (pipelineTarget - pipelineAchieved);
+			pipelineGap = (pipelineAchieved - pipelineTarget);
 			}
 			row.createCell(2).setCellValue(pipelineTarget);
 			row.createCell(3).setCellValue(pipelineAchieved);
+			if(pipelineTarget!=0.0){
 			row.createCell(4).setCellValue(pipelineGap);
+			}
 			currentRow++;
 				
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -642,11 +646,13 @@ public class BDMReportsService {
 			int dealsAboveTwentyMillionTarget = bdmPerfromanceGeoIouDashboardResponse.getDealsAboveTwentyMillionTarget();
 			int dealsAboveTwentyMillionAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getDealsAboveTwentyMillionAchieved();
 			if(dealsAboveTwentyMillionTarget!=0){
-			dealsAboveTwentyMillionGap = (dealsAboveTwentyMillionTarget - dealsAboveTwentyMillionAchieved);
+			dealsAboveTwentyMillionGap = (dealsAboveTwentyMillionAchieved - dealsAboveTwentyMillionTarget);
 			}
 			row.createCell(2).setCellValue(dealsAboveTwentyMillionTarget);
 			row.createCell(3).setCellValue(dealsAboveTwentyMillionAchieved);
+			if(dealsAboveTwentyMillionTarget!=0){
 			row.createCell(4).setCellValue(dealsAboveTwentyMillionGap);
+			}
 			currentRow++;
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -654,11 +660,13 @@ public class BDMReportsService {
 			int dealsAboveTenMillionTarget = bdmPerfromanceGeoIouDashboardResponse.getDealsAboveTenMillionTarget();
 			int dealsAboveTenMillionAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getDealsAboveTenMillionAchieved();
 			if(dealsAboveTenMillionTarget!=0){
-			dealsAboveTenMillionGap = (dealsAboveTenMillionTarget - dealsAboveTenMillionAchieved);
+			dealsAboveTenMillionGap = (dealsAboveTenMillionAchieved - dealsAboveTenMillionTarget);
 			}
 			row.createCell(2).setCellValue(dealsAboveTenMillionTarget);
 			row.createCell(3).setCellValue(dealsAboveTenMillionAchieved);
+			if(dealsAboveTenMillionTarget!=0){
 			row.createCell(4).setCellValue(dealsAboveTenMillionGap);
+			}
 			currentRow++;
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -666,11 +674,13 @@ public class BDMReportsService {
 			int digitalReImaginationDealsTarget = bdmPerfromanceGeoIouDashboardResponse.getDealsAboveTenMillionTarget();
 			int digitalReImaginationDealsAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getDealsAboveTenMillionAchieved();
 			if(digitalReImaginationDealsTarget!=0){
-			digitalReImaginationDealsGap = (digitalReImaginationDealsTarget - digitalReImaginationDealsAchieved);
+			digitalReImaginationDealsGap = (digitalReImaginationDealsAchieved - digitalReImaginationDealsTarget);
 			}
 			row.createCell(2).setCellValue(digitalReImaginationDealsTarget);
 			row.createCell(3).setCellValue(digitalReImaginationDealsAchieved);
+			if(digitalReImaginationDealsTarget!=0){
 			row.createCell(4).setCellValue(digitalReImaginationDealsGap);
+			}
 			currentRow++;
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -678,11 +688,13 @@ public class BDMReportsService {
 			double winRatioTarget = bdmPerfromanceGeoIouDashboardResponse.getOverAllWinRatioTarget();
 			double winRatioAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getOverAllWinRatioAchieved();
 			if(winRatioTarget!=0.0){
-			winRatioGap = (winRatioTarget - winRatioAchieved);
+			winRatioGap = (winRatioAchieved - winRatioTarget);
 			}
 			row.createCell(2).setCellValue(winRatioTarget+"%");
 			row.createCell(3).setCellValue(winRatioAchieved+"%");
+			if(winRatioTarget!=0.0){
 			row.createCell(4).setCellValue(winRatioGap+"%");
+			}
 			currentRow++;
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -690,11 +702,13 @@ public class BDMReportsService {
 			double serviceLineTarget = bdmPerfromanceGeoIouDashboardResponse.getAccountsWithSpPenetrationAboveThreeTarget();
 			double serviceLineAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getAccountsWithSpPenetrationAboveThreeAchieved();
 			if(serviceLineTarget!=0.0){
-			serviceLineGap = (serviceLineTarget - serviceLineAchieved);
+			serviceLineGap = (serviceLineAchieved - serviceLineTarget);
 			}
 			row.createCell(2).setCellValue(serviceLineTarget);
 			row.createCell(3).setCellValue(serviceLineAchieved);
+			if(serviceLineTarget!=0.0){
 			row.createCell(4).setCellValue(serviceLineGap);
+			}
 			currentRow++;
 			if(isGeoOrIouHead){
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
@@ -805,19 +819,8 @@ public class BDMReportsService {
 				double oppWinsGap = 0;
 				double primaryOwnerOppWins = 0;
 				double salesOwnerOppWins = 0;
-				String oppWinsGapOrSurplus = "";
-				String proposalSupportedGapOrSurplus = "";
-				String connectSupportedGapOrSurplus = "";
-				if(oppWinsTarget!=0.0){
-					oppWinsGap = (oppWinsTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved().doubleValue());
-				}
-				if(oppWinsGap>0.0){
-					oppWinsGapOrSurplus = "+"+oppWinsGap;
-				} else{
-					oppWinsGapOrSurplus =""+oppWinsGap;
-				}
+				
 				row.createCell(2).setCellValue(oppWinsTarget);
-				System.out.println("Primary Achieved "+ dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved());
 				if(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved()!=null){
 					primaryOwnerOppWins = dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved().doubleValue();
 				}
@@ -826,43 +829,38 @@ public class BDMReportsService {
 					salesOwnerOppWins = dashBoardBDMResponse.getBdmDashboard().get(0).getSalesOwnerOppWinsAchieved().doubleValue();
 				}
 				row.createCell(4).setCellValue(salesOwnerOppWins);
-				row.createCell(5).setCellValue(oppWinsGapOrSurplus);
+				if(oppWinsTarget!=0.0){
+				oppWinsGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved().doubleValue() - oppWinsTarget);
+				row.createCell(5).setCellValue(oppWinsGap);
+				}
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				row.createCell(1).setCellValue("Proposals Supported");
 				int proposalSupportedTarget = dashBoardBDMResponse.getProposalSupportedTarget();
 				int proposalSupportedGap = 0;
-				if(proposalSupportedTarget!=0){
-					proposalSupportedGap = (proposalSupportedTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalProposalSupportAchieved());
-				}
-				if(proposalSupportedGap>0){
-					proposalSupportedGapOrSurplus = "+"+proposalSupportedGap;
-				} else{
-					proposalSupportedGapOrSurplus =""+proposalSupportedGap;
-				}
+				
 				row.createCell(2).setCellValue(proposalSupportedTarget);
 				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryProposalSupportAchieved());
 				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getSalesProposalSupportAchieved());
-				row.createCell(5).setCellValue(proposalSupportedGapOrSurplus);
+				if(proposalSupportedTarget!=0){
+					proposalSupportedGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalProposalSupportAchieved() - proposalSupportedTarget);
+					row.createCell(5).setCellValue(proposalSupportedGap);
+				}
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				row.createCell(1).setCellValue("Connects Supported");
 				int connectSupportedTarget = dashBoardBDMResponse.getConnectSupportedTarget();
 				int connectSupportedGap = 0;
-				if(connectSupportedTarget!=0){
-				connectSupportedGap = (connectSupportedTarget - dashBoardBDMResponse.getBdmDashboard().get(0).getTotalConnects());
-				}
-				if(connectSupportedGap>0){
-					connectSupportedGapOrSurplus = "+"+connectSupportedGap;
-				} else{
-					connectSupportedGapOrSurplus =""+connectSupportedGap;
-				}
+				
 				row.createCell(2).setCellValue(connectSupportedTarget);
 				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectPrimary());
 				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectSecondary());
-				row.createCell(5).setCellValue(connectSupportedGapOrSurplus);
+				if(connectSupportedTarget!=0){
+					connectSupportedGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalConnects() - connectSupportedTarget);
+					row.createCell(5).setCellValue(connectSupportedGap);
+					}
 				currentRow++;
 			}
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);

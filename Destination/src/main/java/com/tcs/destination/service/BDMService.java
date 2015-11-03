@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,12 +23,8 @@ import com.google.common.base.Joiner;
 import com.tcs.destination.bean.BDMDashBoardResponse;
 import com.tcs.destination.bean.BDMPerfromanceGeoIouDashboardResponse;
 import com.tcs.destination.bean.BDMSupervisorDashboardDTO;
-import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.DashBoardBDMResponse;
 import com.tcs.destination.bean.GeoIouDashboardDTO;
-import com.tcs.destination.bean.LeadershipOverallWinsDTO;
-import com.tcs.destination.bean.LeadershipWinsDTO;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PipelineDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BdmTargetTRepository;
@@ -650,7 +645,7 @@ public class BDMService {
 		BigDecimal winsSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardWinsQueryString(userId, fromDate, toDate, true, true, false, false);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		List<BigDecimal> resultList = performanceDashboardWinsQuery.getResultList();
@@ -664,7 +659,7 @@ public class BDMService {
 		List<Object[]> oppWinsList = null;
 		logger.debug("Inside constructQueryForOpportunityWinsBasedOnPrivileges() method");
 		String queryString = getPerformanceDashboardWinsQueryString(userId, fromDate, toDate, false, true ,false, false);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		oppWinsList = performanceDashboardWinsQuery.getResultList();
@@ -675,7 +670,7 @@ public class BDMService {
 		List<Object[]> oppWinsList = null;
 		logger.debug("Inside constructQueryForOpportunityWinsBasedOnPrivileges() method");
 		String queryString = getPerformanceDashboardWinsQueryString(userId, fromDate, toDate, false, false ,true,false);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		oppWinsList = performanceDashboardWinsQuery.getResultList();
@@ -687,7 +682,7 @@ public class BDMService {
 		BigDecimal lossSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardWinsQueryString(userId, fromDate, toDate, true, true, false, true);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		List<BigDecimal> resultList = performanceDashboardWinsQuery.getResultList();
@@ -702,7 +697,7 @@ public class BDMService {
 //		BigDecimal lossSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardPipelinFunnelQueryString(userId, fromDate, toDate, salesStageCode);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		List<Object[]> resultList = performanceDashboardWinsQuery.getResultList();
@@ -714,7 +709,7 @@ public class BDMService {
 //		BigDecimal lossSum=new BigDecimal(0);
 		logger.debug("Inside constructQueryForGeoIouPerformanceDashboardWinsPrivileges() method");
 		String queryString = getPerformanceDashboardSubSpPenetrationQueryString(userId, formattedMonths, isSpPenetrationAboveThree);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query performanceDashboardWinsQuery = entityManager.createNativeQuery(queryString);
 		List<BigInteger> resultList = performanceDashboardWinsQuery.getResultList();

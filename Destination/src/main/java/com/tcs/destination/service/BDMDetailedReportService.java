@@ -35,6 +35,7 @@ import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.DashBoardBDMResponse;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
+import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunitySummaryValue;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
@@ -451,9 +452,11 @@ public class BDMDetailedReportService {
 		 */
 		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, Object[] userIdAndOpp, SXSSFSheet spreadSheet,
 				List<String> currencyList, boolean isIncludingSupervisor) {
+//			try{
 			List<String> salesSupportOwnerList = new ArrayList<String>();
 			List<String> supervisorList = new ArrayList<String>();
 			int columnNo = 0;
+			
 			OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
 			UserT oppOwner = userRepository.findByUserId((String) userIdAndOpp[0]);
 			
@@ -473,7 +476,15 @@ public class BDMDetailedReportService {
 			row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName());
 			}
 			//set display_sub_sp
-			row.createCell(columnNo++).setCellValue(opportunity.getOpportunitySubSpLinkTs().get(0).getSubSpMappingT().getDisplaySubSp());
+			
+			List<String> displaySubSpList = new ArrayList<String>();
+			for (OpportunitySubSpLinkT displaySubSp : opportunity.getOpportunitySubSpLinkTs()) {
+				displaySubSpList.add(displaySubSp.getSubSpMappingT().getDisplaySubSp());
+			}
+			row.createCell(columnNo++).setCellValue(displaySubSpList.toString().replace("[", "").replace("]", ""));
+//			if(opportunity.getOpportunitySubSpLinkTs()!=null){
+//			row.createCell(columnNo++).setCellValue(opportunity.getOpportunitySubSpLinkTs().get(0).getSubSpMappingT().getDisplaySubSp());
+//			}
 			//set opportunity owner name
 			row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
 			//set sales support owners
@@ -487,8 +498,10 @@ public class BDMDetailedReportService {
 			//set sales stage code
 			row.createCell(columnNo++).setCellValue(opportunity.getSalesStageCode());
 			//set expected date of outcome
-			if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
-			row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
+			if(!opportunity.getBidDetailsTs().isEmpty()){
+				if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
+					row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
+				}
 			} else {
 				row.createCell(columnNo++).setCellValue(Constants.SPACE);
 			}
@@ -504,8 +517,9 @@ public class BDMDetailedReportService {
 //				row.getCell(columnNo + i).setCellStyle(cellStyle);
 				i++;
 			}
-			
-			
+//			}catch(Exception e){
+//				e.printStackTrace();
+//			}
 		}
 
 		/**
@@ -724,7 +738,7 @@ public class BDMDetailedReportService {
 			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
 			// Form the native top revenue query string
 			String queryString = getOpportunityListQueryString(userId, fromDate, toDate, geoList, countryList, serviceLinesList, salesStage, opportunityOwnerList);
-			logger.info("Query string: {}", queryString);
+//			logger.info("Query string: {}", queryString);
 			// Execute the native revenue query string
 			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
 			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
