@@ -58,8 +58,6 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	
 	private DataProcessingRequestT request; 
 	
-	private StepExecution stepExecution;
-	
 	private List<UploadServiceErrorDetailsDTO> errorList = null;
 	
 	private UploadErrorReport uploadErrorReport;
@@ -72,7 +70,9 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
 		
-		List<ConnectT> connectList = new ArrayList<ConnectT>();
+		List<ConnectT> insertList = new ArrayList<ConnectT>();
+		List<ConnectT> updateList = new ArrayList<ConnectT>();
+		List<ConnectT> deleteList = new ArrayList<ConnectT>();
 		String operation = null; 
 		for (String[] data: items) {
 
@@ -85,7 +85,7 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
 				} else if (errorDTO.getMessage() == null) {
-					connectList.add(connect);
+					insertList.add(connect);
 				}
 				
 			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){
@@ -101,7 +101,7 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
 						} else if (errorDTO.getMessage() == null) {
-							connectList.add(connect);
+							updateList.add(connect);
 						}
 					} else {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
@@ -125,21 +125,20 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						connectList.add(connect);
+						deleteList.add(connect);
 				}
 			
 			}
 		}
 		
-		if (CollectionUtils.isNotEmpty(connectList)) {
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-				connectService.save(connectList);
-			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-				connectService.updateConnect(connectList);
-			} else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
-				connectService.deleteConnect(connectList);
-			}
-			
+		if (CollectionUtils.isNotEmpty(insertList)) {
+			connectService.save(insertList);
+		} 
+		if (CollectionUtils.isNotEmpty(updateList)){ 
+			connectService.updateConnect(updateList);
+		} 
+		if (CollectionUtils.isNotEmpty(deleteList)){ 
+			connectService.deleteConnect(deleteList);
 		}
 		
 	}
@@ -211,9 +210,7 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		
 		try {
 			
-			this.stepExecution = stepExecution;
 			DataProcessingRequestT request = (DataProcessingRequestT) stepExecution.getJobExecution().getExecutionContext().get(REQUEST);
-			
 			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 			dataProcessingRequestRepository.save(request);
 			
@@ -269,12 +266,10 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		
 	}
 
-
 	@Override
 	public void onError(Throwable throwable) {
 		logger.error("Error while writing the error report: {}", throwable);
 		
 	}
-
 
 }
