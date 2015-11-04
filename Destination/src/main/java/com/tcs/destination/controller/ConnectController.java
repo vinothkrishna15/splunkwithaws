@@ -349,6 +349,12 @@ public class ConnectController {
 				searchResults);
 	}
 
+	/**
+	 * This Controller used to download the list of connects in excel format
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
 			@RequestParam("userId") String userId) throws Exception {
@@ -368,4 +374,24 @@ public class ConnectController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
 	}
+	
+	/**
+	 * This Controller retrieves the List of connects for the given connect ids
+	 * @param connectIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public @ResponseBody String findConnectsByIds(
+			@RequestParam("ids") List<String> connectIds,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside ConnectController /connect/id=" + connectIds + " GET");
+		List<ConnectT> connectList = connectService.getConnectsByConnetIds(connectIds);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connectList);
+	}
+
 }

@@ -1419,4 +1419,20 @@ public class ConnectService {
 
 	}
 
+	/**
+	 * This Method used to find List of Connect for the specified connect ids
+	 * @param connectIds
+	 * @return
+	 */
+	public List<ConnectT> getConnectsByConnetIds(List<String> connectIds) {
+		logger.debug("Inside getConnectsByConnetIds() method");
+		List<ConnectT> connectList = null;
+		connectList = retrieveConnectsByConnetIdOrderByStartDateTime(connectIds);
+		if(connectList==null || connectList.isEmpty()){
+			logger.error("Connects Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Connects Not Found");
+		}
+		return connectList;
+	}
+
 }

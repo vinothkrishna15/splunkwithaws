@@ -1523,4 +1523,22 @@ public class OpportunityService {
 		}
 		return opportunityNameKeywordSearchList;
 	}
+
+	/**
+	 * This Method used to get list of opportunities for the specified opportunity ids
+	 * @param opportunityIds
+	 * @return
+	 */
+	public List<OpportunityT> findByOpportunityIds(List<String> opportunityIds) {
+		logger.debug("Inside findByOpportunityIds() method");
+		List<OpportunityT> opportunityList = null;
+		if ((opportunityIds != null) && (!opportunityIds.isEmpty())) {
+		opportunityList = opportunityRepository.findByOpportunityIds(opportunityIds);
+		}
+		if(opportunityList==null || opportunityList.isEmpty() ){
+			logger.error("Opportunities not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found");
+		}
+		return opportunityList;
+	}
 }

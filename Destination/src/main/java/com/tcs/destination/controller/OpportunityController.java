@@ -451,6 +451,16 @@ public class OpportunityController {
 				HttpStatus.OK);
 	}
 
+	/**
+	 * This Controller used to download the opportunity_t in excel format 
+	 * @param userId
+	 * @param oppFlag
+	 * @param dealValueFlag
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadOpportunity(
 			@RequestParam("userId") String userId,
@@ -479,6 +489,25 @@ public class OpportunityController {
 		return new ResponseEntity<InputStreamResource>(
 				opportunityDownloadExcel, respHeaders, HttpStatus.OK);
 
+	}
+	
+	/**
+	 * This Controller used to retrieve the list of opportunities for the given opportunity ids
+	 * @param opportunityIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public @ResponseBody String findByOpportunityIds(
+			@RequestParam("ids") List<String> opportunityIds,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.debug("Inside OpportunityController /opportunity/Id=" + opportunityIds + " GET");
+		List<OpportunityT> opportunityList = opportunityService.findByOpportunityIds(opportunityIds);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunityList);
 	}
 
 }
