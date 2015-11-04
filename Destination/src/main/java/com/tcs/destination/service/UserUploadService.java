@@ -503,7 +503,7 @@ public class UserUploadService {
 	private List<String> getErrorList(List<String> privilegeValues, String privilegeType) {
 		
 		List<String> errors = new ArrayList<String>();
-		
+		if(privilegeType!=null){
 		for( String privilegeValue : privilegeValues){
 		
 		switch (PrivilegeType.valueOf(privilegeType)){
@@ -569,6 +569,7 @@ public class UserUploadService {
 
 			}
 			break;
+		}
 		}
 		
 		}
