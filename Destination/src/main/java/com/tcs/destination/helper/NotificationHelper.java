@@ -212,6 +212,13 @@ public class NotificationHelper implements Runnable {
 				entityType, entityId);
 	}
 
+	/**
+	 * This method will notify users for both Manual comments or for
+	 * Auto-comments. Note that Whenever a Key field is changed, the
+	 * notification is processed for that using Auto Comments of that entity
+	 * 
+	 * @throws Exception
+	 */
 	private void notifyForComments() throws Exception {
 		String ownerMessageTemplate = null;
 		String taggedFollowedMessageTemplate = null;
@@ -917,11 +924,19 @@ public class NotificationHelper implements Runnable {
 					&& (!connectT.getCreatedBy().equals(userId))) {
 				String addMessageTemplate = autoCommentsEntityTRepository
 						.findOne(fieldId).getAddMessageTemplate();
+				String parentEntityName = "";
+				if (connectT.getCustomerMasterT() != null)
+					parentEntityName = connectT.getCustomerMasterT()
+							.getCustomerName();
+				else if (connectT.getPartnerMasterT() != null)
+					parentEntityName = connectT.getPartnerMasterT()
+							.getPartnerName();
 				String notificationMessage = replaceTokens(
 						addMessageTemplate,
 						populateTokens(connectT.getCreatedByUser()
 								.getUserName(), connectT.getConnectName(),
-								null, null, null, null, null, null, null));
+								null, null, null, null, null, null,
+								parentEntityName));
 				notificationMessage = notificationMessage.replace(
 						"[Auto Comment]: ", "");
 				addUserNotifications(notificationMessage, userId, eventId,
