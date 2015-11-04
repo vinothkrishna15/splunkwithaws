@@ -318,13 +318,11 @@ public class BDMReportsService {
 					
 					if(opportunityOwners.isEmpty()){
 						 bdmsList = userRepository.findUserIdByuserGroup(bdmUser);
-						 geoIouUserList = userRepository.findUserIdByuserGroup(userGroups);
-						 bdmSupervisorList = userRepository.findUserIdByuserGroup(userIdList);
 					} else {
 						 bdmsList.addAll(opportunityOwners);
-						 geoIouUserList.addAll(opportunityOwners);
-						 bdmSupervisorList.addAll(opportunityOwners);
 					}
+					geoIouUserList = userRepository.findUserIdByuserGroup(userGroups);
+					bdmSupervisorList = userRepository.findUserIdByuserGroup(userIdList);
 					getOpportunitySummaryDetails(bdmsList, financialYear, geoList, serviceLinesList, workbook);
 					getBDMSupervisorPerformanceExcelReport(bdmSupervisorList, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoIouUserList, userId, financialYear, workbook);
