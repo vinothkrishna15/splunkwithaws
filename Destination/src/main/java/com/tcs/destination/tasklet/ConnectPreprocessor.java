@@ -60,6 +60,7 @@ public class ConnectPreprocessor implements Tasklet{
 			
 		} else {
 			 jobContext.put(NEXT_STEP, END);
+			 requestList = null;
 		}
 		
 		return RepeatStatus.FINISHED;

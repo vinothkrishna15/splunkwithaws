@@ -1,9 +1,12 @@
 package com.tcs.destination.reader;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import javax.servlet.ReadListener;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -18,7 +21,7 @@ import org.springframework.batch.item.UnexpectedInputException;
 
 import com.tcs.destination.utils.ExcelUtils;
 
-public class SpreadSheetReader implements ItemReader<String[]> {
+public class SpreadSheetReader implements ItemReader<String[]>, ReadListener {
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(SpreadSheetReader.class);
@@ -134,6 +137,33 @@ public class SpreadSheetReader implements ItemReader<String[]> {
 
 	public void setRowsToSkip(int rowsToSkip) {
 		this.rowsToSkip = rowsToSkip;
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.servlet.ReadListener#onDataAvailable()
+	 */
+	@Override
+	public void onDataAvailable() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.servlet.ReadListener#onAllDataRead()
+	 */
+	@Override
+	public void onAllDataRead() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.servlet.ReadListener#onError(java.lang.Throwable)
+	 */
+	@Override
+	public void onError(Throwable throwable) {
+		logger.error("Error during read - {}", throwable.getMessage());
+		
 	}
 
 
