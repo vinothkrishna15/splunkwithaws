@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,8 +37,10 @@ import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 @Service
@@ -109,7 +112,6 @@ public class ActualRevenueDataUploadService {
 					logger.debug("row count : "+rowCount);
 					listOfCellValues = new ArrayList<String>();
 					try {
-							System.out.println("*****ACTUAL REVENUE ADDING *****");
 							listOfCellValues = iterateRow(row, CustomerUploadConstants.ACTUAL_REVENUE_DATA_COLUMN_COUNT);
 							revenueService.addActualRevenue(constructActualRevenuesDataT(listOfCellValues, userId));
 					} catch (Exception e) {
@@ -170,26 +172,31 @@ public class ActualRevenueDataUploadService {
 		if ((listOfCellValues.size() > 0)) {
 			actualRevenueT = new ActualRevenuesDataT();
 			// QUARTER
-			if(!StringUtils.isEmpty(listOfCellValues.get(4))){
-				actualRevenueT.setQuarter(listOfCellValues.get(4));
-			}
-			else {
+			if(StringUtils.isEmpty(listOfCellValues.get(4))){
 				throw new DestinationException(HttpStatus.NOT_FOUND, "QUARTER NOT Found");
+				
 			}
 
 			// MONTH
 			if(!StringUtils.isEmpty(listOfCellValues.get(3))){
-				actualRevenueT.setMonth(listOfCellValues.get(3));
+				
+				try {
+					String[] strArr = DateUtils.formatUploadDateData(listOfCellValues.get(3), PropertyUtil.getProperty("upload.month.db.format"), PropertyUtil.getProperty("upload.month.format"));
+					actualRevenueT.setMonth(strArr[0]);
+					actualRevenueT.setQuarter(strArr[1]);
+					actualRevenueT.setFinancialYear(strArr[2]);
+
+				} catch (ParseException e) {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid month format.");
+				}
+				
 			}
 			else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "MONTH NOT Found");
 			}
 
 			// FINANCIAL YEAR
-			if(!StringUtils.isEmpty(listOfCellValues.get(5))){
-				actualRevenueT.setFinancialYear(listOfCellValues.get(5));
-			}
-			else {
+			if(StringUtils.isEmpty(listOfCellValues.get(5))){
 				throw new DestinationException(HttpStatus.NOT_FOUND, "FINANCIAL YEAR NOT Found");
 			}
 			// REVENUE AMOUNT

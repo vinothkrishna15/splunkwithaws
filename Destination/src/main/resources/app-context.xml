@@ -92,6 +92,7 @@
                 <value>classpath:mailsubject.properties</value>
                 <value>classpath:batch.properties</value>
                 <value>database.properties</value>
+                <value>config.properties</value>
             </list>
         </property>
         <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_NEVER" />

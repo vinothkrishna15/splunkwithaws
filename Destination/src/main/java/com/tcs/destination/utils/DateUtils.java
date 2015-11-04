@@ -648,5 +648,26 @@ public class DateUtils {
 			}
 			months.addAll(quarterMonths);
 		return months;
+	}
+
+	/**
+	 * @param value
+	 * @return String 
+	 * @throws ParseException 
+	 */
+	public static String[] formatUploadDateData(String value, String incomingFormat, String outgoingFormat) throws ParseException {
+		
+		SimpleDateFormat dbFormat = new SimpleDateFormat(incomingFormat);
+		SimpleDateFormat uploadFormat = new SimpleDateFormat(outgoingFormat);
+		
+		Date date = uploadFormat.parse(value);
+		
+		String[] strArr = new String [3];
+		
+		strArr[0] = dbFormat.format(date);
+		strArr[1] = getQuarterForMonth(strArr[0]);
+		strArr[2] = getFinancialYearForQuarter(strArr [1]);
+		return strArr;
 	}	
+	
 }
