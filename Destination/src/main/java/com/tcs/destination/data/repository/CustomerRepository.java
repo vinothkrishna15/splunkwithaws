@@ -78,16 +78,27 @@ public interface CustomerRepository extends
 
 	@Query(value = "select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
 	List<String> findByGroupCustomerName(String groupCustName);
+	
+	@Query(value = "select customer_id from customer_master_t where "
+			+ "(group_customer_name = (:groupCustomerName)"
+			+ "and customer_name =(:customerName)"
+			+ "and iou=(:displayIOU)"
+			+ "and geography =(:geography))", nativeQuery = true)
+	String findCustomerIdForDeleteOrUpdate(
+			@Param("groupCustomerName") String groupCustomerName,
+			@Param("customerName") String name,
+			@Param("displayIOU") String displayIOU,
+			@Param("geography") String geography);
 
 	@Query(value = "select * from customer_master_t where "
-			+ "(upper(customer_name) like (:customerName)) "
-			+ "and (upper(group_customer_name) like (:groupCustomerName)) "
-			+ "and (geography in (:geography) or ('') in (:geography)) "
-			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou in (:displayIOU) or ('') in (:displayIOU)))", nativeQuery = true)
+			+ "(customer_name = (:customerName) or (:customerName)='') "
+			+ "and (group_customer_name =(:groupCustomerName) or (:groupCustomerName)='') "
+			+ "and (geography=(:geography) or (:geography)='')"
+			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou = (:displayIOU) or (:displayIOU)=''))", nativeQuery = true)
 	List<CustomerMasterT> advancedSearch(
-			@Param("groupCustomerName") String groupCustomerNameWith,
-			@Param("customerName") String nameWith,
-			@Param("geography") List<String> geography,
-			@Param("displayIOU") List<String> displayIOU);
+			@Param("groupCustomerName") String groupCustomerName,
+			@Param("customerName") String name,
+			@Param("geography") String geography,
+			@Param("displayIOU") String displayIOU);
 
 }
