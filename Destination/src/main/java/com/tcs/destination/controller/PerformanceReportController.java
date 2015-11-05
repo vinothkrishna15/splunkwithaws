@@ -28,6 +28,7 @@ import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PerformanceReportService;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -254,8 +255,14 @@ public class PerformanceReportController {
 
 	}
 
+	/**
+	 * This Controller used to insert recently searched group customer details
+	 * @param frequentlySearchedGroupCustomersT
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> insertToConnect(
+	public @ResponseBody ResponseEntity<String> insertToRecentlySearchedGroupCustomer(
 			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) throws Exception {
 		logger.debug("Connect Insert Request Received /connect POST");
 		Status status = new Status();
@@ -267,22 +274,28 @@ public class PerformanceReportController {
 			}
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews("all", "",
 						status), HttpStatus.OK);
 	}	
 	
+	/**
+	 * This Controller used to get five frequently searched group customer details
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/freqSearchGroupCust")
 	public @ResponseBody String findFavorite(
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService.findGroupCustomerName(userId);
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService.findGroupCustomerName(userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, frequentlySearchedGroupCustomersT);
 	}
-	
+
 }

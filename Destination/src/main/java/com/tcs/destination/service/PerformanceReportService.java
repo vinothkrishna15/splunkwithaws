@@ -23,10 +23,9 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
-
 import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.ConnectT;
-
+import com.tcs.destination.bean.FrequentlySearchedGroupCustomersTPK;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.OpportunityT;
@@ -35,9 +34,7 @@ import com.tcs.destination.bean.ReportsSalesStage;
 import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-
 import com.tcs.destination.bean.UserTaggedFollowedT;
-
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
@@ -2511,34 +2508,54 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method is used to insert frequently searched group customer details
-	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
 	 */
-	public boolean insertFrequentlySearchedGroupCustomer(
-			FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
+	public boolean insertFrequentlySearchedGroupCustomer(FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
 		logger.info("Inside insertFrequentlySearchedGroupCustomer() Method");
-
-		if (frequentlySearchedGroupCustomerTRepository
-				.save(frequentlySearchedGroupCustomersT) != null) {
-			return true;
-		} else {
-			return false;
+		FrequentlySearchedGroupCustomersTPK frequentlySearchedGroupCustomersTPK = new FrequentlySearchedGroupCustomersTPK();
+		frequentlySearchedGroupCustomersTPK.setGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+		frequentlySearchedGroupCustomersTPK.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
+		frequentlySearchedGroupCustomersT.setFreqSearchedGroupCustomer(frequentlySearchedGroupCustomersTPK);
+		boolean isInserted = false;
+		String groupCustomerName = null;
+		if(frequentlySearchedGroupCustomersT!=null){
+			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
+			frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getUserId());
+			groupCustomerName = frequentlySearchedGroupCustomerTRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+			
+			if(groupCustomerName==null){
+				if(frequentlySearchedGroupCustomersTs.size()>4){
+					frequentlySearchedGroupCustomerTRepository.delete(frequentlySearchedGroupCustomersTs.get(4));
+				}
+			}
+			List<String> customerName = null;
+			customerName =	customerRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+			
+			if(customerName!=null && !customerName.isEmpty()){
+				if (frequentlySearchedGroupCustomerTRepository.save(frequentlySearchedGroupCustomersT) != null) {
+					isInserted = true;
+				}
+			} else{
+				logger.error("Invalid Group Customer Name");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer Name");
+			}
 		}
+		return isInserted;
 	}
 
 	/**
 	 * This Method used to retrieve the recently searched group customer name
-	 * 
 	 * @param userId
 	 * @return
 	 */
-	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(
-			String userId) {
+	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(String userId) {
 		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
-		frequentlySearchedGroupCustomersTs = (List<FrequentlySearchedGroupCustomersT>) frequentlySearchedGroupCustomerTRepository
-				.findAll();
+		frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(userId);
+		if(frequentlySearchedGroupCustomersTs==null || frequentlySearchedGroupCustomersTs.isEmpty()){
+			logger.error("Recently Searched Group Customers Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Recently Searched Group Customers Not Found");
+		}
 		return frequentlySearchedGroupCustomersTs;
 	}
-
 }
