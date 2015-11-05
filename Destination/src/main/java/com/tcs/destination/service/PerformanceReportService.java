@@ -537,6 +537,8 @@ public class PerformanceReportService {
 	private static final String TOP_OPPORTUNITIES_ORDER_BY = " order by OPP.digital_deal_value DESC limit (:count)";
 
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
+	private static final String RCMT_GEO_COND_PREFIX = "RCMT.customer_geography in (";
+	private static final String GCMT_GEO_COND_PREFIX = "GCMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_COND_SUFFIX = "RCMT.customer_name in (";
@@ -1671,7 +1673,7 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(
 				PROJECTED_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
 						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
@@ -1713,7 +1715,7 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(
 				ACTUAL_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
 						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
@@ -2389,7 +2391,7 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(
 				PIPELINE_PERFORMANCE_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+				.getQueryPrefixMap(GCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
 						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
