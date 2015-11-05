@@ -880,18 +880,33 @@ public class ConnectService {
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
 			removeCyclicForLinkedCustomerMasterTs(connectT);
+			removeCyclicForLinkedPartnerMasterTs(connectT);
 		}
 	}
 
 	/**
-	 * Remove cyclic data of list of connects for that customer who belongs to this connect
+	 * Remove cyclic data of list of connects for that partner who belongs to
+	 * this connect
+	 * 
+	 * @param connectT
+	 */
+	private void removeCyclicForLinkedPartnerMasterTs(ConnectT connectT) {
+		if (connectT != null)
+			if (connectT.getPartnerMasterT() != null)
+				connectT.getPartnerMasterT().setConnectTs(null);
+	}
+
+	/**
+	 * Remove cyclic data of list of connects for that customer who belongs to
+	 * this connect
+	 * 
 	 * @param connectT
 	 */
 	private void removeCyclicForLinkedCustomerMasterTs(ConnectT connectT) {
-		if(connectT!=null)
-			if(connectT.getCustomerMasterT()!=null)
+		if (connectT != null)
+			if (connectT.getCustomerMasterT() != null)
 				connectT.getCustomerMasterT().setConnectTs(null);
-		
+
 	}
 
 	private void removeCyclicForLinkedOpportunityTs(ConnectT connectT) {
@@ -1421,6 +1436,7 @@ public class ConnectService {
 
 	/**
 	 * This Method used to find List of Connect for the specified connect ids
+	 * 
 	 * @param connectIds
 	 * @return
 	 */
@@ -1428,9 +1444,10 @@ public class ConnectService {
 		logger.debug("Inside getConnectsByConnetIds() method");
 		List<ConnectT> connectList = null;
 		connectList = retrieveConnectsByConnetIdOrderByStartDateTime(connectIds);
-		if(connectList==null || connectList.isEmpty()){
+		if (connectList == null || connectList.isEmpty()) {
 			logger.error("Connects Not Found");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Connects Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Connects Not Found");
 		}
 		return connectList;
 	}
