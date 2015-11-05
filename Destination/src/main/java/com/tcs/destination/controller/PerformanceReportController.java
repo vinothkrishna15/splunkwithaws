@@ -8,18 +8,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.ReportsOpportunity;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PerformanceReportService;
 import com.tcs.destination.utils.DateUtils;
@@ -239,4 +244,35 @@ public class PerformanceReportController {
 
 	}
 
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> insertToConnect(
+			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) throws Exception {
+		logger.debug("Connect Insert Request Received /connect POST");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (perfService.insertFrequentlySearchedGroupCustomer(frequentlySearchedGroupCustomersT)) {
+				status.setStatus(Status.SUCCESS, "Inserted Successfully");
+				logger.debug("GROUP CUSTOMER INSERTED SUCCESSFULLY" + "Inserted Successfully");
+			}
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
+	}	
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/freqSearchGroupCust")
+	public @ResponseBody String findFavorite(
+			@RequestParam("userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService.findGroupCustomerName(userId);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, frequentlySearchedGroupCustomersT);
+	}
+	
 }

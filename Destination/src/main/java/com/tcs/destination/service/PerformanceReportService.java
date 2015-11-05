@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.OpportunityT;
@@ -24,9 +26,11 @@ import com.tcs.destination.bean.ReportsSalesStage;
 import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.FrequentlySearchedGroupCustomerTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PerformanceReportRepository;
 import com.tcs.destination.data.repository.ProjectedRevenuesDataTRepository;
@@ -65,6 +69,9 @@ public class PerformanceReportService {
 
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	FrequentlySearchedGroupCustomerTRepository frequentlySearchedGroupCustomerTRepository;
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
 			String financialYear, String quarter, String displayGeography,
@@ -929,6 +936,32 @@ public class PerformanceReportService {
 			return -1;
 
 		}
+	}
+
+	/**
+	 * This Method is used to insert frequently searched group customer details
+	 * @param frequentlySearchedGroupCustomersT
+	 * @return
+	 */
+	public boolean insertFrequentlySearchedGroupCustomer(FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
+		logger.info("Inside insertFrequentlySearchedGroupCustomer() Method");
+		
+		if (frequentlySearchedGroupCustomerTRepository.save(frequentlySearchedGroupCustomersT) != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * This Method used to retrieve the recently searched group customer name
+	 * @param userId
+	 * @return
+	 */
+	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(String userId) {
+		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
+		frequentlySearchedGroupCustomersTs = (List<FrequentlySearchedGroupCustomersT>) frequentlySearchedGroupCustomerTRepository.findAll();
+		return frequentlySearchedGroupCustomersTs;
 	}
 
 }
