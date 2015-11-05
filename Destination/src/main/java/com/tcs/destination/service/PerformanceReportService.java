@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
 
@@ -86,7 +85,7 @@ public class PerformanceReportService {
 
 	@Autowired
 	CustomerRepository customerRepository;
-	
+
 	@Autowired
 	FrequentlySearchedGroupCustomerTRepository frequentlySearchedGroupCustomerTRepository;
 
@@ -143,13 +142,13 @@ public class PerformanceReportService {
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp"
 			+ " join revenue_customer_mapping_t RCMT on (PRDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and PRDT.finance_geography=RCMT.customer_geography)"
-			+ " and RCMT.finance_iou =PRDT.finance_iou)" + " where ";
+			+ " and RCMT.finance_iou =PRDT.finance_iou" + " where ";
 
 	private static final String PROJECTED_REVENUE_QUERY_COND_SUFFIX = " (PRDT.finance_geography = (:geography) or (:geography) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
-			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName)"
+			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
 			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')";
 
 	private static final String PROJECTED_REVENUE_QUERY_GROUP_BY_ORDER_BY = " group by PRDT.quarter order by PRDT.quarter asc";
@@ -258,7 +257,7 @@ public class PerformanceReportService {
 
 	private static final String PROJECTED_REVENUES_BY_IOU_ORDER_BY = " Result on ICMT.display_iou = Result.displayIOU order by revenue desc";
 
-	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_QUERY_PREFIX = "select COALESCE(SSMT.display_sub_sp, 'NO SUBSP') ,sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /((select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)) * (select case when count(*) = 0 then 1 else count(*) end as count from opportunity_sub_sp_link_t where opportunity_id = OPP.opportunity_id))) as OBV from opportunity_t OPP "
+	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_QUERY_PREFIX = "select COALESCE(SSMT.display_sub_sp, 'NO SUBSP') ,sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV from opportunity_t OPP "
 			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
@@ -692,6 +691,7 @@ public class PerformanceReportService {
 			String serviceLine, String iou, List<String> custName,
 			String currency, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getDigitalDealValueQueryString(userId);
 			Query digitalDealValueQuery = entityManager
@@ -734,6 +734,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			String iou, List<String> custName, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getTargetRevenueQueryString(userId);
 			Query targetRevenueQuery = entityManager
@@ -773,6 +774,7 @@ public class PerformanceReportService {
 			String iou, List<String> custName, String serviceLine, String userId)
 			throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenueByQuarterQueryString(userId);
 			Query projectedRevenueByQuarterQuery = entityManager
@@ -820,6 +822,7 @@ public class PerformanceReportService {
 			String iou, List<String> custName, String serviceLine, String userId)
 			throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenueQueryString(userId);
 			Query projectedRevenueQuery = entityManager
@@ -862,6 +865,7 @@ public class PerformanceReportService {
 			String iou, List<String> custName, String serviceLine, String userId)
 			throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenueByQuarterQueryString(userId);
 			Query actualRevenueByQuarterQuery = entityManager
@@ -908,6 +912,7 @@ public class PerformanceReportService {
 			throws Exception {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenueQueryString(userId);
 			Query actualRevenueQuery = entityManager
@@ -928,36 +933,36 @@ public class PerformanceReportService {
 
 	private boolean validateUserAndUserGroup(String userId) throws Exception {
 
-		if (!DestinationUtils.getCurrentUserDetails().getUserId()
-				.equalsIgnoreCase(userId)) {
-			logger.error("User Id mismatch");
-			throw new DestinationException(HttpStatus.NOT_FOUND, userId
-					+ " does not matches with the logged in user id ");
-		} else {
-			UserT user = userService.findByUserId(userId);
-			if (user == null) {
-				logger.error("NOT_FOUND: User not found: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"User not found: " + userId);
-			} else {
-				String userGroup = user.getUserGroupMappingT().getUserGroup();
-				if (UserGroup.contains(userGroup)) {
-					// Validate user group, BDM's & BDM supervisor's are not
-					// authorized for this service
-					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-					case BDM:
-					case BDM_SUPERVISOR:
-						logger.error("User is not authorized to access this service");
-						throw new DestinationException(HttpStatus.UNAUTHORIZED,
-								"User is not authorised to access this service");
-					default:
-						return true;
-					}
-				} else {
-					return false;
-				}
+		// if (!DestinationUtils.getCurrentUserDetails().getUserId()
+		// .equalsIgnoreCase(userId)) {
+		// logger.error("User Id mismatch");
+		// throw new DestinationException(HttpStatus.NOT_FOUND, userId
+		// + " does not matches with the logged in user id ");
+		// } else {
+		UserT user = userService.findByUserId(userId);
+		// if (user == null) {
+		// logger.error("NOT_FOUND: User not found: {}", userId);
+		// throw new DestinationException(HttpStatus.NOT_FOUND,
+		// "User not found: " + userId);
+		// } else {
+		String userGroup = user.getUserGroupMappingT().getUserGroup();
+		if (UserGroup.contains(userGroup)) {
+			// Validate user group, BDM's & BDM supervisor's are not
+			// authorized for this service
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case BDM_SUPERVISOR:
+				logger.error("User is not authorized to access this service");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+						"User is not authorised to access this service");
+			default:
+				return true;
 			}
+		} else {
+			return false;
 		}
+		// }
+		// }
 
 	}
 
@@ -1153,6 +1158,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			String serviceLine, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenuesByIOUQueryString(userId);
 			Query projectedRevenuesByIOUQuery = entityManager
@@ -1196,6 +1202,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			String serviceLine, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenuesByIOUQueryString(userId);
 			Query actualRevenuesByIOUQuery = entityManager
@@ -1330,6 +1337,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			List<String> custName, String iou, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenuesBySubSpQueryString(userId);
 			Query projectedRevenuesBySubSpQuery = entityManager
@@ -1376,6 +1384,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			List<String> custName, String iou, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenuesBySubSpQueryString(userId);
 			Query actualRevenuesBySubSPQuery = entityManager
@@ -1479,6 +1488,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenuesByDispGeoQueryString(userId);
 			Query projectedRevenuesByDispGeoQuery = entityManager
@@ -1523,6 +1533,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenuesByDispGeoQueryString(userId);
 			Query actualRevenuesByDispGeoQuery = entityManager
@@ -1635,6 +1646,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String displayGeography, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenuesByCountryQueryString(userId);
 			Query projectedRevenuesByCountryQuery = entityManager
@@ -1677,6 +1689,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String geography, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenuesByCountryQueryString(userId);
 			Query actualRevenuesByCountryQuery = entityManager
@@ -1718,6 +1731,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String displayGeography, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getProjectedRevenuesBySubGeoQueryString(userId);
 			Query projectedRevenuesBySubGeoQuery = entityManager
@@ -1764,6 +1778,7 @@ public class PerformanceReportService {
 			String quarter, List<String> custName, String subSp, String iou,
 			String displayGeography, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getActualRevenuesBySubGeoQueryString(userId);
 			Query actualRevenuesBySubGeoQuery = entityManager
@@ -1835,6 +1850,7 @@ public class PerformanceReportService {
 			Date dateTo, int stageFrom, int stageTo, int count,
 			List<String> custName, String userId) throws Exception {
 		List<OpportunityT> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getTopOpportunitiesQueryString(userId);
 			Query TopOpportunitiesQuery = entityManager.createNativeQuery(
@@ -1959,6 +1975,7 @@ public class PerformanceReportService {
 			Date fromDate, Date toDate, int salesStageFrom, int salesStageTo,
 			String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceBySalesStageQueryString(userId);
 			Query pipelinePerformanceBySalesStageQuery = entityManager
@@ -2069,6 +2086,7 @@ public class PerformanceReportService {
 			String currency, Date fromDate, Date toDate, int salesStageFrom,
 			int salesStageTo, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceByIOUQueryString(userId);
 			Query pipelinePerformanceByIOUQuery = entityManager
@@ -2152,6 +2170,7 @@ public class PerformanceReportService {
 			String currency, int salesStageFrom, int salesStageTo,
 			Date fromDate, Date toDate, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceByServiceLineQueryString(userId);
 			Query pipelinePerformanceByServiceLineQuery = entityManager
@@ -2234,6 +2253,7 @@ public class PerformanceReportService {
 			String iou, String currency, int salesStageFrom, int salesStageTo,
 			Date fromDate, Date toDate, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceByGeographyQueryString(userId);
 			Query pipelinePerformanceByGeographyQuery = entityManager
@@ -2336,6 +2356,7 @@ public class PerformanceReportService {
 			int salesStageFrom, int salesStageTo, String userId)
 			throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceByCountryQueryString(userId);
 			Query pipelinePerformanceByCountryQuery = entityManager
@@ -2388,6 +2409,7 @@ public class PerformanceReportService {
 			Date toDate, int salesStageFrom, int salesStageTo, String userId)
 			throws Exception {
 		List<Object[]> resultList = null;
+		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceBySubGeographyQueryString(userId);
 			Query pipelinePerformanceBySubGeographyQuery = entityManager
@@ -2487,13 +2509,16 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method is used to insert frequently searched group customer details
+	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
 	 */
-	public boolean insertFrequentlySearchedGroupCustomer(FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
+	public boolean insertFrequentlySearchedGroupCustomer(
+			FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
 		logger.info("Inside insertFrequentlySearchedGroupCustomer() Method");
-		
-		if (frequentlySearchedGroupCustomerTRepository.save(frequentlySearchedGroupCustomersT) != null) {
+
+		if (frequentlySearchedGroupCustomerTRepository
+				.save(frequentlySearchedGroupCustomersT) != null) {
 			return true;
 		} else {
 			return false;
@@ -2502,12 +2527,15 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method used to retrieve the recently searched group customer name
+	 * 
 	 * @param userId
 	 * @return
 	 */
-	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(String userId) {
+	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(
+			String userId) {
 		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
-		frequentlySearchedGroupCustomersTs = (List<FrequentlySearchedGroupCustomersT>) frequentlySearchedGroupCustomerTRepository.findAll();
+		frequentlySearchedGroupCustomersTs = (List<FrequentlySearchedGroupCustomersT>) frequentlySearchedGroupCustomerTRepository
+				.findAll();
 		return frequentlySearchedGroupCustomersTs;
 	}
 

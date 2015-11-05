@@ -52,7 +52,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "", required = false) String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws Exception {
@@ -75,7 +75,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -108,7 +108,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -143,7 +143,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -199,7 +199,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "stageto") int salesStageTo,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -226,7 +226,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "count", defaultValue = "3") int count,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
-			@RequestParam(value = "userId") String userId,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
