@@ -443,7 +443,6 @@ public class ReportsService {
 		private static final String OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX = "group by ICM.display_iou";
 		private static final String OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX = "group by SSMT.display_sub_sp";
 		private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
-		
 
 	
 	
@@ -2523,6 +2522,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				addEmptyItemToListIfAll(serviceLines, serviceLinesList);
 				addEmptyItemToListIfAll(country, countryList);
 				bidDetails = getBidDetailsBasedOnUserPrivileges(startDate, endDate, userId, bidOwner, geographyList, iouList, serviceLinesList, countryList);
+				
 				bidDetailsList = beaconConverterService.convertBidDetailsCurrency(bidDetails, currency);
 				if (bidDetailsList == null || bidDetailsList.isEmpty()) {
 					logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
@@ -2545,9 +2545,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> geographyList, List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
 		// Form the native top revenue query string
-//		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner);
 		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner, geographyList, iouList, serviceLinesList, countryList);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query bidDetailedReportQuery = entityManager.createNativeQuery(queryString);
 		List<String> resultList = bidDetailedReportQuery.getResultList();
@@ -2563,6 +2562,19 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return bidDetailsList;
 	}
 
+	/**
+	 * This Method used to form bid details query based on user access priviledges
+	 * @param userId
+	 * @param startDate
+	 * @param endDate
+	 * @param bidOwner
+	 * @param geographyList
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @return
+	 * @throws Exception
+	 */
 	private String getBidDetailedQueryString(String userId, Date startDate, Date endDate, List<String> bidOwner, List<String> geographyList,
 			List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
@@ -2594,6 +2606,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		}
 		if(!countryList.contains("") && countryList!=null){
 			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX +getStringListWithSingleQuotes(countryList)+ Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + OPPORTUNITY_COUNTRY_COND_PREFIX +getStringListWithSingleQuotes(countryList)+ Constants.RIGHT_PARANTHESIS);
 		}
 		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		if (whereClause != null && !whereClause.isEmpty()) {
@@ -2602,59 +2615,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return queryBuffer.toString();
 	}
 
-//	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
-//			Date startDate, Date endDate, String userId, List<String> bidOwner)
-//			throws Exception {
-//		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
-//		// Form the native top revenue query string
-//		String queryString = getBidDetailedQueryString(userId, startDate,
-//				endDate, bidOwner);
-//		logger.info("Query string: {}", queryString);
-//		// Execute the native revenue query string
-//		Query bidDetailedReportQuery = entityManager
-//				.createNativeQuery(queryString);
-//		List<String> resultList = bidDetailedReportQuery.getResultList();
-//		// Retrieve connect details
-//		List<BidDetailsT> bidDetailsList = null;
-//		if ((resultList != null) && !(resultList.isEmpty())) {
-//			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
-//		}
-//		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-//			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
-//			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
-//		}
-//		return bidDetailsList;
-//	}
 
-	private String getBidDetailedQueryString(String userId, Date startDate,
-			Date endDate, List<String> bidOwner) throws Exception {
-		logger.debug("Inside getRevenueQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(BID_REPORT_QUERY_PREFIX);
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		// Get WHERE clause string
-		queryBuffer.append(BID_START_DATE_COND_PREFIX
-				+ new Timestamp(startDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(BID_END_DATE_COND_C_PREFIX
-				+ new Timestamp(endDate.getTime()) + Constants.SINGLE_QUOTE);
-		if (bidOwner.isEmpty() || bidOwner.size() == 0) {
-			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + "''" + ")"
-					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
-		} else {
-			String bidOwners = getStringListWithSingleQuotes(bidOwner);
-			queryBuffer.append(Constants.AND_CLAUSE
-					+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
-					+ "))");
-		}
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-		return queryBuffer.toString();
-	}
 
 	// For Detailed Report
 	
@@ -2682,7 +2643,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				return queryBuffer.toString();
 		}
 		
-		// Detailed report ends here
 		
 		// Win Loss Service line
 		
