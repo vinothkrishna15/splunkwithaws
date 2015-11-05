@@ -226,7 +226,7 @@ public class CustomerService {
 					"User does not have access to view this information");
 		return performanceReportService.getTargetVsActualRevenueSummary(
 				financialYear, quarter, "", "", "", "", customerName, currency,
-				"", false);
+				"", false, userId);
 	}
 
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
