@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -439,6 +440,29 @@ public class DateUtils {
 		Date date=new Date();
 		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
 		return formatDate.format(date);
+	}
+	
+	/**
+     * Add days to date in java
+     * @param date
+     * @param days
+     * @return
+     */
+    public static Date addDays(Date date, int days) {
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, days);
+                 
+        return cal.getTime();
+    }
+	/**
+	 * This method used to get the date from the string dd MMM yyyy format
+	 * @return current date
+	 * @throws ParseException 
+	 */
+	public static Date getDateFrString(String dateStr) throws ParseException {
+		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
+		return formatDate.parse(dateStr);
 	}
 	
 	/**

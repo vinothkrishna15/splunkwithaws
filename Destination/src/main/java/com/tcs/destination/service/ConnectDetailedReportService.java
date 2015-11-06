@@ -3,7 +3,7 @@ package com.tcs.destination.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.hssf.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
@@ -519,9 +519,9 @@ public class ConnectDetailedReportService {
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
 		row = (SXSSFRow) spreadsheet.createRow(12);
-		row.createCell(4).setCellValue("User Access Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(4);
+		row.createCell(6).setCellValue("User Access Filter's");
+		row.getCell(6).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(6);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";

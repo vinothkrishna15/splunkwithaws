@@ -31,7 +31,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 *            is the connection name.
 	 * @return connection details.
 	 */
-	Page<ConnectT> findByConnectNameIgnoreCaseLike(String name,Pageable page);
+	Page<ConnectT> findByConnectNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(String name,Pageable page);
 
 	/**
 	 * Finds the connection details for the given connection id.
@@ -45,7 +45,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	@Query(value ="select * from connect_t where partner_id=?1",nativeQuery = true)
 	List<ConnectT> findByPartnerId(String partnerId);
 
-	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerId(String name,
+	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(String name,
 			String customerId,Pageable page);
 
 	@Query(value = "select c from ConnectT c where (primaryOwner=(:primaryOwner) OR (:primaryOwner)='')and startDatetimeOfConnect between (:fromDate) and (:toDate) and (customer_id=(:customerId) OR (:customerId)='') and (partner_id=(:partnerId) OR (:partnerId)='') order by startDatetimeOfConnect asc")

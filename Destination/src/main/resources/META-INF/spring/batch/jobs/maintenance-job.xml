@@ -11,8 +11,11 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="maintenanceJob">
-		<batch:step id="dbMaintenance" >
+		<batch:step id="dbMaintenance" next="fileServerMaintenance">
 			<batch:tasklet ref="dbMaintenanceTasklet"/>
+		</batch:step>
+		<batch:step id="fileServerMaintenance">
+			<batch:tasklet ref="filerServerMaintenanceTasklet"/>
 		</batch:step>
 		<batch:listeners>
 			<batch:listener ref= "destinationStpListener"/>

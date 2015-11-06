@@ -212,17 +212,18 @@ public class ConnectService {
 			String customerId, int page, int count) throws Exception {
 		logger.debug("Inside searchforConnectsByNameContaining() service");
 		Pageable pageable = new PageRequest(page, count);
-		PaginatedResponse paginatedResponse=new PaginatedResponse();
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<ConnectT> connectList = null;
 		if (customerId.isEmpty()) {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLike("%" + name + "%", pageable);
+					.findByConnectNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(
+							"%" + name + "%", pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
 		} else {
 			Page<ConnectT> connectPage = connectRepository
-					.findByConnectNameIgnoreCaseLikeAndCustomerId("%" + name
-							+ "%", customerId, pageable);
+					.findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(
+							"%" + name + "%", customerId, pageable);
 			paginatedResponse.setTotalCount(connectPage.getTotalElements());
 			connectList = connectPage.getContent();
 		}
@@ -497,29 +498,33 @@ public class ConnectService {
 	private void validateAndUpdateCityMapping(ConnectT connect)
 			throws DestinationException {
 		String location = connect.getLocation();
-		CityMapping cityMapping = connect.getCityMapping();
-		if (cityMapping != null) {
-			String city = cityMapping.getCity();
-			if (!city.equalsIgnoreCase(location)) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Location mismatch with city Mapping");
-			}
-			CityMapping cityMappingDB = cityMappingRepository.findOne(city);
-			// CityMapping cityMappingDB =
-			// cityMappingRepository.getCityByCityName(city.toUpperCase());
-			if (cityMappingDB == null) {
-				String latitude = cityMapping.getLatitude();
-				if (StringUtils.isEmpty(latitude)) {
+		// validate only if the location info is set
+		// To remove the mandatory constraint for location and its co-ordinates
+		// while Location API doesn't return value
+		if (!StringUtils.isEmpty(location)) {
+			CityMapping cityMapping = connect.getCityMapping();
+			if (cityMapping != null) {
+				String city = cityMapping.getCity();
+				if (!city.equalsIgnoreCase(location)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"latitude is required");
+							"Location mismatch with city Mapping");
 				}
-				String longitude = cityMapping.getLongitude();
-				if (StringUtils.isEmpty(longitude)) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"longitude is required");
-				}
+				CityMapping cityMappingDB = cityMappingRepository.findOne(city);
 
-				cityMappingRepository.save(cityMapping);
+				if (cityMappingDB == null) {
+					String latitude = cityMapping.getLatitude();
+					if (StringUtils.isEmpty(latitude)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"latitude is required");
+					}
+					String longitude = cityMapping.getLongitude();
+					if (StringUtils.isEmpty(longitude)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"longitude is required");
+					}
+
+					cityMappingRepository.save(cityMapping);
+				}
 			}
 		}
 	}
@@ -874,7 +879,19 @@ public class ConnectService {
 		if (connectT != null) {
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
+			removeCyclicForLinkedCustomerMasterTs(connectT);
 		}
+	}
+
+	/**
+	 * Remove cyclic data of list of connects for that customer who belongs to this connect
+	 * @param connectT
+	 */
+	private void removeCyclicForLinkedCustomerMasterTs(ConnectT connectT) {
+		if(connectT!=null)
+			if(connectT.getCustomerMasterT()!=null)
+				connectT.getCustomerMasterT().setConnectTs(null);
+		
 	}
 
 	private void removeCyclicForLinkedOpportunityTs(ConnectT connectT) {

@@ -1,3 +1,12 @@
+/**
+ * 
+ * ConnectCustomWriter.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
@@ -34,7 +43,10 @@ import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
-
+/**
+ * This ConnectCustomWriter class provide the functionality for writing connect details to db, and having listener functionality for steps
+ * 
+ */
 public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
 	
 	private static final Logger logger = LoggerFactory
@@ -65,9 +77,6 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 		for (String[] data: items) {
 
 			operation = (String) data[1];
-
-//			String operation = (String) data[1];
-
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				ConnectT connect =  new ConnectT();
@@ -199,7 +208,20 @@ public class ConnectCustomWriter implements ItemWriter<String[]>, StepExecutionL
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		this.stepExecution = stepExecution;
+		
+		try {
+			
+			this.stepExecution = stepExecution;
+			DataProcessingRequestT request = (DataProcessingRequestT) stepExecution.getJobExecution().getExecutionContext().get(REQUEST);
+			
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
+			dataProcessingRequestRepository.save(request);
+			
+		} catch (Exception e) {
+			logger.error("Error in before step process: {}", e);
+		}
+			
+			
 	}
 
 	@Override

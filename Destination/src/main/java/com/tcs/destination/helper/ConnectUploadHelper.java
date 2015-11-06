@@ -1,10 +1,18 @@
+/**
+ * 
+ * ConnectUploadHelper.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.helper;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +32,6 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SubSpMappingT;
-import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -33,10 +40,8 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
-import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
-import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
@@ -46,6 +51,10 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This ConnectUploadHelper class holds the functionality to aid connect upload
+ * 
+ */
 @Component("connectUploadHelper")
 public class ConnectUploadHelper {
 
@@ -59,9 +68,6 @@ public class ConnectUploadHelper {
 	private SubSpRepository subSpRepository;
 
 	@Autowired
-	private OfferingRepository offeringRepository;
-
-	@Autowired
 	private TimezoneMappingRepository timeZoneMappingRepository;
 
 	@Autowired
@@ -69,9 +75,6 @@ public class ConnectUploadHelper {
 
 	@Autowired
 	private ContactRepository contactRepository;
-
-	@Autowired
-	private ConnectTypeRepository connectTypeRepository;
 
 	@Autowired
 	ConnectSubSpLinkRepository connectSubSpLinkRepository;
@@ -90,6 +93,9 @@ public class ConnectUploadHelper {
 	
 	@Autowired
 	ConnectSecondaryOwnerRepository connectSecondaryOwnerRepository;
+	
+	@Autowired
+	private CommonHelper commonHelper;
 	
 	
 
@@ -174,7 +180,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectSubSp)) {
 
 			if (mapOfSubSpMappingT == null) {
-				mapOfSubSpMappingT = getSubSpMappingT();
+				mapOfSubSpMappingT = commonHelper.getSubSpMappingT();
 			}
 			String[] subSps = connectSubSp.split(",");
 			List<ConnectSubSpLinkT> connectSubSpList = new ArrayList<ConnectSubSpLinkT>();
@@ -198,7 +204,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectOffering)) {
 
 			if (mapOfOfferingMappingT == null) {
-				mapOfOfferingMappingT = getOfferingMappingT();
+				mapOfOfferingMappingT = commonHelper.getOfferingMappingT();
 			}
 			String[] offerings = connectOffering.split(",");
 			
@@ -246,7 +252,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(timezone)) {
 
 			if (timeZoneMap == null) {
-				timeZoneMap = getTimeZoneMappingT();
+				timeZoneMap = commonHelper.getTimeZoneMappingT();
 			}
 
 			if (timeZoneMap.containsKey(timezone.trim())) {
@@ -269,7 +275,7 @@ public class ConnectUploadHelper {
 		// CONNECT TYPE
 		String connectType = data[14];
 		if (mapOfConnectTypeMappingT == null) {
-			mapOfConnectTypeMappingT = getConnectTypeMappingT();
+			mapOfConnectTypeMappingT = commonHelper.getConnectTypeMappingT();
 		}
 
 		if (mapOfConnectTypeMappingT.containsKey(connectType)) {
@@ -358,39 +364,7 @@ public class ConnectUploadHelper {
 		return error;
 	}
 
-	private Map<String, ConnectTypeMappingT> getConnectTypeMappingT() {
-		List<ConnectTypeMappingT> listOfConnectTypeMappingT = null;
-		listOfConnectTypeMappingT = (List<ConnectTypeMappingT>) connectTypeRepository
-				.findAll();
-		Map<String, ConnectTypeMappingT> connectTypeMap = new HashMap<String, ConnectTypeMappingT>();
-		for (ConnectTypeMappingT connectTypeMappingT : listOfConnectTypeMappingT) {
-			connectTypeMap.put(connectTypeMappingT.getType(),
-					connectTypeMappingT);
-		}
-		return connectTypeMap;
-	}
-
-	private Map<String, SubSpMappingT> getSubSpMappingT() {
-		List<SubSpMappingT> listOfSubSpT = null;
-		listOfSubSpT = (List<SubSpMappingT>) subSpRepository.findAll();
-		Map<String, SubSpMappingT> subSpMap = new HashMap<String, SubSpMappingT>();
-		for (SubSpMappingT subSpT : listOfSubSpT) {
-			System.out.println("SubSp key:" + subSpT.getSubSp().trim());
-			subSpMap.put(subSpT.getSubSp().trim(), subSpT);
-		}
-		return subSpMap;
-	}
-
-	private Map<String, String> getTimeZoneMappingT() {
-		List<TimeZoneMappingT> listOfTimeZoneMappingT = null;
-		listOfTimeZoneMappingT = (List<TimeZoneMappingT>) timeZoneMappingRepository
-				.findAll();
-		Map<String, String> timeZomeMappingTsMap = new HashMap<String, String>();
-		for (TimeZoneMappingT timeZoneMappingT : listOfTimeZoneMappingT) {
-			timeZomeMappingTsMap.put(timeZoneMappingT.getDescription(),timeZoneMappingT.getTimeZoneCode());
-		}
-		return timeZomeMappingTsMap;
-	}
+	
 
 	private ConnectSubSpLinkT constructConnectSubSpLink(String subSp,
 			String userId, Map<String, SubSpMappingT> mapOfSubSpMappingT) {
@@ -478,17 +452,6 @@ public class ConnectUploadHelper {
 			listTcsContactLinkT.add(occlt);
 		}
 		return listTcsContactLinkT;
-	}
-
-	private Map<String, OfferingMappingT> getOfferingMappingT() {
-		List<OfferingMappingT> listOfOfferingMappingT = null;
-		listOfOfferingMappingT = (List<OfferingMappingT>) offeringRepository
-				.findAll();
-		Map<String, OfferingMappingT> offeringMap = new HashMap<String, OfferingMappingT>();
-		for (OfferingMappingT offeringMappingT : listOfOfferingMappingT) {
-			offeringMap.put(offeringMappingT.getOffering(), offeringMappingT);
-		}
-		return offeringMap;
 	}
 
 	private List<ConnectCustomerContactLinkT> constructConnectCustomerContactLink(
@@ -634,7 +597,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectSubSp)) {
 
 			if (mapOfSubSpMappingT == null) {
-				mapOfSubSpMappingT = getSubSpMappingT();
+				mapOfSubSpMappingT = commonHelper.getSubSpMappingT();
 			}
 			List<ConnectSubSpLinkT> deleteList = new ArrayList<ConnectSubSpLinkT>();
 			List<ConnectSubSpLinkT> updateList = new ArrayList<ConnectSubSpLinkT>();
@@ -677,7 +640,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectOffering)) {
 
 			if (mapOfOfferingMappingT == null) {
-				mapOfOfferingMappingT = getOfferingMappingT();
+				mapOfOfferingMappingT = commonHelper.getOfferingMappingT();
 			}
 			List<ConnectOfferingLinkT> deleteList = new ArrayList<ConnectOfferingLinkT>();
 			List<ConnectOfferingLinkT> updateList = new ArrayList<ConnectOfferingLinkT>();
@@ -742,7 +705,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(timezone)) {
 
 			if (timeZoneMap == null) {
-				timeZoneMap = getTimeZoneMappingT();
+				timeZoneMap = commonHelper.getTimeZoneMappingT();
 			}
 
 			if (timeZoneMap.containsKey(timezone.trim())) {
@@ -765,7 +728,7 @@ public class ConnectUploadHelper {
 		// CONNECT TYPE
 		String connectType = data[14];
 		if (mapOfConnectTypeMappingT == null) {
-			mapOfConnectTypeMappingT = getConnectTypeMappingT();
+			mapOfConnectTypeMappingT = commonHelper.getConnectTypeMappingT();
 		}
 
 		if (mapOfConnectTypeMappingT.containsKey(connectType)) {

@@ -15,6 +15,8 @@ public class BDMPerfromanceGeoIouDashboardResponse implements Serializable{
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	private String userName;
+	
 	private BigDecimal winsTarget;
 	
 	private BigDecimal pipelineFunnelTarget;
@@ -32,6 +34,14 @@ public class BDMPerfromanceGeoIouDashboardResponse implements Serializable{
 	private List<GeoIouDashboardDTO> geoOrIouHeadAchieved;
 	
 	private List<PipelineDTO> pipelineFunnelAchieved;
+	
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
 	
 	public List<PipelineDTO> getPipelineFunnelAchieved() {
 		return pipelineFunnelAchieved;

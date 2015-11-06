@@ -2,8 +2,12 @@ package com.tcs.destination.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class DestinationException extends Exception {
+public class DestinationException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String message = null;
 	private HttpStatus httpStatus = null;
 

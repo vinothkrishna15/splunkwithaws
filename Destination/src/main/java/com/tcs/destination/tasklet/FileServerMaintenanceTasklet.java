@@ -1,6 +1,6 @@
 /**
  * 
- * DBMaintenanceTasklet.java 
+ * FileServerMaintenanceTasklet.java 
  *
  * @author TCS
  * @Version 1.0 - 2015
@@ -15,31 +15,27 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.data.repository.BatchOpportunityRepository;
+import com.tcs.destination.utils.FileManager;
 
 /**
- * This DBMaintenanceTasklet class provide the functionality for purging the database tables, as per the business requirements
+ * This FileServerMaintenanceTasklet class provide the functionality for purging the file server, as per the business requirements
  * 
  */
-@Component("dbMaintenanceTasklet")
-public class DBMaintenanceTasklet implements Tasklet {
+@Component("filerServerMaintenanceTasklet")
+public class FileServerMaintenanceTasklet implements Tasklet {
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(DBMaintenanceTasklet.class);
+			.getLogger(FileServerMaintenanceTasklet.class);
 	
-	@Value("${batch.table.purge.days}")
-	private int batchTablePurgeDays;
+	@Value("${batch.file.server.purge.days}")
+	private int filePurgeDays;
 	
-	@Value("${batch.table.purge.months}")
-	private int usrNotiPurgeMonths;
+	@Value("${fileserver.path}")
+	private String rootPath;
 	
-	@Autowired
-	private BatchOpportunityRepository batchOpportunityRepository;
-
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.core.step.tasklet.Tasklet#execute(org.springframework.batch.core.StepContribution, org.springframework.batch.core.scope.context.ChunkContext)
 	 */
@@ -49,13 +45,9 @@ public class DBMaintenanceTasklet implements Tasklet {
 		
 		logger.debug("Inside execute method:");
 		
-		RepeatStatus status = null;
+		FileManager.purgeOldFile(filePurgeDays, rootPath);
 		
-		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, usrNotiPurgeMonths) == 1 ) {
-			status = RepeatStatus.FINISHED;
-		}
-		
-		return status;
+		return RepeatStatus.FINISHED;
 	}
 
 }
