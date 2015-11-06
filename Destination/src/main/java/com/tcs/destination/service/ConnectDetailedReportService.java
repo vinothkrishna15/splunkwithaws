@@ -518,10 +518,10 @@ public class ConnectDetailedReportService {
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
-		row = (SXSSFRow) spreadsheet.createRow(12);
-		row.createCell(6).setCellValue("User Access Filter's");
-		row.getCell(6).setCellStyle(subHeadingStyle);
-		spreadsheet.autoSizeColumn(6);
+		row = (SXSSFRow) spreadsheet.createRow(14);
+		row.createCell(4).setCellValue("User Access Filter's");
+		row.getCell(4).setCellStyle(subHeadingStyle);
+		spreadsheet.autoSizeColumn(4);
 		switch (userGroup) {
 		case ReportConstants.GEOHEAD:
 			userAccessField = "Geography";
@@ -532,7 +532,7 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 15, dataRow);
 			break;
 		case ReportConstants.IOUHEAD:
 			userAccessField = "IOU";
@@ -544,7 +544,7 @@ public class ConnectDetailedReportService {
 				}
 			}
 //			
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 13, dataRow);
+			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 15, dataRow);
 			break;
 		case ReportConstants.BDM:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER);
