@@ -289,7 +289,7 @@ public class PerformanceReportController {
 	 * @throws Exception
 	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/freqSearchGroupCust")
-	public @ResponseBody String findFavorite(
+	public @ResponseBody String findFrequentlySearchedGroupCustomer(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {

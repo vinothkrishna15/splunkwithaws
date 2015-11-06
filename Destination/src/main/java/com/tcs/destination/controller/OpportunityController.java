@@ -502,11 +502,12 @@ public class OpportunityController {
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public @ResponseBody String findByOpportunityIds(
 			@RequestParam("ids") List<String> opportunityIds,
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 		logger.debug("Inside OpportunityController /opportunity/Id=" + opportunityIds + " GET");
-		List<OpportunityT> opportunityList = opportunityService.findByOpportunityIds(opportunityIds);
+		List<OpportunityT> opportunityList = opportunityService.findByOpportunityIds(opportunityIds, currencies);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunityList);
 	}
 
