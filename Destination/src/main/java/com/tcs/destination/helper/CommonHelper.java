@@ -17,10 +17,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ConnectTypeMappingT;
+import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
+import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
@@ -40,6 +45,21 @@ public class CommonHelper {
 	
 	@Autowired
 	private ConnectTypeRepository connectTypeRepository;
+	
+
+	@Autowired
+	private CustomerIOUMappingRepository customerIouMappingTRepository;
+	
+
+	@Autowired
+	private CustomerIOUMappingRepository iouCustomerMappingRepository;
+	
+	@Autowired
+	private CustomerRepository customerRepository;
+
+	@Autowired
+	private GeographyRepository geographyRepository;
+
 	
 	@Autowired
 	private OfferingRepository offeringRepository;
@@ -103,5 +123,53 @@ public class CommonHelper {
 		}
 		return offeringMap;
 	}
+	
+	/**
+	 * This method creates a geography Map
+	 * 
+	 * @return geographyMap
+	 */
+	public Map<String, GeographyMappingT> getGeographyMappingT() {
+		List<GeographyMappingT> listOfGeographyMappingT = null;
+		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository
+				.findAll();
+		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
+		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
+			geographyMap.put(geographyMappingT.getGeography(),
+					geographyMappingT);
+		}
+		return geographyMap;
+	}
+
+	/**
+	 * This method creates a IOU Map
+	 * 
+	 * @return iouMap
+	 */
+	public Map<String, IouCustomerMappingT> getIouMappingT() {
+		List<IouCustomerMappingT> listOfIouMappingT = null;
+		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository
+				.findAll();
+		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
+		for (IouCustomerMappingT iouMappingT : listOfIouMappingT) {
+			iouMap.put(iouMappingT.getIou(), iouMappingT);
+		}
+		return iouMap;
+	}
+	
+	/*
+	 * 
+	 */
+	public Map<String, IouCustomerMappingT> getIouCustomerMappingT() {
+		List<IouCustomerMappingT> listOfIouCustomerMappingT = null;
+		listOfIouCustomerMappingT = (List<IouCustomerMappingT>) iouCustomerMappingRepository
+				.findAll();
+		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
+		for (IouCustomerMappingT iouCustomerMappingT : listOfIouCustomerMappingT) {
+			iouMap.put(iouCustomerMappingT.getIou(), iouCustomerMappingT);
+		}
+		return iouMap;
+	}
+
 
 }

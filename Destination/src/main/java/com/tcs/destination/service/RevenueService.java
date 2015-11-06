@@ -108,5 +108,17 @@ public class RevenueService {
 		}
 		return actualRevenueDataT;
 	}
+	@Transactional
+	public void save(List<ActualRevenuesDataT> addList) {
+		logger.info("in to save method");
+		logger.info("list size " +addList.size());
+		actualRevenuesDataTRepository.save(addList);
+	}
+	@Transactional
+	public void delete(List<ActualRevenuesDataT> deleteList) {
+		logger.info("in to delete method");
+		logger.info("list size " +deleteList.size());
+		actualRevenuesDataTRepository.delete(deleteList);
+	}
 
 }

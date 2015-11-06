@@ -257,6 +257,8 @@ public class ActualRevenueDataUploadService {
 				else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "IOU NOT Found");
 				}
+			}else{
+				throw new DestinationException(HttpStatus.NOT_FOUND, "the combination of  END CUSTOMER NAME,CLIENT GEOGRAPHY and IOU is NOT Found");
 			}
 		} 
 		
