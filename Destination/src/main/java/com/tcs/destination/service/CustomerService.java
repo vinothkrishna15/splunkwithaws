@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.ContactCustomerLinkT;
-import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.enums.UserGroup;
@@ -112,6 +107,41 @@ public class CustomerService {
 		return customerMasterT;
 	}
 
+	
+	/**
+	 * This method deletes the Customer from the database
+	 * @param customerT
+	 * @throws Exception
+	 */
+	@Transactional
+	public void removeCustomer(CustomerMasterT customerT) throws Exception {
+
+		if (customerT != null) {
+			logger.info("inside remove customer" + customerT.getCustomerId()  +  " " );
+			customerRepository.delete(customerT);
+			logger.info("customer deleted for customerid:"+ customerT.getCustomerId());
+		}
+	}
+
+	
+	//for batch save
+	public void save(List<CustomerMasterT> insertList) {
+
+		logger.debug("Inside save method of customer service");
+		customerRepository.save(insertList);
+		
+	
+	}
+	
+	public void delete(List<CustomerMasterT> deleteList) {
+
+		logger.debug("Inside save method of customer service");
+		customerRepository.delete(deleteList);
+		
+	
+	}
+	
+	
 	/**
 	 * This service is used to find Top revenue customers based on user's access
 	 * privileges.
@@ -532,32 +562,32 @@ public class CustomerService {
 	public CustomerMasterT addCustomer(CustomerMasterT customerToInsert)
 			throws Exception {
 		CustomerMasterT customerT = null;
-		List<CustomerMasterT> customers = null;
+		logger.info("inside addCustomer");
 		if (customerToInsert != null) {
 			customerT = new CustomerMasterT();
-			customers = customerRepository
-					.findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(customerToInsert
-							.getCustomerName());
-			if (customers.isEmpty()) {
+			logger.info("customer not null");
+			//primary key check for customerid 
+			logger.info("where critrtia:grp_cus_name: " + customerToInsert.getGroupCustomerName() + "cusname: "+customerToInsert.getCustomerName() + "iou: "+customerToInsert.getIou() + "geo: "+customerToInsert.getGeography());
+	String customerId = customerRepository.findCustomerIdForDeleteOrUpdate(customerToInsert.getGroupCustomerName(), customerToInsert.getCustomerName(), customerToInsert.getIou(), customerToInsert.getGeography());
+			logger.info("customer id for add from repo " + customerId);
+			if (customerId == null) {
+				logger.info("customer id is not empty");
 				customerT.setCustomerName(customerToInsert.getCustomerName());
+				
+				customerT.setDocumentsAttached("NO");
+				customerT.setCorporateHqAddress(customerToInsert.getCorporateHqAddress());
+				customerT.setCreatedModifiedBy(customerToInsert.getCreatedModifiedBy());
+				customerT.setGroupCustomerName(customerToInsert.getGroupCustomerName());
+				customerT.setFacebook(customerToInsert.getFacebook());
+				customerT.setWebsite(customerToInsert.getWebsite());
+				customerT.setLogo(customerToInsert.getLogo());
+				customerT.setGeography(customerToInsert.getGeography());
+				customerT.setIou(customerToInsert.getIou());
 			} else {
 				logger.error("EXISTS: customer Already Exist!");
-				throw new DestinationException(HttpStatus.CONFLICT,
-						"customer Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,"customer Already Exist!");
 			}
-
-			customerT.setDocumentsAttached("NO");
-			customerT.setCorporateHqAddress(customerToInsert
-					.getCorporateHqAddress());
-			customerT.setCreatedModifiedBy(customerToInsert
-					.getCreatedModifiedBy());
-			customerT.setGroupCustomerName(customerToInsert
-					.getGroupCustomerName());
-			customerT.setFacebook(customerToInsert.getFacebook());
-			customerT.setWebsite(customerToInsert.getWebsite());
-			customerT.setLogo(customerToInsert.getLogo());
-			customerT.setGeography(customerToInsert.getGeography());
-			customerT.setIou(customerToInsert.getIou());
+			logger.info("before save");
 			customerT = customerRepository.save(customerT);
 			logger.info("Customer Saved .... " + customerT.getCustomerId());
 		}
@@ -566,7 +596,6 @@ public class CustomerService {
 
 	/**
 	 * This method inserts Beacon customers to the database
-	 * 
 	 * @param beaconCustomerToInsert
 	 * @return BeaconCustomerMappingT
 	 * @throws Exception

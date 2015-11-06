@@ -728,7 +728,7 @@ public class BDMReportsService {
 			row.getCell(0).setCellStyle(cellStyle);
 			row.createCell(1).setCellValue("Targets Defined");
 			row.getCell(1).setCellStyle(cellStyle);
-			row.createCell(2).setCellValue("Target");
+			row.createCell(2).setCellValue("Sales Goals");
 			row.getCell(2).setCellStyle(cellStyle);
 			row.createCell(3).setCellValue("Achieved");
 			row.getCell(3).setCellStyle(cellStyle);
@@ -881,7 +881,7 @@ public class BDMReportsService {
 			row.getCell(0).setCellStyle(cellStyle);
 			row.createCell(1).setCellValue("Targets Defined");
 			row.getCell(1).setCellStyle(cellStyle);
-			row.createCell(2).setCellValue("Target");
+			row.createCell(2).setCellValue("Sales Goals");
 			row.getCell(2).setCellStyle(cellStyle);
 			row.createCell(3).setCellValue("Achieved");
 			row.getCell(3).setCellStyle(cellStyle);

@@ -1529,7 +1529,7 @@ public class OpportunityService {
 	 * @param opportunityIds
 	 * @return
 	 */
-	public List<OpportunityT> findByOpportunityIds(List<String> opportunityIds) {
+	public List<OpportunityT> findByOpportunityIds(List<String> opportunityIds, List<String> toCurrency) {
 		logger.debug("Inside findByOpportunityIds() method");
 		List<OpportunityT> opportunityList = null;
 		if ((opportunityIds != null) && (!opportunityIds.isEmpty())) {
@@ -1539,6 +1539,10 @@ public class OpportunityService {
 			logger.error("Opportunities not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found");
 		}
+		beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
+
+		prepareOpportunity(opportunityList);
+
 		return opportunityList;
 	}
 }

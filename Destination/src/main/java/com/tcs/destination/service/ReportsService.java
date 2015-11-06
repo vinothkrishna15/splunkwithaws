@@ -134,7 +134,7 @@ public class ReportsService {
 			+ "   JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
 			+ "   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
 			+ "   JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-			+ "   JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
+//			+ "   JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
 			+ "   left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id"
 			+ "   left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
 			+ " where ";
@@ -402,11 +402,10 @@ public class ReportsService {
 	private static final String SUBSP_COND_PREFIX = "SSM.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String COUNTRY_COND_PREFIX = "GCM.country in (";
-	private static final String CONNECT_GEO_GROUP_BY_COND_PREFIX = "group by GMT.display_geography";
 	private static final String CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX = " ))) as geo group by display_geography ";
 	private static final String CONNECT_GROUP_BY_SUBSP_COND_PREFIX = " ))) as geo group by display_sub_sp ";
 	private static final String CONNECT_IOU_GROUP_BY_COND_PREFIX = "group by display_iou";
-	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
+//	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
 	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between '";
 	private static final String BID_END_DATE_COND_C_PREFIX = " AND '";
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
@@ -421,12 +420,12 @@ public class ReportsService {
 	private static final String TARVSACT_ACTUAL_QUARTER_COND_PREFIX = "BDT.quarter in (";
 	private static final String TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX = "))) as RVNU";
 	private static final String TARVSACT_GROUP_BY_ORDER_BY_COND_PREFIX = "30) as top_Revenue";
-	private static final String GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU order by revenue desc LIMIT ";
+//	private static final String GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU order by revenue desc LIMIT ";
 	private static final String TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX = "group by BCMT.customer_name order by revenue_sum desc";
-	private static final String TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU group by RVNU.customer_name order by revenue desc";
+//	private static final String TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU group by RVNU.customer_name order by revenue desc";
 
-	private static final String TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX = "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
-			+ "as RVNU group by RVNU.customer_name ,RVNU.display_geography order by revenue desc";
+//	private static final String TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX = "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
+//			+ "as RVNU group by RVNU.customer_name ,RVNU.display_geography order by revenue desc";
 
 	// ADDED STATIC STRINGS
 	
@@ -443,7 +442,6 @@ public class ReportsService {
 		private static final String OPPORTUNITY_IOU_GROUP_BY_COND_PREFIX = "group by ICM.display_iou";
 		private static final String OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX = "group by SSMT.display_sub_sp";
 		private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
-		
 
 	
 	
@@ -1882,11 +1880,11 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		if ((resultList != null) && !(resultList.isEmpty())) {
 			connectDetailsList = connectRepository.getConnectsByIds(resultList);
 		}
-		if (connectDetailsList == null || connectDetailsList.isEmpty()) {
-			logger.error("NOT_FOUND: Connects not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connects not found");
-		}
+//		if (connectDetailsList == null || connectDetailsList.isEmpty()) {
+//			logger.error("NOT_FOUND: Connects not found");
+//			throw new DestinationException(HttpStatus.NOT_FOUND,
+//					"Report could not be downloaded, as no bids are available for user selection and privilege combination" );
+//		}
 		return connectDetailsList;
 	}
 
@@ -1960,7 +1958,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, COUNTRY_COND_PREFIX);
+						IOU_COND_PREFIX, null);
 		// Get WHERE clause string
 		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
 				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
@@ -2462,13 +2460,14 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				logger.error("Invalid User Group: {}", userGroup);
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
 			}
-			if (connectList != null && subSpConnectCountList != null
-					&& geographyConnectCountList != null
-					&& iouConnectCountList != null) {
+			if (connectList != null && subSpConnectCountList != null && geographyConnectCountList != null && iouConnectCountList != null) {
+				
 				connectDetailedReportService.getConnectTitlePage(workbook, geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary, Detailed");
-				getConnectSummaryReportExcel(month, quarter, year, subSpConnectCountList, geographyConnectCountList,
-						iouConnectCountList, country, fields, workbook);
+				
+				getConnectSummaryReportExcel(month, quarter, year, subSpConnectCountList, geographyConnectCountList, iouConnectCountList, country, fields, workbook);
+				
 				getConnectDetailedReportInExcel(connectList, iouList, geographyList, country, serviceLines, fields, workbook);
+			
 			} else {
 				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
@@ -2523,6 +2522,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				addEmptyItemToListIfAll(serviceLines, serviceLinesList);
 				addEmptyItemToListIfAll(country, countryList);
 				bidDetails = getBidDetailsBasedOnUserPrivileges(startDate, endDate, userId, bidOwner, geographyList, iouList, serviceLinesList, countryList);
+				
 				bidDetailsList = beaconConverterService.convertBidDetailsCurrency(bidDetails, currency);
 				if (bidDetailsList == null || bidDetailsList.isEmpty()) {
 					logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
@@ -2545,9 +2545,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			List<String> geographyList, List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
 		// Form the native top revenue query string
-//		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner);
 		String queryString = getBidDetailedQueryString(userId, startDate, endDate, bidOwner, geographyList, iouList, serviceLinesList, countryList);
-		logger.info("Query string: {}", queryString);
+//		logger.info("Query string: {}", queryString);
 		// Execute the native revenue query string
 		Query bidDetailedReportQuery = entityManager.createNativeQuery(queryString);
 		List<String> resultList = bidDetailedReportQuery.getResultList();
@@ -2563,6 +2562,19 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return bidDetailsList;
 	}
 
+	/**
+	 * This Method used to form bid details query based on user access priviledges
+	 * @param userId
+	 * @param startDate
+	 * @param endDate
+	 * @param bidOwner
+	 * @param geographyList
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @return
+	 * @throws Exception
+	 */
 	private String getBidDetailedQueryString(String userId, Date startDate, Date endDate, List<String> bidOwner, List<String> geographyList,
 			List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
@@ -2594,6 +2606,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		}
 		if(!countryList.contains("") && countryList!=null){
 			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX +getStringListWithSingleQuotes(countryList)+ Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + OPPORTUNITY_COUNTRY_COND_PREFIX +getStringListWithSingleQuotes(countryList)+ Constants.RIGHT_PARANTHESIS);
 		}
 		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		if (whereClause != null && !whereClause.isEmpty()) {
@@ -2602,59 +2615,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		return queryBuffer.toString();
 	}
 
-//	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(
-//			Date startDate, Date endDate, String userId, List<String> bidOwner)
-//			throws Exception {
-//		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
-//		// Form the native top revenue query string
-//		String queryString = getBidDetailedQueryString(userId, startDate,
-//				endDate, bidOwner);
-//		logger.info("Query string: {}", queryString);
-//		// Execute the native revenue query string
-//		Query bidDetailedReportQuery = entityManager
-//				.createNativeQuery(queryString);
-//		List<String> resultList = bidDetailedReportQuery.getResultList();
-//		// Retrieve connect details
-//		List<BidDetailsT> bidDetailsList = null;
-//		if ((resultList != null) && !(resultList.isEmpty())) {
-//			bidDetailsList = bidDetailsTRepository.findByBidId(resultList);
-//		}
-//		if (bidDetailsList == null || bidDetailsList.isEmpty()) {
-//			logger.error("NOT_FOUND: Report could not be downloaded, as no bids are available for user selection and privilege combination");
-//			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no bids are available for user selection and privilege combination");
-//		}
-//		return bidDetailsList;
-//	}
 
-	private String getBidDetailedQueryString(String userId, Date startDate,
-			Date endDate, List<String> bidOwner) throws Exception {
-		logger.debug("Inside getRevenueQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(BID_REPORT_QUERY_PREFIX);
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, null, IOU_COND_PREFIX, null);
-		// Get WHERE clause string
-		queryBuffer.append(BID_START_DATE_COND_PREFIX
-				+ new Timestamp(startDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(BID_END_DATE_COND_C_PREFIX
-				+ new Timestamp(endDate.getTime()) + Constants.SINGLE_QUOTE);
-		if (bidOwner.isEmpty() || bidOwner.size() == 0) {
-			queryBuffer.append(Constants.AND_CLAUSE	+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + "''" + ")"
-					+ Constants.OR_CLAUSE + "('')" + " in" + "(''))");
-		} else {
-			String bidOwners = getStringListWithSingleQuotes(bidOwner);
-			queryBuffer.append(Constants.AND_CLAUSE
-					+ BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX + bidOwners + ")"+ Constants.OR_CLAUSE + "('') in (" + bidOwners
-					+ "))");
-		}
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-		return queryBuffer.toString();
-	}
 
 	// For Detailed Report
 	
@@ -2682,7 +2643,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				return queryBuffer.toString();
 		}
 		
-		// Detailed report ends here
 		
 		// Win Loss Service line
 		

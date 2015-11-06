@@ -12,7 +12,7 @@ public class FrequentlySearchedGroupCustomersTPK implements Serializable {
 	//default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	@Column(name="user_id", insertable=false, updatable=false)
+	@Column(name="user_id")
 	private String userId;
 
 	@Column(name="group_customer_name")
