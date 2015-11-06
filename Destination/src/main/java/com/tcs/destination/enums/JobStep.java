@@ -2,6 +2,6 @@ package com.tcs.destination.enums;
 
 public enum JobStep {
 	
-	CONNECT_PROCESSING, PREPROCESS, END
+	CONNECT_PROCESSING, PREPROCESS, END,PARTNER_PROCESSING
 
 }
