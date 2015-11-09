@@ -23,10 +23,9 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
-
 import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.ConnectT;
-
+import com.tcs.destination.bean.FrequentlySearchedGroupCustomersTPK;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
 import com.tcs.destination.bean.OpportunityT;
@@ -35,9 +34,7 @@ import com.tcs.destination.bean.ReportsSalesStage;
 import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-
 import com.tcs.destination.bean.UserTaggedFollowedT;
-
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
@@ -497,9 +494,8 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE = "select OPP.sales_stage_code as SalesStage, count(*) as oppCount, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV,"
 			+ "median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median,"
 			+ "avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Mean  from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
-			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography  "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
@@ -511,14 +507,15 @@ public class PerformanceReportService {
 			+ " and (GMT.geography = (:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customer) OR ('') in (:customer))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
+			+ " and OPP.digital_deal_value <> 0 "
 			+ " and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
 			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) ";
 
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE_GROUP_BY_ORDER_BY = " group by SalesStage order by SalesStage";
 
 	private static final String TOP_OPPORTUNITIES_QUERY_PREFIX = "select distinct OPP.* from opportunity_t OPP"
-			+ " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
-			+ " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ " LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
+			+ " LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ " JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country"
 			+ " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ " JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
@@ -2511,34 +2508,54 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method is used to insert frequently searched group customer details
-	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
 	 */
-	public boolean insertFrequentlySearchedGroupCustomer(
-			FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
+	public boolean insertFrequentlySearchedGroupCustomer(FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
 		logger.info("Inside insertFrequentlySearchedGroupCustomer() Method");
-
-		if (frequentlySearchedGroupCustomerTRepository
-				.save(frequentlySearchedGroupCustomersT) != null) {
-			return true;
-		} else {
-			return false;
+		FrequentlySearchedGroupCustomersTPK frequentlySearchedGroupCustomersTPK = new FrequentlySearchedGroupCustomersTPK();
+		frequentlySearchedGroupCustomersTPK.setGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+		frequentlySearchedGroupCustomersTPK.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
+		frequentlySearchedGroupCustomersT.setFreqSearchedGroupCustomer(frequentlySearchedGroupCustomersTPK);
+		boolean isInserted = false;
+		String groupCustomerName = null;
+		if(frequentlySearchedGroupCustomersT!=null){
+			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
+			frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getUserId());
+			groupCustomerName = frequentlySearchedGroupCustomerTRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+			
+			if(groupCustomerName==null){
+				if(frequentlySearchedGroupCustomersTs.size()>4){
+					frequentlySearchedGroupCustomerTRepository.delete(frequentlySearchedGroupCustomersTs.get(4));
+				}
+			}
+			List<String> customerName = null;
+			customerName =	customerRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
+			
+			if(customerName!=null && !customerName.isEmpty()){
+				if (frequentlySearchedGroupCustomerTRepository.save(frequentlySearchedGroupCustomersT) != null) {
+					isInserted = true;
+				}
+			} else{
+				logger.error("Invalid Group Customer Name");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer Name");
+			}
 		}
+		return isInserted;
 	}
 
 	/**
 	 * This Method used to retrieve the recently searched group customer name
-	 * 
 	 * @param userId
 	 * @return
 	 */
-	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(
-			String userId) {
+	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(String userId) {
 		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
-		frequentlySearchedGroupCustomersTs = (List<FrequentlySearchedGroupCustomersT>) frequentlySearchedGroupCustomerTRepository
-				.findAll();
+		frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(userId);
+		if(frequentlySearchedGroupCustomersTs==null || frequentlySearchedGroupCustomersTs.isEmpty()){
+			logger.error("Recently Searched Group Customers Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Recently Searched Group Customers Not Found");
+		}
 		return frequentlySearchedGroupCustomersTs;
 	}
-
 }

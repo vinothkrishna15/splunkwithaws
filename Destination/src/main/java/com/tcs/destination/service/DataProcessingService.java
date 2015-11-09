@@ -40,12 +40,17 @@ public class DataProcessingService {
 		String path = null;
 		Status status = new Status();
 		
+
 		if(type == RequestType.CONNECT_UPLOAD.getType()){
 		path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
 		}
 		else if(type == RequestType.OPPORTUNITY_UPLOAD.getType()){
 		path = fileServerPath + EntityType.OPPORTUNITY.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
 		}
+
+//		String path = fileServerPath + getEntity(type) + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		
+
 		FileManager.saveFile(file, path);
 		
 		DataProcessingRequestT request = new DataProcessingRequestT();
@@ -61,6 +66,44 @@ public class DataProcessingService {
 		
 		return status;
 	}
+
+	private String getEntity(int type) {
+		String entity = "FOLDER";
+	switch (type) {
+	    case 1:entity="USER";
+	
+	    break;
+	
+		case 2:entity="CUSTOMER";
+			
+			break;
+		case 3:entity="CONNECT";
+		
+		break;
+		case 4:entity="OPPORTUNITY";
+		
+		break;
+		case 5:entity="ACTUAL_REVENUE";
+		
+		break;
+		case 6:entity="CUSTOMER_CONTACT";
+		
+		break;
+		case 7:entity="PARTNER";
+		
+		break;
+		case 8:entity="PARTNER_CONTACT";
+		
+		break;
+		case 9:entity="BEACON";
+		
+		break;
+		
+		
+		}
+		return entity;
+	}
+
 
 	/**
 	 * @param userId

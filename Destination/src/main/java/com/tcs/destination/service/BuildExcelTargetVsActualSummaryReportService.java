@@ -303,7 +303,7 @@ public class BuildExcelTargetVsActualSummaryReportService {
 		}
 		row1.createCell(7).setCellValue(ReportConstants.PERCENTAGAINSTTOTAL);
 		row1.getCell(7).setCellStyle(borderStyle);
-		BigDecimal percentAgainstTotal=totalActualProjectedINR.divide(top30CustomersRevenueINR,4,RoundingMode.HALF_DOWN);
+		BigDecimal percentAgainstTotal=top30CustomersRevenueINR.divide(totalActualProjectedINR,4,RoundingMode.HALF_DOWN);
 		if(percentAgainstTotal!=null)
 		row1.createCell(8).setCellValue(percentAgainstTotal.doubleValue()*100);
 		row1.getCell(8).setCellStyle(borderStyle);

@@ -247,7 +247,6 @@ public class UserT implements Serializable {
 	private List<UserFavoritesT> userFavoritesTs;
 
 	// bi-directional one-to-one association to UserGeneralSettingsT
-	@JsonIgnore
 	@OneToOne(mappedBy = "userT")
 	private UserGeneralSettingsT userGeneralSettingsT;
 	

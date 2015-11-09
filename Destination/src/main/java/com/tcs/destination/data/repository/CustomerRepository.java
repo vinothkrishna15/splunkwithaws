@@ -78,6 +78,17 @@ public interface CustomerRepository extends
 
 	@Query(value = "select customer_name from customer_master_t where group_customer_name = ?1", nativeQuery = true)
 	List<String> findByGroupCustomerName(String groupCustName);
+	
+	@Query(value = "select customer_id from customer_master_t where "
+			+ "(group_customer_name = (:groupCustomerName)"
+			+ "and customer_name =(:customerName)"
+			+ "and iou=(:displayIOU)"
+			+ "and geography =(:geography))", nativeQuery = true)
+	String findCustomerIdForDeleteOrUpdate(
+			@Param("groupCustomerName") String groupCustomerName,
+			@Param("customerName") String name,
+			@Param("displayIOU") String displayIOU,
+			@Param("geography") String geography);
 
 	@Query(value = "select * from customer_master_t where "
 			+ "(upper(customer_name) like (:customerName)) "
