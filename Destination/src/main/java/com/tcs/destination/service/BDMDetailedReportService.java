@@ -126,7 +126,22 @@ public class BDMDetailedReportService {
 	@Autowired
 	BDMReportsService bdmReportsService;
 
-		
+	/**
+	 * This Method used to BDM Performance detailed report in excel format
+	 * @param financialYear
+	 * @param from
+	 * @param to
+	 * @param geography
+	 * @param country
+	 * @param currency
+	 * @param servicelines
+	 * @param salesStage
+	 * @param opportunityOwners
+	 * @param userId
+	 * @param fields
+	 * @return
+	 * @throws Exception
+	 */
 	public InputStreamResource getBdmDetailedReport(String financialYear, String from, String to,
 			List<String> geography,  List<String> country, List<String> currency, List<String> servicelines,
 			List<Integer> salesStage, List<String> opportunityOwners,
@@ -144,15 +159,24 @@ public class BDMDetailedReportService {
 	}
 
 	/**
-	 * 
-	 * @param financialYear * @param from * @param to * @param geography * @param currency
-	 * @param serviceLines * @param salesStage * @param opportunityOwners * @param userId
-	 * @param workbook * @throws Exception
+	 * This Method used to set the bdm performance details based on user access privileges
+	 * @param financialYear
+	 * @param from
+	 * @param to
+	 * @param geography
+	 * @param country
+	 * @param currency
+	 * @param serviceLines
+	 * @param salesStage
+	 * @param opportunityOwners
+	 * @param userId
+	 * @param workbook
+	 * @param fields
+	 * @throws Exception
 	 */
 	public void getBdmDetailedReportExcel(String financialYear, String from, String to, List<String> geography, List<String> country, List<String> currency,
 			List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwners, String userId,
 			SXSSFWorkbook workbook, List<String> fields) throws Exception {
-		List<String> userIds = new ArrayList<String>();
 		UserT user = userService.findByUserId(userId);
 		boolean isIncludingSupervisor = false;
 		if (user != null) {
@@ -166,10 +190,9 @@ public class BDMDetailedReportService {
 			
 			List<String> opportunityOwnerList = new ArrayList<String>();
 			addItemToListGeo(geography,geoList);
-			addItemToList(country, countryList);
-			addItemToList(serviceLines,serviceLinesList);
-			addItemToList(opportunityOwners, opportunityOwnerList);
-			List<OpportunityT> opportunityList=null;
+			ExcelUtils.addItemToList(country, countryList);
+			ExcelUtils.addItemToList(serviceLines,serviceLinesList);
+			ExcelUtils.addItemToList(opportunityOwners, opportunityOwnerList);
 			
 			if(from.equals("") && to.equals("")){
 				if(financialYear.equals("")){
@@ -229,24 +252,6 @@ public class BDMDetailedReportService {
 		}
 	}
 		
-		
-		
-		/**
-		 * This Method retrieves the BDM Supervisor performance details
-		 * @param users * @param financialYear * @param geoList * @param serviceLinesList
-		 * @param salesStage 
-		 * @param countryList * @param workbook
-		 * @param fields 
-		 * @throws Exception 
-		 */
-//		private List<OpportunityT> getBDMSupervisorPerformanceExcelReport(List<String> users, Date fromDate, Date toDate, List<String> geoList, List<Integer> salesStage, List<String> serviceLinesList,
-//				List<String> countryList, List<String> currency) throws Exception {
-//			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
-//			List<OpportunityT> opportunityList = null; 
-//			opportunityList = opportunityRepository.getBDMSupervisorOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate);
-//			return opportunityList;
-//		}
-		
 		/**
 		 * This Method retrieves the BDM Supervisor performance details
 		 * @param users * @param financialYear * @param geoList * @param serviceLinesList
@@ -271,6 +276,7 @@ public class BDMDetailedReportService {
 		
 
 		/**
+		 * This Method used to set bdms opportunity details to excel
 		 * @param userIdAndOppList
 		 * @param currency
 		 * @param workbook
@@ -526,7 +532,7 @@ public class BDMDetailedReportService {
 
 
 		/**
-		 * 
+		 * This Method used to set bdm supervisor mandatory fields to excel 
 		 * @param row 
 		 * @param currentRow
 		 * @param spreadSheet
@@ -572,7 +578,7 @@ public class BDMDetailedReportService {
 
 		
 		/**
-		 * 
+		 * This Method used to set bdm supervisor header(both mandatory and optional fields) details to excel
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param cellStyle
@@ -603,7 +609,22 @@ public class BDMDetailedReportService {
 			}
 		}
 
-		
+		/**
+		 * This Method used to get opportunity ids based on user access privileges
+		 * @param userId
+		 * @param fromDate
+		 * @param toDate
+		 * @param geoList
+		 * @param serviceLinesList
+		 * @param countryList
+		 * @param currency
+		 * @param salesStage
+		 * @param opportunityOwnerList
+		 * @param fields
+		 * @param isIncludingSupervisor
+		 * @param workbook
+		 * @throws Exception
+		 */
 		private void getBDMOpportunityIdsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList, List<String> countryList,
 				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList, List<String> fields, boolean isIncludingSupervisor, SXSSFWorkbook workbook) throws Exception {
 			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
@@ -614,22 +635,16 @@ public class BDMDetailedReportService {
 			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
 			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
 			
-//			if(!opportunityIds.isEmpty()){
-//				opportunityList = opportunityRepository.findByOpportunityIdInOrderByCountryAsc(opportunityIds);
-//			}
-			
 			if (bdmUserAndOppId == null || bdmUserAndOppId.isEmpty()) {
 				logger.error("NOT_FOUND: Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
 			}
-			
 			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, countryList, currency, workbook, fields,isIncludingSupervisor);
-
 		}
 
 
 		/**
-		 * 
+		 * This Method used construct query based on user access privileges, this query retrieves the list of opportunity ids and bdm details
 		 * @param users 
 		 * @param fromDate * @param toDate * @param geoList
 		 * @param countryList * @param serviceLinesList * @return
@@ -652,16 +667,16 @@ public class BDMDetailedReportService {
 			queryBuffer.append(DEAL_CLOSURE_END_DATE + toDate+ Constants.SINGLE_QUOTE + ")))");
 			
 			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + OPPORTUNITY_OWNER +getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + OPPORTUNITY_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if (whereClause != null && !whereClause.isEmpty()) { 
 					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
@@ -675,16 +690,16 @@ public class BDMDetailedReportService {
 			
 			
 			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + BID_OFFICE_OWNER +getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + BID_OFFICE_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if (whereClause != null && !whereClause.isEmpty()) { 
 					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
@@ -698,16 +713,16 @@ public class BDMDetailedReportService {
 			queryBuffer.append(DEAL_CLOSURE_END_DATE + toDate+ Constants.SINGLE_QUOTE + ")))");
 			
 			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SALES_SUPPORT_OWNER +getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + SALES_SUPPORT_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
 			}
 			if (whereClause != null && !whereClause.isEmpty()) { 
 					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
@@ -743,28 +758,17 @@ public class BDMDetailedReportService {
 			return bdms;
 		}
 
-			public void addItemToList(List<String> itemList, List<String> targetList){
-				if(itemList.contains("All") || itemList.isEmpty()){
-					targetList.add("");
-				} else {
-					targetList.addAll(itemList);
-				}
+		/**
+		 * This Method used to add ("") to targetList if itemList contains "All" else adds geographies for the given display geography
+		 * @param itemList
+		 * @param targetList
+		 */
+		public void addItemToListGeo(List<String> itemList, List<String> targetList){
+			if(itemList.contains("All") || itemList.isEmpty()){
+				targetList.add("");
+			} else {
+				targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
 			}
-			
-			public void addItemToListGeo(List<String> itemList, List<String> targetList){
-				if(itemList.contains("All") || itemList.isEmpty()){
-					targetList.add("");
-				} else {
-					targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
-				}
-			}
-			
-			public String getStringListWithSingleQuotes(List<String> formattedList) {
-				String appendedString = Joiner.on("\',\'").join(formattedList);
-				if (!formattedList.isEmpty()) {
-					appendedString = "\'" + appendedString + "\'";
-				}
-				return appendedString;
-			}
-			
+		}
+		
 }
