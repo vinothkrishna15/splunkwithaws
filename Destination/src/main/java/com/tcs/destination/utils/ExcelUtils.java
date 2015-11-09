@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.common.base.Joiner;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion.Static;
 import com.tcs.destination.bean.UserT;
 
@@ -603,4 +604,31 @@ public class ExcelUtils {
 		return salesSatgeCodes;
 		
 	}
+	
+	/**
+	 * This Method used to append the single quotes to List elements
+	 * @param formattedList
+	 * @return
+	 */
+	public static String getStringListWithSingleQuotes(List<String> formattedList) {
+		String appendedString = Joiner.on("\',\'").join(formattedList);
+		if (!formattedList.isEmpty()) {
+			appendedString = "\'" + appendedString + "\'";
+		}
+		return appendedString;
+	}
+	
+	/**
+	 * This Method used to add ("") to targetList if list contains "All" else adds the itemList to targetList 
+	 * @param itemList
+	 * @param targetList
+	 */
+	public static void addItemToList(List<String> itemList, List<String> targetList){
+		if(itemList.contains("All") || itemList.isEmpty()){
+			targetList.add("");
+		} else {
+			targetList.addAll(itemList);
+		}
+	}
+	
 }
