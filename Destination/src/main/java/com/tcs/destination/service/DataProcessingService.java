@@ -15,6 +15,7 @@ import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.RequestStatus;
+import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
@@ -36,11 +37,15 @@ public class DataProcessingService {
 	public Status saveUploadRequest(MultipartFile file, String userId, int type) throws Exception {
 		
 		logger.debug("Inside saveUploadRequest method:");
-		
+		String path = null;
 		Status status = new Status();
 		
-		String path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
-		
+		if(type == RequestType.CONNECT_UPLOAD.getType()){
+		path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		}
+		else if(type == RequestType.OPPORTUNITY_UPLOAD.getType()){
+		path = fileServerPath + EntityType.OPPORTUNITY.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		}
 		FileManager.saveFile(file, path);
 		
 		DataProcessingRequestT request = new DataProcessingRequestT();
