@@ -107,9 +107,9 @@ public class CustomerService {
 		return customerMasterT;
 	}
 
-	
 	/**
 	 * This method deletes the Customer from the database
+	 * 
 	 * @param customerT
 	 * @throws Exception
 	 */
@@ -117,31 +117,29 @@ public class CustomerService {
 	public void removeCustomer(CustomerMasterT customerT) throws Exception {
 
 		if (customerT != null) {
-			logger.info("inside remove customer" + customerT.getCustomerId()  +  " " );
+			logger.info("inside remove customer" + customerT.getCustomerId()
+					+ " ");
 			customerRepository.delete(customerT);
-			logger.info("customer deleted for customerid:"+ customerT.getCustomerId());
+			logger.info("customer deleted for customerid:"
+					+ customerT.getCustomerId());
 		}
 	}
 
-	
-	//for batch save
+	// for batch save
 	public void save(List<CustomerMasterT> insertList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.save(insertList);
-		
-	
+
 	}
-	
+
 	public void delete(List<CustomerMasterT> deleteList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.delete(deleteList);
-		
-	
+
 	}
-	
-	
+
 	/**
 	 * This service is used to find Top revenue customers based on user's access
 	 * privileges.
@@ -254,9 +252,16 @@ public class CustomerService {
 		if (customerNameList == null || customerNameList.isEmpty())
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User does not have access to view this information");
-		return performanceReportService.getTargetVsActualRevenueSummary(
-				financialYear, quarter, "", "", "", "", customerName, currency,
-				"", false, userId);
+		try {
+			List<TargetVsActualResponse> targetVsActualResponse = performanceReportService
+					.getTargetVsActualRevenueSummary(financialYear, quarter,
+							"", "", "", "", customerName, currency, "", false,
+							userId);
+			return targetVsActualResponse;
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User does not have access to view this information");
+		}
 	}
 
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
@@ -566,18 +571,30 @@ public class CustomerService {
 		if (customerToInsert != null) {
 			customerT = new CustomerMasterT();
 			logger.info("customer not null");
-			//primary key check for customerid 
-			logger.info("where critrtia:grp_cus_name: " + customerToInsert.getGroupCustomerName() + "cusname: "+customerToInsert.getCustomerName() + "iou: "+customerToInsert.getIou() + "geo: "+customerToInsert.getGeography());
-	String customerId = customerRepository.findCustomerIdForDeleteOrUpdate(customerToInsert.getGroupCustomerName(), customerToInsert.getCustomerName(), customerToInsert.getIou(), customerToInsert.getGeography());
+			// primary key check for customerid
+			logger.info("where critrtia:grp_cus_name: "
+					+ customerToInsert.getGroupCustomerName() + "cusname: "
+					+ customerToInsert.getCustomerName() + "iou: "
+					+ customerToInsert.getIou() + "geo: "
+					+ customerToInsert.getGeography());
+			String customerId = customerRepository
+					.findCustomerIdForDeleteOrUpdate(
+							customerToInsert.getGroupCustomerName(),
+							customerToInsert.getCustomerName(),
+							customerToInsert.getIou(),
+							customerToInsert.getGeography());
 			logger.info("customer id for add from repo " + customerId);
 			if (customerId == null) {
 				logger.info("customer id is not empty");
 				customerT.setCustomerName(customerToInsert.getCustomerName());
-				
+
 				customerT.setDocumentsAttached("NO");
-				customerT.setCorporateHqAddress(customerToInsert.getCorporateHqAddress());
-				customerT.setCreatedModifiedBy(customerToInsert.getCreatedModifiedBy());
-				customerT.setGroupCustomerName(customerToInsert.getGroupCustomerName());
+				customerT.setCorporateHqAddress(customerToInsert
+						.getCorporateHqAddress());
+				customerT.setCreatedModifiedBy(customerToInsert
+						.getCreatedModifiedBy());
+				customerT.setGroupCustomerName(customerToInsert
+						.getGroupCustomerName());
 				customerT.setFacebook(customerToInsert.getFacebook());
 				customerT.setWebsite(customerToInsert.getWebsite());
 				customerT.setLogo(customerToInsert.getLogo());
@@ -585,7 +602,8 @@ public class CustomerService {
 				customerT.setIou(customerToInsert.getIou());
 			} else {
 				logger.error("EXISTS: customer Already Exist!");
-				throw new DestinationException(HttpStatus.CONFLICT,"customer Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,
+						"customer Already Exist!");
 			}
 			logger.info("before save");
 			customerT = customerRepository.save(customerT);
@@ -596,6 +614,7 @@ public class CustomerService {
 
 	/**
 	 * This method inserts Beacon customers to the database
+	 * 
 	 * @param beaconCustomerToInsert
 	 * @return BeaconCustomerMappingT
 	 * @throws Exception
@@ -645,8 +664,10 @@ public class CustomerService {
 		if (displayIOU.isEmpty())
 			displayIOU.add("");
 		List<CustomerMasterT> customerMasterTs = customerRepository
-				.advancedSearch("%" + groupCustomerNameWith.toUpperCase() + "%", "%"
-						+ nameWith.toUpperCase() + "%", geography, displayIOU);
+				.advancedSearch(
+						"%" + groupCustomerNameWith.toUpperCase() + "%", "%"
+								+ nameWith.toUpperCase() + "%", geography,
+						displayIOU);
 
 		if (customerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
