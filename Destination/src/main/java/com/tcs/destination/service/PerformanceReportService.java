@@ -494,9 +494,8 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE = "select OPP.sales_stage_code as SalesStage, count(*) as oppCount, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV,"
 			+ "median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median,"
 			+ "avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Mean  from opportunity_t OPP "
-			+ "JOIN bid_details_t BDT on BDT.opportunity_id = OPP.opportunity_id "
-			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography  "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
@@ -508,14 +507,15 @@ public class PerformanceReportService {
 			+ " and (GMT.geography = (:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customer) OR ('') in (:customer))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
+			+ " and OPP.digital_deal_value <> 0 "
 			+ " and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
 			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) ";
 
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE_GROUP_BY_ORDER_BY = " group by SalesStage order by SalesStage";
 
 	private static final String TOP_OPPORTUNITIES_QUERY_PREFIX = "select distinct OPP.* from opportunity_t OPP"
-			+ " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
-			+ " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ " LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id"
+			+ " LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ " JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country"
 			+ " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ " JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
