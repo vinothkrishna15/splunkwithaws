@@ -501,6 +501,8 @@ public class BDMDetailedReportService {
 			if(!opportunity.getBidDetailsTs().isEmpty()){
 				if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
 					row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
+				}  else {
+					row.createCell(columnNo++).setCellValue(Constants.SPACE);
 				}
 			} else {
 				row.createCell(columnNo++).setCellValue(Constants.SPACE);
