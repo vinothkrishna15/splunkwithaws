@@ -548,4 +548,59 @@ public class ExcelUtils {
             
             return workbook;
 	}
+	
+	/**
+	 * This Method Used to get sales stage code description for the given sales stage code
+	 * @param salesStage
+	 * @return
+	 */
+	public static String getSalesStageCodeDescription(int salesStage){
+		String salesSatgeCodes = null;
+			switch(salesStage){
+			case 0:
+				salesSatgeCodes = "00 - Suspecting";
+				break;
+			case 1:
+				salesSatgeCodes = "01 - Prospecting";
+				break;
+			case 2:
+				salesSatgeCodes = "02 - EOI / RFI In Response";
+				break;
+			case 3:
+				salesSatgeCodes = "03 - EOI / RFI Submitted";
+				break;
+			case 4:
+				salesSatgeCodes = "04 - RFP in Progress";
+				break;
+			case 5:
+				salesSatgeCodes = "05 - RFP Submitted";
+				break;
+			case 6:
+				salesSatgeCodes = "06 - Shortlisted";
+				break;
+			case 7:
+				salesSatgeCodes = "07 - Selected";
+				break;
+			case 8:
+				salesSatgeCodes = "08 - Contract Negotiation";
+				break;
+			case 9:
+				salesSatgeCodes = "09 - Closed & Won";
+				break;
+			case 10:
+				salesSatgeCodes = "10 - Closed & Lost";
+				break;
+			case 11:
+				salesSatgeCodes = "11 - Closed & Scrapped";
+				break;
+			case 12:
+				salesSatgeCodes = "12 - Closed & Shelved";
+				break;
+			case 13:
+				salesSatgeCodes = "13 - Closed & Disqualified";
+				break;
+			}
+		return salesSatgeCodes;
+		
+	}
 }
