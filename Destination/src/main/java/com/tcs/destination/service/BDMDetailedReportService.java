@@ -508,8 +508,8 @@ public class BDMDetailedReportService {
 				row.createCell(columnNo++).setCellValue(Constants.SPACE);
 			}
 			//set Digital deal value
+			int i = 0;
 			for(String currency : currencyList) {
-				int i = 0;
 				if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
 					row.createCell(columnNo + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency, 
 							opportunity.getDigitalDealValue().doubleValue()).doubleValue());
