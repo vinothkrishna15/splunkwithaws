@@ -22,6 +22,7 @@
 	<import resource="/jobs/connectUpload-job.xml"/>	
 	<!--  <import resource="/jobs/customerUpload-job.xml"/>-->
 	<import resource="/jobs/maintenance-job.xml"/>	
+	<import resource="/jobs/opportunityUpload-job.xml"/>
 	
 </beans>
 	

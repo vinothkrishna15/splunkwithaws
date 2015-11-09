@@ -5,13 +5,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.sql.Timestamp;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +29,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
+import com.tcs.destination.bean.ConnectCustomerContactLinkT;
+import com.tcs.destination.bean.ConnectOfferingLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
+import com.tcs.destination.bean.ConnectSubSpLinkT;
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -1541,4 +1550,238 @@ public class OpportunityService {
 		}
 		return opportunityList;
 	}
+
+	public void save(List<OpportunityT> insertList) {
+		logger.debug("Inside save method");
+
+		Map<Integer, List<OpportunityOfferingLinkT>> mapOppOffering = new HashMap<Integer, List<OpportunityOfferingLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunityPartnerLinkT>> mapOpportunityPartnerLink = new HashMap<Integer, List<OpportunityPartnerLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunitySalesSupportLinkT>> mapSalesSupport = new HashMap<Integer, List<OpportunitySalesSupportLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunitySubSpLinkT>> mapSubSp = new HashMap<Integer, List<OpportunitySubSpLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunityCustomerContactLinkT>> mapCustomerContact = new HashMap<Integer, List<OpportunityCustomerContactLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunityTcsAccountContactLinkT>> mapTcsContact = new HashMap<Integer, List<OpportunityTcsAccountContactLinkT>>(
+				insertList.size());
+		Map<Integer, List<OpportunityCompetitorLinkT>> mapOppCompetitor = new HashMap<Integer, List<OpportunityCompetitorLinkT>>(
+				insertList.size());
+
+		int i = 0;
+		for (OpportunityT opportunityT : insertList) {
+			mapOppOffering.put(i, opportunityT.getOpportunityOfferingLinkTs());
+			mapOpportunityPartnerLink.put(i, opportunityT.getOpportunityPartnerLinkTs());
+			mapSalesSupport.put(i, opportunityT.getOpportunitySalesSupportLinkTs());
+			mapSubSp.put(i, opportunityT.getOpportunitySubSpLinkTs());
+			mapCustomerContact.put(i,
+					opportunityT.getOpportunityCustomerContactLinkTs());
+			mapTcsContact.put(i, opportunityT.getOpportunityTcsAccountContactLinkTs());
+			mapOppCompetitor.put(i, opportunityT.getOpportunityCompetitorLinkTs());
+			setNullForReferencedObjects(opportunityT);
+
+			i++;
+		}
+
+		Iterable<OpportunityT> savedList = opportunityRepository.save(insertList);
+		Iterator<OpportunityT> saveIterator = savedList.iterator();
+		i = 0;
+		while (saveIterator.hasNext()) {
+			OpportunityT opportunity = saveIterator.next();
+			List<OpportunityOfferingLinkT> offeringList = mapOppOffering.get(i);
+			if (CollectionUtils.isNotEmpty(offeringList)) {
+				populateOpportunityOfferingLinks(opportunity.getOpportunityId(),
+						offeringList);
+			}
+			List<OpportunityPartnerLinkT> oppourtunityPartnerList = mapOpportunityPartnerLink
+					.get(i);
+			if (CollectionUtils.isNotEmpty(oppourtunityPartnerList)) {
+				populateOpportunityPartnerLink(opportunity.getOpportunityId(), oppourtunityPartnerList);
+			}
+			List<OpportunitySalesSupportLinkT> salesSupportList = mapSalesSupport
+					.get(i);
+			if (CollectionUtils.isNotEmpty(salesSupportList)) {
+				populateOppSalesSupportLink(opportunity.getOpportunityId(),
+						salesSupportList);
+			}
+			List<OpportunitySubSpLinkT> subSpList = mapSubSp.get(i);
+			if (CollectionUtils.isNotEmpty(subSpList)) {
+				populateOpportunitySubSpLink(opportunity.getOpportunityId(), subSpList);
+			}
+			List<OpportunityCustomerContactLinkT> custContactList = mapCustomerContact
+					.get(i);
+			if (CollectionUtils.isNotEmpty(custContactList)) {
+				populateOppCustomerContactLinks(opportunity.getOpportunityId(),
+						custContactList);
+			}
+			List<OpportunityTcsAccountContactLinkT> tcsContactList = mapTcsContact
+					.get(i);
+			if (CollectionUtils.isNotEmpty(tcsContactList)) {
+				populateOpportunityTcsAccountContactLink(opportunity.getOpportunityId(),
+						tcsContactList);
+			}
+			List<OpportunityCompetitorLinkT> competitorList = mapOppCompetitor
+					.get(i);
+			if (CollectionUtils.isNotEmpty(competitorList)) {
+				populateOpportunityCompetitorLink(opportunity.getOpportunityId(),
+						competitorList);
+			}
+
+			i++;
+		}
+
+		List<OpportunityOfferingLinkT> oppOfferingList = new ArrayList<OpportunityOfferingLinkT>();
+		for (List<OpportunityOfferingLinkT> list : mapOppOffering.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppOfferingList.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppOfferingList)) {
+			opportunityOfferingLinkTRepository.save(oppOfferingList);
+		}
+
+		List<OpportunityPartnerLinkT> oppPartnerList = new ArrayList<OpportunityPartnerLinkT>();
+		for (List<OpportunityPartnerLinkT> list : mapOpportunityPartnerLink.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppPartnerList.addAll(list);
+			}
+
+		}
+		if (CollectionUtils.isNotEmpty(oppPartnerList)) {
+			opportunityPartnerLinkTRepository.save(oppPartnerList);
+		}
+
+		List<OpportunitySalesSupportLinkT> oppSalesSupport = new ArrayList<OpportunitySalesSupportLinkT>();
+		for (List<OpportunitySalesSupportLinkT> list : mapSalesSupport.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppSalesSupport.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppSalesSupport)) {
+			opportunitySalesSupportLinkTRepository.save(oppSalesSupport);
+		}
+
+		List<OpportunitySubSpLinkT> oppSubSps = new ArrayList<OpportunitySubSpLinkT>();
+		for (List<OpportunitySubSpLinkT> list : mapSubSp.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppSubSps.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppSubSps)) {
+			opportunitySubSpLinkTRepository.save(oppSubSps);
+		}
+
+		List<OpportunityCustomerContactLinkT> oppCustContact = new ArrayList<OpportunityCustomerContactLinkT>();
+		for (List<OpportunityCustomerContactLinkT> list : mapCustomerContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppCustContact.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppCustContact)) {
+			opportunityCustomerContactLinkTRepository.save(oppCustContact);
+		}
+
+		List<OpportunityTcsAccountContactLinkT> oppTcsAccContact = new ArrayList<OpportunityTcsAccountContactLinkT>();
+		for (List<OpportunityTcsAccountContactLinkT> list : mapTcsContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppTcsAccContact.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppTcsAccContact)) {
+			opportunityTcsAccountContactLinkTRepository.save(oppTcsAccContact);
+		}
+		
+		List<OpportunityCompetitorLinkT> oppCompetitor = new ArrayList<OpportunityCompetitorLinkT>();
+		for (List<OpportunityCompetitorLinkT> list : mapOppCompetitor.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppCompetitor.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppCompetitor)) {
+			opportunityCompetitorLinkTRepository.save(oppCompetitor);
+		}
+
+
+	}
+
+	private void populateOpportunityCompetitorLink(String opportunityId,
+			List<OpportunityCompetitorLinkT> competitorList) {
+		for(OpportunityCompetitorLinkT opportunityCompetitorLinkT : competitorList)
+		{
+			opportunityCompetitorLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOpportunityTcsAccountContactLink(String opportunityId,
+			List<OpportunityTcsAccountContactLinkT> tcsContactList) {
+		for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : tcsContactList)
+		{
+			opportunityTcsAccountContactLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOppCustomerContactLinks(String opportunityId,
+			List<OpportunityCustomerContactLinkT> custContactList) {
+		for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : custContactList)
+		{
+			opportunityCustomerContactLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOpportunitySubSpLink(String opportunityId,
+			List<OpportunitySubSpLinkT> subSpList) {
+		for(OpportunitySubSpLinkT opportunitySubSpLinkT : subSpList)
+		{
+			opportunitySubSpLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOppSalesSupportLink(String opportunityId,
+			List<OpportunitySalesSupportLinkT> salesSupportList) {
+		for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : salesSupportList)
+		{
+			opportunitySalesSupportLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOpportunityPartnerLink(String opportunityId,
+			List<OpportunityPartnerLinkT> oppourtunityPartnerList) {
+		for(OpportunityPartnerLinkT opportunityPartnerLinkT : oppourtunityPartnerList)
+		{
+			opportunityPartnerLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void populateOpportunityOfferingLinks(String opportunityId,
+			List<OpportunityOfferingLinkT> offeringList) {
+		for(OpportunityOfferingLinkT opportunityOfferingLinkT : offeringList)
+		{
+			opportunityOfferingLinkT.setOpportunityId(opportunityId);
+		}
+		
+	}
+
+	private void setNullForReferencedObjects(OpportunityT opportunityT) {
+		logger.debug("Inside setNullForReferencedObjects() method");
+		opportunityT.setBidDetailsTs(null);
+		opportunityT.setNotesTs(null);
+		opportunityT.setOpportunityCompetitorLinkTs(null);
+		opportunityT.setOpportunityCustomerContactLinkTs(null);
+		opportunityT.setOpportunityDealValues(null);
+		opportunityT.setOpportunityOfferingLinkTs(null);
+		opportunityT.setOpportunityPartnerLinkTs(null);
+		opportunityT.setOpportunitySalesSupportLinkTs(null);
+		opportunityT.setOpportunitySubSpLinkTs(null);
+		opportunityT.setOpportunityTcsAccountContactLinkTs(null);
+		opportunityT.setOpportunityWinLossFactorsTs(null);
+	}
+	
 }
+
