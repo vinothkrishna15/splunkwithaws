@@ -544,7 +544,7 @@ public class PerformanceReportService {
 			String financialYear, String quarter, String displayGeography,
 			String geography, String serviceLine, String iou,
 			String customerName, String currency, String groupCustomer,
-			boolean wins, String userId) throws Exception {
+			boolean wins, String userId, boolean canValidate) throws Exception {
 		logger.info("Inside getRevenueSummary Service");
 		List<String> custName = new ArrayList<String>();
 		if (customerName.length() == 0 && groupCustomer.length() > 0) {
@@ -570,11 +570,11 @@ public class PerformanceReportService {
 			if (quarter.isEmpty()) {
 				actualObjList = findActualRevenue(financialYear, quarter,
 						displayGeography, geography, iou, custName,
-						serviceLine, userId);
+						serviceLine, userId, canValidate);
 			} else {
 				actualObjList = findActualRevenueByQuarter(financialYear,
 						quarter, displayGeography, geography, iou, custName,
-						serviceLine, userId);
+						serviceLine, userId, canValidate);
 			}
 			logger.info("Actual Revenue has " + actualObjList.size()
 					+ " values");
@@ -586,11 +586,11 @@ public class PerformanceReportService {
 			if (quarter.isEmpty()) {
 				projectedObjList = findProjectedRevenue(financialYear, quarter,
 						displayGeography, geography, iou, custName,
-						serviceLine, userId);
+						serviceLine, userId, canValidate);
 			} else {
 				projectedObjList = findProjectedRevenueByQuarter(financialYear,
 						quarter, displayGeography, geography, iou, custName,
-						serviceLine, userId);
+						serviceLine, userId, canValidate);
 			}
 			logger.info("Projected Revenue has " + projectedObjList.size()
 					+ " values");
@@ -605,7 +605,7 @@ public class PerformanceReportService {
 
 				List<Object[]> targetRevenueList = null;
 				targetRevenueList = findTargetRevenue(financialYear, quarter,
-						displayGeography, geography, iou, custName, userId);
+						displayGeography, geography, iou, custName, userId, canValidate);
 
 				logger.debug("Target Revenue has " + targetRevenueList.size()
 						+ " values");
@@ -731,10 +731,12 @@ public class PerformanceReportService {
 
 	private List<Object[]> findTargetRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String userId) throws Exception {
+			String iou, List<String> custName, String userId, boolean canValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
+		if (canValidate){
+			validateUserAndUserGroup(userId);
+		}
 			String queryString = getTargetRevenueQueryString(userId);
 			Query targetRevenueQuery = entityManager
 					.createNativeQuery(queryString);
@@ -747,7 +749,6 @@ public class PerformanceReportService {
 			targetRevenueQuery.setParameter("quarter", quarter);
 			resultList = targetRevenueQuery.getResultList();
 			logger.info("Query string: Target Revenue {}", queryString);
-		}
 		return resultList;
 	}
 
@@ -770,11 +771,13 @@ public class PerformanceReportService {
 
 	private List<Object[]> findProjectedRevenueByQuarter(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId)
+			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
 			throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
+		if (canValidate){
+			validateUserAndUserGroup(userId);
+		}
 			String queryString = getProjectedRevenueByQuarterQueryString(userId);
 			Query projectedRevenueByQuarterQuery = entityManager
 					.createNativeQuery(queryString);
@@ -792,7 +795,6 @@ public class PerformanceReportService {
 			resultList = projectedRevenueByQuarterQuery.getResultList();
 			logger.info("Query string: Projected Revenue by Quarter {}",
 					queryString);
-		}
 		return resultList;
 	}
 
@@ -818,11 +820,13 @@ public class PerformanceReportService {
 
 	private List<Object[]> findProjectedRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId)
+			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
 			throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
+		if (canValidate){
+			validateUserAndUserGroup(userId);
+		}
 			String queryString = getProjectedRevenueQueryString(userId);
 			Query projectedRevenueQuery = entityManager
 					.createNativeQuery(queryString);
@@ -836,7 +840,6 @@ public class PerformanceReportService {
 			projectedRevenueQuery.setParameter("quarter", quarter);
 			resultList = projectedRevenueQuery.getResultList();
 			logger.info("Query string: Projected Revenue {}", queryString);
-		}
 		return resultList;
 	}
 
@@ -861,11 +864,13 @@ public class PerformanceReportService {
 
 	private List<Object[]> findActualRevenueByQuarter(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId)
+			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
 			throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
+		if (canValidate){
+			validateUserAndUserGroup(userId);
+		}
 			String queryString = getActualRevenueByQuarterQueryString(userId);
 			Query actualRevenueByQuarterQuery = entityManager
 					.createNativeQuery(queryString);
@@ -882,7 +887,6 @@ public class PerformanceReportService {
 			resultList = actualRevenueByQuarterQuery.getResultList();
 			logger.info("Query string: Actual Revenue by Quarter{}",
 					queryString);
-		}
 		return resultList;
 	}
 
@@ -907,26 +911,25 @@ public class PerformanceReportService {
 
 	private List<Object[]> findActualRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId)
-			throws Exception {
+			String iou, List<String> custName, String serviceLine,
+			String userId, boolean canValidate) throws Exception {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
-			String queryString = getActualRevenueQueryString(userId);
-			Query actualRevenueQuery = entityManager
-					.createNativeQuery(queryString);
-			actualRevenueQuery.setParameter("geography", geography);
-			actualRevenueQuery.setParameter("displayGeography",
-					displayGeography);
-			actualRevenueQuery.setParameter("iou", iou);
-			actualRevenueQuery.setParameter("serviceLine", serviceLine);
-			actualRevenueQuery.setParameter("financialYear", financialYear);
-			actualRevenueQuery.setParameter("customerName", custName);
-			actualRevenueQuery.setParameter("quarter", quarter);
-			resultList = actualRevenueQuery.getResultList();
-			logger.info("Query string: Actual Revenue{}", queryString);
+		if (canValidate){
+			validateUserAndUserGroup(userId);
 		}
+		String queryString = getActualRevenueQueryString(userId);
+		Query actualRevenueQuery = entityManager.createNativeQuery(queryString);
+		actualRevenueQuery.setParameter("geography", geography);
+		actualRevenueQuery.setParameter("displayGeography", displayGeography);
+		actualRevenueQuery.setParameter("iou", iou);
+		actualRevenueQuery.setParameter("serviceLine", serviceLine);
+		actualRevenueQuery.setParameter("financialYear", financialYear);
+		actualRevenueQuery.setParameter("customerName", custName);
+		actualRevenueQuery.setParameter("quarter", quarter);
+		resultList = actualRevenueQuery.getResultList();
+		logger.info("Query string: Actual Revenue{}", queryString);
 		return resultList;
 	}
 
@@ -958,7 +961,8 @@ public class PerformanceReportService {
 				return true;
 			}
 		} else {
-			return false;
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					"User doesnot belong to any user group");
 		}
 		// }
 		// }
@@ -2508,37 +2512,54 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method is used to insert frequently searched group customer details
+	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
 	 */
-	public boolean insertFrequentlySearchedGroupCustomer(FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
+	public boolean insertFrequentlySearchedGroupCustomer(
+			FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) {
 		logger.info("Inside insertFrequentlySearchedGroupCustomer() Method");
 		FrequentlySearchedGroupCustomersTPK frequentlySearchedGroupCustomersTPK = new FrequentlySearchedGroupCustomersTPK();
-		frequentlySearchedGroupCustomersTPK.setGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
-		frequentlySearchedGroupCustomersTPK.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
-		frequentlySearchedGroupCustomersT.setFreqSearchedGroupCustomer(frequentlySearchedGroupCustomersTPK);
+		frequentlySearchedGroupCustomersTPK
+				.setGroupCustomerName(frequentlySearchedGroupCustomersT
+						.getFreqSearchedGroupCustomer().getGroupCustomerName());
+		frequentlySearchedGroupCustomersTPK.setUserId(DestinationUtils
+				.getCurrentUserDetails().getUserId());
+		frequentlySearchedGroupCustomersT
+				.setFreqSearchedGroupCustomer(frequentlySearchedGroupCustomersTPK);
 		boolean isInserted = false;
 		String groupCustomerName = null;
-		if(frequentlySearchedGroupCustomersT!=null){
+		if (frequentlySearchedGroupCustomersT != null) {
 			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
-			frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getUserId());
-			groupCustomerName = frequentlySearchedGroupCustomerTRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
-			
-			if(groupCustomerName==null){
-				if(frequentlySearchedGroupCustomersTs.size()>4){
-					frequentlySearchedGroupCustomerTRepository.delete(frequentlySearchedGroupCustomersTs.get(4));
+			frequentlySearchedGroupCustomersTs = frequentlySearchedGroupCustomerTRepository
+					.findByUserId(frequentlySearchedGroupCustomersT
+							.getFreqSearchedGroupCustomer().getUserId());
+			groupCustomerName = frequentlySearchedGroupCustomerTRepository
+					.findByGroupCustomerName(frequentlySearchedGroupCustomersT
+							.getFreqSearchedGroupCustomer()
+							.getGroupCustomerName());
+
+			if (groupCustomerName == null) {
+				if (frequentlySearchedGroupCustomersTs.size() > 4) {
+					frequentlySearchedGroupCustomerTRepository
+							.delete(frequentlySearchedGroupCustomersTs.get(4));
 				}
 			}
 			List<String> customerName = null;
-			customerName =	customerRepository.findByGroupCustomerName(frequentlySearchedGroupCustomersT.getFreqSearchedGroupCustomer().getGroupCustomerName());
-			
-			if(customerName!=null && !customerName.isEmpty()){
-				if (frequentlySearchedGroupCustomerTRepository.save(frequentlySearchedGroupCustomersT) != null) {
+			customerName = customerRepository
+					.findByGroupCustomerName(frequentlySearchedGroupCustomersT
+							.getFreqSearchedGroupCustomer()
+							.getGroupCustomerName());
+
+			if (customerName != null && !customerName.isEmpty()) {
+				if (frequentlySearchedGroupCustomerTRepository
+						.save(frequentlySearchedGroupCustomersT) != null) {
 					isInserted = true;
 				}
-			} else{
+			} else {
 				logger.error("Invalid Group Customer Name");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Group Customer Name");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer Name");
 			}
 		}
 		return isInserted;
@@ -2546,15 +2567,20 @@ public class PerformanceReportService {
 
 	/**
 	 * This Method used to retrieve the recently searched group customer name
+	 * 
 	 * @param userId
 	 * @return
 	 */
-	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(String userId) {
+	public List<FrequentlySearchedGroupCustomersT> findGroupCustomerName(
+			String userId) {
 		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersTs = null;
-		frequentlySearchedGroupCustomersTs =  frequentlySearchedGroupCustomerTRepository.findByUserId(userId);
-		if(frequentlySearchedGroupCustomersTs==null || frequentlySearchedGroupCustomersTs.isEmpty()){
+		frequentlySearchedGroupCustomersTs = frequentlySearchedGroupCustomerTRepository
+				.findByUserId(userId);
+		if (frequentlySearchedGroupCustomersTs == null
+				|| frequentlySearchedGroupCustomersTs.isEmpty()) {
 			logger.error("Recently Searched Group Customers Not Found");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Recently Searched Group Customers Not Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Recently Searched Group Customers Not Found");
 		}
 		return frequentlySearchedGroupCustomersTs;
 	}
