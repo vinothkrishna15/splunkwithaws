@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.common.base.Joiner;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion.Static;
 import com.tcs.destination.bean.UserT;
 
@@ -548,4 +549,86 @@ public class ExcelUtils {
             
             return workbook;
 	}
+	
+	/**
+	 * This Method Used to get sales stage code description for the given sales stage code
+	 * @param salesStage
+	 * @return
+	 */
+	public static String getSalesStageCodeDescription(int salesStage){
+		String salesSatgeCodes = null;
+			switch(salesStage){
+			case 0:
+				salesSatgeCodes = "00 - Suspecting";
+				break;
+			case 1:
+				salesSatgeCodes = "01 - Prospecting";
+				break;
+			case 2:
+				salesSatgeCodes = "02 - EOI / RFI In Response";
+				break;
+			case 3:
+				salesSatgeCodes = "03 - EOI / RFI Submitted";
+				break;
+			case 4:
+				salesSatgeCodes = "04 - RFP in Progress";
+				break;
+			case 5:
+				salesSatgeCodes = "05 - RFP Submitted";
+				break;
+			case 6:
+				salesSatgeCodes = "06 - Shortlisted";
+				break;
+			case 7:
+				salesSatgeCodes = "07 - Selected";
+				break;
+			case 8:
+				salesSatgeCodes = "08 - Contract Negotiation";
+				break;
+			case 9:
+				salesSatgeCodes = "09 - Closed & Won";
+				break;
+			case 10:
+				salesSatgeCodes = "10 - Closed & Lost";
+				break;
+			case 11:
+				salesSatgeCodes = "11 - Closed & Scrapped";
+				break;
+			case 12:
+				salesSatgeCodes = "12 - Closed & Shelved";
+				break;
+			case 13:
+				salesSatgeCodes = "13 - Closed & Disqualified";
+				break;
+			}
+		return salesSatgeCodes;
+		
+	}
+	
+	/**
+	 * This Method used to append the single quotes to List elements
+	 * @param formattedList
+	 * @return
+	 */
+	public static String getStringListWithSingleQuotes(List<String> formattedList) {
+		String appendedString = Joiner.on("\',\'").join(formattedList);
+		if (!formattedList.isEmpty()) {
+			appendedString = "\'" + appendedString + "\'";
+		}
+		return appendedString;
+	}
+	
+	/**
+	 * This Method used to add ("") to targetList if list contains "All" else adds the itemList to targetList 
+	 * @param itemList
+	 * @param targetList
+	 */
+	public static void addItemToList(List<String> itemList, List<String> targetList){
+		if(itemList.contains("All") || itemList.isEmpty()){
+			targetList.add("");
+		} else {
+			targetList.addAll(itemList);
+		}
+	}
+	
 }

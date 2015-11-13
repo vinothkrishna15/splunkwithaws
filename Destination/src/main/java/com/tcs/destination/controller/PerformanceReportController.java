@@ -60,7 +60,7 @@ public class PerformanceReportController {
 		List<TargetVsActualResponse> response = perfService
 				.getTargetVsActualRevenueSummary(financialYear, quarter,
 						displayGeography, geography, serviceLine, iou,
-						customerName, currency, groupCustomer, wins, userId);
+						customerName, currency, groupCustomer, wins, userId, true);
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						response), HttpStatus.OK);

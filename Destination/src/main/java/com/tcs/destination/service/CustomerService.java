@@ -239,9 +239,10 @@ public class CustomerService {
 		if (customerNameList == null || customerNameList.isEmpty())
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User does not have access to view this information");
+
 		return performanceReportService.getTargetVsActualRevenueSummary(
 				financialYear, quarter, "", "", "", "", customerName, currency,
-				"", false, userId);
+				"", false, userId, false);
 	}
 
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
