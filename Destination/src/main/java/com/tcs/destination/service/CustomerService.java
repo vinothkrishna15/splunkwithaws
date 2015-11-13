@@ -27,6 +27,7 @@ import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
@@ -86,6 +87,9 @@ public class CustomerService {
 
 	@Autowired
 	PerformanceReportService performanceReportService;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
@@ -147,7 +151,9 @@ public class CustomerService {
 	public List<CustomerMasterT> findTopRevenue(String financialYear, int count)
 			throws Exception {
 		logger.debug("Inside findTopRevenue() service");
-		UserT user = DestinationUtils.getCurrentUserDetails();
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findOne(userId);
+		
 		String userGroup = user.getUserGroupMappingT().getUserGroup();
 		if (UserGroup.contains(userGroup)) {
 			// Validate user group, BDM's & BDM supervisor's are not
