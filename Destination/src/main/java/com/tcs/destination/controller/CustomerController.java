@@ -49,43 +49,65 @@ public class CustomerController {
 	CustomerUploadService customerUploadService;
 
 	@Autowired
-	CustomerDownloadService	customerDownloadService;
+	CustomerDownloadService customerDownloadService;
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
 
+	/**
+	 * Gets the Customer related details based on customer ID specified
+	 * @param customerId The actual customer ID
+	 * @param currency The List of currencies to which the opportunities currency must be converted to.
+	 * @param fields The fields that are required to be returned in the JSON
+	 * @param view The View which has collection of all the fields
+	 * @return
+	 * @throws Exception Throws Destination exception if the resource ID is invalid or Currency is invalid
+	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("id") String customerId,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer/id=" + customerId
 				+ " GET");
-		CustomerMasterT customer = customerService.findById(customerId, userId, currency);
+		CustomerMasterT customer = customerService.findById(customerId,
+				currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customer);
 	}
 
+	/**
+	 * The service used to get list of customer names that contains the specified characters
+	 * @param page The page number (starting with 0)
+	 * @param count The no of items in the page
+	 * @param nameWith the String that should be present in the customer name.
+	 * @param startsWith The String that should be present at the start of the customer name
+	 * @param fields The fields that are required to be returned in the JSON
+	 * @param view The View which has collection of all the fields
+	 * @return
+	 * @throws Exception Throws Destination exception if there is no relevant data found
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findNameWith(
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer?namewith=" + nameWith
 				+ "and starts with " + startsWith + " GET");
 		PaginatedResponse customers = null;
 
 		if (!nameWith.isEmpty()) {
-			customers = customerService.findByNameContaining(nameWith,page,count);
+			customers = customerService.findByNameContaining(nameWith, page,
+					count);
 		} else if (!startsWith.isEmpty()) {
-			customers = customerService.findByNameStarting(startsWith,page,count);
+			customers = customerService.findByNameStarting(startsWith, page,
+					count);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");
@@ -95,20 +117,30 @@ public class CustomerController {
 
 	}
 
+	/**
+	 * 
+	 * @param financialYear
+	 * @param quarter
+	 * @param customerName
+	 * @param currency
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/targetVsActual", method = RequestMethod.GET)
 	public @ResponseBody String findTargetVsActual(
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
 			@RequestParam(value = "quarter", defaultValue = "", required = false) String quarter,
 			@RequestParam(value = "customer", defaultValue = "", required = false) String customerName,
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer/targetVsActual GET");
 		List<TargetVsActualResponse> tarVsAct = customerService
 				.findTargetVsActual(financialYear, quarter, customerName,
-						currency, userId);
+						currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				tarVsAct);
 	}
@@ -117,21 +149,20 @@ public class CustomerController {
 	 * Controller method to find Top revenue customers based on user's access
 	 * privileges.
 	 * 
-	 * @param userId
-	 *            , year, count.
+	 * @param year
+	 *            , count.
 	 * @return Top revenue customers.
 	 */
 	@RequestMapping(value = "/topRevenue", method = RequestMethod.GET)
 	public @ResponseBody String findTopRevenue(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer/topRevenue GET");
 		List<CustomerMasterT> topRevenueCustomers = customerService
-				.findTopRevenue(userId, financialYear, count);
+				.findTopRevenue(financialYear, count);
 		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 				view, topRevenueCustomers);
 	}
@@ -141,7 +172,7 @@ public class CustomerController {
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer/group?nameWith="
 				+ nameWith + " GET");
 		List<CustomerMasterT> customer = (List<CustomerMasterT>) customerService
@@ -150,22 +181,21 @@ public class CustomerController {
 				customer);
 	}
 
-	@RequestMapping(value ="/privilege/group", method = RequestMethod.GET)
+	@RequestMapping(value = "/privilege/group", method = RequestMethod.GET)
 	public @ResponseBody String findByGroupCustomerNameBasedOnPrivilege(
-			@RequestParam("userId") String userId,
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside CustomerController /customer/groupBasedOnPrivilege?nameWith="
 				+ nameWith + " GET");
 
 		List<String> groupCustomer = customerService
-				.findByGroupCustomerNameBasedOnPrivilege(nameWith,userId);
-		if(groupCustomer == null || groupCustomer.isEmpty()) {
+				.findByGroupCustomerNameBasedOnPrivilege(nameWith);
+		if (groupCustomer == null || groupCustomer.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Results found for search : " + nameWith);
-		} 
+		}
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				groupCustomer);
@@ -176,28 +206,31 @@ public class CustomerController {
 	public ResponseEntity<InputStreamResource> downloadCustomerMaster(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		HttpHeaders respHeaders = null;
 		InputStreamResource customerDownloadExcel = null;
 		try {
 			customerDownloadExcel = customerDownloadService.getCustomers();
 			respHeaders = new HttpHeaders();
-			respHeaders.setContentDispositionFormData("attachment","customer_Master_Download" + DateUtils.getCurrentDate() + ".xlsm");
-			respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"customer_Master_Download" + DateUtils.getCurrentDate()
+							+ ".xlsm");
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
 			logger.info("Customer Master Report Downloaded Successfully ");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
-		return new ResponseEntity<InputStreamResource>(
-				customerDownloadExcel, respHeaders, HttpStatus.OK);
+		return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
+				respHeaders, HttpStatus.OK);
 
 	}
 
 	/**
 	 * This controller uploads the Customers to the database
-	 * @param userId
+	 * 
 	 * @param file
 	 * @param fields
 	 * @param view
@@ -206,31 +239,35 @@ public class CustomerController {
 	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadCustomers(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws Exception {
 		System.out.println("inside upload of customer controller");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 
-		UploadStatusDTO status = customerUploadService.upload(file, userId);
+		UploadStatusDTO status = customerUploadService.upload(file);
 		if (status != null) {
 			System.out.println(status.isStatusFlag());
 			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
+			for (UploadServiceErrorDetailsDTO err : errorDetailsDTOs) {
 				System.out.println(err.getRowNumber());
 				System.out.println(err.getMessage());
 			}
 		}
 
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
+		InputStreamResource excelFile = uploadErrorReport
+				.getErrorSheet(errorDetailsDTOs);
 		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","customer_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+		respHeaders
+				.setContentType(MediaType
+						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		respHeaders.setContentDispositionFormData("attachment",
+				"customer_upload_error.xlsx");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+				HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String advancedSearch(
 			@RequestParam(value = "groupCustomerNameWith", defaultValue = "") String groupCustomerNameWith,
@@ -242,10 +279,11 @@ public class CustomerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		logger.debug("Inside PartnerController /customer/search?name=" + nameWith
-				+ "&geograph=" + geography + " GET");
-		PaginatedResponse paginatedResponse = customerService.search(groupCustomerNameWith,nameWith,
-				geography,displayIOU, page, count);
+		logger.debug("Inside PartnerController /customer/search?name="
+				+ nameWith + "&geograph=" + geography + " GET");
+		PaginatedResponse paginatedResponse = customerService.search(
+				groupCustomerNameWith, nameWith, geography, displayIOU, page,
+				count);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				paginatedResponse);

@@ -87,15 +87,11 @@ public class CustomerService {
 	@Autowired
 	PerformanceReportService performanceReportService;
 
-	public CustomerMasterT findById(String customerId, String userId,
-			List<String> toCurrency) throws Exception {
+	public CustomerMasterT findById(String customerId, List<String> toCurrency)
+			throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
 				.findOne(customerId);
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail does not match");
 		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: Customer not found: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -107,9 +103,9 @@ public class CustomerService {
 		return customerMasterT;
 	}
 
-	
 	/**
 	 * This method deletes the Customer from the database
+	 * 
 	 * @param customerT
 	 * @throws Exception
 	 */
@@ -117,31 +113,29 @@ public class CustomerService {
 	public void removeCustomer(CustomerMasterT customerT) throws Exception {
 
 		if (customerT != null) {
-			logger.info("inside remove customer" + customerT.getCustomerId()  +  " " );
+			logger.info("inside remove customer" + customerT.getCustomerId()
+					+ " ");
 			customerRepository.delete(customerT);
-			logger.info("customer deleted for customerid:"+ customerT.getCustomerId());
+			logger.info("customer deleted for customerid:"
+					+ customerT.getCustomerId());
 		}
 	}
 
-	
-	//for batch save
+	// for batch save
 	public void save(List<CustomerMasterT> insertList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.save(insertList);
-		
-	
+
 	}
-	
+
 	public void delete(List<CustomerMasterT> deleteList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.delete(deleteList);
-		
-	
+
 	}
-	
-	
+
 	/**
 	 * This service is used to find Top revenue customers based on user's access
 	 * privileges.
@@ -150,40 +144,34 @@ public class CustomerService {
 	 *            , year, count.
 	 * @return Top revenue customers.
 	 */
-	public List<CustomerMasterT> findTopRevenue(String userId,
-			String financialYear, int count) throws Exception {
+	public List<CustomerMasterT> findTopRevenue(String financialYear, int count)
+			throws Exception {
 		logger.debug("Inside findTopRevenue() service");
-		UserT user = userService.findByUserId(userId);
-		if (user == null) {
-			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
-		} else {
-			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case BDM:
-				case BDM_SUPERVISOR:
-					logger.error("User is not authorized to access this service");
-					throw new DestinationException(HttpStatus.FORBIDDEN,
-							"User is not authorised to access this service");
-				default:
-					// Validate financial year and set default value
-					if (financialYear.isEmpty()) {
-						logger.debug("Financial year is empty");
-						financialYear = DateUtils.getCurrentFinancialYear();
-					}
-					List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
-							userId, financialYear, count);
-					return resultCustomerList;
+		UserT user = DestinationUtils.getCurrentUserDetails();
+		String userGroup = user.getUserGroupMappingT().getUserGroup();
+		if (UserGroup.contains(userGroup)) {
+			// Validate user group, BDM's & BDM supervisor's are not
+			// authorized for this service
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case BDM_SUPERVISOR:
+				logger.error("User is not authorized to access this service");
+				throw new DestinationException(HttpStatus.FORBIDDEN,
+						"User is not authorised to access this service");
+			default:
+				// Validate financial year and set default value
+				if (financialYear.isEmpty()) {
+					logger.debug("Financial year is empty");
+					financialYear = DateUtils.getCurrentFinancialYear();
 				}
-			} else {
-				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid User Group");
+				List<CustomerMasterT> resultCustomerList = getTopRevenuesBasedOnUserPrivileges(
+						user.getUserId(), financialYear, count);
+				return resultCustomerList;
 			}
+		} else {
+			logger.error("Invalid User Group: {}", userGroup);
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid User Group");
 		}
 	}
 
@@ -239,12 +227,9 @@ public class CustomerService {
 
 	public List<TargetVsActualResponse> findTargetVsActual(
 			String financialYear, String quarter, String customerName,
-			String currency, String userId) throws Exception {
+			String currency) throws Exception {
 		logger.debug("Inside findTargetVsActual() service");
-		if (!userId
-				.equals(DestinationUtils.getCurrentUserDetails().getUserId()))
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User Id and Login User Detail doesnot match");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		ArrayList<String> customerNameList = new ArrayList<String>();
 		customerNameList.add(customerName);
@@ -499,26 +484,18 @@ public class CustomerService {
 	 * @return - List of distinct group customer names based on privileges
 	 * @throws Exception
 	 */
-	public List<String> findByGroupCustomerNameBasedOnPrivilege(
-			String nameWith, String userId) throws Exception {
+	public List<String> findByGroupCustomerNameBasedOnPrivilege(String nameWith)
+			throws Exception {
 		String queryString = null;
 		List<String> resultList = null;
+		queryString = getGroupCustomerPrivilegeQueryString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), "'%" + nameWith + "%'");
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query groupCustomerPrivilegeQuery = entityManager
+				.createNativeQuery(queryString);
 
-		if (!DestinationUtils.getCurrentUserDetails().getUserId()
-				.equalsIgnoreCase(userId)) {
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Invalid user Id");
-		} else {
-
-			queryString = getGroupCustomerPrivilegeQueryString(userId, "'%"
-					+ nameWith + "%'");
-			logger.info("Query string: {}", queryString);
-			// Execute the native revenue query string
-			Query groupCustomerPrivilegeQuery = entityManager
-					.createNativeQuery(queryString);
-
-			resultList = groupCustomerPrivilegeQuery.getResultList();
-		}
+		resultList = groupCustomerPrivilegeQuery.getResultList();
 
 		return resultList;
 	}
@@ -566,18 +543,30 @@ public class CustomerService {
 		if (customerToInsert != null) {
 			customerT = new CustomerMasterT();
 			logger.info("customer not null");
-			//primary key check for customerid 
-			logger.info("where critrtia:grp_cus_name: " + customerToInsert.getGroupCustomerName() + "cusname: "+customerToInsert.getCustomerName() + "iou: "+customerToInsert.getIou() + "geo: "+customerToInsert.getGeography());
-	String customerId = customerRepository.findCustomerIdForDeleteOrUpdate(customerToInsert.getGroupCustomerName(), customerToInsert.getCustomerName(), customerToInsert.getIou(), customerToInsert.getGeography());
+			// primary key check for customerid
+			logger.info("where critrtia:grp_cus_name: "
+					+ customerToInsert.getGroupCustomerName() + "cusname: "
+					+ customerToInsert.getCustomerName() + "iou: "
+					+ customerToInsert.getIou() + "geo: "
+					+ customerToInsert.getGeography());
+			String customerId = customerRepository
+					.findCustomerIdForDeleteOrUpdate(
+							customerToInsert.getGroupCustomerName(),
+							customerToInsert.getCustomerName(),
+							customerToInsert.getIou(),
+							customerToInsert.getGeography());
 			logger.info("customer id for add from repo " + customerId);
 			if (customerId == null) {
 				logger.info("customer id is not empty");
 				customerT.setCustomerName(customerToInsert.getCustomerName());
-				
+
 				customerT.setDocumentsAttached("NO");
-				customerT.setCorporateHqAddress(customerToInsert.getCorporateHqAddress());
-				customerT.setCreatedModifiedBy(customerToInsert.getCreatedModifiedBy());
-				customerT.setGroupCustomerName(customerToInsert.getGroupCustomerName());
+				customerT.setCorporateHqAddress(customerToInsert
+						.getCorporateHqAddress());
+				customerT.setCreatedModifiedBy(customerToInsert
+						.getCreatedModifiedBy());
+				customerT.setGroupCustomerName(customerToInsert
+						.getGroupCustomerName());
 				customerT.setFacebook(customerToInsert.getFacebook());
 				customerT.setWebsite(customerToInsert.getWebsite());
 				customerT.setLogo(customerToInsert.getLogo());
@@ -585,7 +574,8 @@ public class CustomerService {
 				customerT.setIou(customerToInsert.getIou());
 			} else {
 				logger.error("EXISTS: customer Already Exist!");
-				throw new DestinationException(HttpStatus.CONFLICT,"customer Already Exist!");
+				throw new DestinationException(HttpStatus.CONFLICT,
+						"customer Already Exist!");
 			}
 			logger.info("before save");
 			customerT = customerRepository.save(customerT);
@@ -596,6 +586,7 @@ public class CustomerService {
 
 	/**
 	 * This method inserts Beacon customers to the database
+	 * 
 	 * @param beaconCustomerToInsert
 	 * @return BeaconCustomerMappingT
 	 * @throws Exception
@@ -645,8 +636,10 @@ public class CustomerService {
 		if (displayIOU.isEmpty())
 			displayIOU.add("");
 		List<CustomerMasterT> customerMasterTs = customerRepository
-				.advancedSearch("%" + groupCustomerNameWith.toUpperCase() + "%", "%"
-						+ nameWith.toUpperCase() + "%", geography, displayIOU);
+				.advancedSearch(
+						"%" + groupCustomerNameWith.toUpperCase() + "%", "%"
+								+ nameWith.toUpperCase() + "%", geography,
+						displayIOU);
 
 		if (customerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
