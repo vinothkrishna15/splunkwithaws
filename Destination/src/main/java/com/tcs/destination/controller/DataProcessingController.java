@@ -34,7 +34,6 @@ public class DataProcessingController {
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
     public @ResponseBody ResponseEntity<String> batchUploadRequest(
 	    @RequestParam("file") MultipartFile file,
-	    @RequestParam("userId") String userId,
 	    @RequestParam("type") int type,
 	    @RequestParam(value = "fields", defaultValue = "all") String fields,
 	    @RequestParam(value = "view", defaultValue = "") String view)
@@ -45,7 +44,7 @@ public class DataProcessingController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (type > 0 && type < 10) {
-				 status = service.saveUploadRequest(file, userId, type);
+				 status = service.saveUploadRequest(file, type);
 				 logger.debug("UPLOAD SUCCESS - Record Created ");
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -67,7 +66,6 @@ public class DataProcessingController {
 	
 	@RequestMapping(value = "/download", method = RequestMethod.POST)
     public @ResponseBody ResponseEntity<String> batchDownloadRequest(
-	    @RequestParam("userId") String userId,
 	    @RequestParam("type") int type,
 	    @RequestParam(value = "fields", defaultValue = "all") String fields,
 	    @RequestParam(value = "view", defaultValue = "") String view)
@@ -78,7 +76,7 @@ public class DataProcessingController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (type > 9 && type < 19) {
-				 status = service.saveDownloadRequest(userId, type);
+				 status = service.saveDownloadRequest(type);
 				 logger.debug("DOWNLOAD SUCCESS - Record Created ");
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
