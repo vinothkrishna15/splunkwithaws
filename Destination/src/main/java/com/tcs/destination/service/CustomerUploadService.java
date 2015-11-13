@@ -35,6 +35,7 @@ import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
@@ -66,7 +67,7 @@ public class CustomerUploadService {
 	 * @param file
 	 * @param userId
 	 */
-	public UploadStatusDTO upload(MultipartFile file, String userId)
+	public UploadStatusDTO upload(MultipartFile file)
 			throws Exception {
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		if(workbook!= null){
@@ -118,7 +119,7 @@ public class CustomerUploadService {
 							logger.info("Cell 0 at "+rowCount+" : "+actionCellValue);
 							System.out.println("*****ADD*****");
 							listOfCellValues = iterateRow(row, CustomerUploadConstants.CUSTOMER_MASTER_SHEET_COLUMN_COUNT);
-							customerService.addCustomer(constructCustomerMasterTForCustomer(listOfCellValues,  userId, DocumentActionType.ADD.name()));
+							customerService.addCustomer(constructCustomerMasterTForCustomer(listOfCellValues,  DestinationUtils.getCurrentUserDetails().getUserId(), DocumentActionType.ADD.name()));
 						} 
 					} catch (Exception e) {
 						if (uploadStatus.isStatusFlag()) {
