@@ -80,8 +80,6 @@ public class PartnerService {
 				.getOpportunityPartnerLinkTs()) {
 			beaconConverterService.convertOpportunityCurrency(
 					opportunityPartnerLinkT.getOpportunityT(), toCurrency);
-			opportunityPartnerLinkT.getOpportunityT()
-					.setOpportunityPartnerLinkTs(null);
 		}
 		preparePartner(partner);
 		return partner;
@@ -307,6 +305,7 @@ public class PartnerService {
 			int toIndex = PaginationUtils.getEndIndex(page, count,
 					partnerMasterTs.size()) + 1;
 			partnerMasterTs = partnerMasterTs.subList(fromIndex, toIndex);
+			preparePartner(partnerMasterTs);
 			paginatedResponse.setPartnerMasterTs(partnerMasterTs);
 			logger.debug("Partners after pagination size is "
 					+ partnerMasterTs.size());
