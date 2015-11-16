@@ -52,10 +52,11 @@ public class PartnerController {
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("id") String partnerid,
+			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
 		logger.debug("Inside PartnerController /partner/id="+partnerid+" GET");
-		PartnerMasterT partner = partnerService.findById(partnerid);
+		PartnerMasterT partner = partnerService.findById(partnerid, currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partner);
 	}
 	

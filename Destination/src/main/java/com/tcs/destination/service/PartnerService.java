@@ -51,6 +51,9 @@ public class PartnerService {
 	@Autowired
 	ConnectCustomerContactLinkTRepository connectCustomerContactLinkTRepository;
 	
+	@Autowired
+	BeaconConverterService beaconConverterService;
+	
 	/**
 	 * This service saves partner details into partner_master_t 
      * @param insertList
@@ -63,13 +66,16 @@ public class PartnerService {
 		partnerRepository.save(insertList);
 	}
 
-	public PartnerMasterT findById(String partnerId) throws Exception {
+	public PartnerMasterT findById(String partnerId, List<String> toCurrency) throws Exception {
 		logger.debug("Inside findById Service");
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 		if (partner == null) {
 			logger.error("NOT_FOUND: No such partner found.");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such partner found.");
+		}
+		for(OpportunityPartnerLinkT opportunityPartnerLinkT:partner.getOpportunityPartnerLinkTs()){
+		beaconConverterService.convertOpportunityCurrency(opportunityPartnerLinkT.getOpportunityT(), toCurrency);
 		}
 		preparePartner(partner);
 		return partner;
