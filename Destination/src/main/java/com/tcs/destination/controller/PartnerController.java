@@ -24,6 +24,7 @@ import com.tcs.destination.service.PartnerDownloadService;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -82,11 +83,11 @@ public class PartnerController {
 	}
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> uploadPartner(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 //		UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		
