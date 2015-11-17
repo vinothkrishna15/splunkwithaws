@@ -20,6 +20,7 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -34,11 +35,11 @@ public class DashboardController {
 
 	@RequestMapping(value = "/chart", method = RequestMethod.GET)
 	public String chart(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		PerformaceChartBean chartValues = dashboardService.getChartValues(
 				userId, financialYear);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
@@ -86,13 +87,13 @@ public class DashboardController {
 	 */
 	@RequestMapping(value = "/leadership/connect", method = RequestMethod.GET)
 	public String getLeadershipConnectsByGeography(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside CustomerController /dashboard/leadership/connect GET");
 		LeadershipConnectsDTO connects = null;
 		
@@ -116,13 +117,13 @@ public class DashboardController {
 	 */
 	@RequestMapping(value = "/leadership/wins", method = RequestMethod.GET)
 	public String getLeadershipWinsByGeography(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside CustomerController /dashboard/leadership/wins GET");
 		LeadershipOverallWinsDTO wins = null;
 		
@@ -146,13 +147,13 @@ public class DashboardController {
 	 */
 	@RequestMapping(value = "/leadership/opp", method = RequestMethod.GET)
 	public String getLeadershipOpportunitiesByGeography(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside CustomerController /dashboard/leadership/opp GET");
 		LeadershipOpportunitiesDTO opportunities = null;
 		
