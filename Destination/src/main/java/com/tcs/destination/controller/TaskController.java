@@ -24,6 +24,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TaskService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -139,10 +140,10 @@ public class TaskController {
 	 */
 	@RequestMapping(value="/findAssigned", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksAssignedToOthersByUser(
-			@RequestParam(value="id") String userId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside TaskController /task/findAssigned?id="+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
 		return new ResponseEntity<String>
@@ -158,12 +159,12 @@ public class TaskController {
 	 */
 	@RequestMapping(value="/findByTargetDate", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksByUserAndTargetDate(
-			@RequestParam(value="id") String userId,
 			@RequestParam(value="fromDate") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
 			@RequestParam(value="toDate") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws Exception 
 	{
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
 		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, fromDate, toDate);
 		return new ResponseEntity<String>
