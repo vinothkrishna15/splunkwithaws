@@ -294,22 +294,18 @@ public class ConnectController {
 			@RequestParam("fy") String financialYear) throws Exception {
 
 		List<ConnectT> listOfConnects = null;
-		try {
+//		try {
 			listOfConnects = connectService.getAllConnectsForDashbaord(status,
 					financialYear);
 			if (listOfConnects == null) {
-				logger.error(
-						"NOT_FOUND : No Connects found for the status {} and FY {}",
-						status, financialYear);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Connects found for the status " + status
-								+ " and FY " + financialYear);
+				logger.error("NOT_FOUND : No Connects found for the status {} and FY {}", status, financialYear);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "No Connects found for the status " + status + " and FY " + financialYear);
 			}
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+//		} catch (Exception e) {
+//			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+//					e.getMessage());
+//		}
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						listOfConnects), HttpStatus.OK);
