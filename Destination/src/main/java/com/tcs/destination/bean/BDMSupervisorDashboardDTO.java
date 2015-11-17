@@ -25,6 +25,7 @@ public class BDMSupervisorDashboardDTO implements Serializable{
 	private List<DashBoardBDMResponse> bdmSupervisorDashboard;
 
 	public BigDecimal getTotalOpportunityWinsAchieved() {
+		if(totalOpportunityWinsAchieved!=null)
 		totalOpportunityWinsAchieved = totalOpportunityWinsAchieved.setScale(2, RoundingMode.CEILING);
 		return totalOpportunityWinsAchieved;
 	}
