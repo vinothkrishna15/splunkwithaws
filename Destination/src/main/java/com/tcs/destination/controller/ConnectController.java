@@ -34,6 +34,7 @@ import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.service.ConnectUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -122,7 +123,6 @@ public class ConnectController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
@@ -130,6 +130,8 @@ public class ConnectController {
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
 			throws Exception {
+		
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ConnectController /connect/date?from=" + fromDate
 				+ "&to=" + toDate + "GET");
 		if (weekStartDate.getTime() == weekEndDate.getTime()
@@ -241,10 +243,10 @@ public class ConnectController {
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
 			@RequestParam("file") MultipartFile file,
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Upload request Received : docName ");
 		UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -356,8 +358,8 @@ public class ConnectController {
 	 * @throws Exception
 	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
-			@RequestParam("userId") String userId) throws Exception {
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect() throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Download request Received : docName ");
 		InputStreamResource excelFile = connectDownloadService
 				.getConnects(userId);
