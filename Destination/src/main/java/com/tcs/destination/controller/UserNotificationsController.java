@@ -23,6 +23,7 @@ import com.tcs.destination.bean.UserNotificationsT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
 import com.tcs.destination.service.UserNotificationsService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -40,14 +41,13 @@ public class UserNotificationsController {
 
 	@RequestMapping(value = "/portal", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findNotifications(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "read", defaultValue = "") String read,
 			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserNotificationsController /user GET");
 		List<UserNotificationsT> userNotificationsT = userNotificationsService
 				.getNotifications(userId, read, fromDate.getTime(),
@@ -64,10 +64,10 @@ public class UserNotificationsController {
 
 	@RequestMapping(value = "/settings", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getUserNotificationSettings(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserNotificationSettingsController/usernotificationsettings?userId="
 				+ userId + " GET");
 		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingT = userNotificationSettingsService
