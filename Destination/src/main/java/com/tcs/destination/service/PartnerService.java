@@ -31,42 +31,44 @@ import com.tcs.destination.utils.PaginationUtils;
 @Service
 public class PartnerService {
 
-	private static final Logger logger = LoggerFactory.getLogger(PartnerService.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(PartnerService.class);
 
 	@Autowired
 	PartnerRepository partnerRepository;
 
 	@Autowired
 	BeaconConvertorRepository beaconRepository;
-	
+
 	@Autowired
-	OpportunityPartnerLinkTRepository opportunityPartnerLinkTRepository;  
-	
+	OpportunityPartnerLinkTRepository opportunityPartnerLinkTRepository;
+
 	@Autowired
-	ContactRepository  contactRepository;
-	
+	ContactRepository contactRepository;
+
 	@Autowired
-	ConnectRepository  connectRepository;
-	
+	ConnectRepository connectRepository;
+
 	@Autowired
 	ConnectCustomerContactLinkTRepository connectCustomerContactLinkTRepository;
-	
+
 	@Autowired
 	BeaconConverterService beaconConverterService;
-	
+
 	/**
-	 * This service saves partner details into partner_master_t 
-     * @param insertList
+	 * This service saves partner details into partner_master_t
+	 * 
+	 * @param insertList
 	 * @param keyword
 	 * @throws Exception
 	 */
-	public void save(List<PartnerMasterT> insertList) throws Exception 
-	{
+	public void save(List<PartnerMasterT> insertList) throws Exception {
 		logger.debug("Inside save method");
 		partnerRepository.save(insertList);
 	}
 
-	public PartnerMasterT findById(String partnerId, List<String> toCurrency) throws Exception {
+	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
+			throws Exception {
 		logger.debug("Inside findById Service");
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 		if (partner == null) {
@@ -74,16 +76,19 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such partner found.");
 		}
-		for(OpportunityPartnerLinkT opportunityPartnerLinkT:partner.getOpportunityPartnerLinkTs()){
-		beaconConverterService.convertOpportunityCurrency(opportunityPartnerLinkT.getOpportunityT(), toCurrency);
+		for (OpportunityPartnerLinkT opportunityPartnerLinkT : partner
+				.getOpportunityPartnerLinkTs()) {
+			beaconConverterService.convertOpportunityCurrency(
+					opportunityPartnerLinkT.getOpportunityT(), toCurrency);
 		}
 		preparePartner(partner);
 		return partner;
 	}
-	
+
 	/**
-	 * This service updates partner details in partner_master_t 
-     * @param partnerList
+	 * This service updates partner details in partner_master_t
+	 * 
+	 * @param partnerList
 	 * @param keyword
 	 * @throws Exception
 	 */
@@ -92,39 +97,41 @@ public class PartnerService {
 		partnerRepository.save(partnerList);
 
 	}
-	
-	
+
 	/**
-	 * This service deletes partner details from partner_master_t 
-     * @param partnerList
+	 * This service deletes partner details from partner_master_t
+	 * 
+	 * @param partnerList
 	 * @param keyword
 	 * @throws Exception
 	 */
-	public void deletePartner(List<PartnerMasterT> partnerList) 
-	{
+	public void deletePartner(List<PartnerMasterT> partnerList) {
 		List<ContactT> contactListT = new ArrayList<ContactT>();
 		List<ConnectT> connectListT = new ArrayList<ConnectT>();
 		List<OpportunityPartnerLinkT> opportunityPartnerListT = new ArrayList<OpportunityPartnerLinkT>();
 		List<ConnectCustomerContactLinkT> connectCustomerContactListT = new ArrayList<ConnectCustomerContactLinkT>();
-		
-		if(!partnerList.isEmpty())
-		{
-			for (PartnerMasterT partnerT : partnerList) {  
-			 
-			  contactListT=contactRepository.findByPartnerId(partnerT.getPartnerId());
-			 
-			  connectListT=connectRepository.findByPartnerId(partnerT.getPartnerId());
-			 
-			  opportunityPartnerListT=opportunityPartnerLinkTRepository.findByPartnerId(partnerT.getPartnerId());
-			  
-			  for (ContactT contactT : contactListT) 
-			  {
-				  connectCustomerContactListT=connectCustomerContactLinkTRepository.findByContactId(contactT.getContactId());
-			  }
-			
+
+		if (!partnerList.isEmpty()) {
+			for (PartnerMasterT partnerT : partnerList) {
+
+				contactListT = contactRepository.findByPartnerId(partnerT
+						.getPartnerId());
+
+				connectListT = connectRepository.findByPartnerId(partnerT
+						.getPartnerId());
+
+				opportunityPartnerListT = opportunityPartnerLinkTRepository
+						.findByPartnerId(partnerT.getPartnerId());
+
+				for (ContactT contactT : contactListT) {
+					connectCustomerContactListT = connectCustomerContactLinkTRepository
+							.findByContactId(contactT.getContactId());
+				}
+
 			}
 		}
-		connectCustomerContactLinkTRepository.delete(connectCustomerContactListT);
+		connectCustomerContactLinkTRepository
+				.delete(connectCustomerContactListT);
 		contactRepository.delete(contactListT);
 		connectRepository.delete(connectListT);
 		opportunityPartnerLinkTRepository.delete(opportunityPartnerListT);
@@ -134,10 +141,8 @@ public class PartnerService {
 	/*
 	 * @Transactional public boolean save(PartnerMasterT partner, boolean
 	 * isUpdate) throws Exception { if (isUpdate) { if (partner.getPartnerId()
-	 * == null) { 
-	 * throw new DestinationException(HttpStatus.BAD_REQUEST,
-	 * "Cannot Update Partner without partnerId"); 
-	 * }
+	 * == null) { throw new DestinationException(HttpStatus.BAD_REQUEST,
+	 * "Cannot Update Partner without partnerId"); }
 	 * 
 	 * } else { if (partner.getPartnerId() != null) { throw new
 	 * DestinationException
@@ -160,9 +165,9 @@ public class PartnerService {
 	 * @param contact
 	 * @return
 	 */
-	private void validateRequest(PartnerMasterT partner) throws DestinationException 
-	{
-          if (partner.getPartnerName().isEmpty()
+	private void validateRequest(PartnerMasterT partner)
+			throws DestinationException {
+		if (partner.getPartnerName().isEmpty()
 				|| partner.getPartnerName() == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"PartnerName is required");
@@ -282,11 +287,11 @@ public class PartnerService {
 	public PaginatedResponse search(String name, List<String> geography,
 			int page, int count) throws DestinationException {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
-		if(geography.isEmpty())
+		if (geography.isEmpty())
 			geography.add("");
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
-				.findByPartnerNameAndGeographyNonMandatory("%" + name.toUpperCase() + "%",
-						geography);
+				.findByPartnerNameAndGeographyNonMandatory(
+						"%" + name.toUpperCase() + "%", geography);
 		if (partnerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available");
@@ -300,6 +305,7 @@ public class PartnerService {
 			int toIndex = PaginationUtils.getEndIndex(page, count,
 					partnerMasterTs.size()) + 1;
 			partnerMasterTs = partnerMasterTs.subList(fromIndex, toIndex);
+			preparePartner(partnerMasterTs);
 			paginatedResponse.setPartnerMasterTs(partnerMasterTs);
 			logger.debug("Partners after pagination size is "
 					+ partnerMasterTs.size());
