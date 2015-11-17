@@ -36,6 +36,7 @@ import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -74,9 +75,9 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
 		PaginatedResponse opportunities = opportunityService
@@ -118,12 +119,12 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
-			@RequestParam("id") String userId,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "role", defaultValue = "ALL") String opportunityRole,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity/taskowner?id="
 				+ userId + " GET");
 		List<OpportunityT> opportunities = opportunityService
@@ -418,11 +419,11 @@ public class OpportunityController {
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Upload request Received : docName - ");
 		UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -463,12 +464,12 @@ public class OpportunityController {
 	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadOpportunity(
-			@RequestParam("userId") String userId,
 			@RequestParam("downloadOpportunities") boolean oppFlag,
 			@RequestParam("isDealValuesInUSDRequired") boolean dealValueFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		HttpHeaders respHeaders = null;
 		InputStreamResource opportunityDownloadExcel = null;
 		try {
