@@ -447,12 +447,14 @@ public class ReportsService {
 	
 	public List<TargetVsActualDetailed> getTargetVsActual(
 			List<String> geography, List<String> iou, String fromMonth,
-			String toMonth, List<String> currency, String userId)
+			String toMonth, List<String> currency, String userId, List<String> countries)
 			throws Exception {
 		Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap = new TreeMap<String, List<TargetVsActualQuarter>>();
 		List<TargetVsActualDetailed> targetVsActualDetails = new ArrayList<TargetVsActualDetailed>();
 		List<String> geographyList = new ArrayList<String>();
+		List<String> countryList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
+		addEmptyItemToListIfAll(countries, countryList);
 		if (toMonth.isEmpty()) {
 			toMonth = DateUtils.getCurrentMonth();
 		}
@@ -488,33 +490,23 @@ public class ReportsService {
 									HttpStatus.BAD_REQUEST,
 									"No Months available for this perticular range");
 						}
-						createMapForProjectedByUserPrevilages(formattedMonths,
-								customerIdQuarterMap, userId);
-						mergeMapForActualByUserPrevilages(formattedMonths,
-								customerIdQuarterMap, userId);
-						mergeMapForTargetByUserPrevilages(fromMonth, toMonth,
-								customerIdQuarterMap, userId);
-						generateReponseFromMap(customerIdQuarterMap,
-								targetVsActualDetails);
+						createMapForProjectedByUserPrevilages(formattedMonths, customerIdQuarterMap, userId);
+						mergeMapForActualByUserPrevilages(formattedMonths, customerIdQuarterMap, userId);
+						mergeMapForTargetByUserPrevilages(fromMonth, toMonth, customerIdQuarterMap, userId);
+						generateReponseFromMap(customerIdQuarterMap, targetVsActualDetails, countryList);
 						setCurrency(targetVsActualDetails, currency);
 						return targetVsActualDetails;
 					} else {
 						addEmptyItemToListIfAll(iou, iouList);
 						addEmptyItemToListIfGeo(geography, geographyList);
-						if (formattedMonths == null
-								|| formattedMonths.isEmpty()) {
-							throw new DestinationException(
-									HttpStatus.BAD_REQUEST,
+						if (formattedMonths == null || formattedMonths.isEmpty()) {
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
 									"No Months available for this perticular range");
 						}
-						createMapForProjected(iouList, geographyList,
-								formattedMonths, customerIdQuarterMap);
-						mergeMapForActual(iouList, geographyList,
-								formattedMonths, customerIdQuarterMap);
-						mergeMapForTarget(iouList, geographyList, fromMonth,
-								toMonth, customerIdQuarterMap);
-						generateReponseFromMap(customerIdQuarterMap,
-								targetVsActualDetails);
+						createMapForProjected(iouList, geographyList, formattedMonths, customerIdQuarterMap, countryList);
+						mergeMapForActual(iouList, geographyList, formattedMonths, customerIdQuarterMap, countryList);
+						mergeMapForTarget(iouList, geographyList, fromMonth, toMonth, customerIdQuarterMap, countryList);
+						generateReponseFromMap(customerIdQuarterMap, targetVsActualDetails, countryList);
 						setCurrency(targetVsActualDetails, currency);
 						return targetVsActualDetails;
 					}
@@ -740,7 +732,7 @@ public class ReportsService {
 
 	private void generateReponseFromMap(
 			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap,
-			List<TargetVsActualDetailed> targetVsActualDetails) throws Exception {
+			List<TargetVsActualDetailed> targetVsActualDetails, List<String> countryList) throws Exception {
 		try{
 		for (String customerName : customerIdQuarterMap.keySet()) {
 			TargetVsActualDetailed targetVsActualDetailed = new TargetVsActualDetailed();
@@ -759,10 +751,9 @@ public class ReportsService {
 
 	private void createMapForProjected(List<String> iouList,
 			List<String> geographyList, List<String> formattedMonths,
-			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap) {
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap, List<String> countryList) {
 		List<Object[]> projectedQuarterObjList = projectedRevenuesDataTRepository
-				.getProjectedRevenuesByQuarter(iouList, geographyList,
-						formattedMonths);
+				.getProjectedRevenuesByQuarter(iouList, geographyList, formattedMonths, countryList);
 		if (projectedQuarterObjList != null) {
 			for (Object[] projectedQuarter : projectedQuarterObjList) {
 				TargetVsActualQuarter targetVsActualQuarter = new TargetVsActualQuarter();
@@ -905,7 +896,7 @@ public class ReportsService {
 
 	private void mergeMapForTarget(List<String> iouList,
 			List<String> geographyList, String fromMonth, String toMonth,
-			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap)
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap, List<String> countryList)
 			throws Exception {
 		String fromQuarter = DateUtils.getQuarterForMonth(fromMonth);
 		String toQuarter = DateUtils.getQuarterForMonth(toMonth);
@@ -963,10 +954,9 @@ public class ReportsService {
 
 	private void mergeMapForActual(List<String> iouList,
 			List<String> geographyList, List<String> formattedMonths,
-			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap) {
+			Map<String, List<TargetVsActualQuarter>> customerIdQuarterMap, List<String> countryList) {
 		List<Object[]> actualRevenueObjList = actualRevenuesDataTRepository
-				.getActualRevenuesByQuarter(iouList, geographyList,
-						formattedMonths);
+				.getActualRevenuesByQuarter(iouList, geographyList,	formattedMonths, countryList);
 		for (Object[] actualRevenueObj : actualRevenueObjList) {
 			String customerName = actualRevenueObj[0].toString();
 			String quarter = actualRevenueObj[1].toString();
@@ -1056,16 +1046,15 @@ public class ReportsService {
 
 	// Excel Reports
 
-	public InputStreamResource getTargetVsActualReports(List<String> geography,
-			List<String> iou, String fromMonth, String toMonth,
-			List<String> currencyList, List<String> fields, String userId)
+	public InputStreamResource getTargetVsActualReports(List<String> geography, List<String> countryList,
+			List<String> iou, String fromMonth, String toMonth, List<String> currencyList, List<String> fields, String userId)
 			throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		String tillDate = DateUtils.getCurrentDate();
 		//To Write The Report Title page
 		buildExcelTargetVsActualDetailedReportService.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary, Detailed");
 		//
-		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(geography, iou, fromMonth, toMonth, currencyList, userId);
+		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(geography, iou, fromMonth, toMonth, currencyList, userId, countryList);
 		
 		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth, currencyList, userId, workbook);
 		
@@ -1082,12 +1071,12 @@ public class ReportsService {
 	}
 
 	public InputStreamResource getTargetVsActualDetailedReport(
-			List<String> geography, List<String> iou, String fromMonth,
+			List<String> geography, List<String> countryList, List<String> iou, String fromMonth,
 			String toMonth, List<String> currency, List<String> fields,
 			String userId) throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		List<TargetVsActualDetailed> targetVsActualDetailedList = getTargetVsActual(
-				geography, iou, fromMonth, toMonth, currency, userId);
+				geography, iou, fromMonth, toMonth, currency, userId, countryList);
 		if(targetVsActualDetailedList!=null){
 		String tillDate = DateUtils.getCurrentDate();
 		buildExcelTargetVsActualDetailedReportService
@@ -1111,7 +1100,7 @@ public class ReportsService {
 	}
 
 	public InputStreamResource getTargetVsActualSummaryReport(
-			List<String> geography, List<String> iou, String fromMonth,
+			List<String> geography, List<String> countryList, List<String> iou, String fromMonth,
 			String toMonth, List<String> currencyList, String userId)
 			throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);

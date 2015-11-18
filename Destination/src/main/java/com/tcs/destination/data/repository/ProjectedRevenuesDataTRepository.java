@@ -101,11 +101,12 @@ public interface ProjectedRevenuesDataTRepository extends
 			+ "and RCMT.customer_geography = PRDT.finance_geography and RCMT.finance_iou =PRDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "where upper(PRDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,PRDT.quarter", nativeQuery = true)
+			+ "where upper(PRDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' and PRDT.client_country in (:countryList) or ('') in (:countryList) group by RCMT.customer_name,PRDT.quarter", nativeQuery = true)
 	public List<Object[]> getProjectedRevenuesByQuarter(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
-			@Param("monthList") List<String> monthList);
+			@Param("monthList") List<String> monthList, 
+			@Param("countryList") List<String> countryList);
 
 	@Query(value = "select case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as revenue_sum from projected_revenues_data_t PRDT "
 			+ "JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography and (PRDT.finance_geography in (:geoList) or ('') in (:geoList)) "

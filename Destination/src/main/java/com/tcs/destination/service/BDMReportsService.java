@@ -123,11 +123,11 @@ public class BDMReportsService {
 	BDMDetailedReportService bdmDetailedReportService;
 
 	public InputStreamResource getBdmsReport(String financialYear, String from, String to, List<String> geography, List<String> country, List<String> currency,
-			List<String> serviceline, List<Integer> salesStage, List<String> opportunityOwners, String userId, List<String> fields) throws Exception {
+			List<String> serviceline, List<String> iou, List<Integer> salesStage, List<String> opportunityOwners, String userId, List<String> fields) throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-		getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, serviceline, salesStage, opportunityOwners, userId, "both");
-		getBdmSummaryReportExcel(financialYear, from, to, geography, currency, serviceline, salesStage, opportunityOwners, userId, workbook);
-		bdmDetailedReportService.getBdmDetailedReportExcel(financialYear, from, to, geography, country, currency, serviceline, salesStage, opportunityOwners, userId, workbook, fields);
+		getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, serviceline, salesStage, opportunityOwners, userId, "both", iou);
+		getBdmSummaryReportExcel(financialYear, from, to, geography, currency, serviceline, salesStage, opportunityOwners, userId, workbook, country, iou);
+		bdmDetailedReportService.getBdmDetailedReportExcel(financialYear, from, to, geography, country, currency, serviceline, salesStage, opportunityOwners, userId, workbook, fields, iou);
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
 		byteOutPutStream.flush();
@@ -140,7 +140,7 @@ public class BDMReportsService {
 	
 	public void getBDMReportTitlePage(SXSSFWorkbook workbook, String financialYear, String from, String to,
 			List<String> geography, List<String> country, List<String> currency, List<String> serviceline,
-			List<Integer> salesStage, List<String> opportunityOwners, String userId, String reportType) {
+			List<Integer> salesStage, List<String> opportunityOwners, String userId, String reportType, List<String> iou) {
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADINGSTYLE);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.ROWS);
@@ -158,8 +158,9 @@ public class BDMReportsService {
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7, dataRow);
 		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Country", country, 8, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceline, 9, dataRow);
-		row = (SXSSFRow) spreadsheet.createRow(10);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.Iou, iou, 9, dataRow);
+		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceline, 10, dataRow);
+		row = (SXSSFRow) spreadsheet.createRow(11);
 		row.createCell(4).setCellValue("Period");
 		
 		String period = null;
@@ -171,7 +172,7 @@ public class BDMReportsService {
 			period = DateUtils.getCurrentFinancialYear();
 		}
 		row.createCell(5).setCellValue(period);
-		row = (SXSSFRow) spreadsheet.createRow(11);
+		row = (SXSSFRow) spreadsheet.createRow(12);
 		
 		if (salesStage.size()>13) {
 			completeList = "All";
@@ -221,19 +222,19 @@ public class BDMReportsService {
 		}
 		
 		////s
-		row = (SXSSFRow) spreadsheet.createRow(21);
+		row = (SXSSFRow) spreadsheet.createRow(22);
 //		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 5));
 		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		row = (SXSSFRow) spreadsheet.createRow(22);
+		row = (SXSSFRow) spreadsheet.createRow(23);
 		row.createCell(4).setCellValue("Currency");
 		row.createCell(5).setCellValue(currency.toString().replace("[", "").replace("]", ""));
-		row = (SXSSFRow) spreadsheet.createRow(23);
+		row = (SXSSFRow) spreadsheet.createRow(24);
 		row.createCell(4).setCellValue("Report Type");
 		row.createCell(5).setCellValue(reportType);
 		
-		spreadsheet.addMergedRegion(new CellRangeAddress(25, 25, 4, 7));
-		row = (SXSSFRow) spreadsheet.createRow(25);
+		spreadsheet.addMergedRegion(new CellRangeAddress(26, 26, 4, 7));
+		row = (SXSSFRow) spreadsheet.createRow(26);
 		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
 		
 	}
@@ -247,11 +248,11 @@ public class BDMReportsService {
 		 * @param fields * @return * @throws Exception
 		 */
 		public InputStreamResource getBdmSummaryReport(String financialYear, String from, String to,
-				List<String> geography, List<String> country, List<String> currency, List<String> servicelines, List<Integer> salesStage, List<String> opportunityOwners,
+				List<String> geography, List<String> country, List<String> currency, List<String> servicelines, List<String> iou, List<Integer> salesStage, List<String> opportunityOwners,
 				String userId, List<String> fields) throws Exception {
 			SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-			getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, "Summary");
-			getBdmSummaryReportExcel(financialYear, from, to, geography, currency, servicelines, salesStage, opportunityOwners, userId, workbook);
+			getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, "Summary", iou);
+			getBdmSummaryReportExcel(financialYear, from, to, geography, currency, servicelines, salesStage, opportunityOwners, userId, workbook, country, iou);
 //			ExcelUtils.arrangeSheetOrder(workbook);
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
@@ -267,11 +268,13 @@ public class BDMReportsService {
 		 * @param financialYear  * @param from  * @param to  * @param geography * @param country
 		 * @param currency * @param serviceLines * @param salesStage * @param opportunityOwners
 		 * @param userId * @param workbook * @param fields
+		 * @param country 
+		 * @param iou 
 		 * @throws Exception 
 		 */
 		private void getBdmSummaryReportExcel(String financialYear, String from, String to, List<String> geography, 
 				List<String> currency, List<String> serviceLines, List<Integer> salesStage, 
-				List<String> opportunityOwners, String userId, SXSSFWorkbook workbook) throws Exception {
+				List<String> opportunityOwners, String userId, SXSSFWorkbook workbook, List<String> country, List<String> iou) throws Exception {
 			List<String> userIds = new ArrayList<String>();
 			UserT user = userService.findByUserId(userId);
 //			boolean isAlongWithSupervisor=false;
@@ -279,13 +282,13 @@ public class BDMReportsService {
 			    
 				String userGroup = user.getUserGroupMappingT().getUserGroup();
 				List<String> geoList = new ArrayList<String>();
-//				List<String> countryList = new ArrayList<String>();
+				List<String> countryList = new ArrayList<String>();
 				List<String> serviceLinesList = new ArrayList<String>();
-//				List<String> opportunityOwnerList = new ArrayList<String>();
+				List<String> iouList = new ArrayList<String>();
 				addItemToListGeo(geography,geoList);
-//				addItemToList(country,countryList);
+				addItemToList(country,countryList);
 				addItemToList(serviceLines,serviceLinesList);
-//				addItemToList(opportunityOwners, opportunityOwnerList);
+				addItemToList(iou, iouList);
 				
 			    if (UserGroup.contains(userGroup)) {
 			    	
@@ -299,31 +302,35 @@ public class BDMReportsService {
 					logger.error("User is not authorized to access this service");
 				    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 				case BDM_SUPERVISOR:
-					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook);
+					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					break;
 				case GEO_HEADS:
 				case IOU_HEADS:
-					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook);
+					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReport(userIds, userId, financialYear, workbook);
 					break;
 				default :
-					List<String> userGroups = Arrays.asList("GEO Heads","IOU Heads");
-					List<String> userIdList = Arrays.asList("BDM", "BDM Supervisor");
+					List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
+					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor");
 					List<String> bdmUser = Arrays.asList("BDM");
+					
 					List<String> bdmsList = new ArrayList<String>();
 					List<String> geoIouUserList = new ArrayList<String>();
 					List<String> bdmSupervisorList = new ArrayList<String>();
-					
+					List<String> geoHeadOrIouSpocsUserList = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
 					if(opportunityOwners.isEmpty()){
 						 bdmsList = userRepository.findUserIdByuserGroup(bdmUser);
+						 bdmSupervisorList = userRepository.findUserIdByuserGroup(userGroupBDMAndBDMSupervisor);
+						 geoIouUserList = geoHeadOrIouSpocsUserList;
 					} else {
 						 bdmsList.addAll(opportunityOwners);
+						 bdmSupervisorList = getSubOrdinatesList(opportunityOwners);
+						 geoIouUserList = getRequiredGeoOrIouHeadsList(opportunityOwners, geoHeadOrIouSpocsUserList);
 					}
-					geoIouUserList = userRepository.findUserIdByuserGroup(userGroups);
-					bdmSupervisorList = userRepository.findUserIdByuserGroup(userIdList);
-					getOpportunitySummaryDetails(bdmsList, financialYear, geoList, serviceLinesList, workbook);
+					List<String> bdmList = getSubOrdinatesList(bdmsList);
+					getOpportunitySummaryDetails(bdmList, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(bdmSupervisorList, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoIouUserList, userId, financialYear, workbook);
 					break;
@@ -335,6 +342,57 @@ public class BDMReportsService {
 			}
 		}
 		
+		/**
+		 * @param opportunityOwners
+		 * @param geoIouUserList 
+		 * @return
+		 */
+		private List<String> getRequiredGeoOrIouHeadsList(List<String> opportunityOwners, List<String> geoIouUserList) {
+			List<String> geoHeadOrIouSpocUserIds = new ArrayList<String>();
+			for(String geoIouUser:opportunityOwners){
+				if(geoIouUserList.contains(geoIouUser)){
+					geoHeadOrIouSpocUserIds.add(geoIouUser);
+				}
+			}
+			return geoHeadOrIouSpocUserIds;
+		}
+
+
+		/**
+		 * @param bdmsList
+		 * @param userGroup 
+		 * @return
+		 * @throws Exception 
+		 */
+		private List<String> getSubOrdinatesList(List<String> bdmsList) throws Exception {
+			List<String> subOrdinatesList = new ArrayList<String>();
+			for(String bdm:bdmsList){
+				UserT user = userService.findByUserId(bdm);
+				String userGroup = user.getUserGroupMappingT().getUserGroup();
+			  if (UserGroup.contains(userGroup)) {
+			    	
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+					subOrdinatesList.add(bdm);
+					break;
+				case BDM_SUPERVISOR:
+				case GEO_HEADS:
+				case IOU_HEADS:
+					List<String> userIds = null;
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(bdm);
+					subOrdinatesList.addAll(userIds);
+					subOrdinatesList.add(bdm);
+					break;
+				default :
+					subOrdinatesList.add(bdm);
+					break;
+				}
+		    }
+			}
+			return subOrdinatesList;
+		}
+
+
 		private void getGeoHeadOrIouHeadPerformanceExcelReportForSI(List<String> geoIouUserList, String userId,
 				String financialYear, SXSSFWorkbook workbook) throws Exception {
 			List<BDMPerfromanceGeoIouDashboardResponse> bdmPerfromanceGeoIouList = 
@@ -366,16 +424,11 @@ public class BDMReportsService {
 		}
 
 		private void getOpportunitySummaryDetails(List<String> userIds, String financialYear, List<String> geoList,
-				List<String> serviceLinesList, SXSSFWorkbook workbook) throws Exception {
+				List<String> serviceLinesList, SXSSFWorkbook workbook, List<String> countryList, List<String> iouList) throws Exception {
 			List<BDMDealValueDTO> bdmDealValueDTOList = new ArrayList<BDMDealValueDTO>();
 			BDMDealValueDTO bdmDealValueDTO = null;
-//			List<String> userIds = userRepository.findUserIdByUserGroup("BDM");
-//			if(userIds.isEmpty()){
-//				logger.error("NOT_FOUND: No BDM's Found");
-//				throw new DestinationException(HttpStatus.NOT_FOUND, "No BDM's Found");
-//			}
 			for(String userId:userIds){
-				bdmDealValueDTO = getOpportunityCountAndDigitalDealValueByUser(userId, financialYear, geoList,serviceLinesList);
+				bdmDealValueDTO = getOpportunityCountAndDigitalDealValueByUser(userId, financialYear, geoList,serviceLinesList, countryList, iouList);
 			if(bdmDealValueDTO != null){
 				bdmDealValueDTOList.add(bdmDealValueDTO);
 				}
@@ -484,7 +537,7 @@ public class BDMReportsService {
 
 		
 		private BDMDealValueDTO getOpportunityCountAndDigitalDealValueByUser(String userId, String financialYear, List<String> geoList,
-				List<String> serviceLinesList) throws Exception {
+				List<String> serviceLinesList, List<String> countryList, List<String> iouList) throws Exception {
 			BDMDealValueDTO bdmDealValueDTO = new BDMDealValueDTO();
 			Date fromDate = null;
 			Date toDate = null;
@@ -496,23 +549,23 @@ public class BDMReportsService {
 			}
 			List<Integer> winsSalesStage = new ArrayList<Integer>();
 			winsSalesStage.add(9);
-			Object[][] oppCountDealValueWins = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, winsSalesStage, geoList, serviceLinesList, fromDate, toDate);
+			Object[][] oppCountDealValueWins = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, winsSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
 			
 			List<Integer> lossSalesStage = new ArrayList<Integer>();
 			lossSalesStage.add(10);
-			Object[][] oppCountDealValueLosses = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, lossSalesStage, geoList, serviceLinesList, fromDate, toDate);
+			Object[][] oppCountDealValueLosses = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, lossSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
 			
 			List<Integer> otherLossSalesStage = new ArrayList<Integer>();
 			otherLossSalesStage.add(11);otherLossSalesStage.add(12);otherLossSalesStage.add(13);
-			Object[][] oppCountDealValueOtherLoss = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, otherLossSalesStage, geoList, serviceLinesList, fromDate, toDate);
+			Object[][] oppCountDealValueOtherLoss = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, otherLossSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
 			
 			List<Integer> pipelineSalesStage = new ArrayList<Integer>();
 			pipelineSalesStage.add(4);pipelineSalesStage.add(5);pipelineSalesStage.add(6);pipelineSalesStage.add(7);pipelineSalesStage.add(8);
-			Object[][] oppCountDealValuePipeline = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, pipelineSalesStage, geoList, serviceLinesList, fromDate, toDate);
+			Object[][] oppCountDealValuePipeline = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, pipelineSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
 			
 			List<Integer> prospectsSalesStage = new ArrayList<Integer>();
 			prospectsSalesStage.add(0);prospectsSalesStage.add(1);prospectsSalesStage.add(2);prospectsSalesStage.add(3);
-			Object[][] oppCountDealValueProspects = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, prospectsSalesStage, geoList, serviceLinesList, fromDate, toDate);
+			Object[][] oppCountDealValueProspects = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, prospectsSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
 			
 			//setting bean
 			bdmDealValueDTO.setUserName(userT.getUserName());
@@ -770,10 +823,21 @@ public class BDMReportsService {
 			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
 			BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails = null;
 			boolean isDashboardByYear = true;
+//			addItemToList(userIds);
 			bdmSupervisorDashboardDetails = bdmService.getBDMSupervisorDashboardByUser(userIds, year, isDashboardByYear);
 			setBDMSupervisorPerformanceToExcel(bdmSupervisorDashboardDetails, workbook);	
 					
 		}
+
+		/**
+		 * @param userIds
+		 */
+		private void addItemToList(List<String> userIds) {
+			if(userIds.isEmpty()){
+				userIds.add("Empty");
+			}
+		}
+
 
 		/**
 		 * 
@@ -828,7 +892,11 @@ public class BDMReportsService {
 				}
 				row.createCell(4).setCellValue(salesOwnerOppWins);
 				if(oppWinsTarget!=0.0){
-				oppWinsGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved().doubleValue() - oppWinsTarget);
+				BigDecimal totalOppWinsAchieved = new BigDecimal(0);
+				if(dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved()!=null){
+				totalOppWinsAchieved = dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved();
+				}
+				oppWinsGap = (totalOppWinsAchieved.doubleValue() - oppWinsTarget);
 				row.createCell(5).setCellValue(oppWinsGap);
 				}
 				currentRow++;

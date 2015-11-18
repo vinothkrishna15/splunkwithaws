@@ -65,6 +65,7 @@ public class ReportsController {
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geographyList,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "") List<String> iouList,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencyList,
 			@RequestParam(value = "userId") String userId,
@@ -73,7 +74,7 @@ public class ReportsController {
 			throws Exception {
 
 		List<TargetVsActualDetailed> targetVsActualDetailedList = reportsService
-				.getTargetVsActual(geographyList, iouList, fromMonth, toMonth, currencyList,userId);
+				.getTargetVsActual(geographyList, iouList, fromMonth, toMonth, currencyList,userId, country);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				targetVsActualDetailedList);
@@ -96,12 +97,13 @@ public class ReportsController {
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
-		InputStreamResource excelFile = reportsService.getTargetVsActualDetailedReport(geography, iou, fromMonth, toMonth, currency,fields,userId);
+		InputStreamResource excelFile = reportsService.getTargetVsActualDetailedReport(geography, country, iou, fromMonth, toMonth, currency,fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
@@ -127,11 +129,12 @@ public class ReportsController {
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "userId") String userId)
 			throws Exception {
-		InputStreamResource excelFile = reportsService.getTargetVsActualSummaryReport(geography, iou, fromMonth, toMonth, currency,userId);
+		InputStreamResource excelFile = reportsService.getTargetVsActualSummaryReport(geography, country, iou, fromMonth, toMonth, currency,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
@@ -158,12 +161,13 @@ public class ReportsController {
 			@RequestParam(value = "from") String fromMonth,
 			@RequestParam(value = "to", defaultValue = "") String toMonth,
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
-		InputStreamResource excelFile = reportsService.getTargetVsActualReports(geography, iou, fromMonth, toMonth, currency, fields,userId);
+		InputStreamResource excelFile = reportsService.getTargetVsActualReports(geography, country, iou, fromMonth, toMonth, currency, fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
@@ -446,12 +450,13 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
+			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
 		InputStreamResource inputStreamResource=bdmDetailedReportService.getBdmDetailedReport(financialYear, from, to,
-				 geography,  country,  currency,  serviceline, salesStage, opportunityOwners, userId, fields);
+				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		  String toDate=DateUtils.getCurrentDate();
@@ -482,11 +487,12 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceLines", defaultValue = "") List<String> serviceLines,
+			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmSummaryReport(financialYear, from, to, geography, country,
-				currency, serviceLines, salesStage, opportunityOwners, userId, fields);
+				currency, serviceLines, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String toDate=DateUtils.getCurrentDate();
@@ -520,12 +526,13 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceline", defaultValue = "") List<String> serviceline,
+			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmsReport(financialYear, from, to,
-				 geography,  country,  currency,  serviceline, salesStage, opportunityOwners, userId, fields);
+				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		  String toDate=DateUtils.getCurrentDate();

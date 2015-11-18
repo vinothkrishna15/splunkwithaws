@@ -1061,34 +1061,39 @@ public interface OpportunityRepository extends
 	List<Object[]> getOpportunityWinsForReportBySalesSupportOwner(
 			@Param("userId") String userId, 
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
-	
-	@Query(value = "SELECT count(distinct(opportunity_id)),SUM(DIGITAL_DEAL_VALUE) as oppOwnerDealValue FROM ( "
+		
+	@Query(value = "SELECT count(distinct(opportunity_id)),case when SUM(DIGITAL_DEAL_VALUE) is not null then SUM(DIGITAL_DEAL_VALUE) else 0.0 end as deal_value_sum FROM ( "
 	+ " select distinct opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS DIGITAL_DEAL_VALUE "
  	+ " from opportunity_t OPP JOIN geography_country_mapping_t GCMT on (GCMT.country = OPP.country and GCMT.geography in (:geoList) or ('') in (:geoList)) "
  	+ " join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
+	+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList))"
  	+ " join sub_sp_mapping_t SSMT on (ssl.sub_sp = SSMT.sub_sp and SSMT.display_sub_sp in (:serviceLines) or ('') in (:serviceLines)) "
- 	+ " where OPP.opportunity_owner = (:userId) and OPP.sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+ 	+ " where OPP.opportunity_owner = (:userId) and Opp.country in (:countryList) or ('') in (:countryList) and OPP.sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
  	+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency " 
  	+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS DIGITAL_DEAL_VALUE from opportunity_t OPP " 
  	+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id "
+	+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList))"
  	+ " JOIN geography_country_mapping_t GCMT on (GCMT.country = OPP.country and GCMT.geography in (:geoList) or ('') in (:geoList)) join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
  	+ " join sub_sp_mapping_t SSMT on (ssl.sub_sp = SSMT.sub_sp and SSMT.display_sub_sp in (:serviceLines) or ('') in (:serviceLines)) "
- 	+ " where sales_stage_code in (:salesStageCodes) and bofg.bid_office_group_owner = (:userId) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+ 	+ " where sales_stage_code in (:salesStageCodes) and bofg.bid_office_group_owner = (:userId) and Opp.country in (:countryList) or ('') in (:countryList) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
  	+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
  	+ " UNION select OPP.opportunity_id ,opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t "
  	+ " where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS DIGITAL_DEAL_VALUE from opportunity_t OPP " 
  	+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
+	+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList))"
  	+ " JOIN geography_country_mapping_t GCMT on (GCMT.country = OPP.country and GCMT.geography in (:geoList) or ('') in (:geoList)) "
  	+ " join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
  	+ " join sub_sp_mapping_t SSMT on (ssl.sub_sp = SSMT.sub_sp and SSMT.display_sub_sp in (:serviceLines) or ('') in (:serviceLines)) "
- 	+ " where sales_stage_code in (:salesStageCodes) and OSSLT.sales_support_owner = (:userId) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+ 	+ " where sales_stage_code in (:salesStageCodes) and OSSLT.sales_support_owner = (:userId) and Opp.country in (:countryList) or ('') in (:countryList) and ((OPP.sales_stage_code > 8 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
  	+ " group by sales_support_owner, OPP.opportunity_id, opp.deal_currency) AS bdmOppDealValue", nativeQuery = true )
 	Object[][] getOpportunityCountAndDealValueByUser(
 			@Param("userId") String userId, 
 			@Param("salesStageCodes") List<Integer> salesStageCodes, 
 			@Param("geoList") List<String> geoList, 
+			@Param("countryList") List<String> countryList,
 			@Param("serviceLines") List<String> serviceLines, 
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
+			@Param("iouList") List<String> iouList);
 	
 	
 	@Query(value = "(select distinct(OPP.*) as opportunity from opportunity_t OPP join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography "
@@ -1136,31 +1141,36 @@ public interface OpportunityRepository extends
 	 * @param countryList
 	 * @param fromDate
 	 * @param toDate
+	 * @param iouList 
 	 * @return
 	 */
 	@Query(value = "select user_id, opportunity_id from ((select distinct user_id, (OPP.*) as opportunity from opportunity_t OPP "
 			+ " join user_t USR on (USR.user_id=OPP.opportunity_owner and (OPP.opportunity_owner in (:userIds))) "
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
+			+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where sales_stage_code in (:salesStageCodes) AND ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) " 
-			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines)) AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList))) "
 			+ " UNION (select distinct user_id, (OPP.*) as opportunity from opportunity_t OPP join geography_country_mapping_t GCMT on GCMT.country=OPP.country " 
 			+ " join geography_mapping_t GMT on GMT.geography = GCMT.geography join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
 			+ " join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id join user_t USR on (USR.user_id=OPP.opportunity_owner and (bofg.bid_office_group_owner in (:userIds))) "
-			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id " 
+			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp " 
+			+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) "
-			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines))) "
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines)) AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList))) "
 			+ " UNION (select distinct sales_support_owner, (opp.*) as opportunity from opportunity_t OPP join opportunity_sales_support_link_t OSSLT "
 			+ " on OSSLT.opportunity_id=OPP.opportunity_id join user_t USR on (USR.user_id=OPP.opportunity_owner and (OSSLT.sales_support_owner in (:userIds))) "
 			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id " 
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id "
+			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp "
+			+ " join customer_master_t CMT on opp.customer_id = CMT.customer_id join iou_customer_mapping_t ICM on CMT.iou = ICM.iou"
 			+ " where sales_stage_code in (:salesStageCodes) and ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate))) AND (GMT.geography IN (:geoList) OR ('') in (:geoList)) " 
-			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines)))) as bdmUserAndOppId order by user_id",nativeQuery=true)
+			+ " AND (OPP.country IN (:countryList) OR ('') in (:countryList)) AND (SSMT.display_sub_sp IN (:serviceLines) OR ('') in (:serviceLines)) AND (ICM.display_iou IN (:iouList) OR ('') in (:iouList)))) as bdmUserAndOppId order by user_id",nativeQuery=true)
 	List<Object[]> getBDMAndOpportunities(@Param("userIds") List<String> userIds, 
 			@Param("salesStageCodes") List<Integer> salesStageCodes, 
 			@Param("geoList") List<String> geoList, 
 			@Param("serviceLines") List<String> serviceLines, 
 			@Param("countryList") List<String> countryList, 
-			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
+			@Param("iouList") List<String> iouList);
 	
 }

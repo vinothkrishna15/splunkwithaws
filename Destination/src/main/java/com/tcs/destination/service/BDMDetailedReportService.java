@@ -139,16 +139,17 @@ public class BDMDetailedReportService {
 	 * @param opportunityOwners
 	 * @param userId
 	 * @param fields
+	 * @param iou 
 	 * @return
 	 * @throws Exception
 	 */
 	public InputStreamResource getBdmDetailedReport(String financialYear, String from, String to,
-			List<String> geography,  List<String> country, List<String> currency, List<String> servicelines,
+			List<String> geography,  List<String> country, List<String> currency, List<String> servicelines, List<String> iou,
 			List<Integer> salesStage, List<String> opportunityOwners,
 			String userId, List<String> fields) throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-		bdmReportsService.getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, "Detailed");
-		getBdmDetailedReportExcel(financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, workbook, fields);
+		bdmReportsService.getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, "Detailed", iou);
+		getBdmDetailedReportExcel(financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, workbook, fields, iou);
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
 		byteOutPutStream.flush();
@@ -172,11 +173,12 @@ public class BDMDetailedReportService {
 	 * @param userId
 	 * @param workbook
 	 * @param fields
+	 * @param iou 
 	 * @throws Exception
 	 */
 	public void getBdmDetailedReportExcel(String financialYear, String from, String to, List<String> geography, List<String> country, List<String> currency,
 			List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwners, String userId,
-			SXSSFWorkbook workbook, List<String> fields) throws Exception {
+			SXSSFWorkbook workbook, List<String> fields, List<String> iou) throws Exception {
 		UserT user = userService.findByUserId(userId);
 		boolean isIncludingSupervisor = false;
 		if (user != null) {
@@ -184,6 +186,7 @@ public class BDMDetailedReportService {
 			Date toDate = new Date();
 			List<String> geoList = new ArrayList<String>();
 			List<String> countryList = new ArrayList<String>();
+			List<String> iouList = new ArrayList<String>();
 			List<String> serviceLinesList = new ArrayList<String>();
 			
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
@@ -191,6 +194,7 @@ public class BDMDetailedReportService {
 			List<String> opportunityOwnerList = new ArrayList<String>();
 			addItemToListGeo(geography,geoList);
 			ExcelUtils.addItemToList(country, countryList);
+			ExcelUtils.addItemToList(iou, iouList);
 			ExcelUtils.addItemToList(serviceLines,serviceLinesList);
 			ExcelUtils.addItemToList(opportunityOwners, opportunityOwnerList);
 			
@@ -209,29 +213,30 @@ public class BDMDetailedReportService {
 			
 		    if (UserGroup.contains(userGroup)) {
 		    List<String> users = getRequiredBDMs(userId, opportunityOwners);
-		    if(users.isEmpty()){
-		    	logger.error("No Subordinates");
-		    	throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates");
-		    }
+		   
 		    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 				logger.error("User is not authorized to access this service");
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 			case BDM_SUPERVISOR:
-				if (users.isEmpty()) {
-					logger.error("NOT_FOUND, BDMs not present");
-					throw new DestinationException(HttpStatus.NOT_FOUND, "BDMs not present");
-				}
+				 if(users.isEmpty()){
+				    	logger.error("No Subordinates");
+				    	throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates");
+				    }
 				isIncludingSupervisor = false;
-				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList,
+				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList,
 						countryList, currency, workbook, fields, isIncludingSupervisor);
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
+				 if(users.isEmpty()){
+				    	logger.error("No Subordinates");
+				    	throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates");
+				    }
 				isIncludingSupervisor = true;
 				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-						serviceLinesList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
+						serviceLinesList, iouList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
 				break;
 			default :
 				List<String> userIdList = new ArrayList<String>();
@@ -242,7 +247,7 @@ public class BDMDetailedReportService {
 				}
 				isIncludingSupervisor = true;
 				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-						serviceLinesList, countryList, currency, salesStage, userIdList, fields, isIncludingSupervisor, workbook);
+						serviceLinesList, iouList, countryList, currency, salesStage, userIdList, fields, isIncludingSupervisor, workbook);
 				break;
 				}
 		    }
@@ -257,6 +262,7 @@ public class BDMDetailedReportService {
 		 * @param users * @param financialYear * @param geoList * @param serviceLinesList
 		 * @param salesStage 
 		 * @param countryList * @param workbook
+		 * @param iouList 
 		 * @param workbook 
 		 * @param isIncludingSupervisor 
 		 * @param fields 
@@ -264,11 +270,15 @@ public class BDMDetailedReportService {
 		 * @throws Exception 
 		 */
 		private void getBDMSupervisorPerformanceReport(List<String> users, Date fromDate, Date toDate, List<String> geoList, List<Integer> salesStage, List<String> serviceLinesList,
-				List<String> countryList, List<String> currency, SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) throws Exception {
+				List<String> iouList, List<String> countryList, List<String> currency, SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) throws Exception {
 			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
 			List<Object[]> userIdAndOppList = null; 
-			userIdAndOppList = opportunityRepository.getBDMAndOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate);
-		
+			userIdAndOppList = opportunityRepository.getBDMAndOpportunities(users, salesStage, geoList, serviceLinesList, countryList, fromDate, toDate, iouList);
+			
+			if(userIdAndOppList.isEmpty()){
+				logger.error("Report could not be downloaded, as no details are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
+			}
 			setBDMsOpportunitiesAndNameToExcel(userIdAndOppList, currency, workbook, fields, isIncludingSupervisor);
 		}
 
@@ -333,9 +343,9 @@ public class BDMDetailedReportService {
 				setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor);
 //				row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
-				int currentCol=10;
+				int currentCol=11;
 				if(isIncludingSupervisor){
-					currentCol=11;
+					currentCol=12;
 				}
 				int colValue = currentCol;
 				if (currency.size() > 1) {
@@ -494,6 +504,8 @@ public class BDMDetailedReportService {
 			row.createCell(columnNo++).setCellValue(salesOwner);
 			//set display geography
 			row.createCell(columnNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());
+			//set country
+			row.createCell(columnNo++).setCellValue(opportunity.getCountry());
 			//set group customer name
 			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());
 			//set customer name
@@ -551,7 +563,7 @@ public class BDMDetailedReportService {
 			}
 			headerList.add("Display Service Line");
 			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");
-			headerList.add("Display Geography");headerList.add("Group Customer Name");
+			headerList.add("Display Geography");headerList.add("Country");headerList.add("Group Customer Name");
 			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");
 			int columnNo = 0;
 			for(String header:headerList) {
@@ -591,9 +603,9 @@ public class BDMDetailedReportService {
 			SXSSFRow row = null;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-			int columnNo = 10;
+			int columnNo = 11;
 			if(isIncludingSupervisor){
-				columnNo=11;
+				columnNo=12;
 			}
 			if(fields.contains("projectDealValue")){
 				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
@@ -625,7 +637,7 @@ public class BDMDetailedReportService {
 		 * @param workbook
 		 * @throws Exception
 		 */
-		private void getBDMOpportunityIdsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList, List<String> countryList,
+		private void getBDMOpportunityIdsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList,  List<String> iouList, List<String> countryList,
 				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList, List<String> fields, boolean isIncludingSupervisor, SXSSFWorkbook workbook) throws Exception {
 			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
 			// Form the native top revenue query string
@@ -636,10 +648,10 @@ public class BDMDetailedReportService {
 			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
 			
 			if (bdmUserAndOppId == null || bdmUserAndOppId.isEmpty()) {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no opportunity details are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no details are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
 			}
-			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, countryList, currency, workbook, fields,isIncludingSupervisor);
+			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 		}
 
 
@@ -742,18 +754,19 @@ public class BDMDetailedReportService {
 		 */
 		public List<String> getRequiredBDMs(String userId, List<String> opportunityOwners) {
 			List<String> bdms = new ArrayList<String>();
-			bdms.add(userId);
 			List<String> userIds = null;
 			userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
-			userIds.add(userId);
+//			userIds.add(userId);
 			if (!opportunityOwners.isEmpty()) {
 				for (String user : userIds) {
 					if (opportunityOwners.contains(user)) {
 						bdms.add(user);
+						bdms.add(userId);
 					}
 				}
 			} else {
 				bdms.addAll(userIds);
+				bdms.add(userId);
 			}
 			return bdms;
 		}

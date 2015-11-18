@@ -32,11 +32,12 @@ public interface ActualRevenuesDataTRepository extends
 			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
+			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' and ARDT.client_country in (:countryList) or ('') in (:countryList) group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
 	public List<Object[]> getActualRevenuesByQuarter(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
-			@Param("monthList") List<String> monthList);
+			@Param("monthList") List<String> monthList, 
+			@Param("countryList") List<String> countryList);
 
 	@Query(value = "select sum(revenue) as top_revenue from (select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
 			+ "(((select RCMT.customer_name, sum(ARDT.revenue) as actual_revenue from actual_revenues_data_t ARDT "
