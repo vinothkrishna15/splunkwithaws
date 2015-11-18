@@ -42,7 +42,32 @@ public class DataProcessingService {
 		
 		Status status = new Status();
 		
-		String path = fileServerPath + EntityType.CONNECT.name() + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		String entity = "FOLDER";
+		
+		switch (type) {
+		
+		case 1: entity = EntityType.USER.name();
+		break;
+		case 2: entity = EntityType.CUSTOMER.name();
+		break;
+		case 3: entity = EntityType.CONNECT.name();
+		break;
+		case 4: entity = EntityType.OPPORTUNITY.name();
+		break;
+		case 5: entity = EntityType.ACTUAL_REVENUE.name();
+		break;
+		case 6: entity = EntityType.CUSTOMER_CONTACT.name();
+		break;
+		case 7: entity = EntityType.PARTNER.name();
+		break;
+		case 8: entity = EntityType.PARTNER_CONTACT.name();
+		break;
+		case 9: entity = EntityType.BEACON.name();
+		break;
+		
+		}
+		
+		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
 		
 		FileManager.saveFile(file, path);
 		
