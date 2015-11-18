@@ -293,8 +293,6 @@ public class BDMReportsService {
 			    if (UserGroup.contains(userGroup)) {
 			    	
 			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
-//			    	userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
-//			    	userIds.add(userId);
 			    	
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -302,11 +300,19 @@ public class BDMReportsService {
 					logger.error("User is not authorized to access this service");
 				    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 				case BDM_SUPERVISOR:
+					 if(userIds.isEmpty()){
+				    	logger.error("Given BDM is not his Subordinate");
+				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
+						    }
 					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					break;
 				case GEO_HEADS:
 				case IOU_HEADS:
+					 if(userIds.isEmpty()){
+				    	logger.error("Given BDM is not his Subordinate");
+				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
+					    }
 					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReport(userIds, userId, financialYear, workbook);
