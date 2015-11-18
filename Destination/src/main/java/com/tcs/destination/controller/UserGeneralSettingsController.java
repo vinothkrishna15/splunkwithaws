@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.service.UserGeneralSettingsService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -28,10 +29,10 @@ public class UserGeneralSettingsController {
 	
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserGeneralSettingsController /general?userId GET");
 		UserGeneralSettingsT userGeneralSettingsT = userGeneralSettingsService.findGeneralSettingsByUserId(userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, userGeneralSettingsT);
