@@ -221,8 +221,8 @@ public class BDMDetailedReportService {
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 			case BDM_SUPERVISOR:
 				 if(users.isEmpty()){
-				    	logger.error("No Subordinates");
-				    	throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates");
+				    	logger.error("Given BDM is not his Subordinate");
+				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = false;
 				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList,
@@ -231,8 +231,8 @@ public class BDMDetailedReportService {
 			case GEO_HEADS:
 			case IOU_HEADS:
 				 if(users.isEmpty()){
-				    	logger.error("No Subordinates");
-				    	throw new DestinationException(HttpStatus.NOT_FOUND, "No Subordinates");
+			    	logger.error("Given BDM is not his Subordinate");
+			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = true;
 				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
