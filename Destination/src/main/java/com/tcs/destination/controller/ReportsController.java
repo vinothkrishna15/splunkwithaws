@@ -23,6 +23,7 @@ import com.tcs.destination.service.BuildExcelTargetVsActualDetailedReportService
 import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.service.ReportsUploadService;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -68,10 +69,10 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "") List<String> iouList,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencyList,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 
 		List<TargetVsActualDetailed> targetVsActualDetailedList = reportsService
 				.getTargetVsActual(geographyList, iouList, fromMonth, toMonth, currencyList,userId, country);
@@ -100,9 +101,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource excelFile = reportsService.getTargetVsActualDetailedReport(geography, country, iou, fromMonth, toMonth, currency,fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -131,9 +132,9 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
-			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "userId") String userId)
+			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource excelFile = reportsService.getTargetVsActualSummaryReport(geography, country, iou, fromMonth, toMonth, currency,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -164,9 +165,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource excelFile = reportsService.getTargetVsActualReports(geography, country, iou, fromMonth, toMonth, currency, fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -200,9 +201,9 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource connectDetailedReportExcel = reportsService.getConnectDetailedReport(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -236,9 +237,9 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource connectSummaryReportExcel = reportsService.connectSummaryReport(month, quarter, year, iou, geography,
 						country, serviceline, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -274,9 +275,9 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource connectReportExcel = reportsService.getConnectReports(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -314,9 +315,9 @@ public class ReportsController {
 			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ReportController /report/bid/detailed GET");
 		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -346,9 +347,9 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 
 		String toDate=DateUtils.getCurrentDate();
 		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceline,salesStage, currency,userId,fields,toDate);
@@ -386,9 +387,9 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage",defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 
 	InputStreamResource inputStreamResource= reportsService.getOpportunitySummaryReport(month, year, quarter, geography,
 			country, iou, currency, serviceline, salesStage,userId);
@@ -410,10 +411,10 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
  		InputStreamResource inputStreamResource=reportsService.getOpportunityBothReport(month, year, quarter, geography,
 				country, iou, currency, serviceline, salesStage,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -442,7 +443,6 @@ public class ReportsController {
 	 */
 	@RequestMapping(value = "/bdmPerformance/detailed", method = RequestMethod.GET)			
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummary(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
 			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
@@ -455,6 +455,7 @@ public class ReportsController {
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource inputStreamResource=bdmDetailedReportService.getBdmDetailedReport(financialYear, from, to,
 				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -478,7 +479,6 @@ public class ReportsController {
 	 */
 	@RequestMapping(value = "/bdmPerformance/summary", method = RequestMethod.GET)			
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummaryReport(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
@@ -491,6 +491,7 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmSummaryReport(financialYear, from, to, geography, country,
 				currency, serviceLines, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -518,7 +519,6 @@ public class ReportsController {
 	 */
 	@RequestMapping(value = "/bdmPerformance/both", method = RequestMethod.GET)			
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmsPerformanceReport(
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
 			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
@@ -531,6 +531,7 @@ public class ReportsController {
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmsReport(financialYear, from, to,
 				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
