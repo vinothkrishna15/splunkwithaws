@@ -17,6 +17,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FavoritesService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -32,12 +33,12 @@ public class FavoritesController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside FavoritesController /favorites?entityType="
 				+ entityType + " GET");
 		if (page < 0 && count < 0) {
