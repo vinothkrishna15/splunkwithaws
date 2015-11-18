@@ -30,6 +30,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ContactService;
 import com.tcs.destination.service.ContactUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -61,11 +62,11 @@ public class ContactController {
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@PathVariable("id") String contactId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact/id=" + contactId
 				+ " GET");
 		ContactT contact = contactService.findById(contactId, userId);
@@ -85,7 +86,6 @@ public class ContactController {
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsWithName(
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -94,6 +94,7 @@ public class ContactController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact GET");
 		List<ContactT> contactlist = null;
 
@@ -115,13 +116,13 @@ public class ContactController {
 
 	@RequestMapping(value = "/contacttype", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsByContactType(
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact/contacttype GET");
 		List<ContactT> contactlist = null;
 
@@ -205,12 +206,12 @@ public class ContactController {
 	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadContacts(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("contactCategory") String contactCategory,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		
