@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.service.FollowedService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 
@@ -32,11 +33,11 @@ public class FollowedController {
 	
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
-			@RequestParam("userId") String userId,
 			@RequestParam("entityType") String entityType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 			List<UserTaggedFollowedT> userFollowed = followedService.findFollowedFor(userId, entityType);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				userFollowed);
