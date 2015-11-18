@@ -19,6 +19,7 @@ import com.tcs.destination.bean.FeedbackT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FeedbackService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -94,13 +95,13 @@ public class FeedbackController {
 			@RequestParam(value = "issueType", defaultValue = "") String issueType,
 			@RequestParam(value = "priority", defaultValue = "") String priority,
 			@RequestParam(value = "status", defaultValue = "") String status,
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "module", defaultValue = "") String module,
 			@RequestParam(value = "updatedUserId", defaultValue = "") String updatedUserId,
 			@RequestParam(value = "subModule", defaultValue = "") String subModule,
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside getFilteredFeedbacks service");
 		List<FeedbackT> feedbackList = feedbackService.findFeedbacksWith(titleWith,descriptionWith,
 				issueType, priority, status, userId, module, updatedUserId,
