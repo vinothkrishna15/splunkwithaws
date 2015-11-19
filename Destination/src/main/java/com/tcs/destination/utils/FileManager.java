@@ -11,6 +11,9 @@ package com.tcs.destination.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -53,20 +56,20 @@ public class FileManager {
 	
 	/**
 	 * Method to create a new file under the specified path
-	 * @param errorPath
-	 * @param errorFileName
+	 * @param path
+	 * @param fileName
 	 * @return
 	 */
-	public static File createFile(String errorPath,
-			String errorFileName) {
+	public static File createFile(String path,
+			String fileName) {
 		
 		logger.debug("Storing the file:");
 		
-		File fileSaveDir = new File(errorPath);
+		File fileSaveDir = new File(path);
         if (!fileSaveDir.exists()) {
             fileSaveDir.mkdirs();
         }
-        String filePath = errorPath + errorFileName; 
+        String filePath = path + fileName; 
         File dest = new File(filePath);
         
 		return dest;
@@ -109,6 +112,40 @@ public class FileManager {
 			}
 		}
 		
+	}
+
+	/**
+	 * @param path
+	 * @param template
+	 * @return
+	 */
+	public static String copyFile(String destiantionDir, String filePath) {
+		
+		logger.debug("Inside the copyFile method:");
+		
+		File file = new File (filePath);
+		File dir = new File(destiantionDir);
+		File destinationFile = null;
+		dir.mkdirs();
+		
+		if (file.exists()) {
+			
+			destinationFile = new File(destiantionDir + file.getName());
+			try {
+				CopyOption[] options = new CopyOption[]{
+					      StandardCopyOption.REPLACE_EXISTING,
+					      StandardCopyOption.COPY_ATTRIBUTES
+					    }; 
+				Files.copy(file.toPath(),  destinationFile.toPath(), options);
+			} catch (IOException e) {
+				logger.error("Error while copying file: {}", e);
+			}
+			
+		} else {
+			logger.error("Source file doesn't exist.");
+		}
+
+		return destinationFile.getName();
 	}
 
 }

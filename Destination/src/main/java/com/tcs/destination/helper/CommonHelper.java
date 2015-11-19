@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ConnectTypeMappingT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.OfferingMappingT;
@@ -169,6 +170,20 @@ public class CommonHelper {
 			iouMap.put(iouCustomerMappingT.getIou(), iouCustomerMappingT);
 		}
 		return iouMap;
+	}
+	
+	/**
+	 * This method creates a Customer Map
+	 * @return customerMap
+	 */
+	public Map<String, CustomerMasterT> getCustomerMappingT() {
+		List<CustomerMasterT> listOfCustomerMappingT = null;
+		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
+		Map<String, CustomerMasterT> customerMap = new HashMap<String, CustomerMasterT>();
+		for (CustomerMasterT customerMappingT : listOfCustomerMappingT) {
+			customerMap.put(customerMappingT.getCustomerName(), customerMappingT);
+		}
+		return customerMap;
 	}
 
 

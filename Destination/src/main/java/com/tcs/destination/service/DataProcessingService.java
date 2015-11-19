@@ -19,7 +19,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.FileManager;
 
-@Service
+@Service("dataProcessingService")
 public class DataProcessingService {
 	
 	private static final Logger logger = LoggerFactory
@@ -41,6 +41,32 @@ public class DataProcessingService {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		
 		Status status = new Status();
+		
+		String entity = getEntityName(type);
+		
+		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		
+		FileManager.saveFile(file, path);
+		
+		DataProcessingRequestT request = new DataProcessingRequestT();
+		request.setFileName(file.getOriginalFilename());
+		request.setFilePath(path);
+		request.setUserT(userRepository.findByUserId(userId));
+		request.setStatus(RequestStatus.SUBMITTED.getStatus());
+		request.setRequestType(type);
+		
+		dataProcessingRequestRepository.save(request);
+		
+		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
+		
+		return status;
+	}
+
+	/**
+	 * @param type
+	 * @return String
+	 */
+	public String getEntityName(int type) {
 		
 		String entity = "FOLDER";
 		
@@ -66,23 +92,7 @@ public class DataProcessingService {
 		break;
 		
 		}
-		
-		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
-		
-		FileManager.saveFile(file, path);
-		
-		DataProcessingRequestT request = new DataProcessingRequestT();
-		request.setFileName(file.getOriginalFilename());
-		request.setFilePath(path);
-		request.setUserT(userRepository.findByUserId(userId));
-		request.setStatus(RequestStatus.SUBMITTED.getStatus());
-		request.setRequestType(type);
-		
-		dataProcessingRequestRepository.save(request);
-		
-		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
-		
-		return status;
+		return entity;
 	}
 
 	/**
