@@ -52,7 +52,7 @@ public class UserDetailsController {
 
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	UserUploadService userUploadService;
 
@@ -61,7 +61,7 @@ public class UserDetailsController {
 
 	@Autowired
 	ApplicationSettingsRepository applicationSettingsRepository;
-	
+
 	@Autowired
 	UploadErrorReport uploadErrorReport;
 
@@ -72,7 +72,7 @@ public class UserDetailsController {
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
 			throws Exception {
 		logger.debug("Inside UserDetailsController /user GET");
-		
+
 		if (nameWith.equals("")) {
 			logger.debug("nameWith is EMPTY");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -82,29 +82,31 @@ public class UserDetailsController {
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, user);
 		}
-		
+
 	}
 
 	/**
-	 * This method is used to validate User Login
-	 * Also saves Login SessionId, Date Time, Device, Browser details
-	 * @param userName is the login user name.
+	 * This method is used to validate User Login Also saves Login SessionId,
+	 * Date Time, Device, Browser details
+	 * 
+	 * @param userName
+	 *            is the login user name.
 	 * @return Login response.
 	 */
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> userLogin(
 			HttpServletRequest httpServletRequest,
-			@RequestParam(value = "userName") String userName,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "appVersion", defaultValue = "") String appVersion)
 			throws Exception {
 
 		logger.debug("Inside UserDetailsController /user/login POST");
-		UserT user = userService.findUserByName(userName);
+		UserT user = userService.findByUserId(DestinationUtils
+				.getCurrentUserDetails().getUserId());
 		if (user != null) {
 			// Log Username for debugging
-			logger.info("Username: {}", userName);
+			logger.info("Username: {}", user.getUserName());
 			HttpSession session = httpServletRequest.getSession(false);
 			if (session == null) {
 				logger.info("Session is null, creating new session");
@@ -126,7 +128,8 @@ public class UserDetailsController {
 			logger.debug("Time_Out Interval: {}", appSettings.getValue());
 			session.setMaxInactiveInterval(Integer.parseInt(appSettings
 					.getValue()) * 60);
-			logger.debug("Session Timeout: {}", session.getMaxInactiveInterval());
+			logger.debug("Session Timeout: {}",
+					session.getMaxInactiveInterval());
 
 			// Get Last Login Time
 			Timestamp lastLogin = userService
@@ -148,17 +151,17 @@ public class UserDetailsController {
 				if (browser != null && browser.getName() != null)
 					browserName = browser.getName();
 			}
-			if (userAgent.getBrowserVersion() != null)	
+			if (userAgent.getBrowserVersion() != null)
 				browserVersion = userAgent.getBrowserVersion().getVersion();
 			logger.info("Browser: {}, Version: {}", browserName, browserVersion);
-			
+
 			// Get OS details
 			OperatingSystem os = null;
 			String osName = null;
-			short osVersion = 0; 
+			short osVersion = 0;
 			if (userAgent.getOperatingSystem() != null) {
 				os = userAgent.getOperatingSystem();
-				if (os != null) { 
+				if (os != null) {
 					osVersion = os.getId();
 					if (os.getName() != null)
 						osName = os.getName();
@@ -188,7 +191,7 @@ public class UserDetailsController {
 				logger.info("App Version: {}", appVersion);
 				loginHistory.setAppVersion(appVersion);
 			}
-				
+
 			if (!userService.addLoginHistory(loginHistory)) {
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR,
@@ -211,10 +214,10 @@ public class UserDetailsController {
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						user), headers, HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/logout", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<String> userLogout(HttpServletRequest httpServletRequest)
-		throws Exception {
+	public @ResponseBody ResponseEntity<String> userLogout(
+			HttpServletRequest httpServletRequest) throws Exception {
 		logger.debug("Inside UserDetailsController /user/logout GET");
 		Status status = new Status();
 		HttpSession session = httpServletRequest.getSession(false);
@@ -223,110 +226,128 @@ public class UserDetailsController {
 			session.invalidate();
 			status.setStatus(Status.SUCCESS, "Session logged out");
 		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND,"No valid session to log out");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No valid session to log out");
 		}
-		
-		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
-	public @ResponseBody ResponseEntity<String> changePassword(HttpServletRequest httpServletRequest,@RequestBody UserT user)
-	throws Exception {
+	public @ResponseBody ResponseEntity<String> changePassword(
+			HttpServletRequest httpServletRequest, @RequestBody UserT user)
+			throws Exception {
 		logger.debug("Inside UserDetailsController /user/changepwd PUT");
 		Status status = new Status();
 		String userId = user.getUserId();
-		
-		String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails().getUserId();
-		if(currentlyLoggedInUser.equals(userId)){
-		String currentPassword = user.getTempPassword();
-		String newPassword = user.getNewPassword();
-		//getting session object, if exist 
-		HttpSession session = httpServletRequest.getSession(false);
-		if (session != null) {
-			//valid session
-			UserT dbUser = userService.findByUserIdAndPassword(userId,currentPassword);
-			if(dbUser!=null){
-				dbUser.setTempPassword(newPassword);
-				userService.updateUser(dbUser);
-				status.setStatus(Status.SUCCESS, "Password has been updated successfully");
-				//invalidate session to force user to re-authenticate with updated password
-				session.invalidate();
+
+		String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails()
+				.getUserId();
+		if (currentlyLoggedInUser.equals(userId)) {
+			String currentPassword = user.getTempPassword();
+			String newPassword = user.getNewPassword();
+			// getting session object, if exist
+			HttpSession session = httpServletRequest.getSession(false);
+			if (session != null) {
+				// valid session
+				UserT dbUser = userService.findByUserIdAndPassword(userId,
+						currentPassword);
+				if (dbUser != null) {
+					dbUser.setTempPassword(newPassword);
+					userService.updateUser(dbUser);
+					status.setStatus(Status.SUCCESS,
+							"Password has been updated successfully");
+					// invalidate session to force user to re-authenticate with
+					// updated password
+					session.invalidate();
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"User not found");
+				}
 			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND,"User not found");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+						"User not in a valid session");
 			}
+
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
 		} else {
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,"User not in a valid session");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					"Not authorized to make changes");
 		}
-		
-		return new ResponseEntity<String>
-		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
 	}
-	else {
-		throw new DestinationException(HttpStatus.UNAUTHORIZED,"Not authorized to make changes");
-	}
-	}
-	
+
 	@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> forgotPassword(@RequestBody UserT user) throws Exception{
+	public @ResponseBody ResponseEntity<String> forgotPassword(
+			@RequestBody UserT user) throws Exception {
 		logger.info("Inside UserDetailsController /user/forgotpwd POST");
 		Status status = new Status();
-		
+
 		String userId = user.getUserId();
 		String userEmailId = user.getUserEmailId();
 		logger.info("userId : " + userId + ", userEmailId : " + userEmailId);
-		userService.forgotPassword(userId,userEmailId);
-		status.setStatus(Status.SUCCESS, "Password has been sent to the email address");
-		
-		return new ResponseEntity<String>
-		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+		userService.forgotPassword(userId, userEmailId);
+		status.setStatus(Status.SUCCESS,
+				"Password has been sent to the email address");
+
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
-	
-	@RequestMapping(value="/privileges",method=RequestMethod.GET)
+
+	@RequestMapping(value = "/privileges", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getPrivileges(
-			HttpServletRequest httpServletRequest,
-			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserDetailsController /user/privileges GET");
 		Status status = new Status();
-	    	
-		List<UserAccessPrivilegesT> userPrivilegesList = userService.getAllPrivilegesByUserId(userId);
-	    if(userPrivilegesList!=null && userPrivilegesList.isEmpty()){
-	    	status.setStatus(Status.FAILED, "Invalid userId");
-	    	return new ResponseEntity<String>
-	    	(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
-	    } else {
-	    	return new ResponseEntity<String>
-	    	(ResponseConstructors.filterJsonForFieldAndViews(fields, view, userPrivilegesList), HttpStatus.OK);
-	    }
+
+		List<UserAccessPrivilegesT> userPrivilegesList = userService
+				.getAllPrivilegesByUserId(userId);
+		if (userPrivilegesList != null && userPrivilegesList.isEmpty()) {
+			status.setStatus(Status.FAILED, "Invalid userId");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, userPrivilegesList), HttpStatus.OK);
+		}
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> insertUser(@RequestBody UserT user) throws Exception{
+	public @ResponseBody ResponseEntity<String> insertUser(
+			@RequestBody UserT user) throws Exception {
 		logger.info("Inside UserDetailsController /user POST");
 		Status status = new Status();
-		
-		if(userService.insertUser(user, false)){
+
+		if (userService.insertUser(user, false)) {
 			status.setStatus(Status.SUCCESS, user.getUserId());
 			logger.debug("USER CREATED SUCCESS" + user.getUserId());
 		}
-		
-		return new ResponseEntity<String>
-		(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("all", "",
+						status), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadUser(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Upload request Received : docName - ");
 		UploadStatusDTO status = null;
-	
-			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+
+		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		try {
 			status = userUploadService.saveDocument(file, userId);
 			if (status != null && !status.isStatusFlag()) {
@@ -351,7 +372,5 @@ public class UserDetailsController {
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
 	}
-	
-
 
 }
