@@ -161,7 +161,7 @@ public class ConnectController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (connectService.insertConnect(connect, false)) {
+			if (connectService.createConnect(connect, false)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
