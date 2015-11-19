@@ -316,8 +316,8 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_SUBSP_ORDER_BY = " Result on SSMT.display_sub_sp = Result.displaySubSp order by revenue desc";
 
 	private static final String PIPELINE_PERFORMANCE_BY_GEO_QUERY_PREFIX = "select GMT.display_geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
@@ -376,8 +376,8 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_GEO_ORDER_BY = " Result on GMT.display_geography = Result.displayGeography order by revenue desc";
 
 	private static final String PIPELINE_PERFORMANCE_BY_SUB_GEO_QUERY_PREFIX = "select GMT.geography, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
@@ -395,8 +395,8 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_SUB_GEO_GROUP_BY_ORDER_BY = " group by GMT.geography order by GMT.geography";
 
 	private static final String PIPELINE_PERFORMANCE_BY_COUNTRY_QUERY_PREFIX = "select OPP.country, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV from opportunity_t OPP "
-			+ "JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ "JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
+			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
