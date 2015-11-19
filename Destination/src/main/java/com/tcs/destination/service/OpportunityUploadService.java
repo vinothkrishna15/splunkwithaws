@@ -3,6 +3,8 @@ package com.tcs.destination.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -118,6 +120,9 @@ public class OpportunityUploadService {
     
     @Autowired
     GeographyRepository geographyRepository;
+    
+    @Autowired
+    BeaconConverterService beaconConverterService;
 
     private Map<String, String> mapOfPartnerMasterT = null;
     private Map<String, String> mapOfCustomerMasterT = null;
@@ -187,8 +192,7 @@ public class OpportunityUploadService {
 
 		listOfOfferings = offeringRepository.getOffering();
 
-		listOfWinLossFactors = winLossMappingRepository
-			.getWinLossFactor();
+		listOfWinLossFactors = winLossMappingRepository.getWinLossFactor();
 		
 		listOfBidRequestType = bidDetailsTRepository.getBidRequestType();
 		
@@ -196,7 +200,8 @@ public class OpportunityUploadService {
 
 		int rowCount = 0;
 		List<String> listOfCellValues = null;
-
+		List<String> remarks=new ArrayList<String>();
+		//listOfCellValues.clear();
 		// Iterate through each rows one by one
 		Iterator<Row> rowIterator = sheet.iterator();
 
@@ -213,6 +218,7 @@ public class OpportunityUploadService {
 				+ row.getPhysicalNumberOfCells());
 
 			listOfCellValues = new ArrayList<String>();
+		
 			for (int cellCount = 0; cellCount < OpportunityUploadConstants.OPPORTUNITY_UPLOAD_COLUMN_SIZE; cellCount++) {
 
 			    Cell cell = row.getCell(cellCount);
@@ -285,7 +291,7 @@ public class OpportunityUploadService {
 				// REQUEST RECEIVE DATE
 				if (!StringUtils.isEmpty(listOfCellValues.get(11))) {
 				    opp.setOpportunityRequestReceiveDate(dateFormat.parse(listOfCellValues.get(11)));
-//				    opp.setOpportunityRequestReceiveDate(DateUtils.getDateTimeFormat(listOfCellValues.get(11), dateFormat, simpleDateFormat));
+                   //opp.setOpportunityRequestReceiveDate(DateUtils.getDateTimeFormat(listOfCellValues.get(11), dateFormat, simpleDateFormat));
 				} else {
 				    throw new DestinationException(HttpStatus.BAD_REQUEST, "Request Receive Date is empty");
 				}
@@ -293,21 +299,33 @@ public class OpportunityUploadService {
 				// NEW LOGO
 				if (!StringUtils.isEmpty(listOfCellValues.get(12))) {
 				    validateCellByStringLength(listOfCellValues.get(12),OpportunityUploadConstants.NEW_LOGO, 12, OpportunityUploadConstants.NEW_LOGO_MAX_SIZE);
-				    opp.setNewLogo(listOfCellValues.get(12));
+				    opp.setNewLogo(listOfCellValues.get(12).toUpperCase());
+				}
+				else
+				{
+					opp.setNewLogo("NO");
 				}
 
 				// STRATEGIC INITIATIVE
 				if (!StringUtils.isEmpty(listOfCellValues.get(13))) {
 				    validateCellByStringLength(listOfCellValues.get(13),OpportunityUploadConstants.STRATEGIC_INIT, 13, OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE);
-				    opp.setStrategicInitiative(listOfCellValues.get(13));
+				    opp.setStrategicInitiative(listOfCellValues.get(13).toUpperCase());
 				}
-
+				else
+				{
+					opp.setStrategicInitiative("NO");
+				}
+              
 				// DIGITAL FLAG
 				if (!StringUtils.isEmpty(listOfCellValues.get(14))) {
 				    validateCellByStringLength(listOfCellValues.get(14),OpportunityUploadConstants.DIGITAL_FLAG, 14, OpportunityUploadConstants.DIGITAL_FLAG_MAX_SIZE);
-				    opp.setDigitalFlag(listOfCellValues.get(14));
+				    opp.setDigitalFlag(listOfCellValues.get(14).toUpperCase());
 				}
-
+				else
+				{
+					opp.setDigitalFlag("N");
+				}
+				
 				// SALES STAGE CODE
 				if (!StringUtils.isEmpty(listOfCellValues.get(15))) {
 				    opp.setSalesStageCode((Integer.parseInt(listOfCellValues.get(15).substring(0, 2))));
@@ -322,13 +340,17 @@ public class OpportunityUploadService {
 				}
 
 				// OVERALL DEAL SIZE
-				if (!StringUtils.isEmpty(listOfCellValues.get(17))) {
-				    opp.setOverallDealSize(Double.valueOf(listOfCellValues.get(17)).intValue());
+				if (!StringUtils.isEmpty(listOfCellValues.get(18))&&!StringUtils.isEmpty(listOfCellValues.get(16))) {
+					BigDecimal actualDealValue=beaconConverterService.convert("USD",opp.getDealCurrency(), Double.valueOf(listOfCellValues.get(20)));
+					actualDealValue.setScale(2, RoundingMode.HALF_DOWN);
+				    opp.setOverallDealSize(actualDealValue.intValue());
 				}
 
 				// DIGITAL DEAL VALUE
-				if (!StringUtils.isEmpty(listOfCellValues.get(19))) {
-				    opp.setDigitalDealValue(Double.valueOf(listOfCellValues.get(19)).intValue());
+				if (!StringUtils.isEmpty(listOfCellValues.get(20))&&!StringUtils.isEmpty(listOfCellValues.get(16))) {
+					BigDecimal digitalDealValue=beaconConverterService.convert("USD",opp.getDealCurrency(), Double.valueOf(listOfCellValues.get(20)));
+					digitalDealValue.setScale(2, RoundingMode.HALF_DOWN);
+				    opp.setDigitalDealValue(digitalDealValue.intValue());
 				}
 
 				// OPPORTUNITY OWNER
@@ -390,17 +412,17 @@ public class OpportunityUploadService {
 				/*
 				 * Commented on-demand
 				 */
-				// Customer Contact Params
-				// if(!StringUtils.isEmpty(listOfCellValues.get(24))){
-				// opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24),
-				// userId, mapOfCustomerContactT));
-				// }
-				//
-				// // TCS Contact Params
-				// if(!StringUtils.isEmpty(listOfCellValues.get(23))){
-				// opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23),
-				// userId, mapOfTCSContactT));
-				// }
+				//Customer Contact Params
+				 if(!StringUtils.isEmpty(listOfCellValues.get(24))){
+				 opp.setOpportunityCustomerContactLinkTs(constructOppCustomerContactLink(listOfCellValues.get(24),
+				 userId, mapOfCustomerContactT));
+				 }
+				
+				 // TCS Contact Params
+				 if(!StringUtils.isEmpty(listOfCellValues.get(23))){
+				 opp.setOpportunityTcsAccountContactLinkTs(constructOppTCSContactLink(listOfCellValues.get(23),
+				 userId, mapOfTCSContactT));
+				 }
 
 				// Competitor Params
 				if (!StringUtils.isEmpty(listOfCellValues
@@ -413,7 +435,7 @@ public class OpportunityUploadService {
 				if (!StringUtils.isEmpty(listOfCellValues
 					.get(9))) {
 				    opp.setOpportunitySubSpLinkTs(constructOppSubSpLink(
-					    listOfCellValues.get(9), userId));
+					    listOfCellValues.get(9).trim(), userId));
 				}
 
 				// OpportunityOfferingLinkT Params
@@ -428,9 +450,9 @@ public class OpportunityUploadService {
 				 */
 				// //OpportunitySalesSupportLinkT Params
 				 if(!StringUtils.isEmpty(listOfCellValues.get(22))){
-				// //opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT,
-				// listOfCellValues.get(21).trim()));
-					// System.out.println("Setting Value For Sales Support Link T");
+				opp.setOpportunityOwner(getMapValuesForKey(mapOfUserT,
+				listOfCellValues.get(21).trim()));
+				
 				 opp.setOpportunitySalesSupportLinkTs(constructOppSalesSupportLink(listOfCellValues.get(22),
 				 userId));
 				 }
@@ -486,17 +508,38 @@ public class OpportunityUploadService {
 				    opp.setOpportunityWinLossFactorsTs(constructOppWinLoss(listOfCellValues.get(39), userId));
 				}
 
-				// Deal Status Remarks
+				// Deal Status Remarks 
 				if (!StringUtils.isEmpty(listOfCellValues.get(41))) {
+				   
 				    validateCellByStringLength(listOfCellValues.get(41), OpportunityUploadConstants.DEAL_STATUS_REMARKS, 41, OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE);
-				    opp.setNotesTs(constructNotesT(listOfCellValues.get(41),opp.getCustomerId(), userId));
+				    remarks.add(listOfCellValues.get(41));
+				  }
+				
+				 //Remarks1
+			    if (!StringUtils.isEmpty(listOfCellValues.get(43))) {
+			    	validateCellByStringLength(listOfCellValues.get(43), OpportunityUploadConstants.REMARKS_1, 43, OpportunityUploadConstants.REMARKS_1_MAX_SIZE);
+			    	remarks.add(listOfCellValues.get(43));
+			    }
+			    //Remarks2
+			    if (!StringUtils.isEmpty(listOfCellValues.get(44))) {
+			    	validateCellByStringLength(listOfCellValues.get(44), OpportunityUploadConstants.REMARKS_2, 44, OpportunityUploadConstants.REMARKS_2_MAX_SIZE);
+					remarks.add(listOfCellValues.get(44));  
 				}
-
+			    
+			    if(!remarks.isEmpty())
+			    {
+			    	 opp.setNotesTs(constructNotesT(remarks,opp.getCustomerId(), userId));	
+			    }
+				
+				
 				logger.debug("Inserting...");
 
 				opportunityService.createOpportunity(opp,
 					isBulkDataLoad);
 				logger.debug("Done");
+				remarks.clear();
+				
+				listOfCellValues.clear();
 
 			    } catch (Exception e) {
 				// Catch the exception pertaining to a
@@ -591,15 +634,18 @@ public class OpportunityUploadService {
      * @param userUpdated
      * @return
      */
-    private List<NotesT> constructNotesT(String dealRemarks, String customerId,
-	    String userUpdated) {
-	NotesT notes = new NotesT();
-	notes.setEntityType(EntityType.OPPORTUNITY.toString());
-	notes.setNotesUpdated(dealRemarks);
-	notes.setCustomerId(customerId);
-	notes.setUserUpdated(userUpdated);
-	List<NotesT> listOfNotes = new ArrayList<NotesT>();
-	listOfNotes.add(notes);
+    private List<NotesT> constructNotesT(List<String> dealRemarks,String customerId,String userUpdated) {
+    
+    List<NotesT> listOfNotes = new ArrayList<NotesT>();
+	for(int i=0;i<dealRemarks.size();i++)
+	{
+		NotesT notes = new NotesT();
+		notes.setEntityType(EntityType.OPPORTUNITY.toString());
+	    notes.setNotesUpdated(dealRemarks.get(i));
+	    notes.setCustomerId(customerId);
+		notes.setUserUpdated(userUpdated);
+		listOfNotes.add(notes);
+	}
 	return listOfNotes;
     }
 
