@@ -2,6 +2,7 @@ package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
+import static com.tcs.destination.utils.Constants.FILE_PATH;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +55,7 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 	
 	private int rowCount = 1;
 	
-	private String fileName; 
+	private String filePath; 
 	
 	private FileInputStream fileInputStream;
 
@@ -63,7 +64,7 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 		
          try {
         	 fileInputStream.close();
-        	 FileOutputStream outputStream = new FileOutputStream(new File(fileName));
+        	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
 		} catch (IOException e) {
@@ -86,7 +87,8 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 				DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 				
 				String path = fileServerPath + dataProcessingService.getEntityName(request.getRequestType()) + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + request.getUserT().getUserId() + FILE_DIR_SEPERATOR;
-				fileName  = FileManager.copyFile(path, template);
+				String fileName  = FileManager.copyFile(path, template);
+				filePath =  path + fileName;
 				
 				request.setFilePath(path);
 				request.setFileName(fileName);
@@ -113,7 +115,7 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 			
-			FileInputStream fileInputStream = new FileInputStream(new File(request.getFilePath() + request.getFileName()));
+			fileInputStream = new FileInputStream(new File(request.getFilePath() + request.getFileName()));
 			String fileName  = request.getFileName();
 			
 		    String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
@@ -216,14 +218,6 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 
 	public void setWorkbook(Workbook workbook) {
 		this.workbook = workbook;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
 	}
 
 	public FileInputStream getFileInputStream() {

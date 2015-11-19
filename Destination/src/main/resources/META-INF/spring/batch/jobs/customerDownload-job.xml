@@ -54,23 +54,23 @@
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="customerRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="beaconRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="revenueDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="revenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="revenueCustomerMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="iouDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="iouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="customerIOUMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="iouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="iouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="iouBeaconMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>

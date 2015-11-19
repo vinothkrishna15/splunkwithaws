@@ -141,5 +141,7 @@ public class Constants {
 	public static final String BEACON_TEMPLATE_BEACON_SHEET_NAME = "BEACON - DATA";
 	public static final String BEACON_MAPPING_TEMPLATE_BEACON_SHEET_NAME = "Beacon Mapping(Ref)";
 	public static final String BEACON_IOU_MAPPING_TEMPLATE_BEACON_SHEET_NAME="IOU Map(Ref)";
+	
+	public static final String DOWNLOAD = "download";
 
 }

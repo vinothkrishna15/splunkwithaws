@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +91,28 @@ public class DataProcessingService {
 		break;
 		case 9: entity = EntityType.BEACON.name();
 		break;
+		case 10: entity = EntityType.USER.name();
+		break;
+		case 11: entity = EntityType.CUSTOMER.name();
+		break;
+		case 12: entity = EntityType.CONNECT.name();
+		break;
+		case 13: entity = EntityType.OPPORTUNITY.name();
+		break;
+		case 14: entity = EntityType.ACTUAL_REVENUE.name();
+		break;
+		case 15: entity = EntityType.CUSTOMER_CONTACT.name();
+		break;
+		case 16: entity = EntityType.PARTNER.name();
+		break;
+		case 17: entity = EntityType.PARTNER_CONTACT.name();
+		break;
+		case 18: entity = EntityType.BEACON.name();
+		break;
 		
 		}
+		entity = (type > 9 && type < 19) ? entity + FILE_DIR_SEPERATOR + DOWNLOAD: entity;
+		
 		return entity;
 	}
 

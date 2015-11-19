@@ -43,7 +43,7 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 	
 	private int rowCount = 1;
 	
-	private String fileName; 
+	private String filePath; 
 	
 	private FileInputStream fileInputStream;
 	
@@ -56,7 +56,7 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 		
         try {
         	 fileInputStream.close();
-        	 FileOutputStream outputStream = new FileOutputStream(new File(fileName));
+        	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
 		} catch (IOException e) {
@@ -93,8 +93,8 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
-			FileInputStream fileInputStream = new FileInputStream(new File(request.getFilePath() + request.getFileName()));
+			filePath = request.getFilePath() + request.getFileName();
+			fileInputStream = new FileInputStream(new File(filePath));
 			String fileName  = request.getFileName();
 		    String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
 		    
@@ -174,14 +174,6 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 
 	public void setWorkbook(Workbook workbook) {
 		this.workbook = workbook;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
 	}
 
 	public FileInputStream getFileInputStream() {
