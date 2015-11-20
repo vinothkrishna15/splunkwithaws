@@ -2,7 +2,7 @@ package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.CUSTOMER_DWLD_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
-import static com.tcs.destination.enums.RequestStatus.VERIFIED;
+import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
 import static com.tcs.destination.enums.RequestType.CUSTOMER_DOWNLOAD;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
 import static com.tcs.destination.utils.Constants.REQUEST;
@@ -43,7 +43,7 @@ public class CustomerDwldPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_DOWNLOAD.getType(), VERIFIED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_DOWNLOAD.getType(), SUBMITTED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
