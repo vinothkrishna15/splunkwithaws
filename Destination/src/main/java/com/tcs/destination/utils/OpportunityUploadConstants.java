@@ -4,7 +4,7 @@ public class OpportunityUploadConstants {
     
 	public static final String VALIDATOR_SHEET_NAME="Validate";
 
-	public static final int OPPORTUNITY_UPLOAD_COLUMN_SIZE = 43;
+	public static final int OPPORTUNITY_UPLOAD_COLUMN_SIZE = 45;
     
 	public static final int CUSTOMER_NAME_MAX_SIZE = 100;
 	public static final String CUSTOMER_NAME = "Customer Name";
@@ -48,10 +48,18 @@ public class OpportunityUploadConstants {
 	public static final int CORE_ATTRIBUTES_MAX_VALUE = 500;
 	public static final String CORE_ATTRIBUTES = "Core Attributes Used For Winning";
 	
-	public static final int DEAL_STATUS_REMARKS_MAX_SIZE = 2000;
+	public static final int DEAL_STATUS_REMARKS_MAX_SIZE = 2800;
 	public static final String DEAL_STATUS_REMARKS = "Deal Status Remarks";
 
 	public static final String REQUEST_RECEIVE_DATE = "Request Receive Date";
+	
+	public static final int REMARKS_1_MAX_SIZE = 2800;
+	public static final String REMARKS_1 = "Remarks1";
+	
+	public static final int REMARKS_2_MAX_SIZE = 2800;
+	public static final String REMARKS_2 = "Remarks2";
+	
+	
 	
 	
 }

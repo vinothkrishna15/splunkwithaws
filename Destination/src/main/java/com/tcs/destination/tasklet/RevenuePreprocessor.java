@@ -2,7 +2,7 @@ package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.REVENUE_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
-import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
+import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.ACTUAL_REVENUE_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
@@ -41,13 +41,13 @@ public class RevenuePreprocessor implements Tasklet{
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
-		requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), SUBMITTED.getStatus());
+		requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), VERIFIED.getStatus());
 		
 		logger.debug("Inside execute method:");
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 		if (CollectionUtils.isNotEmpty(requestList)) {
 			logger.info("before retriving data from repository");
-			//requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), SUBMITTED.getStatus());
+			//requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), VERIFIED.getStatus());
 			logger.info("request list size "+requestList.size());//for testing
 		
 		
@@ -55,7 +55,7 @@ public class RevenuePreprocessor implements Tasklet{
 		
 		
 			logger.info("executing the request list");
-			//requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), SUBMITTED.getStatus());
+			//requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(ACTUAL_REVENUE_UPLOAD.getType(), VERIFIED.getStatus());
 
 			DataProcessingRequestT request = requestList.remove(0);
 			String filePath = request.getFilePath() + request.getFileName();

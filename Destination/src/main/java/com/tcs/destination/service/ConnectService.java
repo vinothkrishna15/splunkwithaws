@@ -308,8 +308,10 @@ public class ConnectService {
 	}
 
 	@Transactional
-	public boolean insertConnect(ConnectT connect, boolean isBulkDataLoad)
+	public boolean createConnect(ConnectT connect, boolean isBulkDataLoad)
 			throws Exception {
+		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		logger.debug("Inside insertConnect() service");
 		// Validate request
 		validateRequest(connect, true);
@@ -320,6 +322,7 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
+		
 		if (connectRepository.save(connect) != null) {
 			requestConnect.setConnectId(connect.getConnectId());
 			logger.debug("Parent Object Saved, ConnectId: {}",
@@ -388,6 +391,7 @@ public class ConnectService {
 						.getSearchKeywordsTs()) {
 					searchKeywordT.setEntityType(EntityType.CONNECT.toString());
 					searchKeywordT.setEntityId(connect.getConnectId());
+					searchKeywordT.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 					searchKeywordsRepository.save(searchKeywordT);
 				}
 			}
@@ -536,6 +540,8 @@ public class ConnectService {
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
 			conTcsAccConLink.setConnectId(connectId);
+			conTcsAccConLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conTcsAccConLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -546,6 +552,8 @@ public class ConnectService {
 		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
 			// conSecOwnLink.setCreatedModifiedBy(currentUserId);
 			conSecOwnLink.setConnectId(connectId);
+			conSecOwnLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conSecOwnLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -555,6 +563,8 @@ public class ConnectService {
 		logger.debug("Inside populateConnectSubSpLinks() method");
 		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
 			conSubSpLink.setConnectId(connectId);
+			conSubSpLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conSubSpLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			// conSubSpLink.setCreatedModifiedBy(currentUserId);
 		}
 
@@ -566,6 +576,8 @@ public class ConnectService {
 		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
 			// conOffLink.setCreatedModifiedBy(currentUserId);
 			conOffLink.setConnectId(connectId);
+			conOffLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conOffLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -576,6 +588,8 @@ public class ConnectService {
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
 			// conCustConLink.setCreatedModifiedBy(currentUserId);
 			conCustConLink.setConnectId(connectId);
+			conCustConLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conCustConLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 	}
 
@@ -585,10 +599,12 @@ public class ConnectService {
 		for (NotesT note : noteList) {
 			note.setEntityType(EntityType.CONNECT.name());
 			note.setConnectId(connectId);
+			note.setUserUpdated(DestinationUtils.getCurrentUserDetails().getUserId());
 			if (categoryUpperCase.equalsIgnoreCase(EntityType.CUSTOMER.name())) {
 				logger.debug("Category is CUSTOMER");
 				CustomerMasterT customer = new CustomerMasterT();
 				customer.setCustomerId(customerId);
+				customer.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 				note.setCustomerMasterT(customer);
 			} else if (categoryUpperCase.equalsIgnoreCase(EntityType.PARTNER
 					.name())) {
@@ -624,6 +640,8 @@ public class ConnectService {
 	@Transactional
 	public boolean updateConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside updateConnect() service");
+		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		String connectId = connect.getConnectId();
 		if (connectId == null) {
 			logger.error("BAD_REQUEST: ConnectId is required for update");
@@ -752,6 +770,7 @@ public class ConnectService {
 			for (SearchKeywordsT searchKeywordT : connect.getSearchKeywordsTs()) {
 				searchKeywordT.setEntityType(EntityType.CONNECT.toString());
 				searchKeywordT.setEntityId(connect.getConnectId());
+				searchKeywordT.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 				searchKeywordsRepository.save(searchKeywordT);
 			}
 		}
@@ -853,6 +872,8 @@ public class ConnectService {
 		for (ConnectOpportunityLinkIdT conOppLinkId : conOppLinkIdTList) {
 			// conOppLinkId.setCreatedModifiedBy(currentUserId);
 			conOppLinkId.setConnectId(connectId);
+			conOppLinkId.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conOppLinkId.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -862,6 +883,8 @@ public class ConnectService {
 		for (TaskT task : taskList) {
 			// task.setCreatedBy(currentUserId);
 			task.setConnectId(connectId);
+			task.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			task.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		}
 	}
 

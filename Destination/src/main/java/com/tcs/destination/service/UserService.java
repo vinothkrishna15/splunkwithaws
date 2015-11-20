@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -15,18 +14,18 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.LoginHistoryRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
-import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.UserGroup;
+import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 //import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.data.repository.LoginHistoryRepository;
 
 @Service
 public class UserService {
@@ -161,6 +160,10 @@ public class UserService {
 	public UserT findByUserId(String userId) throws Exception {
 		UserT dbUser = userRepository.findOne(userId);
 		return dbUser;
+	}
+	
+	public List<UserT> getUsersByRole(String userRole) throws Exception {
+		return userRepository.findByUserRole(userRole);
 	}
 
 	public boolean isSystemAdmin(String userId) {

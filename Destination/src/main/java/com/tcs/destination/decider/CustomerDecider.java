@@ -27,6 +27,8 @@ public class CustomerDecider implements JobExecutionDecider {
 		
 		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.CUSTOMER_PROCESSING)) {
 			status = new FlowExecutionStatus(JobStep.CUSTOMER_PROCESSING.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.CUSTOMER_DWLD_PROCESSING)) {
+        	status = new FlowExecutionStatus(JobStep.CUSTOMER_DWLD_PROCESSING.name());
         } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
         	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
         } 

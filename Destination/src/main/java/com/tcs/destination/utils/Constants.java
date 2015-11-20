@@ -113,6 +113,15 @@ public class Constants {
 	public static final String CUSTOMER_IOU_MAPPING_REF= "Customer IOU Map(Ref)";
 	public static final String SUB_SP_MAP_REF = "Sub Sp Map(Ref)";
 	// Email subjects
+	public static final String USER_UPLOAD_NOTIFY_SUBJECT = "User upload request submitted.";
+	public static final String CUSTOMER_UPLOAD_NOTIFY_SUBJECT = "Customer upload request submitted.";
+	public static final String CONNECT_UPLOAD_NOTIFY_SUBJECT = "Connect upload request submitted.";
+	public static final String OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT = "Opportunity upload request submitted.";
+	public static final String ACTUAL_REVENUE_UPLOAD_NOTIFY_SUBJECT = "Actual revenue upload request submitted.";
+	public static final String CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Customer contact upload request submitted.";
+	public static final String PARTNER_UPLOAD_NOTIFY_SUBJECT = "Partner upload request submitted.";
+	public static final String PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT = "Partner contact upload request submitted.";
+	public static final String BEACON_UPLOAD_NOTIFY_SUBJECT = "Beacon upload request submitted.";
 	public static final String USER_UPLOAD_SUBJECT = "User upload request processed.";
 	public static final String CUSTOMER_UPLOAD_SUBJECT = "Customer upload request processed.";
 	public static final String CONNECT_UPLOAD_SUBJECT = "Connect upload request processed.";
@@ -141,5 +150,7 @@ public class Constants {
 	public static final String BEACON_TEMPLATE_BEACON_SHEET_NAME = "BEACON - DATA";
 	public static final String BEACON_MAPPING_TEMPLATE_BEACON_SHEET_NAME = "Beacon Mapping(Ref)";
 	public static final String BEACON_IOU_MAPPING_TEMPLATE_BEACON_SHEET_NAME="IOU Map(Ref)";
+	
+	public static final String DOWNLOAD = "download";
 
 }

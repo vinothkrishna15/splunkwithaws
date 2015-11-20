@@ -2,7 +2,7 @@ package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.CONNECT_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
-import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
+import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.CONNECT_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
@@ -44,7 +44,7 @@ public class ConnectPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CONNECT_UPLOAD.getType(), SUBMITTED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CONNECT_UPLOAD.getType(), VERIFIED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();

@@ -384,7 +384,7 @@ public class ConnectUploadService {
 		
 //		connectT.setTimeZone(timeZoneMap.get(listOfCellValues.get(9)));
 			
-		connectService.insertConnect(connectT, isBulkDataLoad);
+		connectService.createConnect(connectT, isBulkDataLoad);
 		}
 		} catch(DestinationException de){
 		    

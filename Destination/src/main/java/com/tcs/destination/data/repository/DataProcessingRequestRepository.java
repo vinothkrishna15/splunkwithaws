@@ -21,6 +21,8 @@ public interface DataProcessingRequestRepository extends PagingAndSortingReposit
 	
 	Page<DataProcessingRequestT> findByStatus(int status, Pageable pageable);
 	
+	Page<DataProcessingRequestT> findByStatusAndRequestTypeBetween(int status, int start, int end, Pageable pageable);
+	
 	@Query("select data from DataProcessingRequestT data")
 	Page<DataProcessingRequestT> getAll(Pageable pageable);
 

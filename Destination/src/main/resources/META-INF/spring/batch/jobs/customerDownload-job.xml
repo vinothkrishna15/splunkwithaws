@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="customerDownload">
+	<batch:step id="preprocess" next="decider">
+			<batch:tasklet ref="customerDwldPreprocessor"/>
+		</batch:step>
+	
+		<batch:step id="customerDwldProcessing" next="beaconDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="customerDwldReader" writer="customerDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="beaconDwldProcessing" next="revenueDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="beaconDwldReader" writer="beaconDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="revenueDwldProcessing" next="iouDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="revenueDwldReader" writer="revenueDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="iouDwldProcessing" next="iouBeaconDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="iouDwldReader" writer="iouDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="iouBeaconDwldProcessing" next="preprocess">
+			<batch:tasklet>
+				<batch:chunk reader="iouBeaconDwldReader" writer="iouBeaconDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="decider" decider="customerFlowdecider">
+              <batch:next on="PREPROCESS" to="preprocess" />
+              <batch:next on="CUSTOMER_DWLD_PROCESSING" to="customerDwldProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="beaconRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="revenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="revenueCustomerMappingTRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="iouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerIOUMappingRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="iouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="iouBeaconMappingTRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="customerDwldWriter" class="com.tcs.destination.writer.CustomerDwldWriter">
+		<property name="template" value="${customerSheetTemplate}"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="fileServerPath" value="${fileserver.path}" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+	</bean>
+	
+	<bean id="beaconDwldWriter" class="com.tcs.destination.writer.BeaconDwldWriter">
+		<property name="commonHelper" ref="commonHelper" />
+	</bean>
+	
+	<bean id="revenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter">
+		<property name="commonHelper" ref="commonHelper" />
+	</bean>
+	
+	<bean id="iouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" />
+	
+	<bean id="iouBeaconDwldWriter" class="com.tcs.destination.writer.IouBeaconDwldWriter">
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	</bean>
+		
+	<!-- Decider -->
+    <bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
+	
+	<!-- scheduler  -->
+	<bean id="customerDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="customerDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="customerDownloadScheduler" method="run" cron="${customer.download.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

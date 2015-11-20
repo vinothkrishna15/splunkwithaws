@@ -1,6 +1,7 @@
 package com.tcs.destination.service;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.FileManager;
 
-@Service
+@Service("dataProcessingService")
 public class DataProcessingService {
 	
 	private static final Logger logger = LoggerFactory
@@ -41,6 +42,32 @@ public class DataProcessingService {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		
 		Status status = new Status();
+		
+		String entity = getEntityName(type);
+		
+		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		
+		FileManager.saveFile(file, path);
+		
+		DataProcessingRequestT request = new DataProcessingRequestT();
+		request.setFileName(file.getOriginalFilename());
+		request.setFilePath(path);
+		request.setUserT(userRepository.findByUserId(userId));
+		request.setStatus(RequestStatus.SUBMITTED.getStatus());
+		request.setRequestType(type);
+		
+		dataProcessingRequestRepository.save(request);
+		
+		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
+		
+		return status;
+	}
+
+	/**
+	 * @param type
+	 * @return String
+	 */
+	public String getEntityName(int type) {
 		
 		String entity = "FOLDER";
 		
@@ -64,25 +91,29 @@ public class DataProcessingService {
 		break;
 		case 9: entity = EntityType.BEACON.name();
 		break;
+		case 10: entity = EntityType.USER.name();
+		break;
+		case 11: entity = EntityType.CUSTOMER.name();
+		break;
+		case 12: entity = EntityType.CONNECT.name();
+		break;
+		case 13: entity = EntityType.OPPORTUNITY.name();
+		break;
+		case 14: entity = EntityType.ACTUAL_REVENUE.name();
+		break;
+		case 15: entity = EntityType.CUSTOMER_CONTACT.name();
+		break;
+		case 16: entity = EntityType.PARTNER.name();
+		break;
+		case 17: entity = EntityType.PARTNER_CONTACT.name();
+		break;
+		case 18: entity = EntityType.BEACON.name();
+		break;
 		
 		}
+		entity = (type > 9 && type < 19) ? entity + FILE_DIR_SEPERATOR + DOWNLOAD: entity;
 		
-		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
-		
-		FileManager.saveFile(file, path);
-		
-		DataProcessingRequestT request = new DataProcessingRequestT();
-		request.setFileName(file.getOriginalFilename());
-		request.setFilePath(path);
-		request.setUserT(userRepository.findByUserId(userId));
-		request.setStatus(RequestStatus.SUBMITTED.getStatus());
-		request.setRequestType(type);
-		
-		dataProcessingRequestRepository.save(request);
-		
-		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
-		
-		return status;
+		return entity;
 	}
 
 	/**
