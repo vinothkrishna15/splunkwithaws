@@ -53,4 +53,6 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	@Query(value = "select user_id from user_t where user_group in (:userGroup)", nativeQuery = true)
 	List<String> findUserIdByuserGroup(@Param("userGroup") List<String> userGroup);
+	
+	List<UserT> findByUserRole(String userRole);
 }

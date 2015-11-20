@@ -1,22 +1,31 @@
 package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.Constants.ACTUAL_REVENUE_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.ACTUAL_REVENUE_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.ACTUAL_REVENUE_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.BEACON_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.BEACON_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.BEACON_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.CONNECT_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.CONNECT_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.CONNECT_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_CONTACT_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_CONTACT_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.PARTNER_CONTACT_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.PARTNER_CONTACT_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.PARTNER_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.PARTNER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.PARTNER_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
 
 import java.text.DateFormat;
@@ -78,6 +87,9 @@ public class DestinationMailUtils {
 
 	@Value("${download.template}")
 	private String downloadTemplateLoc;
+	
+	@Value("${upload.notify.template}")
+	private String uploadNotifyTemplateLoc;
 
 	@Autowired
 	private UserService userService;
@@ -172,8 +184,11 @@ public class DestinationMailUtils {
 			String userName = null;
 			String entity = null;
 			String fileName = null;
+			String filePath = null;
+			String uploadedFileName = null;
+			int requestType = request.getRequestType();
 
-			switch (request.getRequestType()) {
+			switch (requestType) {
 
 			case 1: {
 				// User upload
@@ -182,7 +197,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -193,7 +207,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -204,7 +217,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -215,7 +227,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -226,7 +237,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 				
@@ -237,7 +247,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 				
@@ -248,7 +257,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -259,7 +267,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 			case 9: {
@@ -269,7 +276,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -280,7 +286,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -291,7 +296,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -302,7 +306,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -313,7 +316,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -324,7 +326,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -335,7 +336,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -346,7 +346,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -357,7 +356,6 @@ public class DestinationMailUtils {
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
-				fileName = request.getFileName();
 			}
 				break;
 
@@ -365,6 +363,168 @@ public class DestinationMailUtils {
 				// Beacon download
 				template = downloadTemplateLoc;
 				subject.append(BEACON_DOWNLOAD_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.BEACON.name()
+						.toLowerCase());
+			}
+				break;
+
+			}
+			
+			if (requestType >= 0 && requestType < 10) {
+				fileName = request.getFileName();
+				filePath = request.getFilePath();
+				uploadedFileName = request.getFileName();
+			} else {
+				fileName = request.getErrorFileName();
+				filePath = request.getErrorFilePath();
+			}
+
+			Map userRequestMap = new HashMap();
+			userRequestMap.put("userName", userName);
+			userRequestMap.put("entity", entity);
+			userRequestMap.put("fileName", uploadedFileName);
+			userRequestMap.put("submittedDate", dateStr);
+
+			String text = VelocityEngineUtils.mergeTemplateIntoString(
+					velocityEngine, template, Constants.UTF8, userRequestMap);
+
+			helper.setSubject(subject.toString());
+			helper.setText(text, true);
+			helper.addAttachment(fileName, new FileSystemResource(
+					filePath + fileName));
+			logMailDetails(recipientMailIdsArray, null, null,
+					subject.toString(), text);
+			mailSender.send(automatedMIMEMessage);
+			status = true;
+		} catch (Exception e) {
+			logger.error("Error sending mail message", e.getMessage());
+			status = false;
+		}
+
+		return status;
+	}
+	
+	/**
+	 * @param request
+	 * @param subject
+	 * @param template
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean sendUploadNotification(DataProcessingRequestT request)
+			throws Exception {
+
+		logger.debug("inside sendUploadNotification method");
+
+		boolean status = false;
+		UserT user = request.getUserT();
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(request.getSubmittedDatetime());
+		String[] recipientMailIdsArray = getGroupdMailIdsFromUserIds(user.getUserRole());
+
+		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+				.createMimeMessage();
+
+		try {
+			MimeMessageHelper helper = new MimeMessageHelper(
+					automatedMIMEMessage, true);
+			helper.setTo(recipientMailIdsArray);
+			helper.setCc(recipientMailIdsArray);
+
+			helper.setFrom(senderEmailId);
+
+			String template = uploadNotifyTemplateLoc;
+			StringBuffer subject = new StringBuffer("Admin: ");
+
+			String userName = uploadNotifyTemplateLoc;;
+			String entity = null;
+			String fileName = null;
+
+			switch (request.getRequestType()) {
+
+			case 1: {
+				// User upload
+				subject.append(USER_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.USER.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+
+			case 2: {
+				// Customer upload
+				subject.append(CUSTOMER_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+
+			case 3: {
+				// Connect upload
+				subject.append(CONNECT_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.CONNECT.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+
+			case 4: {
+				// Opportunity upload
+				subject.append(OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+
+			case 5: {
+				// Actual revenue upload
+				subject.append(ACTUAL_REVENUE_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+				
+			case 6: {
+				// Customer contact upload
+				subject.append(CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
+						.name().toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+				
+			case 7: {
+				// Partner upload
+				subject.append(PARTNER_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.PARTNER.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+
+			case 8: {
+				// Partner contact upload
+				subject.append(PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT);
+				userName = user.getUserName();
+				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
+						.toLowerCase());
+				fileName = request.getFileName();
+			}
+				break;
+			case 9: {
+				// Beacon upload
+				subject.append(BEACON_UPLOAD_NOTIFY_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
@@ -379,14 +539,14 @@ public class DestinationMailUtils {
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", fileName);
 			userRequestMap.put("submittedDate", dateStr);
+			userRequestMap.put("userRole", user.getUserRole());
+			userRequestMap.put("requestId", request.getProcessRequestId());
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
 
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
-			helper.addAttachment(request.getFileName(), new FileSystemResource(
-					request.getFilePath() + request.getFileName()));
 			logMailDetails(recipientMailIdsArray, null, null,
 					subject.toString(), text);
 			mailSender.send(automatedMIMEMessage);
@@ -650,6 +810,24 @@ public class DestinationMailUtils {
 			UserT recipient = userService.findByUserId(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
+		}
+		String[] recipientMailIdsArray = recipientMailIds
+				.toArray(new String[recipientMailIds.size()]);
+		return recipientMailIdsArray;
+	}
+	
+	/**
+	 * @param userRole
+	 * @return
+	 * @throws Exception
+	 */
+	private String[] getGroupdMailIdsFromUserIds(String userRole)
+			throws Exception {
+		List<String> recipientMailIds = new ArrayList<String>();
+
+		List<UserT> userList = userService.getUsersByRole(userRole);
+		for (UserT user : userList) {
+			recipientMailIds.add(user.getUserEmailId());
 		}
 		String[] recipientMailIdsArray = recipientMailIds
 				.toArray(new String[recipientMailIds.size()]);

@@ -1,0 +1,19 @@
+<html>
+	<body>
+		<h3>Dear ${userRole},</h3>
+		<p>
+		The ${entity} upload request #{requestId} for upload file "${fileName}", submitted on ${submittedDate} is pending for verification.
+		</p>
+		<p>
+		The maintenance team will be contacting you shortly for verifying the authenticity.
+		</p>
+		<p>
+		Regards,<br>
+		Destination Team.
+		<p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>
