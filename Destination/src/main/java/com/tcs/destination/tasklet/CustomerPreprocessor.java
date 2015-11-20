@@ -2,7 +2,7 @@ package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.CUSTOMER_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
-import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
+import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.CUSTOMER_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
@@ -45,7 +45,7 @@ public class CustomerPreprocessor implements Tasklet{
 		
 		if (requestList == null) {
 			logger.info("before retriving data from repository");
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_UPLOAD.getType(), SUBMITTED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_UPLOAD.getType(), VERIFIED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
