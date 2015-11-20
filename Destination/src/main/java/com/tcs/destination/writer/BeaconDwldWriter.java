@@ -1,6 +1,7 @@
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.REQUEST;
+import static com.tcs.destination.utils.Constants.CUSTOMER_MAP;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -74,7 +75,9 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 		
 		try {
 			    this.stepExecution = stepExecution;
+			    ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 				mapOfCustomerMasterT = commonHelper.getCustomerMappingT();
+				jobContext.put(CUSTOMER_MAP, mapOfCustomerMasterT);
 				
 			} catch (Exception e) {
 				logger.error("Error in before step process: {}", e);
