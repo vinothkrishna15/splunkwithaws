@@ -153,5 +153,14 @@ public class Constants {
 	
 	public static final String DOWNLOAD = "download";
 	public static final String CUSTOMER_MAP = "CUSTOMER_MAP";
+	
+	//User data template
+	public static final String USER_TEMPLATE_USER_MASTER = "BDM Users";
+	public static final String USER_TEMPLATE_TIMEZONE= "TimeZone(Ref)";
+	public static final String USER_TEMPLATE_USERGOALS = "BDM Target";
+	public static final String USER_TEMPLATE_USERGOALREF = "Targets Values(Ref)";
+	public static final String USER_TEMPLATE_CUSTOMER = "Customer(Ref)";
+	public static final String USER_TEMPLATE_PRIVILEGE = "User Privilege";
+	public static final String USER_TEMPLATE_OTHER_REFERENCES = "Geo Country  IOU SubSp(Ref)";
 
 }

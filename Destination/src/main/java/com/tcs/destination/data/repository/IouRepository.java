@@ -6,10 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import com.tcs.destination.bean.IouCustomerMappingT;
-import com.tcs.destination.bean.SubSpMappingT;
 
-public interface IOURepository extends CrudRepository<IouCustomerMappingT, String> {
+public interface IouRepository extends CrudRepository<IouCustomerMappingT, String> {
 
     List<IouCustomerMappingT> findByDisplayIou(String displayIOU);
+    
+    @Query(value="select distinct display_iou from iou_customer_mapping_t",nativeQuery=true)
+    List<String> findDistinctDisplayIou();
 
 }

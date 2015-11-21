@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+
+	<batch:job id="userDownloadJob">
+
+		<batch:step id="preprocess" next="decider">
+			<batch:tasklet ref="userDwldPreprocessor" />
+		</batch:step>
+
+		<batch:step id="userDwldProcessing" next="privDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userDwldReader" writer="userDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		 <batch:step id="privDwldProcessing" next="goalDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="privDwldReader" writer="privDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="goalDwldProcessing" next="goalRefDwldPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="goalDwldReader" writer="userDwldUserGoalsWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="goalRefDwldPreprocess" next="goalRefDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="goalRefDwldPreprocessReader" writer="goalRefDwldPreprocessWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		
+		<batch:step id="goalRefDwldProcessing" next="geoCountryDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="goalRefDwldReader" writer="goalRefDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="geoCountryDwldProcessing" next="geoUniqDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="geoCountryDwldReader" writer="geoCountryDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="geoUniqDwldProcessing" next="iouUniqDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="geoUniqDwldReader" writer="geoUniqDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="iouUniqDwldProcessing" next="subspUniqDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="iouUniqDwldReader" writer="iouUniqDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="subspUniqDwldProcessing" next="timeZoneDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="subspUniqDwldReader" writer="subspUniqDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="timeZoneDwldProcessing" next="customerDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="timeZoneDwldReader" writer="userDwldTimezoneWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:step id="customerDwldProcessing" next="preprocess">
+			<batch:tasklet>
+				<batch:chunk reader="customerDwldReader" writer="userDwldCustomerWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:decision id="decider" decider="userFlowdecider">
+			<batch:next on="PREPROCESS" to="preprocess" />
+			<batch:next on="USER_DWLD_PROCESSING" to="userDwldProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
+
+	</batch:job>
+
+
+	<!-- Readers -->
+	<bean id="userDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="userRepository" />
+		<property name="methodName" value="findUserWithTimeZone" />
+	</bean>
+	
+     
+	 <bean id="privDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="userAccessPrivilegesRepository" />
+		<property name="methodName" value="findByParentPrivilegeIdIsNull" />
+	</bean>
+
+	<bean id="goalDwldReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="userGoalsRepository" />
+		<property name="methodName" value="getGoalsWithUserName" />
+	</bean>
+	
+	<bean id="goalRefDwldPreprocessReader" class="com.tcs.destination.reader.NativeQueryReader">
+		<property name="repository" ref="goalGroupMappingRepository" />
+		<property name="methodName" value="findGoalGroup" />
+	</bean>
+	
+	
+	
+ 
+	<bean id="goalRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="goalMappingRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+
+	<bean id="geoCountryDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="geographyCountryRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="geoUniqDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="geographyRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="iouUniqDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="iouRepository" />
+		<property name="methodName" value="findDistinctDisplayIou" />
+	</bean>
+	
+	<bean id="subspUniqDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="subSpRepository" />
+		<property name="methodName" value="findDistinctDisplaySubsp" />
+	</bean>
+	
+	<bean id="timeZoneDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="timezoneMappingRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	 <bean id="customerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="userDwldWriter" class="com.tcs.destination.writer.UserDwldWriter">
+		<property name="template" value="${userSheetTemplate}" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="dataProcessingService" ref="dataProcessingService" />
+		<property name="fileServerPath" value="${fileserver.path}" />
+	</bean>
+	
+    <bean id="privDwldWriter" class="com.tcs.destination.writer.UserDwldPrivilegeWriter">
+	
+	</bean>
+	
+	<bean id="userDwldUserGoalsWriter" class="com.tcs.destination.writer.UserDwldUserGoalsWriter">
+		
+	</bean>
+	
+	<bean id="goalRefDwldPreprocessWriter" class="com.tcs.destination.writer.UserDwldGoalRefPreprocessWriter">
+		
+	</bean>
+	
+	<bean id="goalRefDwldWriter" class="com.tcs.destination.writer.UserDwldGoalRefWriter">
+		
+	</bean>
+		
+	
+	<bean id="geoCountryDwldWriter" class="com.tcs.destination.writer.UserDwldGeoCountryWriter">
+		
+	</bean>
+		
+	<bean id="geoUniqDwldWriter" class="com.tcs.destination.writer.UserDwldGeoUniqWriter">
+		
+	</bean>
+	
+	<bean id="iouUniqDwldWriter" class="com.tcs.destination.writer.UserDwldIouUniqWriter">
+		
+	</bean>
+	
+	<bean id="subspUniqDwldWriter" class="com.tcs.destination.writer.UserDwldSubspUniqWriter">
+		
+	</bean>
+	
+	<bean id="userDwldTimezoneWriter" class="com.tcs.destination.writer.UserDwldTimezoneWriter">
+		
+	</bean>
+
+    <bean id="userDwldCustomerWriter" class="com.tcs.destination.writer.UserDwldCustomerWriter">
+		
+	</bean>
+
+	<!-- Decider -->
+	<bean id="userFlowdecider" class="com.tcs.destination.decider.UserDecider" />
+
+	<!-- scheduler -->
+	<bean id="userDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userDownloadJob" />
+	</bean>
+
+	<task:scheduled-tasks>
+		<task:scheduled ref="userDownloadScheduler" method="run"
+			cron="${user.download.job.cron}" />
+	</task:scheduled-tasks>
+
+</beans>
+	
