@@ -54,8 +54,10 @@ public class BDMService {
 	private static final String PIPELINE_FUNNEL_QUERY_PART = "select distinct sales_stage_code , ";
 	
 	private static final String DEAL_VALUE_AND_JOINS = "sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / " 
-			+ " (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) as deal_value from opportunity_t OPP JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
-			+ " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id " 
+			+ " (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) as deal_value from opportunity_t OPP "
+			+ " JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
+			+ " JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
+			+ " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id " 
 			+ " JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou where ";
 	
 	private static final String SUP_SP_ABOVE_THREE_QUERY_PART = "select count(countOfSubSp) from (select ARDT.finance_customer_name, count(distinct(ARDT.sub_sp)) as countOfSubSp " 

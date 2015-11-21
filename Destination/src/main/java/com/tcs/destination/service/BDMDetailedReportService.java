@@ -225,8 +225,10 @@ public class BDMDetailedReportService {
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = true;
-				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-						serviceLinesList, iouList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
+//				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
+//						serviceLinesList, iouList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
+				setBDMOpportunityDetailsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
+						serviceLinesList, iouList, countryList, currency, salesStage, users, fields, isIncludingSupervisor, workbook);
 				break;
 			default :
 				List<String> userIdList = new ArrayList<String>();
@@ -965,7 +967,7 @@ public class BDMDetailedReportService {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
 			}
 			setBDMsOpportunitiesAndNameToExcel(bdmUserAndOppId, currency, workbook, fields, isIncludingSupervisor);
-			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
+//			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 		}
 
 
