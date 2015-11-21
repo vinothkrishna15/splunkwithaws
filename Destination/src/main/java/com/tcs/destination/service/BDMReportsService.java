@@ -315,7 +315,8 @@ public class BDMReportsService {
 					    }
 					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
-					getGeoHeadOrIouHeadPerformanceExcelReport(userIds, userId, financialYear, workbook);
+//					getGeoHeadOrIouHeadPerformanceExcelReport(userIds, userId, financialYear, workbook);
+					getGeoHeadOrIouHeadPerformanceExcelReportForSI(userIds, userId, financialYear, workbook);
 					break;
 				default :
 					List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
