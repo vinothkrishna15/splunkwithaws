@@ -126,10 +126,14 @@ public class RevenueDownloadService {
 				cellDisplaySubSp.setCellValue(actualRevenue.getMonth().trim());
 
 				Cell cellSubSp = row.createCell(4);
-				cellSubSp.setCellValue(actualRevenue.getQuarter().trim());
+				String quarter1=actualRevenue.getQuarter().substring(0, 2);
+				String quarter2=actualRevenue.getQuarter().substring(10, 12);
+				cellSubSp.setCellValue(quarter1+quarter2);
 
 				Cell cellActualSubSp = row.createCell(5);
-				cellActualSubSp.setCellValue(actualRevenue.getFinancialYear().trim());
+				String financialYr1=actualRevenue.getFinancialYear().substring(0,2);
+				String financialYr2=actualRevenue.getFinancialYear().substring(8, 10);
+				cellActualSubSp.setCellValue(financialYr1+financialYr2);
 
 				Cell cellActive = row.createCell(6);
 				cellActive.setCellValue(actualRevenue.getRevenue().toString());
@@ -168,15 +172,15 @@ public class RevenueDownloadService {
 				Row row = subSpSheet.createRow(rowCount);
 
 				// Create new Cell and set cell value
-
-				Cell cellDisplaySubSp = row.createCell(0);
-				cellDisplaySubSp.setCellValue(subSp.getDisplaySubSp().trim());
-
+				
+				Cell cellActualSubSp = row.createCell(0);
+				cellActualSubSp.setCellValue(subSp.getActualSubSp().trim());
+				
 				Cell cellSubSp = row.createCell(1);
 				cellSubSp.setCellValue(subSp.getSubSp().trim());
 
-				Cell cellActualSubSp = row.createCell(2);
-				cellActualSubSp.setCellValue(subSp.getActualSubSp().trim());
+				Cell cellDisplaySubSp = row.createCell(2);
+				cellDisplaySubSp.setCellValue(subSp.getDisplaySubSp().trim());
 
 				Cell cellSpCode = row.createCell(3);
 				String spCode = String.valueOf(subSp.getSpCode());
@@ -204,11 +208,13 @@ public class RevenueDownloadService {
 				Row row = iouCustomerSheet.createRow(rowCount);
 
 				// Create new Cell and set cell value
-				Cell cellBeaconCustomerName = row.createCell(0);
+				Cell cellBeaconIou = row.createCell(0);
+				cellBeaconIou.setCellValue(iou.getIou().trim());
+				
+				Cell cellBeaconCustomerName = row.createCell(1);
 				cellBeaconCustomerName.setCellValue(iou.getDisplayIou().trim());
 
-				Cell cellBeaconIou = row.createCell(1);
-				cellBeaconIou.setCellValue(iou.getIou().trim());
+				
 
 				// Increment row counter
 				rowCount++;
