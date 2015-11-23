@@ -35,7 +35,10 @@ public class DBMaintenanceTasklet implements Tasklet {
 	private int batchTablePurgeDays;
 	
 	@Value("${batch.table.purge.months}")
-	private int usrNotiPurgeMonths;
+	private int btchPrugeMonths;
+	
+	@Value("${batch.table.purge.years}")
+	private int btchPrugeYears;
 	
 	@Autowired
 	private BatchOpportunityRepository batchOpportunityRepository;
@@ -51,7 +54,7 @@ public class DBMaintenanceTasklet implements Tasklet {
 		
 		RepeatStatus status = null;
 		
-		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, usrNotiPurgeMonths) == 1 ) {
+		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, btchPrugeMonths, btchPrugeYears) == 1 ) {
 			status = RepeatStatus.FINISHED;
 		}
 		
