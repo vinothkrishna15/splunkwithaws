@@ -254,7 +254,7 @@ public class PerformanceReportService {
 
 	private static final String PROJECTED_REVENUES_BY_IOU_ORDER_BY = " Result on ICMT.display_iou = Result.displayIOU order by revenue desc";
 
-	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_QUERY_PREFIX = "select COALESCE(SSMT.display_sub_sp, 'NO SUBSP') ,sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV from opportunity_t OPP "
+	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_QUERY_PREFIX = "select COALESCE(SSMT.display_sub_sp, 'SubSp Not Defined') ,sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as OBV from opportunity_t OPP "
 			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
