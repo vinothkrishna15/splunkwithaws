@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -56,6 +58,9 @@ public class BeaconController {
 	
 	@Autowired
 	BeaconDownloadService beaconDownloadService;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 	
 	/**
 	 * This controller uploads the Beacon Customers to the database
@@ -135,10 +140,12 @@ public class BeaconController {
 		logger.info("Download request Received : docName ");
 		InputStreamResource excelFile = beaconDownloadService.getBeaconData();
 		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 		String todaysDate = DateUtils.getCurrentDate();
-		logger.info("Download Header - Attachment : " + "Beacon - DATA " + todaysDate + ".xlsm");
-		respHeaders.setContentDispositionFormData("attachment", "Beacon - DATA" + todaysDate + ".xlsm");
+		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+		
+		logger.info("Download Header - Attachment : " + "BeaconDownload_" + todaysDate_formatted + ".xlsm");
+		respHeaders.setContentDispositionFormData("attachment", "BeaconDownload_" + todaysDate_formatted + ".xlsm");
 		logger.info("Beacon - DATA Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
 		

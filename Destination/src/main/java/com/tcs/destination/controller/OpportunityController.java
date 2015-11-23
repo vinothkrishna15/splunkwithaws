@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +64,10 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
-
+   
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
+	
 	// @Autowired
 	// CustomerRepository customerRepository;
 
@@ -476,12 +481,14 @@ public class OpportunityController {
 			opportunityDownloadExcel = opportunityDownloadService
 					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
 			respHeaders.setContentDispositionFormData("attachment",
-					"opportunityDownload" + DateUtils.getCurrentDate()
+					"OpportunityDownload_" + todaysDate_formatted
 							+ ".xlsm");
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-			logger.debug("Connect Summary Report Downloaded Successfully ");
+			logger.debug("Opportunity Data Downloaded Successfully ");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
