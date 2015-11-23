@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class UserGeneralSettingsService {
@@ -22,6 +23,8 @@ public class UserGeneralSettingsService {
 	public boolean addUserGeneralSettings(
 			UserGeneralSettingsT userGeneralSettings)
 			throws DestinationException {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		userGeneralSettings.setUserId(userId);
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository
 				.findByUserId(userGeneralSettings.getUserId());
 		if (userGenSettings == null) {
@@ -37,6 +40,8 @@ public class UserGeneralSettingsService {
 
 	public boolean updateUserGeneralSettings(UserGeneralSettingsT userGeneralSettings)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		userGeneralSettings.setUserId(userId);
 		if(userGeneralSettings.getUserId()!=null){
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository
 				.findByUserId(userGeneralSettings.getUserId());

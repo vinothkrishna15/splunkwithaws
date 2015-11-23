@@ -54,7 +54,7 @@ public class UserAccessRequestController {
 				userAccessRequestList);
 	}
 
-	@RequestMapping(value="request",method = RequestMethod.POST)
+	@RequestMapping(value="/request",method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToNewUserAccessRequest(
 			@RequestBody UserAccessRequestT userAccessRequest) throws Exception {
 		logger.debug("User Access Insert Request Received /useraccess/request POST");

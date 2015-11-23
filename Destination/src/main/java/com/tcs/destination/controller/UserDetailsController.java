@@ -241,11 +241,9 @@ public class UserDetailsController {
 			throws Exception {
 		logger.debug("Inside UserDetailsController /user/changepwd PUT");
 		Status status = new Status();
-		String userId = user.getUserId();
-
-		String currentlyLoggedInUser = DestinationUtils.getCurrentUserDetails()
+		String userId = DestinationUtils.getCurrentUserDetails()
 				.getUserId();
-		if (currentlyLoggedInUser.equals(userId)) {
+		
 			String currentPassword = user.getTempPassword();
 			String newPassword = user.getNewPassword();
 			// getting session object, if exist
@@ -274,10 +272,7 @@ public class UserDetailsController {
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
-		} else {
-			throw new DestinationException(HttpStatus.UNAUTHORIZED,
-					"Not authorized to make changes");
-		}
+		
 	}
 
 	@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
