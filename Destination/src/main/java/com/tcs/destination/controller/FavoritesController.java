@@ -57,6 +57,8 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		favorites.setUserId(userId);
 		logger.debug("Inside FavoritesController /favorites POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");

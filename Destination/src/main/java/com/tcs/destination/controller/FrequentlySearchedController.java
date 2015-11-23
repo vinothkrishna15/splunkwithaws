@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.service.FrequentlySearchedService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -47,6 +48,7 @@ public class FrequentlySearchedController {
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+		
 		logger.debug("Inside FrequentlySearchedController /frequent POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
