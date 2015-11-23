@@ -172,6 +172,8 @@ public class ContactService {
 
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		contact.setCreatedModifiedBy(userId);
 		if (isUpdate) {
 			if (contact.getContactId() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -180,6 +182,8 @@ public class ContactService {
 			if (contact.getDeleteContactCustomerLinkTs() != null) {
 				for (ContactCustomerLinkT contactCustomerLinkT : contact
 						.getDeleteContactCustomerLinkTs()) {
+					
+					contactCustomerLinkT.setCreatedModifiedBy(userId);					
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
 			}
@@ -269,11 +273,13 @@ public class ContactService {
 	}
 
 	private ContactT saveChildContactObjects(ContactT contact) {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		// Set Contact Customer Links
 		if (contact.getContactCustomerLinkTs() != null) {
 			for (ContactCustomerLinkT contactCustomerLinkT : contact
 					.getContactCustomerLinkTs()) {
 				contactCustomerLinkT.setContactId(contact.getContactId());
+				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
 		return contactRepository.save(contact);

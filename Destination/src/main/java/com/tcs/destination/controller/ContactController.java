@@ -140,6 +140,7 @@ public class ContactController {
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addContact(
 			@RequestBody ContactT contact) throws Exception {
+		
 		logger.debug("contact Insert Request Received /contact POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
