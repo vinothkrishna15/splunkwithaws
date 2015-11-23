@@ -465,7 +465,6 @@ public class OpportunityService {
 				restrictOpportunity(opportunityT);
 			}
 		}
-
 	}
 
 	private boolean isUserOwner(String userId, OpportunityT opportunity) {
@@ -505,6 +504,8 @@ public class OpportunityService {
 		logger.debug("Inside createOpportunity() service");
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
+			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			saveOpportunity(opportunity, false);
 			if (!isBulkDataLoad) {
 				// Invoke Asynchronous Auto Comments Thread
@@ -530,11 +531,15 @@ public class OpportunityService {
 			throws Exception {
 		logger.debug("Inside saveChildObject() method");
 
+		//Getting the userId from the session
+				String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
 				customerContact
 						.setOpportunityId(opportunity.getOpportunityId());
+				customerContact.setCreatedBy(userId);
+				customerContact.setModifiedBy(userId);
 			}
 		}
 
@@ -542,6 +547,8 @@ public class OpportunityService {
 			for (OpportunityTcsAccountContactLinkT tcsContact : opportunity
 					.getOpportunityTcsAccountContactLinkTs()) {
 				tcsContact.setOpportunityId(opportunity.getOpportunityId());
+				tcsContact.setCreatedBy(userId);
+				tcsContact.setModifiedBy(userId);
 			}
 		}
 
@@ -550,6 +557,8 @@ public class OpportunityService {
 					.getOpportunityPartnerLinkTs()) {
 				opportunityPartnerLinkT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunityPartnerLinkT.setCreatedBy(userId);
+				opportunityPartnerLinkT.setModifiedBy(userId);
 			}
 		}
 
@@ -558,6 +567,8 @@ public class OpportunityService {
 					.getOpportunityCompetitorLinkTs()) {
 				opportunityCompetitorLinkT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunityCompetitorLinkT.setCreatedBy(userId);
+				opportunityCompetitorLinkT.setModifiedBy(userId);
 			}
 		}
 
@@ -566,6 +577,8 @@ public class OpportunityService {
 					.getOpportunitySubSpLinkTs()) {
 				opportunitySubSpLinkT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunitySubSpLinkT.setCreatedBy(userId);
+				opportunitySubSpLinkT.setModifiedBy(userId);
 			}
 		}
 
@@ -574,6 +587,8 @@ public class OpportunityService {
 					.getOpportunityOfferingLinkTs()) {
 				opportunityOfferingLinkT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunityOfferingLinkT.setCreatedBy(userId);
+				opportunityOfferingLinkT.setModifiedBy(userId);
 			}
 		}
 
@@ -582,6 +597,8 @@ public class OpportunityService {
 					.getConnectOpportunityLinkIdTs()) {
 				connectOpportunityLinkIdT.setOpportunityId(opportunity
 						.getOpportunityId());
+				connectOpportunityLinkIdT.setCreatedBy(userId);
+				connectOpportunityLinkIdT.setModifiedBy(userId);
 			}
 		}
 
@@ -590,18 +607,23 @@ public class OpportunityService {
 					.getOpportunitySalesSupportLinkTs()) {
 				opportunitySalesSupportLinkT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunitySalesSupportLinkT.setCreatedBy(userId);
+				opportunitySalesSupportLinkT.setModifiedBy(userId);
 			}
 		}
 
 		if (opportunity.getNotesTs() != null) {
 			for (NotesT notesT : opportunity.getNotesTs()) {
 				notesT.setOpportunityId(opportunity.getOpportunityId());
+				notesT.setUserUpdated(userId);
 			}
 		}
-
+		
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
+				bidDetailsT.setCreatedBy(userId);
+				bidDetailsT.setModifiedBy(userId);
 				logger.debug("Saving Bid Details by "
 						+ bidDetailsT.getModifiedBy());
 				List<BidOfficeGroupOwnerLinkT> bidOfficeOwnerLinkTs = null;
@@ -621,10 +643,13 @@ public class OpportunityService {
 					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
 							.getBidOfficeGroupOwnerLinkTs()) {
 						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
+						bidOfficeOwnerLinkT.setCreatedBy(userId);
+						bidOfficeOwnerLinkT.setModifiedBy(userId);
 					}
 					bidOfficeGroupOwnerLinkTRepository
 							.save(bidOfficeOwnerLinkTs);
 				}
+				
 				// As Bid details are already saved,
 				opportunity.setBidDetailsTs(null);
 				if (opportunity.getOpportunityId() != null) {
@@ -643,6 +668,8 @@ public class OpportunityService {
 								.getBidId());
 						opportunity
 								.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
+						opportunity.setCreatedBy(userId);
+						opportunity.setModifiedBy(userId);
 					}
 				}
 			}
@@ -653,6 +680,7 @@ public class OpportunityService {
 					.getSearchKeywordsTs()) {
 				searchKeywordT.setEntityType(EntityType.OPPORTUNITY.toString());
 				searchKeywordT.setEntityId(opportunity.getOpportunityId());
+				searchKeywordT.setCreatedModifiedBy(userId);
 				searchKeywordsRepository.save(searchKeywordT);
 			}
 		}
@@ -662,6 +690,8 @@ public class OpportunityService {
 					.getOpportunityWinLossFactorsTs()) {
 				opportunityWinLossFactorsT.setOpportunityId(opportunity
 						.getOpportunityId());
+				opportunityWinLossFactorsT.setCreatedBy(userId);
+				opportunityWinLossFactorsT.setModifiedBy(userId);
 			}
 		}
 
@@ -717,6 +747,9 @@ public class OpportunityService {
 	// Method called from controller
 	@Transactional
 	public void updateOpportunity(OpportunityT opportunity) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		opportunity.setCreatedBy(userId);
+		opportunity.setModifiedBy(userId);
 		logger.debug("Inside updateOpportunity() service");
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
@@ -777,67 +810,79 @@ public class OpportunityService {
 
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
-			connectOpportunityLinkTRepository.delete(opportunity
-					.getDeleteConnectOpportunityLinkIdTs());
+			for(ConnectOpportunityLinkIdT connectOpportunityLinkIdT: opportunity
+					.getDeleteConnectOpportunityLinkIdTs()){
+			connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT.getConnectOpportunityLinkId());
+			}
 			opportunity.setDeleteConnectOpportunityLinkIdTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityPartnerLinkTs() != null
 				&& opportunity.getDeleteOpportunityPartnerLinkTs().size() > 0) {
-			opportunityPartnerLinkTRepository.delete(opportunity
-					.getDeleteOpportunityPartnerLinkTs());
+			for(OpportunityPartnerLinkT opportunityPartnerLinkT: opportunity.getDeleteOpportunityPartnerLinkTs()){
+			opportunityPartnerLinkTRepository.delete(opportunityPartnerLinkT
+					.getOpportunityPartnerLinkId());
+		}
 			opportunity.setOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
 				&& opportunity.getDeleteOpportunityCompetitorLinkTs().size() > 0) {
-			opportunityCompetitorLinkTRepository.delete(opportunity
-					.getDeleteOpportunityCompetitorLinkTs());
+			for(OpportunityCompetitorLinkT opportunityCompetitorLinkT: opportunity.getDeleteOpportunityCompetitorLinkTs()){
+			opportunityCompetitorLinkTRepository.delete(opportunityCompetitorLinkT.getOpportunityCompetitorLinkId());
+			}
 			opportunity.setDeleteOpportunityCompetitorLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCustomerContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityCustomerContactLinkTs()
 						.size() > 0) {
-			opportunityCustomerContactLinkTRepository.delete(opportunity
-					.getDeleteOpportunityCustomerContactLinkTs());
+			for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity.getDeleteOpportunityCustomerContactLinkTs())
+			{
+			opportunityCustomerContactLinkTRepository.delete(opportunityCustomerContactLinkT.getOpportunityCustomerContactLinkId());
+			}
 		}
 
 		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
 				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
-			opportunityOfferingLinkTRepository.delete(opportunity
-					.getDeleteOpportunityOfferingLinkTs());
+			for(OpportunityOfferingLinkT opportunityOfferingLinkT:opportunity.getDeleteOpportunityOfferingLinkTs()){
+			opportunityOfferingLinkTRepository.delete(opportunityOfferingLinkT.getOpportunityOfferingLinkId());
 		}
 
 		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
-			opportunitySalesSupportLinkTRepository.delete(opportunity
-					.getDeleteOpportunitySalesSupportLinkTs());
+			for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT:opportunity.getDeleteOpportunitySalesSupportLinkTs()){
+				
+			opportunitySalesSupportLinkTRepository.delete(opportunitySalesSupportLinkT.getOpportunitySalesSupportLinkId());
+			}
 		}
 
 		if (opportunity.getDeleteOpportunitySubSpLinkTs() != null
 				&& opportunity.getDeleteOpportunitySubSpLinkTs().size() > 0) {
-			opportunitySubSpLinkTRepository.delete(opportunity
-					.getDeleteOpportunitySubSpLinkTs());
+			for(OpportunitySubSpLinkT opportunitySubSpLinkT:opportunity.getDeleteOpportunitySubSpLinkTs()){
+				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT.getOpportunitySubSpLinkId());
+			}
+		}
+			
 		}
 
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs()
 						.size() > 0) {
-			opportunityTcsAccountContactLinkTRepository.delete(opportunity
-					.getDeleteOpportunityTcsAccountContactLinkTs());
+			for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT:opportunity.getDeleteOpportunityTcsAccountContactLinkTs())
+			opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT.getOpportunityTcsAccountContactLinkId());
 		}
 
 		if (opportunity.getDeleteOpportunityWinLossFactorsTs() != null
 				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
-			opportunityWinLossFactorsTRepository.delete(opportunity
-					.getDeleteOpportunityWinLossFactorsTs());
+			for(OpportunityWinLossFactorsT opportunityWinLossFactorsT: opportunity.getDeleteOpportunityWinLossFactorsTs())
+			opportunityWinLossFactorsTRepository.delete(opportunityWinLossFactorsT.getOpportunityWinLossFactorsId());
 		}
 
 		if (opportunity.getDeleteSearchKeywordsTs() != null
 				&& opportunity.getDeleteSearchKeywordsTs().size() > 0) {
-			searchKeywordsRepository.delete(opportunity
-					.getDeleteSearchKeywordsTs());
+			for(SearchKeywordsT searchKeywordsT:opportunity.getDeleteSearchKeywordsTs())
+			searchKeywordsRepository.delete(searchKeywordsT.getSearchKeywordsId());
 		}
 	}
 

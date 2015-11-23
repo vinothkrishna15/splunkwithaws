@@ -77,6 +77,8 @@ public class OpportunityReopenRequestService {
 	@Transactional
 	public void create(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		opportunityReopenRequestT.setRequestedBy(userId);
 		if (opportunityReopenRequestT.getApprovedRejectedComments() != null
 				|| opportunityReopenRequestT.getApprovedRejectedBy() != null
 				|| opportunityReopenRequestT.getApprovedRejectedDatetime() != null)
@@ -92,6 +94,8 @@ public class OpportunityReopenRequestService {
 		boolean canUpdate = false;
 		OpportunityT opportunityT = opportunityRepository
 				.findOne(oppId);
+		opportunityT.setCreatedBy(userId);
+		opportunityT.setModifiedBy(userId);
 		if (opportunityT != null) {
 			if (opportunityT.getSalesStageCode() != 12) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -138,6 +142,8 @@ public class OpportunityReopenRequestService {
 
 	public void edit(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		opportunityReopenRequestT.setApprovedRejectedBy(userId);
 		
 		if (opportunityReopenRequestT.getOpportunityReopenRequestId() == null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,

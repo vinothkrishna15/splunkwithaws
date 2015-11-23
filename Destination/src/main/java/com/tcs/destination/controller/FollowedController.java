@@ -49,6 +49,8 @@ public class FollowedController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		
+		followed.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 		logger.debug("Inside FollowedController /follow POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");

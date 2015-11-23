@@ -176,6 +176,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		
 		logger.debug("Inside OpportunityController /opportunity PUT");
 		Status status = new Status();
 		try {

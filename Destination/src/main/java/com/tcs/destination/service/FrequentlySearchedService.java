@@ -19,6 +19,7 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @Service
@@ -96,6 +97,7 @@ public class FrequentlySearchedService {
 	}
 
 	public boolean insertFrequent(FrequentlySearchedCustomerPartnerT frequent)	throws Exception {
+		frequent.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
 	    logger.debug("Inside insertFrequent Service");
 		if (EntityType.contains(frequent.getEntityType())) {
 			logger.debug("EntityType is present");
