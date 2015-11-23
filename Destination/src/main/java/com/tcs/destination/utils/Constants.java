@@ -104,7 +104,7 @@ public class Constants {
 	public static final String FINANCE_MAPPING_SHEET_NAME = "Finance Mappping";
 	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
 	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
-	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
+	public static final String IOU_BEACON_MAP_REF= "Beacon Map(Ref)";
 	
 	// Actual Revenues Data template
 	public static final String ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME = "actualRevenueDataTemplate";
@@ -162,5 +162,17 @@ public class Constants {
 	public static final String USER_TEMPLATE_CUSTOMER = "Customer(Ref)";
 	public static final String USER_TEMPLATE_PRIVILEGE = "User Privilege";
 	public static final String USER_TEMPLATE_OTHER_REFERENCES = "Geo Country  IOU SubSp(Ref)";
-
+	
+	//Connect data template
+	public static final String CONNECT_TEMPLATE_CONNECT_SHEET_NAME = "Connect";
+	public static final String CONNECT_TEMPLATE_CUSTOMER_MASTER_SHEET_NAME = "Customer Master(Ref)";
+	public static final String CONNECT_TEMPLATE_PARTNER_MASTER_SHEET_NAME = "Partner Master(Ref)";
+	public static final String CONNECT_TEMPLATE_GEOGRAPHY_COUNTRY_SHEET_NAME = "Geography Country(Ref)";
+	public static final String CONNECT_TEMPLATE_SUBSP_SHEET_NAME = "SubSp(Ref)";
+	public static final String CONNECT_TEMPLATE_OFFERING_SHEET_NAME = "Offering(Ref)";
+	public static final String CONNECT_TEMPLATE_CUSTOMER_CONTACT_SHEET_NAME = "Customer Contact(Ref)";
+	public static final String CONNECT_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contact(Ref)";
+	public static final String CONNECT_TEMPLATE_USER_SHEET_NAME = "User(Ref)";
+	public static final String CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME = "Connect Type(Ref)";
+	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
 }
