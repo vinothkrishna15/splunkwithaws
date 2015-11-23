@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -48,6 +50,9 @@ public class PartnerController {
 	
 	@Autowired
 	PartnerDownloadService partnerDownloadService;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -114,11 +119,13 @@ public class PartnerController {
 		logger.info("Download request Received : docName ");
 		InputStreamResource excelFile = partnerDownloadService.getPartners();
 		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 		String todaysDate = DateUtils.getCurrentDate();
-		logger.info("Download Header - Attachment : " + "Partner" + todaysDate + ".xlsm");
-		respHeaders.setContentDispositionFormData("attachment", "Partner" + todaysDate + ".xlsm");
-		logger.info("Partner Downloaded Successfully ");
+		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+		
+		logger.info("Download Header - Attachment : " + "PartnerMaster&ContactDownload_" + todaysDate_formatted + ".xlsm");
+		respHeaders.setContentDispositionFormData("attachment", "PartnerMaster&ContactDownload_" + todaysDate_formatted + ".xlsm");
+		logger.info("PartnerMaster & Contact Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
 		
 	}

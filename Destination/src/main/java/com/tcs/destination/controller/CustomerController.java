@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -53,6 +55,9 @@ public class CustomerController {
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	/**
 	 * Gets the Customer related details based on customer ID specified
@@ -212,8 +217,10 @@ public class CustomerController {
 		try {
 			customerDownloadExcel = customerDownloadService.getCustomers();
 			respHeaders = new HttpHeaders();
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
 			respHeaders.setContentDispositionFormData("attachment",
-					"customer_Master_Download" + DateUtils.getCurrentDate()
+					"CustomerMasterDownload_" + todaysDate_formatted
 							+ ".xlsm");
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));

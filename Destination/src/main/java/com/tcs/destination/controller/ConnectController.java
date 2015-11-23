@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -59,6 +61,9 @@ public class ConnectController {
 
 	@Autowired
 	ConnectDownloadService connectDownloadService;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	/**
 	 * This Method is used to find connection details for the given connection
@@ -364,10 +369,11 @@ public class ConnectController {
 				.setContentType(MediaType
 						.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
 		String todaysDate = DateUtils.getCurrentDate();
+		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
 		logger.debug("Download Header - Attachment : "
-				+ "Connect_Template_Data" + todaysDate + ".xlsm");
+				+ "ConnectDownload_" + todaysDate_formatted + ".xlsm");
 		respHeaders.setContentDispositionFormData("attachment",
-				"Connect_Template_Data" + todaysDate + ".xlsm");
+				"ConnectDownload_" + todaysDate_formatted + ".xlsm");
 		logger.debug("Connect Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);

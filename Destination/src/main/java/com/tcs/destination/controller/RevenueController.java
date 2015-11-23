@@ -1,5 +1,8 @@
 package com.tcs.destination.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -49,8 +52,10 @@ public class RevenueController {
 	@Autowired
 	UploadErrorReport uploadErrorReport;
 	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 	/**
-	 * This controller uploads the Revenue Deatils to the database
+	 * This controller uploads the Revenue Details to the database
 	 * @param userId
 	 * @param file
 	 * @param fields
@@ -130,7 +135,9 @@ public class RevenueController {
 		try {
 			ActualRevenueDownloadExcel = revenueDownloadService.getActualRevenueData();
 			respHeaders = new HttpHeaders();
-			respHeaders.setContentDispositionFormData("attachment","Actual_Revenue_Template_Download" + DateUtils.getCurrentDate() + ".xlsm");
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+			respHeaders.setContentDispositionFormData("attachment","ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
 			respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
 			logger.info("Actual Revenue Template Report Downloaded Successfully ");
 		} catch (Exception e) {
