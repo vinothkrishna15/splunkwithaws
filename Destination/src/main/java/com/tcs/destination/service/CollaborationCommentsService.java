@@ -25,6 +25,7 @@ import com.tcs.destination.enums.CommentType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.helper.NotificationHelper;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class CollaborationCommentsService {
@@ -71,6 +72,8 @@ public class CollaborationCommentsService {
 
 	public String insertComments(CollaborationCommentT comments)
 			throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		comments.setUserId(userId);
 		if (isValidComment(comments)) {
 			logger.debug("Inside insertComments Service");
 			try {
