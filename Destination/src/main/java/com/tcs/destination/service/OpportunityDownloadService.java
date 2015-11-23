@@ -35,6 +35,7 @@ import com.tcs.destination.bean.BidRequestTypeMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DealTypeMappingT;
+import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
@@ -42,6 +43,7 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
+import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.WinLossFactorMappingT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -53,6 +55,7 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DealTypeRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.ContactType;
@@ -93,6 +96,9 @@ public class OpportunityDownloadService {
     
     @Autowired
     BidRequestTypeRepository bidRequestTypeRepository;
+    
+    @Autowired
+    SalesStageMappingRepository salesStageMappingRepository;
     
     @Autowired
     DealTypeRepository dealTypeRepository;
@@ -154,7 +160,7 @@ public class OpportunityDownloadService {
 	    populatePartnerSheet(workbook
 		    .getSheet(Constants.OPPORTUNITY_TEMPLATE_PARTNER_SHEET_NAME));
 
-	    populateContactSheets(workbook.getSheet(Constants.OPPORTUNITY_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));
+	 //  populateContactSheets(workbook.getSheet(Constants.OPPORTUNITY_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));
 	    
 	    populateCurrencySheet(workbook.getSheet(Constants.OPPORTUNITY_TEMPLATE_CURRENCY_SHEET_NAME));
 	    
@@ -321,6 +327,14 @@ public class OpportunityDownloadService {
 		}
 	    }
 	    
+	    //IOU
+	    Cell cellIOU = row.createCell(3);
+	    cellIOU.setCellValue(opp.getCustomerMasterT().getIou());
+	    
+	    //Client Geo
+	    Cell cellGeo = row.createCell(4);
+	    cellGeo.setCellValue(opp.getCustomerMasterT().getGeography());
+	    
 	    //Offering
 	    if((opp.getOpportunityOfferingLinkTs()!=null)&&(!opp.getOpportunityOfferingLinkTs().isEmpty())){
 		Cell cellOffering = row.createCell(10);
@@ -415,7 +429,14 @@ public class OpportunityDownloadService {
 	    // Deal Status Remarks
 	    if((opp.getNotesTs()!=null)&&(!opp.getNotesTs().isEmpty())){
 		    Cell cellNotes = row.createCell(41);
-		    cellNotes.setCellValue(opp.getNotesTs().get(0).getNotesUpdated());
+		    
+	    	String notes="";
+	    	for(NotesT notestT:opp.getNotesTs())
+	    	{
+	    		notes+=notestT.getUserUpdated()+"|"+getFormattedDate(notestT.getCreatedDatetime().toString(),actualFormat,desiredFormat)+":"+notestT.getNotesUpdated()+"\n";
+	    	}
+		   
+		    cellNotes.setCellValue(notes);
 	    }
 	    
 	    rowCount++;
@@ -549,18 +570,25 @@ public class OpportunityDownloadService {
 	
 	List<DealTypeMappingT> listOfDeals = (List<DealTypeMappingT>) dealTypeRepository.findAll();
 	
+	List<SalesStageMappingT> listOfSalesStageCodes = salesStageMappingRepository.getSalesStageCodes();
+	
 	int sizeOfBids = 0;
 	int sizeOfDeals = 0;
+	int sizeOfSSC = 0;
 	if(listOfBids!=null) {
 	    sizeOfBids = listOfBids.size();
 	}
 	if(listOfDeals!=null) {
 	    sizeOfDeals = listOfDeals.size();
 	}
+	if(listOfSalesStageCodes!=null) {
+		sizeOfSSC = listOfSalesStageCodes.size();
+	}
+	
 	
 	int rowCount = 1;
 	
-	while((rowCount<=sizeOfBids)||(rowCount<=sizeOfDeals)){
+	while((rowCount<=sizeOfBids)||(rowCount<=sizeOfDeals)||(rowCount<=sizeOfSSC)){
 	    
 	    Row row = bidRequestDealType.createRow(rowCount);
 
@@ -572,6 +600,12 @@ public class OpportunityDownloadService {
 		Cell cellDeal = row.createCell(2);
 		cellDeal.setCellValue(listOfDeals.get(rowCount-1).getDealType().trim());
 	    }
+	    if(rowCount<=sizeOfSSC){
+		Cell cellCode = row.createCell(4);
+		Cell cellDesc = row.createCell(5);
+		cellCode.setCellValue(listOfSalesStageCodes.get(rowCount-1).getSalesStageCode());
+		cellDesc.setCellValue(listOfSalesStageCodes.get(rowCount-1).getSalesStageDescription().trim());
+		}
 	    
 	    rowCount++;
 	    

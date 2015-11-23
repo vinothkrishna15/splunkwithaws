@@ -1,9 +1,9 @@
 package com.tcs.destination.tasklet;
 
-import static com.tcs.destination.enums.JobStep.CUSTOMER_DWLD_PROCESSING;
+import static com.tcs.destination.enums.JobStep.OPPORTUNITY_DWLD_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
 import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
-import static com.tcs.destination.enums.RequestType.CUSTOMER_DOWNLOAD;
+import static com.tcs.destination.enums.RequestType.OPPORTUNITY_DOWNLOAD;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
@@ -23,13 +23,12 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 
+@Component("opportunityDownloadPreprocessor")
+public class OpportunityDownloadPreprocessor implements Tasklet {
 
-
-@Component("customerDwldPreprocessor")
-public class CustomerDwldPreprocessor implements Tasklet{
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(CustomerDwldPreprocessor.class);
+			.getLogger(OpportunityDownloadPreprocessor.class);
 	
 	private List<DataProcessingRequestT> requestList = null;
 	
@@ -43,7 +42,7 @@ public class CustomerDwldPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_DOWNLOAD.getType(), SUBMITTED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(OPPORTUNITY_DOWNLOAD.getType(), SUBMITTED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
@@ -51,9 +50,8 @@ public class CustomerDwldPreprocessor implements Tasklet{
 		if (CollectionUtils.isNotEmpty(requestList)) {
 			
 			DataProcessingRequestT request = requestList.remove(0);
-		   
 		    jobContext.put(REQUEST,request);
-		    jobContext.put(NEXT_STEP, CUSTOMER_DWLD_PROCESSING);
+		    jobContext.put(NEXT_STEP, OPPORTUNITY_DWLD_PROCESSING);
 			
 		} else {
 			 jobContext.put(NEXT_STEP, END);
@@ -62,5 +60,6 @@ public class CustomerDwldPreprocessor implements Tasklet{
 		
 		return RepeatStatus.FINISHED;
 	}
+
 
 }

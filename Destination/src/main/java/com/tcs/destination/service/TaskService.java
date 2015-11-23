@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
@@ -293,11 +294,19 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT createTask(TaskT task) throws Exception {
-
+ 
 		logger.debug("Inside createTask() service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null;
 		TaskT managedTask = null;
-
+        String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+        //getting user Id
+		task.setCreatedBy(userId);
+		task.setModifiedBy(userId);
+		
+		for(NotesT notes : task.getNotesTs())
+		{
+			notes.setUserUpdated(userId);
+		}
 		// Validate input parameters
 		validateTask(task);
 
@@ -318,6 +327,9 @@ public class TaskService {
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink : taskBdmsTaggedLinkTs) {
 					taskBdmTaggedLink.setTaskT(managedTask);
 					taskBdmTaggedLink.setTaskId(managedTask.getTaskId());
+					//Setting user id
+					taskBdmTaggedLink.setCreatedBy(userId);
+					taskBdmTaggedLink.setModifiedBy(userId);
 				}
 				// Persist TaskBdmsTaggedLinkT
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
@@ -352,7 +364,7 @@ public class TaskService {
 		logger.debug("Inside editTask() service");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null;
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null;
-
+        String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (task.getTaskId() == null) {
 			logger.error("TaskId is required for update");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -374,7 +386,9 @@ public class TaskService {
 
 			// Get a copy of the db object for processing Auto comments
 			TaskT oldObject = (TaskT) DestinationUtils.copy(dbTask);
-
+            //setting user id
+			task.setModifiedBy(userId);
+			task.setCreatedBy(userId);
 			// Validate input parameters
 			validateTask(task);
 
@@ -387,6 +401,7 @@ public class TaskService {
 			if (task.getNotesTs() != null) {
 				for (NotesT notes : task.getNotesTs()) {
 					notes.setTaskId(task.getTaskId());
+					notes.setUserUpdated(userId);
 				}
 			}
 
@@ -407,6 +422,9 @@ public class TaskService {
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink : taskBdmsTaggedLinkTs) {
 					taskBdmTaggedLink.setTaskT(dbTask);
 					taskBdmTaggedLink.setTaskId(dbTask.getTaskId());
+					//Setting user id
+					taskBdmTaggedLink.setCreatedBy(userId);
+					taskBdmTaggedLink.setModifiedBy(userId);
 				}
 				taskBdmsTaggedLinkRepository.save(taskBdmsTaggedLinkTs);
 				logger.debug("TaskBdmsTaggedLinkTs Saved Successfully");

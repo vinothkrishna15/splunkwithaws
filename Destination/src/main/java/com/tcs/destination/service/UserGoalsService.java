@@ -20,7 +20,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
-import com.tcs.destination.data.repository.IOURepository;
+import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGoalsRepository;

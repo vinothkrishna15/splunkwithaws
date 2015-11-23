@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -631,4 +632,10 @@ public class ExcelUtils {
 		}
 	}
 	
+	public static void createCell(String val, Row row, int colIndex) {
+		 Cell cell = row.createCell(colIndex);
+		 if(val!=null)
+		 cell.setCellValue(val.trim());
+	}
+
 }
