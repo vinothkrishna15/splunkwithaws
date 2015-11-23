@@ -243,9 +243,9 @@ public class OpportunityService {
 					"Opportunities not found with the given name: " + nameWith);
 		}
 		if (!isAjax) {
+			prepareOpportunity(opportunityTs);
 			beaconConverterService.convertOpportunityCurrency(opportunityTs,
 					toCurrency);
-			prepareOpportunity(opportunityTs);
 		} else {
 			// Don't perform the check and hide sensitive information without
 			// checking the privilege as it is might reduce te performance.
@@ -276,10 +276,10 @@ public class OpportunityService {
 							+ customerId);
 		}
 
+		prepareOpportunity(opportunities);
+		
 		beaconConverterService.convertOpportunityCurrency(opportunities,
 				toCurrency);
-
-		prepareOpportunity(opportunities);
 
 		return opportunities;
 	}
@@ -319,10 +319,11 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 		opportunities = validateAndReturnOpportunitesData(opportunities, true);
-		beaconConverterService.convertOpportunityCurrency(opportunities,
-				toCurrency);
 
 		prepareOpportunity(opportunities);
+		
+		beaconConverterService.convertOpportunityCurrency(opportunities,
+				toCurrency);
 
 		return opportunities;
 
@@ -360,10 +361,11 @@ public class OpportunityService {
 				opportunities = validateAndReturnOpportunitesData(
 						opportunities, true);
 			}
-			beaconConverterService.convertOpportunityCurrency(opportunities,
-					toCurrency);
 
 			prepareOpportunity(opportunities);
+			
+			beaconConverterService.convertOpportunityCurrency(opportunities,
+					toCurrency);
 
 			return opportunities;
 		} else {
@@ -437,9 +439,11 @@ public class OpportunityService {
 					.findByEntityTypeAndEntityId(
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
+			
+			prepareOpportunity(opportunity, null);
+			
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
-			prepareOpportunity(opportunity, null);
 
 			return opportunity;
 		} else {
@@ -854,10 +858,12 @@ public class OpportunityService {
 							+ " and Target Bid Submission date: " + fromDate
 							+ ", " + toDate);
 		}
-		beaconConverterService.convertOpportunityCurrency(opportunityList,
-				toCurrency);
+		
 
 		prepareOpportunity(opportunityList);
+		
+		beaconConverterService.convertOpportunityCurrency(opportunityList,
+				toCurrency);
 
 		return opportunityList;
 	}
@@ -1010,6 +1016,8 @@ public class OpportunityService {
 					.findBySalesStageCodeAndCustomerId(salesStageCode,
 							customerId);
 		prepareOpportunity(opportunityTs);
+		beaconConverterService.convertOpportunityCurrency(opportunityTs,
+				currencies);
 		return opportunityTs;
 	}
 
@@ -1339,7 +1347,6 @@ public class OpportunityService {
 		prepareOpportunity(opportunity);
 		beaconConverterService.convertOpportunityCurrency(opportunity,
 				toCurrency);
-		// TODO: Find all method
 
 		return opportunityResponse;
 	}
@@ -1548,9 +1555,9 @@ public class OpportunityService {
 			logger.error("Opportunities not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found");
 		}
-		beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
-
 		prepareOpportunity(opportunityList);
+		
+		beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
 
 		return opportunityList;
 	}
