@@ -15,6 +15,7 @@ import com.tcs.destination.enums.FeedbackIssueType;
 import com.tcs.destination.enums.FeedbackPriority;
 import com.tcs.destination.enums.FeedbackStatus;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class FeedbackService {
@@ -39,6 +40,8 @@ public class FeedbackService {
 
 	@Transactional
 	public boolean insertFeedback(FeedbackT feedback) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		feedback.setUserId(userId);
 		logger.debug("Inside insertFeedback Service");
 		validateRequest(feedback, true);
 		if (feedbackRepository.save(feedback) != null) {
@@ -50,6 +53,8 @@ public class FeedbackService {
 
 	@Transactional
 	public boolean editFeedback(FeedbackT feedback) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		feedback.setUserId(userId);
 		logger.debug("Inside editFeedback Service");
 		validateRequest(feedback, false);
 		if (feedbackRepository.save(feedback) != null) {
