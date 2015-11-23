@@ -1561,7 +1561,11 @@ public class OpportunityService {
 
 		return opportunityList;
 	}
-
+    
+	/**
+	 * this method saves the opportunity list.
+	 * @param insertList
+	 */
 	public void save(List<OpportunityT> insertList) {
 		logger.debug("Inside save method");
 
@@ -1579,6 +1583,8 @@ public class OpportunityService {
 				insertList.size());
 		Map<Integer, List<OpportunityCompetitorLinkT>> mapOppCompetitor = new HashMap<Integer, List<OpportunityCompetitorLinkT>>(
 				insertList.size());
+		Map<Integer, List<NotesT>> mapOppNotes = new HashMap<Integer, List<NotesT>>(
+				insertList.size());
 
 		int i = 0;
 		for (OpportunityT opportunityT : insertList) {
@@ -1590,6 +1596,7 @@ public class OpportunityService {
 					opportunityT.getOpportunityCustomerContactLinkTs());
 			mapTcsContact.put(i, opportunityT.getOpportunityTcsAccountContactLinkTs());
 			mapOppCompetitor.put(i, opportunityT.getOpportunityCompetitorLinkTs());
+			mapOppNotes.put(i, opportunityT.getNotesTs());
 			setNullForReferencedObjects(opportunityT);
 
 			i++;
@@ -1597,6 +1604,7 @@ public class OpportunityService {
 
 		Iterable<OpportunityT> savedList = opportunityRepository.save(insertList);
 		Iterator<OpportunityT> saveIterator = savedList.iterator();
+		System.out.println("Opportunities"+insertList);
 		i = 0;
 		while (saveIterator.hasNext()) {
 			OpportunityT opportunity = saveIterator.next();
@@ -1637,6 +1645,12 @@ public class OpportunityService {
 			if (CollectionUtils.isNotEmpty(competitorList)) {
 				populateOpportunityCompetitorLink(opportunity.getOpportunityId(),
 						competitorList);
+			}
+			List<NotesT> notes = mapOppNotes
+					.get(i);
+			if (CollectionUtils.isNotEmpty(notes)) {
+				populateOpportunityNotes(opportunity.getOpportunityId(),
+						notes);
 			}
 
 			i++;
@@ -1712,8 +1726,27 @@ public class OpportunityService {
 		if (CollectionUtils.isNotEmpty(oppCompetitor)) {
 			opportunityCompetitorLinkTRepository.save(oppCompetitor);
 		}
+		
+		List<NotesT> oppNotes = new ArrayList<NotesT>();
+		for (List<NotesT> list : mapOppNotes.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				oppNotes.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(oppNotes)) {
+			notesTRepository.save(oppNotes);
+		}
 
 
+	}
+
+	private void populateOpportunityNotes(String opportunityId,
+			List<NotesT> notes) {
+		for(NotesT notesT : notes)
+		{
+			notesT.setOpportunityId(opportunityId);
+		}
+		
 	}
 
 	private void populateOpportunityCompetitorLink(String opportunityId,
@@ -1793,6 +1826,7 @@ public class OpportunityService {
 		opportunityT.setOpportunityTcsAccountContactLinkTs(null);
 		opportunityT.setOpportunityWinLossFactorsTs(null);
 	}
+
 	
 }
 
