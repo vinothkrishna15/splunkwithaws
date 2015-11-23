@@ -15,7 +15,7 @@ import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
-import com.tcs.destination.data.repository.IOURepository;
+import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.enums.PrivilegeType;
@@ -39,7 +39,7 @@ public class UserAccessPrivilegeService {
 	SubSpRepository subspRepository;
 
 	@Autowired
-	IOURepository iouRepository;
+	IouRepository iouRepository;
 
 	@Autowired
 	CustomerRepository custRepository;

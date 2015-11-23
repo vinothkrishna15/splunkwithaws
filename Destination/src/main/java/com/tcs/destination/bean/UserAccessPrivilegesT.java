@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,6 +50,7 @@ public class UserAccessPrivilegesT implements Serializable {
 
 	//bi-directional many-to-one association to UserAccessPrivilegesT
 	@OneToMany(mappedBy="userAccessPrivilegesT")
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
 
 	//bi-directional many-to-one association to UserT

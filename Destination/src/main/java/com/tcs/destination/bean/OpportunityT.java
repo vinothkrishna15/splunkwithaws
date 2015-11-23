@@ -8,6 +8,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -20,6 +21,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -119,6 +123,7 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to OpportunityWinLossFactorsT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs;
 
 	@Column(name = "opportunity_owner")
@@ -133,6 +138,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to BidDetailsT
 	@OneToMany(mappedBy = "opportunityT")
 	@OrderBy("modified_datetime DESC")
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<BidDetailsT> bidDetailsTs;
 
 	// bi-directional many-to-one association to CollaborationCommentT
@@ -154,10 +160,12 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to NotesT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to OpportunityCompetitorLinkT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs;
 
 	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
@@ -166,10 +174,12 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to OpportunityOfferingLinkT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<OpportunityOfferingLinkT> opportunityOfferingLinkTs;
 
 	// bi-directional many-to-one association to OpportunityPartnerLinkT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<OpportunityPartnerLinkT> opportunityPartnerLinkTs;
 
 	// bi-directional many-to-one association to OpportunitySalesSupportLinkT
@@ -178,6 +188,7 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	// bi-directional many-to-one association to OpportunitySubSpLinkT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
+	@LazyCollection(LazyCollectionOption.FALSE)
 	private List<OpportunitySubSpLinkT> opportunitySubSpLinkTs;
 
 	// bi-directional many-to-one association to BeaconConvertorMappingT

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="opportunityDownload">
+	<!-- Request checking -->
+		<batch:step id="preprocess" next="decider">
+			<batch:tasklet ref="opportunityDownloadPreprocessor"/>
+		</batch:step>
+		
+	<!-- Report creation steps -->	
+	  <batch:step id="opportunityDwldProcessing" next="customerProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="opportunityDownloadReader" writer="opportunityExcelWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		  
+		 <batch:step id="customerProcessing" next="subSpProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="customerDownloadReader" writer="customerSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		 <batch:step id="subSpProcessing" next="partnerProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="subSpDownloadReader" writer="subSpSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  <batch:step id="partnerProcessing" next="beaconProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerDownloadReader" writer="partnerSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		 <!--  <batch:step id="contactProcessing" next="beaconProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="contactDownloadReader" writer="contactSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>  -->
+		  <batch:step id="beaconProcessing" next="winLossProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="beaconDownloadReader" writer="beaconSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		   <batch:step id="winLossProcessing" next="competitorProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="winLossDownloadReader" writer="winLossSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		 
+		  
+		  <batch:step id="competitorProcessing" next="geoCountryProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="competitorDownloadReader" writer="competitorSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  <batch:step id="geoCountryProcessing" next="offeringProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="geoCountryDownloadReader" writer="geoCountrySheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  <batch:step id="offeringProcessing" next="bidAndDealProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="offeringDownloadReader" writer="offeringSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		   <batch:step id="bidAndDealProcessing" next="userProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="bidAndDealCompReader" writer="bidAndDealCompositeWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+				
+			</batch:tasklet>
+		  </batch:step>
+		  <batch:step id="userProcessing" next="preprocess">
+			<batch:tasklet>
+				<batch:chunk reader="userDownloadReader" writer="userSheetWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		 <batch:decision id="decider" decider="opportunityDownloadFlowdecider">
+              <batch:next on="PREPROCESS" to="preprocess" />
+              <batch:next on="OPPORTUNITY_DWLD_PROCESSING" to="opportunityDwldProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>	
+	
+	<!-- Readers -->
+	<bean id="opportunityDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="opportunityRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="customerDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="customerRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="subSpDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="subSpRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="partnerDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="partnerRepository"/>
+	<property name="methodName" value="getPartnerNameAndGeography"/></bean>
+	
+	<!-- <bean id="contactDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="contactRepository"/>
+	<property name="methodName" value="findAll"/></bean> -->
+	
+	<bean id="beaconDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="beaconConvertorRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="winLossDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="winLossMappingRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="bidAndDealCompReader" class="com.tcs.destination.reader.CompositeNativeQueryObjectReader">
+		<property name="readers">
+			<list>
+				<ref bean="bidDwldReader"/>
+				<ref bean="dealDwldReader"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="bidDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="bidRequestTypeRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<bean id="dealDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="dealTypeRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<bean id="competitorDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="competitorRepository"/>
+	<property name="methodName" value="getCompetitorName"/></bean>
+	
+	<bean id="geoCountryDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="geographyCountryRepository"/>
+	<property name="methodName" value="getGeographyCountry"/></bean>
+	
+	<bean id="offeringDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="offeringRepository"/>
+	<property name="methodName" value="getSubSpOffering"/></bean>
+	
+	<bean id="userDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="userRepository"/>
+	<property name="methodName" value="getNameAndId"/></bean>
+	
+	
+	
+	
+	<!-- Writers -->
+	<bean id="opportunityExcelWriter" class="com.tcs.destination.writer.OpportunityExcelWriter">
+	<property name="template" value="${opportunitySheetTemplate}"/>
+	<property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/>
+	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	<property name="dataProcessingService" ref="dataProcessingService"/>
+	<property name="fileServerPath" value = "${fileserver.path}" />
+	</bean>
+	
+	<bean id="customerSheetWriter" class="com.tcs.destination.writer.CustomerSheetWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	
+	</bean>
+	
+	<bean id="subSpSheetWriter" class="com.tcs.destination.writer.SubSpSheetWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<bean id="partnerSheetWriter" class="com.tcs.destination.writer.PartnerSheetWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<!-- <bean id="contactSheetWriter" class="com.tcs.destination.writer.ContactSheetWriter">
+	<property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/>
+	</bean> -->
+	
+	<bean id="beaconSheetWriter" class="com.tcs.destination.writer.BeaconSheetWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<bean id="winLossSheetWriter" class="com.tcs.destination.writer.WinLossSheetWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<bean id="bidAndDealCompositeWriter" class="com.tcs.destination.writer.BidAndDealCompositeWriter">
+	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
+	</bean>
+	
+	<bean id="competitorSheetWriter" class="com.tcs.destination.writer.CompetitorSheetWriter">
+	</bean>
+	
+	<bean id="geoCountrySheetWriter" class="com.tcs.destination.writer.GeoCountrySheetWriter">
+	</bean>
+	
+	<bean id="offeringSheetWriter" class="com.tcs.destination.writer.OfferingSheetWriter">
+	</bean>
+	
+	<bean id="userSheetWriter" class="com.tcs.destination.writer.UserSheetWriter">
+	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	</bean>
+
+	<!-- Decider -->
+    <bean id="opportunityDownloadFlowdecider" class="com.tcs.destination.decider.OpportunityDecider" />
+    
+    <!-- scheduler  -->
+	<bean id="opportunityDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="opportunityDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="opportunityDownloadScheduler" method="run" cron="${opportunity.download.job.cron}"/>
+    </task:scheduled-tasks> 
+</beans>	

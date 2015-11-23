@@ -5,6 +5,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
 
@@ -44,6 +47,7 @@ public class GoalMappingT implements Serializable {
 
 	//bi-directional many-to-one association to GoalGroupMappingT
 	@OneToMany(mappedBy="goalMappingT")
+	//@LazyCollection(LazyCollectionOption.FALSE)
 	private List<GoalGroupMappingT> goalGroupMappingTs;
 
 	//bi-directional many-to-one association to UserT

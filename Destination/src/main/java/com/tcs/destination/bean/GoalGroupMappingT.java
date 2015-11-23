@@ -4,7 +4,12 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
@@ -17,6 +22,7 @@ import java.sql.Timestamp;
 @Entity
 @JsonFilter(Constants.FILTER)
 @Table(name="goal_group_mapping_t")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "goalGroupMappingId")
 @NamedQuery(name="GoalGroupMappingT.findAll", query="SELECT g FROM GoalGroupMappingT g")
 public class GoalGroupMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -41,8 +47,20 @@ public class GoalGroupMappingT implements Serializable {
 
 	//bi-directional many-to-one association to UserGroupMappingT
 	@ManyToOne
-	@JoinColumn(name="user_group")
+	@JoinColumn(name="user_group",insertable=false,updatable=false)
+	//@LazyCollection(LazyCollectionOption.FALSE)
 	private UserGroupMappingT userGroupMappingT;
+	
+	@Column(name="user_group")
+	private String userGroup;
+
+	public String getUserGroup() {
+		return userGroup;
+	}
+
+	public void setUserGroup(String userGroup) {
+		this.userGroup = userGroup;
+	}
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne

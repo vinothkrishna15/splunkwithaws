@@ -1,5 +1,6 @@
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.CUSTOMER_MAP;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;
@@ -26,7 +27,6 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
-import com.tcs.destination.helper.CommonHelper;
 import com.tcs.destination.utils.Constants;
 
 public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
@@ -49,8 +49,6 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 	
 	private Map<String, CustomerMasterT> mapOfCustomerMasterT = null;
 	
-	private CommonHelper commonHelper;
-
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		
@@ -59,6 +57,8 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
         	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
+			 stepExecution.getJobExecution().getExecutionContext().remove(CUSTOMER_MAP);
+			 
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
@@ -74,7 +74,8 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 		
 		try {
 			    this.stepExecution = stepExecution;
-				mapOfCustomerMasterT = commonHelper.getCustomerMappingT();
+			    ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
+				mapOfCustomerMasterT = (Map<String, CustomerMasterT>) jobContext.get(CUSTOMER_MAP);
 				
 			} catch (Exception e) {
 				logger.error("Error in before step process: {}", e);
@@ -191,14 +192,6 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 	public void setMapOfCustomerMasterT(
 			Map<String, CustomerMasterT> mapOfCustomerMasterT) {
 		this.mapOfCustomerMasterT = mapOfCustomerMasterT;
-	}
-
-	public CommonHelper getCommonHelper() {
-		return commonHelper;
-	}
-
-	public void setCommonHelper(CommonHelper commonHelper) {
-		this.commonHelper = commonHelper;
 	}
 
 

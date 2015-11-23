@@ -87,9 +87,7 @@
 		<property name="commonHelper" ref="commonHelper" />
 	</bean>
 	
-	<bean id="revenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter">
-		<property name="commonHelper" ref="commonHelper" />
-	</bean>
+	<bean id="revenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter"/>
 	
 	<bean id="iouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" />
 	
