@@ -984,7 +984,7 @@ public interface OpportunityRepository extends
 
 	@Query(value = "select sum(oppOwnerDealValue) from (SELECT (opportunity_id),SUM(PRIMARY_BID_VALUE) as oppOwnerDealValue "
 			+ " FROM (select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE "
-			+ " from opportunity_t OPP join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
+			+ " from opportunity_t OPP left outer join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id "
 			+ "where sales_stage_code = '9' and (OPP.opportunity_owner in (:userIds)) and opportunity_request_receive_date between (:fromDate) and (:toDate) "
 			+ " group by opportunity_owner ,opp.opportunity_id, opp.deal_currency "
 			+ " UNION select opp.opportunity_id, opp.deal_currency, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = ('USD'))) AS PRIMARY_BID_VALUE from opportunity_t OPP "
