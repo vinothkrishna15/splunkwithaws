@@ -46,7 +46,7 @@ public class OpportunityReopenRequestT implements Serializable {
 	@Column(name = "request_received_datetime")
 	private Timestamp requestReceivedDatetime;
 
-	@Column(name = "requested_by")
+	@Column(name = "requested_by",updatable=false)
 	private String requestedBy;
 
 	@ManyToOne
