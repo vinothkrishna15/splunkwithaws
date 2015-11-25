@@ -767,7 +767,7 @@ public class BDMService {
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
 		// Get WHERE clause string
-		queryBuffer.append(DEAL_CLOSURE_DATE_BETWEEN +fromDate+Constants.SINGLE_QUOTE+" " +Constants.AND_CLAUSE+" "+Constants.SINGLE_QUOTE+toDate+Constants.SINGLE_QUOTE);
+//		queryBuffer.append(DEAL_CLOSURE_DATE_BETWEEN +fromDate+Constants.SINGLE_QUOTE+" " +Constants.AND_CLAUSE+" "+Constants.SINGLE_QUOTE+toDate+Constants.SINGLE_QUOTE);
 		
 		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		
