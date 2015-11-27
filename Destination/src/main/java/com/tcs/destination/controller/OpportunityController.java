@@ -97,6 +97,7 @@ public class OpportunityController {
 		} catch (DestinationException e) {
 			throw e;
 		}catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retieving the opportunity details");
 		}
@@ -123,6 +124,7 @@ public class OpportunityController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retieving the opportunity detail for the id:" + opportunityId);
 		}
@@ -149,6 +151,7 @@ public class OpportunityController {
 		}  catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retieving the opportunity detail for the customer id:" + customerId);
 		}
