@@ -135,10 +135,11 @@ public class BeaconController {
 	}
 	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<InputStreamResource> downloadBeaconData() throws Exception 
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadBeaconData(
+			@RequestParam("downloadBeaconData") boolean oppFlag) throws Exception 
 	{
 		logger.info("Download request Received : docName ");
-		InputStreamResource excelFile = beaconDownloadService.getBeaconData();
+		InputStreamResource excelFile = beaconDownloadService.getBeaconData(oppFlag);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate = DateUtils.getCurrentDate();
 		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));

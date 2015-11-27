@@ -36,18 +36,17 @@ public class BDMController {
 	 */
 	@RequestMapping(value = "/bdmPerformance", method = RequestMethod.GET)
 	public @ResponseBody String findBDMDashBoardDetailsByUserId(
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "isDashboardByYear", defaultValue = "true") boolean isDashboardByYear,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 
-		logger.debug("Inside BDMController /bdmPerformance?userId=" + userId + " GET");
+		logger.debug("Inside BDMController /bdmPerformance GET");
 
 		DashBoardBDMResponse dashBoardBDMResponse = null;
 
-		dashBoardBDMResponse = bdmService.getOpportunityWinsByBDM(userId, financialYear, isDashboardByYear);
+		dashBoardBDMResponse = bdmService.getOpportunityWinsByBDM(financialYear, isDashboardByYear);
 		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, dashBoardBDMResponse);
 	}
@@ -64,7 +63,6 @@ public class BDMController {
 	 */
 	@RequestMapping(value = "/supervisorPerformance", method = RequestMethod.GET)
 	public @ResponseBody String findBDMSupervisorDashBoardDetailsByUserId(
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "isAlongWithSupervisor", defaultValue = "true") boolean isAlongWithSupervisor,
 			@RequestParam(value = "isDashboardByYear", defaultValue = "true") boolean isDashboardByYear,
@@ -72,11 +70,11 @@ public class BDMController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 
-		logger.debug("Inside BDMController /supervisorPerformance?userId=" + userId + " GET");
+		logger.debug("Inside BDMController /supervisorPerformance GET");
 
 		BDMSupervisorDashboardDTO bdmSupervisorDashboardResponse = null;
 
-		bdmSupervisorDashboardResponse = bdmService.getBDMSupervisorByUserId(userId, financialYear, isDashboardByYear, isAlongWithSupervisor);
+		bdmSupervisorDashboardResponse = bdmService.getBDMSupervisorByUserId( financialYear, isDashboardByYear, isAlongWithSupervisor);
 		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, bdmSupervisorDashboardResponse);
 	}
@@ -95,18 +93,17 @@ public class BDMController {
 	 */
 	@RequestMapping(value = "/geoIouHeadPerformance", method = RequestMethod.GET)
 	public @ResponseBody String findBDMPerformanceByGeoIouDashBoardDetailsByUserId(
-			@RequestParam("userId") String userId,
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "isDashboardByYear", defaultValue = "true") boolean isDashboardByYear,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
 
-		logger.debug("Inside BDMController /geoIouHeadPerformance?userId=" + userId + " GET");
+		logger.debug("Inside BDMController /geoIouHeadPerformance GET");
 
 		BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = null;
 
-		bdmPerfromanceGeoIouDashboardResponse = bdmService.getGeoIouPerformanceDashboard(userId, financialYear, isDashboardByYear);
+		bdmPerfromanceGeoIouDashboardResponse = bdmService.getGeoIouPerformanceDashboard(financialYear, isDashboardByYear);
 		
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, bdmPerfromanceGeoIouDashboardResponse);
 	}

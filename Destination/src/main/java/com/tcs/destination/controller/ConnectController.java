@@ -359,11 +359,12 @@ public class ConnectController {
 	 * @throws Exception
 	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect() throws Exception {
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
+			@RequestParam("downloadConnects") boolean oppFlag) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Download request Received : docName ");
 		InputStreamResource excelFile = connectDownloadService
-				.getConnects(userId);
+				.getConnects(userId,oppFlag);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders
 				.setContentType(MediaType

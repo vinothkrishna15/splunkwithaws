@@ -117,9 +117,9 @@ public class FileManager {
 	/**
 	 * @param path
 	 * @param template
-	 * @return
+	 * @return 
 	 */
-	public static String copyFile(String destiantionDir, String filePath) {
+	public static void copyFile(String destiantionDir, String filePath, String fileName) {
 		
 		logger.debug("Inside the copyFile method:");
 		
@@ -130,7 +130,7 @@ public class FileManager {
 		
 		if (file.exists()) {
 			
-			destinationFile = new File(destiantionDir + file.getName());
+			destinationFile = new File(destiantionDir + fileName);
 			try {
 				CopyOption[] options = new CopyOption[]{
 					      StandardCopyOption.REPLACE_EXISTING,
@@ -145,7 +145,6 @@ public class FileManager {
 			logger.error("Source file doesn't exist.");
 		}
 
-		return destinationFile.getName();
 	}
 
 }

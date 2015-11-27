@@ -210,7 +210,6 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_IOU_COND_SUFFIX = " (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '') "
 			+ " and (GMT.display_geography = (:displayGeography) OR (:displayGeography) = '')"
 			+ " and (GMT.geography=(:geography) OR (:geography) = '')"
-			+ " and OPP.digital_deal_value <> 0 "
 			+ " AND ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) "
 			+ " AND (OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo))";
 
@@ -265,7 +264,7 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_COND_SUFFIX = "(GMT.display_geography = (:displayGeography) OR (:displayGeography) = '') "
 			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ "and OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
+			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
 			+ "and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) "
 			+ "and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9)";
 
@@ -326,7 +325,7 @@ public class PerformanceReportService {
 
 	private static final String PIPELINE_PERFORMANCE_BY_GEO_COND_SUFFIX = " (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '')"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '') "
-			+ " and OPP.digital_deal_value <> 0 and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
+			+ " and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
 			+ " and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) ";
 
 	private static final String PIPELINE_PERFORMANCE_BY_GEO_GROUP_BY_ORDER_BY = "group by GMT.display_geography order by GMT.display_geography";
@@ -388,7 +387,6 @@ public class PerformanceReportService {
 			+ " and (GMT.display_geography = (:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
-			+ " and OPP.digital_deal_value <> 0 "
 			+ " AND ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) "
 			+ " AND (OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)) ";
 
@@ -406,7 +404,7 @@ public class PerformanceReportService {
 			+ " and (GCMT.geography =(:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
-			+ " and OPP.digital_deal_value <> 0 and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
+			+ " and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
 			+ " and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) ";
 
 	private static final String PIPELINE_PERFORMANCE_BY_COUNTRY_GROUP_BY_ORDER_BY = " group by OPP.country order by OPP.country";
@@ -492,7 +490,7 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_COUNTRY_GROUP_BY = " group by PRDT.client_country";
 
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE = "select OPP.sales_stage_code as SalesStage, count(*) as oppCount, sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency)))  as OBV,"
-			+ "median((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median,"
+			+ "median((coalesce(digital_deal_value,0) * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Median,"
 			+ "avg((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) /  (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:currency))) as Mean  from opportunity_t OPP "
 			+ "LEFT JOIN opportunity_sub_sp_link_t OSSL on OSSL.opportunity_id = OPP.opportunity_id "
 			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp  "
@@ -501,13 +499,12 @@ public class PerformanceReportService {
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
 			+ "where ";
-
+	
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE_COND_SUFFIX = " (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) OR (:displayGeography) = '')"
 			+ " and (GMT.geography = (:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customer) OR ('') in (:customer))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
-			+ " and OPP.digital_deal_value <> 0 "
 			+ " and ((OPP.sales_stage_code >= 9 and deal_closure_date between (:fromDate) and (:toDate)) or OPP.sales_stage_code < 9) "
 			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) ";
 
@@ -527,7 +524,6 @@ public class PerformanceReportService {
 			+ " and (GMT.geography = (:geography) OR (:geography) = '')"
 			+ " and (CMT.customer_name in (:customerName) OR ('') in (:customerName))"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '')"
-			+ " and OPP.digital_deal_value <> 0 "
 			+ "AND ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) "
 			+ "AND (OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)) ";
 
