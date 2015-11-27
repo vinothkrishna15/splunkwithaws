@@ -1,8 +1,8 @@
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,12 +86,14 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 				ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 				DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 				
-				String path = fileServerPath + dataProcessingService.getEntityName(request.getRequestType()) + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + request.getUserT().getUserId() + FILE_DIR_SEPERATOR;
-				String fileName  = FileManager.copyFile(path, template);
-				filePath =  path + fileName;
+				String entity = dataProcessingService.getEntityName(request.getRequestType());
+				StringBuffer filePath = new StringBuffer(fileServerPath).append(entity).append(FILE_DIR_SEPERATOR)
+						.append(DateUtils.getCurrentDate()).append(FILE_DIR_SEPERATOR).append(request.getUserT().getUserId()).append(FILE_DIR_SEPERATOR);
+				StringBuffer fileName = new StringBuffer(entity).append(DOWNLOADCONSTANT).append(DateUtils.getCurrentDateForFile());
+				FileManager.copyFile(filePath.toString(), template, fileName.toString());
 				
-				request.setFilePath(path);
-				request.setFileName(fileName);
+				request.setFilePath(filePath.toString());
+				request.setFileName(fileName.toString());
 				request.setStatus(RequestStatus.INPROGRESS.getStatus());
 				dataProcessingRequestRepository.save(request);
 				

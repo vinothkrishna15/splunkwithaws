@@ -127,8 +127,9 @@ public class BDMService {
 	 * @return
 	 * @throws Exception
 	 */
-	public DashBoardBDMResponse getOpportunityWinsByBDM(String financialYear, boolean isDashboardByYear) throws Exception {
-		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
+	public DashBoardBDMResponse getOpportunityWinsByBDM(
+			String financialYear, boolean isDashboardByYear) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside getOpportunityWinsByBDM()");
 		DashBoardBDMResponse opportunityWinValueDTO = null;
 		UserT user = userService.findByUserId(userId);
@@ -172,7 +173,9 @@ public class BDMService {
 	 */
 	public BDMSupervisorDashboardDTO getBDMSupervisorByUserId(
 			String financialYear, boolean isDashboardByYear, boolean isAlongWithSupervisor) throws Exception {
-		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
+
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+
 		logger.debug("Inside getBDMSupervisorByUserId()");
 		List<String> userIds = null;
 		BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails = null;
@@ -213,7 +216,9 @@ public class BDMService {
 	 */
 	public BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboard(String financialYear, 
 			boolean isDashboardByYear) throws Exception {
-		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
+
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		
 		BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse=new BDMPerfromanceGeoIouDashboardResponse();
 		
 		UserT user = userService.findByUserId(userId);
@@ -769,7 +774,7 @@ public class BDMService {
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
 		// Get WHERE clause string
-		queryBuffer.append(DEAL_CLOSURE_DATE_BETWEEN +fromDate+Constants.SINGLE_QUOTE+" " +Constants.AND_CLAUSE+" "+Constants.SINGLE_QUOTE+toDate+Constants.SINGLE_QUOTE);
+//		queryBuffer.append(DEAL_CLOSURE_DATE_BETWEEN +fromDate+Constants.SINGLE_QUOTE+" " +Constants.AND_CLAUSE+" "+Constants.SINGLE_QUOTE+toDate+Constants.SINGLE_QUOTE);
 		
 		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		

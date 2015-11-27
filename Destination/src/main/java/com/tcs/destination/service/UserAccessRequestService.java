@@ -144,12 +144,33 @@ public class UserAccessRequestService {
 			logger.error("BAD_REQUEST: Supervisor Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor Id is required");
+		} else {
+			UserT user = userRepository.findOne(userAccessRequest.getSupervisorId());
+			if(user==null){
+				logger.error("BAD_REQUEST: Invalid Supervisor Id");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Supervisor Id");
+			} else {
+				UserT emailuser = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
+				if(emailuser==null){
+					logger.error("BAD_REQUEST: Supervisor Id and Email Id mismatch");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Supervisor Id and Email Id mismatch");
+				}
+			}
 		}
 
 		if (StringUtils.isEmpty(userAccessRequest.getSupervisorEmailId())) {
 			logger.error("BAD_REQUEST: Supervisor Email Id is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor Email Id is required");
+		}else {
+			UserT user = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
+			if(user==null){
+				logger.error("BAD_REQUEST: Invalid Supervisor Email Id");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid Supervisor Email Id");
+			}
 		}
 		
 		// Validate supervisor

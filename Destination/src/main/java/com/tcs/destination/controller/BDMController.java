@@ -42,7 +42,7 @@ public class BDMController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
-		
+
 		logger.debug("Inside BDMController /bdmPerformance GET");
 
 		DashBoardBDMResponse dashBoardBDMResponse = null;

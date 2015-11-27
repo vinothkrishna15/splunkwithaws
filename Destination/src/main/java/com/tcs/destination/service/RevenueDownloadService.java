@@ -44,8 +44,7 @@ public class RevenueDownloadService {
 	Map<String, CustomerMasterT> mapOfCustomerMasterT = null;
 	private static final Logger logger = LoggerFactory.getLogger(RevenueDownloadService.class);
 
-	public InputStreamResource getActualRevenueData() throws Exception {
-
+	public InputStreamResource getActualRevenueData(boolean oppFlag) throws Exception {
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 
@@ -55,7 +54,9 @@ public class RevenueDownloadService {
 					Constants.ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
 			// Populate Iou Customer REF Sheet
+			 if(oppFlag){
 			populateActualRevenueDataSheet(workbook.getSheet(Constants.ACTUAL_REVENUE_DATA));
+			 }
 			populateFinanceMapRefSheet(workbook.getSheet(Constants.FINANCE_MAP_REF));
 			populateIouCustomerSheet(workbook.getSheet(Constants.CUSTOMER_IOU_MAPPING_REF));
 			populateSubSPMapSheet(workbook.getSheet(Constants.SUB_SP_MAP_REF));

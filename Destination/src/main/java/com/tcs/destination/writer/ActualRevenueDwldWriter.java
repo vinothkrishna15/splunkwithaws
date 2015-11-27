@@ -1,8 +1,17 @@
+/**
+ * 
+ * ActualRevenueDwldWriter.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.writer;
 
-import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
+import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -22,21 +33,24 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
+import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.OpportunityDownloadHelper;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
-public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
-		StepExecutionListener {
+/**
+ * This ActualRevenueDwldWriter class contains the functionality to populate datesheet for actual revenue
+ * 
+ */
+public class ActualRevenueDwldWriter implements
+		ItemWriter<ActualRevenuesDataT>, StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(OpportunityExcelWriter.class);
+			.getLogger(ActualRevenueDwldWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -52,13 +66,11 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 
 	private Workbook workbook;
 
-	private int rowCount = 2;
+	private int rowCount = 1;
 
 	private String filePath;
 
 	private FileInputStream fileInputStream;
-
-	private OpportunityDownloadHelper opportunityDownloadHelper;
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
@@ -89,13 +101,19 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 					.getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
+			String entity = dataProcessingService.getEntityName(request
+					.getRequestType());
+			StringBuffer filePath = new StringBuffer(fileServerPath)
+					.append(entity).append(FILE_DIR_SEPERATOR)
+					.append(DateUtils.getCurrentDate())
+					.append(FILE_DIR_SEPERATOR)
+					.append(request.getUserT().getUserId())
+					.append(FILE_DIR_SEPERATOR);
+			StringBuffer fileName = new StringBuffer(entity).append(
+					DOWNLOADCONSTANT).append(DateUtils.getCurrentDateForFile());
+			FileManager.copyFile(filePath.toString(), template,
+					fileName.toString());
 
-			String entity = dataProcessingService.getEntityName(request.getRequestType());
-			StringBuffer filePath = new StringBuffer(fileServerPath).append(entity).append(FILE_DIR_SEPERATOR)
-					.append(DateUtils.getCurrentDate()).append(FILE_DIR_SEPERATOR).append(request.getUserT().getUserId()).append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity).append(DOWNLOADCONSTANT).append(DateUtils.getCurrentDateForFile());
-			FileManager.copyFile(filePath.toString(), template, fileName.toString());
-			
 			request.setFilePath(filePath.toString());
 			request.setFileName(fileName.toString());
 			request.setStatus(RequestStatus.INPROGRESS.getStatus());
@@ -115,11 +133,12 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends OpportunityT> items) throws Exception {
+	public void write(List<? extends ActualRevenuesDataT> items)
+			throws Exception {
+		
+		logger.debug("Inside write method:");
 
-		logger.info("Inside write method:");
-
-		if (rowCount == 2) {
+		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
@@ -139,13 +158,56 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 				workbook = new XSSFWorkbook(fileInputStream);
 			}
 
-			sheet = workbook
-					.getSheet(Constants.OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME);
+			sheet = workbook.getSheet(Constants.ACTUAL_REVENUE_DATA);
 		}
 
 		if (items != null) {
-			rowCount = opportunityDownloadHelper.populateOpportunitySheet(
-					sheet, items, rowCount);
+			for (ActualRevenuesDataT actualRevenue : items) {
+				// Create row with rowCount
+				Row row = sheet.createRow(rowCount);
+
+				// Create new Cell and set cell value
+
+				Cell cellGLMonth = row.createCell(3);
+				cellGLMonth.setCellValue(actualRevenue.getMonth().trim());
+
+				Cell cellQuarter = row.createCell(4);
+				String quarter1 = actualRevenue.getQuarter().substring(0, 2);
+				String quarter2 = actualRevenue.getQuarter().substring(10, 12);
+				cellQuarter.setCellValue(quarter1 + quarter2);
+
+				Cell cellFinancialYear = row.createCell(5);
+				String financialYr1 = actualRevenue.getFinancialYear()
+						.substring(0, 2);
+				String financialYr2 = actualRevenue.getFinancialYear()
+						.substring(8, 10);
+				cellFinancialYear.setCellValue(financialYr1 + financialYr2);
+
+				Cell cellRevenue = row.createCell(6);
+				cellRevenue.setCellValue(actualRevenue.getRevenue().toString());
+
+				Cell cellClientCountryName = row.createCell(7);
+				cellClientCountryName.setCellValue(actualRevenue
+						.getClientCountry().toString());
+
+				Cell cellFinanceGeography = row.createCell(8);
+				cellFinanceGeography.setCellValue(actualRevenue
+						.getFinanceGeography().toString());
+
+				Cell cellSubsp = row.createCell(9);
+				cellSubsp.setCellValue(actualRevenue.getSubSp().toString());
+
+				Cell cellFinanceCustomerName = row.createCell(10);
+				cellFinanceCustomerName.setCellValue(actualRevenue
+						.getFinanceCustomerName().toString());
+
+				Cell cellFinanceIou = row.createCell(11);
+				cellFinanceIou.setCellValue(actualRevenue.getFinanceIou()
+						.toString());
+
+				// Increment row counter
+				rowCount++;
+			}
 		}
 	}
 
@@ -199,14 +261,6 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 		this.sheet = sheet;
 	}
 
-	public int getRowCount() {
-		return rowCount;
-	}
-
-	public void setRowCount(int rowCount) {
-		this.rowCount = rowCount;
-	}
-
 	public Workbook getWorkbook() {
 		return workbook;
 	}
@@ -215,21 +269,20 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 		this.workbook = workbook;
 	}
 
+	public int getRowCount() {
+		return rowCount;
+	}
+
+	public void setRowCount(int rowCount) {
+		this.rowCount = rowCount;
+	}
+
 	public FileInputStream getFileInputStream() {
 		return fileInputStream;
 	}
 
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
-	}
-
-	public OpportunityDownloadHelper getOpportunityDownloadHelper() {
-		return opportunityDownloadHelper;
-	}
-
-	public void setOpportunityDownloadHelper(
-			OpportunityDownloadHelper opportunityDownloadHelper) {
-		this.opportunityDownloadHelper = opportunityDownloadHelper;
 	}
 
 }

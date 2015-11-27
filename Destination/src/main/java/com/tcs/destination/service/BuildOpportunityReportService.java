@@ -1358,6 +1358,14 @@ public class BuildOpportunityReportService {
 		return reportSummaryOpportunityList;
 	}
 
+	/**
+	 * This Method is used to get opportunity summary details for sales stage code 4,5,6,7
+	 * @param opportunityList
+	 * @param salesStageCode
+	 * @param isDistinctIou
+	 * @return
+	 * @throws DestinationException
+	 */
 	public List<ReportSummaryOpportunity> getPipelineAnticipatingOpportunities(
 			List<Object[]> opportunityList, int salesStageCode,
 			Boolean isDistinctIou) throws DestinationException {
@@ -1367,64 +1375,75 @@ public class BuildOpportunityReportService {
 		BigDecimal totalBidValueUsd = new BigDecimal(0);
 		List<ReportSummaryOpportunity> reportSummaryOppList = new ArrayList<ReportSummaryOpportunity>();
 		Map<String, List<OpportunitySummaryValue>> oppSummaryMap = new TreeMap<String, List<OpportunitySummaryValue>>();
+		
 		if (opportunityList.size() > 0) {
+			
 			for (Object[] opportunity : opportunityList) {
+		
 				List<OpportunitySummaryValue> opportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
+			
 				OpportunitySummaryValue opportunitySummaryValue = new OpportunitySummaryValue();
+				
 				opportunitySummaryValue.setCount((BigInteger) opportunity[1]);
+				
 				if(opportunity[2] != null){
-				opportunitySummaryValue.setTitle(opportunity[2].toString());
+				
+					opportunitySummaryValue.setTitle(opportunity[2].toString());
 				}
-				opportunitySummaryValue
-						.setBidValue((BigDecimal) opportunity[3]);
+				opportunitySummaryValue.setBidValue((BigDecimal) opportunity[3]);
+			
 				opportunitySummaryValueList.add(opportunitySummaryValue);
-				// /
+				
 				totalCount = totalCount.add((BigInteger) opportunity[1]);
-				totalBidValue = totalBidValue.add((BigDecimal) opportunity[3]);
-				totalBidValueUsd = totalBidValueUsd
-						.add((BigDecimal) opportunity[3]);
-				if(opportunity[0] != null) {
-				if (oppSummaryMap.containsKey(opportunity[0].toString())) {
-					List<OpportunitySummaryValue> opportunitySummaryListMap = oppSummaryMap
-							.get(opportunity[0].toString());
-					for (OpportunitySummaryValue opportunitySummaryValueMap : opportunitySummaryValueList) {
-						opportunitySummaryListMap
-								.add(opportunitySummaryValueMap);
-					}
-					oppSummaryMap.put(opportunity[0].toString(),
-							opportunitySummaryListMap);
-				} else {
-					oppSummaryMap.put(opportunity[0].toString(),
-							opportunitySummaryValueList);
 
-				}
+				totalBidValue = totalBidValue.add((BigDecimal) opportunity[3]);
+				
+				totalBidValueUsd = totalBidValueUsd.add((BigDecimal) opportunity[3]);
+				
+				if(opportunity[0] != null) {
+				
+					if (oppSummaryMap.containsKey(opportunity[0].toString())) {
+					
+						List<OpportunitySummaryValue> opportunitySummaryListMap = oppSummaryMap.get(opportunity[0].toString());
+					
+						for (OpportunitySummaryValue opportunitySummaryValueMap : opportunitySummaryValueList) {
+						
+							opportunitySummaryListMap.add(opportunitySummaryValueMap);
+						}
+						oppSummaryMap.put(opportunity[0].toString(), opportunitySummaryListMap);
+				
+					} else {
+					
+						oppSummaryMap.put(opportunity[0].toString(), opportunitySummaryValueList);
+					}
 				}
 			}
-
 		}
-		for (Map.Entry<String, List<OpportunitySummaryValue>> entry : oppSummaryMap
-				.entrySet()) {
+		
+		for (Map.Entry<String, List<OpportunitySummaryValue>> entry : oppSummaryMap.entrySet()) {
+			
 			ReportSummaryOpportunity reportSummaryOpportunity = new ReportSummaryOpportunity();
+			
 			if (isDistinctIou) {
 				reportSummaryOpportunity.setIou("distinctIou");
 			}
 			reportSummaryOpportunity.setSalesStageCode(salesStageCode);
-			reportSummaryOpportunity
-					.setSalesStageDescription((salesStageMappingRepository
-							.findBySalesStageCode(salesStageCode))
-							.getSalesStageDescription());
+			
+			reportSummaryOpportunity.setSalesStageDescription((salesStageMappingRepository.findBySalesStageCode(salesStageCode)).getSalesStageDescription());
+			
 			reportSummaryOpportunity.setSalesStageDescription(entry.getKey());
-			reportSummaryOpportunity.setOpportunitySummaryValueList(entry
-					.getValue());
+			
+			reportSummaryOpportunity.setOpportunitySummaryValueList(entry.getValue());
+			
 			reportSummaryOpportunity.setTotalCount(totalCount);
-			reportSummaryOpportunity
-					.setTotalBidValueFirstCurrency(totalBidValue);
-			reportSummaryOpportunity
-					.setTotalBidValueSecondCurrency(totalBidValueUsd);
+			
+			reportSummaryOpportunity.setTotalBidValueFirstCurrency(totalBidValue);
+			
+			reportSummaryOpportunity.setTotalBidValueSecondCurrency(totalBidValueUsd);
+			
 			reportSummaryOppList.add(reportSummaryOpportunity);
 		}
 		return reportSummaryOppList;
-
 	}
 
 	public List<ReportSummaryOpportunity> getSummaryReportWinLoss(String month,
@@ -1525,6 +1544,19 @@ public class BuildOpportunityReportService {
 
 	}
 
+	/**
+	 * This Method is used to set summary details to excel
+	 * @param reportSummaryOpportunityListMap
+	 * @param month
+	 * @param year
+	 * @param quarter
+	 * @param currency
+	 * @param geography
+	 * @param iou
+	 * @param workbook
+	 * @throws Exception
+	 * @throws DestinationException
+	 */
 	public void buildExcelReport(
 			Map<String, List<ReportSummaryOpportunity>> reportSummaryOpportunityListMap,
 			String month, String year, String quarter, List<String> currency,
@@ -1533,58 +1565,58 @@ public class BuildOpportunityReportService {
 
 		logger.debug("Inside Report Service buildExcelReport method");
 		Map<String, String> map = new LinkedHashMap<String, String>();
-		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook,
-				"headingStyle");
+		CellStyle headingStyle = ExcelUtils.createRowStyle(workbook, "headingStyle");
 		SXSSFSheet spreadsheet = null;
 		SXSSFRow row;
 		SXSSFCell cell;
 		List<ReportSummaryOpportunity> serviceLineOpp = new ArrayList<ReportSummaryOpportunity>();
 		List<ReportSummaryOpportunity> geoOpp = new ArrayList<ReportSummaryOpportunity>();
 		List<ReportSummaryOpportunity> iouOpp = new ArrayList<ReportSummaryOpportunity>();
-		if (reportSummaryOpportunityListMap
-				.containsKey("pipelineAnticipatingGeography")) {
-			getPipelineAnticipatingDetails(workbook,
-					reportSummaryOpportunityListMap
-							.get("pipelineAnticipatingGeography"), currency);
-			reportSummaryOpportunityListMap
-					.remove("pipelineAnticipatingGeography");
+		
+		if (reportSummaryOpportunityListMap.containsKey("pipelineAnticipatingGeography")) {
+		
+			getPipelineAnticipatingDetails(workbook, reportSummaryOpportunityListMap.get("pipelineAnticipatingGeography"), currency);
+			
+			reportSummaryOpportunityListMap.remove("pipelineAnticipatingGeography");
 		}
-		if (reportSummaryOpportunityListMap
-				.containsKey("pipelineAnticipatingServiceLine")) {
-			getPipelineAnticipatingServiceLines(workbook,
-					reportSummaryOpportunityListMap
-							.get("pipelineAnticipatingServiceLine"), currency);
-			reportSummaryOpportunityListMap
-					.remove("pipelineAnticipatingServiceLine");
+
+		if (reportSummaryOpportunityListMap.containsKey("pipelineAnticipatingServiceLine")) {
+			
+			getPipelineAnticipatingServiceLines(workbook, reportSummaryOpportunityListMap.get("pipelineAnticipatingServiceLine"), currency);
+			
+			reportSummaryOpportunityListMap.remove("pipelineAnticipatingServiceLine");
 		}
 		
-		if (reportSummaryOpportunityListMap
-				.containsKey("pipelineAnticipatingIou")) {
-			getPipelineAnticipatingDetails(workbook,
-					reportSummaryOpportunityListMap
-							.get("pipelineAnticipatingIou"), currency);
+		if (reportSummaryOpportunityListMap.containsKey("pipelineAnticipatingIou")) {
+			
+			getPipelineAnticipatingDetails(workbook, reportSummaryOpportunityListMap.get("pipelineAnticipatingIou"), currency);
+			
 			reportSummaryOpportunityListMap.remove("pipelineAnticipatingIou");
 		}
 
-		for (Map.Entry<String, List<ReportSummaryOpportunity>> entry : reportSummaryOpportunityListMap
-				.entrySet()) {
+		for (Map.Entry<String, List<ReportSummaryOpportunity>> entry : reportSummaryOpportunityListMap.entrySet()) {
 			serviceLineOpp.clear();
 			geoOpp.clear();
 			iouOpp.clear();
+			
 			for (ReportSummaryOpportunity repSummaryOpp : entry.getValue()) {
+			
 				if (!map.containsKey(repSummaryOpp.getSalesStageDescription())) {
+				
 					if (repSummaryOpp.getSalesStageCode() == 9) {
-						spreadsheet = (SXSSFSheet) workbook
-								.createSheet(ReportConstants.WINS);
-						map.put(repSummaryOpp.getSalesStageDescription(),
-								ReportConstants.WINS);
+					
+						spreadsheet = (SXSSFSheet) workbook.createSheet(ReportConstants.WINS);
+						
+						map.put(repSummaryOpp.getSalesStageDescription(), ReportConstants.WINS);
+					
 					} else {
-						spreadsheet = (SXSSFSheet) workbook
-								.createSheet(ReportConstants.LOSSES);
-						map.put(repSummaryOpp.getSalesStageDescription(),
-								ReportConstants.LOSSES);
+						
+						spreadsheet = (SXSSFSheet) workbook.createSheet(ReportConstants.LOSSES);
+						
+						map.put(repSummaryOpp.getSalesStageDescription(), ReportConstants.LOSSES);
 					}
 					row = (SXSSFRow) spreadsheet.createRow((short) 1);
+					
 					if (!quarter.isEmpty() && currency.size() > 1) {
 						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 12));
 					} else if (!month.isEmpty() && currency.size() == 1) {
@@ -1598,10 +1630,12 @@ public class BuildOpportunityReportService {
 					} else {
 						spreadsheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 8));
 					}
+					
 					cell = (SXSSFCell) row.createCell(0);
 					cell.setCellStyle(headingStyle);
 					cell.setCellValue(map.get(repSummaryOpp.getSalesStageDescription()) + "( " + repSummaryOpp.getSalesStageDescription() + " )");
 					row = (SXSSFRow) spreadsheet.createRow((short) 3);
+					
 					if (!quarter.isEmpty() && currency.size() > 1) {
 						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 12));
 					} else if (!quarter.isEmpty() && currency.size() == 1) {
@@ -1611,13 +1645,16 @@ public class BuildOpportunityReportService {
 					} else {
 						spreadsheet.addMergedRegion(new CellRangeAddress(3, 3, 0, 10));
 					}
+					
 					cell = (SXSSFCell) row.createCell(0);
 					cell.setCellStyle(headingStyle);
+					
 					if (!quarter.isEmpty())
 						cell.setCellValue(quarter);
 					else
 						cell.setCellValue(year);
 				}
+				
 				if (!(repSummaryOpp.getSubSp() == null)) {
 					serviceLineOpp.add(repSummaryOpp);
 				} else if (!(repSummaryOpp.getGeography() == null)) {
@@ -1626,30 +1663,42 @@ public class BuildOpportunityReportService {
 					iouOpp.add(repSummaryOpp);
 				}
 			}
+			
 			Map<String,Integer> zeroOffesetRowMap = new TreeMap<String,Integer>();
 			zeroOffesetRowMap.put("Wins", 0);
 			zeroOffesetRowMap.put("Losses", 0);
+			
 			if (entry.getKey().equals("month")) {
+			
 				if(serviceLineOpp.size() > 0){
-				serviceTypeDetailsMonthWise(workbook, serviceLineOpp, month,
-						ReportConstants.OFFSETCOLUMNVALUE, currency);
-				serviceTypeDetailsMonthWise(workbook, geoOpp, month,
-						ReportConstants.OFFSETCOLUMNGEO, currency);
-				serviceTypeDetailsMonthWise(workbook, iouOpp, month,
-						ReportConstants.OFFSETCOLUMNIOU, currency);
+				
+					serviceTypeDetailsMonthWise(workbook, serviceLineOpp, month, ReportConstants.OFFSETCOLUMNVALUE, currency);
+			
+					serviceTypeDetailsMonthWise(workbook, geoOpp, month, ReportConstants.OFFSETCOLUMNGEO, currency);
+				
+					serviceTypeDetailsMonthWise(workbook, iouOpp, month, ReportConstants.OFFSETCOLUMNIOU, currency);
+				
 				} else {
-					serviceTypeDetailsMonthWise(workbook, geoOpp, month,
-							ReportConstants.OFFSETCOLUMNVALUE, currency);
-					serviceTypeDetailsMonthWise(workbook, iouOpp, month,
-							ReportConstants.OFFSETCOLUMNGEO, currency);
+				
+					serviceTypeDetailsMonthWise(workbook, geoOpp, month, ReportConstants.OFFSETCOLUMNVALUE, currency);
+					
+					serviceTypeDetailsMonthWise(workbook, iouOpp, month, ReportConstants.OFFSETCOLUMNGEO, currency);
 				}
+			
 			} else if (!quarter.isEmpty()) {
+			
 				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, year);
+				
 				getServiceTypeDetails(workbook, geoOpp, currency, quarter,year);
+				
 				getServiceTypeDetails(workbook, iouOpp, currency, quarter, year);
+			
 			} else {
+			
 				getServiceTypeDetails(workbook, serviceLineOpp,currency, quarter, entry.getKey());
+				
 				getServiceTypeDetails(workbook, geoOpp, currency, quarter,entry.getKey());
+				
 				getServiceTypeDetails(workbook, iouOpp, currency, quarter,entry.getKey());
 			}
 		}
