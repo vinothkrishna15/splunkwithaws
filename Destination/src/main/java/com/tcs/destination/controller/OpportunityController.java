@@ -81,15 +81,26 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
-		PaginatedResponse opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies,
-						isAjax, userId, page, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		String response = null;
+		PaginatedResponse opportunities;
+		try {
+			opportunities = opportunityService
+					.findByOpportunityName(nameWith, customerId, currencies,
+							isAjax, userId, page, count);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		}catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity details");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -98,13 +109,24 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		logger.debug("Inside OpportunityController /opportunity/Id="
 				+ opportunityId + " GET");
-		OpportunityT opportunity = opportunityService.findByOpportunityId(
-				opportunityId, currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunity);
+		String response = null;
+		OpportunityT opportunity;
+		try {
+			opportunity = opportunityService.findByOpportunityId(
+					opportunityId, currencies);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunity);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity detail for the id:" + opportunityId);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)
@@ -113,13 +135,24 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		logger.debug("Inside OpportunityController /opportunity/recent?customerId="
 				+ customerId + " GET");
-		List<OpportunityT> opportunities = opportunityService
-				.findRecentOpportunities(customerId, currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		String response = null;
+		List<OpportunityT> opportunities;
+		try {
+			opportunities = opportunityService
+					.findRecentOpportunities(customerId, currencies);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		}  catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity detail for the customer id:" + customerId);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
@@ -129,6 +162,7 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
+		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity/taskowner?id="
 				+ userId + " GET");
