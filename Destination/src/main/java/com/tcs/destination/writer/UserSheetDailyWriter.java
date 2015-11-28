@@ -22,15 +22,14 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.utils.Constants;
 
-public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
+public class UserSheetDailyWriter implements ItemWriter<Object[]>,
 		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(CustomerSheetWriter.class);
+			.getLogger(UserSheetDailyWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -44,24 +43,16 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 
 	private FileInputStream fileInputStream;
 
-
-	@Override
-	public void beforeStep(StepExecution stepExecution) {
-		try {
-			this.stepExecution = stepExecution;
-		} catch (Exception e) {
-			logger.error("Error in before step process: {}", e);
-		}
-	}
-
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
+
 		try {
 			fileInputStream.close();
 			FileOutputStream outputStream = new FileOutputStream(new File(
 					filePath));
 			workbook.write(outputStream); // write changes
 			outputStream.close(); // close the stream
+
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
@@ -69,11 +60,24 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 		return stepExecution.getExitStatus();
 
 	}
-	/**
-     * this method writes the customer master data in the customer master sheet
-     */
+
 	@Override
-	public void write(List<? extends CustomerMasterT> items) throws Exception {
+	public void beforeStep(StepExecution stepExecution) {
+
+		logger.debug("Inside before step:");
+
+		try {
+			this.stepExecution = stepExecution;
+		} catch (Exception e) {
+			logger.error("Error in before step process: {}", e);
+		}
+
+	}
+	/**
+	 * This method writes the user name and id in user sheet
+	 */
+	@Override
+	public void write(List<? extends Object[]> items) throws Exception {
 
 		logger.debug("Inside write method:");
 
@@ -97,34 +101,24 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 			}
 
 			sheet = workbook
-					.getSheet(Constants.OPPORTUNITY_TEMPLATE_CUSTOMER_MASTER_SHEET_NAME);
+					.getSheet(Constants.OPPORTUNITY_TEMPLATE_USER_SHEET_NAME);
 		}
 
 		if (items != null) {
-//			rowCount = opportunityDownloadHelper.populateCustomerMasterSheet(
-//					sheet, items, rowCount);
-			
-			for (CustomerMasterT cmt : items) {
-	    	    // Create row with rowCount
-	    	    Row row = sheet.createRow(rowCount);
+			for (Object[] ob : items) {
+				// Create row with rowCount
+				Row row = sheet.createRow(rowCount);
 
-	    	    // Create new Cell and set cell value
-	    	    Cell cellGrpClient = row.createCell(0);
-	    	    cellGrpClient.setCellValue(cmt.getGroupCustomerName().trim());
+				// Create new Cell and set cell value
+				Cell cellId = row.createCell(0);
+				cellId.setCellValue(ob[1].toString().trim());
 
-	    	    Cell cellCustName = row.createCell(1);
-	    	    cellCustName.setCellValue(cmt.getCustomerName().trim());
+				Cell cellName = row.createCell(1);
+				cellName.setCellValue(ob[0].toString().trim());
 
-	    	    Cell cellIou = row.createCell(2);
-	    	    cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou());
-
-	    	    Cell cellGeo = row.createCell(3);
-	    	    cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
-	    		    .trim());
-
-	    	    // Increment row counter
-	    	    rowCount++;
-	    	}
+				// Increment row counter
+				rowCount++;
+			}
 		}
 
 	}

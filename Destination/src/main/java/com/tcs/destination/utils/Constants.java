@@ -140,6 +140,7 @@ public class Constants {
 	public static final String PARTNER_DOWNLOAD_SUBJECT = "Partner download request processed.";
 	public static final String PARTNER_CONTACT_DOWNLOAD_SUBJECT = "Partner contact download request processed.";
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
+	public static final String OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT = "Opportunity daily download";
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";

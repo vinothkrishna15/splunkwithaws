@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="opportunityDailyDownload">
+		
+	<!-- Report creation steps -->	
+	  <batch:step id="opportunityDailyDwldProcessing" next="customerDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="opportunityDailyDownloadReader" writer="opportunitySheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		  
+		 <batch:step id="customerDailyProcessing" next="subSpDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="customerDailyDownloadReader" writer="customerSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		 <batch:step id="subSpDailyProcessing" next="partnerDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="subSpDailyDownloadReader" writer="subSpSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="partnerDailyProcessing" next="beaconDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerDailyDownloadReader" writer="partnerSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		  
+		  <batch:step id="beaconDailyProcessing" next="winLossDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="beaconDailyDownloadReader" writer="beaconSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step> 
+		  
+		   <batch:step id="winLossDailyProcessing" next="competitorDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="winLossDailyDownloadReader" writer="winLossSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="competitorDailyProcessing" next="geoCountryDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="competitorDailyDownloadReader" writer="competitorSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="geoCountryDailyProcessing" next="offeringDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="geoCountryDailyDownloadReader" writer="geoCountrySheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="offeringDailyProcessing" next="bidAndDealDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="offeringDailyDownloadReader" writer="offeringSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		   <batch:step id="bidAndDealDailyProcessing" next="userDailyProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="bidAndDealCompDailyReader" writer="bidAndDealCompositeDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="userDailyProcessing" next="emailReportProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userDailyDownloadReader" writer="userSheetDailyWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		  </batch:step>
+		  
+		  <batch:step id="emailReportProcessing">
+			<batch:tasklet ref="emailTasklet"/>
+		  </batch:step>
+	</batch:job>	
+	
+	<!-- Readers -->
+	<bean id="opportunityDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="opportunityRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="customerDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="customerRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="subSpDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="subSpRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="partnerDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="partnerRepository"/>
+	<property name="methodName" value="getPartnerNameAndGeography"/></bean>
+	
+	<bean id="beaconDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="beaconConvertorRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="winLossDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="winLossMappingRepository"/>
+	<property name="methodName" value="findAll"/></bean>
+	
+	<bean id="bidAndDealCompDailyReader" class="com.tcs.destination.reader.CompositeNativeQueryObjectReader">
+		<property name="readers">
+			<list>
+				<ref bean="bidDwldDailyReader"/>
+				<ref bean="dealDwldDailyReader"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="bidDwldDailyReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="bidRequestTypeRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<bean id="dealDwldDailyReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="dealTypeRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<bean id="competitorDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<property name="repository" ref="competitorRepository"/>
+	<property name="methodName" value="getCompetitorName"/></bean>
+	
+	<bean id="geoCountryDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="geographyCountryRepository"/>
+	<property name="methodName" value="getGeographyCountry"/></bean>
+	
+	<bean id="offeringDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="offeringRepository"/>
+	<property name="methodName" value="getSubSpOffering"/></bean>
+	
+	<bean id="userDailyDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<property name="repository" ref="userRepository"/>
+	<property name="methodName" value="getNameAndId"/></bean>
+	
+	<!-- Writers -->
+	<bean id="opportunitySheetDailyWriter" class="com.tcs.destination.writer.OpportunitySheetWriter">
+	<property name="template" value="${opportunitySheetTemplate}"/>
+	<property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/>
+	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	<property name="dataProcessingService" ref="dataProcessingService"/>
+	<property name="fileServerPath" value = "${fileserver.path}" />
+	</bean>
+	
+	<bean id="customerSheetDailyWriter" class="com.tcs.destination.writer.CustomerSheetWriter" />
+	
+	<bean id="subSpSheetDailyWriter" class="com.tcs.destination.writer.SubSpSheetWriter" />
+	
+	<bean id="partnerSheetDailyWriter" class="com.tcs.destination.writer.PartnerSheetWriter" />
+	
+	<bean id="beaconSheetDailyWriter" class="com.tcs.destination.writer.BeaconSheetWriter"/>
+	
+	<bean id="winLossSheetDailyWriter" class="com.tcs.destination.writer.WinLossSheetWriter" />
+	
+	<bean id="bidAndDealCompositeDailyWriter" class="com.tcs.destination.writer.BidAndDealCompositeWriter"/>
+	
+	<bean id="competitorSheetDailyWriter" class="com.tcs.destination.writer.CompetitorSheetWriter">
+	</bean>
+	
+	<bean id="geoCountrySheetDailyWriter" class="com.tcs.destination.writer.GeoCountrySheetWriter">
+	</bean>
+	
+	<bean id="offeringSheetDailyWriter" class="com.tcs.destination.writer.OfferingSheetWriter">
+	</bean>
+	
+	<bean id="userSheetDailyWriter" class="com.tcs.destination.writer.UserSheetDailyWriter" />
+
+    <!-- scheduler  -->
+	<bean id="opportunityDailyDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="opportunityDailyDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="opportunityDailyDownloadScheduler" method="run" cron="${opportunity.daily.download.job.cron}"/>
+    </task:scheduled-tasks> 
+</beans>	

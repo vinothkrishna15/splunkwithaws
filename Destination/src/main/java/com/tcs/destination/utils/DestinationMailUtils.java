@@ -27,6 +27,7 @@ import static com.tcs.destination.utils.Constants.PARTNER_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -39,6 +40,7 @@ import java.util.Map;
 
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -61,6 +63,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -90,6 +93,9 @@ public class DestinationMailUtils {
 	
 	@Value("${upload.notify.template}")
 	private String uploadNotifyTemplateLoc;
+	
+	@Value("${daily.download.template}")
+	private String dailyDownloadTemplateLoc;
 
 	@Autowired
 	private UserService userService;
@@ -152,22 +158,28 @@ public class DestinationMailUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean sendUserRequestResponse(DataProcessingRequestT request)
+	public boolean sendUserRequestResponse(DataProcessingRequestT request, List<UserRole> roles)
 			throws Exception {
 
 		logger.debug("inside sendUserRequestResponse method");
 
 		boolean status = false;
-
-		UserT user = request.getUserT();
-
 		List<String> recipientIdList = new ArrayList<String>();
-		recipientIdList.add(user.getUserId());
-
+		String[] recipientMailIdsArray = null;
+		String dateStr = null;
+		UserT user = request.getUserT();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(request.getSubmittedDatetime());
-		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
-
+		
+		if (user != null) {
+			recipientIdList.add(user.getUserId());
+			dateStr = df.format(request.getSubmittedDatetime());
+			recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+		} 
+		if (CollectionUtils.isNotEmpty(roles)) {
+			recipientMailIdsArray = getMailIdsFromRoles(roles);
+			dateStr = df.format(DateUtils.getCurrentTimeStamp());
+		}
+		
 		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 				.createMimeMessage();
 
@@ -186,6 +198,8 @@ public class DestinationMailUtils {
 			String fileName = null;
 			String filePath = null;
 			String uploadedFileName = null;
+			String attachmentFileName = null;
+			String attachmentFilePath = null;
 			int requestType = request.getRequestType();
 
 			switch (requestType) {
@@ -368,6 +382,16 @@ public class DestinationMailUtils {
 						.toLowerCase());
 			}
 				break;
+				
+			case 19: {
+				// Opportunity download
+				template = dailyDownloadTemplateLoc;
+				subject.append(OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT);
+				userName = "System Admin/Strategic Group Admin";
+				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
+						.toLowerCase());
+			}
+				break;
 
 			}
 			
@@ -375,9 +399,11 @@ public class DestinationMailUtils {
 				fileName = request.getFileName();
 				filePath = request.getFilePath();
 				uploadedFileName = request.getFileName();
+				attachmentFilePath = request.getErrorFilePath() + request.getErrorFileName();
+				attachmentFileName = request.getErrorFileName();
 			} else {
-				fileName = request.getErrorFileName();
-				filePath = request.getErrorFilePath();
+				attachmentFilePath = request.getFilePath() + request.getFileName();
+				attachmentFileName = request.getFileName();
 			}
 
 			Map userRequestMap = new HashMap();
@@ -391,8 +417,8 @@ public class DestinationMailUtils {
 
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
-			helper.addAttachment(fileName, new FileSystemResource(
-					filePath + fileName));
+			helper.addAttachment(attachmentFileName, new FileSystemResource(
+					attachmentFilePath));
 			logMailDetails(recipientMailIdsArray, null, null,
 					subject.toString(), text);
 			mailSender.send(automatedMIMEMessage);
@@ -405,6 +431,34 @@ public class DestinationMailUtils {
 		return status;
 	}
 	
+	/**
+	 * @param roles
+	 * @return emails Id's
+	 */
+	private String[] getMailIdsFromRoles(List<UserRole> roles) {
+		
+		logger.debug("Inside method: getMailIdsFromRoles");
+		
+		List<String> recipientMailIds = new ArrayList<String>();
+		List<String> values = new ArrayList<String>(roles.size());
+		for (UserRole role : roles) {
+			values.add(role.getValue());
+			
+		}
+		
+		List<UserT> users = userService.getByUserRoles(values);
+		
+		for (UserT user : users) {
+			String mailId = user.getUserEmailId();
+			recipientMailIds.add(mailId);
+		}
+		
+		String[] recipientMailIdsArray = recipientMailIds
+				.toArray(new String[recipientMailIds.size()]);
+		
+		return recipientMailIdsArray;
+	}
+
 	/**
 	 * @param request
 	 * @param subject
