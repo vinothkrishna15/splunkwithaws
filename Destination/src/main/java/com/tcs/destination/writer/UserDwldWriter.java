@@ -143,6 +143,7 @@ public class UserDwldWriter implements ItemWriter<String[]>,
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 
+			filePath = request.getFilePath() + request.getFileName();
 			fileInputStream = new FileInputStream(new File(
 					request.getFilePath() + request.getFileName()));
 			String fileName = request.getFileName();
