@@ -175,4 +175,7 @@ public class Constants {
 	public static final String CONNECT_TEMPLATE_USER_SHEET_NAME = "User(Ref)";
 	public static final String CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME = "Connect Type(Ref)";
 	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
+	
+	public static final String DOWNLOADCONSTANT = "Download_";
+	public static final String XLSM = ".xlsm";
 }

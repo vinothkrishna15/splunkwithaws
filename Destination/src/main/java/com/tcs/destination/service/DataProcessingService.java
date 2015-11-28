@@ -43,7 +43,7 @@ public class DataProcessingService {
 		
 		Status status = new Status();
 		
-		String entity = getEntityName(type);
+		String entity = getEntity(type);
 		
 		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
 		
@@ -67,7 +67,7 @@ public class DataProcessingService {
 	 * @param type
 	 * @return String
 	 */
-	public String getEntityName(int type) {
+	public String getEntity(int type) {
 		
 		String entity = "FOLDER";
 		
@@ -111,8 +111,6 @@ public class DataProcessingService {
 		break;
 		
 		}
-		entity = (type > 9 && type < 19) ? entity + FILE_DIR_SEPERATOR + DOWNLOAD: entity;
-		
 		return entity;
 	}
 

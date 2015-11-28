@@ -37,6 +37,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 
 @Service
 public class BDMService {
@@ -126,8 +127,9 @@ public class BDMService {
 	 * @return
 	 * @throws Exception
 	 */
-	public DashBoardBDMResponse getOpportunityWinsByBDM(String userId,
+	public DashBoardBDMResponse getOpportunityWinsByBDM(
 			String financialYear, boolean isDashboardByYear) throws Exception {
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside getOpportunityWinsByBDM()");
 		DashBoardBDMResponse opportunityWinValueDTO = null;
 		UserT user = userService.findByUserId(userId);
@@ -169,8 +171,11 @@ public class BDMService {
 	 * @return
 	 * @throws Exception
 	 */
-	public BDMSupervisorDashboardDTO getBDMSupervisorByUserId(String userId,
+	public BDMSupervisorDashboardDTO getBDMSupervisorByUserId(
 			String financialYear, boolean isDashboardByYear, boolean isAlongWithSupervisor) throws Exception {
+
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+
 		logger.debug("Inside getBDMSupervisorByUserId()");
 		List<String> userIds = null;
 		BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails = null;
@@ -209,8 +214,10 @@ public class BDMService {
 	 * @return
 	 * @throws Exception
 	 */
-	public BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboard(String userId, String financialYear, 
+	public BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboard(String financialYear, 
 			boolean isDashboardByYear) throws Exception {
+
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		
 		BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse=new BDMPerfromanceGeoIouDashboardResponse();
 		

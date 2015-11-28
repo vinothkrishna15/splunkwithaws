@@ -127,13 +127,14 @@ public class RevenueController {
 	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadActualRevenueTemplate(
+			@RequestParam("downloadActualRevenues") boolean oppFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws Exception {
 		HttpHeaders respHeaders = null;
 		InputStreamResource ActualRevenueDownloadExcel = null;
 		try {
-			ActualRevenueDownloadExcel = revenueDownloadService.getActualRevenueData();
+			ActualRevenueDownloadExcel = revenueDownloadService.getActualRevenueData(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate = DateUtils.getCurrentDate();
 			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));

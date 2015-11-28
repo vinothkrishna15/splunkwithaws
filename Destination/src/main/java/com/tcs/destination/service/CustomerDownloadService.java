@@ -58,7 +58,7 @@ public class CustomerDownloadService {
 
 	private static final Logger logger = LoggerFactory.getLogger(CustomerDownloadService.class);
 
-	public InputStreamResource getCustomers()
+	public InputStreamResource getCustomers(boolean oppFlag)
 			throws Exception {
 
 		Workbook workbook = null;
@@ -71,15 +71,18 @@ public class CustomerDownloadService {
 					Constants.CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
 			// Populate Customer Master sheet
+			 if(oppFlag){
 			populateCustomerMasterSheet(workbook.getSheet(Constants.CUSTOMER_MASTER_SHEET_NAME));
+			 
 			// Populate Beacon Mapping Sheet
 			populateBeaconMappingSheet(workbook.getSheet(Constants.BEACON_MAPPING_SHEET_NAME));
 			// Populate Finance Mapping Sheet
 			populateFinanceMappingSheet(workbook.getSheet(Constants.FINANCE_MAPPING_SHEET_NAME));
+			 }
 			// Populate Iou Customer REF Sheet
 			populateIouCustomerSheet(workbook.getSheet(Constants.IOU_CUSTOMER_MAPPING_REF));
-			// Populate Beacon Iou REF Sheet
-			populateBeaconIouSheet(workbook.getSheet(Constants.IOU_BEACON_MAP_REF));
+			//removed in new template : Populate Beacon Iou REF Sheet
+		//	populateBeaconIouSheet(workbook.getSheet(Constants.IOU_BEACON_MAP_REF));
 
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);

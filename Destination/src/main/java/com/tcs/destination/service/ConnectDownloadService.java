@@ -91,7 +91,7 @@ public class ConnectDownloadService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConnectDownloadService.class);
 
-	public InputStreamResource getConnects(String userId) throws Exception {
+	public InputStreamResource getConnects(String userId, boolean oppFlag) throws Exception {
 		logger.info("Inside getConnects() methos"); 
 		XSSFWorkbook workbook = null;
 		InputStreamResource  inputStreamResource = null;
@@ -104,7 +104,9 @@ public class ConnectDownloadService {
 				 Constants.APPLICATION_PROPERTIES_FILENAME, Constants.CONNECT_TEMPLATE_LOCATION_PROPERTY_NAME)));
 	      
 //	      //Get the workbook instance for XLSX file 
-			writeConnectTsIntoWorkbook(connectList, workbook);
+			if(oppFlag){
+				writeConnectTsIntoWorkbook(connectList, workbook);
+			}
 			try{
 			writeCustomerMasterRefNamesIntoWorkbook(workbook);
 			writePartnerMasterRefNamesIntoWorkbook(workbook);

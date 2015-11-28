@@ -668,6 +668,15 @@ public class DateUtils {
 		strArr[1] = getQuarterForMonth(strArr[0]);
 		strArr[2] = getFinancialYearForQuarter(strArr [1]);
 		return strArr;
+	}
+
+	/**
+	 * @return
+	 */
+	public static String getCurrentDateForFile() {
+		Date date=new Date();
+		SimpleDateFormat formatDate =  new SimpleDateFormat ("MMddyy");
+		return formatDate.format(date);
 	}	
 	
 }
