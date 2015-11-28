@@ -1,8 +1,10 @@
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
 import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
+import static com.tcs.destination.utils.Constants.XLSM;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -90,12 +92,21 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 
-			String entity = dataProcessingService.getEntityName(request.getRequestType());
-			StringBuffer filePath = new StringBuffer(fileServerPath).append(entity).append(FILE_DIR_SEPERATOR)
-					.append(DateUtils.getCurrentDate()).append(FILE_DIR_SEPERATOR).append(request.getUserT().getUserId()).append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity).append(DOWNLOADCONSTANT).append(DateUtils.getCurrentDateForFile());
-			FileManager.copyFile(filePath.toString(), template, fileName.toString());
-			
+			String entity = dataProcessingService.getEntity(request
+					.getRequestType());
+			StringBuffer filePath = new StringBuffer(fileServerPath)
+					.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
+					.append(FILE_DIR_SEPERATOR)
+					.append(DateUtils.getCurrentDate())
+					.append(FILE_DIR_SEPERATOR)
+					.append(request.getUserT().getUserId())
+					.append(FILE_DIR_SEPERATOR);
+			StringBuffer fileName = new StringBuffer(entity)
+					.append(DOWNLOADCONSTANT)
+					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			FileManager.copyFile(filePath.toString(), template,
+					fileName.toString());
+
 			request.setFilePath(filePath.toString());
 			request.setFileName(fileName.toString());
 			request.setStatus(RequestStatus.INPROGRESS.getStatus());

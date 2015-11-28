@@ -9,9 +9,11 @@
  */
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
 import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
+import static com.tcs.destination.utils.Constants.XLSM;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +45,8 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
 /**
- * This ActualRevenueDwldWriter class contains the functionality to populate datesheet for actual revenue
+ * This ActualRevenueDwldWriter class contains the functionality to populate
+ * datesheet for actual revenue
  * 
  */
 public class ActualRevenueDwldWriter implements
@@ -101,16 +104,18 @@ public class ActualRevenueDwldWriter implements
 					.getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
-			String entity = dataProcessingService.getEntityName(request
+			String entity = dataProcessingService.getEntity(request
 					.getRequestType());
 			StringBuffer filePath = new StringBuffer(fileServerPath)
-					.append(entity).append(FILE_DIR_SEPERATOR)
+					.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
+					.append(FILE_DIR_SEPERATOR)
 					.append(DateUtils.getCurrentDate())
 					.append(FILE_DIR_SEPERATOR)
 					.append(request.getUserT().getUserId())
 					.append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity).append(
-					DOWNLOADCONSTANT).append(DateUtils.getCurrentDateForFile());
+			StringBuffer fileName = new StringBuffer(entity)
+					.append(DOWNLOADCONSTANT)
+					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
 			FileManager.copyFile(filePath.toString(), template,
 					fileName.toString());
 
@@ -135,7 +140,7 @@ public class ActualRevenueDwldWriter implements
 	@Override
 	public void write(List<? extends ActualRevenuesDataT> items)
 			throws Exception {
-		
+
 		logger.debug("Inside write method:");
 
 		if (rowCount == 1) {

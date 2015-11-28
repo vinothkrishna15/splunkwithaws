@@ -177,4 +177,5 @@ public class Constants {
 	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
 	
 	public static final String DOWNLOADCONSTANT = "Download_";
+	public static final String XLSM = ".xlsm";
 }
