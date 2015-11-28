@@ -91,6 +91,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class OpportunityService {
@@ -106,6 +107,8 @@ public class OpportunityService {
 	private static final String OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
+	
+	private String bidId = null;
 
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
@@ -500,20 +503,93 @@ public class OpportunityService {
 	// Method called from controller
 	@Transactional
 	public void createOpportunity(OpportunityT opportunity,
-			boolean isBulkDataLoad) throws Exception {
+			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {
 		logger.debug("Inside createOpportunity() service");
+		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
 			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			saveOpportunity(opportunity, false);
+			createdOpportunity = saveOpportunity(opportunity, false);
 			if (!isBulkDataLoad) {
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
 				// Invoke Asynchronous Notification Thread
 				processNotifications(opportunity.getOpportunityId(), null);
+			} else {
+				// This statement is to update the opportunity timeline history
+				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
 			}
 		}
+	}
+
+	/**
+	 * This method is used to update Opportunity Timeline History.
+	 * Sales Stage Codes from 6-13 are only updated here with 
+	 * Sales Stage Codes based on the Bid Request Type
+	 * 
+	 * @param createdOpportunity
+	 * @param bidRequestType
+	 * @param actualSubmissionDate
+	 * @throws Exception
+	 */
+	private void saveOpportunityTimelineHistoryForUpload(
+			OpportunityT createdOpportunity, String bidRequestType, String actualSubmissionDate) throws Exception{
+		try {
+			
+		switch(createdOpportunity.getSalesStageCode()){
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 10:{
+				saveOppTimelineHistoryInUpload(createdOpportunity, 5);
+				break;
+			}
+			case 11:
+			case 12:
+			case 13:{
+				if(!StringUtils.isEmpty(bidRequestType)) {
+					if(bidRequestType.equalsIgnoreCase("RFI")||
+							bidRequestType.equalsIgnoreCase("RFQ")||
+								bidRequestType.equalsIgnoreCase("Approach Note")){
+						if(StringUtils.isEmpty(actualSubmissionDate)){
+							saveOppTimelineHistoryInUpload(createdOpportunity, 2);
+						} else if(!StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity, 3);
+						}
+					} else if(bidRequestType.equalsIgnoreCase("RFP")||
+							bidRequestType.equalsIgnoreCase("Proactive")){
+						if(StringUtils.isEmpty(actualSubmissionDate)){
+							saveOppTimelineHistoryInUpload(createdOpportunity, 4);
+						} else if(!StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity, 5);
+						}
+					}
+				}
+				break;
+			}
+			default:
+				break;
+		}
+		}catch(Exception e){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Record Saved! Error while updating Opportunity Timeline History");
+		} finally{
+			bidId=null;
+		}
+		
+	}
+	
+	private void saveOppTimelineHistoryInUpload(OpportunityT createdOpportunity, int salesStageCode){
+		OpportunityTimelineHistoryT history = new OpportunityTimelineHistoryT();
+		
+		history.setOpportunityId(createdOpportunity.getOpportunityId());
+		history.setSalesStageCode(salesStageCode);
+		if(!StringUtils.isEmpty(bidId)) {
+			history.setBidId(bidId);
+		}
+		history.setUserUpdated(DestinationUtils.getCurrentUserDetails().getUserId());
+		opportunityTimelineHistoryTRepository.save(history);
 	}
 
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
@@ -633,6 +709,7 @@ public class OpportunityService {
 					bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
 				}
 				bidDetailsTRepository.save(bidDetailsT);
+				bidId = bidDetailsT.getBidId();
 				if (bidOfficeOwnerLinkTs != null
 						&& bidOfficeOwnerLinkTs.size() > 0) {
 					bidDetailsT
