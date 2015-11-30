@@ -11,11 +11,11 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="revenueUpload">
-	<batch:step id="preprocess" next="decider">
+	<batch:step id="revenueUploadPreprocess" next="decider">
 			<batch:tasklet ref="revenuePreprocessor"/>
 		</batch:step>
 	
-		<batch:step id="revenueProcessing" next="preprocess">
+		<batch:step id="revenueProcessing" next="revenueUploadPreprocess">
 			<batch:tasklet>
 				<batch:chunk reader="spreadSheetReader" writer="revenueWriter" 
 				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
@@ -25,7 +25,7 @@
 		
 		
 		 <batch:decision id="decider" decider="revenueFlowdecider">
-              <batch:next on="PREPROCESS" to="preprocess" />
+              <batch:next on="PREPROCESS" to="revenueUploadPreprocess" />
               <batch:next on="REVENUE_PROCESSING" to="revenueProcessing" />
               <batch:end on="END"/>
          </batch:decision>
