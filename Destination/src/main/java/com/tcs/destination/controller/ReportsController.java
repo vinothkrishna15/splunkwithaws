@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.TargetVsActualDetailed;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BDMDetailedReportService;
 import com.tcs.destination.service.BDMReportsService;
 import com.tcs.destination.service.BuildExcelTargetVsActualDetailedReportService;
@@ -71,14 +72,23 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencyList,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-
-		List<TargetVsActualDetailed> targetVsActualDetailedList = reportsService
-				.getTargetVsActual(geographyList, iouList, fromMonth, toMonth, currencyList,userId, country);
-
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				targetVsActualDetailedList);
+        String response = null;
+		List<TargetVsActualDetailed> targetVsActualDetailedList;
+		try {
+			targetVsActualDetailedList = reportsService
+					.getTargetVsActual(geographyList, iouList, fromMonth, toMonth, currencyList,userId, country);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					targetVsActualDetailedList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the target vs actual detailed list");
+		}
+        return response;
 	}
 	
 	/**
@@ -102,8 +112,9 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try{
 		InputStreamResource excelFile = reportsService.getTargetVsActualDetailedReport(geography, country, iou, fromMonth, toMonth, currency,fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -112,6 +123,13 @@ public class ReportsController {
 		respHeaders.setContentDispositionFormData("attachment","TargetVsActualDetailReport_"+todaysDate+".xlsx");
 		logger.debug("targetVsActual Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the target vs actual detailed report");
+		}
 	}
 	
 	/**
@@ -133,8 +151,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try{
 		InputStreamResource excelFile = reportsService.getTargetVsActualSummaryReport(geography, country, iou, fromMonth, toMonth, currency,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -143,6 +162,13 @@ public class ReportsController {
 		respHeaders.setContentDispositionFormData("attachemnt","TargetVsActualSummaryReport_"+todaysDate+".xlsx");
 		logger.debug("targetVsActual Summary Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the target vs actual summary report");
+		}
 	}
 	
 	/**
@@ -166,8 +192,9 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource excelFile = reportsService.getTargetVsActualReports(geography, country, iou, fromMonth, toMonth, currency, fields,userId);
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -176,6 +203,13 @@ public class ReportsController {
 		respHeaders.setContentDispositionFormData("attachment","TargetVsActualReport_"+todaysDate+".xlsx");
 		logger.debug("targetVsActual Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the target vs actual both summary and detailed report");
+		}
 	}
 	
 	/**
@@ -202,8 +236,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource connectDetailedReportExcel = reportsService.getConnectDetailedReport(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -212,6 +247,13 @@ public class ReportsController {
 	    respHeaders.setContentDispositionFormData("attachment", "connectDetailReport_"+todaysDate+".xlsx");
 		logger.debug("Connect Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(connectDetailedReportExcel, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the connect detailed report");
+		}
 	}
 	
 	/**
@@ -238,8 +280,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource connectSummaryReportExcel = reportsService.connectSummaryReport(month, quarter, year, iou, geography,
 						country, serviceline, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -250,6 +293,13 @@ public class ReportsController {
 		logger.debug("Connect Summary Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(
 				connectSummaryReportExcel, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the connect summary report");
+		}
 	}
 	
 	/**
@@ -276,8 +326,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource connectReportExcel = reportsService.getConnectReports(month, quarter, year, iou,geography, country, serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -286,6 +337,13 @@ public class ReportsController {
 	    respHeaders.setContentDispositionFormData("attachment", "connectReport_"+todaysDate+".xlsx");
 		logger.debug("Connect Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(connectReportExcel, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the connect both summary and detailed report");
+		}
 	}
 	
 	/**
@@ -316,8 +374,9 @@ public class ReportsController {
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try{
 		logger.debug("Inside ReportController /report/bid/detailed GET");
 		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -327,6 +386,13 @@ public class ReportsController {
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		logger.debug("Bid Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(bidReportExcel, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the bid detailed report");
+		}
 	}
 	
 
@@ -348,9 +414,9 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-
+        try{
 		String toDate=DateUtils.getCurrentDate();
 		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceline,salesStage, currency,userId,fields,toDate);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -358,6 +424,13 @@ public class ReportsController {
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    logger.debug("Connect Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(opportunityDetailedReportExcel, respHeaders,HttpStatus.OK);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the opportunity detailed report");
+		}
 	}
 
 	/**
@@ -388,9 +461,9 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "salesStage",defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-
+    try {
 	InputStreamResource inputStreamResource= reportsService.getOpportunitySummaryReport(month, year, quarter, geography,
 			country, iou, currency, serviceline, salesStage,userId);
 	HttpHeaders respHeaders = new HttpHeaders();
@@ -398,6 +471,13 @@ public class ReportsController {
 	  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
     respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
 	return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+    } catch (DestinationException e) {
+		throw e;
+	} catch (Exception e) {
+		logger.error(e.getMessage());
+		throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+				"Backend error in downloading the opportunity summary report");
+	}
 	}
 	
 	@RequestMapping(value = "/opportunity/both", method = RequestMethod.GET)			
@@ -413,8 +493,9 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
  		InputStreamResource inputStreamResource=reportsService.getOpportunityBothReport(month, year, quarter, geography,
 				country, iou, currency, serviceline, salesStage,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -422,6 +503,14 @@ public class ReportsController {
 	    String toDate=DateUtils.getCurrentDate();
 	    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+		}
+		catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the opportunity both summary and detailed report");
+		}
 	}
 	
 	/**
@@ -454,8 +543,9 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource inputStreamResource=bdmDetailedReportService.getBdmDetailedReport(financialYear, from, to,
 				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -463,6 +553,13 @@ public class ReportsController {
 		  String toDate=DateUtils.getCurrentDate();
 	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceDetailedReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the bdm performance detailed report");
+		}
 	}
 	
 	/**
@@ -490,8 +587,9 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "") List<String> iou,
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmSummaryReport(financialYear, from, to, geography, country,
 				currency, serviceLines, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -499,6 +597,13 @@ public class ReportsController {
 	    String toDate=DateUtils.getCurrentDate();
 	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceSummaryReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the bdm performance summary report");
+		}
 	}
 
 	/**
@@ -530,8 +635,9 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "opportunityOwners",defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
 		InputStreamResource inputStreamResource=bdmReportsService.getBdmsReport(financialYear, from, to,
 				 geography,  country,  currency,  serviceline, iou, salesStage, opportunityOwners, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -539,6 +645,13 @@ public class ReportsController {
 		  String toDate=DateUtils.getCurrentDate();
 	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the bdm performance both summary and detailed report");
+		}
 	}
 	
 }
