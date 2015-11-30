@@ -2,7 +2,7 @@ package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.OPPORTUNITY_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
-import static com.tcs.destination.enums.RequestStatus.SUBMITTED;
+import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.OPPORTUNITY_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
@@ -42,7 +42,7 @@ public class OpportunityUploadPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(OPPORTUNITY_UPLOAD.getType(), SUBMITTED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(OPPORTUNITY_UPLOAD.getType(), VERIFIED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
