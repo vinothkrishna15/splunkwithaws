@@ -73,7 +73,6 @@ public class BeaconController {
 	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadBeaconCustomers(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -81,7 +80,7 @@ public class BeaconController {
 
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		
-		UploadStatusDTO status = beaconCustomerUploadService.upload(file, userId);
+		UploadStatusDTO status = beaconCustomerUploadService.upload(file);
 		if (status != null) {
 			System.out.println(status.isStatusFlag());
 			errorDetailsDTOs = status.getListOfErrors();
@@ -109,7 +108,6 @@ public class BeaconController {
 	 */
 	@RequestMapping(value = "/upload_Data", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadBeaconData(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -117,7 +115,7 @@ public class BeaconController {
 
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		logger.info("inside Beacon controller");
-		UploadStatusDTO status = beaconDataUploadService.upload(file, userId);
+		UploadStatusDTO status = beaconDataUploadService.upload(file);
 		if (status != null) {
 			System.out.println(status.isStatusFlag());
 			errorDetailsDTOs = status.getListOfErrors();
