@@ -23,10 +23,13 @@
 	 <import resource="/jobs/customerUpload-job.xml"/>
 	 <import resource="/jobs/revenueUpload-job.xml"/>
 	<import resource="/jobs/maintenance-job.xml"/>	
-	<!--<import resource="/jobs/opportunityUpload-job.xml"/>-->
+	<import resource="/jobs/opportunityUpload-job.xml"/>
 	<import resource="/jobs/customerDownload-job.xml"/>
 	<import resource="/jobs/userDownload-job.xml"/>
 	<import resource="/jobs/opportunityDownload-job.xml"/>
+	<import resource="/jobs/actualRevenueDownload-job.xml"/>
+	<import resource="/jobs/opportunityDailyDownload-job.xml"/>
+	<import resource="/jobs/partnerUpload-job.xml"/>
 	
 </beans>
 	

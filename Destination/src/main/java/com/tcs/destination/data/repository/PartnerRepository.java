@@ -1,11 +1,14 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
@@ -58,5 +61,8 @@ public interface PartnerRepository extends
 	 * @return partner details.
 	 */
 	PartnerMasterT findByPartnerId(String partnerid);
+	
+	@Query(value = "select * from partner_master_t where partner_name in (:names)", nativeQuery = true)
+	List<PartnerMasterT> findByPartnerNames(@Param("names") String[] Name);
 
 }

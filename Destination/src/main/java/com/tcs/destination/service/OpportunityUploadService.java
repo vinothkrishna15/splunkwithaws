@@ -139,6 +139,8 @@ public class OpportunityUploadService {
     private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
     private static final Logger logger = LoggerFactory
 	    .getLogger(OpportunityUploadService.class);
+    private String bidRequestType = null;
+    private String actualSubmissionDate = null;
 
     /**
      * This method uploads the spreadsheet to Opportunity_t and its depending
@@ -167,7 +169,7 @@ public class OpportunityUploadService {
 	    // sheet
 	    if (validateSheet(workbook)) {
 
-		Sheet sheet = workbook.getSheetAt(2);
+		Sheet sheet = workbook.getSheet("Opportunity");
 
 		logger.debug("count " + workbook.getSheetAt(2).getLastRowNum());
 
@@ -531,11 +533,21 @@ public class OpportunityUploadService {
 			    	 opp.setNotesTs(constructNotesT(remarks,opp.getCustomerId(), userId));	
 			    }
 				
-				
+			    if (!StringUtils.isEmpty(listOfCellValues.get(27))){
+			    	bidRequestType = listOfCellValues.get(27);
+			    } else {
+			    	bidRequestType = null;
+			    }
+			    if (!StringUtils.isEmpty(listOfCellValues.get(31))){
+			    	actualSubmissionDate = listOfCellValues.get(31);
+			    } else {
+			    	actualSubmissionDate = null;
+			    }
+			    
 				logger.debug("Inserting...");
-
+				
 				opportunityService.createOpportunity(opp,
-					isBulkDataLoad);
+					isBulkDataLoad, bidRequestType, actualSubmissionDate);
 				logger.debug("Done");
 				remarks.clear();
 				

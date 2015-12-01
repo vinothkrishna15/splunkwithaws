@@ -81,15 +81,27 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "isAjax", defaultValue = "false") boolean isAjax,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity?nameWith="
 				+ nameWith + " GET");
-		PaginatedResponse opportunities = opportunityService
-				.findByOpportunityName(nameWith, customerId, currencies,
-						isAjax, userId, page, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		String response = null;
+		PaginatedResponse opportunities;
+		try {
+			opportunities = opportunityService
+					.findByOpportunityName(nameWith, customerId, currencies,
+							isAjax, userId, page, count);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		}catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity details");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -98,13 +110,25 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		logger.debug("Inside OpportunityController /opportunity/Id="
 				+ opportunityId + " GET");
-		OpportunityT opportunity = opportunityService.findByOpportunityId(
-				opportunityId, currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunity);
+		String response = null;
+		OpportunityT opportunity;
+		try {
+			opportunity = opportunityService.findByOpportunityId(
+					opportunityId, currencies);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunity);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity detail for the id:" + opportunityId);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)
@@ -113,13 +137,25 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		logger.debug("Inside OpportunityController /opportunity/recent?customerId="
 				+ customerId + " GET");
-		List<OpportunityT> opportunities = opportunityService
-				.findRecentOpportunities(customerId, currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		String response = null;
+		List<OpportunityT> opportunities;
+		try {
+			opportunities = opportunityService
+					.findRecentOpportunities(customerId, currencies);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		}  catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity detail for the customer id:" + customerId);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
@@ -128,15 +164,27 @@ public class OpportunityController {
 			@RequestParam(value = "role", defaultValue = "ALL") String opportunityRole,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside OpportunityController /opportunity/taskowner?id="
 				+ userId + " GET");
-		List<OpportunityT> opportunities = opportunityService
-				.findOpportunitiesByOwnerAndRole(userId, opportunityRole,
-						currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		String response = null;
+		List<OpportunityT> opportunities;
+		try {
+			opportunities = opportunityService
+					.findOpportunitiesByOwnerAndRole(userId, opportunityRole,
+							currencies);
+			response =  ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		}catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity details for the task owner:" + userId);
+		}
+		return response;
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -144,20 +192,24 @@ public class OpportunityController {
 			@RequestBody OpportunityT opportunity,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityController /opportunity POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.createOpportunity(opportunity, false);
+			opportunityService.createOpportunity(opportunity, false, null, null);
+
+			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in creating the opportunity");
 		}
-		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
 	}
 
 	// @RequestMapping(value = "/insertImage", method = RequestMethod.GET)
@@ -175,20 +227,24 @@ public class OpportunityController {
 			@RequestBody OpportunityT opportunity,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		
 		logger.debug("Inside OpportunityController /opportunity PUT");
 		Status status = new Status();
 		try {
 			opportunityService.updateOpportunity(opportunity);
+			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while updating the opportunity");
 		}
-		status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+		
 	}
 
 	@RequestMapping(value = "/salesStage", method = RequestMethod.GET)
@@ -198,13 +254,25 @@ public class OpportunityController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityController /opportunity/shelved GET");
-		List<OpportunityT> opportunities = opportunityService
+		String response = null;
+		List<OpportunityT> opportunities;
+		try {
+		opportunities = opportunityService
 				.findOpportunitiesBySalesStageCode(currencies, salesStageCode,
 						customerId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		
+		response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity details for the sales stage code:" + salesStageCode);
+		}
+		return response;
 	}
 
 	/**
@@ -223,28 +291,50 @@ public class OpportunityController {
 			@RequestParam("id") String supervisorUserId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityController /opportunity/team/oppDealValue?id="
 				+ supervisorUserId + " GET");
+		String response = null;
 		List<OpportunitiesBySupervisorIdDTO> opportunities = null;
 
-		opportunities = opportunityService
-				.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
+		try {
+			opportunities = opportunityService
+					.findDealValueOfOpportunitiesBySupervisorId(supervisorUserId);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		}catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Deal value of opportunities for supervisor id:" + supervisorUserId);
+		}
 
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunities);
+		return response;
 	}
 
 	@RequestMapping(value = "/reopen", method = RequestMethod.GET)
 	public @ResponseBody String findAllReOpen(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityReopenRequestService /reopen GET");
-		List<OpportunityReopenRequestT> opportunityReopenRequestTs = opportunityReopenRequestService
+		String response = null;
+		List<OpportunityReopenRequestT> opportunityReopenRequestTs;
+		try {
+		opportunityReopenRequestTs = opportunityReopenRequestService
 				.findAllReOpenRequests();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunityReopenRequestTs);
+		
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityReopenRequestTs);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity reopen requests");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/reopen/{id}", method = RequestMethod.GET)
@@ -252,13 +342,25 @@ public class OpportunityController {
 			@PathVariable("id") String id,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityReopenRequestService /reopen/" + id
 				+ " GET");
-		OpportunityReopenRequestT opportunityReopenRequestT = opportunityReopenRequestService
+		String response = null;
+		OpportunityReopenRequestT opportunityReopenRequestT;
+		try {
+		opportunityReopenRequestT = opportunityReopenRequestService
 				.findOne(id);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunityReopenRequestT);
+		
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityReopenRequestT);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity reopen request for id:" + id);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/reopen", method = RequestMethod.POST)
@@ -266,21 +368,25 @@ public class OpportunityController {
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityReopenRequestService /reopen POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
 			opportunityReopenRequestService.create(opportunityReopenRequestT);
+			status.setStatus(Status.SUCCESS,
+					opportunityReopenRequestT.getOpportunityReopenRequestId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while creating opportunity reopen request");
 		}
-		status.setStatus(Status.SUCCESS,
-				opportunityReopenRequestT.getOpportunityReopenRequestId());
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+		
 	}
 
 	@RequestMapping(value = "/reopen", method = RequestMethod.PUT)
@@ -288,21 +394,25 @@ public class OpportunityController {
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityReopenRequestService /reopen PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Update unsuccessful");
 		try {
 			opportunityReopenRequestService.edit(opportunityReopenRequestT);
+			status.setStatus(Status.SUCCESS,
+					opportunityReopenRequestT.getOpportunityReopenRequestId());
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in updating the opportunity reopen request");
 		}
-		status.setStatus(Status.SUCCESS,
-				opportunityReopenRequestT.getOpportunityReopenRequestId());
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+		
 	}
 
 	/**
@@ -324,7 +434,7 @@ public class OpportunityController {
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 
 		logger.debug("Inside OpportunityController /opportunity/team/oppDetails?id="
 				+ supervisorUserId + " GET");
@@ -333,15 +443,24 @@ public class OpportunityController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid pagination request");
 		}
-
+        String response = null;
 		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
-		teamOpportunityDetails = opportunityService
-				.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
-						page, count, isCurrentFinancialYear, salesStageCode);
+		try {
+			teamOpportunityDetails = opportunityService
+					.findTeamOpportunityDetailsBySupervisorId(supervisorUserId,
+							page, count, isCurrentFinancialYear, salesStageCode);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					teamOpportunityDetails);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the team opportunity details for the supervisor id :" + supervisorUserId);
+		}
 
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				teamOpportunityDetails);
+		return response;
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
@@ -370,16 +489,28 @@ public class OpportunityController {
 			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		PaginatedResponse opportunityResponse = opportunityService
+			throws DestinationException {
+		String response = null;
+		PaginatedResponse opportunityResponse;
+		try {
+		opportunityResponse = opportunityService
 				.getByOpportunities(customerIdList, salesStageCode,
 						strategicInitiative, newLogo, minDigitalDealValue,
 						maxDigitalDealValue, dealCurrency, digitalFlag,
 						displayIou, country, partnerId, competitorName,
 						searchKeywords, bidRequestType, offering, displaySubSp,
 						opportunityName, userId, currency, page, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunityResponse);
+		
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity details");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
@@ -391,12 +522,24 @@ public class OpportunityController {
 			@RequestParam(value = "sortBy", defaultValue = "modifiedDatetime") String sortBy,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityService /all GET");
-		PaginatedResponse opportunityResponse = opportunityService.findAll(
+		String response = null;
+		PaginatedResponse opportunityResponse;
+		try {
+		opportunityResponse = opportunityService.findAll(
 				sortBy, order, isCurrentFinancialYear, page, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				opportunityResponse);
+		
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					opportunityResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity details");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/name", method = RequestMethod.GET)
@@ -405,11 +548,12 @@ public class OpportunityController {
 			@RequestParam(value = "keyword", defaultValue = "") String keyword,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityService /all GET");
 		ArrayList<OpportunityNameKeywordSearch> searchResults = null;
-
-		searchResults = opportunityService.findOpportunityNameOrKeywords(name,
+        String response = null;
+		try {
+			searchResults = opportunityService.findOpportunityNameOrKeywords(name,
 				keyword);
 		if ((searchResults == null) || (searchResults.isEmpty())) {
 			logger.error("No Results found for name {} and keyword {}", name,
@@ -418,9 +562,16 @@ public class OpportunityController {
 					"No Results found for name " + name + " and keyword "
 							+ keyword);
 		}
-
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				searchResults);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					searchResults);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Opportunity results with the keyword " + keyword + "or name" + name);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
@@ -428,7 +579,7 @@ public class OpportunityController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Upload request Received : docName - ");
 		UploadStatusDTO status = null;
@@ -441,21 +592,24 @@ public class OpportunityController {
 					logger.error(up.getRowNumber() + "   " + up.getMessage());
 				}
 			}
+			InputStreamResource excelFile = uploadErrorReport
+					.getErrorSheet(errorDetailsDTOs);
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"upload_error.xlsx");
+			return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
+					HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in uploading the opportunity details");
 		}
-		InputStreamResource excelFile = uploadErrorReport
-				.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders
-				.setContentType(MediaType
-						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment",
-				"upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
-				HttpStatus.OK);
+		
 	}
 
 	/**
@@ -474,7 +628,7 @@ public class OpportunityController {
 			@RequestParam("isDealValuesInUSDRequired") boolean dealValueFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		HttpHeaders respHeaders = null;
 		InputStreamResource opportunityDownloadExcel = null;
@@ -490,14 +644,15 @@ public class OpportunityController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.debug("Opportunity Data Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					opportunityDownloadExcel, respHeaders, HttpStatus.OK);
+			} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in downloading the opportunity in excel");
 		}
-		return new ResponseEntity<InputStreamResource>(
-				opportunityDownloadExcel, respHeaders, HttpStatus.OK);
-
 	}
 	
 	/**
@@ -514,10 +669,22 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside OpportunityController /opportunity/Id=" + opportunityIds + " GET");
-		List<OpportunityT> opportunityList = opportunityService.findByOpportunityIds(opportunityIds, currencies);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunityList);
+		String response = null;
+		List<OpportunityT> opportunityList;
+		try {
+		opportunityList = opportunityService.findByOpportunityIds(opportunityIds, currencies);
+		
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view, opportunityList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the opportunity details for opportunity id's :" + opportunityIds);
+		}
+		return response;
 	}
 
 }

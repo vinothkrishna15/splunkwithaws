@@ -55,15 +55,24 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		List<TargetVsActualResponse> response = perfService
-				.getTargetVsActualRevenueSummary(financialYear, quarter,
-						displayGeography, geography, serviceLine, iou,
-						customerName, currency, groupCustomer, wins, userId, true);
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						response), HttpStatus.OK);
+		List<TargetVsActualResponse> response;
+		try {
+			response = perfService
+					.getTargetVsActualRevenueSummary(financialYear, quarter,
+							displayGeography, geography, serviceLine, iou,
+							customerName, currency, groupCustomer, wins, userId, true);
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+							response), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the target vs actual summary");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/iou")
@@ -78,12 +87,13 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		if (financialYear.isEmpty()) {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<IOUReport> iouList = null;
+		try{
 		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
 					displayGeography, geography, serviceLine, currency,
@@ -95,6 +105,13 @@ public class PerformanceReportController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				iouList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving revenues and opportunities bu IOU");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/subsp")
@@ -111,12 +128,13 @@ public class PerformanceReportController {
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		if (financialYear.isEmpty()) {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<SubSpReport> subSpList = null;
+		try{
 		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
 					quarter, displayGeography, geography, iou, currency,
@@ -129,6 +147,13 @@ public class PerformanceReportController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				subSpList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the revenues and opportunities by subsp");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/geo")
@@ -146,9 +171,10 @@ public class PerformanceReportController {
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		List<GeographyReport> geoList = null;
+		try{
 		if (displayGeography.equals("") && geography.isEmpty()) {
 
 			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
@@ -185,6 +211,13 @@ public class PerformanceReportController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				geoList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the revenues and opportunities by geography");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/opportunity")
@@ -202,15 +235,23 @@ public class PerformanceReportController {
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		ReportsOpportunity reportsOpportunity = perfService.getOpportunity(
-				financialYear, quarter, displayGeography, geography, iou,
-				serviceLine, currency, salesStageFrom, salesStageTo,
-				customerName, groupCustomer, userId);
-		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
-				reportsOpportunity);
-
+		ReportsOpportunity reportsOpportunity;
+		try {
+			reportsOpportunity = perfService.getOpportunity(
+					financialYear, quarter, displayGeography, geography, iou,
+					serviceLine, currency, salesStageFrom, salesStageTo,
+					customerName, groupCustomer, userId);
+			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+					reportsOpportunity);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the reports opportunity");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/topopps")
@@ -229,7 +270,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		Date startDate, endDate;
 		if (financialYear.isEmpty() && quarter.isEmpty()) {
@@ -246,13 +287,21 @@ public class PerformanceReportController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Request - year and quarter cannot be set together");
 		}
-		List<OpportunityT> oppList = perfService.getTopOpportunities(currency,
-				displayGeography, geography, salesStageFrom, salesStageTo,
-				serviceLine, iou, startDate, endDate, count, customerName,
-				groupCustomer, userId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				oppList);
-
+		List<OpportunityT> oppList;
+		try {
+			oppList = perfService.getTopOpportunities(currency,
+					displayGeography, geography, salesStageFrom, salesStageTo,
+					serviceLine, iou, startDate, endDate, count, customerName,
+					groupCustomer, userId);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					oppList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the top opportunities");
+		}
 	}
 
 	/**
@@ -263,7 +312,7 @@ public class PerformanceReportController {
 	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToRecentlySearchedGroupCustomer(
-			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) throws Exception {
+			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) throws DestinationException {
 		logger.debug("Connect Insert Request Received /connect POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
@@ -272,13 +321,17 @@ public class PerformanceReportController {
 				status.setStatus(Status.SUCCESS, "Inserted Successfully");
 				logger.debug("GROUP CUSTOMER INSERTED SUCCESSFULLY" + "Inserted Successfully");
 			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in inserting frequently searched group customer");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+		
 	}	
 	
 	/**
@@ -292,10 +345,18 @@ public class PerformanceReportController {
 	public @ResponseBody String findFrequentlySearchedGroupCustomer(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		try{
 		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService.findGroupCustomerName(userId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, frequentlySearchedGroupCustomersT);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the frequently searched group customer");
+		}
 	}
 
 }

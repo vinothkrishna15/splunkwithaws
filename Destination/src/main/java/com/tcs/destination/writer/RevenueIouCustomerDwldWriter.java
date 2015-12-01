@@ -1,3 +1,12 @@
+/**
+ * 
+ * RevenueIouCustomerDwldWriter.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.REQUEST;
@@ -22,29 +31,35 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.utils.Constants;
 
-public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
-		StepExecutionListener {
-
+/**
+ * This RevenueIouCustomerDwldWriter class contains the functionality to populate data sheet for IOU customer
+ * 
+ */
+public class RevenueIouCustomerDwldWriter implements ItemWriter<IouCustomerMappingT>, 
+StepExecutionListener{
+	
 	private static final Logger logger = LoggerFactory
-			.getLogger(CustomerSheetWriter.class);
+			.getLogger(RevenueIouCustomerDwldWriter.class);
 
 	private StepExecution stepExecution;
-
+	
 	private Sheet sheet;
-
+	
 	private Workbook workbook;
-
+	
 	private int rowCount = 1;
-
-	private String filePath;
-
+	
+	private String filePath; 
+	
 	private FileInputStream fileInputStream;
 
-
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#beforeStep(org.springframework.batch.core.StepExecution)
+	 */
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
 		try {
@@ -52,8 +67,12 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 		} catch (Exception e) {
 			logger.error("Error in before step process: {}", e);
 		}
+		
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#afterStep(org.springframework.batch.core.StepExecution)
+	 */
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		try {
@@ -67,15 +86,15 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 		}
 
 		return stepExecution.getExitStatus();
-
 	}
-	/**
-     * this method writes the customer master data in the customer master sheet
-     */
-	@Override
-	public void write(List<? extends CustomerMasterT> items) throws Exception {
 
-		logger.debug("Inside write method:");
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
+	 */
+	@Override
+	public void write(List<? extends IouCustomerMappingT> items)
+			throws Exception {
+		logger.info("Inside write method:");
 
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution()
@@ -97,36 +116,27 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 			}
 
 			sheet = workbook
-					.getSheet(Constants.OPPORTUNITY_TEMPLATE_CUSTOMER_MASTER_SHEET_NAME);
+					.getSheet(Constants.CUSTOMER_IOU_MAPPING_REF);
 		}
+		if(items!=null)
+		{
+			for (IouCustomerMappingT iou : items) {
+				// Create row with rowCount
+				Row row = sheet.createRow(rowCount);
 
-		if (items != null) {
-//			rowCount = opportunityDownloadHelper.populateCustomerMasterSheet(
-//					sheet, items, rowCount);
-			
-			for (CustomerMasterT cmt : items) {
-	    	    // Create row with rowCount
-	    	    Row row = sheet.createRow(rowCount);
+				// Create new Cell and set cell value
+				Cell cellBeaconIou = row.createCell(0);
+				cellBeaconIou.setCellValue(iou.getIou().trim());
+				
+				Cell cellBeaconCustomerName = row.createCell(1);
+				cellBeaconCustomerName.setCellValue(iou.getDisplayIou().trim());
 
-	    	    // Create new Cell and set cell value
-	    	    Cell cellGrpClient = row.createCell(0);
-	    	    cellGrpClient.setCellValue(cmt.getGroupCustomerName().trim());
 
-	    	    Cell cellCustName = row.createCell(1);
-	    	    cellCustName.setCellValue(cmt.getCustomerName().trim());
-
-	    	    Cell cellIou = row.createCell(2);
-	    	    cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou());
-
-	    	    Cell cellGeo = row.createCell(3);
-	    	    cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
-	    		    .trim());
-
-	    	    // Increment row counter
-	    	    rowCount++;
-	    	}
+				// Increment row counter
+				rowCount++;
+			}
 		}
-
+		
 	}
 
 	public StepExecution getStepExecution() {
@@ -168,5 +178,5 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
 	}
-
+  
 }

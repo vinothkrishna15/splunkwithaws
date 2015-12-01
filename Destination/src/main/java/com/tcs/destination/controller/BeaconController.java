@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BeaconCustomerUploadService;
 import com.tcs.destination.service.BeaconDataUploadService;
 import com.tcs.destination.service.BeaconDownloadService;
@@ -46,24 +47,27 @@ public class BeaconController {
 
 	@Autowired
 	CustomerUploadService customerUploadService;
-	
+
 	@Autowired
 	BeaconCustomerUploadService beaconCustomerUploadService;
-	
+
 	@Autowired
 	BeaconDataUploadService beaconDataUploadService;
-	
+
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-	
+
 	@Autowired
 	BeaconDownloadService beaconDownloadService;
-	
-	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
-	
+
+	private static final DateFormat actualFormat = new SimpleDateFormat(
+			"dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat(
+			"MM/dd/yyyy");
+
 	/**
 	 * This controller uploads the Beacon Customers to the database
+	 * 
 	 * @param userId
 	 * @param file
 	 * @param fields
@@ -77,29 +81,40 @@ public class BeaconController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-
+			throws DestinationException {
+		logger.info("Inside Beacon controller : Start of Beacon customers upload");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		
-		UploadStatusDTO status = beaconCustomerUploadService.upload(file, userId);
-		if (status != null) {
-			System.out.println(status.isStatusFlag());
-			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-				System.out.println(err.getRowNumber());
-				    System.out.println(err.getMessage());
-				}
+		try {
+			UploadStatusDTO status = beaconCustomerUploadService.upload(file,
+					userId);
+			if (status != null) {
+				logger.debug("Status" + status.isStatusFlag());
+				errorDetailsDTOs = status.getListOfErrors();
+			}
+
+			InputStreamResource excelFile = uploadErrorReport
+					.getErrorSheet(errorDetailsDTOs);
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"customer_beacon_upload_error.xlsx");
+			logger.info("Inside Beacon controller : End of Beacon customers upload");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading the beacon customers");
 		}
-		
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","customer_beacon_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
-	
+
 	/**
 	 * This controller uploads the Beacon Customers to the database
+	 * 
 	 * @param userId
 	 * @param file
 	 * @param fields
@@ -113,44 +128,66 @@ public class BeaconController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-
+			throws DestinationException {
+		logger.info("Inside Beacon controller : Start of Beacon data upload");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		logger.info("inside Beacon controller");
-		UploadStatusDTO status = beaconDataUploadService.upload(file, userId);
-		if (status != null) {
-			System.out.println(status.isStatusFlag());
-			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-				System.out.println(err.getRowNumber());
-				    System.out.println(err.getMessage());
-				}
+
+		try {
+			UploadStatusDTO status = beaconDataUploadService.upload(file,
+					userId);
+			if (status != null) {
+				logger.debug("Status" + status.isStatusFlag());
+				errorDetailsDTOs = status.getListOfErrors();
+			}
+
+			InputStreamResource excelFile = uploadErrorReport
+					.getErrorSheet(errorDetailsDTOs);
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"beacon_data_upload_error.xlsx");
+			logger.info("Inside Beacon controller : End of Beacon data upload");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading beacon data");
 		}
-		
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","beacon_data_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadBeaconData(
-			@RequestParam("downloadBeaconData") boolean oppFlag) throws Exception 
-	{
-		logger.info("Download request Received : docName ");
-		InputStreamResource excelFile = beaconDownloadService.getBeaconData(oppFlag);
-		HttpHeaders respHeaders = new HttpHeaders();
-		String todaysDate = DateUtils.getCurrentDate();
-		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
-		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
-		
-		logger.info("Download Header - Attachment : " + "BeaconDownload_" + todaysDate_formatted + ".xlsm");
-		respHeaders.setContentDispositionFormData("attachment", "BeaconDownload_" + todaysDate_formatted + ".xlsm");
-		logger.info("Beacon - DATA Downloaded Successfully ");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
-		
-	}
-	
+			@RequestParam("downloadBeaconData") boolean oppFlag)
+			throws DestinationException {
+		logger.info("Inside Beacon controller : Download request Received : docName ");
+		try {
+			InputStreamResource excelFile = beaconDownloadService
+					.getBeaconData(oppFlag);
+			HttpHeaders respHeaders = new HttpHeaders();
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted = desiredFormat.format(actualFormat
+					.parse(todaysDate));
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
 
+			logger.info("Download Header - Attachment : " + "BeaconDownload_"
+					+ todaysDate_formatted + ".xlsm");
+			respHeaders.setContentDispositionFormData("attachment",
+					"BeaconDownload_" + todaysDate_formatted + ".xlsm");
+			logger.info("Beacon - DATA Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the beacon data");
+		}
+	}
 }

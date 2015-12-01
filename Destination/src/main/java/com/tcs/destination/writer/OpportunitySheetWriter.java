@@ -27,18 +27,19 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.enums.RequestStatus;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.helper.OpportunityDownloadHelper;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
-public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
+public class OpportunitySheetWriter implements ItemWriter<OpportunityT>,
 		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(OpportunityExcelWriter.class);
+			.getLogger(OpportunitySheetWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -89,17 +90,14 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
-			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
-					.get(REQUEST);
+			DataProcessingRequestT request = new DataProcessingRequestT();
 
-			String entity = dataProcessingService.getEntity(request
-					.getRequestType());
+			String entity = EntityType.OPPORTUNITY.name();
 			StringBuffer filePath = new StringBuffer(fileServerPath)
 					.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
 					.append(FILE_DIR_SEPERATOR)
 					.append(DateUtils.getCurrentDate())
-					.append(FILE_DIR_SEPERATOR)
-					.append(request.getUserT().getUserId())
+					.append(FILE_DIR_SEPERATOR).append("dailyReport")
 					.append(FILE_DIR_SEPERATOR);
 			StringBuffer fileName = new StringBuffer(entity)
 					.append(DOWNLOADCONSTANT)
@@ -109,8 +107,7 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 
 			request.setFilePath(filePath.toString());
 			request.setFileName(fileName.toString());
-			request.setStatus(RequestStatus.INPROGRESS.getStatus());
-			dataProcessingRequestRepository.save(request);
+			request.setRequestType(RequestType.OPPORTUNITY_DAILY_DOWNLOAD.getType());
 
 			jobContext.put(REQUEST, request);
 
@@ -136,11 +133,10 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 
-			filePath = request.getFilePath() + request.getFileName();
 			fileInputStream = new FileInputStream(new File(
 					request.getFilePath() + request.getFileName()));
 			String fileName = request.getFileName();
-
+			filePath = request.getFilePath() + request.getFileName();
 			String fileExtension = fileName.substring(
 					fileName.lastIndexOf(".") + 1, fileName.length());
 			if (fileExtension.equalsIgnoreCase("xls")) {

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="actualRevenueDownload">
+	<batch:step id="preprocess" next="decider">
+			<batch:tasklet ref="actualRevenueDwldPreprocessor"/>
+		</batch:step>
+	
+		<batch:step id="actualRevenueDwldProcessing" next="financeMapDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="actualRevenueDwldReader" writer="actualRevenueDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="financeMapDwldProcessing" next="revenueIouCustomerDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="financeMapDwldReader" writer="financeMapDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="revenueIouCustomerDwldProcessing" next="revenueSubSpDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="revenueIouCustomerDwldReader" writer="revenueIouCustomerDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="revenueSubSpDwldProcessing" next="preprocess">
+			<batch:tasklet>
+				<batch:chunk reader="revenueSubSpDwldReader" writer="revenueSubSpDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="decider" decider="revenueFlowdecider">
+              <batch:next on="PREPROCESS" to="preprocess" />
+              <batch:next on="REVENUE_DWLD_PROCESSING" to="actualRevenueDwldProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="actualRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="actualRevenuesDataTRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="financeMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="actualRevenuesDataTRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="revenueIouCustomerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerIOUMappingRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="revenueSubSpDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="subSpRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="actualRevenueDwldWriter" class="com.tcs.destination.writer.ActualRevenueDwldWriter">
+		<property name="template" value="${actualRevenueDataTemplate}"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="fileServerPath" value="${fileserver.path}" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+	</bean>
+	
+	<bean id="financeMapDwldWriter" class="com.tcs.destination.writer.FinanceMapDwldWriter"/>
+	
+	<bean id="revenueIouCustomerDwldWriter" class="com.tcs.destination.writer.RevenueIouCustomerDwldWriter"/>
+	
+	<bean id="revenueSubSpDwldWriter" class="com.tcs.destination.writer.RevenueSubSpDwldWriter">
+	    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	</bean>
+		
+	<!-- Decider -->
+    <bean id="revenueFlowdecider" class="com.tcs.destination.decider.RevenueDecider" />
+	
+	<!-- scheduler  -->
+	<bean id="revenueDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="actualRevenueDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="revenueDownloadScheduler" method="run" cron="${revenue.download.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>

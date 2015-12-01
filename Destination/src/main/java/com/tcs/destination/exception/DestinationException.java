@@ -21,6 +21,14 @@ public class DestinationException extends RuntimeException {
 		this.httpStatus = httpStatus;
 	}
 
+	/**
+	 * @param string
+	 */
+	public DestinationException(String message) {
+		super(message);
+		this.message = message;
+	}
+
 	@Override
 	public String toString() {
 		return message;

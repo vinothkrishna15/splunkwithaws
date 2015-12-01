@@ -1,0 +1,16 @@
+<html>
+	<body>
+		<h3>Dear ${userName},</h3>
+		<p>
+		Please find the ${entity} daily download report in the attachment.
+		</p>
+		<p>
+		Regards,<br>
+		Destination Team.
+		<p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

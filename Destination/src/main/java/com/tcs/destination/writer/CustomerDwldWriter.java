@@ -1,8 +1,10 @@
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
+import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
+import static com.tcs.destination.utils.Constants.XLSM;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,97 +42,118 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 			.getLogger(CustomerDwldWriter.class);
 
 	private StepExecution stepExecution;
-	
+
 	private String template;
-	
+
 	private String fileServerPath;
 
 	private DataProcessingRequestRepository dataProcessingRequestRepository;
-	
+
 	private DataProcessingService dataProcessingService;
-	
+
 	private Sheet sheet;
-	
+
 	private Workbook workbook;
-	
+
 	private int rowCount = 1;
-	
-	private String filePath; 
-	
+
+	private String filePath;
+
 	private FileInputStream fileInputStream;
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
-		
-         try {
-        	 fileInputStream.close();
-        	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
-             workbook.write(outputStream); //write changes
-			 outputStream.close();  //close the stream
+
+		try {
+			fileInputStream.close();
+			FileOutputStream outputStream = new FileOutputStream(new File(
+					filePath));
+			workbook.write(outputStream); // write changes
+			outputStream.close(); // close the stream
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
-		
+
 		return stepExecution.getExitStatus();
 
 	}
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		
+
 		logger.debug("Inside before step:");
-		
+
 		try {
-			    this.stepExecution = stepExecution;
-			    
-				ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-				DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-				
-				String path = fileServerPath + dataProcessingService.getEntityName(request.getRequestType()) + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + request.getUserT().getUserId() + FILE_DIR_SEPERATOR;
-				String fileName  = FileManager.copyFile(path, template);
-				filePath =  path + fileName;
-				
-				request.setFilePath(path);
-				request.setFileName(fileName);
-				request.setStatus(RequestStatus.INPROGRESS.getStatus());
-				dataProcessingRequestRepository.save(request);
-				
-				jobContext.put(REQUEST,request);
-				
-			} catch (Exception e) {
-				logger.error("Error in before step process: {}", e);
-			}
+			this.stepExecution = stepExecution;
+
+			ExecutionContext jobContext = stepExecution.getJobExecution()
+					.getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
+					.get(REQUEST);
+
+			String entity = dataProcessingService.getEntity(request
+					.getRequestType());
+			StringBuffer filePath = new StringBuffer(fileServerPath)
+					.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
+					.append(FILE_DIR_SEPERATOR)
+					.append(DateUtils.getCurrentDate())
+					.append(FILE_DIR_SEPERATOR)
+					.append(request.getUserT().getUserId())
+					.append(FILE_DIR_SEPERATOR);
+			StringBuffer fileName = new StringBuffer(entity)
+					.append(DOWNLOADCONSTANT)
+					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			FileManager.copyFile(filePath.toString(), template,
+					fileName.toString());
+
+			request.setFilePath(filePath.toString());
+			request.setFileName(fileName.toString());
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
+			dataProcessingRequestRepository.save(request);
+
+			jobContext.put(REQUEST, request);
+
+		} catch (Exception e) {
+			logger.error("Error in before step process: {}", e);
+		}
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
 	public void write(List<? extends CustomerMasterT> items) throws Exception {
 
 		logger.debug("Inside write method:");
-		
+
 		if (rowCount == 1) {
-			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
-			fileInputStream = new FileInputStream(new File(request.getFilePath() + request.getFileName()));
-			String fileName  = request.getFileName();
-			
-		    String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
-            if(fileExtension.equalsIgnoreCase("xls")){
-                workbook = new HSSFWorkbook(fileInputStream);
-            } else if(fileExtension.equalsIgnoreCase("xlsx")){
-            	workbook = new XSSFWorkbook(fileInputStream);
-            } else if(fileExtension.equalsIgnoreCase("xlsm")){
-            	workbook = new XSSFWorkbook(fileInputStream);
-            }
-	            
+			ExecutionContext jobContext = stepExecution.getJobExecution()
+					.getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
+					.get(REQUEST);
+
+			filePath = request.getFilePath() + request.getFileName();
+			fileInputStream = new FileInputStream(new File(
+					request.getFilePath() + request.getFileName()));
+			String fileName = request.getFileName();
+
+			String fileExtension = fileName.substring(
+					fileName.lastIndexOf(".") + 1, fileName.length());
+			if (fileExtension.equalsIgnoreCase("xls")) {
+				workbook = new HSSFWorkbook(fileInputStream);
+			} else if (fileExtension.equalsIgnoreCase("xlsx")) {
+				workbook = new XSSFWorkbook(fileInputStream);
+			} else if (fileExtension.equalsIgnoreCase("xlsm")) {
+				workbook = new XSSFWorkbook(fileInputStream);
+			}
+
 			sheet = workbook.getSheet(Constants.CUSTOMER_MASTER_SHEET_NAME);
 		}
 
-		if(items!=null) {
+		if (items != null) {
 			for (CustomerMasterT cmt : items) {
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
@@ -143,7 +166,8 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 				cellCustName.setCellValue(cmt.getCustomerName().trim());
 
 				Cell cellIou = row.createCell(3);
-				cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou().trim());
+				cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou()
+						.trim());
 
 				Cell cellGeo = row.createCell(4);
 				cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
@@ -152,7 +176,7 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 				// Increment row counter
 				rowCount++;
 			}
-		} 
+		}
 	}
 
 	public StepExecution getStepExecution() {
@@ -192,7 +216,8 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 		return dataProcessingService;
 	}
 
-	public void setDataProcessingService(DataProcessingService dataProcessingService) {
+	public void setDataProcessingService(
+			DataProcessingService dataProcessingService) {
 		this.dataProcessingService = dataProcessingService;
 	}
 
@@ -227,6 +252,5 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
 	}
-
 
 }

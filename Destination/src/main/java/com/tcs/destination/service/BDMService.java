@@ -173,7 +173,9 @@ public class BDMService {
 	 */
 	public BDMSupervisorDashboardDTO getBDMSupervisorByUserId(
 			String financialYear, boolean isDashboardByYear, boolean isAlongWithSupervisor) throws Exception {
+
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+
 		logger.debug("Inside getBDMSupervisorByUserId()");
 		List<String> userIds = null;
 		BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails = null;
@@ -214,6 +216,7 @@ public class BDMService {
 	 */
 	public BDMPerfromanceGeoIouDashboardResponse getGeoIouPerformanceDashboard(String financialYear, 
 			boolean isDashboardByYear) throws Exception {
+
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		
 		BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse=new BDMPerfromanceGeoIouDashboardResponse();

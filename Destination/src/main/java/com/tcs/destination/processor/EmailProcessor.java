@@ -37,7 +37,7 @@ public class EmailProcessor implements ItemProcessor<DataProcessingRequestT, Dat
 		
 		logger.debug("Inside process method:");
 		
-		if(destinationMailUtils.sendUserRequestResponse(item)) {
+		if(destinationMailUtils.sendUserRequestResponse(item, null)) {
 			item.setStatus(RequestStatus.EMAILED.getStatus());
 			logger.info("Emailed report for the request Id: {}", item.getProcessRequestId());
 		}

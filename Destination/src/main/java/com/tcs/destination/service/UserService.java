@@ -83,7 +83,7 @@ public class UserService {
 
 		return users;
 	}
-
+	
 	public UserT findUserByName(String userName) throws Exception {
 		logger.debug("Inside findUserByName Service");
 		UserT user = null;
@@ -336,6 +336,26 @@ public class UserService {
 		  }
 		  
 				
+	}
+
+	/**
+	 * @param values
+	 * @return
+	 */
+	public List<UserT> getByUserRoles(List<String> roles) {
+		
+		logger.debug("Inside findByUserRole Service");
+		
+		List<UserT> users = (List<UserT>) userRepository
+				.findByUserRoles(roles);
+
+		if (users.isEmpty()) {
+			logger.error("NOT_FOUND: No matching user found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No matching user found");
+		}
+
+		return users;
 	}
 	
 	

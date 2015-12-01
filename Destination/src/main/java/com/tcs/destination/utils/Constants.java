@@ -143,6 +143,7 @@ public class Constants {
 	public static final String PARTNER_DOWNLOAD_SUBJECT = "Partner download request processed.";
 	public static final String PARTNER_CONTACT_DOWNLOAD_SUBJECT = "Partner contact download request processed.";
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
+	public static final String OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT = "Opportunity daily download";
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
@@ -180,4 +181,7 @@ public class Constants {
 	public static final String CONNECT_TEMPLATE_USER_SHEET_NAME = "User(Ref)";
 	public static final String CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME = "Connect Type(Ref)";
 	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
+	
+	public static final String DOWNLOADCONSTANT = "Download_";
+	public static final String XLSM = ".xlsm";
 }

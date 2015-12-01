@@ -1,3 +1,12 @@
+/**
+ * 
+ * RevenueSubSpDwldWriter.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2015
+ * 
+ * @Copyright 2015 Tata Consultancy 
+ */
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.REQUEST;
@@ -22,15 +31,21 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.SubSpMappingT;
+import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.utils.Constants;
 
-public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
-		StepExecutionListener {
-
+/**
+ * This RevenueSubSpDwldWriter class contains the functionality to populate the data sheet for Sub sp
+ * 
+ */
+public class RevenueSubSpDwldWriter implements ItemWriter<SubSpMappingT>,
+StepExecutionListener {
+	
 	private static final Logger logger = LoggerFactory
-			.getLogger(CustomerSheetWriter.class);
+			.getLogger(RevenueSubSpDwldWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -44,16 +59,26 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 
 	private FileInputStream fileInputStream;
 
+	private DataProcessingRequestRepository dataProcessingRequestRepository;
 
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#beforeStep(org.springframework.batch.core.StepExecution)
+	 */
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
+		logger.debug("Inside before step:");
+
 		try {
 			this.stepExecution = stepExecution;
 		} catch (Exception e) {
 			logger.error("Error in before step process: {}", e);
 		}
+		
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#afterStep(org.springframework.batch.core.StepExecution)
+	 */
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		try {
@@ -62,21 +87,29 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 					filePath));
 			workbook.write(outputStream); // write changes
 			outputStream.close(); // close the stream
+
+			ExecutionContext jobContext = stepExecution.getJobExecution()
+					.getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
+					.get(REQUEST);
+
+			request.setStatus(RequestStatus.PROCESSED.getStatus());
+			dataProcessingRequestRepository.save(request);
+
+			jobContext.remove(REQUEST);
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
 
 		return stepExecution.getExitStatus();
-
 	}
-	/**
-     * this method writes the customer master data in the customer master sheet
-     */
+
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
+	 */
 	@Override
-	public void write(List<? extends CustomerMasterT> items) throws Exception {
-
-		logger.debug("Inside write method:");
-
+	public void write(List<? extends SubSpMappingT> items) throws Exception {
+		logger.info("Inside write method:");
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
@@ -97,36 +130,37 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 			}
 
 			sheet = workbook
-					.getSheet(Constants.OPPORTUNITY_TEMPLATE_CUSTOMER_MASTER_SHEET_NAME);
+					.getSheet(Constants.SUB_SP_MAP_REF);
 		}
 
 		if (items != null) {
-//			rowCount = opportunityDownloadHelper.populateCustomerMasterSheet(
-//					sheet, items, rowCount);
-			
-			for (CustomerMasterT cmt : items) {
-	    	    // Create row with rowCount
-	    	    Row row = sheet.createRow(rowCount);
+			for (SubSpMappingT subSp : items) {
+				// Create row with rowCount
+				Row row = sheet.createRow(rowCount);
 
-	    	    // Create new Cell and set cell value
-	    	    Cell cellGrpClient = row.createCell(0);
-	    	    cellGrpClient.setCellValue(cmt.getGroupCustomerName().trim());
+				// Create new Cell and set cell value
+				
+				Cell cellActualSubSp = row.createCell(0);
+				cellActualSubSp.setCellValue(subSp.getActualSubSp().trim());
+				
+				Cell cellSubSp = row.createCell(1);
+				cellSubSp.setCellValue(subSp.getSubSp().trim());
 
-	    	    Cell cellCustName = row.createCell(1);
-	    	    cellCustName.setCellValue(cmt.getCustomerName().trim());
+				Cell cellDisplaySubSp = row.createCell(2);
+				cellDisplaySubSp.setCellValue(subSp.getDisplaySubSp().trim());
 
-	    	    Cell cellIou = row.createCell(2);
-	    	    cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou());
+				Cell cellSpCode = row.createCell(3);
+				String spCode = String.valueOf(subSp.getSpCode());
+				cellSpCode.setCellValue(spCode);
 
-	    	    Cell cellGeo = row.createCell(3);
-	    	    cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
-	    		    .trim());
+				Cell cellActive = row.createCell(4);
+				cellActive.setCellValue(subSp.getActive().trim());
 
-	    	    // Increment row counter
-	    	    rowCount++;
-	    	}
+				// Increment row counter
+				rowCount++;
+			}
 		}
-
+		
 	}
 
 	public StepExecution getStepExecution() {
@@ -169,4 +203,13 @@ public class CustomerSheetWriter implements ItemWriter<CustomerMasterT>,
 		this.fileInputStream = fileInputStream;
 	}
 
+	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
+		return dataProcessingRequestRepository;
+	}
+
+	public void setDataProcessingRequestRepository(
+			DataProcessingRequestRepository dataProcessingRequestRepository) {
+		this.dataProcessingRequestRepository = dataProcessingRequestRepository;
+	}
+  
 }

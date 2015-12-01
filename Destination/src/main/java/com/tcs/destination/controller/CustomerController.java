@@ -74,13 +74,24 @@ public class CustomerController {
 			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/id=" + customerId
 				+ " GET");
-		CustomerMasterT customer = customerService.findById(customerId,
-				currency);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				customer);
+		String response = null;
+		CustomerMasterT customer;
+		try {
+			customer = customerService.findById(customerId,
+					currency);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					customer);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the customer details for the customer id :" + customerId);
+		}
+		return response;
 	}
 
 	/**
@@ -102,11 +113,11 @@ public class CustomerController {
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer?namewith=" + nameWith
 				+ "and starts with " + startsWith + " GET");
 		PaginatedResponse customers = null;
-
+        try{
 		if (!nameWith.isEmpty()) {
 			customers = customerService.findByNameContaining(nameWith, page,
 					count);
@@ -119,6 +130,13 @@ public class CustomerController {
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customers);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the customer details");
+		}
 
 	}
 
@@ -141,13 +159,24 @@ public class CustomerController {
 			@RequestParam(value = "currency", defaultValue = "INR", required = false) String currency,
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/targetVsActual GET");
-		List<TargetVsActualResponse> tarVsAct = customerService
-				.findTargetVsActual(financialYear, quarter, customerName,
-						currency);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				tarVsAct);
+		String response = null;
+		List<TargetVsActualResponse> tarVsAct;
+		try {
+			tarVsAct = customerService
+					.findTargetVsActual(financialYear, quarter, customerName,
+							currency);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					tarVsAct);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Target vs Actual details");
+		}
+		return response;
 	}
 
 	/**
@@ -164,12 +193,23 @@ public class CustomerController {
 			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/topRevenue GET");
-		List<CustomerMasterT> topRevenueCustomers = customerService
-				.findTopRevenue(financialYear, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
-				view, topRevenueCustomers);
+		String response = null;
+		List<CustomerMasterT> topRevenueCustomers;
+		try {
+			topRevenueCustomers = customerService
+					.findTopRevenue(financialYear, count);
+			response = ResponseConstructors.filterJsonForFieldAndViews(includeFields,
+					view, topRevenueCustomers);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the top revenues");
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/group", method = RequestMethod.GET)
@@ -177,13 +217,24 @@ public class CustomerController {
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/group?nameWith="
 				+ nameWith + " GET");
-		List<CustomerMasterT> customer = (List<CustomerMasterT>) customerService
-				.findByGroupCustomerName(nameWith);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				customer);
+		String response = null;
+		List<CustomerMasterT> customer;
+		try {
+			customer = (List<CustomerMasterT>) customerService
+					.findByGroupCustomerName(nameWith);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					customer);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Group customer name for " + nameWith);
+		}
+		return response;
 	}
 
 	@RequestMapping(value = "/privilege/group", method = RequestMethod.GET)
@@ -191,19 +242,25 @@ public class CustomerController {
 			@RequestParam("nameWith") String nameWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/groupBasedOnPrivilege?nameWith="
 				+ nameWith + " GET");
-
+        try{
 		List<String> groupCustomer = customerService
 				.findByGroupCustomerNameBasedOnPrivilege(nameWith);
 		if (groupCustomer == null || groupCustomer.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Results found for search : " + nameWith);
 		}
-
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+         return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				groupCustomer);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the group customer name based on privileges for " + nameWith);
+		}
 
 	}
 
@@ -212,7 +269,7 @@ public class CustomerController {
 			@RequestParam("downloadCustomers") boolean oppFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		HttpHeaders respHeaders = null;
 		InputStreamResource customerDownloadExcel = null;
 		try {
@@ -226,14 +283,15 @@ public class CustomerController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Customer Master Report Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in downloading the customer details in excel");
 		}
-		return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
-				respHeaders, HttpStatus.OK);
-
 	}
 
 	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
@@ -279,10 +337,10 @@ public class CustomerController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		System.out.println("inside upload of customer controller");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-
+        try{
 		UploadStatusDTO status = customerUploadService.upload(file);
 		if (status != null) {
 			System.out.println(status.isStatusFlag());
@@ -303,6 +361,14 @@ public class CustomerController {
 				"customer_upload_error.xlsx");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in uploading the customer details");
+		}
+
 	}
 
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
@@ -315,14 +381,24 @@ public class CustomerController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside PartnerController /customer/search?name="
 				+ nameWith + "&geograph=" + geography + " GET");
-		PaginatedResponse paginatedResponse = customerService.search(
+		String response = null;
+		PaginatedResponse paginatedResponse;
+		try {
+		paginatedResponse = customerService.search(
 				groupCustomerNameWith, nameWith, geography, displayIOU, page,
 				count);
-
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				paginatedResponse);
+         response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+					paginatedResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the customer details");
+		}
+		return response;
 	}
 }
