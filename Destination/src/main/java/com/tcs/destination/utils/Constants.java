@@ -100,11 +100,14 @@ public class Constants {
 	public static final String REQUEST = "REQUEST";
 	
 	public static final String CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME = "customerSheetTemplate";
+	public static final String CUSTOMER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "customerContactSheetTemplate";
 	public static final String CUSTOMER_MASTER_SHEET_NAME = "Customer Master";
+	public static final String CUSTOMER_CONTACT_SHEET_NAME = "Customer Contact";
 	public static final String FINANCE_MAPPING_SHEET_NAME = "Finance Mappping";
 	public static final String BEACON_MAPPING_SHEET_NAME = "Beacon Mapping";
 	public static final String IOU_CUSTOMER_MAPPING_REF= "IOU Customer Map(Ref)";
-	public static final String IOU_BEACON_MAP_REF= "Beacon Map(Ref)";
+	public static final String CUSTOMER_MASTER_REF="Customer Master(Ref)";
+	public static final String IOU_BEACON_MAP_REF= "IOU Beacon Map(Ref)";
 	
 	// Actual Revenues Data template
 	public static final String ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME = "actualRevenueDataTemplate";
@@ -142,7 +145,9 @@ public class Constants {
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
+	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
+	public static final String PARTNER_MASTER_REF_PARTNER_SHEET_NAME = "Partner Master(Ref)";
 	public static final String PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contacts";
 	
 	// Beacon Data template
