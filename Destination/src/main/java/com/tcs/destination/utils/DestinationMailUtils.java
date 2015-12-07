@@ -929,8 +929,10 @@ public class DestinationMailUtils {
 	 */
 	private void logMailIds(String recipientType, String[] mailIdsArray) {
 		logger.info(recipientType + "Mail Ids : ");
-		for (String id : mailIdsArray) {
-			logger.info(id);
+		if(mailIdsArray!=null){
+			for (String id : mailIdsArray) {
+				logger.info(id);
+			}
 		}
 	}
 
