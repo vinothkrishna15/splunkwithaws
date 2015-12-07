@@ -119,8 +119,11 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
-		logger.debug("Download Header - Attachment : " +"TargetVsActualDetailReport_"+todaysDate+".xlsx");
-		respHeaders.setContentDispositionFormData("attachment","TargetVsActualDetailReport_"+todaysDate+".xlsx");
+		
+		String repName="TargetVsActualDetailReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		logger.debug("Download Header - Attachment : " +repName);
+		respHeaders.setContentDispositionFormData("attachment",repName);
 		logger.debug("targetVsActual Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -158,8 +161,12 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
-		logger.debug("Download Header - Attachment : " +"TargetVsActualSummaryReport_"+todaysDate+".xlsx");
-		respHeaders.setContentDispositionFormData("attachemnt","TargetVsActualSummaryReport_"+todaysDate+".xlsx");
+		
+		String repName="TargetVsActualSummaryReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+		logger.debug("Download Header - Attachment : " +repName);
+		respHeaders.setContentDispositionFormData("attachment",repName);
 		logger.debug("targetVsActual Summary Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -199,8 +206,12 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		String todaysDate=DateUtils.getCurrentDate();
-		logger.debug("Download Header - Attachment : " +"TargetVsActualReport_"+todaysDate+".xlsx");
-		respHeaders.setContentDispositionFormData("attachment","TargetVsActualReport_"+todaysDate+".xlsx");
+		
+		String repName="TargetVsActualReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+		logger.debug("Download Header - Attachment : " +repName);
+		respHeaders.setContentDispositionFormData("attachment",repName);
 		logger.debug("targetVsActual Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -243,8 +254,11 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String todaysDate=DateUtils.getCurrentDate();
-	    logger.debug("Download Header - Attachment : " +"connectDetailedReport_"+todaysDate+".xlsx");
-	    respHeaders.setContentDispositionFormData("attachment", "connectDetailReport_"+todaysDate+".xlsx");
+	    
+	    String repName="connectDetailedReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+	    logger.debug("Download Header - Attachment : " +repName);
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 		logger.debug("Connect Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(connectDetailedReportExcel, respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -287,8 +301,11 @@ public class ReportsController {
 						country, serviceline, userId, fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
-		logger.debug("Download Header - Attachment : "+ "connectSummaryReport_"+todaysDate+".xlsx");
-		respHeaders.setContentDispositionFormData("attachment","connectSummaryReport_"+todaysDate+".xlsx");
+		
+		String repName="connectSummaryReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		logger.debug("Download Header - Attachment : "+ repName);
+		respHeaders.setContentDispositionFormData("attachment",repName);
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		logger.debug("Connect Summary Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(
@@ -333,8 +350,12 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String todaysDate=DateUtils.getCurrentDate();
-	    logger.debug("Download Header - Attachment : " +" connectReport_"+todaysDate+".xlsx");
-	    respHeaders.setContentDispositionFormData("attachment", "connectReport_"+todaysDate+".xlsx");
+	    
+	    String repName="connectReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+	    logger.debug("Download Header - Attachment : " +repName);
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 		logger.debug("Connect Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(connectReportExcel, respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -381,8 +402,12 @@ public class ReportsController {
 		InputStreamResource bidReportExcel = reportsService.getBidReport(year, fromMonth, toMonth,bidOwner,currency,iou, geography, country,serviceline,userId,fields);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate=DateUtils.getCurrentDate();
-		logger.debug("Download Header - Attachment : " + "bidDetailsReport_"+todaysDate+".xlsx");
-	    respHeaders.setContentDispositionFormData("attachment", "bidDetailsReport_"+todaysDate+".xlsx");
+		
+		 String repName="bidDetailsReport_"+todaysDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+		logger.debug("Download Header - Attachment : " + repName);
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		logger.debug("Bid Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(bidReportExcel, respHeaders,HttpStatus.OK);
@@ -420,7 +445,11 @@ public class ReportsController {
 		String toDate=DateUtils.getCurrentDate();
 		InputStreamResource opportunityDetailedReportExcel = reportsService.getOpportunitiesWith(month,  quarter, year, geography, country, iou, serviceline,salesStage, currency,userId,fields,toDate);
 		HttpHeaders respHeaders = new HttpHeaders();
-	    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
+		
+		String repName="OpportunityReport_"+toDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    logger.debug("Connect Detailed Report Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(opportunityDetailedReportExcel, respHeaders,HttpStatus.OK);
@@ -468,8 +497,12 @@ public class ReportsController {
 			country, iou, currency, serviceline, salesStage,userId);
 	HttpHeaders respHeaders = new HttpHeaders();
 	String toDate=DateUtils.getCurrentDate();
+	
+	String repName="OpportunityReport_"+toDate+".xlsx";
+	respHeaders.add("reportName", repName);
+	
 	  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
+    respHeaders.setContentDispositionFormData("attachment", repName);
 	return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
     } catch (DestinationException e) {
 		throw e;
@@ -501,7 +534,11 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String toDate=DateUtils.getCurrentDate();
-	    respHeaders.setContentDispositionFormData("attachment", "OpportunityReport_"+toDate+".xlsx");
+	    
+	    String repName="OpportunityReport_"+toDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 		}
 		catch (DestinationException e) {
@@ -551,7 +588,11 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		  String toDate=DateUtils.getCurrentDate();
-	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceDetailedReport_"+toDate+".xlsx");
+		  
+		  String repName="BdmPerformanceDetailedReport_"+toDate+".xlsx";
+		  respHeaders.add("reportName", repName);
+			
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
@@ -595,6 +636,10 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 	    respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 	    String toDate=DateUtils.getCurrentDate();
+	    
+	    String repName="BdmPerformanceSummaryReport_"+toDate+".xlsx";
+		respHeaders.add("reportName", repName);
+		  
 	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceSummaryReport_"+toDate+".xlsx");
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -643,7 +688,11 @@ public class ReportsController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		  respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		  String toDate=DateUtils.getCurrentDate();
-	    respHeaders.setContentDispositionFormData("attachment", "BdmPerformanceReport_"+toDate+".xlsx");
+		  
+		  String repName="BdmPerformanceReport_"+toDate+".xlsx";
+		  respHeaders.add("reportName", repName);
+			
+	    respHeaders.setContentDispositionFormData("attachment", repName);
 		return new ResponseEntity<InputStreamResource>(inputStreamResource,respHeaders,HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
