@@ -48,47 +48,75 @@ public class PartnerDownloadService
 {
 	@Autowired
 	PartnerRepository partnerRepository;
-	
+
 	@Autowired
-    CommonWorkbookSheetsForDownloadServices commonWorkbookSheets;
-	
+	CommonWorkbookSheetsForDownloadServices commonWorkbookSheets;
+
 	@Autowired
-    ContactRepository contactRepository;
-	
+	ContactRepository contactRepository;
+
 	private static final Logger logger = LoggerFactory.getLogger(PartnerDownloadService .class);
-	
-	public InputStreamResource getPartners() throws Exception 
+
+	public InputStreamResource getPartners(boolean oppFlag) throws Exception 
 	{
-	    logger.info("Inside getPartners() method"); 
+		logger.info("Inside getPartners() method"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
 		{
-           workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-        		Constants.APPLICATION_PROPERTIES_FILENAME, 
-			    Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
-		
-            // Populate Partner Master Sheet
-		    populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
-		    
-		    // Populate Partner Contacts Sheet
-		    populateContactSheets(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));
-		    
-            ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-	        workbook.write(byteOutPutStream);
-	        byteOutPutStream.flush();
-	        byteOutPutStream.close();
-	        byte[] bytes = byteOutPutStream.toByteArray();
-	        inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
-	   } 
-	catch (Exception e) 
-	   {
-	    e.printStackTrace();
-	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
-	   }
+			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
+					Constants.APPLICATION_PROPERTIES_FILENAME, 
+					Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			// Populate Partner Master Sheet
+			if(oppFlag)
+				populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
+
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
+		}
 		return inputStreamResource;
 	}
 
+	public InputStreamResource getPartnerContacts(boolean oppFlag) throws Exception 
+	{
+		logger.info("Inside getPartnerscontacts() method"); 
+		Workbook workbook = null;
+		InputStreamResource inputStreamResource = null;
+		try 
+		{
+			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
+					Constants.APPLICATION_PROPERTIES_FILENAME, 
+					Constants.PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			// Populate Partner Contacts Sheet
+			if(oppFlag){
+				populateContactSheets(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));
+			}
+			// Populate Partner Master Sheet  
+			populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_MASTER_REF_PARTNER_SHEET_NAME));
+
+			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+			workbook.write(byteOutPutStream);
+			byteOutPutStream.flush();
+			byteOutPutStream.close();
+			byte[] bytes = byteOutPutStream.toByteArray();
+			inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
+		}
+		return inputStreamResource;
+	}
 	/**
 	 * This Method Writes partner names into the workbook
 	 * 
@@ -97,70 +125,70 @@ public class PartnerDownloadService
 	{
 		//Get the Partner Master Sheet From Workbook
 		logger.info("Populating Partner Master Sheet"); 
-		
-		
+
+
 		int currentRow = 1; // Excluding the header, header starts with index 0
-		
+
 		List<Object[]> partnerMasterNamesList=partnerRepository.getPartnerNameAndGeography();
 		for(Object[] partnerName:partnerMasterNamesList){
-			
+
 			Row row = partnerSheet.createRow(currentRow);
-			
+
 			// Get Cell and set cell value
 			row.createCell(2).setCellValue(partnerName[0].toString());
 			row.createCell(3).setCellValue(partnerName[1].toString());
-			
+
 			// Increment row counter
 			currentRow++;
 		}
 	}
-	
-	   /**
-     * This method populates the partner contacts sheet 
-     * 
-     * @param partnerContactSheet
-     */
-    public void populateContactSheets(Sheet partnerContactSheet) throws Exception
-    {
 
-	List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
+	/**
+	 * This method populates the partner contacts sheet 
+	 * 
+	 * @param partnerContactSheet
+	 */
+	public void populateContactSheets(Sheet partnerContactSheet) throws Exception
+	{
 
-	if(listOfContact!=null) {
-	int rowCountPartnerSheet = 1; // Excluding the header, header starts with index 0
-	for (ContactT ct : listOfContact) {
-	    
-	    if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
-		    (ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Partner Contact
-		    
-		    // Create row with rowCount
-		    Row row = partnerContactSheet.createRow(rowCountPartnerSheet);
+		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
-		    // Create new Cell and set cell value
-		    Cell cellPartnerName = row.createCell(1);
-		    try {
-			cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
-		    } catch(NullPointerException npe){
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
-		    }
-		    
-		    Cell cellPartnerContactName = row.createCell(2);
-		    cellPartnerContactName.setCellValue(ct.getContactName());
-		    
-		    Cell cellPartnerContactRole = row.createCell(3);
-		    cellPartnerContactRole.setCellValue(ct.getContactRole());
-		    
-		    Cell cellPartnerContactEmailId = row.createCell(4);
-		    if(ct.getContactEmailId()!=null) {
-			cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
-		    }
+		if(listOfContact!=null) {
+			int rowCountPartnerSheet = 1; // Excluding the header, header starts with index 0
+			for (ContactT ct : listOfContact) {
 
-		    // Increment row counter for partner contact sheet
-		    rowCountPartnerSheet++;
-	    
-	    }
+				if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
+						(ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Partner Contact
+
+					// Create row with rowCount
+					Row row = partnerContactSheet.createRow(rowCountPartnerSheet);
+
+					// Create new Cell and set cell value
+					Cell cellPartnerName = row.createCell(1);
+					try {
+						cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
+					} catch(NullPointerException npe){
+						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
+					}
+
+					Cell cellPartnerContactName = row.createCell(2);
+					cellPartnerContactName.setCellValue(ct.getContactName());
+
+					Cell cellPartnerContactRole = row.createCell(3);
+					cellPartnerContactRole.setCellValue(ct.getContactRole());
+
+					Cell cellPartnerContactEmailId = row.createCell(4);
+					if(ct.getContactEmailId()!=null) {
+						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
+					}
+
+					// Increment row counter for partner contact sheet
+					rowCountPartnerSheet++;
+
+				}
+			}
+		}
+
 	}
-	}
-
-    }
 
 }

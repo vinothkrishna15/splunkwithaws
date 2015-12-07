@@ -114,10 +114,11 @@ public class PartnerController {
 }
 	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner() throws Exception 
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner(
+			@RequestParam("downloadPartners") boolean oppFlag) throws Exception 
 	{
 		logger.info("Download request Received : docName ");
-		InputStreamResource excelFile = partnerDownloadService.getPartners();
+		InputStreamResource excelFile = partnerDownloadService.getPartners(oppFlag);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate = DateUtils.getCurrentDate();
 		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
@@ -126,6 +127,24 @@ public class PartnerController {
 		logger.info("Download Header - Attachment : " + "PartnerMaster&ContactDownload_" + todaysDate_formatted + ".xlsm");
 		respHeaders.setContentDispositionFormData("attachment", "PartnerMaster&ContactDownload_" + todaysDate_formatted + ".xlsm");
 		logger.info("PartnerMaster & Contact Downloaded Successfully ");
+		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
+		
+	}
+	
+	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartnerContacts(
+			@RequestParam("downloadPartnerContacts") boolean oppFlag) throws Exception 
+	{
+		logger.info("Download request Received : docName ");
+		InputStreamResource excelFile = partnerDownloadService.getPartnerContacts(oppFlag);
+		HttpHeaders respHeaders = new HttpHeaders();
+		String todaysDate = DateUtils.getCurrentDate();
+		String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+		respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+		
+		logger.info("Download Header - Attachment : " + "PartnerContactDownload_" + todaysDate_formatted + ".xlsm");
+		respHeaders.setContentDispositionFormData("attachment", "PartnerContactDownload_" + todaysDate_formatted + ".xlsm");
+		logger.info("Partner Contact Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
 		
 	}

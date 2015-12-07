@@ -79,9 +79,11 @@ public class ResponseConstructors {
 					Constants.FILTER, SimpleBeanPropertyFilter
 							.filterOutAllExcept(filterProperties));
 			try {
-				return mapper.writer(filters).writeValueAsString(object);
-			} catch (IOException e) {
-				e.printStackTrace();
+				
+				String response = mapper.writer(filters).writeValueAsString(object);
+				logger.info("Response Constructor : Serialized - " + object.toString());
+				return response;
+			} catch (Exception e) {
 				return e.getMessage();
 			}
 

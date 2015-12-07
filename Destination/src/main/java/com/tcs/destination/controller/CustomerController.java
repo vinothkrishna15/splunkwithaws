@@ -294,6 +294,35 @@ public class CustomerController {
 		}
 	}
 
+	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadCustomerContacts(
+			@RequestParam("downloadCustomerContacts") boolean oppFlag,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		HttpHeaders respHeaders = null;
+		InputStreamResource customerDownloadExcel = null;
+		try {
+			customerDownloadExcel = customerDownloadService.getCustomerContacts(oppFlag);
+			respHeaders = new HttpHeaders();
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+			respHeaders.setContentDispositionFormData("attachment",
+					"CustomerContactDownload_" + todaysDate_formatted
+							+ ".xlsm");
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Customer Contact Report Downloaded Successfully ");
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+		return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
+				respHeaders, HttpStatus.OK);
+
+	}
+
 	/**
 	 * This controller uploads the Customers to the database
 	 * 

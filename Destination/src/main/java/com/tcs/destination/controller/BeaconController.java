@@ -90,6 +90,7 @@ public class BeaconController {
 				errorDetailsDTOs = status.getListOfErrors();
 			}
 
+			
 			InputStreamResource excelFile = uploadErrorReport
 					.getErrorSheet(errorDetailsDTOs);
 			HttpHeaders respHeaders = new HttpHeaders();

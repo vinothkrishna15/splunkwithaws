@@ -29,6 +29,7 @@
 	<import resource="/jobs/opportunityDownload-job.xml"/>
 	<import resource="/jobs/actualRevenueDownload-job.xml"/>
 	<import resource="/jobs/opportunityDailyDownload-job.xml"/>
+	<import resource="/jobs/partnerUpload-job.xml"/>
 	
 </beans>
 	
