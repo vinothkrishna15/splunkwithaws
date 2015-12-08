@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.UnAuthorizedException;
 
 @Service
@@ -31,9 +34,15 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		try {
 			logger.info("Inside user detail service");
 			user = userRepository.findByUserName(userName);
-		} catch (Exception e) {
+		} catch (EmptyResultDataAccessException e) {
 			logger.error("No Such User: " + userName);
 			throw new UnAuthorizedException();
+		} catch (IncorrectResultSizeDataAccessException e) {
+			logger.error("More than one user found for the user name: " + userName);
+			throw new DestinationException("More than one user found for the user name: " + userName);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(e.getMessage());
 		}
 
 		if (user == null) {

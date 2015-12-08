@@ -81,10 +81,11 @@ public class ConnectController {
 			throws DestinationException {
 		logger.debug("Inside ConnectController /connect/id=" + connectId
 				+ " GET");
+		logger.info("Start of retrieving Connects by Connect id");
 		ConnectT connect;
 		try {
 			connect = connectService.findConnectById(connectId);
-		
+			logger.info("End of retrieving Connects by Connect id");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					connect);
 		} catch (DestinationException e) {
@@ -116,10 +117,12 @@ public class ConnectController {
 			throws DestinationException {
 		logger.debug("Inside ConnectController /connect?nameWith="
 				+ connectName + " GET");
+		logger.info("Start of retrieving Connects by Connect name");
 		try{
 		PaginatedResponse paginatedConnect = connectService
 				.searchforConnectsByNameContaining(connectName, customerId,
 						page, count);
+		logger.info("End of retrieving Connects by Connect name");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				paginatedConnect);
 		} catch (DestinationException e) {
@@ -157,6 +160,7 @@ public class ConnectController {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ConnectController /connect/date?from=" + fromDate
 				+ "&to=" + toDate + "GET");
+		logger.info("Start of retrieving Connects by Date range");
 		if (weekStartDate.getTime() == weekEndDate.getTime()
 				&& monthStartDate.getTime() == monthEndDate.getTime()) {
 			List<ConnectT> connects = connectService
@@ -171,6 +175,7 @@ public class ConnectController {
 							userId, owner, customerId, partnerId,
 							weekStartDate, weekEndDate, monthStartDate,
 							monthEndDate);
+			logger.info("End of retrieving Connects by Date range");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, dashBoardConnectsResponse);
 		}
@@ -183,11 +188,18 @@ public class ConnectController {
 		}
 
 	}
-
+    
+	/**
+	 * This method is used to add a new Connect
+	 * @param connect
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToConnect(
 			@RequestBody ConnectT connect) throws DestinationException {
 		logger.debug("Connect Insert Request Received /connect POST");
+		logger.info("Start of creating Connect");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -195,6 +207,7 @@ public class ConnectController {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
 			}
+			logger.info("End of creating Connect");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -207,17 +220,25 @@ public class ConnectController {
 		}
 		
 	}
-
+    
+	/**
+	 * This Method is used to edit the connect details
+	 * @param connect
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editConnect(
 			@RequestBody ConnectT connect) throws DestinationException {
 		logger.debug("Connect Edit Request Received /connect PUT");
+		logger.info("Start of Edit Connect");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (connectService.updateConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 			}
+			logger.info("End of Edit Connect");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -265,12 +286,14 @@ public class ConnectController {
 
 		logger.debug("Inside ConnectController /connect/team?from=" + fromDate
 				+ "&to=" + toDate + "&supervisorId " + supervisorId + "GET");
+		logger.info("Start of retrieving Team connects");
 		try{
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 		// Calling the service method
 		dashBoardConnectsResponse = connectService.getTeamConnects(
 				supervisorId, fromDate, toDate, role, weekStartDate,
 				weekEndDate, monthStartDate, monthEndDate);
+		logger.info("End of retrieving Team connects");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						dashBoardConnectsResponse), HttpStatus.OK);
@@ -283,7 +306,15 @@ public class ConnectController {
 					"Backend error while retrieving Team connects details");
 		}
 	}
-
+    
+	/**
+	 * This Controller uploads the connect to the database.
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
 			@RequestParam("file") MultipartFile file,
@@ -292,6 +323,7 @@ public class ConnectController {
 			throws DestinationException {
 		
 		logger.debug("Upload request Received : docName ");
+		logger.info("Start of Connect upload");
 		UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		try {
@@ -315,6 +347,7 @@ public class ConnectController {
 						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment",
 				"upload_error.xlsx");
+		logger.info("End of Connect upload");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -342,7 +375,7 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "status", defaultValue = "ALL") String status,
 			@RequestParam("fy") String financialYear) throws DestinationException {
-
+		logger.info("Start of retrieving all Connects for Dashboard");
 		List<ConnectT> listOfConnects = null;
 		try {
 			listOfConnects = connectService.getAllConnectsForDashbaord(status,
@@ -351,7 +384,7 @@ public class ConnectController {
 				logger.error("NOT_FOUND : No Connects found for the status {} and FY {}", status, financialYear);
 				throw new DestinationException(HttpStatus.NOT_FOUND, "No Connects found for the status " + status + " and FY " + financialYear);
 			}
-
+			logger.info("End of retrieving all Connects for Dashboard");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 							listOfConnects), HttpStatus.OK);
@@ -383,6 +416,7 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.debug("Inside ConnectService /name GET");
+		logger.info("Start of Connect Name or keyword search");
 		List<ConnectNameKeywordSearch> searchResults = null;
 
 		try{
@@ -394,7 +428,7 @@ public class ConnectController {
 						"No Results found for name " + name + " and keyword "
 								+ keyword);
 			}
-
+			logger.info("End of Connect Name or keyword search");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					searchResults);
 		} catch (DestinationException e) {
@@ -417,6 +451,7 @@ public class ConnectController {
 			@RequestParam("downloadConnects") boolean oppFlag) throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Download request Received : docName ");
+		logger.info("Start of Connect Download");
 		try{
 		InputStreamResource excelFile = connectDownloadService
 				.getConnects(userId,oppFlag);
@@ -431,6 +466,7 @@ public class ConnectController {
 		respHeaders.setContentDispositionFormData("attachment",
 				"ConnectDownload_" + todaysDate_formatted + ".xlsm");
 		logger.debug("Connect Downloaded Successfully ");
+		logger.info("End of Connect Download");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -457,8 +493,10 @@ public class ConnectController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.debug("Inside ConnectController /connect/id=" + connectIds + " GET");
+		logger.info("Start of retrieving Connects by list of connect id's");
 		try{
 			List<ConnectT> connectList = connectService.getConnectsByConnetIds(connectIds);
+			logger.info("End of retrieving Connects by list of connect id's");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, connectList);
 		} catch (DestinationException e) {
 			throw e;

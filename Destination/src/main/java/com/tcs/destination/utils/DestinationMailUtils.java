@@ -15,6 +15,7 @@ import static com.tcs.destination.utils.Constants.CUSTOMER_CONTACT_UPLOAD_SUBJEC
 import static com.tcs.destination.utils.Constants.CUSTOMER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_SUBJECT;
@@ -27,7 +28,6 @@ import static com.tcs.destination.utils.Constants.PARTNER_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
-import static com.tcs.destination.utils.Constants.OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -48,6 +48,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailParseException;
+import org.springframework.mail.MailPreparationException;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -423,6 +427,18 @@ public class DestinationMailUtils {
 					subject.toString(), text);
 			mailSender.send(automatedMIMEMessage);
 			status = true;
+		} catch (MailSendException e) {
+			logger.error("Error sending mail message", e.getMessage());
+			status = false;
+		} catch (MailParseException e) {
+			logger.error("Error parsing mail message", e.getMessage());
+			status = false;
+		} catch (MailAuthenticationException e) {
+			logger.error("Error authnticatingh e-mail message", e.getMessage());
+			status = false;
+		} catch (MailPreparationException e) {
+			logger.error("Error preparing mail message", e.getMessage());
+			status = false;
 		} catch (Exception e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
@@ -903,8 +919,6 @@ public class DestinationMailUtils {
 		logMailIds("CC ", ccMailIdsArray);
 		logMailIds("BCC ", bccMailIdsArray);
 		logger.info("Subject " + subject);
-		System.out.print("Message ");
-		System.out.println(content);
 	}
 
 	/**
@@ -913,8 +927,10 @@ public class DestinationMailUtils {
 	 */
 	private void logMailIds(String recipientType, String[] mailIdsArray) {
 		logger.info(recipientType + "Mail Ids : ");
-		for (String id : mailIdsArray) {
-			logger.info(id);
+		if(mailIdsArray!=null){
+			for (String id : mailIdsArray) {
+				logger.info(id);
+			}
 		}
 	}
 

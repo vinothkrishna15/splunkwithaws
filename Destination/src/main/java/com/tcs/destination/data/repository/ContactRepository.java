@@ -48,4 +48,10 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	@Query(value ="select * from contact_t where partner_id=?1 and contact_category='PARTNER'",nativeQuery = true)
 	List<ContactT> findByPartnerId(String partnerId);
+	
+	@Query(value ="select * from contact_t where contact_category='CUSTOMER'",nativeQuery = true)
+	List<ContactT> getAllCustomerContacts();
+	
+	@Query(value ="select * from contact_t where contact_category='PARTNER'",nativeQuery = true)
+	List<ContactT> getAllPartnerContacts();
 }

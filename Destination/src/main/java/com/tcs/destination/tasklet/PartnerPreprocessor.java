@@ -1,9 +1,9 @@
 package com.tcs.destination.tasklet;
 
-import static com.tcs.destination.enums.JobStep.OPPORTUNITY_PROCESSING;
+import static com.tcs.destination.enums.JobStep.PARTNER_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
 import static com.tcs.destination.enums.RequestStatus.VERIFIED;
-import static com.tcs.destination.enums.RequestType.OPPORTUNITY_UPLOAD;
+import static com.tcs.destination.enums.RequestType.PARTNER_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
 import static com.tcs.destination.utils.Constants.REQUEST;
@@ -24,11 +24,13 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 
-@Component("opportunityUploadPreprocessor")
-public class OpportunityUploadPreprocessor implements Tasklet{
+
+
+@Component("partnerPreprocessor")
+public class PartnerPreprocessor implements Tasklet{
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(OpportunityUploadPreprocessor.class);
+			.getLogger(PartnerPreprocessor.class);
 	
 	private List<DataProcessingRequestT> requestList = null;
 	
@@ -42,7 +44,7 @@ public class OpportunityUploadPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(OPPORTUNITY_UPLOAD.getType(), VERIFIED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(PARTNER_UPLOAD.getType(), VERIFIED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
@@ -54,7 +56,7 @@ public class OpportunityUploadPreprocessor implements Tasklet{
 		   
 		    jobContext.put(FILE_PATH,filePath);
 		    jobContext.put(REQUEST,request);
-		    jobContext.put(NEXT_STEP, OPPORTUNITY_PROCESSING);
+		    jobContext.put(NEXT_STEP, PARTNER_PROCESSING);
 			
 		} else {
 			 jobContext.put(NEXT_STEP, END);

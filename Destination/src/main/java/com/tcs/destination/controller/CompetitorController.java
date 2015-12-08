@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CompetitorService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.utils.Constants;
@@ -33,11 +35,23 @@ public class CompetitorController {
 	public @ResponseBody String findNameWith(
 			@RequestParam("nameWith") String chars,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
 		logger.debug("Inside CompetitorController /competitor?namewith="+chars+" GET");
-		List<CompetitorMappingT> compList = compService
-				.findByNameContaining(chars);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, compList);
+		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
+		List<CompetitorMappingT> compList;
+		try {
+			compList = compService
+					.findByNameContaining(chars);
+			logger.info("Inside CompetitorController : End of retrieving the competitor list");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, compList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the competitor name for : " + chars);
+		}
+		
 	}
 
 }

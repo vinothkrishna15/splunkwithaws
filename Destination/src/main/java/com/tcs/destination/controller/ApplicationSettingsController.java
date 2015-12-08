@@ -36,30 +36,45 @@ public class ApplicationSettingsController {
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside ApplicationSettingsController /appsettings GET");
-		List<ApplicationSettingsT> applicationSettingsTs = (List<ApplicationSettingsT>) applicationSettingsService
-				.findAll();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				applicationSettingsTs);
+		logger.info("Inside ApplicationSettingsController : Start of retrieving Application settings");
+		try {
+			List<ApplicationSettingsT> applicationSettingsTs = (List<ApplicationSettingsT>) applicationSettingsService
+					.findAll();
+			logger.info("Inside ApplicationSettingsController : End of retrieving application settings");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, applicationSettingsTs);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the application settings");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editSettings(
 			@RequestBody List<ApplicationSettingsT> applicationSettingsTs)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Inside ApplicationSettingsController : Start of Edit Application settings ");
 		Status status = new Status();
 		try {
 			applicationSettingsService.edit(applicationSettingsTs);
+			status.setStatus(Status.SUCCESS,
+					"Application Settings updated successfully");
+			logger.info("Inside ApplicationSettingsController : End of Edit Application settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error in editing the application settings");
 		}
-		status.setStatus(Status.SUCCESS,
-				"Application Settings updated successfully");
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
 	}
 
 }
