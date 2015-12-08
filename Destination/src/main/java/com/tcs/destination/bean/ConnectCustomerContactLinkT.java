@@ -81,8 +81,20 @@ public class ConnectCustomerContactLinkT implements Serializable {
 
 	//bi-directional many-to-one association to ContactT
 	@ManyToOne
-	@JoinColumn(name="contact_id")
+	@JoinColumn(name="contact_id",insertable=false,updatable=false)
 	private ContactT contactT;
+	
+	@Column(name="contact_id")
+	private String contactId;
+
+	public String getContactId() {
+		return contactId;
+	}
+
+	public void setContactId(String contactId) {
+		this.contactId = contactId;
+	}
+	
 
 	public ConnectCustomerContactLinkT() {
 	}
