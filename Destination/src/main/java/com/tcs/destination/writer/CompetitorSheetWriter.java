@@ -92,9 +92,7 @@ public class CompetitorSheetWriter implements ItemWriter<String>,
 				workbook = new XSSFWorkbook(fileInputStream);
 			}
 
-//			sheet = workbook
-//					.getSheet(Constants.OPPORTUNITY_TEMPLATE_COMPETITOR_SHEET_NAME);
-			sheet = workbook.getSheet("Competitor Master(Ref)");
+			sheet = workbook.getSheet(Constants.OPPORTUNITY_TEMPLATE_COMPETITOR_SHEET_NAME);
 		}
 
 		if (items != null) {
