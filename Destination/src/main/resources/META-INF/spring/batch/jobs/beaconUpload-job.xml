@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="beaconUpload">
+		<batch:step id="beaconUploadPreprocess" next="decider">
+			<batch:tasklet ref="beaconPreprocessor"/>
+		</batch:step>
+		
+		<batch:step id="beaconProcessing" next="beaconUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="spreadSheetReader" writer="beaconWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="decider" decider="beaconFlowdecider">
+              <batch:next on="PREPROCESS" to="beaconUploadPreprocess" />
+              <batch:next on="BEACON_PROCESSING" to="beaconProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="spreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Beacon - DATA"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="beaconWriter" class="com.tcs.destination.writer.BeaconCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="beaconUploadHelper"/>
+		<property name="beaconDataService" ref="beaconDataService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="beaconDataTRepository" ref="beaconDataTRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="beaconFlowdecider" class="com.tcs.destination.decider.BeaconDecider" />
+	
+	<!-- scheduler  -->
+	<bean id="beaconUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="beaconUpload"/>
+	</bean>
+	
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="beaconUploadScheduler" method="run" cron="${beacon.upload.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	
