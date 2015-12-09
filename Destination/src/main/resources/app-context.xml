@@ -125,4 +125,9 @@
 	
 	<import resource="/META-INF/spring/batch/batch-jobs.xml"/>
 	
+	<bean id="jobRegistryBeanPostProcessor"
+		class="org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor">
+		<property name="jobRegistry" ref="jobRegistry" />
+	</bean>
+	
 </beans>
