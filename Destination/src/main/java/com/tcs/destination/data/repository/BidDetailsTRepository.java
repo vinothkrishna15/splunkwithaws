@@ -43,5 +43,9 @@ public interface BidDetailsTRepository extends
 
 	@Query(value = "select bid_request_type from bid_request_type_mapping_t", nativeQuery = true)
 	List<String> getBidRequestType();
+
+	List<BidDetailsT> findByOpportunityId(String opportunityId);
+
+	
 	
 }
