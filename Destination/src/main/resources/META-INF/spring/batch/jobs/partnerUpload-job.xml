@@ -49,16 +49,7 @@
 	<!-- Decider -->
     <bean id="partnerFlowdecider" class="com.tcs.destination.decider.PartnerDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="partnerUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="partnerUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
-	<task:scheduled-tasks>
-        <task:scheduled ref="partnerUploadScheduler" method="run" cron="${partner.upload.job.cron}"/>
-    </task:scheduled-tasks> 
-
 </beans>
 	

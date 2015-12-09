@@ -49,16 +49,7 @@
 	<!-- Decider -->
     <bean id="beaconFlowdecider" class="com.tcs.destination.decider.BeaconDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="beaconUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="beaconUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
-	<task:scheduled-tasks>
-        <task:scheduled ref="beaconUploadScheduler" method="run" cron="${beacon.upload.job.cron}"/>
-    </task:scheduled-tasks> 
-
 </beans>
 	
