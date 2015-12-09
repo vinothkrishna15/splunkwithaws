@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconDataT;
+import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.exception.DestinationException;
@@ -24,10 +27,9 @@ public class BeaconDataService {
 	
 	@Autowired
 	BeaconDataTRepository beaconDataTRepository;
-
-
-
-		// TODO Auto-generated method stub
+	
+	
+        // TODO Auto-generated method stub
 		/**
 		 * This method inserts Beacon customers to the database
 		 * @param beaconCustomerToInsert
@@ -61,6 +63,24 @@ public class BeaconDataService {
 				logger.info("Beacon Saved .... "+ "beacon primary key" + BeaconDataT.getBeaconDataId());
 			}
 			return BeaconDataT;
+		}
+		
+		/** 
+		 * To insert beacon data into beacon_data_t
+		 * @param insertList
+		 * @throws Exception
+		 */
+		public void save(List<BeaconDataT> insertList) throws Exception 
+		{
+			if( !insertList.isEmpty())
+			{
+			   beaconDataTRepository.save(insertList);
+			}
+			else
+			{
+				logger.debug("No Beacon Data To Insert");
+			}
+			logger.debug("Beacon Saved...!");
 		}
 	}
 

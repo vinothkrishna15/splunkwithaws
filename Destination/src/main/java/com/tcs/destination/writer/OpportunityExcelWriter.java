@@ -19,6 +19,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
@@ -35,7 +36,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
 public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
-		StepExecutionListener {
+		StepExecutionListener, ItemWriteListener<OpportunityT> {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityExcelWriter.class);
@@ -242,6 +243,23 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 	public void setOpportunityDownloadHelper(
 			OpportunityDownloadHelper opportunityDownloadHelper) {
 		this.opportunityDownloadHelper = opportunityDownloadHelper;
+	}
+
+	@Override
+	public void beforeWrite(List<? extends OpportunityT> items) {
+	}
+
+	@Override
+	public void afterWrite(List<? extends OpportunityT> items) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onWriteError(Exception exception,
+			List<? extends OpportunityT> items) {
+		logger.error(exception.getMessage());
+
 	}
 
 }

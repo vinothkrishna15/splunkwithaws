@@ -20,8 +20,8 @@
 	<import resource="/jobs/userRemindersBidAndTskPstDueSupervisor-job.xml"/>
 	<import resource="/jobs/email-job.xml"/>
 	<import resource="/jobs/connectUpload-job.xml"/>	
-	 <import resource="/jobs/customerUpload-job.xml"/>
-	 <import resource="/jobs/revenueUpload-job.xml"/>
+	<import resource="/jobs/customerUpload-job.xml"/>
+	<import resource="/jobs/revenueUpload-job.xml"/>
 	<import resource="/jobs/maintenance-job.xml"/>	
 	<import resource="/jobs/opportunityUpload-job.xml"/>
 	<import resource="/jobs/customerDownload-job.xml"/>
@@ -32,6 +32,7 @@
 	<import resource="/jobs/opportunityDailyDownload-job.xml"/>
 	<import resource="/jobs/partnerDownload-job.xml"/>
 	<import resource="/jobs/partnerUpload-job.xml"/>
+	<import resource="/jobs/beaconUpload-job.xml"/>
 	
 </beans>
 	
