@@ -18,5 +18,5 @@ public interface SearchKeywordsRepository extends
 	List<String> findKeywordsWithNameContaining(String keyword);
 	
 	
-	List<String> findSearchKeywordsByEntityTypeAndEntityId(String entityType, String entityId);
+	
 }

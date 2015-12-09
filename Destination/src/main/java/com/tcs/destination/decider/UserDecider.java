@@ -27,8 +27,8 @@ public class UserDecider implements JobExecutionDecider {
 		
 		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.USER_DWLD_PROCESSING)) {
 			status = new FlowExecutionStatus(JobStep.USER_DWLD_PROCESSING.name());
-        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
-        	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.USER_DWLD_PREPROCESS)) {
+        	status = new FlowExecutionStatus(JobStep.USER_DWLD_PREPROCESS.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());
