@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="revenueUpload">
-	<batch:step id="revenueUploadPreprocess" next="decider">
+	<batch:step id="revenueUploadPreprocess" next="revenueStepDecider">
 			<batch:tasklet ref="revenuePreprocessor"/>
 		</batch:step>
 	
@@ -22,9 +22,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		
-		
-		 <batch:decision id="decider" decider="revenueFlowdecider">
+		 <batch:decision id="revenueStepDecider" decider="revenueFlowdecider">
               <batch:next on="PREPROCESS" to="revenueUploadPreprocess" />
               <batch:next on="REVENUE_PROCESSING" to="revenueProcessing" />
               <batch:end on="END"/>
@@ -50,16 +48,7 @@
 	<!-- Decider -->
     <bean id="revenueFlowdecider" class="com.tcs.destination.decider.RevenueDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="revenueUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="revenueUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
-	
-	<task:scheduled-tasks>
-        <task:scheduled ref="revenueUploadScheduler" method="run" cron="${revenue.upload.job.cron}"/>
-    </task:scheduled-tasks> 
 
 </beans>
 	

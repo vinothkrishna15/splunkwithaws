@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="customerUpload">
-	<batch:step id="customerUploadPreprocess" next="decider">
+	<batch:step id="customerUploadPreprocess" next="customerStepDecider">
 			<batch:tasklet ref="customerPreprocessor"/>
 		</batch:step>
 	
@@ -22,9 +22,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		
-		
-		 <batch:decision id="decider" decider="customerFlowdecider">
+		 <batch:decision id="customerStepDecider" decider="customerFlowdecider">
               <batch:next on="PREPROCESS" to="customerUploadPreprocess" />
               <batch:next on="CUSTOMER_PROCESSING" to="customerProcessing" />
               <batch:end on="END"/>
@@ -50,16 +48,7 @@
 	<!-- Decider -->
     <bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="customerUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="customerUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
-	
-	<task:scheduled-tasks>
-        <task:scheduled ref="customerUploadScheduler" method="run" cron="${customer.upload.job.cron}"/>
-    </task:scheduled-tasks> 
 
 </beans>
 	
