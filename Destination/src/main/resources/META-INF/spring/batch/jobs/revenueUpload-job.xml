@@ -11,8 +11,9 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="revenueUpload">
-	<batch:step id="revenueUploadPreprocess" next="revenueStepDecider">
-			<batch:tasklet ref="revenuePreprocessor"/>
+
+	   <batch:step id="revenueUploadPreprocess" next="revenueDecider">
+         <batch:tasklet ref="revenuePreprocessor"/>
 		</batch:step>
 	
 		<batch:step id="revenueProcessing" next="revenueUploadPreprocess">
@@ -22,7 +23,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="revenueStepDecider" decider="revenueFlowdecider">
+       <batch:decision id="revenueDecider" decider="revenueFlowdecider">
               <batch:next on="PREPROCESS" to="revenueUploadPreprocess" />
               <batch:next on="REVENUE_PROCESSING" to="revenueProcessing" />
               <batch:end on="END"/>

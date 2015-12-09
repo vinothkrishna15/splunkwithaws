@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="customerDownload">
-	<batch:step id="preprocess" next="decider">
+	<batch:step id="preprocess" next="customerDecider">
 			<batch:tasklet ref="customerDwldPreprocessor"/>
 		</batch:step>
 	
@@ -46,7 +46,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="decider" decider="customerFlowdecider">
+		 <batch:decision id="customerDecider" decider="customerFlowdecider">
               <batch:next on="PREPROCESS" to="preprocess" />
               <batch:next on="CUSTOMER_DWLD_PROCESSING" to="customerDwldProcessing" />
               <batch:end on="END"/>

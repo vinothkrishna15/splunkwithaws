@@ -11,8 +11,9 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="connectUpload">
-		<batch:step id="connectUploadPreprocess" next="connectStepDecider">
-			<batch:tasklet ref="connectPreprocessor"/>
+
+		<batch:step id="connectUploadPreprocess" next="connectDecider">
+          <batch:tasklet ref="connectPreprocessor"/>
 		</batch:step>
 		
 		<batch:step id="connectProcessing" next="connectUploadPreprocess">
@@ -22,7 +23,8 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="connectStepDecider" decider="connectFlowdecider">
+
+		 <batch:decision id="connectDecider" decider="connectFlowdecider">
               <batch:next on="PREPROCESS" to="connectUploadPreprocess" />
               <batch:next on="CONNECT_PROCESSING" to="connectProcessing" />
               <batch:end on="END"/>

@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="beaconUpload">
-		<batch:step id="beaconUploadPreprocess" next="decider">
+		<batch:step id="beaconUploadPreprocess" next="beaconDecider">
 			<batch:tasklet ref="beaconPreprocessor"/>
 		</batch:step>
 		
@@ -22,7 +22,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="decider" decider="beaconFlowdecider">
+		 <batch:decision id="beaconDecider" decider="beaconFlowdecider">
               <batch:next on="PREPROCESS" to="beaconUploadPreprocess" />
               <batch:next on="BEACON_PROCESSING" to="beaconProcessing" />
               <batch:end on="END"/>

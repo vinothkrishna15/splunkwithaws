@@ -11,8 +11,9 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="opportunityUpload">
-		<batch:step id="opportunityUploadPreprocess" next="opportunityStepDecider">
-			<batch:tasklet ref="opportunityUploadPreprocessor"/>
+
+		<batch:step id="opportunityUploadPreprocess" next="opportunityDecider">
+           <batch:tasklet ref="opportunityUploadPreprocessor"/>
 		</batch:step>
 		
 		<batch:step id="opportunityProcessing" next="opportunityUploadPreprocess">
@@ -22,7 +23,8 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="opportunityStepDecider" decider="opportunityFlowdecider">
+
+		 <batch:decision id="opportunityDecider" decider="opportunityFlowdecider">
               <batch:next on="PREPROCESS" to="opportunityUploadPreprocess" />
               <batch:next on="OPPORTUNITY_PROCESSING" to="opportunityProcessing" />
               <batch:end on="END"/>
