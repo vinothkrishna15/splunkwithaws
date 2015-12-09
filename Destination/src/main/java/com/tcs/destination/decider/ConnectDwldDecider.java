@@ -12,10 +12,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
-public class PartnerDecider implements JobExecutionDecider {
+public class ConnectDwldDecider implements JobExecutionDecider {
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(PartnerDecider.class);
+			.getLogger(ConnectDwldDecider.class);
 
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution,
@@ -25,12 +25,10 @@ public class PartnerDecider implements JobExecutionDecider {
 		
 		FlowExecutionStatus status = new FlowExecutionStatus(JobStep.END.name());
 		
-		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PARTNER_PROCESSING)) {
-			status = new FlowExecutionStatus(JobStep.PARTNER_PROCESSING.name());
-        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
-        	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
-        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PARTNER_DWLD_PROCESSING)) {
-        	status = new FlowExecutionStatus(JobStep.PARTNER_DWLD_PROCESSING.name());
+		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.CONNECT_DWLD_PROCESSING)) {
+			status = new FlowExecutionStatus(JobStep.CONNECT_DWLD_PROCESSING.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.CONNECT_DOWNLOAD_PREPROCESS)) {
+        	status = new FlowExecutionStatus(JobStep.CONNECT_DOWNLOAD_PREPROCESS.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());

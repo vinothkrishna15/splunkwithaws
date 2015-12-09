@@ -15,6 +15,7 @@ import static com.tcs.destination.utils.Constants.CUSTOMER_CONTACT_UPLOAD_SUBJEC
 import static com.tcs.destination.utils.Constants.CUSTOMER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.CUSTOMER_UPLOAD_SUBJECT;
+import static com.tcs.destination.utils.Constants.OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.OPPORTUNITY_UPLOAD_SUBJECT;
@@ -27,7 +28,6 @@ import static com.tcs.destination.utils.Constants.PARTNER_UPLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
-import static com.tcs.destination.utils.Constants.OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -919,8 +919,6 @@ public class DestinationMailUtils {
 		logMailIds("CC ", ccMailIdsArray);
 		logMailIds("BCC ", bccMailIdsArray);
 		logger.info("Subject " + subject);
-		System.out.print("Message ");
-		System.out.println(content);
 	}
 
 	/**

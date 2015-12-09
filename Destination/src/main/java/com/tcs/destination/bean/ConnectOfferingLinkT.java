@@ -62,13 +62,26 @@ public class ConnectOfferingLinkT implements Serializable {
 
 	//bi-directional many-to-one association to OfferingMappingT
 	@ManyToOne
-	@JoinColumn(name="offering")
+	@JoinColumn(name="offering",updatable = false,insertable=false)
 	private OfferingMappingT offeringMappingT;
+	
+	@Column(name="offering")
+	private String offering;
 
 //	//bi-directional many-to-one association to UserT
 //	@ManyToOne
 //	@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
 //	private UserT createdModifiedByUser;
+
+	public String getOffering() {
+		return offering;
+	}
+
+	public void setOffering(String offering) {
+		this.offering = offering;
+	}
+
+
 
 	@Column(name="created_datetime",updatable = false)
 	private Timestamp createdDatetime;
