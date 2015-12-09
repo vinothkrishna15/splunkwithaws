@@ -60,10 +60,20 @@ public class PartnerController {
 			@PathVariable("id") String partnerid,
 			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		try {
 		logger.debug("Inside PartnerController /partner/id="+partnerid+" GET");
+		
 		PartnerMasterT partner = partnerService.findById(partnerid, currency);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partner);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while retrieving partner details");
+		}
 	}
 	
 	@RequestMapping(method = RequestMethod.GET)
@@ -73,10 +83,10 @@ public class PartnerController {
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
 		logger.debug("Inside PartnerController /partner?nameWith="+nameWith+" GET");
 		PaginatedResponse partners = null;
-		
+		try {
 		if (!nameWith.isEmpty()) {
 			partners = partnerService.findByNameContaining(nameWith,page,count);
 		} else if (!startsWith.isEmpty()) {
@@ -85,13 +95,22 @@ public class PartnerController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Either nameWith / startsWith is required");
 		}
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, partners);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while retrieving partner details");
+		}
 	}
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> uploadPartner(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		try{
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 //		UploadStatusDTO status = null;
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -110,13 +129,21 @@ public class PartnerController {
 			respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment","upload_error.xlsx");
 	        return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(fields, view,status), HttpStatus.OK);
-
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while uploading partner details");
+		}
 }
 	
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner(
-			@RequestParam("downloadPartners") boolean oppFlag) throws Exception 
+			@RequestParam("downloadPartners") boolean oppFlag) throws DestinationException 
 	{
+		try{
 		logger.info("Download request Received : docName ");
 		InputStreamResource excelFile = partnerDownloadService.getPartners(oppFlag);
 		HttpHeaders respHeaders = new HttpHeaders();
@@ -128,14 +155,23 @@ public class PartnerController {
 		respHeaders.setContentDispositionFormData("attachment", "PartnerMaster&ContactDownload_" + todaysDate_formatted + ".xlsm");
 		logger.info("PartnerMaster & Contact Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while downloading partner details");
+		}
 		
 	}
 	
 	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartnerContacts(
-			@RequestParam("downloadPartnerContacts") boolean oppFlag) throws Exception 
+			@RequestParam("downloadPartnerContacts") boolean oppFlag) throws DestinationException 
 	{
 		logger.info("Download request Received : docName ");
+        try{
 		InputStreamResource excelFile = partnerDownloadService.getPartnerContacts(oppFlag);
 		HttpHeaders respHeaders = new HttpHeaders();
 		String todaysDate = DateUtils.getCurrentDate();
@@ -146,7 +182,14 @@ public class PartnerController {
 		respHeaders.setContentDispositionFormData("attachment", "PartnerContactDownload_" + todaysDate_formatted + ".xlsm");
 		logger.info("Partner Contact Downloaded Successfully ");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders, HttpStatus.OK);
-		
+        } catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while downloading partner contact details");
+		}
 	}
 	
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
@@ -157,13 +200,23 @@ public class PartnerController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+        
 		logger.debug("Inside PartnerController /partner/search?name=" + name
 				+ "&geograph=" + geography + " GET");
+        try {
 		PaginatedResponse paginatedResponse = partnerService.search(name,
 				geography, page, count);
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				paginatedResponse);
+        } catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while retrieving partner details");
+		}
 	}
 }
