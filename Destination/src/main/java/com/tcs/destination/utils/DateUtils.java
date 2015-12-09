@@ -2,6 +2,7 @@ package com.tcs.destination.utils;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ public class DateUtils {
 	
 	private static final SimpleDateFormat commentFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	
+	private static final Format dtBatchFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
 	static {
 		monthMap.put("JAN", Calendar.JANUARY);
@@ -49,6 +52,10 @@ public class DateUtils {
 		monthMap.put("OCT", Calendar.OCTOBER);
 		monthMap.put("NOV", Calendar.NOVEMBER);
 		monthMap.put("DEC", Calendar.DECEMBER);
+	}
+	
+	public static String getCurrentDateForBatch () {
+		return dtBatchFormat.format(new Date());
 	}
 	
 	public static String convertDtToStringForUser(Date date) {
