@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.tcs.destination.enums.JobName;
 
 /**
@@ -25,16 +26,17 @@ public class JobNameDeserializer extends JsonDeserializer<JobName>{
 	
 	public JobName deserialize(final JsonParser parser, final DeserializationContext context) throws IOException, JsonProcessingException
 	{
-	    final String jsonValue = parser.getText();
-	    JobName returnValue = null;
-	    for (final JobName value : JobName.values())
-	    {
-	        if (value.getValue().equals(jsonValue))
-	        {
-	        	returnValue =  value;
-	        }
-	    }
-	    return returnValue;
+		
+		 JsonNode node = parser.getCodec().readTree(parser);
+         String job = node.get("job").asText();
+         
+         for (JobName jobName: JobName.values()) {
+             if (jobName.getJob().equals(job)) {
+                 return jobName;
+             }
+         }
+         throw new IllegalArgumentException("Invalid job name: " + job); 
+	 
 	}
 
 	
