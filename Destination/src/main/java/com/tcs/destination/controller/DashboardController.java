@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
-import com.tcs.destination.bean.LeadershipWinsDTO;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PerformaceChartBean;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
@@ -32,7 +30,7 @@ public class DashboardController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DashboardController.class);
-
+	
 	@RequestMapping(value = "/chart", method = RequestMethod.GET)
 	public String chart(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,

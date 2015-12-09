@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -75,6 +76,8 @@ public class DashBoardService {
 
 	@Autowired
 	BeaconConverterService beaconConverterService;
+	
+	private static Map<String, BigDecimal> beaconConverterMap = null;
 
 	public PerformaceChartBean getChartValues(String userId,
 			String financialYear) throws Exception {
@@ -561,12 +564,10 @@ public class DashBoardService {
 		// Get the privileges for the user and append to the query constructed
 		// above
 		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
-		// System.out.println("Query1"+privilegesQuery);
 
 		// Construct the Query for Wins
 		StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
 				userId, geography, fromDateTs, toDateTs, privilegesQuery);
-		// System.out.println("Query2"+queryBufferForWins);
 
 		// Get wins using the constructed query
 		LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(
@@ -814,7 +815,6 @@ public class DashBoardService {
 
 		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
 
-		// System.out.println("Query AFTER CHANGES"+queryBuffer);
 		return queryBuffer;
 
 	}
@@ -884,13 +884,40 @@ public class DashBoardService {
 
 		LeadershipOpportunitiesDTO listOfOppportunities = null;
 
-		List<LeadershipAllOpportunityDTO> listOfOpportunitiesBySalesCode = null;
-		String privilegesQuery = "";
+		List<OpportunityT> opportunitiesBySalesCode = getPrevilegedOpportunities(
+				userId, fromDate, toDate, geography);
+
+		// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
+		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
+		// 10,11,13(lost),
+		// 12(shelved)
+		listOfOppportunities = getOpportunitiesBySalesStageCode(
+				opportunitiesBySalesCode, userId);
+
+		getPrevilegedOpportunities(
+				userId, fromDate, toDate, geography);
+		return listOfOppportunities;
+
+	}
+
+	/**
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @return
+	 * @throws Exception
+	 */
+	public List<OpportunityT> getPrevilegedOpportunities(String userId,
+			Date fromDate, Date toDate, String geography) throws Exception {
+		List<OpportunityT> opportunitiesBySalesCode = null;
+		
 
 		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 		Timestamp toDateTs = new Timestamp(toDate.getTime()
 				+ Constants.ONE_DAY_IN_MILLIS - 1);
 
+		String privilegesQuery = "";
 		// Get the privileges for the user and append to the query constructed
 		// above
 		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
@@ -899,128 +926,120 @@ public class DashBoardService {
 		StringBuffer query = constructQueryForLeadershipDashboardOpportunitiesWithPrivileges(
 				userId, geography, fromDateTs, toDateTs, privilegesQuery);
 
-		// Get Opportunity_id, Digital Deal Value and Sales Stage Code for given
+		// Get Opportunity Details for given
 		// supervisorId
-		listOfOpportunitiesBySalesCode = getAllOpportunitiesUsingQuery(query,
+		opportunitiesBySalesCode = getAllOpportunitiesUsingQuery(query,
 				userId);
-
-		// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
-		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
-		// 10,11,13(lost),
-		// 12(shelved)
-		listOfOppportunities = getOpportunitiesBySalesStageCode(
-				listOfOpportunitiesBySalesCode, userId);
-
-		return listOfOppportunities;
-
+		return opportunitiesBySalesCode;
 	}
 
 	/**
 	 * This method provides the opportunities based on sales stage code
 	 * 
-	 * @param listOfOpportunitiesBySalesCode
+	 * @param opportunitiesBySalesCode
 	 * @return LeadershipOpportunitiesDTO
 	 * @throws Exception
 	 */
 	private LeadershipOpportunitiesDTO getOpportunitiesBySalesStageCode(
-			List<LeadershipAllOpportunityDTO> listOfOpportunitiesBySalesCode,
+			List<OpportunityT> opportunitiesBySalesCode,
 			String userId) throws Exception {
 
 		LeadershipOpportunitiesDTO leadershipOpportunitiesDTO = null;
 		boolean checkOppExists = false;
-		List<String> oppIdProspects = null;
-		List<String> oppIdPipeline = null;
-		List<String> oppIdWon = null;
-		List<String> oppIdLost = null;
-		List<String> oppIdShelved = null;
+		List<OpportunityT> opportunitiesProspects = null;
+		List<OpportunityT> opportunitiesPipeline = null;
+		List<OpportunityT> opportunitiesWon = null;
+		List<OpportunityT> opportunitiesLost = null;
+		List<OpportunityT> opportunitiesShelved = null;
 		Double sumOfDealValueProspects = new Double(0);
 		Double sumOfDealValuePipeline = new Double(0);
 		Double sumOfDealValueWon = new Double(0);
 		Double sumOfDealValueLost = new Double(0);
 		Double sumOfDealValueShelved = new Double(0);
 
-		if ((listOfOpportunitiesBySalesCode != null)
-				&& (!listOfOpportunitiesBySalesCode.isEmpty())) {
+		if ((opportunitiesBySalesCode != null)
+				&& (!opportunitiesBySalesCode.isEmpty())) {
+			
+			if(beaconConverterMap==null){
+	    		beaconConverterMap = beaconConverterService.getCurrencyNameAndRate();
+	    	}
 
-			oppIdProspects = new ArrayList<String>();
-			oppIdPipeline = new ArrayList<String>();
-			oppIdWon = new ArrayList<String>();
-			oppIdLost = new ArrayList<String>();
-			oppIdShelved = new ArrayList<String>();
+			opportunitiesProspects = new ArrayList<OpportunityT>();
+			opportunitiesPipeline = new ArrayList<OpportunityT>();
+			opportunitiesWon = new ArrayList<OpportunityT>();
+			opportunitiesLost = new ArrayList<OpportunityT>();
+			opportunitiesShelved = new ArrayList<OpportunityT>();
 
 			leadershipOpportunitiesDTO = new LeadershipOpportunitiesDTO();
 
-			for (LeadershipAllOpportunityDTO opp : listOfOpportunitiesBySalesCode) {
-				if (opp.getSalesStageCode() != null) {
+			for (OpportunityT opp : opportunitiesBySalesCode) {
 					if (opp.getSalesStageCode() < 4) { // For Prospects 0-3
-
-						oppIdProspects.add(opp.getOpportunityId());
+						opportunitiesProspects.add(opp);
 						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueProspects = sumOfDealValueProspects
-									+ opp.getDigitalDealValue().doubleValue();
+							sumOfDealValueProspects = sumOfDealValueProspects +
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 						}
 					} else if ((opp.getSalesStageCode() >= 4)
 							&& (opp.getSalesStageCode() <= 8)) { // For Pipeline
 
-						oppIdPipeline.add(opp.getOpportunityId());
+						opportunitiesPipeline.add(opp);
 						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValuePipeline = sumOfDealValuePipeline
-									+ opp.getDigitalDealValue().doubleValue();
+							sumOfDealValuePipeline = sumOfDealValuePipeline + 
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 						}
 					} else if (opp.getSalesStageCode() == 9) { // For Won
 
-						oppIdWon.add(opp.getOpportunityId());
+						opportunitiesWon.add(opp);
 						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueWon = sumOfDealValueWon
-									+ opp.getDigitalDealValue().doubleValue();
+							sumOfDealValueWon = sumOfDealValueWon + 
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 						}
 					} else if ((opp.getSalesStageCode() == 10)
 							|| (opp.getSalesStageCode() == 11)
 							|| (opp.getSalesStageCode() == 13)) { // For Lost
 																	// 10,11,13
-						oppIdLost.add(opp.getOpportunityId());
+						opportunitiesLost.add(opp);
 						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueLost = sumOfDealValueLost
-									+ opp.getDigitalDealValue().doubleValue();
+							sumOfDealValueLost = sumOfDealValueLost + 
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 						}
 					} else if (opp.getSalesStageCode() == 12) { // For Shelved
 
-						oppIdShelved.add(opp.getOpportunityId());
+						opportunitiesShelved.add(opp);
 						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueShelved = sumOfDealValueShelved
-									+ opp.getDigitalDealValue().doubleValue();
+							sumOfDealValueShelved = sumOfDealValueShelved + 
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 						}
 					}
-				}
 			}
-			if (!oppIdProspects.isEmpty()) {
+			if (!opportunitiesProspects.isEmpty()) {
 				leadershipOpportunitiesDTO
 						.setOppProspects(getLeadershipOpportunityObjectBySalesStageCode(
-								oppIdProspects, sumOfDealValueProspects, userId));
+								opportunitiesProspects, sumOfDealValueProspects, userId));
 				checkOppExists = true;
 			}
-			if (!oppIdPipeline.isEmpty()) {
+			if (!opportunitiesPipeline.isEmpty()) {
 				leadershipOpportunitiesDTO
 						.setOppPipeline(getLeadershipOpportunityObjectBySalesStageCode(
-								oppIdPipeline, sumOfDealValuePipeline, userId));
+								opportunitiesPipeline, sumOfDealValuePipeline, userId));
 				checkOppExists = true;
 			}
-			if (!oppIdWon.isEmpty()) {
+			if (!opportunitiesWon.isEmpty()) {
 				leadershipOpportunitiesDTO
 						.setOppWon(getLeadershipOpportunityObjectBySalesStageCode(
-								oppIdWon, sumOfDealValueWon, userId));
+								opportunitiesWon, sumOfDealValueWon, userId));
 				checkOppExists = true;
 			}
-			if (!oppIdLost.isEmpty()) {
+			if (!opportunitiesLost.isEmpty()) {
 				leadershipOpportunitiesDTO
 						.setOppLost(getLeadershipOpportunityObjectBySalesStageCode(
-								oppIdLost, sumOfDealValueLost, userId));
+								opportunitiesLost, sumOfDealValueLost, userId));
 				checkOppExists = true;
 			}
-			if (!oppIdShelved.isEmpty()) {
+			if (!opportunitiesShelved.isEmpty()) {
 				leadershipOpportunitiesDTO
 						.setOppShelved(getLeadershipOpportunityObjectBySalesStageCode(
-								oppIdShelved, sumOfDealValueShelved, userId));
+								opportunitiesShelved, sumOfDealValueShelved, userId));
 				checkOppExists = true;
 			}
 		}
@@ -1042,17 +1061,16 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	private LeadershipOpportunityBySalesStageCodeDTO getLeadershipOpportunityObjectBySalesStageCode(
-			List<String> oppId, Double sumOfDealValue, String userId)
+			List<OpportunityT> opportunitTs, Double sumOfDealValue, String userId)
 			throws Exception {
 
 		LeadershipOpportunityBySalesStageCodeDTO oppBySalesCode = new LeadershipOpportunityBySalesStageCodeDTO();
 		try {
-			List<OpportunityT> listOfOpp = opportunityRepository
-					.findByOpportunityIdInOrderByCountryAsc(oppId);
-			if (listOfOpp != null) {
-				oppBySalesCode.setOpportunities(listOfOpp);
-				oppBySalesCode.setSizeOfOpportunities(listOfOpp.size());
+			if (opportunitTs != null) {
+				oppBySalesCode.setOpportunities(opportunitTs);
+				oppBySalesCode.setSizeOfOpportunities(opportunitTs.size());
 			}
+			//TODO: Calculate the sum of digital deal value
 			oppBySalesCode.setSumOfDigitalDealValue(Double
 					.parseDouble((new DecimalFormat("##.##")
 							.format(sumOfDealValue))));
@@ -1075,35 +1093,13 @@ public class DashBoardService {
 	 * @return List<LeadershipAllOpportunityDTO>
 	 * @throws Exception
 	 */
-	private List<LeadershipAllOpportunityDTO> getAllOpportunitiesUsingQuery(
+	private List<OpportunityT> getAllOpportunitiesUsingQuery(
 			StringBuffer query, String userId) throws Exception {
-		List<LeadershipAllOpportunityDTO> listOfOpp = null;
+		TypedQuery<OpportunityT> opportunitiesTypedQuery=null;
 		try {
-			TypedQuery<Object[]> teamOpportunities = (TypedQuery<Object[]>) entityManager
-					.createNativeQuery(query.toString());
+			opportunitiesTypedQuery = (TypedQuery<OpportunityT>) entityManager
+					.createNativeQuery(query.toString(),OpportunityT.class);
 
-			if ((teamOpportunities != null)
-					&& !(teamOpportunities.getResultList().isEmpty())) {
-
-				listOfOpp = new ArrayList<LeadershipAllOpportunityDTO>();
-
-				for (Object[] opportunity : teamOpportunities.getResultList()) {
-					LeadershipAllOpportunityDTO opp = new LeadershipAllOpportunityDTO();
-					if (opportunity[2] != null) {
-						opp.setSalesStageCode(((Integer) opportunity[2])
-								.intValue());
-					}
-					if (opportunity[1] != null) {
-						opp.setDigitalDealValue(BigDecimal.valueOf(Double
-								.parseDouble(opportunity[1].toString())));
-					}
-					if (opportunity[0] != null) {
-						opp.setOpportunityId(opportunity[0].toString());
-					}
-					listOfOpp.add(opp);
-				}
-
-			}
 		} catch (Exception e) {
 			logger.error(
 					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
@@ -1112,7 +1108,7 @@ public class DashBoardService {
 					"An Internal Error has occured while processing request for userId "
 							+ userId);
 		}
-		return listOfOpp;
+		return opportunitiesTypedQuery.getResultList();
 	}
 
 	/**
