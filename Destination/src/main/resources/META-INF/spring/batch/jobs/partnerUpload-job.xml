@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="partnerUpload">
-		<batch:step id="partnerUploadPreprocess" next="decider">
+		<batch:step id="partnerUploadPreprocess" next="partnerDecider">
 			<batch:tasklet ref="partnerPreprocessor"/>
 		</batch:step>
 		
@@ -22,7 +22,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="decider" decider="partnerFlowdecider">
+		 <batch:decision id="partnerDecider" decider="partnerFlowdecider">
               <batch:next on="PREPROCESS" to="partnerUploadPreprocess" />
               <batch:next on="PARTNER_PROCESSING" to="partnerProcessing" />
               <batch:end on="END"/>
