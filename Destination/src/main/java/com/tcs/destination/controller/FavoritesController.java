@@ -37,18 +37,29 @@ public class FavoritesController {
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside FavoritesController /favorites?entityType="
 				+ entityType + " GET");
-		if (page < 0 && count < 0) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Invalid pagination request");
+		logger.info("Start of retrieving the favourites");
+		try {
+			if (page < 0 && count < 0) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid pagination request");
+			}
+			PaginatedResponse favourites = myFavService.findFavoritesFor(
+					userId, entityType, page, count);
+			logger.info("End of retrieving the favourites");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, favourites);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the favourites for "
+							+ entityType);
 		}
-		PaginatedResponse favourites = myFavService.findFavoritesFor(userId,
-				entityType, page, count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				favourites);
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -56,20 +67,32 @@ public class FavoritesController {
 			@RequestBody UserFavoritesT favorites,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		favorites.setUserId(userId);
-		logger.debug("Inside FavoritesController /favorites POST");
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (myFavService.addFavorites(favorites)) {
-			logger.debug("User FavoritesId" + favorites.getUserFavoritesId()
-					+ "Inserted Successfully");
-			status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
+			throws DestinationException {
+		logger.info("Start of adding user favourites");
+		try {
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
+			favorites.setUserId(userId);
+			logger.debug("Inside FavoritesController /favorites POST");
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (myFavService.addFavorites(favorites)) {
+				logger.debug("User FavoritesId"
+						+ favorites.getUserFavoritesId()
+						+ "Inserted Successfully");
+				status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
+			}
+			logger.info("End of adding user favourites");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in adding the favourites");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.DELETE)
@@ -77,14 +100,24 @@ public class FavoritesController {
 			@RequestParam(value = "userFavoritesId") String favoritesId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside FavoritesController /favorites?userFavoritesId="
 				+ favoritesId + " DELETE");
+		logger.info("Start of delete Favourites");
 		Status status = new Status();
-		myFavService.removeFromFavorites(favoritesId);
-		status.setStatus(Status.SUCCESS, favoritesId);
-		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
-				status);
+		try {
+			myFavService.removeFromFavorites(favoritesId);
+			status.setStatus(Status.SUCCESS, favoritesId);
+			logger.info("End of delete Favourites");
+			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+					status);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the chart values");
+		}
 
 	}
 

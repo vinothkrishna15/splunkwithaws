@@ -16,67 +16,101 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserTaggedFollowedT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FollowedService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
-
 
 @RestController
 @RequestMapping("/follow")
 public class FollowedController {
 
-	private static final Logger logger = LoggerFactory.getLogger(FollowedController.class);
-	
+	private static final Logger logger = LoggerFactory
+			.getLogger(FollowedController.class);
+
 	@Autowired
 	FollowedService followedService;
 
-	
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-			List<UserTaggedFollowedT> userFollowed = followedService.findFollowedFor(userId, entityType);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				userFollowed);
+			throws DestinationException {
+		logger.info("Start of getting the user tagged followed details");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		try {
+			List<UserTaggedFollowedT> userFollowed = followedService
+					.findFollowedFor(userId, entityType);
+			logger.info("End of getting the user tagged followed details");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, userFollowed);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the user tagged followed details for :"
+							+ entityType);
+		}
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addFollowed(
 			@RequestBody UserTaggedFollowedT followed,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		
-		followed.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			throws DestinationException {
+		logger.info("Start of adding the user tagged followed details");
+		followed.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
 		logger.debug("Inside FollowedController /follow POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		System.out.println(followed.getEntityType());
-		if (followedService.addFollow(followed)) {
-			logger.debug("User FollowedId" + followed.getUserTaggedFollowedId()
-					+ "Inserted Successfully");
-			status.setStatus(Status.SUCCESS, followed.getUserTaggedFollowedId());
+		try {
+			if (followedService.addFollow(followed)) {
+				logger.debug("User FollowedId"
+						+ followed.getUserTaggedFollowedId()
+						+ "Inserted Successfully");
+				status.setStatus(Status.SUCCESS,
+						followed.getUserTaggedFollowedId());
+			}
+			logger.info("End of adding the user tagged followed details");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while inserting the user tagged followed");
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String unFollow(
 			@RequestParam(value = "userTaggedFollowedId") String userTaggedFollowedId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of Deleting the user tagged followed details");
 		logger.debug("Inside FollowedController /follow?userTaggedFollowedId="
 				+ userTaggedFollowedId + " DELETE");
 		Status status = new Status();
-		followedService.unFollow(userTaggedFollowedId);
-		status.setStatus(Status.SUCCESS, userTaggedFollowedId);
-		return ResponseConstructors.filterJsonForFieldAndViews("all", "",
-				status);
+		try {
+			followedService.unFollow(userTaggedFollowedId);
+			status.setStatus(Status.SUCCESS, userTaggedFollowedId);
+			logger.info("End of Deleting the user tagged followed details");
+			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+					status);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while deleting the user tagged followed details for userTaggedFollowedId :" + userTaggedFollowedId);
+		}
 
 	}
 
