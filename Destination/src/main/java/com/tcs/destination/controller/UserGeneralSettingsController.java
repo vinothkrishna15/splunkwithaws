@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserGeneralSettingsT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserGeneralSettingsService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -21,55 +22,93 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/general")
 public class UserGeneralSettingsController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(UserGeneralSettingsController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(UserGeneralSettingsController.class);
 
 	@Autowired
 	UserGeneralSettingsService userGeneralSettingsService;
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		logger.info("Start of retrieving the General Settings by user id");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserGeneralSettingsController /general?userId GET");
-		UserGeneralSettingsT userGeneralSettingsT = userGeneralSettingsService.findGeneralSettingsByUserId(userId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, userGeneralSettingsT);
+		try {
+			UserGeneralSettingsT userGeneralSettingsT = userGeneralSettingsService
+					.findGeneralSettingsByUserId(userId);
+			logger.info("End of retrieving the General Settings by user id");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, userGeneralSettingsT);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the General Settings");
+		}
 	}
-	
-	@RequestMapping(value = "/setting",method = RequestMethod.POST)
+
+	@RequestMapping(value = "/setting", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUserGeneralSetting(
 			@RequestBody UserGeneralSettingsT userGeneralSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of create user general settings");
 		logger.debug("Inside UserGeneralSettingsController /general/setting POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		if (userGeneralSettingsService.addUserGeneralSettings(userGeneralSettings)) {
-			logger.debug("User General Settings inserted Successfully");
-			status.setStatus(Status.SUCCESS,"User General Settings Inserted Successfully" );
+		try {
+			if (userGeneralSettingsService
+					.addUserGeneralSettings(userGeneralSettings)) {
+				logger.debug("User General Settings inserted Successfully");
+				status.setStatus(Status.SUCCESS,
+						"User General Settings Inserted Successfully");
+			}
+			logger.info("End of create user general settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while inserting user general settings");
 		}
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
 	}
-	
-	@RequestMapping(value = "/setting",method = RequestMethod.PUT)
+
+	@RequestMapping(value = "/setting", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> updateUserGeneralSetting(
 			@RequestBody UserGeneralSettingsT userGeneralSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of Edit user general settings");
 		logger.debug("Inside UserGeneralSettingsController /general/setting PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-		if (userGeneralSettingsService.updateUserGeneralSettings(userGeneralSettings)) {
-			logger.debug("User General Settings Updated Successfully");
-			status.setStatus(Status.SUCCESS,"User General Settings Updated Successfully" );
+		try {
+			if (userGeneralSettingsService
+					.updateUserGeneralSettings(userGeneralSettings)) {
+				logger.debug("User General Settings Updated Successfully");
+				status.setStatus(Status.SUCCESS,
+						"User General Settings Updated Successfully");
+			}
+			logger.info("End of Edit user general settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while editing the user general settings");
 		}
-		
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
 	}
 }

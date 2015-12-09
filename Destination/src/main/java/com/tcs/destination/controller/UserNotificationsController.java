@@ -46,15 +46,25 @@ public class UserNotificationsController {
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		logger.info("Start of retreiving the user notifications");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserNotificationsController /user GET");
-		List<UserNotificationsT> userNotificationsT = userNotificationsService
-				.getNotifications(userId, read, fromDate.getTime(),
-						toDate.getTime());
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						userNotificationsT), HttpStatus.OK);
+		try {
+			List<UserNotificationsT> userNotificationsT = userNotificationsService
+					.getNotifications(userId, read, fromDate.getTime(),
+							toDate.getTime());
+			logger.info("End of retreiving the user notifications");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, userNotificationsT), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the user notifications");
+		}
 
 		// List<UserNotificationsT> userNotificationsT =
 		// userNotificationsService
@@ -66,15 +76,26 @@ public class UserNotificationsController {
 	public @ResponseBody ResponseEntity<String> getUserNotificationSettings(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		logger.info("Start of retreiving the user notification settings");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside UserNotificationSettingsController/usernotificationsettings?userId="
 				+ userId + " GET");
-		List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingT = userNotificationSettingsService
-				.getUserNotificationSettings(userId);
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-						notificationSettingsGroupMappingT), HttpStatus.OK);
+		try {
+			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingT = userNotificationSettingsService
+					.getUserNotificationSettings(userId);
+			logger.info("End of retreiving the user notification settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, notificationSettingsGroupMappingT),
+					HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retreiving the user notification settings");
+		}
 	}
 
 	/**
@@ -88,7 +109,8 @@ public class UserNotificationsController {
 	@RequestMapping(value = "/settings", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> saveUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of update user notification settings");
 		Status status = new Status();
 		try {
 			if (userNotificationsService
@@ -97,15 +119,18 @@ public class UserNotificationsController {
 				status.setStatus(Status.SUCCESS,
 						"User notification settings have been updated successfully");
 			}
-
+			logger.info("End of update user notification settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while updating the user notification settings");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+
 	}
 
 	/**
@@ -119,20 +144,25 @@ public class UserNotificationsController {
 	@RequestMapping(value = "/read", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> updateReadStatus(
 			@RequestBody List<String> userNotificationIds,
-			@RequestParam(value = "read") String read) throws Exception {
+			@RequestParam(value = "read") String read)
+			throws DestinationException {
+		logger.info("Start of update read status of list of user notifications");
 		logger.debug("Inside UserNotificationsController /read PUT");
 		String status = "";
 		try {
 			status = userNotificationsService.updateReadStatus(
 					userNotificationIds, read);
+			logger.info("End of update read status of list of user notifications");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("An Exception has occured : {}", e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"An Exception has occured : " + e.getMessage());
+					"Backend error while updating the read status for notifications :"
+							+ userNotificationIds);
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
-
 	}
 }
