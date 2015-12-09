@@ -25,6 +25,7 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 
@@ -62,6 +63,16 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
         	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
+			 
+			 ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
+			 DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
+			
+			 request.setStatus(RequestStatus.PROCESSED.getStatus());
+			 dataProcessingRequestRepository.save(request);
+			
+			jobContext.remove(REQUEST);
+			 
+			 
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
@@ -91,7 +102,6 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
 			filePath = request.getFilePath() + request.getFileName();
 			fileInputStream = new FileInputStream(new File(filePath));
 			String fileName  = request.getFileName();

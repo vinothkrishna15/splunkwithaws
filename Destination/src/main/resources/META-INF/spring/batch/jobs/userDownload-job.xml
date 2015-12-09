@@ -13,7 +13,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 
 	<batch:job id="userDownloadJob">
 
-		<batch:step id="preprocess" next="decider">
+		<batch:step id="userDwldPreprocess" next="userDwldDecider">
 			<batch:tasklet ref="userDwldPreprocessor" />
 		</batch:step>
 
@@ -98,7 +98,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:step id="customerDwldProcessing" next="preprocess">
+		 <batch:step id="customerDwldProcessing" next="userDwldPreprocess">
 			<batch:tasklet>
 				<batch:chunk reader="customerDwldReader" writer="userDwldCustomerWriter"
 					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
@@ -106,8 +106,8 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 
-		<batch:decision id="decider" decider="userFlowdecider">
-			<batch:next on="PREPROCESS" to="preprocess" />
+		<batch:decision id="userDwldDecider" decider="userFlowdecider">
+			<batch:next on="USER_DWLD_PREPROCESS" to="userDwldPreprocess" />
 			<batch:next on="USER_DWLD_PROCESSING" to="userDwldProcessing" />
 			<batch:end on="END" />
 		</batch:decision>
@@ -222,7 +222,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 	</bean>
 
     <bean id="userDwldCustomerWriter" class="com.tcs.destination.writer.UserDwldCustomerWriter">
-		
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 
 	<!-- Decider -->

@@ -65,13 +65,23 @@ public class ContactController {
 			@PathVariable("id") String contactId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact/id=" + contactId
 				+ " GET");
+		logger.info("Start of retrieving the contact by contact id");
+		try {
 		ContactT contact = contactService.findById(contactId, userId);
+		logger.info("End of retrieving the contact by contact id");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				contact);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contact for the contact id " + contactId);
+		}
 	}
 
 	/**
@@ -93,11 +103,12 @@ public class ContactController {
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact GET");
+		logger.info("Start of retrieving the contacts by name");
 		List<ContactT> contactlist = null;
-
+        try {
 		// If NameWith service
 		if (!nameWith.isEmpty()) {
 			contactlist = contactService.findContactsWithNameContaining(
@@ -109,11 +120,29 @@ public class ContactController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");
 		}
+		logger.info("End of retrieving the contacts by name");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						contactlist), HttpStatus.OK);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contacts for namewith " + nameWith);
+		}
 	}
-
+    
+	/**
+	 * This method is used to get the contacts by contact type
+	 * @param customerId
+	 * @param partnerId
+	 * @param contactType
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/contacttype", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsByContactType(
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
@@ -121,27 +150,43 @@ public class ContactController {
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside ContactController /contact/contacttype GET");
+		logger.info("Start of retrieving the contacts by contact type");
 		List<ContactT> contactlist = null;
-
+        try {
 		if (!customerId.isEmpty() || !partnerId.isEmpty()) {
 			contactlist = contactService.findContactsByContactType(customerId, partnerId, contactType, userId);
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either CustomerId or PartnerId is required");
 		}
+        logger.info("End of retrieving the contacts by contact type");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						contactlist), HttpStatus.OK);
+        } catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contacts by contact type");
+		}
 	}
-
+    
+	/**
+	 * This method is used to add a new contact
+	 * @param contact
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addContact(
-			@RequestBody ContactT contact) throws Exception {
+			@RequestBody ContactT contact) throws DestinationException {
 		
 		logger.debug("contact Insert Request Received /contact POST");
+		logger.info("Start of Adding a Contact");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -150,20 +195,30 @@ public class ContactController {
 				logger.debug("Contact Created Successfully"
 						+ contact.getContactId());
 			}
+			logger.info("End of Adding a Contact");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+					"Backend error while inserting the contact");
+	   }
 	}
-
+    
+	/**
+	 * This method is used to update the contact
+	 * @param contact
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editContact(
-			@RequestBody ContactT contact) throws Exception {
+			@RequestBody ContactT contact) throws DestinationException {
 		logger.debug("contact Insert Request Received /contact POST");
+		logger.info("Start of Editing the Contact");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -172,26 +227,47 @@ public class ContactController {
 				logger.debug("Contact Updated Successfully"
 						+ contact.getContactId());
 			}
+			logger.info("End of Editing the Contact");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+					"Backend error in editing the contact");
+	   }
+		
 	}
-
+    
+	/**
+	 * This method is used to get the contact role
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/role", method = RequestMethod.GET)
 	public @ResponseBody String findRole(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside ContactController /contact/role GET");
+		logger.info("Start of retrieving the Contact Role Mapping");
+		try {
 		List<ContactRoleMappingT> contactRole = contactService
 				.findContactRoles();
+		logger.info("End of retrieving the Contact Role Mapping");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				contactRole);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contact role");
+	   }
 	}
 	
 	/**
@@ -211,11 +287,11 @@ public class ContactController {
 			@RequestParam("contactCategory") String contactCategory,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-
+        logger.info("Start of contact upload");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		
+		try {
 		UploadStatusDTO status = contactUploadService.upload(file, userId, contactCategory);
 		if (status != null) {
 			errorDetailsDTOs = status.getListOfErrors();
@@ -225,7 +301,15 @@ public class ContactController {
 		HttpHeaders respHeaders = new HttpHeaders();
 		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment","contact_upload_error.xlsx");
+		logger.info("End of contact upload");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading the contacts");
+	   }
 	}
 
 }

@@ -29,13 +29,11 @@ import com.tcs.destination.bean.NotificationEventFieldsT;
 import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskBdmsTaggedLinkT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserNotificationsT;
-import com.tcs.destination.bean.UserT;
-import com.tcs.destination.bean.UserTaggedFollowedT;
-import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -216,6 +214,7 @@ public class NotificationHelper implements Runnable {
 	 * This method will notify users for both Manual comments or for
 	 * Auto-comments. Note that Whenever a Key field is changed, the
 	 * notification is processed for that using Auto Comments of that entity
+	 * This handles event Id 8,13,9
 	 * 
 	 * @throws Exception
 	 */
@@ -426,6 +425,14 @@ public class NotificationHelper implements Runnable {
 		}
 	}
 
+	/**
+	 * Method to return the {@link EntityType} when the display entity type is
+	 * given.
+	 * 
+	 * @param commentedEntityType
+	 *            The actual entity type that is displayed
+	 * @return The {@link EntityType} for that display entity
+	 */
 	private String getActualEntityType(String commentedEntityType) {
 		switch (commentedEntityType) {
 		case Constants.CONNECT:
@@ -439,6 +446,13 @@ public class NotificationHelper implements Runnable {
 		}
 	}
 
+	/**
+	 * Get the {@link NotificationEventGroupMappingT} for the eventId
+	 * 
+	 * @param eventId
+	 *            The actual eventId
+	 * @return The {@link NotificationEventGroupMappingT} related to that event.
+	 */
 	private List<NotificationEventGroupMappingT> getNotificationEventGroupMappingTs(
 			int eventId) {
 		return notificationEventGroupMappingTRepository.findByEventId(eventId);
@@ -805,9 +819,8 @@ public class NotificationHelper implements Runnable {
 			throws Exception {
 		String customerName = opportunity.getCustomerMasterT()
 				.getCustomerName();
-		List<String> searchKeywords = searchKeywordsRepository
-				.findSearchKeywordsByEntityTypeAndEntityId(
-						EntityType.OPPORTUNITY.name(),
+		List<SearchKeywordsT> searchKeywordTs = searchKeywordsRepository
+				.findByEntityTypeAndEntityId(EntityType.OPPORTUNITY.name(),
 						opportunity.getOpportunityId());
 		String displayIOU = opportunity.getCustomerMasterT()
 				.getIouCustomerMappingT().getDisplayIou();
@@ -817,11 +830,11 @@ public class NotificationHelper implements Runnable {
 		String country = opportunity.getCountry();
 		Set<String> userIds = userNotificationSettingsConditionRepository
 				.findUserIdByConditionIdAndConditionValue(1, customerName);
-		for (String searchKeyword : searchKeywords) {
+		for (SearchKeywordsT searchKeywordsT : searchKeywordTs) {
 			addToList(userIds,
 					userNotificationSettingsConditionRepository
 							.findUserIdByConditionIdAndConditionValue(2,
-									searchKeyword));
+									searchKeywordsT.getSearchKeywords()));
 		}
 		addToList(
 				userIds,
@@ -879,9 +892,9 @@ public class NotificationHelper implements Runnable {
 
 	private void notifyNewDesiredConnects(ConnectT connectT) throws Exception {
 		String customerName = connectT.getCustomerMasterT().getCustomerName();
-		List<String> searchKeywords = searchKeywordsRepository
-				.findSearchKeywordsByEntityTypeAndEntityId(
-						EntityType.CONNECT.name(), connectT.getConnectId());
+		List<SearchKeywordsT> searchKeywordTs = searchKeywordsRepository
+				.findByEntityTypeAndEntityId(EntityType.CONNECT.name(),
+						connectT.getConnectId());
 		String displayIOU = connectT.getCustomerMasterT()
 				.getIouCustomerMappingT().getDisplayIou();
 		String geography = connectT.getGeographyCountryMappingT()
@@ -889,11 +902,11 @@ public class NotificationHelper implements Runnable {
 		String country = connectT.getCountry();
 		Set<String> userIds = userNotificationSettingsConditionRepository
 				.findUserIdByConditionIdAndConditionValue(1, customerName);
-		for (String searchKeyword : searchKeywords) {
+		for (SearchKeywordsT searchKeywordsT : searchKeywordTs) {
 			addToList(userIds,
 					userNotificationSettingsConditionRepository
 							.findUserIdByConditionIdAndConditionValue(2,
-									searchKeyword));
+									searchKeywordsT.getSearchKeywords()));
 		}
 		addToList(
 				userIds,

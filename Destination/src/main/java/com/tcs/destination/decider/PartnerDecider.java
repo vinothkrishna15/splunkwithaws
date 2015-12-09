@@ -29,6 +29,8 @@ public class PartnerDecider implements JobExecutionDecider {
 			status = new FlowExecutionStatus(JobStep.PARTNER_PROCESSING.name());
         } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
         	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PARTNER_DWLD_PROCESSING)) {
+        	status = new FlowExecutionStatus(JobStep.PARTNER_DWLD_PROCESSING.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());

@@ -64,5 +64,8 @@ public interface PartnerRepository extends
 	
 	@Query(value = "select * from partner_master_t where partner_name in (:names)", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNames(@Param("names") String[] Name);
+	
+	@Query(value="select partner_id,partner_name from partner_master_t",nativeQuery=true)
+	List<Object[]> findPartnerIdName();
 
 }

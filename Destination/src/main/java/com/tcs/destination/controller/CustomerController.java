@@ -77,6 +77,7 @@ public class CustomerController {
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/id=" + customerId
 				+ " GET");
+		logger.info("Start of retrieving the customer details by id");
 		String response = null;
 		CustomerMasterT customer;
 		try {
@@ -84,6 +85,7 @@ public class CustomerController {
 					currency);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					customer);
+			logger.info("End of retrieving the customer details by id");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -116,6 +118,7 @@ public class CustomerController {
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer?namewith=" + nameWith
 				+ "and starts with " + startsWith + " GET");
+		logger.info("Start of retrieving the customer details by name");
 		PaginatedResponse customers = null;
         try{
 		if (!nameWith.isEmpty()) {
@@ -128,6 +131,7 @@ public class CustomerController {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Either nameWith / startsWith is required");
 		}
+		logger.info("End of retrieving the customer details by name");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				customers);
         } catch (DestinationException e) {
@@ -161,6 +165,7 @@ public class CustomerController {
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/targetVsActual GET");
+		logger.info("Start of retrieving the Target vs Actual details");
 		String response = null;
 		List<TargetVsActualResponse> tarVsAct;
 		try {
@@ -169,6 +174,7 @@ public class CustomerController {
 							currency);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					tarVsAct);
+			logger.info("End of retrieving the Target vs Actual details");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -195,6 +201,7 @@ public class CustomerController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/topRevenue GET");
+		logger.info("Start of retrieving the Top Revenues");
 		String response = null;
 		List<CustomerMasterT> topRevenueCustomers;
 		try {
@@ -202,6 +209,7 @@ public class CustomerController {
 					.findTopRevenue(financialYear, count);
 			response = ResponseConstructors.filterJsonForFieldAndViews(includeFields,
 					view, topRevenueCustomers);
+			logger.info("End of retrieving the Top Revenues");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -220,6 +228,7 @@ public class CustomerController {
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/group?nameWith="
 				+ nameWith + " GET");
+		logger.info("Start of retrieving the Group customer names");
 		String response = null;
 		List<CustomerMasterT> customer;
 		try {
@@ -227,6 +236,7 @@ public class CustomerController {
 					.findByGroupCustomerName(nameWith);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					customer);
+			logger.info("Start of retrieving the Group customer names");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -245,6 +255,7 @@ public class CustomerController {
 			throws DestinationException {
 		logger.debug("Inside CustomerController /customer/groupBasedOnPrivilege?nameWith="
 				+ nameWith + " GET");
+		logger.info("Start of retrieving the group customer name based on privileges");
         try{
 		List<String> groupCustomer = customerService
 				.findByGroupCustomerNameBasedOnPrivilege(nameWith);
@@ -252,6 +263,7 @@ public class CustomerController {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Results found for search : " + nameWith);
 		}
+		logger.info("End of retrieving the group customer name based on privileges");
          return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				groupCustomer);
         } catch (DestinationException e) {
@@ -270,6 +282,7 @@ public class CustomerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
+		logger.info("Start of Customer Details download");
 		HttpHeaders respHeaders = null;
 		InputStreamResource customerDownloadExcel = null;
 		try {
@@ -299,7 +312,8 @@ public class CustomerController {
 			@RequestParam("downloadCustomerContacts") boolean oppFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of Customer Contact details download");
 		HttpHeaders respHeaders = null;
 		InputStreamResource customerDownloadExcel = null;
 		try {
@@ -313,13 +327,16 @@ public class CustomerController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Customer Contact Report Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
-		return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
-				respHeaders, HttpStatus.OK);
+					"Backend error in downloading customer contacts");
+	   }
+		
 
 	}
 
@@ -338,7 +355,7 @@ public class CustomerController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		System.out.println("inside upload of customer controller");
+		logger.info("Start of customer details upload");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
         try{
 		UploadStatusDTO status = customerUploadService.upload(file);
@@ -359,6 +376,7 @@ public class CustomerController {
 						.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 		respHeaders.setContentDispositionFormData("attachment",
 				"customer_upload_error.xlsx");
+		logger.info("End of customer details upload");
 		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 				HttpStatus.OK);
         } catch (DestinationException e) {
@@ -384,6 +402,7 @@ public class CustomerController {
 			throws DestinationException {
 		logger.debug("Inside PartnerController /customer/search?name="
 				+ nameWith + "&geograph=" + geography + " GET");
+		logger.info("Start of customer advanced search");
 		String response = null;
 		PaginatedResponse paginatedResponse;
 		try {
@@ -392,6 +411,7 @@ public class CustomerController {
 				count);
          response = ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 					paginatedResponse);
+         logger.info("End of customer advanced search");
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

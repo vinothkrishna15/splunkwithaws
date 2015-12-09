@@ -33,6 +33,7 @@ import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
@@ -62,8 +63,9 @@ public class BeaconDataUploadService {
 	 * @param file
 	 * @param userId*/
 
-	public UploadStatusDTO upload(MultipartFile file, String userId)
+	public UploadStatusDTO upload(MultipartFile file)
 			throws Exception {
+		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
 		uploadStatus.setStatusFlag(true);

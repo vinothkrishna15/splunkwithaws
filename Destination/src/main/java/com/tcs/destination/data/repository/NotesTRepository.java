@@ -25,5 +25,9 @@ public interface NotesTRepository extends
 	 */
 	@Query(value = "select distinct n.connect_id from notes_t n where n.connect_id IN (:connectIds)",nativeQuery = true)
 	List<String> getAllConnectsForDashbaordStatusClosed(@Param("connectIds") List<String> connectIds);
+	
+	List<NotesT> findByEntityTypeAndConnectIdIsNotNull(String entityType);
+
+	List<NotesT> findByOpportunityId(String opportunityId);
 
 }

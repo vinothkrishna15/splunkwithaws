@@ -23,6 +23,7 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
+import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -54,16 +55,15 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	
 	private PartnerService partnerService;
 	
-  
-
-
-	private PartnerRepository partnerRepository;
+    private PartnerRepository partnerRepository;
 	
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
 		
 		List<PartnerMasterT> insertList = new ArrayList<PartnerMasterT>();
+		List<PartnerMasterT> updateList = new ArrayList<PartnerMasterT>();
+		List<PartnerMasterT> deleteList = new ArrayList<PartnerMasterT>();
 		String operation = null; 
 		
 		for (String[] data: items) {
@@ -72,6 +72,7 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 			{
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
+				logger.debug("***PARTNER ADD***");
 				PartnerMasterT partner =  new PartnerMasterT();
 				UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerData(data, request.getUserT().getUserId() ,partner);
 				if (errorDTO.getMessage() != null) {
@@ -84,24 +85,21 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 			}
 			else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
 			{
-                String partnerId =data[2];
+				logger.debug("***PARTNER UPDATE***");
+				String partnerId =data[2];
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				
-				
 				if (!partnerId.isEmpty()) {
 					try{
 						
 						 PartnerMasterT partner= partnerRepository.findByPartnerId(partnerId);
-					
-					
-					if (partner != null) {
+					    if (partner != null) {
 						errorDTO = helper.validatePartnerDataUpdate(data, request.getUserT().getUserId() ,partner);
 						if (errorDTO.getMessage() != null) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
 						} 
 						else if (errorDTO.getMessage() == null) {
-							insertList.add(partner);
+							updateList.add(partner);
 						}
 					} else {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
@@ -120,6 +118,7 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				
 				}
 			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){
+				logger.debug("***PARTNER DELETE***");
 				PartnerMasterT partner =  new PartnerMasterT();
 				partner = partnerRepository.findByPartnerId(data[2]);
 				 UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerId(data, partner);
@@ -128,25 +127,20 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						insertList.add(partner);
+						deleteList.add(partner);
 				}
 			
 			}
-				
-			
-			
-			
-		
-		if (CollectionUtils.isNotEmpty(insertList)) {
+			if (CollectionUtils.isNotEmpty(insertList)) {
 			
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				partnerService.save(insertList);
 			} 
 			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-				partnerService.updatePartner(insertList);
+				partnerService.updatePartner(updateList);
 			}
 			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
-				partnerService.deletePartner(insertList);
+				partnerService.deletePartner(deleteList);
 			}
 		}
 			}
