@@ -684,6 +684,38 @@ public class DateUtils {
 		Date date=new Date();
 		SimpleDateFormat formatDate =  new SimpleDateFormat ("MMddyy");
 		return formatDate.format(date);
-	}	
+	}
+	
+	/*
+	 * get java.util.Date from java.sql.Timestamp
+	 */
+	public static Date toDate(Timestamp timestamp) {
+	    long milliseconds = timestamp.getTime() + (timestamp.getNanos() / 1000000);
+	    return new Date(milliseconds);
+	}
+	
+	/*
+	 * get Date in dd/MM/YYYY format
+	 */
+	public static String convertDateToString(Date indate)
+	{
+		String dateString = null;
+		SimpleDateFormat sdfr = new SimpleDateFormat("dd/MM/yyyy");
+		try{
+			dateString = sdfr.format( indate );
+		}catch (Exception ex ){
+			System.out.println(ex);
+		}
+		return dateString;
+	}
+	
+	/*
+	 * get hour minute from date
+	 */
+	public static String convertDateToHourMinute(Date indate){
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("hh:mm");
+		return dateFormatter.format(indate);
+	}
+
 	
 }

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+
+	<batch:job id="connectDownloadJob">
+
+		<batch:step id="connectDownloadPreprocess" next="connectDwldDecider">
+			<batch:tasklet ref="connectDwldPreprocessor" />
+		</batch:step>
+
+		<batch:step id="connectDwldProcessing" next="connectDwldCustomerProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldReader" writer="connectDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+	
+	
+	
+	
+	
+		  <batch:step id="connectDwldCustomerProcessing" next="connectDwldPartnerProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldCustomerReader" writer="connectDwldCustomerWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+	
+		<batch:step id="connectDwldPartnerProcessing" next="connectDwldGeoCountryProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldPartnerReader" writer="connectDwldPartnerWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="connectDwldGeoCountryProcessing" next="connectDwldSubspProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldGeoCountryReader" writer="connectDwldGeoCountryWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="connectDwldSubspProcessing" next="connectDwldOfferingProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldSubspReader" writer="connectDwldSubspWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:step id="connectDwldOfferingProcessing" next="connectDwldCustomerContactProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldOfferingDwldReader" writer="connectDwldOfferingDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="connectDwldCustomerContactProcessing" next="connectDwldPartnerContactProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldCustContactDwldReader" writer="connectDwldCustContactDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="connectDwldPartnerContactProcessing" next="connectDwldUserProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldPartnerContactDwldReader" writer="connectDwldPartnerContactDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="connectDwldUserProcessing" next="connectDwldConnectTypeProcessing">
+			<batch:tasklet ref="connectDwldUserProcessTasklet" />
+		</batch:step>
+		
+		<batch:step id="connectDwldConnectTypeProcessing" next="connectDwldTimeZoneDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldConnectTypeDwldReader" writer="connectDwldConnectTypeDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		
+		
+		 <batch:step id="connectDwldTimeZoneDwldProcessing" next="connectDownloadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="connectDwldTimeZoneDwldReader" writer="connectDwldTimezoneWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+		<batch:decision id="connectDwldDecider" decider="connectFlowdecider">
+			<batch:next on="CONNECT_DOWNLOAD_PREPROCESS" to="connectDownloadPreprocess" />
+			<batch:next on="CONNECT_DWLD_PROCESSING" to="connectDwldProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
+
+	</batch:job>
+
+
+	<!-- Readers -->
+	<bean id="connectDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="connectRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="connectDwldCustomerReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="connectDwldPartnerReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="partnerRepository" />
+		<property name="methodName" value="getPartnerNameAndGeography" />
+	</bean>
+	
+	<bean id="connectDwldGeoCountryReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="geographyCountryRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="connectDwldSubspReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="subSpRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="connectDwldOfferingDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="offeringRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<bean id="connectDwldCustContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="contactRepository" />
+		<property name="methodName" value="getAllCustomerContacts" />
+	</bean>
+	
+	<bean id="connectDwldPartnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="contactRepository" />
+		<property name="methodName" value="getAllPartnerContacts" />
+	</bean>
+	
+	<bean id="connectDwldConnectTypeDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="connectTypeRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+		
+		
+	<bean id="connectDwldTimeZoneDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="timezoneMappingRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="connectDwldWriter" class="com.tcs.destination.writer.ConnectDwldWriter">
+		<property name="template" value="${connectSheetTemplate}" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="dataProcessingService" ref="dataProcessingService" />
+		<property name="fileServerPath" value="${fileserver.path}" />
+	</bean>
+	
+	<bean id="connectDwldCustomerWriter" class="com.tcs.destination.writer.ConnectDwldCustomerWriter">
+		
+	</bean>
+	
+	<bean id="connectDwldPartnerWriter" class="com.tcs.destination.writer.ConnectPartnerDwldWriter">
+	
+	</bean>
+	
+	<bean id="connectDwldGeoCountryWriter" class="com.tcs.destination.writer.ConnectDwldGeoCountryWriter">
+		
+	</bean>
+	
+	<bean id="connectDwldSubspWriter" class="com.tcs.destination.writer.ConnectDwldSubspWriter">
+		
+	</bean>
+	
+	
+	<bean id="connectDwldOfferingDwldWriter" class="com.tcs.destination.writer.OfferingDwldWriter">
+	
+	</bean>
+	
+	<bean id="connectDwldCustContactDwldWriter" class="com.tcs.destination.writer.CustContactDwldWriter">
+	
+	</bean>
+	
+	<bean id="connectDwldPartnerContactDwldWriter" class="com.tcs.destination.writer.PartnerContactDwldWriter">
+	
+	</bean>
+	
+	<bean id="connectDwldConnectTypeDwldWriter" class="com.tcs.destination.writer.ConnectTypeDwldWriter">
+		
+	</bean>
+	
+	<bean id="connectDwldTimezoneWriter" class="com.tcs.destination.writer.ConnectDwldTimezoneWriter">
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	</bean>
+	
+	<!-- Decider -->
+	<bean id="connectFlowdecider" class="com.tcs.destination.decider.ConnectDwldDecider" />
+
+	<!-- scheduler -->
+	<bean id="connectDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="connectDownloadJob" />
+	</bean>
+
+	<task:scheduled-tasks>
+		<task:scheduled ref="connectDownloadScheduler" method="run"
+			cron="${connect.download.job.cron}" />
+	</task:scheduled-tasks>
+
+</beans>
+	

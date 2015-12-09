@@ -100,5 +100,8 @@ public interface CustomerRepository extends
 			@Param("customerName") String nameWith,
 			@Param("geography") List<String> geography,
 			@Param("displayIOU") List<String> displayIOU);
-
+	
+	
+	@Query(value = "select customer_id,customer_name from customer_master_t", nativeQuery=true)
+    List<Object[]> findAllCustomerIdName();
 }

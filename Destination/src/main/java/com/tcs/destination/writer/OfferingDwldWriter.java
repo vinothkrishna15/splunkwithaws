@@ -22,28 +22,19 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.service.DataProcessingService;
+import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ExcelUtils;
 
-public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
+public class OfferingDwldWriter implements ItemWriter<OfferingMappingT>,
 		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(UserDwldCustomerWriter.class);
+			.getLogger(OfferingDwldWriter.class);
 
 	private StepExecution stepExecution;
-	
-	private String template;
-	
-	private String fileServerPath;
-
-	private DataProcessingRequestRepository dataProcessingRequestRepository;
-	
-	private DataProcessingService dataProcessingService;
 	
 	private Sheet sheet;
 	
@@ -54,25 +45,15 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
 	private String filePath; 
 	
 	private FileInputStream fileInputStream;
-
+	
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
 		
-         try {
+        try {
         	 fileInputStream.close();
         	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
-			 
-			 ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			 DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
-			 request.setStatus(RequestStatus.PROCESSED.getStatus());
-			 dataProcessingRequestRepository.save(request);
-			
-			jobContext.remove(REQUEST);
-			 
-			 
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
@@ -83,19 +64,22 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
+		
 		logger.debug("Inside before step:");
+		
 		try {
 			    this.stepExecution = stepExecution;
 			} catch (Exception e) {
 				logger.error("Error in before step process: {}", e);
 			}
+
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends CustomerMasterT> items) throws Exception {
+	public void write(List<? extends OfferingMappingT> items) throws Exception {
 
 		logger.debug("Inside write method:");
 		
@@ -115,32 +99,28 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
             	workbook = new XSSFWorkbook(fileInputStream);
             }
 	            
-			sheet = workbook.getSheet(Constants.USER_TEMPLATE_CUSTOMER);
+			sheet = workbook.getSheet(Constants.CONNECT_TEMPLATE_OFFERING_SHEET_NAME);
 		}
 
 		if(items!=null) {
-			for (CustomerMasterT cmt : items) {
+			for (OfferingMappingT offeringMappingT : items) {
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
 
-				// Create new Cell and set cell value
-				Cell cellGrpClient = row.createCell(0);
-				cellGrpClient.setCellValue(cmt.getGroupCustomerName().trim());
-
-				Cell cellCustName = row.createCell(1);
-				cellCustName.setCellValue(cmt.getCustomerName().trim());
-
-				Cell cellIou = row.createCell(2);
-				cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou().trim());
-
-				Cell cellGeo = row.createCell(3);
-				cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
-						.trim());
+				String subsp = offeringMappingT.getSubSp();
+				ExcelUtils.createCell(subsp, row, 0);
+				
+				String offering = offeringMappingT.getOffering();
+				ExcelUtils.createCell(offering, row, 1);
+				
+				String active = offeringMappingT.getActive();
+				ExcelUtils.createCell(active, row, 2);
+				
 
 				// Increment row counter
 				rowCount++;
 			}
-		} 
+		}
 	}
 
 	public StepExecution getStepExecution() {
@@ -149,39 +129,6 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
 
 	public void setStepExecution(StepExecution stepExecution) {
 		this.stepExecution = stepExecution;
-	}
-
-	public String getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(String template) {
-		this.template = template;
-	}
-
-	public String getFileServerPath() {
-		return fileServerPath;
-	}
-
-	public void setFileServerPath(String fileServerPath) {
-		this.fileServerPath = fileServerPath;
-	}
-
-	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
-		return dataProcessingRequestRepository;
-	}
-
-	public void setDataProcessingRequestRepository(
-			DataProcessingRequestRepository dataProcessingRequestRepository) {
-		this.dataProcessingRequestRepository = dataProcessingRequestRepository;
-	}
-
-	public DataProcessingService getDataProcessingService() {
-		return dataProcessingService;
-	}
-
-	public void setDataProcessingService(DataProcessingService dataProcessingService) {
-		this.dataProcessingService = dataProcessingService;
 	}
 
 	public Sheet getSheet() {

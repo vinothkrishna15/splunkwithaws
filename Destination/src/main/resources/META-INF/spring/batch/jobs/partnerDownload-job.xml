@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<batch:job id="partnerDownload">
+		<batch:step id="partnerDownloadPreprocess" next="decider">
+			<batch:tasklet ref="partnerDwldPreprocessor" />
+		</batch:step>
+		<batch:decision id="decider" decider="partnerFlowdecider">
+			<batch:next on="PREPROCESS" to="partnerDownloadPreprocess" />
+			<batch:next on="PARTNER_DWLD_PROCESSING" to="partnerDwldProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
+		<batch:step id="partnerDwldProcessing" next="partnerDownloadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="partnerDwldReader" writer="partnerDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+	<!-- Readers -->
+	<bean id="partnerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="partnerRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerDwldWriter" class="com.tcs.destination.writer.PartnerDwldWriter">
+		<property name="template" value="${partnerSheetTemplate}" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+		<property name="fileServerPath" value="${fileserver.path}" />
+	</bean>
+
+	<!-- Decider -->
+	<bean id="partnerFlowdecider" class="com.tcs.destination.decider.PartnerDecider" />
+
+   <!-- scheduler  -->
+	<bean id="partnerDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="partnerDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="partnerDownloadScheduler" method="run" cron="${partner.download.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

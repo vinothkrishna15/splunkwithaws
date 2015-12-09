@@ -59,14 +59,25 @@ public class ConnectSubSpLinkT implements Serializable {
 	}
 	//bi-directional many-to-one association to SubSpMappingT
 	@ManyToOne
-	@JoinColumn(name="sub_sp")
+	@JoinColumn(name="sub_sp",updatable=false,insertable=false)
 	private SubSpMappingT subSpMappingT;
+	
+	@Column(name="sub_sp")
+	private String subSp;
+	
 
 //bi-directional many-to-one association to UserT
 //@ManyToOne
 //@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
 //private UserT createdModifiedByUser;
 	
+	public String getSubSp() {
+		return subSp;
+	}
+
+	public void setSubSp(String subSp) {
+		this.subSp = subSp;
+	}
 	@Column(name="created_datetime",updatable = false)
 	private Timestamp createdDatetime;
 	

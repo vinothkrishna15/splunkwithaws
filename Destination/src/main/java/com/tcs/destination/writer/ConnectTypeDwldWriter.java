@@ -22,18 +22,20 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
+import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.ExcelUtils;
 
-public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
+public class ConnectTypeDwldWriter implements ItemWriter<ConnectTypeMappingT>,
 		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(UserDwldCustomerWriter.class);
+			.getLogger(ConnectTypeDwldWriter.class);
 
 	private StepExecution stepExecution;
 	
@@ -63,16 +65,6 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
         	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
              workbook.write(outputStream); //write changes
 			 outputStream.close();  //close the stream
-			 
-			 ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			 DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-			
-			 request.setStatus(RequestStatus.PROCESSED.getStatus());
-			 dataProcessingRequestRepository.save(request);
-			
-			jobContext.remove(REQUEST);
-			 
-			 
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
@@ -95,13 +87,14 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends CustomerMasterT> items) throws Exception {
+	public void write(List<? extends ConnectTypeMappingT> items) throws Exception {
 
 		logger.debug("Inside write method:");
 		
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
+			
 			filePath = request.getFilePath() + request.getFileName();
 			fileInputStream = new FileInputStream(new File(filePath));
 			String fileName  = request.getFileName();
@@ -115,27 +108,22 @@ public class UserDwldCustomerWriter implements ItemWriter<CustomerMasterT>,
             	workbook = new XSSFWorkbook(fileInputStream);
             }
 	            
-			sheet = workbook.getSheet(Constants.USER_TEMPLATE_CUSTOMER);
+			sheet = workbook.getSheet(Constants.CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME);
 		}
 
 		if(items!=null) {
-			for (CustomerMasterT cmt : items) {
+			for (ConnectTypeMappingT connectTypeMappingT : items) {
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
-
-				// Create new Cell and set cell value
-				Cell cellGrpClient = row.createCell(0);
-				cellGrpClient.setCellValue(cmt.getGroupCustomerName().trim());
-
-				Cell cellCustName = row.createCell(1);
-				cellCustName.setCellValue(cmt.getCustomerName().trim());
-
-				Cell cellIou = row.createCell(2);
-				cellIou.setCellValue(cmt.getIouCustomerMappingT().getIou().trim());
-
-				Cell cellGeo = row.createCell(3);
-				cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
-						.trim());
+                
+				String type = connectTypeMappingT.getType();
+				ExcelUtils.createCell(type, row, 0);
+				
+				String description = connectTypeMappingT.getDescription();
+				ExcelUtils.createCell(description, row, 1);
+				
+				String connectWith = connectTypeMappingT.getConnectWith();
+				ExcelUtils.createCell(connectWith, row, 2);
 
 				// Increment row counter
 				rowCount++;
