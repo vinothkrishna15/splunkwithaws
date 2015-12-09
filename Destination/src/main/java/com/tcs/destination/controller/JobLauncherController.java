@@ -50,7 +50,6 @@ public class JobLauncherController {
 	@RequestMapping(value = "/launch", method = RequestMethod.POST)
     public @ResponseBody ResponseEntity<String> jobLaunch(
 	    @RequestBody  JobName jobName,
-//    	@RequestBody String jobName,
 	    @RequestParam(value = "fields", defaultValue = "all") String fields,
 	    @RequestParam(value = "view", defaultValue = "") String view)
 	    throws Exception {
@@ -60,7 +59,7 @@ public class JobLauncherController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			Job job = jobRegistry.getJob(jobName.getValue());
+			Job job = jobRegistry.getJob(jobName.getJob());
 			JobExecution execution = jobLauncher.run(job, getJobParameter(job));
 			
 			logger.info("Job: {} exit status:{}.", job.getName() ,execution.getStatus() );

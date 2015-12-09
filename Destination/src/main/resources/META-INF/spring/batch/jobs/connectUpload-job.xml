@@ -11,8 +11,9 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="connectUpload">
+
 		<batch:step id="connectUploadPreprocess" next="connectDecider">
-			<batch:tasklet ref="connectPreprocessor"/>
+          <batch:tasklet ref="connectPreprocessor"/>
 		</batch:step>
 		
 		<batch:step id="connectProcessing" next="connectUploadPreprocess">
@@ -22,6 +23,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
+
 		 <batch:decision id="connectDecider" decider="connectFlowdecider">
               <batch:next on="PREPROCESS" to="connectUploadPreprocess" />
               <batch:next on="CONNECT_PROCESSING" to="connectProcessing" />
@@ -49,16 +51,7 @@
 	<!-- Decider -->
     <bean id="connectFlowdecider" class="com.tcs.destination.decider.ConnectDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="connectUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="connectUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
-	<task:scheduled-tasks>
-        <task:scheduled ref="connectUploadScheduler" method="run" cron="${connect.upload.job.cron}"/>
-    </task:scheduled-tasks> 
-
 </beans>
 	

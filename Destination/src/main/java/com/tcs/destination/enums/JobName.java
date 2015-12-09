@@ -22,36 +22,20 @@ import com.tcs.destination.mapper.JobNameDeserializer;
 @JsonDeserialize(using=JobNameDeserializer.class)
 public enum JobName {
 	
-		userRemindersBidAndTaskNrDue("userRemindersBidAndTaskNrDue"),
-		userRemindersBidAndTaskPostDue("userRemindersBidAndTaskPostDue"),
-		userRemindersBidAndTskPstDueSupervisor("userRemindersBidAndTskPstDueSupervisor"),
-		userRemindersConnectUpdate("userRemindersConnectUpdate"),
-		partnerUpload("partnerUpload"),
 		connectUpload("connectUpload"),
 		customerUpload("customerUpload"),
-		customerDownload("customerDownload"),
-		revenueUpload("revenueUpload"),
-		emailJob("emailJob"),
-		maintenanceJob("maintenanceJob"),
-		userDownloadJob("userDownloadJob"),
-		actualRevenueDownload("actualRevenueDownload"),
-		opportunityDownload("opportunityDownload"),
-		opportunityDailyDownload("opportunityDailyDownload");
+		opportunityUpload("opportunityUpload"),
+		revenueUpload("revenueUpload");
 		
-		private String value;
+		private String job;
 		
-		private JobName(String value) {
-			this.value = value;
+		@JsonProperty("job")
+		public String getJob() {
+			return job;
 		}
 		
-		@JsonProperty("value")
-		public String getValue() {
-			return value;
-		}
-		
-		public void setValue(String value) {
-			this.value = value;
+		private JobName(String job) {
+			this.job = job;
 		}
 
-		
 }

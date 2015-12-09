@@ -39,23 +39,27 @@ public class RevenueController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(RevenueController.class);
-	
+
 	@Autowired
 	RevenueUploadService revenueUploadService;
-	
+
 	@Autowired
 	ActualRevenueDataUploadService actualRevenueDataUplaodService;
-	
+
 	@Autowired
 	RevenueDownloadService revenueDownloadService;
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-	
-	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+	private static final DateFormat actualFormat = new SimpleDateFormat(
+			"dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat(
+			"MM/dd/yyyy");
+
 	/**
 	 * This controller uploads the Revenue Details to the database
+	 * 
 	 * @param userId
 	 * @param file
 	 * @param fields
@@ -69,28 +73,37 @@ public class RevenueController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-
+			throws DestinationException {
+		logger.info("Start of upload revenue mapping");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		UploadStatusDTO status = revenueUploadService.upload(file, userId);
-		if (status != null) {
-			System.out.println(status.isStatusFlag());
-			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-				System.out.println(err.getRowNumber());
-				    System.out.println(err.getMessage());
-				}
+		try {
+			UploadStatusDTO status = revenueUploadService.upload(file, userId);
+			if (status != null) {
+				errorDetailsDTOs = status.getListOfErrors();
+			}
+			InputStreamResource excelFile = uploadErrorReport
+					.getErrorSheet(errorDetailsDTOs);
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"revenue_mapping_upload_error.xlsx");
+			logger.info("End of upload revenue mapping");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading the revenue mapping");
 		}
-		
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","revenue_mapping_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
-	
+
 	/**
 	 * This controller uploads the ActualRevenue Details to the database
+	 * 
 	 * @param userId
 	 * @param file
 	 * @param fields
@@ -104,51 +117,65 @@ public class RevenueController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
-
+			throws DestinationException {
+		logger.info("Start of upload actual revenue data");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		logger.info("inside uploadActualRevenueData controller");
-		UploadStatusDTO status = actualRevenueDataUplaodService.upload(file, userId);
-		if (status != null) {
-			System.out.println(status.isStatusFlag());
-			errorDetailsDTOs = status.getListOfErrors();
-			for(UploadServiceErrorDetailsDTO err : errorDetailsDTOs){
-				System.out.println(err.getRowNumber());
-				    System.out.println(err.getMessage());
-				}
+		try {
+			UploadStatusDTO status = actualRevenueDataUplaodService.upload(
+					file, userId);
+			if (status != null) {
+				errorDetailsDTOs = status.getListOfErrors();
+			}
+			InputStreamResource excelFile = uploadErrorReport
+					.getErrorSheet(errorDetailsDTOs);
+			HttpHeaders respHeaders = new HttpHeaders();
+			respHeaders
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			respHeaders.setContentDispositionFormData("attachment",
+					"actual_revenue_data_mapping_upload_error.xlsx");
+			logger.info("End of upload actual revenue data");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading the actual revenue data");
 		}
-		
-		InputStreamResource excelFile = uploadErrorReport.getErrorSheet(errorDetailsDTOs);
-		HttpHeaders respHeaders = new HttpHeaders();
-		respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-		respHeaders.setContentDispositionFormData("attachment","actual_revenue_data_mapping_upload_error.xlsx");
-		return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadActualRevenueTemplate(
 			@RequestParam("downloadActualRevenues") boolean oppFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws Exception {
+			throws DestinationException {
+		logger.info("Start of actual revenue download");
 		HttpHeaders respHeaders = null;
 		InputStreamResource ActualRevenueDownloadExcel = null;
 		try {
-			ActualRevenueDownloadExcel = revenueDownloadService.getActualRevenueData(oppFlag);
+			ActualRevenueDownloadExcel = revenueDownloadService
+					.getActualRevenueData(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
-			respHeaders.setContentDispositionFormData("attachment","ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
-			respHeaders.setContentType(MediaType.parseMediaType("application/octet-stream"));
+			String todaysDate_formatted = desiredFormat.format(actualFormat
+					.parse(todaysDate));
+			respHeaders.setContentDispositionFormData("attachment",
+					"ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
 			logger.info("Actual Revenue Template Report Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					ActualRevenueDownloadExcel, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while downloading the actual revenue data");
 		}
-		return new ResponseEntity<InputStreamResource>(
-				ActualRevenueDownloadExcel, respHeaders, HttpStatus.OK);
-
 	}
-
 }

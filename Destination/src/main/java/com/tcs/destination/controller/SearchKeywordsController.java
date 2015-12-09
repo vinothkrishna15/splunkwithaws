@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.SearchKeywordsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -42,12 +43,22 @@ public class SearchKeywordsController {
 	public @ResponseBody ResponseEntity<String> findKeywordsWithName(
 			@RequestParam(value="nameWith") String nameWith,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving search keywords matching the given keyword");
 		logger.debug("Inside SearchKeywordsController /keywords/search?nameWith="+nameWith+" GET");
+		try {
 		List<String> keywords = keywordsService.findKeywordsWithNameContaining(nameWith);
+		logger.info("End of retrieving search keywords matching the given keyword");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the keywords matching the given keyword :" + nameWith);
+	   }
 	}
 	
 	/**
@@ -61,12 +72,22 @@ public class SearchKeywordsController {
 			@RequestParam(value="entityType") String entityType,
 			@RequestParam(value="entityId") String entityId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving search keywords for a given Entity Type & Id");
 		logger.debug("Inside SearchKeywordsController /keywords/entity GET");
+		try {
 		List<SearchKeywordsT> keywords = keywordsService.findKeywordsByEntityTypeAndId(entityType, entityId);
+		logger.info("End of retrieving search keywords for a given Entity Type & Id");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving search keywords for a given Entity Type :" + entityType + "Entity Id" + entityId);
+	   }
 	}
 
 }

@@ -11,8 +11,9 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="opportunityUpload">
+
 		<batch:step id="opportunityUploadPreprocess" next="opportunityDecider">
-			<batch:tasklet ref="opportunityUploadPreprocessor"/>
+           <batch:tasklet ref="opportunityUploadPreprocessor"/>
 		</batch:step>
 		
 		<batch:step id="opportunityProcessing" next="opportunityUploadPreprocess">
@@ -22,6 +23,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
+
 		 <batch:decision id="opportunityDecider" decider="opportunityFlowdecider">
               <batch:next on="PREPROCESS" to="opportunityUploadPreprocess" />
               <batch:next on="OPPORTUNITY_PROCESSING" to="opportunityProcessing" />
@@ -48,15 +50,6 @@
 	<!-- Decider -->
     <bean id="opportunityFlowdecider" class="com.tcs.destination.decider.OpportunityDecider" />
 	
-	<!-- scheduler  -->
-	<bean id="opportunityUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
-		<property name="job" ref="opportunityUpload"/>
-	</bean>
-	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
-	<task:scheduled-tasks>
-        <task:scheduled ref="opportunityUploadScheduler" method="run" cron="${opportunity.upload.job.cron}"/>
-    </task:scheduled-tasks> 
-
 </beans>
