@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FrequentlySearchedService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -37,19 +38,27 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "all") String owner)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside FrequetlySearchedController /frequent?entityType="+entityType+" GET");
+		try{
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 				frequentService.findFrequent(entityType, count));
+		} catch(DestinationException e) {
+			throw e;
+		} catch(Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving frequently used details");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFrequent(
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception {
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
 		
 		logger.debug("Inside FrequentlySearchedController /frequent POST");
+		try{
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if(frequentService.insertFrequent(frequent)){
@@ -60,5 +69,11 @@ public class FrequentlySearchedController {
 
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
+		} catch(DestinationException e) {
+			throw e;
+		} catch(Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while updating frequent customer/partner details");
+		}
 	}
 }

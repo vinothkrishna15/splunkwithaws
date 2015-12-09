@@ -48,8 +48,8 @@ public class DocumentController {
 	public ResponseEntity<InputStreamResource>  download(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		try{
 		logger.debug("Download Request received for id: " + documentId);
 		
 		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
@@ -86,10 +86,19 @@ public class DocumentController {
 		}
 		logger.error("NOT_FOUND: No Records Found");
 		throw new DestinationException(HttpStatus.NOT_FOUND,documentId + "No Records Found");
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while downloading");
+		}
 	}
 	
 	@RequestMapping(method = RequestMethod.DELETE)
-	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete) throws Exception{
+	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete) throws DestinationException{
+		try{
 		logger.debug("Deletion request Received for ids: " + idsToDelete);
 		String[] docIds = idsToDelete.split(",");
 		Status status = new Status();
@@ -97,6 +106,14 @@ public class DocumentController {
 			status.setStatus(Status.SUCCESS, "Files Deleted for " + deletedIds);
 			logger.debug("DELETE SUCCESS - Files Deleted for " + deletedIds);
 			return ResponseConstructors.filterJsonForFieldAndViews("all", "", status);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while deleting document");
+		}
 	}
 		
 		
@@ -105,12 +122,21 @@ public class DocumentController {
 	public @ResponseBody String findOne(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		try{
 		logger.debug("Inside DocumentController /document/documentId="+documentId+" GET");
 		DocumentRepositoryT docrep = documentService
 				.findByDocumentId(documentId);
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, docrep);
-	}
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while retrieving document");
+		}
+		}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
@@ -140,14 +166,17 @@ public class DocumentController {
 					file);
 			status.setStatus(Status.SUCCESS, "Id : " + docId);
            logger.debug("UPLOAD SUCCESS - Record Created,  Id: " + docId);
-		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" +e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
-//			status.setStatus(Status.FAILED, e.getMessage());
-//			return Constants.filterJsonForFieldAndViews(fields, view, status);
-		}
+		
 
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, status);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while uploading document");
+		}
 	}
 
 }
