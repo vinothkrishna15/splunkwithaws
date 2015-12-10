@@ -17,7 +17,7 @@ import com.tcs.destination.bean.UserGoalsT;
 @Repository
 public interface GoalGroupMappingRepository extends JpaRepository<GoalGroupMappingT, String> {
 	
-	@Query(value="select distinct goal_id,user_group from goal_group_mapping_t",nativeQuery=true)
+	@Query(value="select goal_id,user_group from goal_group_mapping_t;",nativeQuery=true)
 	List<Object[]> findGoalGroup();
 	
 }

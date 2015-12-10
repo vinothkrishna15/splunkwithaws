@@ -1,6 +1,8 @@
 package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +35,11 @@ import com.tcs.destination.data.repository.ApplicationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.service.UserDownloadService;
 import com.tcs.destination.service.UserUploadService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -55,6 +59,9 @@ public class UserDetailsController {
 
 	@Autowired
 	UserUploadService userUploadService;
+	
+	@Autowired
+	UserDownloadService userDownloadService;
 
 	@Autowired
 	ApplicationSettingsService applicationSettingsService;
@@ -64,6 +71,9 @@ public class UserDetailsController {
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
+	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -385,7 +395,7 @@ public class UserDetailsController {
 					throws DestinationException {
 		try{
 			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			logger.debug("Upload request Received : docName - ");
+			logger.debug("upload request Received : docName - ");
 			UploadStatusDTO status = null;
 
 			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -415,5 +425,37 @@ public class UserDetailsController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while uploading users");
 		} 
 	}
+	
+	@RequestMapping(value = "/download", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadCustomerMaster(
+			@RequestParam("downloadUsers") boolean oppFlag,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Start of Customer Details download");
+		HttpHeaders respHeaders = null;
+		InputStreamResource customerDownloadExcel = null;
+		try {
+			customerDownloadExcel = userDownloadService.getUsers(oppFlag);
+			respHeaders = new HttpHeaders();
+			String todaysDate = DateUtils.getCurrentDate();
+			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+			respHeaders.setContentDispositionFormData("attachment",
+					"UserDownload_" + todaysDate_formatted
+							+ ".xlsm");
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Customer Master Report Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the customer details in excel");
+		}
+	}
+
 
 }
