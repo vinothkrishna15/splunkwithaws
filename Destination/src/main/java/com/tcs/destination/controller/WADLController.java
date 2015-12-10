@@ -66,9 +66,17 @@ public class WADLController {
  
     @RequestMapping(value = "/view",method=RequestMethod.GET, produces={"application/xml"} ) 
     public @ResponseBody Application viewWadl(HttpServletRequest request) throws DestinationException {
+    	try {
     	logger.info("WADL View Request received");
         Application result = getResult(request);
 		return result;
+    	} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the result");
+	   }
     }
 
 	@RequestMapping(value = "/download",method=RequestMethod.GET, produces={"application/xml"} ) 
@@ -93,7 +101,10 @@ public class WADLController {
 			respHeaders.setContentType(MediaType.APPLICATION_XML);
 			return new ResponseEntity<InputStreamResource>(isr, respHeaders,HttpStatus.OK);
 			
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Problem saving and retrieving xml");
 		}

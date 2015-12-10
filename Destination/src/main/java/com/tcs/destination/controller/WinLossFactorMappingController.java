@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.WinLossFactorMappingT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WinLossMappingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -29,11 +31,21 @@ public class WinLossFactorMappingController {
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of retreiving win loss factors mapping");
 		logger.debug("Inside WinLoss Controller /winloss GET");
-		ArrayList<WinLossFactorMappingT> winLossMapping = (ArrayList<WinLossFactorMappingT>) winLossMappingService
-				.findAll();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				winLossMapping);
+		try {
+			ArrayList<WinLossFactorMappingT> winLossMapping = (ArrayList<WinLossFactorMappingT>) winLossMappingService
+					.findAll();
+			logger.info("End of retreiving win loss factors mapping");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, winLossMapping);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retreiving win loss factors ");
+		}
 	}
 }

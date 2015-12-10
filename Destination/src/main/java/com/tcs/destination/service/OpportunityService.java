@@ -925,6 +925,7 @@ public class OpportunityService {
 			for(OpportunityOfferingLinkT opportunityOfferingLinkT:opportunity.getDeleteOpportunityOfferingLinkTs()){
 			opportunityOfferingLinkTRepository.delete(opportunityOfferingLinkT.getOpportunityOfferingLinkId());
 		}
+			}
 
 		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
@@ -939,8 +940,6 @@ public class OpportunityService {
 			for(OpportunitySubSpLinkT opportunitySubSpLinkT:opportunity.getDeleteOpportunitySubSpLinkTs()){
 				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT.getOpportunitySubSpLinkId());
 			}
-		}
-			
 		}
 
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null

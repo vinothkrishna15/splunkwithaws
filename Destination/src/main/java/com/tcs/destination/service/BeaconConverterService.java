@@ -242,5 +242,32 @@ public class BeaconConverterService {
 		}
 		return value;
 	}
+    
+    /**
+     * Convert to require currency amount inputing the map
+     * 
+     * @param base
+     * @param target
+     * @param value
+     * @param mapOfBeaconConverter
+     * @return
+     * @throws Exception
+     */
+    public BigDecimal convertCurrencyRateUsingBeaconConverterMap(String base, String target, double value, Map<String, BigDecimal> mapOfBeaconConverter) throws Exception{
+    	
+    	BigDecimal sourceVal = BigDecimal.valueOf(value);
+		BigDecimal convertedVal = null;
+		
+		BigDecimal conversionBaseRate = getMapValuesForKey(mapOfBeaconConverter, base);
+		if (conversionBaseRate != null) {
+			sourceVal = conversionBaseRate.multiply(sourceVal);
+		}
+
+		BigDecimal conversionTargetRate = getMapValuesForKey(mapOfBeaconConverter, target);
+		if (conversionTargetRate != null) {
+			convertedVal = sourceVal.divide(conversionTargetRate, 2, RoundingMode.HALF_UP);
+		} 
+		return convertedVal;
+    }
 	
 }

@@ -9,10 +9,10 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 
 	<batch:job id="partnerDownload">
-		<batch:step id="partnerDownloadPreprocess" next="decider">
+		<batch:step id="partnerDownloadPreprocess" next="partnerDecider">
 			<batch:tasklet ref="partnerDwldPreprocessor" />
 		</batch:step>
-		<batch:decision id="decider" decider="partnerFlowdecider">
+		<batch:decision id="partnerDecider" decider="partnerFlowdecider">
 			<batch:next on="PREPROCESS" to="partnerDownloadPreprocess" />
 			<batch:next on="PARTNER_DWLD_PROCESSING" to="partnerDwldProcessing" />
 			<batch:end on="END" />

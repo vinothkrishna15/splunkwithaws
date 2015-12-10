@@ -50,12 +50,22 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTaskById(
 			@PathVariable("id") String taskId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of getting the Task Details by Task Id");
 		logger.debug("Inside TaskController /task/id="+taskId+" GET");
+		try {
 		TaskT task = taskService.findTaskById(taskId);
+		logger.info("End of getting the Task Details by Task Id");
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, task), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Task Details for task Id : " + taskId);
+	   }
 	}
 
 	/**
@@ -68,12 +78,22 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksWithName(
 			@RequestParam(value="nameWith") String nameWith,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of Retrieving the Task details by name");
 		logger.debug("Inside TaskController /task?nameWith="+nameWith+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksByNameContaining(nameWith);
+		logger.info("End of Retrieving the Task details by name");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Task details for name :" + nameWith);
+	   }
 	}
 	
 	/**
@@ -86,12 +106,22 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksByConnectId(
 			@RequestParam(value="id") String connectId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving the task details by connect id");
 		logger.debug("Inside TaskController /task/findByConnect?id="+connectId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksByConnectId(connectId);
+		logger.info("End of retrieving the task details by connect id");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Task details for connect id :" + connectId);
+	   }
 	}
 
 	/**
@@ -104,12 +134,22 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTasksByOpportunityId(
 			@RequestParam(value="id") String opportunityId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving the task details by opportunity id");
 		logger.debug("Inside TaskController /task/findByOpportunity?id="+opportunityId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksByOpportunityId(opportunityId);
+		logger.info("End of retrieving the task details by opportunity id");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Task details for opportunity id :" + opportunityId);
+	   }
 	}
 
 	/**
@@ -124,12 +164,22 @@ public class TaskController {
 			@RequestParam(value="id") String taskOwner,
 			@RequestParam(value="status", defaultValue="all") String taskStatus,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving the task details by task owner");
 		logger.debug("Inside TaskController /task/findByOwner?id="+taskOwner+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksByTaskOwnerAndStatus(taskOwner, taskStatus);
+		logger.info("End of retrieving the task details by task owner");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Task Details for Task Owner :" + taskOwner);
+	   }
 	}
 
 	/**
@@ -141,13 +191,23 @@ public class TaskController {
 	@RequestMapping(value="/findAssigned", method=RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findTasksAssignedToOthersByUser(
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retreiving the Tasks assigned to others");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside TaskController /task/findAssigned?id="+userId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
+		logger.info("End of retreiving the Tasks assigned to others");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retreiving the Tasks assigned to others by user :" + userId);
+	   }
 	}
 
 	/**
@@ -162,13 +222,23 @@ public class TaskController {
 			@RequestParam(value="fromDate") @DateTimeFormat(iso = ISO.DATE) Date fromDate,
 			@RequestParam(value="toDate") @DateTimeFormat(iso = ISO.DATE) Date toDate,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retreiving the tasks assigned to a user with a specific target completion date");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, fromDate, toDate);
+		logger.info("End of retreiving the tasks assigned to a user with a specific target completion date");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retreiving the Tasks assigned to a user with a specific target completion date");
+	   }
 	}
 	
 	/**
@@ -179,22 +249,29 @@ public class TaskController {
 	 */
 	@RequestMapping(method=RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createTask(@RequestBody TaskT task) 
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of creating a Task");
 		logger.debug("Inside TaskController /task POST");
 		TaskT managedTask = null;
 		Status status = null;
 		try {
 			managedTask = taskService.createTask(task);
-		} catch (Exception ex) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-		}
-		if ((managedTask != null) && (managedTask.getTaskId() != null)) {
-			logger.debug("Managed Task and Task Id NOT NULL");
-			status = new Status();
-			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
-		}
-		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			if ((managedTask != null) && (managedTask.getTaskId() != null)) {
+				logger.debug("Managed Task and Task Id NOT NULL");
+				status = new Status();
+				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
+			}
+			logger.info("End of creating a Task");
+			return new ResponseEntity<String>
+				(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while creating a new Task for a given connect or opportunity");
+	   }
+		
 	}
 
 	/**
@@ -205,22 +282,28 @@ public class TaskController {
 	 */
 	@RequestMapping(method=RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editTask(@RequestBody TaskT task) 
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of editing a Task");
 		logger.debug("Inside TaskController /task PUT");
 		TaskT managedTask = null;
 		Status status = null;
 		try {
 			managedTask = taskService.editTask(task);
-		} catch (Exception ex) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-		}
-		if (managedTask != null)  {
-			logger.debug("Managed Task NOT NULL");
-			status = new Status();
-			status.setStatus(Status.SUCCESS, managedTask.getTaskId());
-		}
-		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+			if (managedTask != null)  {
+				logger.debug("Managed Task NOT NULL");
+				status = new Status();
+				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
+			}
+			logger.info("End of editing a Task");
+			return new ResponseEntity<String>
+				(ResponseConstructors.filterJsonForFieldAndViews("all", "", status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while editing a new Task for a given connect or opportunity");
+	   }
 	}
 	
 	
@@ -235,12 +318,22 @@ public class TaskController {
 			@RequestParam(value="status", defaultValue="all") String status,
 			@RequestParam(value="id") String supervisorId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving the Team Tasks");
 		logger.debug("Inside TaskController /task/team?id="+supervisorId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTeamTasks(supervisorId,status);
+		logger.info("End of retrieving the Team Tasks");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Team Tasks for supervisor id :" + supervisorId);
+	   }
 	}
 	
 	/**
@@ -253,11 +346,21 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> findTeamTasksAssignedToOthers(
 			@RequestParam(value="supervisorId") String supervisorId,
 			@RequestParam(value="fields", defaultValue="all") String fields,
-			@RequestParam(value="view", defaultValue="") String view) throws Exception 
-	{
+			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
+	{   
+		logger.info("Start of retrieving the tasks assigned to others by users under a supervisor");
 		logger.debug("Inside TaskController /task/team/findAssigned?supervisorId="+supervisorId+" GET");
+		try {
 		List<TaskT> taskList = taskService.findTeamTasksAssignedtoOthers(supervisorId);
+		logger.info("End of retrieving the tasks assigned to others by users under a supervisor");
 		return new ResponseEntity<String>
-			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);  
+			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, taskList), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in the tasks assigned to others by users under the supervisor" + supervisorId);
+	   }
 	}
 }

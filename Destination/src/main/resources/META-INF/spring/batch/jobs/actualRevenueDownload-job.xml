@@ -11,7 +11,7 @@
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
 	<batch:job id="actualRevenueDownload">
-	<batch:step id="preprocess" next="decider">
+	<batch:step id="preprocess" next="actualRevenueDecider">
 			<batch:tasklet ref="actualRevenueDwldPreprocessor"/>
 		</batch:step>
 	
@@ -40,7 +40,7 @@
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="decider" decider="revenueFlowdecider">
+		 <batch:decision id="actualRevenueDecider" decider="revenueFlowdecider">
               <batch:next on="PREPROCESS" to="preprocess" />
               <batch:next on="REVENUE_DWLD_PROCESSING" to="actualRevenueDwldProcessing" />
               <batch:end on="END"/>

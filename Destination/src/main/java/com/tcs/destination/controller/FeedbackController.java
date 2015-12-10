@@ -37,17 +37,28 @@ public class FeedbackController {
 			@PathVariable("id") String feedbackId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of retrieving the feedback");
 		logger.debug("Inside searchforfeedbacksById service");
-		FeedbackT feedback = feedbackService.findFeedbackById(feedbackId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				feedback);
+		try {
+			FeedbackT feedback = feedbackService.findFeedbackById(feedbackId);
+			logger.info("End of retrieving the feedback");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, feedback);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the feedback for id :"
+							+ feedbackId);
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFeedback(
-			@RequestBody FeedbackT feedback) throws Exception {
-		
+			@RequestBody FeedbackT feedback) throws DestinationException {
+		logger.info("Start of insert feedback");
 		logger.debug("Feedback Insert Request Received /feedback POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
@@ -57,20 +68,24 @@ public class FeedbackController {
 				logger.debug("Feedback created successfully"
 						+ feedback.getFeedbackId());
 			}
+			logger.info("End of insert feedback");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while inserting the feedback");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editFeedback(
-			@RequestBody FeedbackT feedback) throws Exception {
-
+			@RequestBody FeedbackT feedback) throws DestinationException {
+		logger.info("Start of edit feedback");
 		logger.debug("Feedback Edit Request Received /feedback PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
@@ -80,14 +95,18 @@ public class FeedbackController {
 				logger.debug("Feedback updated successfully"
 						+ feedback.getFeedbackId());
 			}
+			logger.info("End of edit feedback");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while editing the feedback");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -102,14 +121,24 @@ public class FeedbackController {
 			@RequestParam(value = "subModule", defaultValue = "") String subModule,
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
-			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Start of retrieving the filtered feedback");
 		logger.debug("Inside getFilteredFeedbacks service");
-		List<FeedbackT> feedbackList = feedbackService.findFeedbacksWith(titleWith,descriptionWith,
-				issueType, priority, status, userId, module, updatedUserId,
-				subModule);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				feedbackList);
+		try {
+			List<FeedbackT> feedbackList = feedbackService.findFeedbacksWith(
+					titleWith, descriptionWith, issueType, priority, status,
+					userId, module, updatedUserId, subModule);
+			logger.info("End of retrieving the filtered feedback");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, feedbackList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the filtered feedback");
+		}
 	}
 
 }
