@@ -135,5 +135,25 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 		+ "from task_t t, task_bdms_tagged_link_t tb, user_t us, user_t ut where t.task_id  = tb.task_id and tb.bdms_tagged = us.user_id and us.supervisor_user_id is not null "
 		+ "and us.supervisor_user_id = ut.user_id and CURRENT_DATE > t.target_date_for_completion and t.task_status != 'CLOSED' "
 		+ "and (CURRENT_DATE - t.target_date_for_completion) < 31 and ((CURRENT_DATE - t.target_date_for_completion) % 7) = 0";
-	
+
+	public static final String OPPORTUNITY_SHELVE_BASED_ON_OUTCOME = "UPDATE opportunity_t SET sales_stage_code = 12 ,modified_by='System' where opportunity_id in "
+			+ "(select OPP.opportunity_id from opportunity_t OPP "
+			+ "JOIN (select opportunity_id,(max(expected_date_of_outcome) < date(now())- '1 month'::interval) "
+			+ "as can_update from bid_details_t group by opportunity_id ) "
+			+ "as SUB_LIST on OPP.opportunity_id=SUB_LIST.opportunity_id where "
+			+ "SUB_LIST.can_update='t' and OPP.sales_stage_code in (3,5,6,7,8))";
+
+	public static final String OPPORTUNITY_SHELVE_BASED_ON_STATUS_CHANGE = "UPDATE opportunity_t SET sales_stage_code = 12, modified_by='System' where opportunity_id in"
+			+ " (select OTH.opportunity_id from opportunity_timeline_history_t OTH"
+			+ " JOIN (select opportunity_id,(max(updated_datetime) < (date(now())- '6 months'::interval))"
+			+ " as can_update from opportunity_timeline_history_t group by opportunity_id )"
+			+ " as SUB_LIST on OTH.opportunity_id=SUB_LIST.opportunity_id where"
+			+ " SUB_LIST.can_update='t' and OTH.sales_stage_code in (0,1))";
+
+	public static final String OPPORTUNITY_SHELVE_BASED_ON_TARGET_SUBMISSION_DATE = "UPDATE opportunity_t SET sales_stage_code = 12 ,modified_by='System' where opportunity_id in"
+			+ " (select OPP.opportunity_id from opportunity_t OPP JOIN"
+			+ " (select opportunity_id,(max(target_bid_submission_date) < date(now())- '1 month'::interval)"
+			+ " as can_update from bid_details_t group by opportunity_id )"
+			+ " as SUB_LIST on OPP.opportunity_id=SUB_LIST.opportunity_id where SUB_LIST.can_update='t'"
+			+ " and OPP.sales_stage_code in (2,4))";
 }
