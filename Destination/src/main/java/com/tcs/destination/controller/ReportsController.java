@@ -51,11 +51,11 @@ public class ReportsController {
 	@Autowired
 	BDMDetailedReportService bdmDetailedReportService;
 	
-	private static int targetVsActualConcurrentRequestCounter =0;
-	private static int connectConcurrentRequestCounter =0;
-	private static int bidConcurrentRequestCounter =0;
-	private static int opportunityConcurrentRequestCounter =0;
-	private static int bdmConcurrentRequestCounter =0;
+	private static int targetVsActualConcurrentRequestCounter =1;
+	private static int connectConcurrentRequestCounter =1;
+	private static int bidConcurrentRequestCounter =1;
+	private static int opportunityConcurrentRequestCounter =1;
+	private static int bdmConcurrentRequestCounter =1;
 	
 	@Value("${targetVsActualConcurrentRequestLimit}")
 	private int targetVsActualConcurrentRequestLimit;
