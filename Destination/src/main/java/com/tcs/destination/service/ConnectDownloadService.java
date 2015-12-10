@@ -8,10 +8,14 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -32,6 +36,9 @@ import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.ConnectTypeMappingT;
+import com.tcs.destination.bean.ContactCustomerLinkT;
+import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
@@ -39,6 +46,7 @@ import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
+import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyCountryRepository;
@@ -46,10 +54,13 @@ import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.ContactType;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
+import com.tcs.destination.utils.PropertyUtil;
 
 @Service
 public class ConnectDownloadService {
@@ -87,7 +98,14 @@ public class ConnectDownloadService {
 	@Autowired
 	ContactRepository contactRepository;
 	
-	 private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
+	@Autowired
+	ContactCustomerLinkTRepository contactCustomerLinkTRepository;
+
+	Map<String, CustomerMasterT> mapOfCustomerMasterT = null;
+	
+	Map<String,CustomerMasterT> mapOfContactCustomerLinkT = null;
+	
+	private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private static final Logger logger = LoggerFactory.getLogger(ConnectDownloadService.class);
 
@@ -96,14 +114,17 @@ public class ConnectDownloadService {
 		XSSFWorkbook workbook = null;
 		InputStreamResource  inputStreamResource = null;
 		UserT user = userRepository.findByUserId(userId);
+		mapOfCustomerMasterT = getcustomerMappingT();
+		mapOfContactCustomerLinkT = getContactCustomerLinkT();
 		if(user!=null){
 		
 			List<ConnectT> connectList = (List<ConnectT>) connectRepository.findAll();
 	
-			workbook =  (XSSFWorkbook) ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-				 Constants.APPLICATION_PROPERTIES_FILENAME, Constants.CONNECT_TEMPLATE_LOCATION_PROPERTY_NAME)));
-	      
-//	      //Get the workbook instance for XLSX file 
+			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.CONNECT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			
+            //Get the workbook instance for XLSX file 
 			if(oppFlag){
 				writeConnectTsIntoWorkbook(connectList, workbook);
 			}
@@ -113,8 +134,8 @@ public class ConnectDownloadService {
 			writeGeographyCountryIntoWorkbook(workbook);
 			opportunityDownloadService.populateSubSpSheet(workbook.getSheet("SubSp(Ref)"));
 			writeOfferingMappingTRefIntoWorkbook(workbook);
-//			writeCustomerContactRefIntoWorkbook(sxssfWorkbook);
-			opportunityDownloadService.populateContactSheets(workbook.getSheet("Partner Contact(Ref)"));
+			populateCustomerContactSheet(workbook.getSheet(Constants.CONNECT_TEMPLATE_CUSTOMER_CONTACT_SHEET_NAME));
+            opportunityDownloadService.populateContactSheets(workbook.getSheet("Partner Contact(Ref)"));
 			commonWorkbookSheetsForDownloadServices.populateUserRefSheet(workbook.getSheet("User(Ref)"));
 			writeConnectTypeRefIntoWorkbook(workbook);
 			writeTimeZoneMappingTRefIntoWorkbook(workbook);
@@ -134,51 +155,80 @@ public class ConnectDownloadService {
 		}
 		return inputStreamResource;
 	}
+    
+	private Map<String, CustomerMasterT> getContactCustomerLinkT() {
+		List<ContactCustomerLinkT> listOfContactCustomerLinkT = null;
+		listOfContactCustomerLinkT = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository.findAll();
+		Map<String, CustomerMasterT> contactCustomerMap = new HashMap<String, CustomerMasterT>();
+		for (ContactCustomerLinkT contactCustomerMappingT : listOfContactCustomerLinkT) {
+			contactCustomerMap.put(contactCustomerMappingT.getContactId(), contactCustomerMappingT.getCustomerMasterT());
+		}
+		return contactCustomerMap;
+	}
+	
+	/**
+	 * This method creates a Customer Map
+	 * @return customerMap
+	 */
+	private Map<String, CustomerMasterT> getcustomerMappingT() {
+		List<CustomerMasterT> listOfCustomerMappingT = null;
+		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
+		Map<String, CustomerMasterT> customerMap = new HashMap<String, CustomerMasterT>();
+		for (CustomerMasterT customerMappingT : listOfCustomerMappingT) {
+			customerMap.put(customerMappingT.getCustomerName(), customerMappingT);
+		}
+		return customerMap;
+	}
+	
+	private void populateCustomerContactSheet(Sheet customerContactSheet) {
+		// TODO Auto-generated method stub
+		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
-//	private void writeCustomerContactRefIntoWorkbook(SXSSFWorkbook workbook) throws Exception {
-//		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.getSheet("Customer Contact(Ref)");
-//		SXSSFRow row = null;
-//		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
-//		if(listOfContact!=null) {
-//		int rowCountPartnerSheet = 1; // Excluding the header, header starts with index 0
-//		for (ContactT ct : listOfContact) {
-//		    
-//		    if ((ct.getContactCategory().equals(EntityType.CUSTOMER.toString()) && 
-//			    (ct.getContactType().equals(ContactType.EXTERNAL.toString())) || 
-//			    ct.getContactType().equals(ContactType.INTERNAL.toString()))) { // For customer Contact
-//			    
-//			    // Create row with rowCount
-//			    row = (SXSSFRow) spreadSheet.createRow(rowCountPartnerSheet);
-//
-//			    // Create new Cell and set cell value
-//			    Cell cellCustomerName = row.createCell(0);
-//			    try {
-//			    cellCustomerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
-//			    } catch(NullPointerException npe){
-//				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Customer Contact cannot exist without customer");
-//			    }
-//			    
-//			    Cell cellPartnerContactName = row.createCell(1);
-//			    cellPartnerContactName.setCellValue(ct.getContactName());
-//			    
-//			    Cell cellPartnerContactRole = row.createCell(2);
-//			    cellPartnerContactRole.setCellValue(ct.getContactRole());
-//			    
-//			    Cell cellPartnerContactEmailId = row.createCell(3);
-//			    if(ct.getContactEmailId()!=null) {
-//				cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
-//			    }
-//
-//			    // Increment row counter for partner contact sheet
-//			    rowCountPartnerSheet++;
-//		    
-//		    }
-//		}
-//		}
-//
-//	}
+		if(listOfContact!=null) {
+			int rowCountCustomerSheet = 1; // Excluding the header, header starts with index 0
+			for (ContactT ct : listOfContact) {
 
-	private void writeTimeZoneMappingTRefIntoWorkbook(XSSFWorkbook workbook) {
+				 if ((ct.getContactCategory().equals(EntityType.CUSTOMER.toString()) && 
+						    (ct.getContactType().equals(ContactType.EXTERNAL.toString())) || 
+						    ct.getContactType().equals(ContactType.INTERNAL.toString()))) {  // For Customer Contact
+
+					// Create row with rowCount
+					Row row = customerContactSheet.createRow(rowCountCustomerSheet);
+
+                    // Create new Cell and set cell value 
+					Cell cellCustomerName = row.createCell(0);
+					if(mapOfContactCustomerLinkT.containsKey(ct.getContactId())){
+					CustomerMasterT customerObj = mapOfContactCustomerLinkT.get(ct.getContactId());
+					cellCustomerName.setCellValue(customerObj.getCustomerName());
+					}
+					else {
+						throw new DestinationException(HttpStatus.NOT_FOUND, "customername NOT Found");
+					}
+				
+                    Cell cellCustomerContactType = row.createCell(1);
+					cellCustomerContactType.setCellValue(ct.getContactType());
+
+					Cell cellCustomerContactName = row.createCell(3);
+					cellCustomerContactName.setCellValue(ct.getContactName());
+
+					Cell cellCustomerContactRole = row.createCell(4);
+					cellCustomerContactRole.setCellValue(ct.getContactRole());
+
+					Cell cellCustomerContactEmailId = row.createCell(5);
+					if(ct.getContactEmailId()!=null) {
+						cellCustomerContactEmailId.setCellValue(ct.getContactEmailId());
+					}
+
+					// Increment row counter for partner contact sheet
+					rowCountCustomerSheet++;
+
+				}
+			}
+		}
+
+	}
+	
+     private void writeTimeZoneMappingTRefIntoWorkbook(XSSFWorkbook workbook) {
 		//Get the TimeZone(Ref) Sheet From Workbook
 		XSSFSheet spreadSheet = workbook.getSheet("TimeZone(Ref)");
 		XSSFRow row = null;

@@ -66,6 +66,7 @@ import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 ;
@@ -121,9 +122,9 @@ public class OpportunityDownloadService {
 	
 	try {
 
-	    workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-		    Constants.APPLICATION_PROPERTIES_FILENAME, 
-		    Constants.OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME)));
+		workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+				(PropertyUtil.getProperty
+						(Constants.OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME)));
 	    
 	    if(oppFlag){
 	    	

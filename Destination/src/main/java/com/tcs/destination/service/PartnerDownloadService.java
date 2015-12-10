@@ -42,6 +42,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
+import com.tcs.destination.utils.PropertyUtil;
 
 @Service
 public class PartnerDownloadService 
@@ -64,9 +65,10 @@ public class PartnerDownloadService
 		InputStreamResource inputStreamResource = null;
 		try 
 		{
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+
 			// Populate Partner Master Sheet
 			if(oppFlag)
 				populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
@@ -93,9 +95,10 @@ public class PartnerDownloadService
 		InputStreamResource inputStreamResource = null;
 		try 
 		{
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			
 			// Populate Partner Contacts Sheet
 			if(oppFlag){
 				populateContactSheets(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));

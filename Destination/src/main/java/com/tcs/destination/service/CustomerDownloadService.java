@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 @Service
@@ -80,9 +82,10 @@ public class CustomerDownloadService {
 		mapOfCustomerMasterT = getcustomerMappingT();
 
 		try {
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			
+			workbook = ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME)));
 			if(oppFlag){
 				// Populate Customer Master sheet
 				populateCustomerMasterSheet(workbook.getSheet(Constants.CUSTOMER_MASTER_SHEET_NAME));
@@ -293,9 +296,10 @@ public class CustomerDownloadService {
 		mapOfContactCustomerLinkT = getContactCustomerLinkT();
 
 		try {
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.CUSTOMER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			workbook = ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.CUSTOMER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			
 			if(oppFlag){
 				populateCustomerContactSheet(workbook.getSheet(Constants.CUSTOMER_CONTACT_SHEET_NAME));
 			}
@@ -387,10 +391,8 @@ public class CustomerDownloadService {
 					else {
 						throw new DestinationException(HttpStatus.NOT_FOUND, "customername NOT Found");
 					}
-				//	select customer_name from customer_master_t where customer_id in (select customer_id from contact_customer_link_t where contact_id='CON54');
-					cellCustomerName.setCellValue("");
-
-					Cell cellCustomerContactType = row.createCell(3);
+				
+                    Cell cellCustomerContactType = row.createCell(3);
 					cellCustomerContactType.setCellValue(ct.getContactType());
 
 					Cell cellCustomerContactName = row.createCell(5);

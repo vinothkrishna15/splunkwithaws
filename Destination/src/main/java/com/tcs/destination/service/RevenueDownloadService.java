@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
+import com.tcs.destination.utils.PropertyUtil;
 
 @Service
 public class RevenueDownloadService {
@@ -49,9 +51,10 @@ public class RevenueDownloadService {
 		InputStreamResource inputStreamResource = null;
 
 		try {
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			
+			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.ACTUAL_REVENUE_DATA_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
 			// Populate Iou Customer REF Sheet
 			 if(oppFlag){

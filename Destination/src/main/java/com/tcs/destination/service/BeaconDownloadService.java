@@ -29,6 +29,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
+import com.tcs.destination.utils.PropertyUtil;
 
 
 @Service
@@ -55,10 +56,9 @@ public class BeaconDownloadService
 		InputStreamResource inputStreamResource = null;
 		try 
 		{
-
-			workbook = ExcelUtils.getWorkBook(new File(PropertyReaderUtil.readPropertyFile(
-					Constants.APPLICATION_PROPERTIES_FILENAME, 
-					Constants.BEACON_TEMPLATE_LOCATION_PROPERTY_NAME)));
+			workbook = ExcelUtils.getWorkBook(new File
+					(PropertyUtil.getProperty
+							(Constants.BEACON_TEMPLATE_LOCATION_PROPERTY_NAME)));
 			
 			if(oppFlag){
 				// Populate BEACON Data Sheet
