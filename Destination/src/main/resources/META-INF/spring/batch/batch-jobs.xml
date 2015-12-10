@@ -33,6 +33,7 @@
 	<import resource="/jobs/partnerDownload-job.xml"/>
 	<import resource="/jobs/partnerUpload-job.xml"/>
 	<import resource="/jobs/beaconUpload-job.xml"/>
+	<import resource="/jobs/opportunityShelving-job.xml"/>
 	
 </beans>
 	
