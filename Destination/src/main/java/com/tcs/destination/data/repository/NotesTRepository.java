@@ -28,4 +28,6 @@ public interface NotesTRepository extends
 	
 	List<NotesT> findByEntityTypeAndConnectIdIsNotNull(String entityType);
 
+	List<NotesT> findByOpportunityId(String opportunityId);
+
 }

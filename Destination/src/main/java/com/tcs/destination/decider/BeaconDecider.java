@@ -12,10 +12,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
-public class UserDecider implements JobExecutionDecider {
+public class BeaconDecider implements JobExecutionDecider {
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(UserDecider.class);
+			.getLogger(BeaconDecider.class);
 
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution,
@@ -25,10 +25,10 @@ public class UserDecider implements JobExecutionDecider {
 		
 		FlowExecutionStatus status = new FlowExecutionStatus(JobStep.END.name());
 		
-		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.USER_DWLD_PROCESSING)) {
-			status = new FlowExecutionStatus(JobStep.USER_DWLD_PROCESSING.name());
-        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.USER_DWLD_PREPROCESS)) {
-        	status = new FlowExecutionStatus(JobStep.USER_DWLD_PREPROCESS.name());
+		if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.BEACON_PROCESSING)) {
+			status = new FlowExecutionStatus(JobStep.BEACON_PROCESSING.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
+        	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());

@@ -13,33 +13,33 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.OpportunityDownloadHelper;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 
-public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
-		StepExecutionListener, ItemWriteListener<OpportunityT> {
+public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
+		StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(OpportunityExcelWriter.class);
+			.getLogger(PartnerDwldWriter.class);
 
 	private StepExecution stepExecution;
 
@@ -55,13 +55,11 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 
 	private Workbook workbook;
 
-	private int rowCount = 2;
+	private int rowCount = 1;
 
 	private String filePath;
 
 	private FileInputStream fileInputStream;
-
-	private OpportunityDownloadHelper opportunityDownloadHelper;
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
@@ -127,11 +125,11 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends OpportunityT> items) throws Exception {
+	public void write(List<? extends PartnerMasterT> items) throws Exception {
 
-		logger.info("Inside write method:");
+		logger.debug("Inside write method:");
 
-		if (rowCount == 2) {
+		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
@@ -152,13 +150,39 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 				workbook = new XSSFWorkbook(fileInputStream);
 			}
 
-			sheet = workbook
-					.getSheet(Constants.OPPORTUNITY_TEMPLATE_OPPORTUNITY_SHEET_NAME);
+			sheet = workbook.getSheet(Constants.PARTNER_MASTER_SHEET_NAME);
 		}
 
 		if (items != null) {
-			rowCount = opportunityDownloadHelper.populateOpportunitySheet(
-					sheet, items, rowCount);
+			for (PartnerMasterT partnerMaster : items) {
+				// Create row with rowCount
+				Row row = sheet.createRow(rowCount);
+
+				// Create new Cell and set cell value
+				Cell cellPartnerId = row.createCell(1);
+				cellPartnerId.setCellValue(partnerMaster.getPartnerId().trim());
+
+				Cell cellPartnerName = row.createCell(2);
+				cellPartnerName.setCellValue(partnerMaster.getPartnerName().trim());
+
+				Cell cellGeography = row.createCell(3);
+				cellGeography.setCellValue(partnerMaster.getGeography().trim());
+
+				Cell cellWebsite = row.createCell(4);
+				if(partnerMaster.getWebsite()!=null)
+					cellWebsite.setCellValue(partnerMaster.getWebsite().trim());
+				
+				Cell cellFacebook = row.createCell(5);
+				if(partnerMaster.getFacebook()!=null)
+					cellFacebook.setCellValue(partnerMaster.getFacebook().trim());
+
+				Cell cellCorporateHqAddress = row.createCell(6);
+				if(partnerMaster.getCorporateHqAddress()!=null)
+					cellCorporateHqAddress.setCellValue(partnerMaster.getCorporateHqAddress().trim());
+				
+				// Increment row counter
+				rowCount++;
+			}
 		}
 	}
 
@@ -234,32 +258,6 @@ public class OpportunityExcelWriter implements ItemWriter<OpportunityT>,
 
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
-	}
-
-	public OpportunityDownloadHelper getOpportunityDownloadHelper() {
-		return opportunityDownloadHelper;
-	}
-
-	public void setOpportunityDownloadHelper(
-			OpportunityDownloadHelper opportunityDownloadHelper) {
-		this.opportunityDownloadHelper = opportunityDownloadHelper;
-	}
-
-	@Override
-	public void beforeWrite(List<? extends OpportunityT> items) {
-	}
-
-	@Override
-	public void afterWrite(List<? extends OpportunityT> items) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onWriteError(Exception exception,
-			List<? extends OpportunityT> items) {
-		logger.error(exception.getMessage());
-
 	}
 
 }

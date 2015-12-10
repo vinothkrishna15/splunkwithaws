@@ -88,11 +88,12 @@
 	<bean id="propertyUtil" class="com.tcs.destination.utils.PropertyUtil">
         <property name="locations">
             <list>
-                <value>classpath:application.properties</value>
-                <value>classpath:mailsubject.properties</value>
-                <value>classpath:batch.properties</value>
+                <value>application.properties</value>
+                <value>mailsubject.properties</value>
+                <value>batch.properties</value>
                 <value>database.properties</value>
                 <value>config.properties</value>
+                <value>dataTemplates.properties</value>
             </list>
         </property>
         <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_NEVER" />
@@ -124,5 +125,10 @@
 	<tx:annotation-driven transaction-manager="transactionManager" />
 	
 	<import resource="/META-INF/spring/batch/batch-jobs.xml"/>
+	
+	<bean id="jobRegistryBeanPostProcessor"
+		class="org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor">
+		<property name="jobRegistry" ref="jobRegistry" />
+	</bean>
 	
 </beans>

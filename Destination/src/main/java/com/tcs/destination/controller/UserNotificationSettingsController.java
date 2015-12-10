@@ -37,7 +37,8 @@ public class UserNotificationSettingsController {
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of add user notification settings");
 		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings POST");
 		Status status = new Status();
 		try {
@@ -47,14 +48,18 @@ public class UserNotificationSettingsController {
 				status.setStatus(Status.SUCCESS,
 						"User notification settings have been added successfully");
 			}
+			logger.info("End of add user notification settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while adding user notification settings");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
@@ -62,7 +67,8 @@ public class UserNotificationSettingsController {
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
+		logger.info("Start of update user notification settings");
 		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings PUT");
 		Status status = new Status();
 		try {
@@ -72,15 +78,18 @@ public class UserNotificationSettingsController {
 				status.setStatus(Status.SUCCESS,
 						"User notification settings have been updated successfully");
 			}
+			logger.info("End of update user notification settings");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
-			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+					"Backend error while updating user notification settings");
 		}
-		return new ResponseEntity<String>(
-				ResponseConstructors.filterJsonForFieldAndViews("all", "",
-						status), HttpStatus.OK);
+
 	}
 
-	
 }

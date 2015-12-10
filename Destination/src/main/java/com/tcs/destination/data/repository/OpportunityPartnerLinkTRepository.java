@@ -24,4 +24,8 @@ public interface OpportunityPartnerLinkTRepository extends
 	
 	@Query(value ="select o.opportunityPartnerLinkId from OpportunityPartnerLinkT o")
 	List<String> findOpportunityPartnerLinkIdFromOpportunityPartnerLinkT();
+
+
+
+	List<OpportunityPartnerLinkT> findByOpportunityId(String opportunityId);
 }

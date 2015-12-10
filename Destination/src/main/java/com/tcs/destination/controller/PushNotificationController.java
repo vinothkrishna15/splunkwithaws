@@ -20,6 +20,7 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PushNotificationService;
 import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.service.UserService;
@@ -41,8 +42,9 @@ public class PushNotificationController {
 			@RequestBody PushNotificationRegistrationT pushNotification,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside PushNotificationController /push POST");
+		try{
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (pushNotificationService.addPushNotification(pushNotification)) {
@@ -52,6 +54,14 @@ public class PushNotificationController {
 		
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while registering for push notification");
+		}
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
@@ -59,8 +69,9 @@ public class PushNotificationController {
 			@RequestBody PushNotificationRegistrationT pushNotification,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside PushNotificationController /push PUT");
+		try{
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (pushNotificationService.updatePushNotification(pushNotification)) {
@@ -70,6 +81,14 @@ public class PushNotificationController {
 		
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while updating push notification registration");
+		}
 	}
 
 
@@ -78,8 +97,9 @@ public class PushNotificationController {
 			@RequestParam(value="userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws Exception {
+			throws DestinationException {
 		logger.debug("Inside PushNotificationController /push DELETE");
+		try{
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		if (pushNotificationService.deletePushNotificRecords(userId)) {
@@ -89,6 +109,14 @@ public class PushNotificationController {
 		
 		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
 				"all", "", status), HttpStatus.OK);
+		} catch (DestinationException e) {
+		    logger.error("Destination Exception" + e.getMessage());
+		    throw e;
+		} catch (Exception e) {
+		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+			    "Backend error while deleting push notification registration");
+		}
 	}
 		
 		

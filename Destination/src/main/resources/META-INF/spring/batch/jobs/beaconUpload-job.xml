@@ -10,45 +10,46 @@
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
 	
-	<batch:job id="customerUpload">
-	<batch:step id="customerUploadPreprocess" next="customerStepDecider">
-			<batch:tasklet ref="customerPreprocessor"/>
+	<batch:job id="beaconUpload">
+		<batch:step id="beaconUploadPreprocess" next="beaconDecider">
+			<batch:tasklet ref="beaconPreprocessor"/>
 		</batch:step>
-	
-		<batch:step id="customerProcessing" next="customerUploadPreprocess">
+		
+		<batch:step id="beaconProcessing" next="beaconUploadPreprocess">
 			<batch:tasklet>
-				<batch:chunk reader="customerSpreadSheetReader" writer="customerWriter" 
+				<batch:chunk reader="beaconSpreadSheetReader" writer="beaconWriter" 
 				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:decision id="customerStepDecider" decider="customerFlowdecider">
-              <batch:next on="PREPROCESS" to="customerUploadPreprocess" />
-              <batch:next on="CUSTOMER_PROCESSING" to="customerProcessing" />
+		 <batch:decision id="beaconDecider" decider="beaconFlowdecider">
+              <batch:next on="PREPROCESS" to="beaconUploadPreprocess" />
+              <batch:next on="BEACON_PROCESSING" to="beaconProcessing" />
               <batch:end on="END"/>
          </batch:decision>
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="customerSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+	<bean id="beaconSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
 		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
-		<property name="sheetName" value="Customer Master"/>
+		<property name="sheetName" value="Beacon - DATA"/>
 		<property name="rowsToSkip" value = "1" />
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="customerWriter" class="com.tcs.destination.writer.CustomerCustomWriter" scope="step">
+	<bean id="beaconWriter" class="com.tcs.destination.writer.BeaconCustomWriter" scope="step">
 		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
-		<property name="helper" ref="customerUploadHelper"/>
-		<property name="customerService" ref="customerService"/>
+		<property name="helper" ref="beaconUploadHelper"/>
+		<property name="beaconDataService" ref="beaconDataService"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="beaconDataTRepository" ref="beaconDataTRepository"/>
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 	
 	<!-- Decider -->
-    <bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
+    <bean id="beaconFlowdecider" class="com.tcs.destination.decider.BeaconDecider" />
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
-
+	
 </beans>
 	
