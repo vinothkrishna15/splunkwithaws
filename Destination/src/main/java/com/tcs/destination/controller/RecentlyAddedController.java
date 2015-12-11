@@ -16,19 +16,26 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/recent")
 public class RecentlyAddedController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(RecentlyAddedController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(RecentlyAddedController.class);
 
 	@Autowired
 	RecentlyAddedService recentlyAddedService;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String recentlyAdded(@RequestParam("entityType") String entityType,
-			@RequestParam(value="count",defaultValue = "5") int count,
+	public @ResponseBody String recentlyAdded(
+			@RequestParam("entityType") String entityType,
+			@RequestParam(value = "count", defaultValue = "5") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.debug("Inside RecentlyAddedController /recent?entityType="+entityType+" GET");
-		Object response=recentlyAddedService.recentlyAdded(entityType,count);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, response);
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.info("Inside RecentlyAddedController / Start of retrieving recently added details for Entity :"
+				+ entityType);
+		Object response = recentlyAddedService.recentlyAdded(entityType, count);
+		logger.info("Inside RecentlyAddedController / End of retrieving recently added details for Entity :"
+				+ entityType);
+		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+				response);
 	}
 }

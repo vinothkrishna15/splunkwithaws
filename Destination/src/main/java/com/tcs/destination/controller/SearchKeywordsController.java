@@ -45,11 +45,10 @@ public class SearchKeywordsController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
-		logger.info("Start of retrieving search keywords matching the given keyword");
-		logger.debug("Inside SearchKeywordsController /keywords/search?nameWith="+nameWith+" GET");
+		logger.info("Inside SearchKeywordsController / Start of retrieving search keywords matching the given keyword");
 		try {
 		List<String> keywords = keywordsService.findKeywordsWithNameContaining(nameWith);
-		logger.info("End of retrieving search keywords matching the given keyword");
+		logger.info("Inside SearchKeywordsController / End of retrieving search keywords matching the given keyword");
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -74,11 +73,10 @@ public class SearchKeywordsController {
 			@RequestParam(value="fields", defaultValue="all") String fields,
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
-		logger.info("Start of retrieving search keywords for a given Entity Type & Id");
-		logger.debug("Inside SearchKeywordsController /keywords/entity GET");
+		logger.info("Inside SearchKeywordsController / Start of retrieving search keywords for a given Entity Type & Id");
 		try {
 		List<SearchKeywordsT> keywords = keywordsService.findKeywordsByEntityTypeAndId(entityType, entityId);
-		logger.info("End of retrieving search keywords for a given Entity Type & Id");
+		logger.info("Inside SearchKeywordsController / End of retrieving search keywords for a given Entity Type & Id");
 		return new ResponseEntity<String>
 			(ResponseConstructors.filterJsonForFieldAndViews(fields, view, keywords), HttpStatus.OK);
 		} catch (DestinationException e) {
