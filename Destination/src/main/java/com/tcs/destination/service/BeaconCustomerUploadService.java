@@ -30,6 +30,7 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
 import com.tcs.destination.utils.DestinationUtils;
@@ -85,7 +86,7 @@ public class BeaconCustomerUploadService {
 
 			// Get Name and Id from DB to get Id from Name of customer
 			//	mapOfCustomerMasterT = getNameAndIdFromCustomerMasterT(); 
-			Sheet sheet = workbook.getSheet(CustomerUploadConstants.BEACON_MAPPING_SHEET_NAME);
+			Sheet sheet = workbook.getSheet(Constants.BEACON_MAPPING_TEMPLATE_BEACON_SHEET_NAME);
 			if(sheet==null){
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Please upload the workbook for BEACON CUSTOMER UPLOAD or missing " +CustomerUploadConstants.BEACON_MAPPING_SHEET_NAME +" sheet");
 			}
