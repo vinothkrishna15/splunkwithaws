@@ -179,13 +179,9 @@ public class BuildOpportunityReportService {
 			break;
 		default:
 				if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
-					System.out.println("Start Date"+DateUtils.getCurrentTimeStamp());
 					String queryString = reportsService.getOpportunityDetailedQueryString(userId,fromDate,toDate,salesStage);
-//					System.out.println("Query *************************:    "+queryString);
 					Query opportunityDetailedReportQuery = entityManager.createNativeQuery(queryString);
 				    opportunityIds = opportunityDetailedReportQuery.getResultList();
-				    System.out.println("End Date"+DateUtils.getCurrentTimeStamp());
-//					opportunities = opportunityRepository.findByOpportunityIds(opportunityIds);
 				} else {
 					opportunityIds = opportunityRepository.findOpportunitiesWith(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
 							salesStage);
