@@ -17,6 +17,12 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OfferingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller deals with the offering related functionalities
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/offering")
 public class OfferingController {
@@ -27,6 +33,15 @@ public class OfferingController {
 	@Autowired
 	OfferingService offeringService;
 
+	/**
+	 * This method is used to retrieve all offering mappings (SubSp and
+	 * Offering)
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return offeringMapping
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,

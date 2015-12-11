@@ -162,6 +162,7 @@ public class CustomerController {
 	}
 
 	/**
+	 * This method retrieves the target vs actual details for a customer
 	 * 
 	 * @param financialYear
 	 * @param quarter
@@ -234,6 +235,16 @@ public class CustomerController {
 		return response;
 	}
 
+	/**
+	 * This method is used to retrieves the group customer name for the given
+	 * name with.
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return customer
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/group", method = RequestMethod.GET)
 	public @ResponseBody String findByGroupCustomerName(
 			@RequestParam("nameWith") String nameWith,
@@ -260,6 +271,16 @@ public class CustomerController {
 		return response;
 	}
 
+	/**
+	 * This method is used to retrieve the group customer name based on user
+	 * access privilege
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return groupCustomer
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/privilege/group", method = RequestMethod.GET)
 	public @ResponseBody String findByGroupCustomerNameBasedOnPrivilege(
 			@RequestParam("nameWith") String nameWith,
@@ -288,6 +309,15 @@ public class CustomerController {
 
 	}
 
+	/**
+	 * This method is used to download the customer details in excel format
+	 * 
+	 * @param oppFlag
+	 * @param fields
+	 * @param view
+	 * @return customerDownloadExcel
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadCustomerMaster(
 			@RequestParam("downloadCustomers") boolean oppFlag,
@@ -320,6 +350,16 @@ public class CustomerController {
 		}
 	}
 
+	/**
+	 * This method is used to download the customer contact details in excel
+	 * format
+	 * 
+	 * @param oppFlag
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadCustomerContacts(
 			@RequestParam("downloadCustomerContacts") boolean oppFlag,
@@ -356,7 +396,7 @@ public class CustomerController {
 	}
 
 	/**
-	 * This controller uploads the Customers to the database
+	 * This controller uploads the Customer details to the database
 	 * 
 	 * @param file
 	 * @param fields
@@ -403,6 +443,20 @@ public class CustomerController {
 
 	}
 
+	/**
+	 * This method gives the functionality for customer advanced search
+	 * 
+	 * @param groupCustomerNameWith
+	 * @param nameWith
+	 * @param geography
+	 * @param displayIOU
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String advancedSearch(
 			@RequestParam(value = "groupCustomerNameWith", defaultValue = "") String groupCustomerNameWith,

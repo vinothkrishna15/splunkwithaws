@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -24,18 +23,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
- * Controller to handle contact details search requests.
+ * This Controller handles job launch related services
  * 
  */
 @RestController
@@ -51,6 +47,15 @@ public class JobLauncherController {
 	@Autowired
 	private JobRegistry jobRegistry;
 
+	/**
+	 * This method is used to launch a job for a particular job name given
+	 * 
+	 * @param jobName
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/launch", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> jobLaunch(
 			@RequestBody JobName jobName,
@@ -109,6 +114,13 @@ public class JobLauncherController {
 						status), HttpStatus.OK);
 	}
 
+	/**
+	 * This method is used to get the job parameters for the corresponding job
+	 * given
+	 * 
+	 * @param job
+	 * @return JobParameters
+	 */
 	private JobParameters getJobParameter(Job job) {
 		String dateParam = DateUtils.getCurrentDateForBatch();
 		logger.info("Job: {} starting with parameters: {}.", job.getName(),

@@ -22,6 +22,12 @@ import com.tcs.destination.service.FeedbackService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller handles the feedback module
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/feedback")
 public class FeedbackController {
@@ -32,6 +38,15 @@ public class FeedbackController {
 	@Autowired
 	FeedbackService feedbackService;
 
+	/**
+	 * This method is used to get the feedback for the given feedback id
+	 * 
+	 * @param feedbackId
+	 * @param fields
+	 * @param view
+	 * @return feedback
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String getFeedback(
 			@PathVariable("id") String feedbackId,
@@ -54,6 +69,13 @@ public class FeedbackController {
 		}
 	}
 
+	/**
+	 * This method is used to insert a new feedback
+	 * 
+	 * @param feedback
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFeedback(
 			@RequestBody FeedbackT feedback) throws DestinationException {
@@ -80,6 +102,13 @@ public class FeedbackController {
 
 	}
 
+	/**
+	 * This method is used to update the existing feedback
+	 * 
+	 * @param feedback
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editFeedback(
 			@RequestBody FeedbackT feedback) throws DestinationException {
@@ -106,6 +135,22 @@ public class FeedbackController {
 
 	}
 
+	/**
+	 * This method retrieves the feedback based on the various filter options
+	 * 
+	 * @param titleWith
+	 * @param descriptionWith
+	 * @param issueType
+	 * @param priority
+	 * @param status
+	 * @param module
+	 * @param updatedUserId
+	 * @param subModule
+	 * @param fields
+	 * @param view
+	 * @return feedbackList
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String getFilteredFeedbacks(
 			@RequestParam(value = "titleWith", defaultValue = "") String titleWith,

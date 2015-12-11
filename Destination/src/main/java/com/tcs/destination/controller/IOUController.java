@@ -17,6 +17,12 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.IOUService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller deals with the IOU related functionalities
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/iou")
 public class IOUController {
@@ -27,6 +33,14 @@ public class IOUController {
 	@Autowired
 	IOUService iouService;
 
+	/**
+	 * This method retrieves all the IOU Customer mappings (Display IOU and IOU)
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return iouCustomerMappingTs
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,

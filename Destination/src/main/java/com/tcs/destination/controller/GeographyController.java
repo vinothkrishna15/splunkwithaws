@@ -17,6 +17,12 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.GeographyService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller deals with the geography related services
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/geography")
 public class GeographyController {
@@ -27,6 +33,15 @@ public class GeographyController {
 	@Autowired
 	GeographyService geographyService;
 
+	/**
+	 * This method is used to retrieve all the geography mappings (geography &
+	 * display geography)
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return geogaraphyMappingTs
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
