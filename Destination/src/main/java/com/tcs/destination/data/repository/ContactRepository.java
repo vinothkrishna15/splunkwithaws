@@ -54,4 +54,22 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	
 	@Query(value ="select * from contact_t where contact_category='PARTNER'",nativeQuery = true)
 	List<ContactT> getAllPartnerContacts();
+	
+	/**
+	 * This Method is used to get tcs account contact names for the given opportunityId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select contact_name from contact_t  where contact_id in "
+			+ "(select contact_id from opportunity_tcs_account_contact_link_t where opportunity_id=?1)" , nativeQuery = true)
+	List<String> findTcsAccountContactNamesByOpportinityId(String opportunityId);
+	
+	/**
+	 * This Method is used to get customer contact names for the given opportunityId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select contact_name from contact_t  where contact_id in "
+			+ "(select contact_id from opportunity_customer_contact_link_t where opportunity_id=?1)" , nativeQuery = true)
+	List<String> findCustomerContactNamesByOpportinityId(String opportunityId);
 }

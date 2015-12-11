@@ -51,8 +51,16 @@ import com.tcs.destination.bean.ReportSummaryOpportunity;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -95,6 +103,30 @@ public class BuildOpportunityReportService {
 	
 	@Autowired 
 	ReportsService reportsService;
+	
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
+	
+	@Autowired
+	OpportunityOfferingLinkTRepository opportunityOfferingLinkTRepository;
+	
+	@Autowired
+	OpportunityCompetitorLinkTRepository opportunityCompetitorLinkTRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
+	
+	@Autowired
+	PartnerRepository partnerRepository;
+	
+	@Autowired
+	NotesTRepository notesTRepository;
+	
+	@Autowired
+	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
+	
+	@Autowired
+	ConnectRepository connectRepository;
 	
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -147,9 +179,12 @@ public class BuildOpportunityReportService {
 			break;
 		default:
 				if(geography.contains("All") && (iou.contains("All") && serviceLines.contains("All")) && country.contains("All")){
+					System.out.println("Start Date"+DateUtils.getCurrentTimeStamp());
 					String queryString = reportsService.getOpportunityDetailedQueryString(userId,fromDate,toDate,salesStage);
+//					System.out.println("Query *************************:    "+queryString);
 					Query opportunityDetailedReportQuery = entityManager.createNativeQuery(queryString);
 				    opportunityIds = opportunityDetailedReportQuery.getResultList();
+				    System.out.println("End Date"+DateUtils.getCurrentTimeStamp());
 //					opportunities = opportunityRepository.findByOpportunityIds(opportunityIds);
 				} else {
 					opportunityIds = opportunityRepository.findOpportunitiesWith(fromDate, toDate, geoList, countryList, iouList, serviceLinesList, 
@@ -331,14 +366,14 @@ public class BuildOpportunityReportService {
 	public void getOpportunityReportMandatoryFields(SXSSFSheet spreadSheet,
 			SXSSFRow row, List<String> currencies, OpportunityT opportunity) throws DestinationException {
 		int i = 0;
-		CellStyle cellStyle = ExcelUtils.createRowStyle(
-				(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+//		CellStyle cellStyle = ExcelUtils.createRowStyle(
+//				(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		row.createCell(0).setCellValue(opportunity.getOpportunityId());
-		row.getCell(0).setCellStyle(cellStyle);
+//		row.getCell(0).setCellStyle(cellStyle);
 		String geography = opportunity.getGeographyCountryMappingT().getGeography();
 		GeographyMappingT geographyMappingT = geographyMappingTRepository.findByGeography(geography);
 		row.createCell(1).setCellValue(geographyMappingT.getDisplayGeography());
-		row.getCell(1).setCellStyle(cellStyle);
+//		row.getCell(1).setCellStyle(cellStyle);
 		row.createCell(2);
 		List<String> subSpList = new ArrayList<String>();
 		for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
@@ -346,17 +381,17 @@ public class BuildOpportunityReportService {
 			subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
 		}
 		row.getCell(2).setCellValue(subSpList.toString().replace("]", "").replace("[", ""));
-		row.getCell(2).setCellStyle(cellStyle);
+//		row.getCell(2).setCellStyle(cellStyle);
 		row.createCell(3).setCellValue(
 				opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
-		row.getCell(3).setCellStyle(cellStyle);
+//		row.getCell(3).setCellStyle(cellStyle);
 		row.createCell(4).setCellValue(
 				opportunity.getCustomerMasterT().getGroupCustomerName());
-		row.getCell(4).setCellStyle(cellStyle);
+//		row.getCell(4).setCellStyle(cellStyle);
 		row.createCell(5).setCellValue(opportunity.getSalesStageCode());
-		row.getCell(5).setCellStyle(cellStyle);
+//		row.getCell(5).setCellStyle(cellStyle);
 		row.createCell(6).setCellValue(opportunity.getOpportunityName());
-		row.getCell(6).setCellStyle(cellStyle);
+//		row.getCell(6).setCellStyle(cellStyle);
 		
 		for(String currency : currencies) {
 			if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
@@ -364,7 +399,7 @@ public class BuildOpportunityReportService {
 			} else {
 				row.createCell(7 + i).setCellValue(0);
 			}
-			row.getCell(7 + i).setCellStyle(cellStyle);
+//			row.getCell(7 + i).setCellStyle(cellStyle);
 			i++;
 		}
 
@@ -387,7 +422,7 @@ public class BuildOpportunityReportService {
 			SXSSFSheet spreadSheet, int currentRow, List<String> fields,
 			SXSSFRow row, List<String> currency, int headerColumnValue) throws DestinationException {
 //		CellStyle headingStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
-		CellStyle dataRowStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+//		CellStyle dataRowStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		Boolean initialMerge = true;
 		Boolean headingColumn = true;
 		boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
@@ -428,12 +463,13 @@ public class BuildOpportunityReportService {
 		} else {
 			currentRow = currentRow + 1;
 		}
-		for ( String opportunityId : opportunityIdList) {
+		for (String opportunityId : opportunityIdList) {
 			OpportunityT opportunity = (OpportunityT) opportunityRepository.findOpportunityById(opportunityId);
+//			System.out.println("End Date Inside"+DateUtils.getCurrentTimeStamp());
 			initialMerge = true;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
-			getOpportunityReportMandatoryFields(spreadSheet, row, currency, 
-					opportunity);
+			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
+			
 			int colValue = 8;
 			if (currency.size() > 1) {
 				colValue = 9;
@@ -441,41 +477,39 @@ public class BuildOpportunityReportService {
 			
 			if (projectDVFlag) {
 				if(opportunity.getDigitalDealValue() != null){
-				row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+					row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 				} else {
 					row.createCell(colValue).setCellValue(0);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 				}
 				colValue++;
-				if(opportunity.getDealCurrency() != null){
-					row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					} else {
-						row.createCell(colValue).setCellValue("");
-						row.getCell(colValue).setCellStyle(dataRowStyle);
-					}
-				
-				colValue++;
-				}
+
+			if(opportunity.getDealCurrency() != null){
+				row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+			} else {
+				row.createCell(colValue).setCellValue("");
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+			}
+			colValue++;
+			}
 			
 			if (custNameFlag) {
 				if(opportunity.getCustomerMasterT().getCustomerName() != null)
-				row.createCell(colValue).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
+					row.createCell(colValue).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
 				else
 					row.createCell(colValue).setCellValue("");
-				row.getCell(colValue).setCellStyle(dataRowStyle);
-				
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
 			if (countryFlag) {
-				
 				if(opportunity.getGeographyCountryMappingT().getCountry() != null)
-				row.createCell(colValue).setCellValue(opportunity.getGeographyCountryMappingT().getCountry());
+					row.createCell(colValue).setCellValue(opportunity.getGeographyCountryMappingT().getCountry());
 				else
 					row.createCell(colValue).setCellValue("");
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				
 				colValue++;
 			}
@@ -487,58 +521,72 @@ public class BuildOpportunityReportService {
 				else {
 					row.createCell(colValue).setCellValue(Constants.SPACE);
 				}
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 
 			if (geographyFlag) {
 				row.createCell(colValue).setCellValue(opportunity.getCustomerMasterT().getGeographyMappingT().getGeography());
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
+			//Setting SubSp
 			if (subFlag) {
-				List<String> subSpList = new ArrayList<String>();
-				for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
-					subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
-				}
-				row.createCell(colValue).setCellValue(subSpList.toString().replace("]", "").replace("[", ""));
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				List<String> subSpList = new ArrayList<String>();
+				List<String> oppSubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
+//				for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
+//					subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
+//				}
+				row.createCell(colValue).setCellValue(oppSubSpList.toString().replace("]", "").replace("[", ""));
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				
 				colValue++;
 			}
 			
+			//Setting Offering
 			if (offeringFlag) {
-					List<String> offeringList = new ArrayList<String>();
-					if (opportunity.getOpportunityOfferingLinkTs().size() > 0) {
-						for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity.getOpportunityOfferingLinkTs()) {
-							offeringList.add(opportunityOfferingLinkT.getOfferingMappingT().getOffering());
-						}
+//					List<String> offeringList = new ArrayList<String>();
+					List<String> oppOfferingList = opportunityOfferingLinkTRepository.findOfferingByOpportunityId(opportunity.getOpportunityId());
+//					if (opportunity.getOpportunityOfferingLinkTs().size() > 0) {
+//						for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity.getOpportunityOfferingLinkTs()) {
+//							offeringList.add(opportunityOfferingLinkT.getOfferingMappingT().getOffering());
+//						}
+//					}
+					if(!oppOfferingList.isEmpty()){
+						row.createCell(colValue).setCellValue(oppOfferingList.toString().replace("[", "").replace("]", ""));
 					}
-					row.createCell(colValue).setCellValue(offeringList.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
-					}
+			}
+			
 			if (tcsAccConFlag) {
-					List<String> tcsAccountContactList = new ArrayList<String>();
-					for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
-							.getOpportunityTcsAccountContactLinkTs()) {
-						tcsAccountContactList.add(opportunityTcsAccountContactLinkT.getContactT().getContactName());
-					}
-					row.createCell(colValue).setCellValue(tcsAccountContactList.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					colValue++;
-					}
+//				List<String> tcsAccountContactList = new ArrayList<String>();
+				List<String> oppTcsAccountContactList= contactRepository.findTcsAccountContactNamesByOpportinityId(opportunity.getOpportunityId());
+//				for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
+//						.getOpportunityTcsAccountContactLinkTs()) {
+//					tcsAccountContactList.add(opportunityTcsAccountContactLinkT.getContactT().getContactName());
+//				}
+				if(!oppTcsAccountContactList.isEmpty()){
+					row.createCell(colValue).setCellValue(oppTcsAccountContactList.toString().replace("[", "").replace("]", ""));
+				}
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				colValue++;
+			}
+
 			if (custConNameFlag) {
-					List<String> customerContactNameList = new ArrayList<String>();
-					for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity
-							.getOpportunityCustomerContactLinkTs()) {
-						customerContactNameList.add(opportunityCustomerContactLinkT.getContactT().getContactName());
-					}
-					row.createCell(colValue).setCellValue(customerContactNameList.toString().replace("[", "").replace("]", ""));;
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					colValue++;
-					}
+//				List<String> customerContactNameList = new ArrayList<String>();
+				List<String> oppCustomerContactNameList= contactRepository.findCustomerContactNamesByOpportinityId(opportunity.getOpportunityId());
+//				for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity
+//						.getOpportunityCustomerContactLinkTs()) {
+//					customerContactNameList.add(opportunityCustomerContactLinkT.getContactT().getContactName());
+//				}
+				if(!oppCustomerContactNameList.isEmpty()){
+				row.createCell(colValue).setCellValue(oppCustomerContactNameList.toString().replace("[", "").replace("]", ""));
+				}
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				colValue++;
+			}
 			
 //			if (opportunityOwnerFlag) {
 //				UserT userT = userRepository.findByUserId(opportunity.getOpportunityOwner());
@@ -551,104 +599,112 @@ public class BuildOpportunityReportService {
 //				}
 			if (opportunityOwnerFlag) {
 				if(opportunity.getOpportunityName() != null) {
-				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
 				}
-				else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-				}
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				else {
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//				}
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
 			if (oppDescFlag) {
-					if(opportunity.getOpportunityDescription() != null)
+				if(opportunity.getOpportunityDescription() != null) {
 					row.createCell(colValue).setCellValue(opportunity.getOpportunityDescription());
-					else
-						row.createCell(colValue).setCellValue("");
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					colValue++;
-					}
+				}
+//				else
+//					row.createCell(colValue).setCellValue("");
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				colValue++;
+			}
+
 			if (reqRecvDtFlag) {
-					if(opportunity.getOpportunityRequestReceiveDate() != null)
+				if(opportunity.getOpportunityRequestReceiveDate() != null) {
 					row.createCell(colValue).setCellValue(opportunity.getOpportunityRequestReceiveDate().toString());
-					else
-						row.createCell(colValue).setCellValue("");
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+					}
+//					else
+//						row.createCell(colValue).setCellValue("");
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					}
 			if (newLogoFlag) {
-					if(opportunity.getNewLogo() != null) 
+					if(opportunity.getNewLogo() != null) {
 						row.createCell(colValue).setCellValue(opportunity.getNewLogo());
-					else
-						row.createCell(colValue).setCellValue("");
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+					}
+//					else
+//						row.createCell(colValue).setCellValue("");
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					}
 			
 			if (competitorsFlag) {
-					row.createCell(colValue);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					List<String> competitorName = new ArrayList<String>();
-				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
-						.getOpportunityCompetitorLinkTs()) {
-					competitorName.add(opportunityCompetitorLinkT.getCompetitorName());
+//				row.createCell(colValue);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				List<String> competitorName = new ArrayList<String>();
+				List<String> oppCompetitorName=opportunityCompetitorLinkTRepository.findCompetitorNamesByOpportunityId(opportunity.getOpportunityId());
+//				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+//						.getOpportunityCompetitorLinkTs()) {
+//					competitorName.add(opportunityCompetitorLinkT.getCompetitorName());
+//				}
+				if(!oppCompetitorName.isEmpty()){
+					row.createCell(colValue).setCellValue(oppCompetitorName.toString().replace("[", "").replace("]", ""));
 				}
-				row.getCell(colValue).setCellValue(competitorName.toString().replace("[", "").replace("]", ""));
 				colValue++;
-				}
+			}
 			
 			if (partnershipInvFlag) {
-				List<String> partnershipsInvolvedList = new ArrayList<String>();
-				for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
-						.getOpportunityPartnerLinkTs()) {
-					partnershipsInvolvedList.add(opportunityPartnerLinkT.getPartnerMasterT().getPartnerName());
+//				List<String> partnershipsInvolvedList = new ArrayList<String>();
+				List<String> oppPartnershipsInvolvedList = partnerRepository.findPartnerNameByOpportunityId(opportunity.getOpportunityId());
+//				for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity.getOpportunityPartnerLinkTs()) {
+//					partnershipsInvolvedList.add(opportunityPartnerLinkT.getPartnerMasterT().getPartnerName());
+//				}
+				if(!oppPartnershipsInvolvedList.isEmpty()){
+					row.createCell(colValue).setCellValue(oppPartnershipsInvolvedList.toString().replace("[", "").replace("]", ""));
 				}
-				row.createCell(colValue).setCellValue(partnershipsInvolvedList.toString().replace("[", "").replace("]", ""));
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
 			if (dealTypeFlag) {
-					if(opportunity.getDealType() != null){
-					row.createCell(colValue).setCellValue(
-							opportunity.getDealType());
-					} else {
-						row.createCell(colValue).setCellValue("");
-					}
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					colValue++;
-					}
+				if(opportunity.getDealType() != null){
+					row.createCell(colValue).setCellValue(opportunity.getDealType());
+//				} else {
+//					row.createCell(colValue).setCellValue("");
+				}
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				colValue++;
+			}
 			
 			if (salesSuppOwnerFlag) {
-				List<String> salesSupportOwnerList = new ArrayList<String>();
-				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-						.getOpportunitySalesSupportLinkTs()) {
-					UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
-					salesSupportOwnerList.add(user.getUserName());
-				}
-				row.createCell(colValue).setCellValue(salesSupportOwnerList.toString().replace("[", "").replace("]", ""));;
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				List<String> salesSupportOwnerList = new ArrayList<String>();
+				List<String> oppSalesSupportOwnerList=userRepository.findOpportunitySalesSupportOwnersNameByOpportunityId(opportunity.getOpportunityId());
+//				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
+//					UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
+//					salesSupportOwnerList.add(user.getUserName());
+//				}
+				row.createCell(colValue).setCellValue(oppSalesSupportOwnerList.toString().replace("[", "").replace("]", ""));;
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
 			if (dealMarkFlag) {
-				List<String> dealRemarksNotesList = new ArrayList<String>();
-				for (NotesT notesT : opportunity.getNotesTs()) {
-					dealRemarksNotesList.add(notesT.getNotesUpdated());
-				}
-				row.createCell(colValue).setCellValue(dealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				List<String> dealRemarksNotesList = new ArrayList<String>();
+				List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
+//				for (NotesT notesT : opportunity.getNotesTs()) {
+//					dealRemarksNotesList.add(notesT.getNotesUpdated());
+//				}
+				row.createCell(colValue).setCellValue(oppDealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
-			
-			
 			if (descForWLFlag) {
-				if(opportunity.getDescriptionForWinLoss() != null)
-				row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
-				else
-					row.createCell(colValue).setCellValue("");
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+				if(opportunity.getDescriptionForWinLoss() != null){
+					row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
+				}
+//				else
+//					row.createCell(colValue).setCellValue("");
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
@@ -657,31 +713,33 @@ public class BuildOpportunityReportService {
 					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
 				else
 					row.createCell(colValue).setCellValue("");
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
 			
 			if (factorForWLFlag) {
-				List<String> factorsForWinLossList = new ArrayList<String>();
-				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-						.getOpportunityWinLossFactorsTs()) {
-					factorsForWinLossList.add(opportunityWinLossFactorsT.getWinLossFactor());
-				}
-				row.createCell(colValue).setCellValue(factorsForWinLossList.toString().replace("[", "").replace("]", ""));
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				List<String> factorsForWinLossList = new ArrayList<String>();
+				List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
+//				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+//						.getOpportunityWinLossFactorsTs()) {
+//					factorsForWinLossList.add(opportunityWinLossFactorsT.getWinLossFactor());
+//				}
+				row.createCell(colValue).setCellValue(oppFactorsForWinLossList.toString().replace("[", "").replace("]", ""));
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
-			
 			if (oppLinkedIdFlag) {
-				List<String> opportunityLinkIDList = new ArrayList<String>();
-				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
-						.getConnectOpportunityLinkIdTs()) {
-					opportunityLinkIDList.add(connectOpportunityLinkIdT.getConnectT().getConnectName());
+//				List<String> opportunityLinkIDList = new ArrayList<String>();
+				List<String> connectNameList=connectRepository.findConnectNameByOpportunityId(opportunity.getOpportunityId());
+//				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity.getConnectOpportunityLinkIdTs()) {
+//					opportunityLinkIDList.add(connectOpportunityLinkIdT.getConnectT().getConnectName());
+//				}
+				if(!connectNameList.isEmpty()){
+				row.createCell(colValue).setCellValue(connectNameList.toString().replace("[", "").replace("]", ""));;
 				}
-				row.createCell(colValue).setCellValue(opportunityLinkIDList.toString().replace("[", "").replace("]", ""));;
-				row.getCell(colValue).setCellStyle(dataRowStyle);
+//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
@@ -696,43 +754,49 @@ public class BuildOpportunityReportService {
 				if (opportunity.getBidDetailsTs().size() > 0) {
 					for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
 						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
+					
 						if(opportunity.getBidDetailsTs().get(bid).getBidId() != null) {
-						row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidId());
+							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidId());
 						}
-						else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						else {
+//							row.createCell(colValue).setCellValue(Constants.SPACE);
+//						}
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
-					colValue++;
-				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
-					colValue++;
+//					colValue++;
+//				} else {
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					colValue++;
 				}
+				colValue++;
 			}
-			
-			
 			
 			if (bidOffGrpOwnerFlag) {
 				if (opportunity.getBidDetailsTs().size() > 0) {
 					int bid = 0;
-					List<String> bidOfficeGroupOwnerList = new ArrayList<String>();
+//					List<String> bidOfficeGroupOwnerList = new ArrayList<String>();
 					for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
-						bidOfficeGroupOwnerList.clear();
+//						bidOfficeGroupOwnerList.clear();
 						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
-						for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT.getBidOfficeGroupOwnerLinkTs()) {
-							UserT user = userRepository.findByUserId(bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner());
-							bidOfficeGroupOwnerList.add(user.getUserName());
+						List<String> bidOfficeGroupOwnerNameList=userRepository.findBidOfficeGroupOwnersNameByBidId(bidDetailsT.getBidId());
+						
+//						for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT.getBidOfficeGroupOwnerLinkTs()) {
+//							UserT user = userRepository.findByUserId(bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner());
+//							bidOfficeGroupOwnerList.add(user.getUserName());
+//						}
+						if(!bidOfficeGroupOwnerNameList.isEmpty()) {
+							row.createCell(colValue).setCellValue(bidOfficeGroupOwnerNameList.toString().replace("[", "").replace("]", ""));
 						}
-						row.createCell(colValue).setCellValue(bidOfficeGroupOwnerList.toString().replace("[", "").replace("]", ""));
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 						bid++;
 					}
 					colValue++;
-				} else {
-					row.createCell(colValue).setCellValue("");
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//				} else {
+//					row.createCell(colValue).setCellValue("");
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					colValue++;
+				} else{
 					colValue++;
 				}
 			}
@@ -744,15 +808,15 @@ public class BuildOpportunityReportService {
 						if(opportunity.getBidDetailsTs().get(bid).getBidRequestReceiveDate() != null){
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidRequestReceiveDate().toString());
 						}
-						else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						else {
+//							row.createCell(colValue).setCellValue(Constants.SPACE);
+//						}
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -763,15 +827,15 @@ public class BuildOpportunityReportService {
 						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid - 1));
 						if (opportunity.getBidDetailsTs().get(bid).getBidRequestType() != null) {
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getBidRequestType());
-						} else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
+//						} else {
+//							row.createCell(colValue).setCellValue(Constants.SPACE);
 						}
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -783,15 +847,15 @@ public class BuildOpportunityReportService {
 						if(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate() != null) {
 						row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate().toString());
 						}
-						else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						else {
+//							row.createCell(colValue).setCellValue(Constants.SPACE);
+//						}
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -803,15 +867,15 @@ public class BuildOpportunityReportService {
 						if(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate() != null) {
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
 						}
-						else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						else {
+//							row.createCell(colValue).setCellValue(Constants.SPACE);
+//						}
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					row.getCell(colValue).setCellStyle(dataRowStyle);
+//					row.createCell(colValue).setCellValue(Constants.SPACE);
+//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -823,15 +887,15 @@ public class BuildOpportunityReportService {
 							if(opportunity.getBidDetailsTs().get(bid).getWinProbability() != null) {
 								row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getWinProbability());
 							}
-							else {
-								row.createCell(colValue).setCellValue(Constants.SPACE);
-							}
-							row.getCell(colValue).setCellStyle(dataRowStyle);
+//							else {
+//								row.createCell(colValue).setCellValue(Constants.SPACE);
+//							}
+//							row.getCell(colValue).setCellStyle(dataRowStyle);
 						}
 						colValue++;
 					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						row.createCell(colValue).setCellValue(Constants.SPACE);
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 						colValue++;
 					}
 				}
@@ -842,15 +906,15 @@ public class BuildOpportunityReportService {
 							if(opportunity.getBidDetailsTs().get(bid).getCoreAttributesUsedForWinning() != null) {
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getCoreAttributesUsedForWinning());
 							}
-							else {
-								row.createCell(colValue).setCellValue(Constants.SPACE);
-							}
-							row.getCell(colValue).setCellStyle(dataRowStyle);
+//							else {
+//								row.createCell(colValue).setCellValue(Constants.SPACE);
+//							}
+//							row.getCell(colValue).setCellStyle(dataRowStyle);
 						}
 						colValue++;
 					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						row.createCell(colValue).setCellValue(Constants.SPACE);
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 						colValue++;
 					}
 				}
@@ -862,15 +926,15 @@ public class BuildOpportunityReportService {
 							if(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate() != null) {
 								row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getActualBidSubmissionDate().toString());
 							}
-							else {
-								row.createCell(colValue).setCellValue(Constants.SPACE);
-							}
-							row.getCell(colValue).setCellStyle(dataRowStyle);
+//							else {
+//								row.createCell(colValue).setCellValue(Constants.SPACE);
+//							}
+//							row.getCell(colValue).setCellStyle(dataRowStyle);
 						}
 						colValue++;
 					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-						row.getCell(colValue).setCellStyle(dataRowStyle);
+//						row.createCell(colValue).setCellValue(Constants.SPACE);
+//						row.getCell(colValue).setCellStyle(dataRowStyle);
 						colValue++;
 					}
 			}
@@ -882,15 +946,15 @@ public class BuildOpportunityReportService {
 		return currentRow;
 	}
 
-	private void createHeader(SXSSFRow headerRow, SXSSFSheet spreadSheet,
-			int headerColumnValue, CellStyle headingStyle,
-			Boolean isHeadingColumn, String field) {
-		if(isHeadingColumn){
-		headerRow.createCell(headerColumnValue).setCellValue(
-				FieldsMap.fieldsMap.get(field));
-		headerRow.getCell(headerColumnValue).setCellStyle(headingStyle);
-		}
-	}
+//	private void createHeader(SXSSFRow headerRow, SXSSFSheet spreadSheet,
+//			int headerColumnValue, CellStyle headingStyle,
+//			Boolean isHeadingColumn, String field) {
+//		if(isHeadingColumn){
+//		headerRow.createCell(headerColumnValue).setCellValue(
+//				FieldsMap.fieldsMap.get(field));
+//		headerRow.getCell(headerColumnValue).setCellStyle(headingStyle);
+//		}
+//	}
 
 	public InputStreamResource getBidDetailsReport(
 			List<BidDetailsT> bidDetailsList, List<String> fields,

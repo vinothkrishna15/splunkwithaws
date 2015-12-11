@@ -8,5 +8,5 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 @Repository
 public interface OpportunityTcsAccountContactLinkTRepository extends
 		CrudRepository<OpportunityTcsAccountContactLinkT, String> {
-
+	
 }
