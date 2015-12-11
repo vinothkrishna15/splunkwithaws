@@ -31,7 +31,6 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
 import com.tcs.destination.utils.ExcelUtils;
@@ -83,7 +82,7 @@ public class RevenueUploadService {
 		// To check if no validation errors are present in the workbook
 		if (validateSheetForCustomer(workbook)) { 
 
-			Sheet sheet = workbook.getSheet(Constants.FINANCE_MAP_REF);
+			Sheet sheet = workbook.getSheet(CustomerUploadConstants.FINANACE_MAPPING_SHEET_NAME);
 			if(sheet==null){
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Please upload the workbook for FINANCE MAPPING UPLOAD or missing " +CustomerUploadConstants.FINANACE_MAPPING_SHEET_NAME +" sheet");
 			}
