@@ -136,7 +136,7 @@ public class RevenueUploadService {
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, String> customerMap = new HashMap<String, String>();
 		for (CustomerMasterT customerMasterT : listOfCustomerMappingT) {
-			customerMap.put(customerMasterT.getGroupCustomerName(), customerMasterT.getCustomerName());
+			customerMap.put(customerMasterT.getCustomerName(),customerMasterT.getGroupCustomerName());
 		}
 		return customerMap;
 	}
@@ -180,8 +180,11 @@ public class RevenueUploadService {
 
 			// CUSTOMER_NAME
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
-				if(mapOfCustomerNamesT.containsValue(listOfCellValues.get(2))){
+				if(mapOfCustomerNamesT.containsKey(listOfCellValues.get(2))){
 					revenueT.setCustomerName(listOfCellValues.get(2));
+				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "customer name is not present in customer table");
 				}
 			}
 			else {
@@ -202,6 +205,9 @@ public class RevenueUploadService {
 				if(mapOfIouCustomerMappingT.containsKey(listOfCellValues.get(6))){
 					revenueT.setFinanceIou(listOfCellValues.get(6));
 				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "finance iou is not present in master table");
+				}
 			}
 			else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Finanace IOU NOT Found");
@@ -211,6 +217,9 @@ public class RevenueUploadService {
 			if(listOfCellValues.get(7).length()>0){
 				if(mapOfGeographyMappingT.containsKey(listOfCellValues.get(7))){
 					revenueT.setCustomerGeography(listOfCellValues.get(7));
+				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "CustomerGeography is not present in master table");
 				}
 			}
 			else {

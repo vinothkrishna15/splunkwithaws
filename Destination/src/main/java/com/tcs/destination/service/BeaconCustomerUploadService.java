@@ -23,11 +23,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
@@ -44,6 +46,9 @@ public class BeaconCustomerUploadService {
 
 	@Autowired
 	BeaconRepository beaconRepository;
+	
+	@Autowired
+	IouBeaconMappingTRepository iouBeaconMappingTRepository;
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -53,7 +58,7 @@ public class BeaconCustomerUploadService {
 
 	Map<String, String> mapOfCustomerNamesT = null;
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
-	Map<String,BeaconCustomerMappingT> mapOfBeaconIouMappingT = null;
+	Map<String,IouBeaconMappingT> mapOfBeaconIouMappingT = null;
 
 	private static final Logger logger = LoggerFactory.getLogger(CustomerUploadService.class);
 
@@ -139,16 +144,16 @@ public class BeaconCustomerUploadService {
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, String> customerMap = new HashMap<String, String>();
 		for (CustomerMasterT customerMasterT : listOfCustomerMappingT) {
-			customerMap.put(customerMasterT.getGroupCustomerName(), customerMasterT.getCustomerName());
+			customerMap.put(customerMasterT.getCustomerName(),customerMasterT.getGroupCustomerName());
 		}
 		return customerMap;
 	}
 
-	private Map<String, BeaconCustomerMappingT> getBeaconIouMappingT() {
-		List<BeaconCustomerMappingT> listOfBeconMappingT = null;
-		listOfBeconMappingT = (List<BeaconCustomerMappingT>) beaconRepository.findAll();
-		Map<String, BeaconCustomerMappingT> iouMap = new HashMap<String, BeaconCustomerMappingT>();
-		for (BeaconCustomerMappingT iouBeaconMappingT : listOfBeconMappingT) {
+	private Map<String, IouBeaconMappingT> getBeaconIouMappingT() {
+		List<IouBeaconMappingT> listOfIouBeconMappingT = null;
+		listOfIouBeconMappingT = (List<IouBeaconMappingT>) iouBeaconMappingTRepository.findAll();
+		Map<String, IouBeaconMappingT> iouMap = new HashMap<String, IouBeaconMappingT>();
+		for (IouBeaconMappingT iouBeaconMappingT : listOfIouBeconMappingT) {
 			iouMap.put(iouBeaconMappingT.getBeaconIou(), iouBeaconMappingT);
 		}
 		return iouMap;
@@ -184,8 +189,11 @@ public class BeaconCustomerUploadService {
 
 			// BEACON_CUSTOMER_NAME
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
-				if(mapOfCustomerNamesT.containsValue(listOfCellValues.get(2))){
+				if(mapOfCustomerNamesT.containsKey(listOfCellValues.get(2))){
 					beaconT.setCustomerName(listOfCellValues.get(2));
+				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer Name NOT Found in master table");
 				}
 			}
 			else {
@@ -198,13 +206,16 @@ public class BeaconCustomerUploadService {
 					logger.info("BEACON_CUSTOMER_NAME"+listOfCellValues.get(5));
 			}
 			else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Customer Name NOT Found");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Customer Name NOT Found in master table");
 			}
 
 			// BEACON_CUSTOMER_IOU
 			if(!StringUtils.isEmpty(listOfCellValues.get(6))){
 				if(mapOfBeaconIouMappingT.containsKey(listOfCellValues.get(6))){
 					beaconT.setBeaconIou(listOfCellValues.get(6));
+				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "BeaconIou NOT Found in master table");
 				}
 			}
 			else {
@@ -215,6 +226,9 @@ public class BeaconCustomerUploadService {
 			if(listOfCellValues.get(7).length()>0){
 				if(mapOfGeographyMappingT.containsKey(listOfCellValues.get(7))){
 					beaconT.setCustomerGeography(listOfCellValues.get(7));
+				}
+				else {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "CustomerGeography NOT Found in master table");
 				}
 			}
 			else {
