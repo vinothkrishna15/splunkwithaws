@@ -28,4 +28,5 @@ public interface OpportunityPartnerLinkTRepository extends
 
 
 	List<OpportunityPartnerLinkT> findByOpportunityId(String opportunityId);
+	
 }

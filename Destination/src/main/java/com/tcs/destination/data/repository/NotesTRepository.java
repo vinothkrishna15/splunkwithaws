@@ -29,5 +29,8 @@ public interface NotesTRepository extends
 	List<NotesT> findByEntityTypeAndConnectIdIsNotNull(String entityType);
 
 	List<NotesT> findByOpportunityId(String opportunityId);
+	
+	@Query(value = "select notes_updated from notes_t where opportunity_id=?1",nativeQuery = true)
+	List<String> findDealRemarksNotesByOpportunityId(String opportunityId);
 
 }

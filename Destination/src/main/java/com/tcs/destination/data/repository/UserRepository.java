@@ -60,6 +60,14 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 			+ "u.user_email_id,u.supervisor_user_id,u.supervisor_user_name from user_t u join user_general_settings_t ug on u.user_id=ug.user_id", nativeQuery = true)
 	List<Object[]> findUserWithTimeZone();
 	
-	@Query( value = "select * from user_t where user_role in (:userRoles)", nativeQuery = true )
+	@Query( value = "select * from user_t where user_role in (:userRoles)", nativeQuery = true)
 	List<UserT> findByUserRoles(@Param("userRoles") List<String> roles);
+	
+	@Query(value=" select user_name from user_t where user_id in ("
+			+ "select sales_support_owner from opportunity_sales_support_link_t where opportunity_id=?1)", nativeQuery=true)
+	List<String> findOpportunitySalesSupportOwnersNameByOpportunityId(String opportunityId);
+	
+	@Query(value = "select user_name from user_t where user_id in ("
+			+ "select bid_office_group_owner from bid_office_group_owner_link_t where bid_id=?1)", nativeQuery=true)
+	List<String> findBidOfficeGroupOwnersNameByBidId(String bidId);
 }
