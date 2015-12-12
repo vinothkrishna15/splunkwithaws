@@ -43,6 +43,9 @@ import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
+/*
+ * This service handles with the upload of actual revenue data
+ */
 @Service
 public class ActualRevenueDataUploadService {
 	@Autowired
@@ -53,10 +56,10 @@ public class ActualRevenueDataUploadService {
 
 	@Autowired
 	ActualRevenuesDataTRepository actualRevenuesDataTRepository;
-	
+
 	@Autowired
 	RevenueCustomerMappingTRepository revenueCustomerMappingTRepository;
-	
+
 	@Autowired
 	CustomerIOUMappingRepository iouCustomerMappingRepository;
 
@@ -71,33 +74,46 @@ public class ActualRevenueDataUploadService {
 
 	Map<String, String> mapOfCustomerNamesT = null;
 	Map<String, SubSpMappingT> mapOfSubSpMappingT = null;
-	Map<String,IouCustomerMappingT> mapOfIouCustomerMappingT = null;
+	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 
-	private static final Logger logger = LoggerFactory.getLogger(CustomerUploadService.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(CustomerUploadService.class);
 
-	/* This service uploads revenue actual data to actual_revenue_data_t table
+	/*
+	 * This service uploads revenue actual data to actual_revenue_data_t table
+	 * 
 	 * @param file
-	 * @param userId*/
+	 * 
+	 * @param userId
+	 */
 
 	public UploadStatusDTO upload(MultipartFile file, String userId)
 			throws Exception {
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
 		uploadStatus.setStatusFlag(true);
-		uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
+		uploadStatus
+				.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
 
-		// Get List of IOU from DB for validating the IOU which comes from the sheet	
+		// Get List of IOU from DB for validating the IOU which comes from the
+		// sheet
 		mapOfIouCustomerMappingT = getIouCustomerMappingT();
 
-		// Get List of IOU from DB for validating the IOU which comes from the sheet	
+		// Get List of IOU from DB for validating the IOU which comes from the
+		// sheet
 		mapOfSubSpMappingT = getSubSpMappingT();
 
 		// To check if no validation errors are present in the workbook
-		if (validateSheetForCustomer(workbook)) { 
+		if (validateSheetForCustomer(workbook)) {
 
-			Sheet sheet = workbook.getSheet(CustomerUploadConstants.ACTUAL_REVENUE_DATA_SHEET_NAME);
-			if(sheet==null){
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Please upload the workbook for BEACON CUSTOMER UPLOAD or missing " +CustomerUploadConstants.ACTUAL_REVENUE_DATA_SHEET_NAME +" sheet");
+			Sheet sheet = workbook
+					.getSheet(CustomerUploadConstants.ACTUAL_REVENUE_DATA_SHEET_NAME);
+			if (sheet == null) {
+				throw new DestinationException(
+						HttpStatus.BAD_REQUEST,
+						"Please upload the workbook for BEACON CUSTOMER UPLOAD or missing "
+								+ CustomerUploadConstants.ACTUAL_REVENUE_DATA_SHEET_NAME
+								+ " sheet");
 			}
 
 			int rowCount = 0;
@@ -105,15 +121,19 @@ public class ActualRevenueDataUploadService {
 
 			Iterator<Row> rowIterator = sheet.iterator();
 
-			while (rowIterator.hasNext()&& rowCount <= sheet.getLastRowNum()) {
+			while (rowIterator.hasNext() && rowCount <= sheet.getLastRowNum()) {
 				Row row = rowIterator.next();
 
 				if (rowCount > 0) {
-					logger.debug("row count : "+rowCount);
+					logger.debug("row count : " + rowCount);
 					listOfCellValues = new ArrayList<String>();
 					try {
-							listOfCellValues = iterateRow(row, CustomerUploadConstants.ACTUAL_REVENUE_DATA_COLUMN_COUNT);
-							revenueService.addActualRevenue(constructActualRevenuesDataT(listOfCellValues, userId));
+						listOfCellValues = iterateRow(
+								row,
+								CustomerUploadConstants.ACTUAL_REVENUE_DATA_COLUMN_COUNT);
+						revenueService
+								.addActualRevenue(constructActualRevenuesDataT(
+										listOfCellValues, userId));
 					} catch (Exception e) {
 						if (uploadStatus.isStatusFlag()) {
 							uploadStatus.setStatusFlag(false);
@@ -131,24 +151,37 @@ public class ActualRevenueDataUploadService {
 				rowCount++;
 			}
 		} else {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
 
 		return uploadStatus;
 
 	}
 
+	/**
+	 * This method gives all the IOU Customer Mapping and returns a map with a
+	 * key of IOU and value contains object of IOUCustomerMapping
+	 * 
+	 * @return
+	 */
 	private Map<String, IouCustomerMappingT> getIouCustomerMappingT() {
 		List<IouCustomerMappingT> listOfIouCustomerMappingT = null;
-		listOfIouCustomerMappingT = (List<IouCustomerMappingT>) iouCustomerMappingRepository.findAll();
+		listOfIouCustomerMappingT = (List<IouCustomerMappingT>) iouCustomerMappingRepository
+				.findAll();
 		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
 		for (IouCustomerMappingT iouCustomerMappingT : listOfIouCustomerMappingT) {
 			iouMap.put(iouCustomerMappingT.getIou(), iouCustomerMappingT);
 		}
 		return iouMap;
 	}
-	
-	// to get the map of SUB_SP
+
+	/**
+	 * This method gives the map with the key of SubSp and value contains object
+	 * of subspMappingT
+	 * 
+	 * @return
+	 */
 	private Map<String, SubSpMappingT> getSubSpMappingT() {
 		List<SubSpMappingT> listOfSubSpMappingT = null;
 		listOfSubSpMappingT = (List<SubSpMappingT>) subSpRepository.findAll();
@@ -161,117 +194,133 @@ public class ActualRevenueDataUploadService {
 
 	/**
 	 * This method constructs ActualRevenuesDataT for actual revenue data upload
+	 * 
 	 * @param listOfCellValues
 	 * @param userId
 	 * @param action
 	 * @return ActualRevenuesDataT
 	 * @throws Exception
 	 */
-		private ActualRevenuesDataT constructActualRevenuesDataT(List<String> listOfCellValues,String userId) throws Exception {
+	private ActualRevenuesDataT constructActualRevenuesDataT(
+			List<String> listOfCellValues, String userId) throws Exception {
 		ActualRevenuesDataT actualRevenueT = null;
 		if ((listOfCellValues.size() > 0)) {
 			actualRevenueT = new ActualRevenuesDataT();
 			// QUARTER
-			if(StringUtils.isEmpty(listOfCellValues.get(4))){
-				throw new DestinationException(HttpStatus.NOT_FOUND, "QUARTER NOT Found");
-				
+			if (StringUtils.isEmpty(listOfCellValues.get(4))) {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"QUARTER NOT Found");
+
 			}
 
 			// MONTH
-			if(!StringUtils.isEmpty(listOfCellValues.get(3))){
-				
+			if (!StringUtils.isEmpty(listOfCellValues.get(3))) {
+
 				try {
-					String[] strArr = DateUtils.formatUploadDateData(listOfCellValues.get(3), PropertyUtil.getProperty("upload.month.db.format"), PropertyUtil.getProperty("upload.month.format"));
+					String[] strArr = DateUtils.formatUploadDateData(
+							listOfCellValues.get(3),
+							PropertyUtil.getProperty("upload.month.db.format"),
+							PropertyUtil.getProperty("upload.month.format"));
 					actualRevenueT.setMonth(strArr[0]);
 					actualRevenueT.setQuarter(strArr[1]);
 					actualRevenueT.setFinancialYear(strArr[2]);
 
 				} catch (ParseException e) {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid month format.");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"Invalid month format.");
 				}
-				
-			}
-			else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "MONTH NOT Found");
+
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"MONTH NOT Found");
 			}
 
 			// FINANCIAL YEAR
-			if(StringUtils.isEmpty(listOfCellValues.get(5))){
-				throw new DestinationException(HttpStatus.NOT_FOUND, "FINANCIAL YEAR NOT Found");
+			if (StringUtils.isEmpty(listOfCellValues.get(5))) {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"FINANCIAL YEAR NOT Found");
 			}
 			// REVENUE AMOUNT
-			if(!StringUtils.isEmpty(listOfCellValues.get(6))){
-				BigDecimal target=new BigDecimal(listOfCellValues.get(6));
+			if (!StringUtils.isEmpty(listOfCellValues.get(6))) {
+				BigDecimal target = new BigDecimal(listOfCellValues.get(6));
 				actualRevenueT.setRevenue((target));
-			}
-			else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "REVENUE AMOUNT NOT Found");
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"REVENUE AMOUNT NOT Found");
 			}
 
 			// CLIENT COUNTRY NAME
-			if(!StringUtils.isEmpty(listOfCellValues.get(7))){
+			if (!StringUtils.isEmpty(listOfCellValues.get(7))) {
 				actualRevenueT.setClientCountry(listOfCellValues.get(7));
-			}
-			else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "CLIENT COUNTRY NAME NOT Found");
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"CLIENT COUNTRY NAME NOT Found");
 			}
 
-			//SUB_SP
-			if(!StringUtils.isEmpty(listOfCellValues.get(9))){
-				if(mapOfSubSpMappingT.containsKey(listOfCellValues.get(9))){
-				actualRevenueT.setSubSp(listOfCellValues.get(9));
+			// SUB_SP
+			if (!StringUtils.isEmpty(listOfCellValues.get(9))) {
+				if (mapOfSubSpMappingT.containsKey(listOfCellValues.get(9))) {
+					actualRevenueT.setSubSp(listOfCellValues.get(9));
 				}
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"SUB SP NOT Found");
 			}
-			else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "SUB SP NOT Found");
-			}
-			
+
 			List<RevenueCustomerMappingT> revenueCustomerData = null;
-			// to find whether finance_geography, finance_iou, finance_customer_name and (composite key) has foreign key existence in revenue_customer_mapping_t
-			revenueCustomerData = revenueCustomerMappingTRepository.checkRevenueMappingPK(listOfCellValues.get(10),listOfCellValues.get(8),listOfCellValues.get(11));
-			
-			if ((!revenueCustomerData.isEmpty()) && (revenueCustomerData.size() == 1)) 
-			{
-				//FINANACE EOGRAPHY
-				if(!StringUtils.isEmpty(listOfCellValues.get(8))){
+			// to find whether finance_geography, finance_iou,
+			// finance_customer_name and (composite key) has foreign key
+			// existence in revenue_customer_mapping_t
+			revenueCustomerData = revenueCustomerMappingTRepository
+					.checkRevenueMappingPK(listOfCellValues.get(10),
+							listOfCellValues.get(8), listOfCellValues.get(11));
+
+			if ((!revenueCustomerData.isEmpty())
+					&& (revenueCustomerData.size() == 1)) {
+				// FINANACE EOGRAPHY
+				if (!StringUtils.isEmpty(listOfCellValues.get(8))) {
 					actualRevenueT.setFinanceGeography(listOfCellValues.get(8));
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"CLIENT GEOGRAPHY NOT Found");
 				}
-				else {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "CLIENT GEOGRAPHY NOT Found");
+
+				// END CUSTOMER NAME
+				if (!StringUtils.isEmpty(listOfCellValues.get(10))) {
+					actualRevenueT.setFinanceCustomerName(listOfCellValues
+							.get(10));
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"END CUSTOMER NAME NOT Found");
 				}
-				
-				//END CUSTOMER NAME
-				if(!StringUtils.isEmpty(listOfCellValues.get(10))){
-					actualRevenueT.setFinanceCustomerName(listOfCellValues.get(10));
-				}
-				else {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "END CUSTOMER NAME NOT Found");
-				}
-				
-				//IOU
-				if(!StringUtils.isEmpty(listOfCellValues.get(11))){
-					if(mapOfIouCustomerMappingT.containsKey(listOfCellValues.get(11))){
+
+				// IOU
+				if (!StringUtils.isEmpty(listOfCellValues.get(11))) {
+					if (mapOfIouCustomerMappingT.containsKey(listOfCellValues
+							.get(11))) {
 						actualRevenueT.setFinanceIou(listOfCellValues.get(11));
 					}
+				} else {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"IOU NOT Found");
 				}
-				else {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "IOU NOT Found");
-				}
-			}else{
-				throw new DestinationException(HttpStatus.NOT_FOUND, "the combination of  END CUSTOMER NAME,CLIENT GEOGRAPHY and IOU is NOT Found");
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"the combination of  END CUSTOMER NAME,CLIENT GEOGRAPHY and IOU is NOT Found");
 			}
-		} 
-		
+		}
+
 		return actualRevenueT;
 	}
 
 	/**
 	 * This method iterates the given row for values
+	 * 
 	 * @param row
 	 * @return
 	 * @throws Exception
 	 */
-	private List<String> iterateRow(Row row, int columnnCount) throws Exception{
+	private List<String> iterateRow(Row row, int columnnCount) throws Exception {
 		List<String> listOfCellValues = new ArrayList<String>();
 
 		for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
@@ -292,6 +341,7 @@ public class ActualRevenueDataUploadService {
 	/**
 	 * This method accepts a cell, checks the value and returns the response.
 	 * The default value sent is an empty string
+	 * 
 	 * @param cell
 	 * @return String
 	 */
@@ -326,11 +376,13 @@ public class ActualRevenueDataUploadService {
 
 	/**
 	 * This method validates Customer Master Sheet
+	 * 
 	 * @param workbook
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
+	private boolean validateSheetForCustomer(Workbook workbook)
+			throws Exception {
 		return ExcelUtils.isValidWorkbook(workbook,
 				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,

@@ -46,6 +46,9 @@ import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.ReportConstants;
 
+/*
+ * This service handles the BDM Detailed report functionalities
+ */
 @Service
 public class BDMDetailedReportService {
 
@@ -237,8 +240,6 @@ public class BDMDetailedReportService {
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = true;
-//				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-//						serviceLinesList, iouList, countryList, currency, salesStage, users, fields,isIncludingSupervisor, workbook);
 				setBDMOpportunityDetailsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
 						serviceLinesList, iouList, countryList, currency, salesStage, users, fields, isIncludingSupervisor, workbook);
 				break;
@@ -250,8 +251,6 @@ public class BDMDetailedReportService {
 					userIdList.addAll(opportunityOwners);
 				}
 				isIncludingSupervisor = true;
-//				getBDMOpportunityIdsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-//						serviceLinesList, iouList, countryList, currency, salesStage, userIdList, fields, isIncludingSupervisor, workbook);
 				setBDMOpportunityDetailsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
 						serviceLinesList, iouList, countryList, currency, salesStage, userIdList, 
 						fields, isIncludingSupervisor, workbook);
@@ -308,7 +307,6 @@ public class BDMDetailedReportService {
 				logger.error("Report could not be downloaded, as no details are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
 			}
-//			setBDMsOpportunitiesAndNameToExcel(userIdAndOppList, currency, workbook, fields, isIncludingSupervisor);
 			setBDMsOpportunitiesToExcel(opportunityList, currency, workbook, fields, isIncludingSupervisor);
 		}
 		
@@ -327,18 +325,10 @@ public class BDMDetailedReportService {
 				int currentRow = 0;
 				CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
 				SXSSFRow row = null;
-//				Map<String, List<String>> opportunityUserMap = new HashMap<String, List<String>>();
 				if(fields.isEmpty()){
 					row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 					setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-					
-//					opportunityUserMap = getOpportunityIdAndUserIdsMap(userIdAndOppList);
-					
 					for(OpportunityT opportunity:opportunityList){
-									
-//					String opportunityId = 	(String) userIdAndOpp[1];
-					
-//					OpportunityT opportunity = opportunityRepository.findByOpportunityId(opportunityId);
 					currentRow++;
 					row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 					setBDMReportMandatoryDetails(row, spreadSheet, currency, isIncludingSupervisor, opportunity);
@@ -348,7 +338,6 @@ public class BDMDetailedReportService {
 					if(currency.size()>1){
 					currentRow++;
 					}
-//					setBDMSupervisorAlongWithOptionalFieldsDetail(currentRow, spreadSheet, null, currency, fields, isIncludingSupervisor);
 					setBDMReportAlongWithOptionalFieldsDetail(currentRow, spreadSheet, opportunityList, currency, fields, isIncludingSupervisor);
 				}
 			}
@@ -365,7 +354,6 @@ public class BDMDetailedReportService {
 		private void setBDMReportAlongWithOptionalFieldsDetail(int currentRow, SXSSFSheet spreadSheet, List<OpportunityT> opportunityList, List<String> currency,
 				List<String> fields, boolean isIncludingSupervisor) {
 			SXSSFRow row = null;
-//			CellStyle dataRowStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 			boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
@@ -481,10 +469,6 @@ public class BDMDetailedReportService {
 				List<String> salesSupportOwnerList = new ArrayList<String>();
 				List<String> supervisorList = new ArrayList<String>();
 				int columnNo = 0;
-				
-//				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
-//				UserT bdmUser = userRepository.findByUserId((String) userIdAndOpp[0]);
-				
 				UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
 				
 				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
@@ -530,8 +514,6 @@ public class BDMDetailedReportService {
 				if(!opportunity.getBidDetailsTs().isEmpty()){
 					if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
 						row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
-//					}  else {
-//						row.createCell(columnNo++).setCellValue(Constants.SPACE);
 					}
 				} else {
 					row.createCell(columnNo++).setCellValue(Constants.SPACE);
@@ -564,12 +546,9 @@ public class BDMDetailedReportService {
 			int currentRow = 0;
 			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
 			SXSSFRow row = null;
-			Map<String, List<String>> opportunityUserMap = new HashMap<String, List<String>>();
 			if(fields.isEmpty()){
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-				
-//				opportunityUserMap = getOpportunityIdAndUserIdsMap(userIdAndOppList);
 				
 				for(Object[] userIdAndOpp:userIdAndOppList){
 								
@@ -590,29 +569,6 @@ public class BDMDetailedReportService {
 		}
 
 		/**
-		 * @param userIdAndOppList
-		 * @return
-		 */
-//		private Map<String, List<String>> getOpportunityIdAndUserIdsMap(List<Object[]> userIdAndOppList) {
-//			List<BdmUserIdOppIdDTO> bdmUserIdOppIdDTOList = new ArrayList<BdmUserIdOppIdDTO>();
-//			BdmUserIdOppIdDTO bdmUserIdOppIdDTO = new BdmUserIdOppIdDTO();
-//			Map<String, List<String>> opportunityUserMap = new HashMap<String, List<String>>();
-//			Map<String, String> userIdOppIdMap = new HashMap<String, String>();
-////			List<String> opportunityList = userIdAndOppList.get(1);
-//			for(Object[] userIdAndOpp:userIdAndOppList){
-//				userIdOppIdMap.put((String) userIdAndOpp[1], (String) userIdAndOpp[0]);
-//			}
-//			
-//			int i=0;
-//			for(int j=1;j<=bdmUserIdOppIdDTOList.size();j++){
-//				if(bdmUserIdOppIdDTOList.get(i).getOpportunityId().equals(bdmUserIdOppIdDTOList.get(j))){
-//					
-//				}
-//			}
-//			return opportunityUserMap;
-//		}
-
-		/**
 		 * This Method is used to set bdm supervisor details along with optional fields to excel
 		 * @param currentRow
 		 * @param spreadSheet
@@ -623,9 +579,7 @@ public class BDMDetailedReportService {
 		 */
 		private void setBDMSupervisorAlongWithOptionalFieldsDetail(int currentRow, SXSSFSheet spreadSheet,
 				List<Object[]> userIdAndOppList, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
-//			for(Object[] userIdAndOpp:userIdAndOppList){
 			SXSSFRow row = null;
-//			CellStyle dataRowStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 			boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
@@ -638,7 +592,6 @@ public class BDMDetailedReportService {
 				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 				setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor, opportunity);
-//				row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 				int currentCol=11;
 				if(isIncludingSupervisor){
 					currentCol=12;
@@ -655,14 +608,12 @@ public class BDMDetailedReportService {
 					} else {
 						row.createCell(colValue).setCellValue(0);
 					}
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					if(opportunity.getDealCurrency() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
 						} else {
 							row.createCell(colValue).setCellValue("");
 						}
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					}
 				
@@ -682,12 +633,10 @@ public class BDMDetailedReportService {
 						} else {
 							row.createCell(colValue).setCellValue(Constants.SPACE);
 						}
-//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
 					row.createCell(colValue).setCellValue(Constants.SPACE);
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -702,12 +651,10 @@ public class BDMDetailedReportService {
 						} else {
 								row.createCell(colValue).setCellValue(Constants.SPACE);
 						}
-//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
 					row.createCell(colValue).setCellValue(Constants.SPACE);
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -715,7 +662,6 @@ public class BDMDetailedReportService {
 			//set opportunity name
 			if (opportunityNameFlag) {
 				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 
@@ -727,7 +673,6 @@ public class BDMDetailedReportService {
 					factorsForWinLossList.add(opportunityWinLossFactorsT.getWinLossFactor());
 				}
 				row.createCell(colValue).setCellValue(factorsForWinLossList.toString().replace("[", "").replace("]", ""));
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
@@ -737,7 +682,6 @@ public class BDMDetailedReportService {
 				row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
 				else
 					row.createCell(colValue).setCellValue("");
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 			
@@ -748,7 +692,6 @@ public class BDMDetailedReportService {
 					dealRemarksNotesList.add(notesT.getNotesUpdated());
 				}
 				row.createCell(colValue).setCellValue(dealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 				}
 			
@@ -767,12 +710,9 @@ public class BDMDetailedReportService {
 		 */
 		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, Object[] userIdAndOpp, SXSSFSheet spreadSheet,
 				List<String> currencyList, boolean isIncludingSupervisor, OpportunityT opportunity) {
-//			try{
 			List<String> salesSupportOwnerList = new ArrayList<String>();
 			List<String> supervisorList = new ArrayList<String>();
 			int columnNo = 0;
-			
-//			OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
 			UserT bdmUser = userRepository.findByUserId((String) userIdAndOpp[0]);
 			UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
 			
@@ -782,7 +722,6 @@ public class BDMDetailedReportService {
 				supervisorList.add(user.getSupervisorUserName());
 			}
 			String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
-//			String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
 			
 			//set BDM
 			row.createCell(columnNo++).setCellValue(bdmUser.getUserName());
@@ -834,12 +773,8 @@ public class BDMDetailedReportService {
 				} else {
 					row.createCell(columnNo + i).setCellValue(0);
 				}
-//				row.getCell(columnNo + i).setCellStyle(cellStyle);
 				i++;
 			}
-//			}catch(Exception e){
-//				e.printStackTrace();
-//			}
 		}
 
 
@@ -852,8 +787,6 @@ public class BDMDetailedReportService {
 		 * @param currency 
 		 */
 		private void setBDMSupervisorMandatoryHeaderToExcel(SXSSFRow row, int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle, List<String> currency, boolean isIncludingSupervisor) {
-//			SXSSFRow row = null;
-//			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			CellStyle currencyStyle = ExcelUtils.createRowStyle(
 					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
 			List<String> headerList = new ArrayList<String>();
@@ -942,7 +875,7 @@ public class BDMDetailedReportService {
 			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
 			// Form the native top revenue query string
 			String queryString = getOpportunityListQueryString(userId, fromDate, toDate, geoList, countryList, serviceLinesList, salesStage, opportunityOwnerList);
-			logger.info("Query string: {}", queryString);
+			logger.debug("Query string: {}", queryString);
 			// Execute the native revenue query string
 			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
 			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
@@ -952,7 +885,6 @@ public class BDMDetailedReportService {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
 			}
 			setBDMsOpportunitiesAndNameToExcel(bdmUserAndOppId, currency, workbook, fields, isIncludingSupervisor);
-//			getBDMSupervisorPerformanceReport(opportunityOwnerList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 		}
 
 
@@ -1057,7 +989,6 @@ public class BDMDetailedReportService {
 			List<String> bdms = new ArrayList<String>();
 			List<String> userIds = null;
 			userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
-//			userIds.add(userId);
 			if (!opportunityOwners.isEmpty()) {
 				for (String user : userIds) {
 					if (opportunityOwners.contains(user)) {

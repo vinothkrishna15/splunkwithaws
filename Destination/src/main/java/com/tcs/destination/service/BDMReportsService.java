@@ -48,12 +48,13 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
+/*
+ * This service handles the BDM Reports related functionalities
+ */
 @Service
 public class BDMReportsService {
 
 	private static final Logger logger = LoggerFactory.getLogger(BDMReportsService.class);
-	
-	private static final int ONE_DAY_IN_MILLIS = 86400000;
 	
 	
 	@Autowired
@@ -121,7 +122,24 @@ public class BDMReportsService {
 	
 	@Autowired
 	BDMDetailedReportService bdmDetailedReportService;
-
+    
+	/**
+	 * This method gives the BDM Report in Excel format
+	 * @param financialYear
+	 * @param from
+	 * @param to
+	 * @param geography
+	 * @param country
+	 * @param currency
+	 * @param serviceline
+	 * @param iou
+	 * @param salesStage
+	 * @param opportunityOwners
+	 * @param userId
+	 * @param fields
+	 * @return
+	 * @throws Exception
+	 */
 	public InputStreamResource getBdmsReport(String financialYear, String from, String to, List<String> geography, List<String> country, List<String> currency,
 			List<String> serviceline, List<String> iou, List<Integer> salesStage, List<String> opportunityOwners, String userId, List<String> fields) throws Exception {
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
@@ -137,7 +155,22 @@ public class BDMReportsService {
 		return inputStreamResource;
 	}
 	
-	
+	/**
+	 * This method generates the title page sheet for BDM Report
+	 * @param workbook
+	 * @param financialYear
+	 * @param from
+	 * @param to
+	 * @param geography
+	 * @param country
+	 * @param currency
+	 * @param serviceline
+	 * @param salesStage
+	 * @param opportunityOwners
+	 * @param userId
+	 * @param reportType
+	 * @param iou
+	 */
 	public void getBDMReportTitlePage(SXSSFWorkbook workbook, String financialYear, String from, String to,
 			List<String> geography, List<String> country, List<String> currency, List<String> serviceline,
 			List<Integer> salesStage, List<String> opportunityOwners, String userId, String reportType, List<String> iou) {
@@ -181,8 +214,7 @@ public class BDMReportsService {
 		}
 		row.createCell(4).setCellValue("Sales stage");
 		row.createCell(5).setCellValue(completeList);
-//		spreadsheet.autoSizeColumn(5);
-		////
+
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
@@ -221,9 +253,7 @@ public class BDMReportsService {
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		
-		////s
 		row = (SXSSFRow) spreadsheet.createRow(22);
-//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 5));
 		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		row = (SXSSFRow) spreadsheet.createRow(23);
@@ -253,7 +283,6 @@ public class BDMReportsService {
 			SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 			getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, servicelines, salesStage, opportunityOwners, userId, "Summary", iou);
 			getBdmSummaryReportExcel(financialYear, from, to, geography, currency, servicelines, salesStage, opportunityOwners, userId, workbook, country, iou);
-//			ExcelUtils.arrangeSheetOrder(workbook);
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
 			byteOutPutStream.flush();
@@ -277,7 +306,6 @@ public class BDMReportsService {
 				List<String> opportunityOwners, String userId, SXSSFWorkbook workbook, List<String> country, List<String> iou) throws Exception {
 			List<String> userIds = new ArrayList<String>();
 			UserT user = userService.findByUserId(userId);
-//			boolean isAlongWithSupervisor=false;
 			if (user != null) {
 			    
 				String userGroup = user.getUserGroupMappingT().getUserGroup();
@@ -315,7 +343,6 @@ public class BDMReportsService {
 					    }
 					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
-//					getGeoHeadOrIouHeadPerformanceExcelReport(userIds, userId, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReportForSI(userIds, userId, financialYear, workbook);
 					break;
 				default :
@@ -349,7 +376,8 @@ public class BDMReportsService {
 			}
 		}
 		
-		/**
+		/** This method gives the required Geo Heads or IOU Lists based on the opportunity owners 
+		 * and geoIou user list
 		 * @param opportunityOwners
 		 * @param geoIouUserList 
 		 * @return
@@ -365,7 +393,7 @@ public class BDMReportsService {
 		}
 
 
-		/**
+		/** This method retrieves the subordinate list of BDM Supervisor, GEO Heads and IOU Heads
 		 * @param bdmsList
 		 * @param userGroup 
 		 * @return
@@ -399,7 +427,14 @@ public class BDMReportsService {
 			return subOrdinatesList;
 		}
 
-
+        /**
+         * This method generates the Geo head or IOU head performance report for SI
+         * @param geoIouUserList
+         * @param userId
+         * @param financialYear
+         * @param workbook
+         * @throws Exception
+         */
 		private void getGeoHeadOrIouHeadPerformanceExcelReportForSI(List<String> geoIouUserList, String userId,
 				String financialYear, SXSSFWorkbook workbook) throws Exception {
 			List<BDMPerfromanceGeoIouDashboardResponse> bdmPerfromanceGeoIouList = 
@@ -412,7 +447,12 @@ public class BDMReportsService {
 			setGeoOrIouHeadsPerformanceToExcelForSI(bdmPerfromanceGeoIouList, workbook, userId);
 		}
 			
-
+        /**
+         * This method inserts the Geo or IOU heads performance values into the excel
+         * @param bdmPerfromanceGeoIouList
+         * @param workbook
+         * @param userId
+         */
 		private void setGeoOrIouHeadsPerformanceToExcelForSI(List<BDMPerfromanceGeoIouDashboardResponse> bdmPerfromanceGeoIouList,
 				SXSSFWorkbook workbook, String userId) {
 			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Geo Or Iou Heads Summary");
@@ -429,7 +469,18 @@ public class BDMReportsService {
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 			row.createCell(0).setCellValue("Note: Target & achieved displayed is for full year 2015-16 (no filter, user selection conditions are applied)");
 		}
-
+        
+		/**
+		 * This method is used to retrieve the opportunity summary details
+		 * @param userIds
+		 * @param financialYear
+		 * @param geoList
+		 * @param serviceLinesList
+		 * @param workbook
+		 * @param countryList
+		 * @param iouList
+		 * @throws Exception
+		 */
 		private void getOpportunitySummaryDetails(List<String> userIds, String financialYear, List<String> geoList,
 				List<String> serviceLinesList, SXSSFWorkbook workbook, List<String> countryList, List<String> iouList) throws Exception {
 			List<BDMDealValueDTO> bdmDealValueDTOList = new ArrayList<BDMDealValueDTO>();
@@ -443,7 +494,11 @@ public class BDMReportsService {
 			setOpportunitySummaryToExcel(bdmDealValueDTOList,workbook);
 		}
 
-		
+		/**
+		 * This method inserts the opportunity summary values into the excel
+		 * @param bdmDealValueDTOList
+		 * @param workbook
+		 */
 		private void setOpportunitySummaryToExcel(List<BDMDealValueDTO> bdmDealValueDTOList,
 				SXSSFWorkbook workbook) {
 			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Opportunity Summary");
@@ -455,7 +510,12 @@ public class BDMReportsService {
 			setOpportunitySummaryToExcel(currentRow, spreadSheet, bdmDealValueDTOList);
 		}
 
-		
+		/**
+		 * This method inserts the opportunity summary values into the excel
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param bdmDealValueDTOList
+		 */
 		private void setOpportunitySummaryToExcel(int currentRow, SXSSFSheet spreadSheet,
 				List<BDMDealValueDTO> bdmDealValueDTOList) {
 			SXSSFRow row = null;
@@ -480,7 +540,13 @@ public class BDMReportsService {
 			
 			
 		}
-
+        
+		/**
+		 * This method inserts the header values for Opportunity summary into an excel sheet
+		 * @param currentRow
+		 * @param spreadSheet
+		 * @param cellStyle
+		 */
 		private void setOpportunitySummaryHeaderToExcel(int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle) {
 			SXSSFRow row = null;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
@@ -542,7 +608,17 @@ public class BDMReportsService {
 			row.getCell(10).setCellStyle(cellStyle);
 		}
 
-		
+		/**
+		 * This method retrieves the opportunity Count and Digital deal value based on user id.
+		 * @param userId
+		 * @param financialYear
+		 * @param geoList
+		 * @param serviceLinesList
+		 * @param countryList
+		 * @param iouList
+		 * @return BDMDealValueDTO
+		 * @throws Exception
+		 */
 		private BDMDealValueDTO getOpportunityCountAndDigitalDealValueByUser(String userId, String financialYear, List<String> geoList,
 				List<String> serviceLinesList, List<String> countryList, List<String> iouList) throws Exception {
 			BDMDealValueDTO bdmDealValueDTO = new BDMDealValueDTO();
@@ -614,44 +690,10 @@ public class BDMReportsService {
 			
 			return bdmDealValueDTO;
 		}
-
-		/**
-		 * 
-		 * @param userIds 
-		 * @param userId
-		 * @param year
-		 * @param geoList
-		 * @param countryList
-		 * @param serviceLinesList
-		 * @param workbook
-		 * @throws Exception
-		 */
-		private void getGeoHeadOrIouHeadPerformanceExcelReport(List<String> userIds, String userId, String year, SXSSFWorkbook workbook) throws Exception {
-			BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = null;
-			bdmPerfromanceGeoIouDashboardResponse = getGeoOrIouHeadPerformanceByUserAccessPrivileges(userId, year);
-			setGeoOrIouHeadsPerformanceToExcel(bdmPerfromanceGeoIouDashboardResponse, workbook, userId);
-		}
 		
-		/**
-		 * 
-		 * @param bdmPerfromanceGeoIouDashboardResponse
-		 * @param workbook
-		 * @param userId 
-		 */
-		private void setGeoOrIouHeadsPerformanceToExcel(BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse,
-				SXSSFWorkbook workbook, String userId) {
-			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Geo Or Iou Heads Summary");
-			int currentRow = 0;
-			boolean isGeoOrIouHeads = true;
-			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
-			setGeoOrIouHeadsHeaderToExcel(currentRow, spreadSheet, cellStyle);
-			currentRow++;
-			setGeoOrIouHeadsDetailsToExcel(currentRow, spreadSheet, bdmPerfromanceGeoIouDashboardResponse, userId, isGeoOrIouHeads);
-			
-		}
 
 		/**
-		 * 
+		 * This method inserts the Geo or IOU heads details into an Excel sheet
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param bdmPerfromanceGeoIouDashboardResponse
@@ -775,7 +817,7 @@ public class BDMReportsService {
 		}
 
 		/**
-		 * 
+		 * This method sets the Header values for Geo or IOU Heads into an excel sheet
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param cellStyle
@@ -797,7 +839,7 @@ public class BDMReportsService {
 		}
 
 		/**
-		 * 
+		 * This method is used to get the Geo or IOU head performance details based on user access privileges
 		 * @param userId
 		 * @param year
 		 * @param geoList
@@ -830,24 +872,14 @@ public class BDMReportsService {
 			logger.debug("Inside getBDMSupervisorPerformanceExcelReport() method");
 			BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails = null;
 			boolean isDashboardByYear = true;
-//			addItemToList(userIds);
 			bdmSupervisorDashboardDetails = bdmService.getBDMSupervisorDashboardByUser(userIds, year, isDashboardByYear);
 			setBDMSupervisorPerformanceToExcel(bdmSupervisorDashboardDetails, workbook);	
 					
 		}
 
-		/**
-		 * @param userIds
-		 */
-		private void addItemToList(List<String> userIds) {
-			if(userIds.isEmpty()){
-				userIds.add("Empty");
-			}
-		}
-
 
 		/**
-		 * 
+		 * This method inserts the BDM Supervisor Performance details into an excel sheet
 		 * @param bdmSupervisorDashboardDetails
 		 * @param workbook
 		 */
@@ -865,7 +897,7 @@ public class BDMReportsService {
 		}
 
 		/**
-		 * 
+		 * This method is used to set the BDM Supervisor details into an excel sheet
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param bdmSupervisorDashboardDetails
@@ -944,7 +976,7 @@ public class BDMReportsService {
 		}
 
 		/**
-		 * 
+		 * This method is used to set the header values for BDM Supervisor performance into the excel sheet
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param cellStyle
@@ -969,7 +1001,12 @@ public class BDMReportsService {
 			row.createCell(4).setCellValue("Secondary");
 			row.getCell(4).setCellStyle(cellStyle);
 			}
-
+        
+		/**
+		 * This Method used to add ("") to targetList if itemList contains "All"
+		 * @param itemList
+		 * @param targetList
+		 */
 		public void addItemToList(List<String> itemList, List<String> targetList){
 			if(itemList.contains("All") || itemList.isEmpty()){
 				targetList.add("");
@@ -978,6 +1015,11 @@ public class BDMReportsService {
 			}
 		}
 		
+		/**
+		 * This Method used to add ("") to targetList if itemList contains "All" else adds geographies for the given display geography
+		 * @param itemList
+		 * @param targetList
+		 */
 		public void addItemToListGeo(List<String> itemList, List<String> targetList){
 			if(itemList.contains("All") || itemList.isEmpty()){
 				targetList.add("");

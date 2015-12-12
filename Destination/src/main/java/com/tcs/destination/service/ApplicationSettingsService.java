@@ -12,6 +12,10 @@ import com.tcs.destination.bean.ApplicationSettingsT;
 import com.tcs.destination.data.repository.ApplicationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 
+
+/*
+ * This Service handles the application settings related functionalities
+ */
 @Service
 public class ApplicationSettingsService {
 
@@ -20,13 +24,22 @@ public class ApplicationSettingsService {
 
 	@Autowired
 	ApplicationSettingsRepository applicationSettingsRepository;
-
+    
+	/**
+	 * This method retrieves the list of all the application settings
+	 * @return
+	 */
 	public List<ApplicationSettingsT> findAll() {
 		logger.debug("Inside findAll Service");
 		return (List<ApplicationSettingsT>) applicationSettingsRepository
 				.findAll();
 	}
-
+    
+	/**
+	 * This method updates the list of application settings passed. 
+	 * @param applicationSettingsTs
+	 * @throws DestinationException
+	 */
 	public void edit(List<ApplicationSettingsT> applicationSettingsTs)
 			throws DestinationException {
 		try {
