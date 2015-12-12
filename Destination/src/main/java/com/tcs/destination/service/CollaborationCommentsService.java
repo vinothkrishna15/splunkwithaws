@@ -93,10 +93,11 @@ public class CollaborationCommentsService {
 						.save(comments);
 				processNotifications(collaborationCommentT.getCommentId());
 				returnVal = collaborationCommentT.getCommentId();
+				
 			} catch (Exception e) {
 				logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());
 				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+						HttpStatus.INTERNAL_SERVER_ERROR, "Backend Error while posting comments");
 			}
 		}
 		return returnVal;
