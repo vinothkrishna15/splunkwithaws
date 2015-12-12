@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
@@ -24,13 +23,16 @@ import com.tcs.destination.bean.ReportsOpportunity;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PerformanceReportService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
-
+/**
+ * 
+ * This controller handles preformance report related requests
+ *
+ */
 @RestController
 @RequestMapping("/perfreport")
 public class PerformanceReportController {
@@ -41,6 +43,23 @@ public class PerformanceReportController {
 	@Autowired
 	PerformanceReportService perfService;
 
+	/**
+	 * This method is used to retrieve target vs actual summary
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param serviceLine
+	 * @param iou
+	 * @param wins
+	 * @param customerName
+	 * @param groupCustomer
+	 * @param currency
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/revenue", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getActualRevenue(
 			@RequestParam(value = "year", defaultValue = "", required = false) String financialYear,
@@ -77,6 +96,21 @@ public class PerformanceReportController {
 		}
 	}
 
+	/**
+	 * This method is used to revenues and opportunities by IOU
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param serviceLine
+	 * @param salesStageFrom
+	 * @param salesStageTo
+	 * @param currency
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/iou")
 	public @ResponseBody String getIOU(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -119,6 +153,23 @@ public class PerformanceReportController {
 		}
 	}
 
+	/**
+	 * This method is used to retrieve the revenues and opportunities by subsp
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param iou
+	 * @param customerName
+	 * @param groupCustomer
+	 * @param currency
+	 * @param salesStageFrom
+	 * @param salesStageTo
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/subsp")
 	public @ResponseBody String getSubSp(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -163,6 +214,24 @@ public class PerformanceReportController {
 		}
 	}
 
+	/**
+	 * This method is used to retrieve the revenues and opportunities by geography
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param iou
+	 * @param salesStageFrom
+	 * @param salesStageTo
+	 * @param serviceLine
+	 * @param customerName
+	 * @param groupCustomer
+	 * @param currency
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/geo")
 	public @ResponseBody String getGeo(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -231,6 +300,24 @@ public class PerformanceReportController {
 		}
 	}
 
+	/**
+	 * This method is used to retrieve the opportunity reports.
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param iou
+	 * @param serviceLine
+	 * @param currency
+	 * @param salesStageFrom
+	 * @param salesStageTo
+	 * @param customerName
+	 * @param groupCustomer
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/opportunity")
 	public @ResponseBody String getOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -267,6 +354,25 @@ public class PerformanceReportController {
 		}
 	}
 
+	/**
+	 * This method is used to retrieve the top opportunities
+	 * @param financialYear
+	 * @param quarter
+	 * @param displayGeography
+	 * @param geography
+	 * @param iou
+	 * @param serviceLine
+	 * @param salesStageFrom
+	 * @param salesStageTo
+	 * @param currency
+	 * @param count
+	 * @param customerName
+	 * @param groupCustomer
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, value = "/topopps")
 	public @ResponseBody String getTopOpportunities(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
@@ -320,11 +426,11 @@ public class PerformanceReportController {
 	}
 
 	/**
-	 * This Controller used to insert recently searched group customer details
+	 * This method is used to insert recently searched group customer details
 	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
-	 * @throws Exception
+	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToRecentlySearchedGroupCustomer(
@@ -353,7 +459,7 @@ public class PerformanceReportController {
 	}
 
 	/**
-	 * This Controller used to get five frequently searched group customer
+	 * This method used to get give frequently searched group customer
 	 * details
 	 * 
 	 * @param fields
