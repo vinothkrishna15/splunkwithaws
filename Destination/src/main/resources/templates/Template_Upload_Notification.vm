@@ -1,8 +1,8 @@
 <html>
 	<body>
-		<h3>Dear ${userRole},</h3>
+		<h3>Dear System Admin,</h3>
 		<p>
-		The ${entity} upload request #{requestId} for upload file "${fileName}", submitted on ${submittedDate} is pending for verification.
+		The ${entity} upload request #${requestId} for upload file "${fileName}", submitted on ${submittedDate} by ${userName} is pending for verification.
 		</p>
 		<p>
 		The maintenance team will be contacting you shortly for verifying the authenticity.

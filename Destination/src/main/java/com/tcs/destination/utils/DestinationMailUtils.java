@@ -503,14 +503,12 @@ public class DestinationMailUtils {
 			MimeMessageHelper helper = new MimeMessageHelper(
 					automatedMIMEMessage, true);
 			helper.setTo(recipientMailIdsArray);
-			helper.setCc(recipientMailIdsArray);
-
 			helper.setFrom(senderEmailId);
 
 			String template = uploadNotifyTemplateLoc;
 			StringBuffer subject = new StringBuffer("Admin: ");
 
-			String userName = uploadNotifyTemplateLoc;;
+			String userName = user.getUserName();;
 			String entity = null;
 			String fileName = null;
 
@@ -519,7 +517,6 @@ public class DestinationMailUtils {
 			case 1: {
 				// User upload
 				subject.append(USER_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -529,7 +526,6 @@ public class DestinationMailUtils {
 			case 2: {
 				// Customer upload
 				subject.append(CUSTOMER_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -539,7 +535,6 @@ public class DestinationMailUtils {
 			case 3: {
 				// Connect upload
 				subject.append(CONNECT_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -549,7 +544,6 @@ public class DestinationMailUtils {
 			case 4: {
 				// Opportunity upload
 				subject.append(OPPORTUNITY_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -559,7 +553,6 @@ public class DestinationMailUtils {
 			case 5: {
 				// Actual revenue upload
 				subject.append(ACTUAL_REVENUE_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -569,7 +562,6 @@ public class DestinationMailUtils {
 			case 6: {
 				// Customer contact upload
 				subject.append(CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
 				fileName = request.getFileName();
@@ -579,7 +571,6 @@ public class DestinationMailUtils {
 			case 7: {
 				// Partner upload
 				subject.append(PARTNER_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -589,7 +580,6 @@ public class DestinationMailUtils {
 			case 8: {
 				// Partner contact upload
 				subject.append(PARTNER_CONTACT_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -598,7 +588,6 @@ public class DestinationMailUtils {
 			case 9: {
 				// Beacon upload
 				subject.append(BEACON_UPLOAD_NOTIFY_SUBJECT);
-				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
 				fileName = request.getFileName();
@@ -612,7 +601,6 @@ public class DestinationMailUtils {
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", fileName);
 			userRequestMap.put("submittedDate", dateStr);
-			userRequestMap.put("userRole", user.getUserRole());
 			userRequestMap.put("requestId", request.getProcessRequestId());
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(

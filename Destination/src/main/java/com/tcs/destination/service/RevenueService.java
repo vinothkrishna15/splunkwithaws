@@ -77,37 +77,23 @@ public class RevenueService {
 	 */
 	@Transactional
 	public ActualRevenuesDataT addActualRevenue(ActualRevenuesDataT actualRevenueDataToInsert) throws Exception{
+		
 		ActualRevenuesDataT actualRevenueDataT = null;
-		 List<ActualRevenuesDataT> financeCustomers = null;
 		if(actualRevenueDataToInsert!=null){
+			
 			actualRevenueDataT = new ActualRevenuesDataT();
 			
-			/*
-			 * This code commented since upload happened only for unique values which is not required
-			 */
-			// to find the uniqueness of the primary key (here composite key)
-//			financeCustomers = actualRevenuesDataTRepository.checkRevenueDataMappingPK(actualRevenueDataToInsert.getQuarter(),actualRevenueDataToInsert.getMonth(),actualRevenueDataToInsert.getFinancialYear(),actualRevenueDataToInsert.getClientCountry(),
-//			actualRevenueDataToInsert.getFinanceGeography(),actualRevenueDataToInsert.getSubSp(),actualRevenueDataToInsert.getFinanceIou(),actualRevenueDataToInsert.getFinanceCustomerName());
-//					
-//			if (financeCustomers.isEmpty()) 
-//           {
-				actualRevenueDataT.setQuarter(actualRevenueDataToInsert.getQuarter());
-				actualRevenueDataT.setMonth(actualRevenueDataToInsert.getMonth());
-				actualRevenueDataT.setFinancialYear(actualRevenueDataToInsert.getFinancialYear());
-				actualRevenueDataT.setRevenue(actualRevenueDataToInsert.getRevenue());
-				actualRevenueDataT.setClientCountry(actualRevenueDataToInsert.getClientCountry());
-				actualRevenueDataT.setFinanceGeography(actualRevenueDataToInsert.getFinanceGeography());
-				actualRevenueDataT.setSubSp(actualRevenueDataToInsert.getSubSp());
-				actualRevenueDataT.setFinanceIou(actualRevenueDataToInsert.getFinanceIou());
-				actualRevenueDataT.setFinanceCustomerName(actualRevenueDataToInsert.getFinanceCustomerName());
-//            }
-//           
-//			else
-//            {
-//                logger.error("EXISTS: Actual Revenue Data Already Exist!");
-//                throw new DestinationException(HttpStatus.CONFLICT,"Finance Map Already Exist!");
-//          }
+			actualRevenueDataT.setQuarter(actualRevenueDataToInsert.getQuarter());
+			actualRevenueDataT.setMonth(actualRevenueDataToInsert.getMonth());
+			actualRevenueDataT.setFinancialYear(actualRevenueDataToInsert.getFinancialYear());
+			actualRevenueDataT.setRevenue(actualRevenueDataToInsert.getRevenue());
+			actualRevenueDataT.setClientCountry(actualRevenueDataToInsert.getClientCountry());
+			actualRevenueDataT.setFinanceGeography(actualRevenueDataToInsert.getFinanceGeography());
+			actualRevenueDataT.setSubSp(actualRevenueDataToInsert.getSubSp());
+			actualRevenueDataT.setFinanceIou(actualRevenueDataToInsert.getFinanceIou());
+			actualRevenueDataT.setFinanceCustomerName(actualRevenueDataToInsert.getFinanceCustomerName());
 			actualRevenueDataT = actualRevenuesDataTRepository.save(actualRevenueDataT);
+			
 			logger.info("Actual Revenue Data Saved .... "+ "Actual Revenue Data primary key" + actualRevenueDataT.getActualRevenuesDataId());
 		}
 		return actualRevenueDataT;
