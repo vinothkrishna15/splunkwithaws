@@ -82,7 +82,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		<batch:step id="subspUniqDwldProcessing" next="timeZoneDwldProcessing">
+		<batch:step id="subspUniqDwldProcessing" next="userTimeZoneDwldProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="subspUniqDwldReader" writer="subspUniqDwldWriter"
 					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
@@ -90,7 +90,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		<batch:step id="timeZoneDwldProcessing" next="customerDwldProcessing">
+		<batch:step id="userTimeZoneDwldProcessing" next="userCustomerDwldProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="timeZoneDwldReader" writer="userDwldTimezoneWriter"
 					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
@@ -98,7 +98,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		 <batch:step id="customerDwldProcessing" next="userDwldPreprocess">
+		 <batch:step id="userCustomerDwldProcessing" next="userDwldPreprocess">
 			<batch:tasklet>
 				<batch:chunk reader="customerDwldReader" writer="userDwldCustomerWriter"
 					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
