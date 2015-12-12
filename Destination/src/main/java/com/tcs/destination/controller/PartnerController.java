@@ -33,6 +33,11 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.service.PartnerUploadService;
 
+/**
+ * This controller handles the partner module
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/partner")
 public class PartnerController {
@@ -56,7 +61,16 @@ public class PartnerController {
 			"dd-MMM-yyyy");
 	private static final DateFormat desiredFormat = new SimpleDateFormat(
 			"MM/dd/yyyy");
-
+    
+	/**
+	 * This method is used to retrieve the partner details by partner id
+	 * @param partnerid
+	 * @param currency
+	 * @param fields
+	 * @param view
+	 * @return partner
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("id") String partnerid,
@@ -83,7 +97,18 @@ public class PartnerController {
 					"Backend error while retrieving partner details");
 		}
 	}
-
+    
+	/**
+	 *  This method is used to retrieve the partner details by the given name with
+	 * @param page
+	 * @param count
+	 * @param nameWith
+	 * @param startsWith
+	 * @param fields
+	 * @param view
+	 * @return partners
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findByNameContaining(
 			@RequestParam(value = "page", defaultValue = "0") int page,
@@ -120,7 +145,15 @@ public class PartnerController {
 					"Backend error while retrieving partner details");
 		}
 	}
-
+    
+	/**
+	 * This method is used to upload the partner details from the excel to the database
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> uploadPartner(
 			@RequestParam("file") MultipartFile file,
@@ -161,7 +194,13 @@ public class PartnerController {
 					"Backend error while uploading partner details");
 		}
 	}
-
+    
+	/**
+	 * This method is used to download the partner details in excel format
+	 * @param oppFlag
+	 * @return excelFile
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner(
 			@RequestParam("downloadPartners") boolean oppFlag)
@@ -196,7 +235,13 @@ public class PartnerController {
 		}
 
 	}
-
+    
+	/**
+	 * This method is used to download the partner contact details in excel format
+	 * @param oppFlag
+	 * @return excelFile
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartnerContacts(
 			@RequestParam("downloadPartnerContacts") boolean oppFlag)
@@ -229,7 +274,18 @@ public class PartnerController {
 					"Backend error while downloading partner contact details");
 		}
 	}
-
+    
+	/**
+	 * This method gives the functionality for partner advanced search
+	 * @param name
+	 * @param geography
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String advancedSearch(
 			@RequestParam(value = "nameWith", defaultValue = "") String name,

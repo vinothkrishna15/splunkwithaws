@@ -25,7 +25,7 @@ public class RecentlyAddedController {
 	@Autowired
 	RecentlyAddedService recentlyAddedService;
 
-	/**
+	/** This method retrieves the recently added details for an entity
 	 * @param entityType
 	 * @param count
 	 * @param fields
