@@ -42,10 +42,13 @@ public class BeaconDataService {
 			 List<BeaconDataT> beaconCustomers = null;
 			if(beaconDataToInsert!=null){
 				BeaconDataT = new BeaconDataT();
+				/*
+				 * This code commented since upload happened only for unique values which is not required
+				 */
 				// to find the uniqueness of the primary key (here composite key)
-				beaconCustomers = beaconDataTRepository.checkBeaconDuplicatesForPKey(beaconDataToInsert.getBeaconIou(),beaconDataToInsert.getQuarter(),beaconDataToInsert.getFinancialYear(),beaconDataToInsert.getBeaconGeography(),beaconDataToInsert.getBeaconCustomerName());
-				if (beaconCustomers.isEmpty()) 
-	            {
+				//beaconCustomers = beaconDataTRepository.checkBeaconDuplicatesForPKey(beaconDataToInsert.getBeaconIou(),beaconDataToInsert.getQuarter(),beaconDataToInsert.getFinancialYear(),beaconDataToInsert.getBeaconGeography(),beaconDataToInsert.getBeaconCustomerName());
+//				if (beaconCustomers.isEmpty()) 
+//	            {
 					BeaconDataT.setBeaconGroupClient(beaconDataToInsert.getBeaconGroupClient());
 					BeaconDataT.setBeaconIou(beaconDataToInsert.getBeaconIou());
 					BeaconDataT.setQuarter(beaconDataToInsert.getQuarter());
@@ -53,12 +56,13 @@ public class BeaconDataService {
 					BeaconDataT.setTarget(beaconDataToInsert.getTarget());
 					BeaconDataT.setBeaconGeography(beaconDataToInsert.getBeaconGeography());
 					BeaconDataT.setBeaconCustomerName(beaconDataToInsert.getBeaconCustomerName());
-	            }
-	            else
-	            {
-	                logger.error("EXISTS: Beacon Already Exist!");
-	                throw new DestinationException(HttpStatus.CONFLICT,"Beacon Already Exist!");
-	            }
+					
+//	            }
+//	            else
+//	            {
+//	                logger.error("EXISTS: Beacon Already Exist!");
+//	                throw new DestinationException(HttpStatus.CONFLICT,"Beacon Already Exist!");
+//	            }
 				BeaconDataT = beaconDataTRepository.save(BeaconDataT);
 				logger.info("Beacon Saved .... "+ "beacon primary key" + BeaconDataT.getBeaconDataId());
 			}
