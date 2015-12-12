@@ -31,7 +31,10 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
@@ -115,6 +118,15 @@ public class BDMDetailedReportService {
 	
 	@Autowired
 	BDMReportsService bdmReportsService;
+	
+	@Autowired
+	OpportunityWinLossFactorsTRepository opportunityWinLossFactorsTRepository;
+	
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
+	
+	@Autowired
+	NotesTRepository notesTRepository;
 
 	/**
 	 * This Method used to BDM Performance detailed report in excel format
@@ -382,14 +394,10 @@ public class BDMDetailedReportService {
 					} else {
 						row.createCell(colValue).setCellValue(0);
 					}
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					if(opportunity.getDealCurrency() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
-						} else {
-							row.createCell(colValue).setCellValue("");
 						}
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 					}
 				
@@ -406,15 +414,10 @@ public class BDMDetailedReportService {
 						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
 						if(opportunity.getBidDetailsTs().get(bid).getWinProbability() != null) {
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getWinProbability());
-						} else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
 						}
-//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -426,15 +429,10 @@ public class BDMDetailedReportService {
 						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
 						if(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate() != null) {
 							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
-						} else {
-								row.createCell(colValue).setCellValue(Constants.SPACE);
 						}
-//						row.getCell(colValue).setCellStyle(dataRowStyle);
 					}
 					colValue++;
 				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-//					row.getCell(colValue).setCellStyle(dataRowStyle);
 					colValue++;
 				}
 			}
@@ -442,43 +440,30 @@ public class BDMDetailedReportService {
 			//set opportunity name
 			if (opportunityNameFlag) {
 				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
 				colValue++;
 			}
 
 			//set factors for win loss
 			if (factorForWLFlag) {
-				List<String> factorsForWinLossList = new ArrayList<String>();
-				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-						.getOpportunityWinLossFactorsTs()) {
-					factorsForWinLossList.add(opportunityWinLossFactorsT.getWinLossFactor());
-				}
-				row.createCell(colValue).setCellValue(factorsForWinLossList.toString().replace("[", "").replace("]", ""));
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
+				row.createCell(colValue).setCellValue(oppFactorsForWinLossList.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
 			
 			//set description for win loss
 			if (descForWLFlag) {
-				if(opportunity.getDescriptionForWinLoss() != null)
-				row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
-				else
-					row.createCell(colValue).setCellValue("");
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				if(opportunity.getDescriptionForWinLoss() != null) {
+					row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
+				}
 				colValue++;
 			}
 			
 			// set deal remarks notes
 			if (dealMarkFlag) {
-				List<String> dealRemarksNotesList = new ArrayList<String>();
-				for (NotesT notesT : opportunity.getNotesTs()) {
-					dealRemarksNotesList.add(notesT.getNotesUpdated());
-				}
-				row.createCell(colValue).setCellValue(dealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-//				row.getCell(colValue).setCellStyle(dataRowStyle);
+				List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
+				row.createCell(colValue).setCellValue(oppDealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
 				colValue++;
 				}
-			
 			}
 		}
 			
@@ -499,6 +484,7 @@ public class BDMDetailedReportService {
 				
 //				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
 //				UserT bdmUser = userRepository.findByUserId((String) userIdAndOpp[0]);
+				
 				UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
 				
 				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
@@ -516,13 +502,13 @@ public class BDMDetailedReportService {
 				if(isIncludingSupervisor){
 				row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName()+", "+salesOwnerSupervisor);
 				}
-				//set display_sub_sp
 				
-				List<String> displaySubSpList = new ArrayList<String>();
-				for (OpportunitySubSpLinkT displaySubSp : opportunity.getOpportunitySubSpLinkTs()) {
-					displaySubSpList.add(displaySubSp.getSubSpMappingT().getDisplaySubSp());
+				//set display_sub_sp
+				List<String> oppDisplaySubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
+				if(oppDisplaySubSpList.isEmpty()){
+					row.createCell(columnNo++).setCellValue(oppDisplaySubSpList.toString().replace("]", "").replace("[", ""));
 				}
-				row.createCell(columnNo++).setCellValue(displaySubSpList.toString().replace("[", "").replace("]", ""));
+				
 				//set opportunity owner name
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
 				//set sales support owners
@@ -544,11 +530,11 @@ public class BDMDetailedReportService {
 				if(!opportunity.getBidDetailsTs().isEmpty()){
 					if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
 						row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
-					}  else {
-						row.createCell(columnNo++).setCellValue(Constants.SPACE);
+//					}  else {
+//						row.createCell(columnNo++).setCellValue(Constants.SPACE);
 					}
-				} else {
-					row.createCell(columnNo++).setCellValue(Constants.SPACE);
+//				} else {
+//					row.createCell(columnNo++).setCellValue(Constants.SPACE);
 				}
 				//set Digital deal value
 				int i = 0;
