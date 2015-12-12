@@ -25,7 +25,9 @@ import com.tcs.destination.enums.CommentType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.helper.NotificationHelper;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class CollaborationCommentsService {
@@ -72,22 +74,32 @@ public class CollaborationCommentsService {
 
 	public String insertComments(CollaborationCommentT comments)
 			throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		comments.setUserId(userId);
+		logger.info("Inside insertComments Service1");
+		
+		String returnVal = null;
+		
+		if(!StringUtils.isEmpty(comments.getCommentType())){
+			if(!comments.getCommentType().equalsIgnoreCase(CommentType.AUTO.name())){
+				comments.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
+			} else {
+				comments.setUserId(Constants.SYSTEM_USER);
+			}
+			logger.info("Inside insertComments Service1", comments.getUserId());
+		}
 		if (isValidComment(comments)) {
-			logger.debug("Inside insertComments Service");
+			logger.info("Inside insertComments Service");
 			try {
 				CollaborationCommentT collaborationCommentT = commentsRepository
 						.save(comments);
 				processNotifications(collaborationCommentT.getCommentId());
-				return collaborationCommentT.getCommentId();
+				returnVal = collaborationCommentT.getCommentId();
 			} catch (Exception e) {
 				logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		}
-		return null;
+		return returnVal;
 	}
 
 	private void processNotifications(String commentId) {
