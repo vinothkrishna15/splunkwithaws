@@ -30,7 +30,11 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DocumentService;
 import com.tcs.destination.utils.ResponseConstructors;
-
+/**
+ * 
+ * This controller handles document module.
+ *
+ */
 @RestController
 @RequestMapping("/document")
 public class DocumentController {
@@ -44,6 +48,14 @@ public class DocumentController {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DocumentController.class);
 
+	/**
+	 * This method used to download from database
+	 * @param documentId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download/{documentId}", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> download(
 			@PathVariable("documentId") String documentId,
@@ -106,6 +118,12 @@ public class DocumentController {
 		}
 	}
 
+	/**
+	 * This method is used to delete a document based on documentId
+	 * @param idsToDelete
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String delete(
 			@RequestParam(value = "docIds") String idsToDelete)
@@ -129,6 +147,14 @@ public class DocumentController {
 		}
 	}
 
+	/**
+	 * This method is used to search a document based on documentId
+	 * @param documentId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/{documentId}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("documentId") String documentId,
@@ -152,6 +178,25 @@ public class DocumentController {
 		}
 	}
 
+	/**
+	 * This method is used to upload a document
+	 * @param documentName
+	 * @param documentType
+	 * @param entityType
+	 * @param parentEntity
+	 * @param commentId
+	 * @param connectId
+	 * @param customerId
+	 * @param opportunityId
+	 * @param partnerId
+	 * @param taskId
+	 * @param uploadedBy
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
 			@RequestParam("documentName") String documentName,

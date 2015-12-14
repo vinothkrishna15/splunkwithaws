@@ -21,6 +21,11 @@ import com.tcs.destination.service.DashBoardService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * 
+ * This controller is used to handle dashboard module related requests
+ *
+ */
 @RestController
 @RequestMapping("/dashboard")
 public class DashboardController {
@@ -55,7 +60,7 @@ public class DashboardController {
 	}
 
 	/**
-	 * This controller retrieves the details of performance details of all the
+	 * This controller retrieves the team chart values of all the
 	 * users under a supervisor
 	 * 
 	 * @param supervisorId
@@ -63,7 +68,7 @@ public class DashboardController {
 	 * @param fields
 	 * @param view
 	 * @return
-	 * @throws Exception
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/teamchart", method = RequestMethod.GET)
 	public String teamChart(
@@ -91,8 +96,7 @@ public class DashboardController {
 	}
 
 	/**
-	 * This Controller retrieves a list of Connects based on the user (SI, Geo
-	 * Heads, IOU Heads)
+	 * This Controller retrieves a list of Connects based on the geography
 	 *
 	 * @param geography
 	 * @param fromDate
@@ -132,14 +136,13 @@ public class DashboardController {
 	 * This Controller retrieves Opportunities Won based on the user (SI, Geo
 	 * Heads, IOU Heads)
 	 * 
-	 * @param userId
 	 * @param geography
 	 * @param fromDate
 	 * @param toDate
 	 * @param includeFields
 	 * @param view
-	 * @return String
-	 * @throws Exception
+	 * @return 
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/leadership/wins", method = RequestMethod.GET)
 	public String getLeadershipWinsByGeography(
@@ -177,8 +180,8 @@ public class DashboardController {
 	 * @param toDate
 	 * @param includeFields
 	 * @param view
-	 * @return String
-	 * @throws Exception
+	 * @return 
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/leadership/opp", method = RequestMethod.GET)
 	public String getLeadershipOpportunitiesByGeography(

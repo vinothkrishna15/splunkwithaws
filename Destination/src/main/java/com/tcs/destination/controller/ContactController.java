@@ -19,10 +19,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -58,7 +56,10 @@ public class ContactController {
 	 * 
 	 * @param id
 	 *            is the contact id.
+	 * @param fields
+	 * @param view
 	 * @return contact details for the given contact id.
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
@@ -91,7 +92,13 @@ public class ContactController {
 	 *            is the contact name.
 	 * @param startsWith
 	 *            is the starting alphabet name.
+	 * @param customerId
+	 * @param partnerId
+	 * @param contactType
+	 * @param fields
+	 * @param view
 	 * @return contacts.
+	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findContactsWithName(

@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CityService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * Controller to handle city based search requests
+ * 
+ */
 @RestController
 @RequestMapping("/city")
 public class CityController {
@@ -28,6 +31,16 @@ public class CityController {
 	@Autowired
 	CityService cityService;
 
+	/**
+	 * This method is used to retrieve the cities whose name starts with the
+	 * nameWith parameter value
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "nameWith") String nameWith,

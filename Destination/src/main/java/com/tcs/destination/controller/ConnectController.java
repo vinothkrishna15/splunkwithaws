@@ -71,9 +71,11 @@ public class ConnectController {
 	 * This Method is used to find connection details for the given connection
 	 * id.
 	 * 
-	 * @param Id
-	 *            is the connection id.
+	 * @param connectIds.            
+	 * @param fields
+	 * @param view
 	 * @return connection details for the particular connection id.
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findConnectById(
@@ -98,13 +100,16 @@ public class ConnectController {
 	}
 
 	/**
-	 * This Method is used to find connection details for the given connection
-	 * name.
+	 * This Method is used to find connection details for the given connection name
 	 * 
-	 * @param name
-	 *            is the connection name.
+	 * @param connectName
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param customerId
+	 * @param view
 	 * @return connection details for the particular connection name.
-	 * @throws Exception
+	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
@@ -133,12 +138,21 @@ public class ConnectController {
 	}
 
 	/**
-	 * This Method is used to find connection details for the given connection
-	 * name.
+	 * This Method is used to find connection details within a date range.
 	 * 
-	 * @param typed
-	 *            is the connection name.
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @param owner
+	 * @param customerId
+	 * @param partnerId
+	 * @param weekStartDate
+	 * @param weekEndDate
+	 * @param monthStartDate
+	 * @param monthEndDate
 	 * @return connection details for the particular connection name.
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/date", method = RequestMethod.GET)
 	public @ResponseBody String search(
@@ -191,7 +205,7 @@ public class ConnectController {
 	 * This method is used to add a new Connect
 	 * 
 	 * @param connect
-	 * @return
+	 * @return ResponseEntity<String>
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.POST)
@@ -223,7 +237,7 @@ public class ConnectController {
 	 * This Method is used to edit the connect details
 	 * 
 	 * @param connect
-	 * @return
+	 * @return ResponseEntity<String>
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.PUT)
@@ -264,8 +278,8 @@ public class ConnectController {
 	 * @param weekEndDate
 	 * @param monthStartDate
 	 * @param monthEndDate
-	 * @return
-	 * @throws Exception
+	 * @return ResponseEntity<String>
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/team", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getTeamConnects(
@@ -307,7 +321,7 @@ public class ConnectController {
 	 * @param file
 	 * @param fields
 	 * @param view
-	 * @return
+	 * @return ResponseEntity<InputStreamResource>
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
@@ -360,7 +374,7 @@ public class ConnectController {
 	 * @param status
 	 * @param financialYear
 	 * @return ResponseEntity<String>
-	 * @throws Exception
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getAllConnectsForDashboard(
@@ -403,8 +417,8 @@ public class ConnectController {
 	 * @param keyword
 	 * @param fields
 	 * @param view
-	 * @return String
-	 * @throws Exception
+	 * @return 
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/name", method = RequestMethod.GET)
 	public @ResponseBody String findConnectNameOrKeyword(
@@ -441,9 +455,9 @@ public class ConnectController {
 	/**
 	 * This Controller used to download the list of connects in excel format
 	 * 
-	 * @param userId
-	 * @return
-	 * @throws Exception
+	 * @param oppFlag
+	 * @return ResponseEntity<InputStreamResource>
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadConnect(
@@ -483,8 +497,8 @@ public class ConnectController {
 	 * @param connectIds
 	 * @param fields
 	 * @param view
-	 * @return
-	 * @throws Exception
+	 * @return 
+	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public @ResponseBody String findConnectsByIds(

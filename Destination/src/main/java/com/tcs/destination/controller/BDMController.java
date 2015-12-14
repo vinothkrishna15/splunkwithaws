@@ -15,9 +15,13 @@ import com.tcs.destination.bean.BDMSupervisorDashboardDTO;
 import com.tcs.destination.bean.DashBoardBDMResponse;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BDMService;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * 
+ * Controller to handle BDM related details
+ *
+ */
 @RestController
 @RequestMapping("/widget")
 public class BDMController {

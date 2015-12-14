@@ -14,6 +14,11 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.BeaconConverterService;
 
+/**
+ * 
+ * This controller handles currency conversion requests
+ *
+ */
 @RestController
 @RequestMapping("/currency")
 public class CurrencyController {
@@ -24,6 +29,14 @@ public class CurrencyController {
 	private static final Logger logger = LoggerFactory
 			.getLogger(CurrencyController.class);
 
+	/**
+	 * This method is used to convert currency.
+	 * @param base
+	 * @param target
+	 * @param value
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody Status getConvertedValue(
 			@RequestParam("from") String base,

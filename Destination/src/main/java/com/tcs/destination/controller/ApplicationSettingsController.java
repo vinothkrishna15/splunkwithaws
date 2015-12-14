@@ -1,6 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -16,12 +15,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * Controller to handle application configurations.
+ * 
+ */
 @RestController
 @RequestMapping("/appsettings")
 public class ApplicationSettingsController {
@@ -32,6 +34,14 @@ public class ApplicationSettingsController {
 	@Autowired
 	ApplicationSettingsService applicationSettingsService;
 
+	/**
+	 * This retrieves the application settings
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -52,6 +62,14 @@ public class ApplicationSettingsController {
 					"Backend error in retrieving the application settings");
 		}
 	}
+	
+	/**
+	 * This edits the application settings.
+	 * 
+	 * @param applicationSettingsTs
+	 * @return
+	 * @throws DestinationException
+	 */
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editSettings(

@@ -18,7 +18,7 @@ import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
- * Controller to handle contact details search requests.
+ * Controller to handle batch requests.
  * 
  */
 @RestController
@@ -31,6 +31,15 @@ public class DataProcessingController {
 	@Autowired
 	DataProcessingService service;
 
+	/**
+	 * This method is used to request upload to database
+	 * @param file
+	 * @param type
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> batchUploadRequest(
 			@RequestParam("file") MultipartFile file,
@@ -65,6 +74,14 @@ public class DataProcessingController {
 						status), HttpStatus.OK);
 	}
 
+	/**
+	 * This method is used to request download from database
+	 * @param type
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> batchDownloadRequest(
 			@RequestParam("type") int type,

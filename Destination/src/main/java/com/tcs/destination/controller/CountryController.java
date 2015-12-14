@@ -16,7 +16,11 @@ import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CountryService;
 import com.tcs.destination.utils.ResponseConstructors;
-
+/**
+ * 
+ * This Controller is used to handle country related search requests
+ *
+ */
 @RestController
 @RequestMapping("/country")
 public class CountryController {
@@ -27,6 +31,14 @@ public class CountryController {
 	@Autowired
 	CountryService countryService;
 
+	/**
+	 * This method is used to retrieve geography country mapping
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,

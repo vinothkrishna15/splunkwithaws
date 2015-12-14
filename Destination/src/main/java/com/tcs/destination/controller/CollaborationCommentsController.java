@@ -17,6 +17,11 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.CollaborationCommentsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * 
+ * This Controller is used to handle comments module.
+ *
+ */
 @RestController
 @RequestMapping("/comments")
 public class CollaborationCommentsController {
@@ -27,6 +32,12 @@ public class CollaborationCommentsController {
 	@Autowired
 	CollaborationCommentsService commentsService;
 
+	/**
+	 * This is used to insert new comments
+	 * @param comments
+	 * @return ResponseEntity<String>
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertComments(
 			@RequestBody CollaborationCommentT comments)

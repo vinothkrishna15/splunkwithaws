@@ -16,7 +16,11 @@ import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectTypeService;
 import com.tcs.destination.utils.ResponseConstructors;
-
+/**
+ * 
+ * This Controller is used to handle ConnectType searches.
+ *
+ */
 @RestController
 @RequestMapping("/connecttype")
 public class ConnectTypeController {

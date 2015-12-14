@@ -27,12 +27,11 @@ import com.tcs.destination.service.BeaconDataUploadService;
 import com.tcs.destination.service.BeaconDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
-import com.tcs.destination.service.PartnerDownloadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 
 /**
- * Controller to handle Customer module related requests.
+ * Controller to handle target related requests.
  * 
  */
 @RestController
@@ -154,6 +153,13 @@ public class BeaconController {
 		}
 	}
 
+	/**
+	 * This method downloads the data from the database
+	 * 
+	 * @param oppFlag
+	 * @return ResponseEntity<InputStreamResource>
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadBeaconData(
 			@RequestParam("downloadBeaconData") boolean oppFlag)
