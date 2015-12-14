@@ -3,6 +3,7 @@ package com.tcs.destination.controller;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,11 +12,19 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.ServletListenerRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -71,6 +80,11 @@ public class UserDetailsController {
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
+	@Autowired
+	private SessionRegistry  sessionRegistry;
+
+	@Value("${maximum_concurrent_user}")
+	private int maxactive_session;
 	
 	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
 	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
@@ -118,6 +132,17 @@ public class UserDetailsController {
 
 		logger.debug("Inside UserDetailsController /user/login POST");
 		try{
+			List<SessionInformation> activeSessions =null;
+			logger.info("httpServletRequest sessionId:"+httpServletRequest.getSession().getId());
+			  activeSessions = new ArrayList<>();
+			  for(Object principal : sessionRegistry.getAllPrincipals()) {
+			    activeSessions.addAll(sessionRegistry.getAllSessions(principal, false));
+			  }
+			  logger.info("active session size:"+activeSessions.size());
+			  
+			// System.out.println("active session size:"+webSecurityConfig.sessionRegistry().getAllPrincipals().size());
+			if(maxactive_session>=activeSessions.size()){
+			
 			UserT user = userService.findByUserId(DestinationUtils
 					.getCurrentUserDetails().getUserId());
 			if (user != null) {
@@ -229,6 +254,17 @@ public class UserDetailsController {
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 							user), headers, HttpStatus.OK);
+		}
+		else
+			{
+			HttpSession maxreq_session = httpServletRequest.getSession(false);			
+			if (maxreq_session != null) {
+				maxreq_session.invalidate();
+				sessionRegistry.removeSessionInformation(httpServletRequest.getSession().getId());				
+			}
+			logger.info("Maximum number of users reached.Please try after sometime");			
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Maximum number of users reached.Please try after sometime");
+			}
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -247,6 +283,7 @@ public class UserDetailsController {
 			if (session != null) {
 				logger.info("Logging out User Session: {}", session.getId());
 				session.invalidate();
+				sessionRegistry.removeSessionInformation(session.getId());
 				status.setStatus(Status.SUCCESS, "Session logged out");
 			} else {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -395,7 +432,7 @@ public class UserDetailsController {
 					throws DestinationException {
 		try{
 			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			logger.debug("upload request Received : docName - ");
+			logger.debug("Upload request Received : docName - ");
 			UploadStatusDTO status = null;
 
 			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
