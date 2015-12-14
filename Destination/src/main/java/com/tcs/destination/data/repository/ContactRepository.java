@@ -61,7 +61,7 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @return
 	 */
 	@Query(value = "select contact_name from contact_t CONT "
-			+ "join opportunity_tcs_account_contact_link_t OPPTACL on CONT.contact_id=OPPTACL.contact_id where OPPTACL.opportunity_id=?1)" , nativeQuery = true)
+			+ "join opportunity_tcs_account_contact_link_t OPPTACL on CONT.contact_id=OPPTACL.contact_id where OPPTACL.opportunity_id=?1" , nativeQuery = true)
 	List<String> findTcsAccountContactNamesByOpportinityId(String opportunityId);
 	
 	/**
@@ -70,7 +70,7 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @return
 	 */
 	@Query(value = "select contact_name from contact_t CONT "
-			+ "join opportunity_customer_contact_link_t OCCLT on CONT.contact_id=OCCLT.contact_id where opportunity_id=?1)" , nativeQuery = true)
+			+ "join opportunity_customer_contact_link_t OCCLT on CONT.contact_id=OCCLT.contact_id where opportunity_id=?1" , nativeQuery = true)
 	List<String> findCustomerContactNamesByOpportinityId(String opportunityId);
 
 	/**

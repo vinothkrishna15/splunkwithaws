@@ -64,11 +64,11 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> findByUserRoles(@Param("userRoles") List<String> roles);
 	
 	@Query(value=" select distinct user_name from user_t U join opportunity_sales_support_link_t OSSL on U.user_id=OSSL.sales_support_owner "
-			+ "where opportunity_id=?1)", nativeQuery=true)
+			+ "where opportunity_id=?1", nativeQuery=true)
 	List<String> findOpportunitySalesSupportOwnersNameByOpportunityId(String opportunityId);
 	
 	@Query(value = "select distinct user_name from user_t U join bid_office_group_owner_link_t BOGL on U.user_id=BOGL.bid_office_group_owner "
-			+ "where bid_id=?1)", nativeQuery=true)
+			+ "where bid_id=?1", nativeQuery=true)
 	List<String> findBidOfficeGroupOwnersNameByBidId(String bidId);
 	
 	@Query(value = "select distinct user_name from user_t U join connect_secondary_owner_link_t CSW on U.user_id=CSW.secondary_owner"

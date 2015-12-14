@@ -465,7 +465,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("toDate") Timestamp toDate);
 
 	@Query(value = "select connect_name from connect_t CONN "
-			+ "join connect_opportunity_link_id_t COPPL on CONN.connect_id=COPPL.connect_id where opportunity_id=?1)",nativeQuery=true)
+			+ "join connect_opportunity_link_id_t COPPL on CONN.connect_id=COPPL.connect_id where opportunity_id=?1",nativeQuery=true)
 	List<String> findConnectNameByOpportunityId(String opportunityId);
 	
 }
