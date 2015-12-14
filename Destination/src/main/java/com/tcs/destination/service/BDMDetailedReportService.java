@@ -232,7 +232,7 @@ public class BDMDetailedReportService {
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
-				 if(users.isEmpty()){
+				if(users.isEmpty()){
 			    	logger.error("Given BDM is not his Subordinate");
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
@@ -505,7 +505,7 @@ public class BDMDetailedReportService {
 				
 				//set display_sub_sp
 				List<String> oppDisplaySubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
-				if(oppDisplaySubSpList.isEmpty()){
+				if(!oppDisplaySubSpList.isEmpty()){
 					row.createCell(columnNo++).setCellValue(oppDisplaySubSpList.toString().replace("]", "").replace("[", ""));
 				}
 				
