@@ -2,7 +2,6 @@ package com.tcs.destination.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ import com.tcs.destination.service.RevenueDownloadService;
 import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * Controller to handle Revenue module related requests.
@@ -69,12 +69,12 @@ public class RevenueController {
 	 */
 	@RequestMapping(value = "/uploadRevenue", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadRevenueMapping(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside RevenueController / Start of upload revenue mapping");
+		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		try {
 			UploadStatusDTO status = revenueUploadService.upload(file, userId);
@@ -146,6 +146,13 @@ public class RevenueController {
 		}
 	}
 
+	/**
+	 * @param oppFlag
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadActualRevenueTemplate(
 			@RequestParam("downloadActualRevenues") boolean oppFlag,

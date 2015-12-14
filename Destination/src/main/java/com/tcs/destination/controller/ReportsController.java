@@ -28,6 +28,9 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class deals with Reports and its associated functionalities
+ */
 @RestController
 @RequestMapping("/report")
 public class ReportsController {
@@ -702,6 +705,21 @@ public class ReportsController {
 		}
 	}
 
+	/**
+	 * @param month
+	 * @param year
+	 * @param quarter
+	 * @param geography
+	 * @param country
+	 * @param iou
+	 * @param currency
+	 * @param serviceline
+	 * @param salesStage
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/opportunity/both", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> getOpportunityBoth(
 			@RequestParam(value = "month", defaultValue = "") String month,

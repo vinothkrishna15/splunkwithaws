@@ -1,11 +1,8 @@
 package com.tcs.destination.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,14 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.PushNotificationRegistrationT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.UserNotificationSettingsT;
-import com.tcs.destination.bean.UserT;
-import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PushNotificationService;
-import com.tcs.destination.service.SubSpService;
-import com.tcs.destination.service.UserService;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController

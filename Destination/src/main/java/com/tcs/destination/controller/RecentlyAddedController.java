@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.RecentlyAddedService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class deals with recently added details for entity
+ */
 @RestController
 @RequestMapping("/recent")
 public class RecentlyAddedController {
@@ -23,6 +25,14 @@ public class RecentlyAddedController {
 	@Autowired
 	RecentlyAddedService recentlyAddedService;
 
+	/**
+	 * @param entityType
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String recentlyAdded(
 			@RequestParam("entityType") String entityType,
