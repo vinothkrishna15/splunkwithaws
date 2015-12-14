@@ -633,7 +633,7 @@ public class BuildExcelTargetVsActualDetailedReportService {
 			if (currencyList.size() > 1) {
 				columnNo = 25 + offset + projectedOffset + revenueOffset;
 			} else {
-				columnNo = 20 + offset + projectedOffset + revenueOffset;
+				columnNo = 17 + offset + projectedOffset + revenueOffset;
 			}
 			row.createCell(columnNo).setCellValue(percentAchievedBracket);
 			row.getCell(columnNo).setCellStyle(rowStyle);

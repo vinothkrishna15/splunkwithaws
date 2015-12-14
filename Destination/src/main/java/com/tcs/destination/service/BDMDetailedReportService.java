@@ -533,8 +533,8 @@ public class BDMDetailedReportService {
 //					}  else {
 //						row.createCell(columnNo++).setCellValue(Constants.SPACE);
 					}
-//				} else {
-//					row.createCell(columnNo++).setCellValue(Constants.SPACE);
+				} else {
+					row.createCell(columnNo++).setCellValue(Constants.SPACE);
 				}
 				//set Digital deal value
 				int i = 0;
@@ -545,7 +545,6 @@ public class BDMDetailedReportService {
 					} else {
 						row.createCell(columnNo + i).setCellValue(0);
 					}
-//					row.getCell(columnNo + i).setCellStyle(cellStyle);
 					i++;
 				}
 			}
