@@ -17,6 +17,12 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WinLossMappingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * 
+ * This class retrieves win loss factors
+ *
+ */
+ 
 @RestController
 @RequestMapping("/winloss")
 public class WinLossFactorMappingController {
@@ -27,13 +33,18 @@ public class WinLossFactorMappingController {
 	@Autowired
 	WinLossMappingService winLossMappingService;
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retreiving win loss factors mapping");
-		logger.debug("Inside WinLoss Controller /winloss GET");
 		try {
 			ArrayList<WinLossFactorMappingT> winLossMapping = (ArrayList<WinLossFactorMappingT>) winLossMappingService
 					.findAll();

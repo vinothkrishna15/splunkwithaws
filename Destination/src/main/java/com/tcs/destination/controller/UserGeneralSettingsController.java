@@ -19,6 +19,10 @@ import com.tcs.destination.service.UserGeneralSettingsService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * UserGeneralSettingsController 
+ * This class deals with user general settings and its associated functions
+ */
 @RestController
 @RequestMapping("/general")
 public class UserGeneralSettingsController {
@@ -29,6 +33,12 @@ public class UserGeneralSettingsController {
 	@Autowired
 	UserGeneralSettingsService userGeneralSettingsService;
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String ConnectSearchByName(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -36,7 +46,6 @@ public class UserGeneralSettingsController {
 			throws DestinationException {
 		logger.info("Start of retrieving the General Settings by user id");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside UserGeneralSettingsController /general?userId GET");
 		try {
 			UserGeneralSettingsT userGeneralSettingsT = userGeneralSettingsService
 					.findGeneralSettingsByUserId(userId);
@@ -52,6 +61,13 @@ public class UserGeneralSettingsController {
 		}
 	}
 
+	/**
+	 * @param userGeneralSettings
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/setting", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUserGeneralSetting(
 			@RequestBody UserGeneralSettingsT userGeneralSettings,
@@ -59,13 +75,11 @@ public class UserGeneralSettingsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of create user general settings");
-		logger.debug("Inside UserGeneralSettingsController /general/setting POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userGeneralSettingsService
 					.addUserGeneralSettings(userGeneralSettings)) {
-				logger.debug("User General Settings inserted Successfully");
 				status.setStatus(Status.SUCCESS,
 						"User General Settings Inserted Successfully");
 			}
@@ -82,6 +96,13 @@ public class UserGeneralSettingsController {
 		}
 	}
 
+	/**
+	 * @param userGeneralSettings
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/setting", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> updateUserGeneralSetting(
 			@RequestBody UserGeneralSettingsT userGeneralSettings,
@@ -89,13 +110,11 @@ public class UserGeneralSettingsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of Edit user general settings");
-		logger.debug("Inside UserGeneralSettingsController /general/setting PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userGeneralSettingsService
 					.updateUserGeneralSettings(userGeneralSettings)) {
-				logger.debug("User General Settings Updated Successfully");
 				status.setStatus(Status.SUCCESS,
 						"User General Settings Updated Successfully");
 			}

@@ -21,6 +21,11 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserAccessRequestService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This class deals with user access requests (add and update)
+ * @author tcs2
+ *
+ */
 @RestController
 @RequestMapping("/useraccess")
 public class UserAccessRequestController {
@@ -31,18 +36,24 @@ public class UserAccessRequestController {
 	@Autowired
 	UserAccessRequestService userAccessRequestService;
 
+	/**
+	 * @param reqId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/{reqid}", method = RequestMethod.GET)
 	public @ResponseBody String getRequest(
 			@PathVariable("reqid") String reqId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of retrieving the user request by id");
-		logger.debug("Inside searchforRequestsById service");
+		logger.info("Start of retrieving the /useraccess by id");
 		try {
 			UserAccessRequestT userAccessRequest = userAccessRequestService
 					.findUserRequestById(reqId);
-			logger.info("End of retrieving the user request by id");
+			logger.info("End of retrieving the /useraccess by id");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, userAccessRequest);
 		} catch (DestinationException e) {
@@ -55,17 +66,22 @@ public class UserAccessRequestController {
 		}
 	}
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
 	public @ResponseBody String getAllNewUserAccessRequests(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of retrieving the all user access requests");
-		logger.debug("Inside getAllUserAccessRequests service");
+		logger.info("Start of retrieving the all user access(/all) requests");
 		try {
 			List<UserAccessRequestT> userAccessRequestList = userAccessRequestService
 					.findAllUserAccessRequests();
-			logger.info("End of retrieving the all user access requests");
+			logger.info("End of retrieving the all user access(/all) requests");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, userAccessRequestList);
 		} catch (DestinationException e) {
@@ -77,20 +93,22 @@ public class UserAccessRequestController {
 		}
 	}
 
+	/**
+	 * @param userAccessRequest
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/request", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToNewUserAccessRequest(
 			@RequestBody UserAccessRequestT userAccessRequest)
 			throws DestinationException {
 		logger.info("Start of Inserting a new User Access Request");
-		logger.debug("User Access Insert Request Received /useraccess/request POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userAccessRequestService.insertUserRequest(userAccessRequest)) {
 				status.setStatus(Status.SUCCESS,
 						"Access request has been saved successfully");
-				logger.debug("Access request has been saved successfully: "
-						+ userAccessRequest.getUserId());
 			}
 			logger.info("End of Inserting a new User Access Request");
 			return new ResponseEntity<String>(
@@ -106,20 +124,22 @@ public class UserAccessRequestController {
 
 	}
 
+	/**
+	 * @param userAccessRequest
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editNewUserAccessRequest(
 			@RequestBody UserAccessRequestT userAccessRequest)
 			throws DestinationException {
 		logger.info("Start of Edit user access request");
-		logger.debug("User Access Edit Request Received PUT");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (userAccessRequestService.editUserRequest(userAccessRequest)) {
 				status.setStatus(Status.SUCCESS,
 						"Access request has been updated successfully");
-				logger.debug("Access request has been updated successfully: "
-						+ userAccessRequest.getRequestId());
 			}
 			logger.info("End of Edit user access request");
 			return new ResponseEntity<String>(

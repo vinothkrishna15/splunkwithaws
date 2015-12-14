@@ -17,6 +17,9 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TaskTypeService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class retrieves the task type mapping
+ */
 @RestController
 @RequestMapping("/tasktype")
 public class TaskTypeController {
@@ -27,13 +30,18 @@ public class TaskTypeController {
 	@Autowired
 	TaskTypeService taskTypeService;
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving the Task Type Mapping");
-		logger.debug("Inside taskTypeController /tasktype GET");
 		try {
 		List<TaskTypeMappingT> taskTypeMapping = (List<TaskTypeMappingT>) taskTypeService
 				.findAll();

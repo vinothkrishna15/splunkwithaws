@@ -26,6 +26,10 @@ import com.tcs.destination.service.UserNotificationsService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This classs deals with User notifications and its settings
+ *
+ */
 @RestController
 @RequestMapping("/notification")
 public class UserNotificationsController {
@@ -39,6 +43,15 @@ public class UserNotificationsController {
 	private static final Logger logger = LoggerFactory
 			.getLogger(UserNotificationsController.class);
 
+	/**
+	 * @param read
+	 * @param fromDate
+	 * @param toDate
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/portal", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> findNotifications(
 			@RequestParam(value = "read", defaultValue = "") String read,
@@ -49,7 +62,6 @@ public class UserNotificationsController {
 			throws DestinationException {
 		logger.info("Start of retreiving the user notifications");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside UserNotificationsController /user GET");
 		try {
 			List<UserNotificationsT> userNotificationsT = userNotificationsService
 					.getNotifications(userId, read, fromDate.getTime(),
@@ -72,6 +84,12 @@ public class UserNotificationsController {
 
 	}
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/settings", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getUserNotificationSettings(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -79,8 +97,6 @@ public class UserNotificationsController {
 			throws DestinationException {
 		logger.info("Start of retreiving the user notification settings");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside UserNotificationSettingsController/usernotificationsettings?userId="
-				+ userId + " GET");
 		try {
 			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingT = userNotificationSettingsService
 					.getUserNotificationSettings(userId);
@@ -115,7 +131,6 @@ public class UserNotificationsController {
 		try {
 			if (userNotificationsService
 					.saveUserNotifications(userNotificationSettings)) {
-				logger.debug("User notification settings have been updated successfully");
 				status.setStatus(Status.SUCCESS,
 						"User notification settings have been updated successfully");
 			}
@@ -147,7 +162,6 @@ public class UserNotificationsController {
 			@RequestParam(value = "read") String read)
 			throws DestinationException {
 		logger.info("Start of update read status of list of user notifications");
-		logger.debug("Inside UserNotificationsController /read PUT");
 		String status = "";
 		try {
 			status = userNotificationsService.updateReadStatus(

@@ -18,6 +18,9 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TrendingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class deals with time line requests and trending opportunities
+ */
 @RestController
 @RequestMapping("/trending")
 public class TrendingController {
@@ -28,6 +31,15 @@ public class TrendingController {
 	@Autowired
 	TrendingService trendService;
 
+	/**
+	 * @param count
+	 * @param token
+	 * @param entityType
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getAll(
 			@RequestParam(value = "count", defaultValue = "10") String count,
@@ -36,7 +48,7 @@ public class TrendingController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "timeline") String view)
 			throws DestinationException {
-		logger.info("Timeline Request Received : token - " + token
+		logger.info("Starting Timeline Request Received (/trending): token - " + token
 				+ " , count - " + count + " , view - " + view);
 		try {
 			Timestamp timeStamp;
@@ -50,7 +62,7 @@ public class TrendingController {
 				cal.setTimeInMillis(Long.parseLong(token));
 				timeStamp = new Timestamp(cal.getTimeInMillis());
 			}
-			logger.info("Derived Timestamp(token) - " + timeStamp);
+			logger.info("Ending Timeline (/trending): Derived Timestamp(token) - " + timeStamp);
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(
 							fields,
@@ -67,6 +79,13 @@ public class TrendingController {
 
 	}
 
+	/**
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/opportunity", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getOpportunities(
 			@RequestParam(value = "count", defaultValue = "25") String count,

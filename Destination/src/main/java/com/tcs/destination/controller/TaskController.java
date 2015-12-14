@@ -53,7 +53,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of getting the Task Details by Task Id");
-		logger.debug("Inside TaskController /task/id="+taskId+" GET");
 		try {
 		TaskT task = taskService.findTaskById(taskId);
 		logger.info("End of getting the Task Details by Task Id");
@@ -81,7 +80,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of Retrieving the Task details by name");
-		logger.debug("Inside TaskController /task?nameWith="+nameWith+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksByNameContaining(nameWith);
 		logger.info("End of Retrieving the Task details by name");
@@ -109,7 +107,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of retrieving the task details by connect id");
-		logger.debug("Inside TaskController /task/findByConnect?id="+connectId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksByConnectId(connectId);
 		logger.info("End of retrieving the task details by connect id");
@@ -137,7 +134,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of retrieving the task details by opportunity id");
-		logger.debug("Inside TaskController /task/findByOpportunity?id="+opportunityId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksByOpportunityId(opportunityId);
 		logger.info("End of retrieving the task details by opportunity id");
@@ -167,7 +163,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of retrieving the task details by task owner");
-		logger.debug("Inside TaskController /task/findByOwner?id="+taskOwner+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksByTaskOwnerAndStatus(taskOwner, taskStatus);
 		logger.info("End of retrieving the task details by task owner");
@@ -195,7 +190,6 @@ public class TaskController {
 	{   
 		logger.info("Start of retreiving the Tasks assigned to others");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside TaskController /task/findAssigned?id="+userId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksAssignedtoOthersByUser(userId);
 		logger.info("End of retreiving the Tasks assigned to others");
@@ -226,7 +220,6 @@ public class TaskController {
 	{   
 		logger.info("Start of retreiving the tasks assigned to a user with a specific target completion date");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside TaskController /task/findByTargetDate?id"+userId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTasksByUserAndTargetDate(userId, fromDate, toDate);
 		logger.info("End of retreiving the tasks assigned to a user with a specific target completion date");
@@ -251,7 +244,6 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> createTask(@RequestBody TaskT task) 
 			throws DestinationException {
 		logger.info("Start of creating a Task");
-		logger.debug("Inside TaskController /task POST");
 		TaskT managedTask = null;
 		Status status = null;
 		try {
@@ -284,13 +276,11 @@ public class TaskController {
 	public @ResponseBody ResponseEntity<String> editTask(@RequestBody TaskT task) 
 			throws DestinationException {
 		logger.info("Start of editing a Task");
-		logger.debug("Inside TaskController /task PUT");
 		TaskT managedTask = null;
 		Status status = null;
 		try {
 			managedTask = taskService.editTask(task);
 			if (managedTask != null)  {
-				logger.debug("Managed Task NOT NULL");
 				status = new Status();
 				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
 			}
@@ -321,7 +311,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of retrieving the Team Tasks");
-		logger.debug("Inside TaskController /task/team?id="+supervisorId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTeamTasks(supervisorId,status);
 		logger.info("End of retrieving the Team Tasks");
@@ -349,7 +338,6 @@ public class TaskController {
 			@RequestParam(value="view", defaultValue="") String view) throws DestinationException 
 	{   
 		logger.info("Start of retrieving the tasks assigned to others by users under a supervisor");
-		logger.debug("Inside TaskController /task/team/findAssigned?supervisorId="+supervisorId+" GET");
 		try {
 		List<TaskT> taskList = taskService.findTeamTasksAssignedtoOthers(supervisorId);
 		logger.info("End of retrieving the tasks assigned to others by users under a supervisor");

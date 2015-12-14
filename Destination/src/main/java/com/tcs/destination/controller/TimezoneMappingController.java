@@ -17,6 +17,9 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TimezoneMappingService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class retrieves the time zone mapping
+ */
 @RestController
 @RequestMapping("/timezone")
 public class TimezoneMappingController {
@@ -27,13 +30,18 @@ public class TimezoneMappingController {
 	@Autowired
 	TimezoneMappingService timezoneMappingService;
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving Timezone Mapping");
-		logger.debug("Inside TimezoneMappingController /timezone GET");
 		try {
 			List<TimeZoneMappingT> timezoneMappingTs = timezoneMappingService
 					.findAll();
