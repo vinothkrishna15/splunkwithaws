@@ -26,7 +26,6 @@ import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.service.ReportsUploadService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
-import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 @RestController
@@ -94,6 +93,7 @@ public class ReportsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of retrieving the target vs actual detailed list");
 		String response = null;
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -112,7 +112,7 @@ public class ReportsController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the target vs actual detailed list");
 		}
-
+		logger.info("Inside ReportsController / End of retrieving the target vs actual detailed list");
 		return response;
 	}
 
@@ -140,6 +140,7 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Target vs Actual detailed Report download");
 		if (targetVsActualConcurrentRequestCounter <= targetVsActualConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -158,11 +159,9 @@ public class ReportsController {
 				String repName = "TargetVsActualDetailReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
-				logger.debug("targetVsActual Detailed Report Downloaded Successfully ");
-
+				logger.info("Inside ReportsController / End of Target vs Actual detailed Report download");
 				return new ResponseEntity<InputStreamResource>(excelFile,
 						respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -204,6 +203,7 @@ public class ReportsController {
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Target vs Actual summary Report download");
 		if (targetVsActualConcurrentRequestCounter <= targetVsActualConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -221,11 +221,9 @@ public class ReportsController {
 				String repName = "TargetVsActualSummaryReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
-
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
-				logger.debug("targetVsActual Summary Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Target vs Actual summary Report download");
 				return new ResponseEntity<InputStreamResource>(excelFile,
 						respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -269,7 +267,7 @@ public class ReportsController {
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
-
+		logger.info("Inside ReportsController / Start of Target vs Actual both summary and detailed report download");
 		if (targetVsActualConcurrentRequestCounter <= targetVsActualConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -286,11 +284,9 @@ public class ReportsController {
 
 				String repName = "TargetVsActualReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
-				logger.debug("targetVsActual Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Target vs Actual both summary and detailed report download");
 				return new ResponseEntity<InputStreamResource>(excelFile,
 						respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -306,6 +302,7 @@ public class ReportsController {
 		} else {
 			throw new DestinationException(
 					"Target Vs Actual report module is experiencing huge loads, please try again after sometime");
+
 		}
 	}
 
@@ -336,7 +333,7 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
-
+		logger.info("Inside ReportsController / Start of Connect detailed report download");
 		if (connectConcurrentRequestCounter <= connectConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -350,14 +347,12 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-
 				String repName = "connectDetailedReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
-				logger.debug("Connect Detailed Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Connect detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						connectDetailedReportExcel, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -405,6 +400,7 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Connect summary report download");
 		if (connectConcurrentRequestCounter <= connectConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -415,17 +411,14 @@ public class ReportsController {
 								geography, country, serviceline, userId, fields);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String todaysDate = DateUtils.getCurrentDate();
-
 				String repName = "connectSummaryReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
 				respHeaders
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-				logger.debug("Connect Summary Report Downloaded Successfully ");
-
+				logger.info("Inside ReportsController / End of Connect summary report download");
 				return new ResponseEntity<InputStreamResource>(
 						connectSummaryReportExcel, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -471,8 +464,8 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Connect both summary and detailed report download");
 		if (connectConcurrentRequestCounter <= connectConcurrentRequestLimit) {
-			
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
 			try {
@@ -485,14 +478,11 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-
 				String repName = "connectReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
-				logger.debug("Connect Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Connect both summary and detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						connectReportExcel, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -543,30 +533,26 @@ public class ReportsController {
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Bid detailed report download");
 		if (bidConcurrentRequestCounter <= bidConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
 			try {
 				++bidConcurrentRequestCounter;
-
-				logger.debug("Inside ReportController /report/bid/detailed GET");
 				InputStreamResource bidReportExcel = reportsService
 						.getBidReport(year, fromMonth, toMonth, bidOwner,
 								currency, iou, geography, country, serviceline,
 								userId, fields);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String todaysDate = DateUtils.getCurrentDate();
-
 				String repName = "bidDetailsReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
-				logger.debug("Download Header - Attachment : " + repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
 				respHeaders
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-				logger.debug("Bid Detailed Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Bid detailed report download");
 				return new ResponseEntity<InputStreamResource>(bidReportExcel,
 						respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -606,6 +592,7 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Opportunity detailed report download");
 		if (opportunityConcurrentRequestCounter <= opportunityConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -618,16 +605,14 @@ public class ReportsController {
 								country, iou, serviceline, salesStage,
 								currency, userId, fields, toDate);
 				HttpHeaders respHeaders = new HttpHeaders();
-
 				String repName = "OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
 				respHeaders
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-				logger.debug("Connect Detailed Report Downloaded Successfully ");
+				logger.info("Inside ReportsController / End of Opportunity detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						opportunityDetailedReportExcel, respHeaders,
 						HttpStatus.OK);
@@ -679,6 +664,7 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "all") String fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Opportunity summary report download");
 		if (opportunityConcurrentRequestCounter <= opportunityConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -690,15 +676,14 @@ public class ReportsController {
 								salesStage, userId);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String toDate = DateUtils.getCurrentDate();
-
 				String repName = "OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
 				respHeaders
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
+				logger.info("Inside ReportsController / End of Opportunity summary report download");
 				return new ResponseEntity<InputStreamResource>(
 						inputStreamResource, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -731,6 +716,7 @@ public class ReportsController {
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of Opportunity both summary and detailed report download");
 		if (opportunityConcurrentRequestCounter <= opportunityConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -745,12 +731,11 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String toDate = DateUtils.getCurrentDate();
-
 				String repName = "OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
-
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
+				logger.info("Inside ReportsController / End of Opportunity both summary and detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						inputStreamResource, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -802,6 +787,7 @@ public class ReportsController {
 			@RequestParam(value = "opportunityOwners", defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of BDM Performance detailed report download");
 		if (bdmConcurrentRequestCounter <= bdmConcurrentRequestLimit) {
 
 			String userId = DestinationUtils.getCurrentUserDetails()
@@ -821,9 +807,9 @@ public class ReportsController {
 				String repName = "BdmPerformanceDetailedReport_" + toDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
-
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
+				logger.info("Inside ReportsController / End of BDM Performance detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						inputStreamResource, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -872,6 +858,7 @@ public class ReportsController {
 			@RequestParam(value = "salesStage", defaultValue = "0,1,2,3,4,5,6,7,8,9,10,11,12,13") List<Integer> salesStage,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of BDM Performance summary report download");
 		if (bdmConcurrentRequestCounter <= bdmConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -894,6 +881,7 @@ public class ReportsController {
 
 				respHeaders.setContentDispositionFormData("attachment",
 						"BdmPerformanceSummaryReport_" + toDate + ".xlsx");
+				logger.info("Inside ReportsController / End of BDM Performance summary report download");
 				return new ResponseEntity<InputStreamResource>(
 						inputStreamResource, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
@@ -944,6 +932,7 @@ public class ReportsController {
 			@RequestParam(value = "opportunityOwners", defaultValue = "") List<String> opportunityOwners,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
+		logger.info("Inside ReportsController / Start of BDM Performance both summary and detailed report download");
 		if (bdmConcurrentRequestCounter <= bdmConcurrentRequestLimit) {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
@@ -964,6 +953,7 @@ public class ReportsController {
 
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
+				logger.info("Inside ReportsController / End of BDM Performance both summary and detailed report download");
 				return new ResponseEntity<InputStreamResource>(
 						inputStreamResource, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {

@@ -37,7 +37,6 @@ public class ApplicationSettingsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside ApplicationSettingsController /appsettings GET");
 		logger.info("Inside ApplicationSettingsController : Start of retrieving Application settings");
 		try {
 			List<ApplicationSettingsT> applicationSettingsTs = (List<ApplicationSettingsT>) applicationSettingsService

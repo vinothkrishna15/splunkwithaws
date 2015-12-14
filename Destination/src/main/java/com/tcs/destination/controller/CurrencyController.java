@@ -20,29 +20,32 @@ public class CurrencyController {
 
 	@Autowired
 	BeaconConverterService beaconService;
-	
-	private static final Logger logger = LoggerFactory.getLogger(CurrencyController.class);
-	
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(CurrencyController.class);
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody Status getConvertedValue(
 			@RequestParam("from") String base,
-			@RequestParam(value="to", defaultValue = "USD") String target,
-			@RequestParam("value") String value) throws DestinationException{
-		logger.info("Start of Converting the currency value");
-		    try {
-	        Double d = Double.parseDouble(value);
-	        Status status = new Status();
-	        status.setStatus(Status.SUCCESS,beaconService.convert(base, target, d.doubleValue()).toString());
-	        logger.info("End of Converting the currency value");
-	        return status;
-		    } catch (DestinationException e) {
-				throw e;
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error while converting the currency");
-		   }
-		
+			@RequestParam(value = "to", defaultValue = "USD") String target,
+			@RequestParam("value") String value) throws DestinationException {
+		logger.info("Inside Controller: Start of Converting the currency value");
+		try {
+			Double d = Double.parseDouble(value);
+			Status status = new Status();
+			status.setStatus(Status.SUCCESS,
+					beaconService.convert(base, target, d.doubleValue())
+							.toString());
+			logger.info("Inside CountryController: End of Converting the currency value");
+			return status;
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while converting the currency");
+		}
+
 	}
 
 }

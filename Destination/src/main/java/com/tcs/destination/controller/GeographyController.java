@@ -20,30 +20,32 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/geography")
 public class GeographyController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(GeographyController.class);
-	
-	@Autowired 
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(GeographyController.class);
+
+	@Autowired
 	GeographyService geographyService;
-	
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
-	@RequestParam(value = "fields", defaultValue = "all") String fields,
-	@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException
-	{
-		logger.debug("Inside GeographyController /geography GET");
-		try{
-		ArrayList<GeographyMappingT> geogaraphyMappingTs=new ArrayList<GeographyMappingT>();
-		geogaraphyMappingTs=(ArrayList<GeographyMappingT>) geographyService.findAll();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				geogaraphyMappingTs);
-		} catch(DestinationException e) {
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside Geography controller: Start of find");
+		try {
+			ArrayList<GeographyMappingT> geogaraphyMappingTs = new ArrayList<GeographyMappingT>();
+			geogaraphyMappingTs = (ArrayList<GeographyMappingT>) geographyService
+					.findAll();
+			logger.info("Inside Geography controller: End of find");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, geogaraphyMappingTs);
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving geography details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving geography details");
 		}
 	}
-
 }

@@ -30,32 +30,33 @@ public class DashboardController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DashboardController.class);
-	
+
 	@RequestMapping(value = "/chart", method = RequestMethod.GET)
 	public String chart(
 			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Start of retrieving the chart values");
 		try {
-		PerformaceChartBean chartValues = dashboardService.getChartValues(
-				userId, financialYear);
-		logger.info("End of retrieving the chart values");
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				chartValues);
+			PerformaceChartBean chartValues = dashboardService.getChartValues(
+					userId, financialYear);
+			logger.info("End of retrieving the chart values");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, chartValues);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the chart values");
-	   }
+		}
 	}
-	
+
 	/**
-	 * This controller retrieves the details of performance details of all the users under a supervisor
+	 * This controller retrieves the details of performance details of all the
+	 * users under a supervisor
 	 * 
 	 * @param supervisorId
 	 * @param financialYear
@@ -71,28 +72,28 @@ public class DashboardController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside ConnectController /dashboard/teamchart" + "GET");
 		logger.info("Start of retrieving the Team chart values by supervisor id");
 		PerformaceChartBean chartValues = null;
-		    try {
+		try {
 			chartValues = dashboardService.getTeamChartValues(supervisorId,
 					financialYear);
 			logger.info("End of retrieving the Team chart values by supervisor id");
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				chartValues);
-		    } catch (DestinationException e) {
-				throw e;
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in retrieving the Team chart values for supervisor id " + supervisorId);
-		   }
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, chartValues);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Team chart values for supervisor id "
+							+ supervisorId);
+		}
 	}
-	
+
 	/**
-	 * This Controller retrieves a list of Connects based on the user (SI, Geo Heads, IOU Heads)
-	 * 
-	 * @param userId
+	 * This Controller retrieves a list of Connects based on the user (SI, Geo
+	 * Heads, IOU Heads)
+	 *
 	 * @param geography
 	 * @param fromDate
 	 * @param toDate
@@ -110,25 +111,26 @@ public class DashboardController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside CustomerController /dashboard/leadership/connect GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		LeadershipConnectsDTO connects = null;
 		try {
-		connects = dashboardService.getLeadershipConnectsByGeography(userId, fromDate, toDate, geography);
-		logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
-		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
-				view, connects);
+			connects = dashboardService.getLeadershipConnectsByGeography(
+					userId, fromDate, toDate, geography);
+			logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
+			return ResponseConstructors.filterJsonForFieldAndViews(
+					includeFields, view, connects);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving a list of Connects based on the user");
-	   }
+		}
 	}
-	
+
 	/**
-	 * This Controller retrieves Opportunities Won based on the user (SI, Geo Heads, IOU Heads)
+	 * This Controller retrieves Opportunities Won based on the user (SI, Geo
+	 * Heads, IOU Heads)
 	 * 
 	 * @param userId
 	 * @param geography
@@ -148,27 +150,28 @@ public class DashboardController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving the leadership wins by geography");
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside CustomerController /dashboard/leadership/wins GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		LeadershipOverallWinsDTO wins = null;
-		   try {
-		    wins = dashboardService.getLeadershipWinsByGeography(userId, fromDate, toDate, geography);
-		    logger.info("End of retrieving the leadership wins by geography");
-		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
-				view, wins);
-		   } catch (DestinationException e) {
-				throw e;
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in retrieving the leadership wins for geography " + geography);
-		   }
+		try {
+			wins = dashboardService.getLeadershipWinsByGeography(userId,
+					fromDate, toDate, geography);
+			logger.info("End of retrieving the leadership wins by geography");
+			return ResponseConstructors.filterJsonForFieldAndViews(
+					includeFields, view, wins);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the leadership wins for geography "
+							+ geography);
+		}
 	}
-	
+
 	/**
-	 * This Controller retrieves Opportunities Won based on the user (SI, Geo Heads, IOU Heads)
+	 * This Controller retrieves Opportunities Won based on the user (SI, Geo
+	 * Heads, IOU Heads)
 	 * 
-	 * @param userId
 	 * @param geography
 	 * @param fromDate
 	 * @param toDate
@@ -186,21 +189,23 @@ public class DashboardController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving the leadership opportunities by geography");
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside CustomerController /dashboard/leadership/opp GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		LeadershipOpportunitiesDTO opportunities = null;
-		    try {
-		    opportunities = dashboardService.getLeadershipOpportunitiesByGeography(userId, fromDate, toDate, geography);
-		    logger.info("End of retrieving the leadership opportunities by geography");
-		return ResponseConstructors.filterJsonForFieldAndViews(includeFields,
-				view, opportunities);
-		    } catch (DestinationException e) {
-				throw e;
-			} catch (Exception e) {
-				logger.error(e.getMessage());
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in retrieving the leadership opportunities for geography " + geography);
-		   }
+		try {
+			opportunities = dashboardService
+					.getLeadershipOpportunitiesByGeography(userId, fromDate,
+							toDate, geography);
+			logger.info("End of retrieving the leadership opportunities by geography");
+			return ResponseConstructors.filterJsonForFieldAndViews(
+					includeFields, view, opportunities);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the leadership opportunities for geography "
+							+ geography);
+		}
 	}
 
 }

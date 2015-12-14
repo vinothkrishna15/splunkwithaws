@@ -25,8 +25,9 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/frequent")
 public class FrequentlySearchedController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(FrequentlySearchedController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(FrequentlySearchedController.class);
 
 	@Autowired
 	FrequentlySearchedService frequentService;
@@ -39,15 +40,17 @@ public class FrequentlySearchedController {
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "all") String owner)
 			throws DestinationException {
-		logger.debug("Inside FrequetlySearchedController /frequent?entityType="+entityType+" GET");
-		try{
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				frequentService.findFrequent(entityType, count));
-		} catch(DestinationException e) {
+		logger.info("Inside Frequently searched controller: Start of find");
+		try {
+			logger.info("Inside Frequently searched controller: End of find");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, frequentService.findFrequent(entityType, count));
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving frequently used details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving frequently used details");
 		}
 	}
 
@@ -55,25 +58,27 @@ public class FrequentlySearchedController {
 	public @ResponseBody ResponseEntity<String> insertToFrequent(
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
-		
-		logger.debug("Inside FrequentlySearchedController /frequent POST");
-		try{
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if(frequentService.insertFrequent(frequent)){
-			logger.debug("Frequent Details Inserted Successfully");
-			status.setStatus(Status.SUCCESS, frequent.getFrequentlySearchedId());
-		}
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 
-
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
-		} catch(DestinationException e) {
+		logger.info("Inside Frequently searched controller: Start of insert");
+		try {
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (frequentService.insertFrequent(frequent)) {
+				status.setStatus(Status.SUCCESS,
+						frequent.getFrequentlySearchedId());
+			}
+			logger.info("Inside Frequently searched controller: Start of find");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while updating frequent customer/partner details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while updating frequent customer/partner details");
 		}
 	}
 }

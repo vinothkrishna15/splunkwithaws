@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.service.RecentlyAddedService;
 import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.utils.ResponseConstructors;
 
@@ -31,12 +30,11 @@ public class SubSpController {
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
-		logger.info("Start of retrieving the subSps");
-		logger.debug("Inside SubSpController /subsp GET");
+		logger.info("Inside SubSpController / Start of retrieving the subSps");
 		try {
 		ArrayList<SubSpMappingT> subSpMapping = (ArrayList<SubSpMappingT>) subSpService
 				.findAll();
-		logger.info("End of retrieving the subSps");
+		logger.info("Inside SubSpController / End of retrieving the subSps");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, subSpMapping);
 		} catch (DestinationException e) {
 			throw e;

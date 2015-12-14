@@ -20,14 +20,16 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/connecttype")
 public class ConnectTypeController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(ConnectTypeController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(ConnectTypeController.class);
 
 	@Autowired
 	ConnectTypeService conTypeService;
-    
+
 	/**
 	 * This method is used to get the connect type mapping
+	 * 
 	 * @param fields
 	 * @param view
 	 * @return
@@ -36,15 +38,15 @@ public class ConnectTypeController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
-		logger.debug("Inside connectTypeController /connecttype GET");
-		logger.info("Start of retrieving the Connect Type Mapping");
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside connectTypeController: Start of retrieving the Connect Type Mapping");
 		try {
-		ArrayList<ConnectTypeMappingT> connectTypeMapping = (ArrayList<ConnectTypeMappingT>) conTypeService
-				.findAll();
-		logger.info("End of retrieving the Connect Type Mapping");
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				connectTypeMapping);
+			ArrayList<ConnectTypeMappingT> connectTypeMapping = (ArrayList<ConnectTypeMappingT>) conTypeService
+					.findAll();
+			logger.info("Inside connectTypeController: End of retrieving the Connect Type Mapping");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, connectTypeMapping);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

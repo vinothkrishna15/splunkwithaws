@@ -195,7 +195,6 @@ public class WADLController {
                 // Response
                 if ( !mediaTypes.isEmpty() ) {
                     Response wadlResponse = new Response();
-                    Class methodReturn = handlerMethod.getReturnType().getClass();
                     ResponseStatus status = handlerMethod.getMethodAnnotation(ResponseStatus.class);
                     if(status==null) {
                         wadlResponse.getStatus().add((long)(HttpStatus.OK.value()));

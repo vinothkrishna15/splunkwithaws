@@ -40,103 +40,117 @@ public class DocumentController {
 
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
-	
-	private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
-	
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(DocumentController.class);
 
 	@RequestMapping(value = "/download/{documentId}", method = RequestMethod.GET)
-	public ResponseEntity<InputStreamResource>  download(
+	public ResponseEntity<InputStreamResource> download(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
-		try{
-		logger.debug("Download Request received for id: " + documentId);
-		
-		DocumentRepositoryT document = documentService.findByDocumentId(documentId);
-		if(document!=null){
-			logger.debug(documentId + " - Record Found");
-		String fullPath = fileBasePath + document.getFileReference();
-		logger.debug(documentId + " - File Found : " + fullPath);
-		
-		HttpHeaders respHeaders = new HttpHeaders();
-		String name = document.getDocumentName();
-	    respHeaders.setContentDispositionFormData("attachment", name);
-	    logger.debug(documentId + " - Download Header - Attachment : " + name);
-	    
-	    FileNameMap fileNameMap = URLConnection.getFileNameMap();
-	    String fileUrl = "file://"+fullPath;
-	    String type = fileNameMap.getContentTypeFor(fileUrl);
-	    File file = new File(fullPath);
-	    if(type==null){
-	    	 FileDataSource fds = new FileDataSource(file);
-	    	 type = fds.getContentType();
-	    }
-	    respHeaders.setContentType(MediaType.valueOf(type));
-	    
-	    logger.debug(documentId + " - Download Header - Mime Type : " + type);
-	    InputStreamResource isr;
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 		try {
-			isr = new InputStreamResource(new FileInputStream(file));
-			logger.debug("DOWNLOAD PROCESSED SUCCESSFULLY - " + documentId);
-			return new ResponseEntity<InputStreamResource>(isr,respHeaders,HttpStatus.OK);
-		} catch (FileNotFoundException e) {
-			logger.error("INTERNAL_SERVER_ERROR: Error processing the file");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,documentId + "Error processing the file");
-		}
-		}
-		logger.error("NOT_FOUND: No Records Found");
-		throw new DestinationException(HttpStatus.NOT_FOUND,documentId + "No Records Found");
+			logger.info("Inside Document controller: start of download ");
+
+			DocumentRepositoryT document = documentService
+					.findByDocumentId(documentId);
+			if (document != null) {
+				logger.debug(documentId + " - Record Found");
+				String fullPath = fileBasePath + document.getFileReference();
+				logger.debug(documentId + " - File Found : " + fullPath);
+
+				HttpHeaders respHeaders = new HttpHeaders();
+				String name = document.getDocumentName();
+				respHeaders.setContentDispositionFormData("attachment", name);
+				logger.debug(documentId + " - Download Header - Attachment : "
+						+ name);
+
+				FileNameMap fileNameMap = URLConnection.getFileNameMap();
+				String fileUrl = "file://" + fullPath;
+				String type = fileNameMap.getContentTypeFor(fileUrl);
+				File file = new File(fullPath);
+				if (type == null) {
+					FileDataSource fds = new FileDataSource(file);
+					type = fds.getContentType();
+				}
+				respHeaders.setContentType(MediaType.valueOf(type));
+
+				logger.debug(documentId + " - Download Header - Mime Type : "
+						+ type);
+				InputStreamResource isr;
+				try {
+					isr = new InputStreamResource(new FileInputStream(file));
+					logger.debug("DOWNLOAD PROCESSED SUCCESSFULLY - "
+							+ documentId);
+					logger.info("Inside Document Controller: end of download");
+					return new ResponseEntity<InputStreamResource>(isr,
+							respHeaders, HttpStatus.OK);
+				} catch (FileNotFoundException e) {
+					logger.error("INTERNAL_SERVER_ERROR: Error processing the file");
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR, documentId
+									+ "Error processing the file");
+				}
+			}
+			logger.error("NOT_FOUND: No Records Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, documentId
+					+ "No Records Found");
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while downloading");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while downloading");
 		}
 	}
-	
+
 	@RequestMapping(method = RequestMethod.DELETE)
-	public @ResponseBody String delete(@RequestParam(value = "docIds") String idsToDelete) throws DestinationException{
-		try{
-		logger.debug("Deletion request Received for ids: " + idsToDelete);
-		String[] docIds = idsToDelete.split(",");
-		Status status = new Status();
+	public @ResponseBody String delete(
+			@RequestParam(value = "docIds") String idsToDelete)
+			throws DestinationException {
+		try {
+			logger.info("Inside document controller:Start of deletion");
+			String[] docIds = idsToDelete.split(",");
+			Status status = new Status();
 			String deletedIds = documentService.deleteDocRecords(docIds);
 			status.setStatus(Status.SUCCESS, "Files Deleted for " + deletedIds);
-			logger.debug("DELETE SUCCESS - Files Deleted for " + deletedIds);
-			return ResponseConstructors.filterJsonForFieldAndViews("all", "", status);
+			logger.info("Inside document controller: end of deletion");
+			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
+					status);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while deleting document");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while deleting document");
 		}
 	}
-		
-		
 
 	@RequestMapping(value = "/{documentId}", method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@PathVariable("documentId") String documentId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
-		try{
-		logger.debug("Inside DocumentController /document/documentId="+documentId+" GET");
-		DocumentRepositoryT docrep = documentService
-				.findByDocumentId(documentId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, docrep);
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		try {
+			logger.info("Inside document controller : Start of search");
+			DocumentRepositoryT docrep = documentService
+					.findByDocumentId(documentId);
+			logger.info("Inside document controller : End of search");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, docrep);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while retrieving document");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving document");
 		}
-		}
+	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String upload(
@@ -153,29 +167,29 @@ public class DocumentController {
 			@RequestParam("uploadedBy") String uploadedBy,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws Exception{
-		logger.debug("Upload request Received : docName - " + documentName + ", entityType" + entityType
-				+ ", uploadedBy" + uploadedBy);
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.info("Inside document controller");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			String docId = documentService.saveDocument(documentName,
-				 documentType, entityType,
-					parentEntity, commentId, connectId,
-					customerId, opportunityId, partnerId, taskId, uploadedBy,
-					file);
+					documentType, entityType, parentEntity, commentId,
+					connectId, customerId, opportunityId, partnerId, taskId,
+					uploadedBy, file);
 			status.setStatus(Status.SUCCESS, "Id : " + docId);
-           logger.debug("UPLOAD SUCCESS - Record Created,  Id: " + docId);
-		
+			logger.debug("UPLOAD SUCCESS - Record Created,  Id: " + docId);
 
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, status);
+			logger.info("Inside document controller");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, status);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while uploading document");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while uploading document");
 		}
 	}
 
