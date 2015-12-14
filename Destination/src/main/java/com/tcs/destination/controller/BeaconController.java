@@ -67,8 +67,7 @@ public class BeaconController {
 
 	/**
 	 * This controller uploads the Beacon Customers to the database
-	 * 
-	 * @param userId
+	 *
 	 * @param file
 	 * @param fields
 	 * @param view
@@ -90,7 +89,6 @@ public class BeaconController {
 				errorDetailsDTOs = status.getListOfErrors();
 			}
 
-			
 			InputStreamResource excelFile = uploadErrorReport
 					.getErrorSheet(errorDetailsDTOs);
 			HttpHeaders respHeaders = new HttpHeaders();
@@ -113,8 +111,7 @@ public class BeaconController {
 
 	/**
 	 * This controller uploads the Beacon Customers to the database
-	 * 
-	 * @param userId
+	 *
 	 * @param file
 	 * @param fields
 	 * @param view

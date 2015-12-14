@@ -20,32 +20,33 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/country")
 public class CountryController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(CountryController.class);
-	
-	@Autowired 
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(CountryController.class);
+
+	@Autowired
 	CountryService countryService;
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
-	@RequestParam(value = "fields", defaultValue = "all") String fields,
-	@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException
-	{
-		logger.debug("Inside CountryController /country GET");
-		logger.info("Start of retrieving the Geography Country Mapping");
-		ArrayList<GeographyCountryMappingT> geographyCountryMapping=new ArrayList<GeographyCountryMappingT>();
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside CountryController: Start of retrieving the Geography Country Mapping");
+		ArrayList<GeographyCountryMappingT> geographyCountryMapping = new ArrayList<GeographyCountryMappingT>();
 		try {
-		geographyCountryMapping=(ArrayList<GeographyCountryMappingT>) countryService.findAll();
-		logger.info("End of retrieving the Geography Country Mapping");
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				geographyCountryMapping);
+			geographyCountryMapping = (ArrayList<GeographyCountryMappingT>) countryService
+					.findAll();
+			logger.info("Inside CountryController: End of retrieving the Geography Country Mapping");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, geographyCountryMapping);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the Geography Country Mapping");
-	   }
+		}
 	}
 
 }
