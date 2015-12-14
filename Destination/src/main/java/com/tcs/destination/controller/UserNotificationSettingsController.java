@@ -22,6 +22,10 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This class deals with add and update of  UserNotificationSettings
+ *
+ */
 @RestController
 @RequestMapping("/usernotificationsettings")
 public class UserNotificationSettingsController {
@@ -32,6 +36,13 @@ public class UserNotificationSettingsController {
 	@Autowired
 	UserNotificationSettingsService userNotificationSettingsService;
 
+	/**
+	 * @param userNotificationSettings
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
@@ -39,7 +50,6 @@ public class UserNotificationSettingsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of add user notification settings");
-		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings POST");
 		Status status = new Status();
 		try {
 			if (userNotificationSettingsService
@@ -62,6 +72,13 @@ public class UserNotificationSettingsController {
 
 	}
 
+	/**
+	 * @param userNotificationSettings
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> updateUserNotificationSettings(
 			@RequestBody List<UserNotificationSettingsT> userNotificationSettings,
@@ -69,7 +86,6 @@ public class UserNotificationSettingsController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of update user notification settings");
-		logger.debug("Inside UserNotificationSettingsController /usernotificationsettings PUT");
 		Status status = new Status();
 		try {
 			if (userNotificationSettingsService

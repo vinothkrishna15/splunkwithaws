@@ -18,6 +18,9 @@ import com.tcs.destination.service.RecentlyAddedService;
 import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/*
+ * This class retrieves  all the subp's
+ */
 @RestController
 @RequestMapping("/subsp")
 public class SubSpController {
@@ -27,6 +30,12 @@ public class SubSpController {
 	@Autowired
 	SubSpService subSpService;
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,

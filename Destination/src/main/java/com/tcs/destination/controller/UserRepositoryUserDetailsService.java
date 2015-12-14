@@ -18,6 +18,9 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.UnAuthorizedException;
 
+/**
+ *This service queries the userRepository and have its appropriate getters and setters
+ */
 @Service
 public class UserRepositoryUserDetailsService implements UserDetailsService {
 
@@ -26,6 +29,9 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 	@Autowired
 	private UserRepository userRepository;
 
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetailsService#loadUserByUsername(java.lang.String)
+	 */
 	@Override
 	public UserDetails loadUserByUsername(String userName)
 			throws UsernameNotFoundException {
@@ -52,6 +58,10 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 		return new UserRepositoryUserDetails(user);
 	}
 
+	/**
+	 * UserRepositoryUserDetails and its getters and setters
+	 *
+	 */
 	public final static class UserRepositoryUserDetails extends UserT
 			implements UserDetails {
 

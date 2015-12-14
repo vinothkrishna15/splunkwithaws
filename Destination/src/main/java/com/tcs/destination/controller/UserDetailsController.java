@@ -47,6 +47,13 @@ import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
 
+/**
+ * This class deals with user details 
+ * and other functionalities like login, logout, change password, forget password,
+ * upload and download of User Details
+ * @author tcs2
+ *
+ */
 @RestController
 @RequestMapping("/user")
 public class UserDetailsController {
@@ -75,23 +82,32 @@ public class UserDetailsController {
 	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
 	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @param nameWith
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
 					throws DestinationException {
-		logger.debug("Inside UserDetailsController /user GET");
+		logger.info("starting UserDetailsController findone method");
 		try{
 			if (nameWith.equals("")) {
-				logger.debug("nameWith is EMPTY");
+				logger.info("Ending UserDetailsController findone method");
 				return ResponseConstructors.filterJsonForFieldAndViews(fields,
 						view, DestinationUtils.getCurrentUserDetails());
 			} else {
 				List<UserT> user = userService.findByUserName(nameWith);
+				logger.info("Ending UserDetailsController findone method");
 				return ResponseConstructors.filterJsonForFieldAndViews(fields,
 						view, user);
 			}
+			
 		} catch(DestinationException e) {
 			throw e;
 		} catch(Exception e) {
@@ -116,20 +132,16 @@ public class UserDetailsController {
 			@RequestParam(value = "appVersion", defaultValue = "") String appVersion)
 			throws DestinationException {
 
-		logger.debug("Inside UserDetailsController /user/login POST");
+		logger.info("starting UserDetailsController /user/login POST");
 		try{
 			UserT user = userService.findByUserId(DestinationUtils
 					.getCurrentUserDetails().getUserId());
 			if (user != null) {
 				// Log Username for debugging
-				logger.info("Username: {}", user.getUserName());
 				HttpSession session = httpServletRequest.getSession(false);
 				if (session == null) {
-					logger.info("Session is null, creating new session");
 					session = httpServletRequest.getSession();
-
 				}
-				logger.info("sessionId: {}", session.getId());
 
 				// Check if the User has already logged in with the same session
 				if (userService.findByUserIdAndSessionId(user.getUserId(),
@@ -141,10 +153,10 @@ public class UserDetailsController {
 				// Set the custom TimeOut
 				ApplicationSettingsT appSettings = applicationSettingsRepository
 						.findOne(Constants.TIME_OUT);
-				logger.debug("Time_Out Interval: {}", appSettings.getValue());
+				logger.info("Time_Out Interval: {}", appSettings.getValue());
 				session.setMaxInactiveInterval(Integer.parseInt(appSettings
 						.getValue()) * 60);
-				logger.debug("Session Timeout: {}",
+				logger.info("Session Timeout: {}",
 						session.getMaxInactiveInterval());
 
 				// Get Last Login Time
@@ -226,6 +238,7 @@ public class UserDetailsController {
 							applicationSettingsT.getValue());
 				}
 			}
+			logger.info("Ending UserDetailsController /user/login POST");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 							user), headers, HttpStatus.OK);
@@ -237,11 +250,16 @@ public class UserDetailsController {
 		}
 	}
 
+	/**
+	 * @param httpServletRequest
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/logout", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> userLogout(
 			HttpServletRequest httpServletRequest) throws DestinationException {
 		try{
-			logger.debug("Inside UserDetailsController /user/logout GET");
+			logger.info("Starting UserDetailsController /user/logout GET");
 			Status status = new Status();
 			HttpSession session = httpServletRequest.getSession(false);
 			if (session != null) {
@@ -252,7 +270,7 @@ public class UserDetailsController {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No valid session to log out");
 			}
-
+			logger.info("Ending UserDetailsController /user/logout GET");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -264,11 +282,17 @@ public class UserDetailsController {
 		}
 	}
 
+	/**
+	 * @param httpServletRequest
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/changepwd", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> changePassword(
 			HttpServletRequest httpServletRequest, @RequestBody UserT user)
 			throws DestinationException {
-		logger.debug("Inside UserDetailsController /user/changepwd PUT");
+		logger.info("starting UserDetailsController /user/changepwd PUT");
 		Status status = new Status();
 		try{
 			String userId = DestinationUtils.getCurrentUserDetails()
@@ -298,7 +322,7 @@ public class UserDetailsController {
 				throw new DestinationException(HttpStatus.UNAUTHORIZED,
 						"User not in a valid session");
 			}
-
+			logger.info("Ending UserDetailsController /user/changepwd PUT");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -310,20 +334,24 @@ public class UserDetailsController {
 		}
 	}
 
+	/**
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/forgotpwd", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> forgotPassword(
 			@RequestBody UserT user) throws DestinationException {
-		logger.info("Inside UserDetailsController /user/forgotpwd POST");
+		logger.info("Starting UserDetailsController /user/forgotpwd POST");
 		Status status = new Status();
 
 		try{
 			String userId = user.getUserId();
 			String userEmailId = user.getUserEmailId();
-			logger.info("userId : " + userId + ", userEmailId : " + userEmailId);
 			userService.forgotPassword(userId, userEmailId);
 			status.setStatus(Status.SUCCESS,
 					"Password has been sent to the email address");
-
+			logger.info("Ending UserDetailsController /user/changepwd PUT");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -335,24 +363,32 @@ public class UserDetailsController {
 		}
 	}
 
+	/**
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/privileges", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getPrivileges(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		try{
+			logger.info("Starting UserDetailsController /user/privileges GET");
 			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			logger.debug("Inside UserDetailsController /user/privileges GET");
 			Status status = new Status();
 
 			List<UserAccessPrivilegesT> userPrivilegesList = userService
 					.getAllPrivilegesByUserId(userId);
 			if (userPrivilegesList != null && userPrivilegesList.isEmpty()) {
 				status.setStatus(Status.FAILED, "Invalid userId");
+				logger.info("Ending UserDetailsController /user/privileges GET: Invalid User");
 				return new ResponseEntity<String>(
 						ResponseConstructors.filterJsonForFieldAndViews("all", "",
 								status), HttpStatus.OK);
 			} else {
+				logger.info("Ending UserDetailsController /user/privileges GET");
 				return new ResponseEntity<String>(
 						ResponseConstructors.filterJsonForFieldAndViews(fields,
 								view, userPrivilegesList), HttpStatus.OK);
@@ -365,17 +401,21 @@ public class UserDetailsController {
 		} 
 	}
 
+	/**
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertUser(
 			@RequestBody UserT user) throws DestinationException {
-		logger.info("Inside UserDetailsController /user POST");
+		logger.info("Starting UserDetailsController /user POST");
 		Status status = new Status();
 		try{
 			if (userService.insertUser(user, false)) {
 				status.setStatus(Status.SUCCESS, user.getUserId());
-				logger.debug("USER CREATED SUCCESS" + user.getUserId());
 			}
-
+			logger.info("Ending UserDetailsController /user POST");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -387,6 +427,13 @@ public class UserDetailsController {
 		} 
 	}
 
+	/**
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadUser(
 			@RequestParam("file") MultipartFile file,
@@ -395,7 +442,7 @@ public class UserDetailsController {
 					throws DestinationException {
 		try{
 			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			logger.debug("upload request Received : docName - ");
+			logger.info("Starting UserDetailsController/upload ");
 			UploadStatusDTO status = null;
 
 			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -416,6 +463,7 @@ public class UserDetailsController {
 					.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"upload_error.xlsx");
+			logger.info("Starting UserDetailsController/upload ");
 			return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
 					HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -426,6 +474,13 @@ public class UserDetailsController {
 		} 
 	}
 	
+	/**
+	 * @param oppFlag
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public ResponseEntity<InputStreamResource> downloadCustomerMaster(
 			@RequestParam("downloadUsers") boolean oppFlag,
@@ -445,7 +500,7 @@ public class UserDetailsController {
 							+ ".xlsm");
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-			logger.info("Customer Master Report Downloaded Successfully ");
+			logger.info("Start of Customer Details download: Success");
 			return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
 					respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
