@@ -30,37 +30,38 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/push")
 public class PushNotificationController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(PushNotificationController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(PushNotificationController.class);
 
 	@Autowired
 	PushNotificationService pushNotificationService;
 
-		
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addPushNotificationReg(
 			@RequestBody PushNotificationRegistrationT pushNotification,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside PushNotificationController /push POST");
-		try{
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (pushNotificationService.addPushNotification(pushNotification)) {
-			logger.debug("Push Notification Registration done Successfully");
-			status.setStatus(Status.SUCCESS,"Push Notification Registration done Successfully" );
-		}
-		
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		logger.info("Inside PushNotificationController / Start of add Push Notification");
+		try {
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (pushNotificationService.addPushNotification(pushNotification)) {
+				status.setStatus(Status.SUCCESS,
+						"Push Notification Registration done Successfully");
+			}
+			logger.info("Inside PushNotificationController / End of add Push Notification");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while registering for push notification");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while registering for push notification");
 		}
 	}
 
@@ -70,55 +71,55 @@ public class PushNotificationController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside PushNotificationController /push PUT");
-		try{
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (pushNotificationService.updatePushNotification(pushNotification)) {
-			logger.debug("Push Notification Registration Updated Successfully");
-			status.setStatus(Status.SUCCESS,"Push Notification Registration Update Successfully" );
-		}
-		
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		logger.info("Inside PushNotificationController / Start of edit Push Notification");
+		try {
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (pushNotificationService
+					.updatePushNotification(pushNotification)) {
+				status.setStatus(Status.SUCCESS,
+						"Push Notification Registration Update Successfully");
+			}
+			logger.info("Inside PushNotificationController / End of edit Push Notification");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while updating push notification registration");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating push notification registration");
 		}
 	}
-
 
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody ResponseEntity<String> deletePushNotificationReg(
-			@RequestParam(value="userId") String userId,
+			@RequestParam(value = "userId") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside PushNotificationController /push DELETE");
-		try{
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (pushNotificationService.deletePushNotificRecords(userId)) {
-			logger.debug("Push Notification Registration Deleted Successfully");
-			status.setStatus(Status.SUCCESS,"Push Notification Registration Deleted Successfully" );
-		}
-		
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews(
-				"all", "", status), HttpStatus.OK);
+		logger.info("Inside PushNotificationController / Start of delete Push Notification");
+		try {
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (pushNotificationService.deletePushNotificRecords(userId)) {
+				status.setStatus(Status.SUCCESS,
+						"Push Notification Registration Deleted Successfully");
+			}
+			logger.info("Inside PushNotificationController / End of delete Push Notification");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend error while deleting push notification registration");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while deleting push notification registration");
 		}
 	}
-		
-		
-}
 
+}

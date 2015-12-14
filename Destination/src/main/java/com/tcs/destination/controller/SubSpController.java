@@ -31,12 +31,11 @@ public class SubSpController {
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
-		logger.info("Start of retrieving the subSps");
-		logger.debug("Inside SubSpController /subsp GET");
+		logger.info("Inside SubSpController / Start of retrieving the subSps");
 		try {
 		ArrayList<SubSpMappingT> subSpMapping = (ArrayList<SubSpMappingT>) subSpService
 				.findAll();
-		logger.info("End of retrieving the subSps");
+		logger.info("Inside SubSpController / End of retrieving the subSps");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, subSpMapping);
 		} catch (DestinationException e) {
 			throw e;

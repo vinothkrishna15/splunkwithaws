@@ -9,8 +9,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.savedrequest.NullRequestCache;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.web.http.HeaderHttpSessionStrategy;
 import org.springframework.session.web.http.HttpSessionStrategy;
 
@@ -26,15 +29,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			throws Exception {
 		auth.userDetailsService(userDetailsService);
 		
-	}
+	}	 
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		// Instruct Spring Security not to create Session and use session exists already if any
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
 		http.csrf().disable();
-		//http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-		
+		http.sessionManagement().maximumSessions(1).sessionRegistry(sessionRegistry());
 		http.authorizeRequests().
 		antMatchers(HttpMethod.POST,"/api/useraccess/request").permitAll().
 		antMatchers(HttpMethod.POST,"/api/user/forgotpwd").permitAll().
@@ -51,8 +53,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		//
 	}
 	
+		
+	@Bean
+    public  SessionRegistry sessionRegistry() {
+        SessionRegistry sessionRegistry = new SessionRegistryImpl();
+        return  sessionRegistry;
+    }
+   
+    // Register HttpSessionEventPublisher
+	 @Bean
+    public static HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 	@Bean
     public HttpSessionStrategy httpSessionStrategy() {
         return new HeaderHttpSessionStrategy();
     }
+	
 }
