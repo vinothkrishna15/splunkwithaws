@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
@@ -212,30 +213,55 @@ public class FavoritesService {
 
 	/**
 	 * This Method is used to remove cyclic dependency in UserFavoritesT
+	 * 
 	 * @param userFavorites
 	 * @throws DestinationException
 	 */
 	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
 			throws DestinationException {
+		logger.info("Inside prepareFavorites service");
 		for (UserFavoritesT userFavoritesT : userFavorites) {
-				if (userFavoritesT.getContactT() != null) {
-					contactService
-							.removeCyclicForLinkedContactTs(userFavoritesT
-									.getContactT());
-					contactService.prepareContactDetails(
-							userFavoritesT.getContactT(), null);
-					userFavoritesT.getContactT().setUserFavoritesTs(null);
-				}
-
-				if (userFavoritesT.getCustomerMasterT() != null) {
-					userFavoritesT.getCustomerMasterT().setUserFavoritesTs(null);
-					for(ConnectT connectT: userFavoritesT.getCustomerMasterT().getConnectTs()){
+			if (userFavoritesT.getContactT() != null) {
+				contactService.removeCyclicForLinkedContactTs(userFavoritesT
+						.getContactT());
+				contactService.prepareContactDetails(
+						userFavoritesT.getContactT(), null);
+				userFavoritesT.getContactT().setUserFavoritesTs(null);
+			}
+			if (userFavoritesT.getCustomerMasterT() != null) {
+				userFavoritesT.getCustomerMasterT().setUserFavoritesTs(null);
+				if (userFavoritesT.getCustomerMasterT().getConnectTs() != null) {
+					for (ConnectT connectT : userFavoritesT
+							.getCustomerMasterT().getConnectTs()) {
 						connectT.setUserFavoritesTs(null);
 					}
-					for(OpportunityT opportunityT: userFavoritesT.getCustomerMasterT().getOpportunityTs()){
+				}
+				if (userFavoritesT.getCustomerMasterT().getOpportunityTs() != null) {
+					for (OpportunityT opportunityT : userFavoritesT
+							.getCustomerMasterT().getOpportunityTs()) {
 						opportunityT.setUserFavoritesTs(null);
 					}
 				}
+			}
+			if (userFavoritesT.getPartnerMasterT() != null) {
+				userFavoritesT.getPartnerMasterT().setUserFavoritesTs(null);
+				if (userFavoritesT.getPartnerMasterT().getConnectTs() != null) {
+					for (ConnectT connectT : userFavoritesT.getPartnerMasterT()
+							.getConnectTs()) {
+						connectT.setUserFavoritesTs(null);
+					}
+				}
+				if (userFavoritesT.getPartnerMasterT()
+						.getOpportunityPartnerLinkTs() != null) {
+					for (OpportunityPartnerLinkT opportunityPartnerLinkT : userFavoritesT
+							.getPartnerMasterT().getOpportunityPartnerLinkTs()) {
+						if (opportunityPartnerLinkT.getOpportunityT() != null) {
+							opportunityPartnerLinkT.getOpportunityT()
+									.setUserFavoritesTs(null);
+						}
+					}
+				}
+			}
 		}
 	}
 }
