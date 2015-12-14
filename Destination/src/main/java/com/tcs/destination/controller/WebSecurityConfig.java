@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -43,13 +44,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		anyRequest().authenticated().and().requestCache()
         .requestCache(new NullRequestCache()).and().httpBasic();		
 		
-		 //http.authorizeRequests().antMatchers("api/newuser/request").permitAll();
-		// .authenticated().and().csrf().disable();
-		// .antMatchers("/login").permitAll()
-		// .anyRequest().authenticated();
-		// // .and().formLogin();
-		// // .loginPage("/login").permitAll();
-		//
 	}
 	
 		
