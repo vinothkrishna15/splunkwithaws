@@ -41,11 +41,15 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This Controller handles the opportunity module
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/opportunity")
 public class OpportunityController {
-	// @Autowired
-	// OpportunityRepository opportunityRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(OpportunityController.class);
@@ -70,9 +74,20 @@ public class OpportunityController {
 	private static final DateFormat desiredFormat = new SimpleDateFormat(
 			"MM/dd/yyyy");
 
-	// @Autowired
-	// CustomerRepository customerRepository;
-
+	/**
+	 * This method retrieves the opportunity details for the given nameWith
+	 * 
+	 * @param page
+	 * @param count
+	 * @param nameWith
+	 * @param customerId
+	 * @param fields
+	 * @param currencies
+	 * @param isAjax
+	 * @param view
+	 * @return opportunities
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findOne(
 			@RequestParam(value = "page", defaultValue = "0") int page,
@@ -105,6 +120,17 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method is used to get the opportunity details for the given
+	 * opportunity id
+	 * 
+	 * @param opportunityId
+	 * @param currencies
+	 * @param fields
+	 * @param view
+	 * @return opportunity
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findByOpportunityId(
 			@PathVariable("id") String opportunityId,
@@ -133,6 +159,16 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method retrieves the opportunity details by customer id
+	 * 
+	 * @param customerId
+	 * @param currencies
+	 * @param fields
+	 * @param view
+	 * @return opportunities
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/recent", method = RequestMethod.GET)
 	public @ResponseBody String findByCustomerId(
 			@RequestParam("customerId") String customerId,
@@ -161,6 +197,16 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method is used to get the opportunity details by Task Owner
+	 * 
+	 * @param currencies
+	 * @param opportunityRole
+	 * @param fields
+	 * @param view
+	 * @return opportunities
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/taskowner", method = RequestMethod.GET)
 	public @ResponseBody String findByTaskOwner(
 			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
@@ -190,6 +236,15 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method is used to create an opportunity
+	 * 
+	 * @param opportunity
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createOpportunity(
 			@RequestBody OpportunityT opportunity,
@@ -217,6 +272,15 @@ public class OpportunityController {
 		}
 	}
 
+	/**
+	 * This method is used to edit an existing opportunity
+	 * 
+	 * @param opportunity
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editOpportunity(
 			@RequestBody OpportunityT opportunity,
@@ -243,6 +307,17 @@ public class OpportunityController {
 
 	}
 
+	/**
+	 * This method is used to get the opportunities by sales stage code
+	 * 
+	 * @param salesStageCode
+	 * @param customerId
+	 * @param fields
+	 * @param currencies
+	 * @param view
+	 * @return opportunities
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/salesStage", method = RequestMethod.GET)
 	public @ResponseBody String findShelved(
 			@RequestParam(value = "salesStageCode") int salesStageCode,
@@ -313,6 +388,14 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method retrieves all the opportunity reopen requests
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return opportunityReopenRequestTs
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/reopen", method = RequestMethod.GET)
 	public @ResponseBody String findAllReOpen(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -338,6 +421,15 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method retrieves the opportunity reopen request by id
+	 * 
+	 * @param id
+	 * @param fields
+	 * @param view
+	 * @return opportunityReopenRequestT
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/reopen/{id}", method = RequestMethod.GET)
 	public @ResponseBody String findById(
 			@PathVariable("id") String id,
@@ -367,6 +459,15 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method creates a new opportunity reopen request
+	 * 
+	 * @param opportunityReopenRequestT
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/reopen", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addNewReopenRequest(
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
@@ -394,6 +495,15 @@ public class OpportunityController {
 
 	}
 
+	/**
+	 * This method is used to update an opportunity reopen request
+	 * 
+	 * @param opportunityReopenRequestT
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/reopen", method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editReopenRequest(
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT,
@@ -473,6 +583,35 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method gives the functionality for opportunity advanced search
+	 * 
+	 * @param page
+	 * @param count
+	 * @param customerIdList
+	 * @param displayIou
+	 * @param country
+	 * @param opportunityName
+	 * @param partnerId
+	 * @param offering
+	 * @param competitorName
+	 * @param displaySubSp
+	 * @param bidRequestType
+	 * @param newLogo
+	 * @param strategicInitiative
+	 * @param salesStageCode
+	 * @param searchKeywords
+	 * @param minDigitalDealValue
+	 * @param maxDigitalDealValue
+	 * @param dealCurrency
+	 * @param currency
+	 * @param userId
+	 * @param digitalFlag
+	 * @param fields
+	 * @param view
+	 * @return opportunityResponse
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/search", method = RequestMethod.GET)
 	public @ResponseBody String searchOpportunities(
 			@RequestParam(value = "page", defaultValue = "0") int page,
@@ -525,6 +664,19 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method retrieves all the opportunities
+	 * 
+	 * @param page
+	 * @param count
+	 * @param isCurrentFinancialYear
+	 * @param order
+	 * @param sortBy
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "page", defaultValue = "0") int page,
@@ -555,6 +707,16 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method gives the Opportunity name or keyword search
+	 * 
+	 * @param name
+	 * @param keyword
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/name", method = RequestMethod.GET)
 	public @ResponseBody String findOppNameOrKeyword(
 			@RequestParam(value = "name", defaultValue = "") String name,
@@ -589,6 +751,16 @@ public class OpportunityController {
 		return response;
 	}
 
+	/**
+	 * This method uploads the opportunity details from excel file to the
+	 * database
+	 * 
+	 * @param file
+	 * @param fields
+	 * @param view
+	 * @return excelFile
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadOpportunity(
 			@RequestParam("file") MultipartFile file,

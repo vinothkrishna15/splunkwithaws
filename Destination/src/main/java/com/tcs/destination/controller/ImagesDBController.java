@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,12 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ * This controller deals with the images related functionalities
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/images")
 public class ImagesDBController {
@@ -46,6 +50,15 @@ public class ImagesDBController {
 	@Autowired
 	ContactRepository contactRepository;
 
+	/**
+	 * This method inserts the image for particular entity
+	 * 
+	 * @param entityId
+	 * @param entityType
+	 * @param file
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody String sampleInsert(
 			@RequestParam(value = "entityId") String entityId,
@@ -71,6 +84,8 @@ public class ImagesDBController {
 				userRepository.addImage(imageBytes, entityId);
 				break;
 
+			default:
+
 			}
 			logger.info("Inside ImagesDB Controller: End of insert");
 			return "";
@@ -83,6 +98,14 @@ public class ImagesDBController {
 		}
 	}
 
+	/**
+	 * This method is used to get the photo for the particular entity
+	 * 
+	 * @param entityId
+	 * @param entityType
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET, produces = "image/jpg")
 	public ResponseEntity<byte[]> testphoto(
 			@RequestParam(value = "id") String entityId,
@@ -111,6 +134,9 @@ public class ImagesDBController {
 				UserT user = userRepository.findOne(entityId);
 				img1 = user.getUserPhoto();
 				break;
+
+			default:
+
 			}
 
 			logger.info("Exiting ImagesDB Controller");

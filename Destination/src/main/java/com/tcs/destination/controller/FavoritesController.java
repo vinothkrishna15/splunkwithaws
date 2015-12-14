@@ -20,6 +20,12 @@ import com.tcs.destination.service.FavoritesService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller handles the favourites module
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/favorites")
 public class FavoritesController {
@@ -30,6 +36,18 @@ public class FavoritesController {
 	@Autowired
 	FavoritesService myFavService;
 
+	/**
+	 * This method is used to get the favourites for respective entity type
+	 * given
+	 * 
+	 * @param entityType
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return favourites
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
@@ -60,6 +78,15 @@ public class FavoritesController {
 		}
 	}
 
+	/**
+	 * This method is used to create a new favourite
+	 * 
+	 * @param favorites
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addFavorite(
 			@RequestBody UserFavoritesT favorites,
@@ -92,20 +119,27 @@ public class FavoritesController {
 		}
 	}
 
+	/**
+	 * This method removes the favourite
+	 * 
+	 * @param favoritesId
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String removeFromFavorites(
 			@RequestParam(value = "userFavoritesId") String favoritesId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.debug("Inside FavoritesController /favorites?userFavoritesId="
-				+ favoritesId + " DELETE");
-		logger.info("Start of delete Favourites");
+		logger.info("Inside favorites controller : Start of delete Favourites");
 		Status status = new Status();
 		try {
 			myFavService.removeFromFavorites(favoritesId);
 			status.setStatus(Status.SUCCESS, favoritesId);
-			logger.info("End of delete Favourites");
+			logger.info("Inside favorites controller : End of delete Favourites");
 			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 					status);
 		} catch (DestinationException e) {
@@ -113,7 +147,8 @@ public class FavoritesController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the chart values");
+					"Backend error while removing the favourite :"
+							+ favoritesId);
 		}
 
 	}

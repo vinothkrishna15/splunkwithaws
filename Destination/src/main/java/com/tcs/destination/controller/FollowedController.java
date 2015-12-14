@@ -21,6 +21,12 @@ import com.tcs.destination.service.FollowedService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This class handles the user tagged followed module
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/follow")
 public class FollowedController {
@@ -31,6 +37,16 @@ public class FollowedController {
 	@Autowired
 	FollowedService followedService;
 
+	/**
+	 * This method retrieves the user tagged followed details for entity type
+	 * given
+	 * 
+	 * @param entityType
+	 * @param fields
+	 * @param view
+	 * @return userFollowed
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFavorite(
 			@RequestParam("entityType") String entityType,
@@ -55,6 +71,15 @@ public class FollowedController {
 		}
 	}
 
+	/**
+	 * This method is used to add a user tagged followed for an entity
+	 * 
+	 * @param followed
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addFollowed(
 			@RequestBody UserTaggedFollowedT followed,
@@ -87,6 +112,16 @@ public class FollowedController {
 		}
 	}
 
+	/**
+	 * This method gives the functionality to unfollow based on the
+	 * userTaggedFollowedId
+	 * 
+	 * @param userTaggedFollowedId
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody String unFollow(
 			@RequestParam(value = "userTaggedFollowedId") String userTaggedFollowedId,

@@ -1,8 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +16,15 @@ import com.tcs.destination.bean.FrequentlySearchedCustomerPartnerT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.FrequentlySearchedService;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller handles with the frequently searched details for various
+ * entities
+ * 
+ * @author TCS
+ *
+ */
 @RestController
 @RequestMapping("/frequent")
 public class FrequentlySearchedController {
@@ -32,6 +35,18 @@ public class FrequentlySearchedController {
 	@Autowired
 	FrequentlySearchedService frequentService;
 
+	/**
+	 * This method is used to get the frequently searched details for the entity
+	 * type given
+	 * 
+	 * @param entityType
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @param owner
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findFrequent(
 			@RequestParam(value = "entityType") String entityType,
@@ -54,6 +69,15 @@ public class FrequentlySearchedController {
 		}
 	}
 
+	/**
+	 * This method inserts the frequently searched customer or partner details
+	 * 
+	 * @param frequent
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFrequent(
 			@RequestBody FrequentlySearchedCustomerPartnerT frequent,
@@ -69,7 +93,7 @@ public class FrequentlySearchedController {
 				status.setStatus(Status.SUCCESS,
 						frequent.getFrequentlySearchedId());
 			}
-			logger.info("Inside Frequently searched controller: Start of find");
+			logger.info("Inside Frequently searched controller: End of insert");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
