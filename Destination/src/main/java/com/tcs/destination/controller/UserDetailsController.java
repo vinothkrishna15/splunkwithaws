@@ -151,8 +151,9 @@ public class UserDetailsController {
 			  }
 			  logger.info("active session size:"+activeSessions.size());
 			  
-			// System.out.println("active session size:"+webSecurityConfig.sessionRegistry().getAllPrincipals().size());
-			if(maxactive_session>=activeSessions.size()){
+			//TODO check for failure request added to active sessions  
+//			if(maxactive_session>=activeSessions.size()){
+			if(true) {
 			
 			UserT user = userService.findByUserId(DestinationUtils
 					.getCurrentUserDetails().getUserId());
