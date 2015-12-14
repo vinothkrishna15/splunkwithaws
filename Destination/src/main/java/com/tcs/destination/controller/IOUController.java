@@ -20,28 +20,32 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/iou")
 public class IOUController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(IOUController.class);
-	
-	@Autowired 
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(IOUController.class);
+
+	@Autowired
 	IOUService iouService;
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
-	@RequestParam(value = "fields", defaultValue = "all") String fields,
-	@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException
-	{
-		logger.debug("Inside IOUController /iou GET");
-		try{
-		ArrayList<IouCustomerMappingT> iouCustomerMappingTs=new ArrayList<IouCustomerMappingT>();
-		iouCustomerMappingTs=(ArrayList<IouCustomerMappingT>) iouService.findAll();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				iouCustomerMappingTs);
-		} catch(DestinationException e) {
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside IOUController: Start of search");
+		try {
+			ArrayList<IouCustomerMappingT> iouCustomerMappingTs = new ArrayList<IouCustomerMappingT>();
+			iouCustomerMappingTs = (ArrayList<IouCustomerMappingT>) iouService
+					.findAll();
+			logger.info("Inside IOUController: End of search");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, iouCustomerMappingTs);
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving iou details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving iou details");
 		}
 	}
 

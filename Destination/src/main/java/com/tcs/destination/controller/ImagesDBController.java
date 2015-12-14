@@ -31,7 +31,8 @@ import com.tcs.destination.exception.DestinationException;
 @RequestMapping("/images")
 public class ImagesDBController {
 
-	private static final Logger logger = LoggerFactory.getLogger(GeographyController.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(GeographyController.class);
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -49,71 +50,77 @@ public class ImagesDBController {
 	public @ResponseBody String sampleInsert(
 			@RequestParam(value = "entityId") String entityId,
 			@RequestParam(value = "entityType") String entityType,
-			@RequestParam("file") MultipartFile file
-			) throws DestinationException {
+			@RequestParam("file") MultipartFile file)
+			throws DestinationException {
+		logger.info("Inside ImagesDB Controller: start of insert");
 
-		try{
+		try {
 			byte[] imageBytes = file.getBytes();
 
-			switch(EntityType.valueOf(entityType)){
-			case CUSTOMER :
-				customerRepository.addImage(imageBytes,entityId);
+			switch (EntityType.valueOf(entityType)) {
+			case CUSTOMER:
+				customerRepository.addImage(imageBytes, entityId);
 				break;
-			case PARTNER :
+			case PARTNER:
 				partnerRepository.addImage(imageBytes, entityId);
 				break;
-			case CONTACT :	 
+			case CONTACT:
 				contactRepository.addImage(imageBytes, entityId);
 				break;
-			case DOCUMENT :
+			case DOCUMENT:
 				userRepository.addImage(imageBytes, entityId);
 				break;
 
 			}
+			logger.info("Inside ImagesDB Controller: End of insert");
 			return "";
-		} catch(DestinationException e) {
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while uploading image");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while uploading image");
 		}
 	}
 
 	@RequestMapping(method = RequestMethod.GET, produces = "image/jpg")
-	public ResponseEntity<byte[]> testphoto(@RequestParam(value = "id") String entityId,
-			@RequestParam(value = "type") String entityType) throws DestinationException {
+	public ResponseEntity<byte[]> testphoto(
+			@RequestParam(value = "id") String entityId,
+			@RequestParam(value = "type") String entityType)
+			throws DestinationException {
+		logger.info("Inside ImagesDB Controller");
 		try {
-		byte[] img1 = new byte[0];
-		final HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.IMAGE_JPEG);
-		
-			switch(EntityType.valueOf(entityType)){
-			case CUSTOMER :
+			byte[] img1 = new byte[0];
+			final HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.IMAGE_JPEG);
+
+			switch (EntityType.valueOf(entityType)) {
+			case CUSTOMER:
 				CustomerMasterT customer = customerRepository.findOne(entityId);
 				img1 = customer.getLogo();
 				break;
-			case PARTNER :
+			case PARTNER:
 				PartnerMasterT partner = partnerRepository.findOne(entityId);
 				img1 = partner.getLogo();
 				break;
-			case CONTACT :	 
+			case CONTACT:
 				ContactT contact = contactRepository.findOne(entityId);
 				img1 = contact.getContactPhoto();
 				break;
-			case DOCUMENT :
+			case DOCUMENT:
 				UserT user = userRepository.findOne(entityId);
 				img1 = user.getUserPhoto();
 				break;
 			}
 
-		
-		return new ResponseEntity<byte[]>(img1, headers, HttpStatus.CREATED);
-		} catch(DestinationException e) {
+			logger.info("Exiting ImagesDB Controller");
+			return new ResponseEntity<byte[]>(img1, headers, HttpStatus.CREATED);
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving image");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving image");
 		}
 	}
-
 }

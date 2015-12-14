@@ -44,8 +44,6 @@ public class BDMController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-
-		logger.debug("Inside BDMController /bdmPerformance GET");
 		logger.info("Inside BDMController : Start of retrieving BDM Dashboard details");
 
 		DashBoardBDMResponse dashBoardBDMResponse = null;
@@ -67,7 +65,6 @@ public class BDMController {
 	/**
 	 * This Controller retrieves the BDM Supervisors Performance Details
 	 * 
-	 * @param userId
 	 * @param financialYear
 	 * @param isDashboardByYear
 	 * @param fields
@@ -83,8 +80,6 @@ public class BDMController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-
-		logger.debug("Inside BDMController /supervisorPerformance GET");
 		logger.info("Inside BDMController : Start of retrieving BDM Supervisor Dashboard details");
 		BDMSupervisorDashboardDTO bdmSupervisorDashboardResponse = null;
 		try {
@@ -105,8 +100,7 @@ public class BDMController {
 
 	/**
 	 * This Controller retrieves the Geo Or Iou Heads Performance Widget
-	 * 
-	 * @param userId
+	 *
 	 * @param financialYear
 	 * @param isDashboardByYear
 	 * @param fields
@@ -121,8 +115,6 @@ public class BDMController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-
-		logger.debug("Inside BDMController /geoIouHeadPerformance GET");
 		logger.info("Inside BDMController : Start of retrieving the Dashboard details for BDM Performance by Geo IOU");
 		BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = null;
 		try {

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.data.repository.FavoritesSearchedRepository;
@@ -208,19 +210,32 @@ public class FavoritesService {
 		}
 	}
 
+	/**
+	 * This Method is used to remove cyclic dependency in UserFavoritesT
+	 * @param userFavorites
+	 * @throws DestinationException
+	 */
 	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
 			throws DestinationException {
 		for (UserFavoritesT userFavoritesT : userFavorites) {
-			if (userFavoritesT.getContactT() != null) {
 				if (userFavoritesT.getContactT() != null) {
 					contactService
 							.removeCyclicForLinkedContactTs(userFavoritesT
 									.getContactT());
 					contactService.prepareContactDetails(
 							userFavoritesT.getContactT(), null);
+					userFavoritesT.getContactT().setUserFavoritesTs(null);
 				}
 
-			}
+				if (userFavoritesT.getCustomerMasterT() != null) {
+					userFavoritesT.getCustomerMasterT().setUserFavoritesTs(null);
+					for(ConnectT connectT: userFavoritesT.getCustomerMasterT().getConnectTs()){
+						connectT.setUserFavoritesTs(null);
+					}
+					for(OpportunityT opportunityT: userFavoritesT.getCustomerMasterT().getOpportunityTs()){
+						opportunityT.setUserFavoritesTs(null);
+					}
+				}
 		}
 	}
 }

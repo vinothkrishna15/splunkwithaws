@@ -21,25 +21,28 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RequestMapping("/comments")
 public class CollaborationCommentsController {
 
-	private static final Logger logger = LoggerFactory.getLogger(CollaborationCommentsController.class);
-	
+	private static final Logger logger = LoggerFactory
+			.getLogger(CollaborationCommentsController.class);
+
 	@Autowired
 	CollaborationCommentsService commentsService;
 
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertComments(
-			@RequestBody CollaborationCommentT comments) throws DestinationException {
-		logger.debug("Inside CollaborationCommentsController /comments POST");
+			@RequestBody CollaborationCommentT comments)
+			throws DestinationException {
 		logger.info("Inside CollaborationCommentsController : Start of inserting the comments");
 		try {
-		Status status = new Status();
-		status.setStatus(Status.FAILED, "");
-		if (commentsService.insertComments(comments)!=null) {
+			Status status = new Status();
+			status.setStatus(Status.FAILED, "");
+			if (commentsService.insertComments(comments) != null) {
 				logger.debug("Comments Inserted Successfully");
-				status.setStatus(Status.SUCCESS,comments.getCommentId());
+				status.setStatus(Status.SUCCESS, comments.getCommentId());
 			}
-		logger.info("Inside CollaborationCommentsController : End of inserting the comments");
-		return new ResponseEntity<String>(ResponseConstructors.filterJsonForFieldAndViews("all", "", status),HttpStatus.OK);
+			logger.info("Inside CollaborationCommentsController : End of inserting the comments");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

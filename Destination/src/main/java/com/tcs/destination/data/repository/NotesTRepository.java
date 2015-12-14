@@ -30,7 +30,28 @@ public interface NotesTRepository extends
 
 	List<NotesT> findByOpportunityId(String opportunityId);
 	
-	@Query(value = "select notes_updated from notes_t where opportunity_id=?1",nativeQuery = true)
+	/**
+	 * This Method is used to get notes updated for the given opportunityId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select distinct notes_updated from notes_t where opportunity_id=?1",nativeQuery = true)
 	List<String> findDealRemarksNotesByOpportunityId(String opportunityId);
+
+	/**
+	 * This Method is used to get notes updated for the given connectId
+	 * @param connectId
+	 * @return
+	 */
+	@Query(value = "select distinct notes_updated from notes_t where connect_id=?1",nativeQuery = true)
+	List<String> findConnectNotesByConnectId(String connectId);
+
+	/**
+	 * This Method is used to get notes updated for the given taskId
+	 * @param taskId
+	 * @return
+	 */
+	@Query(value = "select distinct notes_updated from notes_t where task_id=?1",nativeQuery = true)
+	List<String> findNotesUpdatedByNotesId(String taskId);
 
 }

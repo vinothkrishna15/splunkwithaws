@@ -25,8 +25,9 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/competitor")
 public class CompetitorController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(CompetitorController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(CompetitorController.class);
 
 	@Autowired
 	CompetitorService compService;
@@ -35,23 +36,24 @@ public class CompetitorController {
 	public @ResponseBody String findNameWith(
 			@RequestParam("nameWith") String chars,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
-		logger.debug("Inside CompetitorController /competitor?namewith="+chars+" GET");
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 		logger.info("Inside CompetitorController : Start of retrieving the competitor list");
 		List<CompetitorMappingT> compList;
 		try {
-			compList = compService
-					.findByNameContaining(chars);
+			compList = compService.findByNameContaining(chars);
 			logger.info("Inside CompetitorController : End of retrieving the competitor list");
-			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, compList);
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, compList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the competitor name for : " + chars);
+					"Backend error in retrieving the competitor name for : "
+							+ chars);
 		}
-		
+
 	}
 
 }

@@ -65,6 +65,11 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 	public final static class UserRepositoryUserDetails extends UserT
 			implements UserDetails {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 		private UserRepositoryUserDetails(UserT user) {
 			super(user);
 		}

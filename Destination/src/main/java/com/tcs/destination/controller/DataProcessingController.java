@@ -27,74 +27,75 @@ public class DataProcessingController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DataProcessingController.class);
-	
+
 	@Autowired
 	DataProcessingService service;
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String> batchUploadRequest(
-	    @RequestParam("file") MultipartFile file,
-	    @RequestParam("type") int type,
-	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-	    @RequestParam(value = "view", defaultValue = "") String view)
-	    throws Exception {
-		
-		logger.debug("Upload request Received: type = {}, docName = {} ", type, file.getOriginalFilename());
+	public @ResponseBody ResponseEntity<String> batchUploadRequest(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("type") int type,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		logger.info("Inside Data Processing controller: Start of upload");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (type > 0 && type < 10) {
-				 status = service.saveUploadRequest(file, type);
-				 logger.debug("UPLOAD SUCCESS - Record Created ");
+				status = service.saveUploadRequest(file, type);
+				logger.info("UPLOAD SUCCESS - Record Created ");
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid upload request type.");
 			}
-		   
+
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    e.getMessage());
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
+		logger.info("Inside Data Processing controller: End of upload");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						status), HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/download", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String> batchDownloadRequest(
-	    @RequestParam("type") int type,
-	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-	    @RequestParam(value = "view", defaultValue = "") String view)
-	    throws Exception {
-		
-		logger.debug("Download request Received: type = {}", type);
+	public @ResponseBody ResponseEntity<String> batchDownloadRequest(
+			@RequestParam("type") int type,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+
+		logger.info("Inside Data Processing controller: Start of download");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (type > 9 && type < 19) {
-				 status = service.saveDownloadRequest(type);
-				 logger.debug("DOWNLOAD SUCCESS - Record Created ");
+				status = service.saveDownloadRequest(type);
+				logger.debug("DOWNLOAD SUCCESS - Record Created ");
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid download request type.");
 			}
-		   
+
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    e.getMessage());
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
 		}
+		logger.info("Inside Data Processing controller: End of download");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						status), HttpStatus.OK);
 	}
-	
+
 }
-	

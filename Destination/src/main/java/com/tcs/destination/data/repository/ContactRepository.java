@@ -60,8 +60,8 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param opportunityId
 	 * @return
 	 */
-	@Query(value = "select contact_name from contact_t  where contact_id in "
-			+ "(select contact_id from opportunity_tcs_account_contact_link_t where opportunity_id=?1)" , nativeQuery = true)
+	@Query(value = "select contact_name from contact_t CONT "
+			+ "join opportunity_tcs_account_contact_link_t OPPTACL on CONT.contact_id=OPPTACL.contact_id where OPPTACL.opportunity_id=?1" , nativeQuery = true)
 	List<String> findTcsAccountContactNamesByOpportinityId(String opportunityId);
 	
 	/**
@@ -69,7 +69,25 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param opportunityId
 	 * @return
 	 */
-	@Query(value = "select contact_name from contact_t  where contact_id in "
-			+ "(select contact_id from opportunity_customer_contact_link_t where opportunity_id=?1)" , nativeQuery = true)
+	@Query(value = "select contact_name from contact_t CONT "
+			+ "join opportunity_customer_contact_link_t OCCLT on CONT.contact_id=OCCLT.contact_id where opportunity_id=?1" , nativeQuery = true)
 	List<String> findCustomerContactNamesByOpportinityId(String opportunityId);
+
+	/**
+	 * This Method is used to get tcs account contact names for the given connectId
+	 * @param connectId
+	 * @return
+	 */
+	@Query(value = "select contact_name from contact_t CONT "
+			+ "join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
+	List<String> findTcsAccountContactNamesByConnectId(String connectId);
+	
+	/**
+	 * This Method is used to get customer contact names for the given connectId
+	 * @param opportunityId
+	 * @return
+	 */
+	@Query(value = "select contact_name from contact_t CONT "
+			+ "join connect_customer_contact_link_t CCACL on CONT.contact_id=CCACL.contact_id where CCACL.connect_id=?1" , nativeQuery = true)
+	List<String> findCustomerContactNamesByConnectId(String connectId);
 }

@@ -74,7 +74,7 @@ public class RevenueController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of upload revenue mapping");
+		logger.info("Inside RevenueController / Start of upload revenue mapping");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
 		try {
 			UploadStatusDTO status = revenueUploadService.upload(file, userId);
@@ -89,7 +89,7 @@ public class RevenueController {
 							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"revenue_mapping_upload_error.xlsx");
-			logger.info("End of upload revenue mapping");
+			logger.info("Inside RevenueController / End of upload revenue mapping");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -118,9 +118,8 @@ public class RevenueController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of upload actual revenue data");
+		logger.info("Inside RevenueController / Start of upload actual revenue data");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
-		logger.info("inside uploadActualRevenueData controller");
 		try {
 			UploadStatusDTO status = actualRevenueDataUplaodService.upload(
 					file, userId);
@@ -135,7 +134,7 @@ public class RevenueController {
 							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"actual_revenue_data_mapping_upload_error.xlsx");
-			logger.info("End of upload actual revenue data");
+			logger.info("Inside RevenueController / End of upload actual revenue data");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
@@ -153,7 +152,7 @@ public class RevenueController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of actual revenue download");
+		logger.info("Inside RevenueController / Start of actual revenue download");
 		HttpHeaders respHeaders = null;
 		InputStreamResource ActualRevenueDownloadExcel = null;
 		try {
@@ -167,7 +166,7 @@ public class RevenueController {
 					"ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-			logger.info("Actual Revenue Template Report Downloaded Successfully ");
+			logger.info("Inside RevenueController / End of actual revenue download ");
 			return new ResponseEntity<InputStreamResource>(
 					ActualRevenueDownloadExcel, respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {

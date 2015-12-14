@@ -39,9 +39,7 @@ public class FavoritesController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside FavoritesController /favorites?entityType="
-				+ entityType + " GET");
-		logger.info("Start of retrieving the favourites");
+		logger.info("Inside favorites controller : Start of retrieving the favourites");
 		try {
 			if (page < 0 && count < 0) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -49,7 +47,7 @@ public class FavoritesController {
 			}
 			PaginatedResponse favourites = myFavService.findFavoritesFor(
 					userId, entityType, page, count);
-			logger.info("End of retrieving the favourites");
+			logger.info("Inside favorites controller : End of retrieving the favourites");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, favourites);
 		} catch (DestinationException e) {
@@ -68,12 +66,11 @@ public class FavoritesController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of adding user favourites");
+		logger.info("Inside favorites controller : Start of adding user favourites");
 		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
 			favorites.setUserId(userId);
-			logger.debug("Inside FavoritesController /favorites POST");
 			Status status = new Status();
 			status.setStatus(Status.FAILED, "");
 			if (myFavService.addFavorites(favorites)) {
@@ -82,7 +79,7 @@ public class FavoritesController {
 						+ "Inserted Successfully");
 				status.setStatus(Status.SUCCESS, favorites.getUserFavoritesId());
 			}
-			logger.info("End of adding user favourites");
+			logger.info("Inside favorites controller : End of adding user favourites");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);

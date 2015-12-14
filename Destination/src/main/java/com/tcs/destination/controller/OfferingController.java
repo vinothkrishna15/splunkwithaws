@@ -20,8 +20,9 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/offering")
 public class OfferingController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(OfferingController.class);
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(OfferingController.class);
 
 	@Autowired
 	OfferingService offeringService;
@@ -29,20 +30,22 @@ public class OfferingController {
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 		try {
-		logger.debug("Inside OfferingController /offering GET");
-		ArrayList<OfferingMappingT> offeringMapping = (ArrayList<OfferingMappingT>) offeringService
-				.findAll();
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				offeringMapping);
+			logger.info("Inside OfferingController: Start of search");
+			ArrayList<OfferingMappingT> offeringMapping = (ArrayList<OfferingMappingT>) offeringService
+					.findAll();
+			logger.info("Inside OfferingController: End of search");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, offeringMapping);
 		} catch (DestinationException e) {
-		    logger.error("Destination Exception" + e.getMessage());
-		    throw e;
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
 		} catch (Exception e) {
-		    logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-		    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-			    "Backend Error while retrieving offering details");
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving offering details");
 		}
 	}
 

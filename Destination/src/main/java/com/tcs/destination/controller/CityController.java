@@ -21,33 +21,33 @@ import com.tcs.destination.utils.ResponseConstructors;
 @RestController
 @RequestMapping("/city")
 public class CityController {
-	
-	private static final Logger logger = LoggerFactory.getLogger(CityController.class);
-	
-	@Autowired 
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(CityController.class);
+
+	@Autowired
 	CityService cityService;
-	
-	
+
 	@RequestMapping(method = RequestMethod.GET)
 	public @ResponseBody String findAll(
-	@RequestParam(value = "nameWith") String nameWith,	
-	@RequestParam(value = "fields", defaultValue = "all") String fields,
-	@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException
-	{
-		logger.debug("Inside CityController GET");
+			@RequestParam(value = "nameWith") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 		logger.info("Inside CityController : Start of retrieving the city names");
-		List<String> cityNameList=new ArrayList<String>();
+		List<String> cityNameList = new ArrayList<String>();
 		try {
-		cityNameList= cityService.getCityByCityName(nameWith);
-		logger.info("Inside CityController : End of retrieving the city names");
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				cityNameList);
+			cityNameList = cityService.getCityByCityName(nameWith);
+			logger.info("Inside CityController : End of retrieving the city names");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, cityNameList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the city name for :" + nameWith);
+					"Backend error in retrieving the city name for :"
+							+ nameWith);
 		}
 	}
 

@@ -38,11 +38,10 @@ public class FeedbackController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
 			throws DestinationException {
-		logger.info("Start of retrieving the feedback");
-		logger.debug("Inside searchforfeedbacksById service");
+		logger.info("Inside feedback controller : Start of retrieving the feedback");
 		try {
 			FeedbackT feedback = feedbackService.findFeedbackById(feedbackId);
-			logger.info("End of retrieving the feedback");
+			logger.info("Inside feedback controller : End of retrieving the feedback");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, feedback);
 		} catch (DestinationException e) {
@@ -58,8 +57,7 @@ public class FeedbackController {
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToFeedback(
 			@RequestBody FeedbackT feedback) throws DestinationException {
-		logger.info("Start of insert feedback");
-		logger.debug("Feedback Insert Request Received /feedback POST");
+		logger.info("Inside feedback controller : Start of insert feedback");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -68,7 +66,7 @@ public class FeedbackController {
 				logger.debug("Feedback created successfully"
 						+ feedback.getFeedbackId());
 			}
-			logger.info("End of insert feedback");
+			logger.info("Inside feedback controller : End of insert feedback");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -85,8 +83,7 @@ public class FeedbackController {
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> editFeedback(
 			@RequestBody FeedbackT feedback) throws DestinationException {
-		logger.info("Start of edit feedback");
-		logger.debug("Feedback Edit Request Received /feedback PUT");
+		logger.info("Inside feedback controller : Start of edit feedback");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -95,7 +92,7 @@ public class FeedbackController {
 				logger.debug("Feedback updated successfully"
 						+ feedback.getFeedbackId());
 			}
-			logger.info("End of edit feedback");
+			logger.info("Inside feedback controller : End of edit feedback");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -123,13 +120,12 @@ public class FeedbackController {
 			@RequestParam(value = "view", defaultValue = "feedback") String view)
 			throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.info("Start of retrieving the filtered feedback");
-		logger.debug("Inside getFilteredFeedbacks service");
+		logger.info("Inside feedback controller : Start of retrieving the filtered feedback");
 		try {
 			List<FeedbackT> feedbackList = feedbackService.findFeedbacksWith(
 					titleWith, descriptionWith, issueType, priority, status,
 					userId, module, updatedUserId, subModule);
-			logger.info("End of retrieving the filtered feedback");
+			logger.info("Inside feedback controller : End of retrieving the filtered feedback");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, feedbackList);
 		} catch (DestinationException e) {

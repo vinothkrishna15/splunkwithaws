@@ -56,16 +56,18 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all", required = false) String fields,
 			@RequestParam(value = "view", defaultValue = "", required = false) String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/revenue GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		List<TargetVsActualResponse> response;
 		try {
-			response = perfService
-					.getTargetVsActualRevenueSummary(financialYear, quarter,
-							displayGeography, geography, serviceLine, iou,
-							customerName, currency, groupCustomer, wins, userId, true);
+			response = perfService.getTargetVsActualRevenueSummary(
+					financialYear, quarter, displayGeography, geography,
+					serviceLine, iou, customerName, currency, groupCustomer,
+					wins, userId, true);
+			logger.info("Inside PerformanceReportController: End of /perfreport/revenue GET");
 			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-							response), HttpStatus.OK);
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, response), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -88,23 +90,26 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/iou GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (financialYear.isEmpty()) {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<IOUReport> iouList = null;
-		try{
-		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
-			iouList = perfService.getOpportunitiesByIOU(financialYear, quarter,
-					displayGeography, geography, serviceLine, currency,
-					salesStageFrom, salesStageTo, userId);
+		try {
+			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+				iouList = perfService.getOpportunitiesByIOU(financialYear,
+						quarter, displayGeography, geography, serviceLine,
+						currency, salesStageFrom, salesStageTo, userId);
 
-		} else {
-			iouList = perfService.getRevenuesByIOU(financialYear, quarter,
-					displayGeography,geography, serviceLine, currency, userId);
-		}
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				iouList);
+			} else {
+				iouList = perfService.getRevenuesByIOU(financialYear, quarter,
+						displayGeography, geography, serviceLine, currency,
+						userId);
+			}
+			logger.info("Inside PerformanceReportController: End of /perfreport/iou GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, iouList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -129,24 +134,26 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/subsp GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (financialYear.isEmpty()) {
 			financialYear = DateUtils.getCurrentFinancialYear();
 		}
 		List<SubSpReport> subSpList = null;
-		try{
-		if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
-			subSpList = perfService.getOpportunitiesBySubSp(financialYear,
-					quarter, displayGeography, geography, iou, currency,
-					salesStageFrom, salesStageTo, userId);
+		try {
+			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+				subSpList = perfService.getOpportunitiesBySubSp(financialYear,
+						quarter, displayGeography, geography, iou, currency,
+						salesStageFrom, salesStageTo, userId);
 
-		} else {
-			subSpList = perfService.getRevenuesBySubSp(financialYear, quarter,
-					displayGeography, geography, customerName, iou, currency,
-					groupCustomer, userId);
-		}
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				subSpList);
+			} else {
+				subSpList = perfService.getRevenuesBySubSp(financialYear,
+						quarter, displayGeography, geography, customerName,
+						iou, currency, groupCustomer, userId);
+			}
+			logger.info("Inside PerformanceReportController: End of /perfreport/subsp GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, subSpList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -172,45 +179,49 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/geo GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		List<GeographyReport> geoList = null;
-		try{
-		if (displayGeography.equals("") && geography.isEmpty()) {
+		try {
+			if (displayGeography.equals("") && geography.isEmpty()) {
 
-			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+				if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+					if (financialYear.isEmpty() && quarter.isEmpty()) {
+						financialYear = DateUtils.getCurrentFinancialYear();
+					}
+					geoList = perfService.getOpportunitiesByDispGeography(
+							financialYear, quarter, serviceLine, iou, currency,
+							salesStageFrom, salesStageTo, userId);
+				} else {
+					if (financialYear.isEmpty()) {
+						financialYear = DateUtils.getCurrentFinancialYear();
+					}
+					geoList = perfService.getRevenuesByDispGeography(
+							financialYear, quarter, customerName, serviceLine,
+							iou, currency, groupCustomer, userId);
+				}
+
+			} else {
 				if (financialYear.isEmpty() && quarter.isEmpty()) {
 					financialYear = DateUtils.getCurrentFinancialYear();
 				}
-				geoList = perfService.getOpportunitiesByDispGeography(
-						financialYear, quarter, serviceLine, iou, currency,
-						salesStageFrom, salesStageTo, userId);
-			} else {
-				if (financialYear.isEmpty()) {
-					financialYear = DateUtils.getCurrentFinancialYear();
+				if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
+					geoList = perfService
+							.getOpportunitiesBySubGeography(financialYear,
+									quarter, customerName, serviceLine, iou,
+									displayGeography, geography, currency,
+									salesStageFrom, salesStageTo,
+									groupCustomer, userId);
+				} else {
+					geoList = perfService.getRevenuesBySubGeography(
+							financialYear, quarter, customerName, serviceLine,
+							iou, displayGeography, geography, currency,
+							groupCustomer, userId);
 				}
-				geoList = perfService.getRevenuesByDispGeography(financialYear,
-						quarter, customerName, serviceLine, iou, currency,
-						groupCustomer, userId);
 			}
-
-		} else {
-			if (financialYear.isEmpty() && quarter.isEmpty()) {
-				financialYear = DateUtils.getCurrentFinancialYear();
-			}
-			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
-				geoList = perfService.getOpportunitiesBySubGeography(
-						financialYear, quarter, customerName, serviceLine, iou,
-						displayGeography, geography, currency, salesStageFrom,
-						salesStageTo, groupCustomer, userId);
-			} else {
-				geoList = perfService.getRevenuesBySubGeography(financialYear,
-						quarter, customerName, serviceLine, iou,
-						displayGeography, geography, currency, groupCustomer,
-						userId);
-			}
-		}
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-				geoList);
+			logger.info("Inside PerformanceReportController: End of /perfreport/geo GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, geoList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -236,13 +247,15 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/opportunity GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		ReportsOpportunity reportsOpportunity;
 		try {
-			reportsOpportunity = perfService.getOpportunity(
-					financialYear, quarter, displayGeography, geography, iou,
-					serviceLine, currency, salesStageFrom, salesStageTo,
-					customerName, groupCustomer, userId);
+			reportsOpportunity = perfService.getOpportunity(financialYear,
+					quarter, displayGeography, geography, iou, serviceLine,
+					currency, salesStageFrom, salesStageTo, customerName,
+					groupCustomer, userId);
+			logger.info("Inside PerformanceReportController: End of /perfreport/opportunity GET");
 			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 					reportsOpportunity);
 		} catch (DestinationException e) {
@@ -271,7 +284,8 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		logger.info("Inside PerformanceReportController: Start of /perfreport/topopps GET");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		Date startDate, endDate;
 		if (financialYear.isEmpty() && quarter.isEmpty()) {
 			financialYear = DateUtils.getCurrentFinancialYear();
@@ -293,8 +307,9 @@ public class PerformanceReportController {
 					displayGeography, geography, salesStageFrom, salesStageTo,
 					serviceLine, iou, startDate, endDate, count, customerName,
 					groupCustomer, userId);
-			return ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-					oppList);
+			logger.info("Inside PerformanceReportController: End of /perfreport/topopps GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, oppList);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -306,21 +321,24 @@ public class PerformanceReportController {
 
 	/**
 	 * This Controller used to insert recently searched group customer details
+	 * 
 	 * @param frequentlySearchedGroupCustomersT
 	 * @return
 	 * @throws Exception
 	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertToRecentlySearchedGroupCustomer(
-			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT) throws DestinationException {
-		logger.debug("Connect Insert Request Received /connect POST");
+			@RequestBody FrequentlySearchedGroupCustomersT frequentlySearchedGroupCustomersT)
+			throws DestinationException {
+		logger.info("Inside PerformanceReportController: Start of /perfreport POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (perfService.insertFrequentlySearchedGroupCustomer(frequentlySearchedGroupCustomersT)) {
+			if (perfService
+					.insertFrequentlySearchedGroupCustomer(frequentlySearchedGroupCustomersT)) {
 				status.setStatus(Status.SUCCESS, "Inserted Successfully");
-				logger.debug("GROUP CUSTOMER INSERTED SUCCESSFULLY" + "Inserted Successfully");
 			}
+			logger.info("Inside PerformanceReportController: End of /perfreport POST");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -331,11 +349,13 @@ public class PerformanceReportController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in inserting frequently searched group customer");
 		}
-		
-	}	
-	
+
+	}
+
 	/**
-	 * This Controller used to get five frequently searched group customer details
+	 * This Controller used to get five frequently searched group customer
+	 * details
+	 * 
 	 * @param fields
 	 * @param view
 	 * @return
@@ -346,10 +366,14 @@ public class PerformanceReportController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
+		logger.info("Inside PerformanceReportController: Start of /perfreport/freqSearchGroupCust GET");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		try{
-		List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService.findGroupCustomerName(userId);
-		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, frequentlySearchedGroupCustomersT);
+		try {
+			List<FrequentlySearchedGroupCustomersT> frequentlySearchedGroupCustomersT = perfService
+					.findGroupCustomerName(userId);
+			logger.info("Inside PerformanceReportController: End of /perfreport/freqSearchGroupCust GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, frequentlySearchedGroupCustomersT);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

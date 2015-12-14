@@ -64,7 +64,6 @@ public class FollowedController {
 		logger.info("Start of adding the user tagged followed details");
 		followed.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails()
 				.getUserId());
-		logger.debug("Inside FollowedController /follow POST");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -95,8 +94,6 @@ public class FollowedController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of Deleting the user tagged followed details");
-		logger.debug("Inside FollowedController /follow?userTaggedFollowedId="
-				+ userTaggedFollowedId + " DELETE");
 		Status status = new Status();
 		try {
 			followedService.unFollow(userTaggedFollowedId);
@@ -108,8 +105,10 @@ public class FollowedController {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while deleting the user tagged followed details for userTaggedFollowedId :" + userTaggedFollowedId);
+			throw new DestinationException(
+					HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while deleting the user tagged followed details for userTaggedFollowedId :"
+							+ userTaggedFollowedId);
 		}
 
 	}

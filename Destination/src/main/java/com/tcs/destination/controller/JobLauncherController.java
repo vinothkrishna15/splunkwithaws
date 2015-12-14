@@ -44,75 +44,77 @@ public class JobLauncherController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(JobLauncherController.class);
-	
+
 	@Autowired
-    private JobLauncher jobLauncher;
-	
+	private JobLauncher jobLauncher;
+
 	@Autowired
 	private JobRegistry jobRegistry;
-	
-	
+
 	@RequestMapping(value = "/launch", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<String> jobLaunch(
-	    @RequestBody  JobName jobName,
-	    @RequestParam(value = "fields", defaultValue = "all") String fields,
-	    @RequestParam(value = "view", defaultValue = "") String view) throws Exception
-	     {
-		
-		logger.info("Launching job:" + jobName.getJob());
-		
+	public @ResponseBody ResponseEntity<String> jobLaunch(
+			@RequestBody JobName jobName,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws Exception {
+		logger.info("Inside Job Laucher Controller: Launching job"
+				+ jobName.getJob());
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
-			Job job;
-			JobExecution execution;
-			try {
-				job = jobRegistry.getJob(jobName.getJob());
-				execution = jobLauncher.run(job, getJobParameter(job));
-				
-				logger.info("Job: {} exit status:{}.", job.getName() ,execution.getStatus() );
-				
-				if (execution.getStatus().equals(BatchStatus.COMPLETED)) {
-					status.setStatus(Status.SUCCESS, "Job:" + job + " completed successfully.");
-				}
-				
-			} catch (NoSuchJobException e) {
-				logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				    "No such job available for the job name:" + jobName.getJob());
-			} catch (JobExecutionAlreadyRunningException e) {
-				logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				    "Error lauching the job as an job instance is already running:");
-			} catch (JobRestartException e) {
-				logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				    "Unable to restart the job:" + jobName.getJob());
-			} catch (JobInstanceAlreadyCompleteException e) {
-				logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				    "Error lauching the job as a job instance is already completed:");
-			} catch (JobParametersInvalidException e) {
-				logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-			    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-				    "Error lauching the job due to invalid job parameters:" + jobName.getJob());
-			} catch (Exception e) {
-				 logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
-				    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					    "Error lauching the job:" + jobName.getJob());
+		Job job;
+		JobExecution execution;
+		try {
+			job = jobRegistry.getJob(jobName.getJob());
+			execution = jobLauncher.run(job, getJobParameter(job));
+
+			logger.info("Job: {} exit status:{}.", job.getName(),
+					execution.getStatus());
+
+			if (execution.getStatus().equals(BatchStatus.COMPLETED)) {
+				status.setStatus(Status.SUCCESS, "Job:" + job
+						+ " completed successfully.");
 			}
-			
-			
-		
+
+		} catch (NoSuchJobException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"No such job available for the job name:"
+							+ jobName.getJob());
+		} catch (JobExecutionAlreadyRunningException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job as an job instance is already running:");
+		} catch (JobRestartException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Unable to restart the job:" + jobName.getJob());
+		} catch (JobInstanceAlreadyCompleteException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job as a job instance is already completed:");
+		} catch (JobParametersInvalidException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job due to invalid job parameters:"
+							+ jobName.getJob());
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job:" + jobName.getJob());
+		}
+
+		logger.info("Inside controller: Job launch complete");
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						status), HttpStatus.OK);
 	}
-	
-	private JobParameters getJobParameter (Job job) {
-		String dateParam = DateUtils.getCurrentDateForBatch ();
-		logger.info("Job: {} starting with parameters: {}.", job.getName() ,dateParam );
-		return new JobParametersBuilder().addString("date", dateParam).toJobParameters();
+
+	private JobParameters getJobParameter(Job job) {
+		String dateParam = DateUtils.getCurrentDateForBatch();
+		logger.info("Job: {} starting with parameters: {}.", job.getName(),
+				dateParam);
+		return new JobParametersBuilder().addString("date", dateParam)
+				.toJobParameters();
 	}
-	
+
 }
-	

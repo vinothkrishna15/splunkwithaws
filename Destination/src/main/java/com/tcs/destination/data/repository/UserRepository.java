@@ -63,11 +63,15 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query( value = "select * from user_t where user_role in (:userRoles)", nativeQuery = true)
 	List<UserT> findByUserRoles(@Param("userRoles") List<String> roles);
 	
-	@Query(value=" select user_name from user_t where user_id in ("
-			+ "select sales_support_owner from opportunity_sales_support_link_t where opportunity_id=?1)", nativeQuery=true)
+	@Query(value=" select distinct user_name from user_t U join opportunity_sales_support_link_t OSSL on U.user_id=OSSL.sales_support_owner "
+			+ "where opportunity_id=?1", nativeQuery=true)
 	List<String> findOpportunitySalesSupportOwnersNameByOpportunityId(String opportunityId);
 	
-	@Query(value = "select user_name from user_t where user_id in ("
-			+ "select bid_office_group_owner from bid_office_group_owner_link_t where bid_id=?1)", nativeQuery=true)
+	@Query(value = "select distinct user_name from user_t U join bid_office_group_owner_link_t BOGL on U.user_id=BOGL.bid_office_group_owner "
+			+ "where bid_id=?1", nativeQuery=true)
 	List<String> findBidOfficeGroupOwnersNameByBidId(String bidId);
+	
+	@Query(value = "select distinct user_name from user_t U join connect_secondary_owner_link_t CSW on U.user_id=CSW.secondary_owner"
+			+ " where CSW.connect_id=?1", nativeQuery = true)
+	List<String> getSecondaryOwnerNamesByConnectId(String connectId);
 }

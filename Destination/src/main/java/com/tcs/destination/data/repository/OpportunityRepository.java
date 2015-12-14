@@ -1156,5 +1156,15 @@ public interface OpportunityRepository extends
 			@Param("countryList") List<String> countryList, 
 			@Param("fromDate") Date fromDate, @Param("toDate") Date toDate, 
 			@Param("iouList") List<String> iouList);
+
+	
+	/**
+	* This Method is used to get opportunity name for the given connectId 
+	* @param connectId
+	* @return
+	*/
+	@Query(value ="select opportunity_name from opportunity_t OPP "
+			+ "join connect_opportunity_link_id_t COPLT on OPP.opportunity_id=COPLT.opportunity_id where connect_id=?1", nativeQuery=true)
+	List<String> findLinkOpportunityByConnectId(String connectId);
 	
 }
