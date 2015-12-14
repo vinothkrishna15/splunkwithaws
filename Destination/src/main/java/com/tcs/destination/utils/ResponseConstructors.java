@@ -1,6 +1,5 @@
 package com.tcs.destination.utils;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -81,7 +80,7 @@ public class ResponseConstructors {
 			try {
 				
 				String response = mapper.writer(filters).writeValueAsString(object);
-				logger.info("Response Constructor : Serialized - " + object.toString());
+				logger.info("Response::::::::::::::::::: " + response);
 				return response;
 			} catch (Exception e) {
 				return e.getMessage();
@@ -90,39 +89,6 @@ public class ResponseConstructors {
 		}
 	}
 	
-	/**
-	 * This method is used to handle child object fields.
-	 * Calls all child object's getter methods using reflection
-	 * @param object
-	 * @return 
-	 */
-/*	private static void handleChildObjects(Object parentObj) throws Exception {
-		//logger.info("Inside handleChildObjects() method");
-		Method[] methods = null;
-		
-		if (parentObj != null) { 
-			methods = parentObj.getClass().getDeclaredMethods();
-		}
-		
-		logger.info("Parent object = " + parentObj.getClass().getName());
-		if (methods != null) {
-			try {
-				for (Method method: methods) {
-					if (method.getName().startsWith("get")) {
-						Object childObj = method.invoke(parentObj, new Object[] {});
-						if (null != childObj) { 
-							//For lazy loading
-							childObj.toString(); 
-						}
-					}
-				}
-			} catch (Exception e) {
-				logger.error("Error occured while handling child objects." + e.getMessage());
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error");
-			}
-		}
-	}
-*/	
 	public static FrequentlySearchedResponse convertToFrequentlySearchedResponse(
 			Integer count, PartnerMasterT partner) {
 		FrequentlySearchedResponse response = new FrequentlySearchedResponse();
