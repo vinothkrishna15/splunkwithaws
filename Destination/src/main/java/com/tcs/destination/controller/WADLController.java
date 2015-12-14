@@ -46,7 +46,10 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.tcs.destination.exception.DestinationException;
-  
+
+/**
+ * This class deals with various functionalities over WADL
+ */
 @RestController
 @RequestMapping("/wadl")
 public class WADLController {
@@ -64,11 +67,17 @@ public class WADLController {
     @Value("${logBaseDir}")
     private String basePath;
  
+    /**
+     * @param request
+     * @return
+     * @throws DestinationException
+     */
     @RequestMapping(value = "/view",method=RequestMethod.GET, produces={"application/xml"} ) 
     public @ResponseBody Application viewWadl(HttpServletRequest request) throws DestinationException {
     	try {
     	logger.info("WADL View Request received");
         Application result = getResult(request);
+        logger.info("WADL View Response received");
 		return result;
     	} catch (DestinationException e) {
 			throw e;
@@ -79,6 +88,11 @@ public class WADLController {
 	   }
     }
 
+	/**
+	 * @param request
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/download",method=RequestMethod.GET, produces={"application/xml"} ) 
     public @ResponseBody ResponseEntity<InputStreamResource> downloadWadl(HttpServletRequest request) throws DestinationException {
     	logger.info("WADL Dowload Request received");
@@ -86,7 +100,6 @@ public class WADLController {
         Application result = getResult(request);
 		try {
 			//converting to xml
-			logger.info("WADL Object Formed");
 			JAXBContext context = JAXBContext.newInstance(Application.class);
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -99,6 +112,7 @@ public class WADLController {
 			HttpHeaders respHeaders = new HttpHeaders();
 			respHeaders.setContentDispositionFormData("attachment","destination.wadl");
 			respHeaders.setContentType(MediaType.APPLICATION_XML);
+			logger.info("WADL Dowload Response received");
 			return new ResponseEntity<InputStreamResource>(isr, respHeaders,HttpStatus.OK);
 			
 		} catch (DestinationException e) {
@@ -110,7 +124,12 @@ public class WADLController {
 		}
     }
 	
+	/**
+	 * @param request
+	 * @return
+	 */
 	private Application getResult(HttpServletRequest request) {
+		logger.info("starting WADL getResult method");
     	Application result = new Application();
     	Doc doc = new Doc();
         doc.setTitle("Destination RESTful Services WADL");
@@ -215,9 +234,14 @@ public class WADLController {
             }
         }
         result.getResources().add(wadResources);
+        logger.info("Ending WADL getResult method");
         return result;
 	}
     
+    /**
+     * @param type
+     * @return
+     */
     private QName convertJavaToXMLType(Class<?> type) {
         QName nm = new QName("");
         String classname=type.toString();
@@ -229,6 +253,12 @@ public class WADLController {
         }
         return nm;
     }
+    
+    /**
+     * @param uri
+     * @param wadResources
+     * @return
+     */
     private Resource createOrFind(String uri, Resources wadResources) {
           List<Resource> current = wadResources.getResource();
           for(Resource resource:current) {
@@ -240,11 +270,20 @@ public class WADLController {
           current.add(wadlResource);
           return wadlResource;
     }
+    
+    /**
+     * @param request
+     * @return
+     */
     private String getBaseUrl (HttpServletRequest request) {
         String requestUri = request.getRequestURI();
         return request.getScheme()+"://"+ request.getServerName()+":"+ request.getServerPort() + requestUri;
     }
       
+    /**
+     * @param value
+     * @return
+     */
     private String cleanDefault(String value) {
         value = value.replaceAll("\t", "");
         value = value.replaceAll("\n", "");
