@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.Status;
-import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
