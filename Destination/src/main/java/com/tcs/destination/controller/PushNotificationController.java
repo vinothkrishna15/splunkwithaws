@@ -17,7 +17,11 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PushNotificationService;
 import com.tcs.destination.utils.ResponseConstructors;
-
+/**
+ * 
+ * This Controller handles notifications
+ *
+ */
 @RestController
 @RequestMapping("/push")
 public class PushNotificationController {
@@ -28,6 +32,14 @@ public class PushNotificationController {
 	@Autowired
 	PushNotificationService pushNotificationService;
 
+	/**
+	 * This method is used to register for push notification
+	 * @param pushNotification
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addPushNotificationReg(
 			@RequestBody PushNotificationRegistrationT pushNotification,
@@ -56,6 +68,14 @@ public class PushNotificationController {
 		}
 	}
 
+	/**
+	 * This method is used to update push notification registration
+	 * @param pushNotification
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.PUT)
 	public @ResponseBody ResponseEntity<String> updatePushNotificationReg(
 			@RequestBody PushNotificationRegistrationT pushNotification,
@@ -85,6 +105,14 @@ public class PushNotificationController {
 		}
 	}
 
+	/**
+	 * This method is used to delete push notification registration
+	 * @param userId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(method = RequestMethod.DELETE)
 	public @ResponseBody ResponseEntity<String> deletePushNotificationReg(
 			@RequestParam(value = "userId") String userId,
