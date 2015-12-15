@@ -144,16 +144,15 @@ public class UserDetailsController {
 		logger.info("starting UserDetailsController /user/login POST");
 		try{
 			List<SessionInformation> activeSessions =null;
-			logger.info("httpServletRequest sessionId:"+httpServletRequest.getSession().getId());
+			logger.info("httpServletRequest sessionId:"+httpServletRequest.getSession(false).getId());
 			  activeSessions = new ArrayList<>();
 			  for(Object principal : sessionRegistry.getAllPrincipals()) {
 			    activeSessions.addAll(sessionRegistry.getAllSessions(principal, false));
 			  }
 			  logger.info("active session size:"+activeSessions.size());
 			  
-			//TODO check for failure request added to active sessions  
-//			if(maxactive_session>=activeSessions.size()){
-			if(true) {
+			// System.out.println("active session size:"+webSecurityConfig.sessionRegistry().getAllPrincipals().size());
+			if(maxactive_session>=activeSessions.size()){
 			
 			UserT user = userService.findByUserId(DestinationUtils
 					.getCurrentUserDetails().getUserId());
@@ -268,8 +267,9 @@ public class UserDetailsController {
 			{
 			HttpSession maxreq_session = httpServletRequest.getSession(false);			
 			if (maxreq_session != null) {
+				
+				sessionRegistry.removeSessionInformation(httpServletRequest.getSession(false).getId());	
 				maxreq_session.invalidate();
-				sessionRegistry.removeSessionInformation(httpServletRequest.getSession().getId());				
 			}
 			logger.info("Maximum number of users reached.Please try after sometime");			
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Maximum number of users reached.Please try after sometime");
