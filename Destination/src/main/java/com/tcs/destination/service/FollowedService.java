@@ -29,6 +29,9 @@ import com.tcs.destination.helper.FollowNotifications;
 import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.DateUtils;
 
+/**
+ * This service handles Followed and its other functionalities.
+ */
 @Service
 public class FollowedService {
 
@@ -65,10 +68,17 @@ public class FollowedService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	/**
+	 * 
+	 * @param userId
+	 * @param entityType
+	 * @return
+	 * @throws Exception
+	 */
 	public List<UserTaggedFollowedT> findFollowedFor(String userId,
 			String entityType) throws Exception {
 
-		logger.debug("Inside findFollowedFor Service");
+		logger.info("satrt: Inside findFollowedFor Service");
 
 		if (EntityType.contains(entityType)) {
 
@@ -77,7 +87,6 @@ public class FollowedService {
 			case CONNECT:
 			case OPPORTUNITY:
 			case TASK:
-				logger.debug("EntityType is present");
 				List<UserTaggedFollowedT> userFollowed = followedRepository
 						.findByUserIdAndEntityTypeOrderByCreatedModifiedDatetimeDesc(
 								userId, entityType);
@@ -87,6 +96,7 @@ public class FollowedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				} else {
+					logger.info("End: Inside findFollowedFor Service");
 					return userFollowed;
 				}
 
@@ -100,14 +110,14 @@ public class FollowedService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such Entity type exists. Please ensure your entity type");
 		}
+		
 	}
 
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
-		logger.debug("Inside addFollowed Service");
+		logger.info("Start:Inside addFollowed Followed Service");
 		if (EntityType.contains(followed.getEntityType())) {
 			switch (EntityType.valueOf(followed.getEntityType())) {
 			case CONNECT:
-				logger.debug("Adding Followed Connect");
 				if (followed.getConnectId() == null) {
 					logger.error("BAD_REQUEST: Connect ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -129,7 +139,6 @@ public class FollowedService {
 				}
 				break;
 			case OPPORTUNITY:
-				logger.debug("Adding Followed Opportunity");
 				if (followed.getOpportunityId() == null) {
 					logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -153,7 +162,6 @@ public class FollowedService {
 				break;
 
 			case TASK:
-				logger.debug("Adding Followed Opportunity");
 				if (followed.getTaskId() == null) {
 					logger.error("BAD_REQUEST: Task ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -183,10 +191,10 @@ public class FollowedService {
 			}
 			followed.setCreatedModifiedDatetime(DateUtils.getCurrentTimeStamp());
 			try {
-				logger.debug("Saving the UserTaggedFollowed");
 				UserTaggedFollowedT followDBObj = followedRepository
 						.save(followed);
 				processNotification(followDBObj);
+				logger.info("End: Inside addFollowed Service");
 				return followDBObj != null;
 			} catch (Exception e) {
 				logger.error("BAD_REQUEST" + e.getMessage());
@@ -202,7 +210,7 @@ public class FollowedService {
 	// This method initializes the required fields(according to each entity) for
 	// the notifications executor and starts it
 	private void processNotification(UserTaggedFollowedT followDBObj) {
-		logger.debug("Calling processNotifications() method");
+		logger.info("start:Calling processNotifications() method");
 
 		FollowNotifications followNotificationsHelper = new FollowNotifications();
 		String taskId = followDBObj.getTaskId();
@@ -252,13 +260,20 @@ public class FollowedService {
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
 		}
+		logger.info("End:Calling processNotifications() method");
 	}
 
+	/**
+	 * to implement un-follow functionalities
+	 * @param userTaggedFollowedId
+	 * @throws Exception
+	 */
 	public void unFollow(String userTaggedFollowedId) throws Exception {
-
+		logger.info("start:Calling unFollow() method");
 		try {
 			if (userTaggedFollowedId != null)
 				followedRepository.delete(userTaggedFollowedId);
+			logger.info("End:Calling unFollow() method");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

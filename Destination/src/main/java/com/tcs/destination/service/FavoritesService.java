@@ -19,6 +19,10 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.exception.NoSuchEntityException;
 
+/*
+ * This service is used to find favorites, to add favorites
+ *  and to remove favorites for an user
+ */
 @Service
 public class FavoritesService {
 
@@ -30,14 +34,22 @@ public class FavoritesService {
 
 	@Autowired
 	ContactService contactService;
-
+	
+/**
+ * This method finds the favorites for an user
+ * @param userId
+ * @param entityType
+ * @param start
+ * @param count
+ * @return
+ * @throws Exception
+ */
 	public PaginatedResponse findFavoritesFor(String userId, String entityType,
 			int start, int count) throws Exception {
 		PaginatedResponse favorites = null;
 
-		logger.debug("Inside findFavoritesFor Service");
+		logger.info("Starting findFavoritesFor FavoritesService");
 		if (EntityType.contains(entityType)) {
-			logger.debug("EntityType is present");
 			Pageable pageable = new PageRequest(start, count);
 			Page<UserFavoritesT> userFavorites = userFavRepository
 					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(
@@ -51,9 +63,8 @@ public class FavoritesService {
 				prepareFavorites(userFavorites);
 				favorites = new PaginatedResponse();
 				favorites.setUserFavoritesTs(userFavorites.getContent());
-				logger.debug("Total Favorites: "
-						+ userFavorites.getTotalElements());
 				favorites.setTotalCount(userFavorites.getTotalElements());
+				logger.info("Ending findFavoritesFor FavoritesService");
 				return favorites;
 			}
 		} else {
@@ -62,13 +73,19 @@ public class FavoritesService {
 		}
 	}
 
+	/**
+	 * This method is used to add the favorites for an user
+	 * @param favorites
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean addFavorites(UserFavoritesT favorites) throws Exception {
-		logger.debug("Inside addFavorites Service");
+		logger.info("Starting addFavorites FavoritesService");
 		if (EntityType.contains(favorites.getEntityType())) {
 			UserFavoritesT userFavoritesT = null;
 			switch (EntityType.valueOf(favorites.getEntityType())) {
 			case CUSTOMER:
-				logger.debug("Adding Favorites Customer");
+				logger.info("Adding Favorites Customer");
 				if (favorites.getCustomerId() == null) {
 					logger.error("BAD_REQUEST: Customer ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -86,7 +103,7 @@ public class FavoritesService {
 				}
 				break;
 			case PARTNER:
-				logger.debug("Adding Favorites Partner");
+				logger.info("Adding Favorites Partner");
 				if (favorites.getPartnerId() == null) {
 					logger.error("BAD_REQUEST: Partner ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -103,7 +120,7 @@ public class FavoritesService {
 				}
 				break;
 			case CONNECT:
-				logger.debug("Adding Favorites Connect");
+				logger.info("Adding Favorites Connect");
 				if (favorites.getConnectId() == null) {
 					logger.error("BAD_REQUEST: Connect ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -120,7 +137,7 @@ public class FavoritesService {
 				}
 				break;
 			case OPPORTUNITY:
-				logger.debug("Adding Favorites Opportunity");
+				logger.info("Adding Favorites Opportunity");
 				if (favorites.getOpportunityId() == null) {
 					logger.error("BAD_REQUEST: Opportunity ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -138,7 +155,7 @@ public class FavoritesService {
 				}
 				break;
 			case DOCUMENT:
-				logger.debug("Adding Favorites Document");
+				logger.info("Adding Favorites Document");
 				if (favorites.getDocumentId() == null) {
 					logger.error("BAD_REQUEST: Document ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -157,7 +174,7 @@ public class FavoritesService {
 				break;
 
 			case CONTACT:
-				logger.debug("Adding Favorites Contact");
+				logger.info("Adding Favorites Contact");
 				if (favorites.getContactId() == null) {
 					logger.error("BAD_REQUEST: Contact ID can not be empty");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -175,7 +192,7 @@ public class FavoritesService {
 				break;
 
 			case TASK:
-				logger.debug("Adding Favorites Document");
+				logger.info("Adding Favorites Document");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Saving Task as favorite is not supported!");
 
@@ -188,7 +205,8 @@ public class FavoritesService {
 			}
 
 			try {
-				logger.debug("Saving the UserFavorite");
+				logger.info("Saving the UserFavorite");
+				logger.info("Ending addFavorites FavoritesService");
 				return userFavRepository.save(favorites) != null;
 			} catch (Exception e) {
 				logger.error("BAD_REQUEST" + e.getMessage());
@@ -200,10 +218,17 @@ public class FavoritesService {
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
 	}
-
+	
+/**
+ * This method is used to remove the favorites for an user
+ * @param favoritesId
+ * @throws Exception
+ */
 	public void removeFromFavorites(String favoritesId) throws Exception {
 		try {
+			logger.info("Starting removeFromFavorites in FavoritesService");
 			userFavRepository.delete(favoritesId);
+			logger.info("Ending removeFromFavorites in FavoritesService");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -219,7 +244,7 @@ public class FavoritesService {
 	 */
 	private void prepareFavorites(Iterable<UserFavoritesT> userFavorites)
 			throws DestinationException {
-		logger.info("Inside prepareFavorites service");
+		logger.info("Starting prepareFavorites service");
 		for (UserFavoritesT userFavoritesT : userFavorites) {
 			if (userFavoritesT.getContactT() != null) {
 				contactService.removeCyclicForLinkedContactTs(userFavoritesT
@@ -263,5 +288,6 @@ public class FavoritesService {
 				}
 			}
 		}
+		logger.info("Ending prepareFavorites service");
 	}
 }
