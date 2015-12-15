@@ -2,7 +2,6 @@ package com.tcs.destination.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -84,12 +83,9 @@ public class UploadErrorReport {
 				spreadSheet.autoSizeColumn(1);
 				row.createCell(2).setCellValue(upErorDto.getMessage());
 				row.getCell(2).setCellStyle(rowStyle);
-				spreadSheet.autoSizeColumn(2);
-				
+				spreadSheet.autoSizeColumn(2);				
 				currentRow++;
 			}
-		}
-		
+		}		
 	}
-
 }

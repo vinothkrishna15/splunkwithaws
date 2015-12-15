@@ -172,16 +172,6 @@ public class UserAccessRequestService {
 						"Invalid Supervisor Email Id");
 			}
 		}
-		
-		// Validate supervisor
-	/*	UserT user = userRepository.
-				findByUserIdAndUserEmailId(userAccessRequest.getSupervisorId(), userAccessRequest.getSupervisorEmailId());
-		if (user == null) {
-			logger.error("BAD_REQUEST: Supervisor not found");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Supervisor not found");
-		}
-		*/
 
 		if (StringUtils.isEmpty(userAccessRequest.getReasonForRequest())) {
 			logger.error("BAD_REQUEST: Reason for request is required");

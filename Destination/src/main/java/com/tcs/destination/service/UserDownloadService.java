@@ -40,7 +40,6 @@ import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
-import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 

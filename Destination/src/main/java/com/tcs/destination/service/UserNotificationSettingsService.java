@@ -23,6 +23,11 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * 
+ * This service is used to handle user notification settings
+ *
+ */
 @Service
 public class UserNotificationSettingsService {
 
@@ -41,6 +46,12 @@ public class UserNotificationSettingsService {
 	@Autowired
 	UserRepository userRepository;
 
+	/**
+	 * This method is used to save details of user notification settings
+	 * @param userNotificationSettingsList
+	 * @return
+	 * @throws DestinationException
+	 */
 	@Transactional
 	public boolean saveUserNotifications(
 			List<UserNotificationSettingsT> userNotificationSettingsList)
@@ -79,6 +90,14 @@ public class UserNotificationSettingsService {
 		}
 	}
 
+	/**
+	 * This method is used to retrieve the details of user notification settings
+	 * based on the user Id specified
+	 * 
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
 	public List<NotificationSettingsGroupMappingT> getUserNotificationSettings(
 			String userId) throws Exception {
 
@@ -135,12 +154,18 @@ public class UserNotificationSettingsService {
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
 				break;
+			default:
 			}
 		}
 
 		return notificationSettingsGroupMappingTs;
 	}
 
+	/**
+	 * This method is used to delete notification settings based on index 
+	 * @param notificationSettingsGroupMappingTs
+	 * @param index
+	 */
 	private void removeNotificationSettingsFromIndex(
 			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs,
 			int index) {

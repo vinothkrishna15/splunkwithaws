@@ -23,6 +23,11 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * 
+ * This service is used to handle user notification related functionalities
+ *
+ */
 @Service
 public class UserNotificationsService {
 
@@ -38,6 +43,17 @@ public class UserNotificationsService {
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
 
+	/**
+	 * This method is used to retrieve the details of user notification based on
+	 * the given user Id and based on the time range specified
+	 * 
+	 * @param userId
+	 * @param read
+	 * @param fromTime
+	 * @param toTime
+	 * @return
+	 * @throws DestinationException
+	 */
 	public List<UserNotificationsT> getNotifications(String userId,
 			String read, long fromTime, long toTime)
 			throws DestinationException {
@@ -97,7 +113,7 @@ public class UserNotificationsService {
 	}
 
 	/**
-	 * this method updates the user notification settings
+	 * This method updates the user notification settings
 	 * 
 	 * @param userNotificationSettings
 	 * @return boolean
@@ -142,7 +158,7 @@ public class UserNotificationsService {
 	}
 
 	/**
-	 * This service updates the read status
+	 * This method updates the read status
 	 * 
 	 * @param userNotificationIds
 	 * @param read

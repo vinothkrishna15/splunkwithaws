@@ -11,6 +11,11 @@ import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * 
+ * This service is used to handle general settings pertaining to a user
+ *
+ */
 @Service
 public class UserGeneralSettingsService {
 
@@ -20,6 +25,12 @@ public class UserGeneralSettingsService {
 	@Autowired
 	UserGeneralSettingsRepository userGeneralSettingsRepository;
 
+	/**
+	 * This method is used to save details of user settings
+	 * @param userGeneralSettings
+	 * @return
+	 * @throws DestinationException
+	 */
 	public boolean addUserGeneralSettings(
 			UserGeneralSettingsT userGeneralSettings)
 			throws DestinationException {
@@ -38,6 +49,12 @@ public class UserGeneralSettingsService {
 
 	}
 
+	/**
+	 * This method is used to edit user settings 
+	 * @param userGeneralSettings
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean updateUserGeneralSettings(UserGeneralSettingsT userGeneralSettings)
 			throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
@@ -59,6 +76,12 @@ public class UserGeneralSettingsService {
 		
 	}
 
+	/**
+	 * This method is used to search settings for a user based on userId
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
 	public UserGeneralSettingsT findGeneralSettingsByUserId(String userId) throws Exception {
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository.findByUserId(userId);
 		if(userGenSettings!=null){

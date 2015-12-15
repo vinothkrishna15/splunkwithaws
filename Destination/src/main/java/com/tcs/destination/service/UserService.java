@@ -27,6 +27,11 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * 
+ * This service handles functionalities related to user
+ *
+ */
 @Service
 public class UserService {
 
@@ -41,10 +46,10 @@ public class UserService {
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
-	
+
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
-	
+
 	UserGeneralSettingsRepository userGeneralSettingsRepository;
 
 	@Autowired
@@ -56,6 +61,12 @@ public class UserService {
 	@Autowired
 	CustomerService customerService;
 
+	/**
+	 * This method retrieves user details based on user name
+	 * @param nameWith
+	 * @return
+	 * @throws Exception
+	 */
 	public List<UserT> findByUserName(String nameWith) throws Exception {
 		logger.debug("Inside findByUserName Service");
 		List<UserT> users = (List<UserT>) userRepository
@@ -70,6 +81,12 @@ public class UserService {
 		return users;
 	}
 
+	/**
+	 * This method is used to retrieve user details based on user role
+	 * @param role
+	 * @return
+	 * @throws Exception
+	 */
 	public List<String> findByUserRole(String role) throws Exception {
 		logger.debug("Inside findByUserRole Service");
 		List<String> users = (List<String>) userRepository
@@ -83,7 +100,13 @@ public class UserService {
 
 		return users;
 	}
-	
+
+	/**
+	 * This method is used to retrieve user details based on user name
+	 * @param userName
+	 * @return
+	 * @throws Exception
+	 */
 	public UserT findUserByName(String userName) throws Exception {
 		logger.debug("Inside findUserByName Service");
 		UserT user = null;
@@ -100,11 +123,14 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found");
 		}
-//		user.setPreviledgedCustomerNameList(customerService
-//				.getPreviledgedCustomerName(user.getUserId(), null, false));
 		return user;
 	}
 
+	/**
+	 * This method is used to find the last login details of a specific user
+	 * @param userId
+	 * @return
+	 */
 	public Timestamp getUserLastLogin(String userId) {
 		logger.debug("Inside getUserNotification Service");
 		Timestamp lastLogin = null;
@@ -115,6 +141,12 @@ public class UserService {
 		return lastLogin;
 	}
 
+	/**
+	 * This method is used to save user details to database
+	 * @param user
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean adduser(UserT user) throws Exception {
 		return userRepository.save(user) != null;
 	}
@@ -147,30 +179,64 @@ public class UserService {
 		return loginHistory;
 	}
 
+	/**
+	 * This method is used to search and retrieve user details based on userId an password
+	 * @param userId
+	 * @param password
+	 * @return
+	 * @throws Exception
+	 */
 	public UserT findByUserIdAndPassword(String userId, String password)
 			throws Exception {
 		logger.debug("Inside findByUserIdAndPassword() service");
 		return (userRepository.findByUserIdAndTempPassword(userId, password));
 	}
 
+	/**
+	 * This method is used to update user details
+	 * @param user
+	 */
 	public void updateUser(UserT user) {
 		userRepository.save(user);
 	}
 
+	/**
+	 * This method is used to retrieve user details based on userId
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
 	public UserT findByUserId(String userId) throws Exception {
 		UserT dbUser = userRepository.findOne(userId);
 		return dbUser;
 	}
-	
+
+	/**
+	 * This method is used to retrieve user details based on role of user
+	 * @param userRole
+	 * @return
+	 * @throws Exception
+	 */
 	public List<UserT> getUsersByRole(String userRole) throws Exception {
 		return userRepository.findByUserRole(userRole);
 	}
 
+	/**
+	 * This method is used to check if a given user is System Admin 
+	 * @param userId
+	 * @return
+	 */
 	public boolean isSystemAdmin(String userId) {
 		return isUserWithRole(userId, UserRole.SYSTEM_ADMIN.getValue());
 
 	}
 
+	/**
+	 * This method is used to validate if a given user has the specified role
+	 * @param userId
+	 * @param userRole
+	 * @return
+	 */
 	private boolean isUserWithRole(String userId, String userRole) {
 		return !(userRepository.findByUserIdAndUserRole(userId, userRole)
 				.isEmpty());
@@ -215,139 +281,131 @@ public class UserService {
 			throws Exception {
 		logger.debug("Inside getAllPrivilegesByUserId() service");
 		return (userAccessPrivilegesRepository
-				.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y));
+				.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId,
+						Constants.Y));
 	}
 
 	/**
-	 * This service is used to get all the active access privileges for a user and parent privilege id
+	 * This service is used to get all the active access privileges for a user
+	 * and parent privilege id
 	 * 
 	 * @param userId
 	 * @param privilegeId
 	 * @return List of user access privileges
 	 * @throws Exception
 	 */
-	public List<UserAccessPrivilegesT> getAllChildPrivilegesByUserIdAndParentPrivilegeId(String userId, Integer parentPrivilegeId)
-			throws Exception {
+	public List<UserAccessPrivilegesT> getAllChildPrivilegesByUserIdAndParentPrivilegeId(
+			String userId, Integer parentPrivilegeId) throws Exception {
 		logger.debug("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() service");
 		return (userAccessPrivilegesRepository
-				.findByUserIdAndParentPrivilegeIdAndIsactive(userId, parentPrivilegeId, Constants.Y));
+				.findByUserIdAndParentPrivilegeIdAndIsactive(userId,
+						parentPrivilegeId, Constants.Y));
 	}
 
-	public boolean insertUser(UserT user, boolean isBulkUpload) throws Exception {
+	/**
+	 * This method is used to insert given user details into the database 
+	 * @param user
+	 * @param isBulkUpload
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean insertUser(UserT user, boolean isBulkUpload)
+			throws Exception {
 		logger.debug("inside insertUser method");
-		//validate user
-		validateUser(user,true);
-		if(userRepository.save(user) != null) {
+		// validate user
+		validateUser(user, true);
+		if (userRepository.save(user) != null) {
 			logger.debug("user Saved : " + user.getUserId());
-			//saving user general settings
-		//	userGeneralSettingsRepository.save(DestinationUserDefaultObjectsHelper.getUserGeneralSettings(user.getUserId()));
-			
-			//saving user notification settings condition
-			
-			
-			//saving default user notifications settings
-			//userNotificationSettingsRepository.save(DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user));
-			
-			//saving user access privileges
-			//List<UserAccessPrivilegesT> accessPrivilegesList = new ArrayList<UserAccessPrivilegesT>();
-			//userAccessPrivilegesRepository.save(accessPrivilegesList);
-			
-			//saving bdm target
-			
-			
 			return true;
 		}
 		logger.debug("user not Saved");
 		return false;
 	}
 
-	public void validateUser(UserT user,boolean isInsert) throws Exception{
-	 //check for not null fields
-		//user_id character varying(10) NOT NULL,
-		if(StringUtils.isEmpty(user.getUserId())){
+	/**
+	 * This method is used to check if a given user details are valid 
+	 * @param user
+	 * @param isInsert
+	 * @throws Exception
+	 */
+	public void validateUser(UserT user, boolean isInsert) throws Exception {
+		// check for not null fields
+		if (StringUtils.isEmpty(user.getUserId())) {
 			logger.error("user id is null");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"User Id cannot be empty");
 		}
-		
-		  //user_name character varying(50) NOT NULL,
-		  if(StringUtils.isEmpty(user.getUserName())){
-				logger.error("user name is null");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"User Name cannot be empty");
-			}
-		  
-		  
-		 // temp_password character varying(20) NOT NULL,
-		  if(StringUtils.isEmpty(user.getTempPassword())){
-				logger.error("password is null");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Password cannot be empty");
-			}
-		 
-		  //base_location character varying(50) NOT NULL,
-		  if(StringUtils.isEmpty(user.getBaseLocation())){
-				logger.error("base_location is null");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Base location cannot be empty");
-			}
-		  
-		  //user_role character varying(30) NOT NULL
-		  if( StringUtils.isEmpty(user.getUserRole()) ){
-				logger.error("user role is null");
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"User Role cannot be empty");
-		  } else {
-			  //check if valid entry
-			  String userRole = user.getUserRole();
-			    boolean validRole = false;
-				for(UserRole role : UserRole.values()){
-					if(userRole.equalsIgnoreCase(role.getValue())){
-						validRole = true;
-					}
+
+		if (StringUtils.isEmpty(user.getUserName())) {
+			logger.error("user name is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"User Name cannot be empty");
+		}
+
+		if (StringUtils.isEmpty(user.getTempPassword())) {
+			logger.error("password is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Password cannot be empty");
+		}
+
+		if (StringUtils.isEmpty(user.getBaseLocation())) {
+			logger.error("base_location is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Base location cannot be empty");
+		}
+
+		if (StringUtils.isEmpty(user.getUserRole())) {
+			logger.error("user role is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"User Role cannot be empty");
+		} else {
+			// check if valid entry
+			String userRole = user.getUserRole();
+			boolean validRole = false;
+			for (UserRole role : UserRole.values()) {
+				if (userRole.equalsIgnoreCase(role.getValue())) {
+					validRole = true;
 				}
-			  
-			  if( !validRole ){
-				  logger.error("user role invalid");
-				  throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"User Role is invalid");
-			  }
-		  }
-		  
-		  //user_group character varying(30) NOT NULL
-		  if(StringUtils.isEmpty(user.getUserGroup())){
-				logger.error("user group is null");
+			}
+
+			if (!validRole) {
+				logger.error("user role invalid");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"User Group cannot be empty");
-		  } else {
-			  //check if entry present in the table
-			  String userGroup = user.getUserGroup();
-			  boolean validGroup = false;
-				for(UserGroup group : UserGroup.values()){
-					if(userGroup.equalsIgnoreCase(group.getValue())){
-						validGroup = true;
-					}
+						"User Role is invalid");
+			}
+		}
+
+		if (StringUtils.isEmpty(user.getUserGroup())) {
+			logger.error("user group is null");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"User Group cannot be empty");
+		} else {
+			// check if entry present in the table
+			String userGroup = user.getUserGroup();
+			boolean validGroup = false;
+			for (UserGroup group : UserGroup.values()) {
+				if (userGroup.equalsIgnoreCase(group.getValue())) {
+					validGroup = true;
 				}
-			  if( !validGroup ){
-				  logger.error("user group invalid");
-				  throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"User Group is invalid");
-			  }
-		  }
-		  
-				
+			}
+			if (!validGroup) {
+				logger.error("user group invalid");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User Group is invalid");
+			}
+		}
 	}
 
 	/**
-	 * @param values
+	 * This method is used to retrieve users with a specific role 
+	 * @param roles
 	 * @return
 	 */
 	public List<UserT> getByUserRoles(List<String> roles) {
-		
+
 		logger.debug("Inside findByUserRole Service");
-		
-		List<UserT> users = (List<UserT>) userRepository
-				.findByUserRoles(roles);
+
+		List<UserT> users = (List<UserT>) userRepository.findByUserRoles(roles);
 
 		if (users.isEmpty()) {
 			logger.error("NOT_FOUND: No matching user found");
@@ -357,7 +415,4 @@ public class UserService {
 
 		return users;
 	}
-	
-	
-
 }

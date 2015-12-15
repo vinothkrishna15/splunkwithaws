@@ -9,29 +9,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.GoalMappingT;
-import com.tcs.destination.bean.IouCustomerMappingT;
-import com.tcs.destination.bean.SubSpMappingT;
-import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGoalsT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.data.repository.CustomerRepository;
-import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
-import com.tcs.destination.data.repository.IouRepository;
-import com.tcs.destination.data.repository.SubSpRepository;
-import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserRepository;
-import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * 
+ * This service is used to handle user goals related functionalities
+ *
+ */
 @Service
 public class UserGoalsService {
 
@@ -47,6 +40,12 @@ public class UserGoalsService {
 	@Autowired
 	UserRepository userRepository;
 
+	/**
+	 * This method is used to save a specified target for a user
+	 * @param userGoal
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean insertTarget(UserGoalsT userGoal) throws Exception{
 		validateRequest(userGoal);
 		if(userGoalsRepository.save(userGoal) != null){
@@ -55,6 +54,11 @@ public class UserGoalsService {
 		return false;
 	}
 	
+	/**
+	 * This method is used to validate a request  
+	 * @param userGoal
+	 * @throws DestinationException
+	 */
 	private void validateRequest(UserGoalsT userGoal) throws DestinationException{
 	 UserT currentUser = DestinationUtils.getCurrentUserDetails();
 	 String currUser = currentUser.getUserId();
@@ -111,6 +115,11 @@ public class UserGoalsService {
      
 	}
 
+	/**
+	 * This method is used to verify goalId
+	 * @param goalId
+	 * @return
+	 */
 	private boolean isMultiplierGoalId(String goalId) {
 		if(goalId.equalsIgnoreCase("G5")){
 		 return true;
