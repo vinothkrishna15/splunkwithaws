@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
-import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -68,11 +66,6 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
-
-	private static final DateFormat actualFormat = new SimpleDateFormat(
-			"dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat(
-			"MM/dd/yyyy");
 
 	/**
 	 * This method retrieves the opportunity details for the given nameWith
@@ -825,9 +818,7 @@ public class OpportunityController {
 			opportunityDownloadExcel = opportunityDownloadService
 					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
-			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted = desiredFormat.format(actualFormat
-					.parse(todaysDate));
+			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentDispositionFormData("attachment",
 					"OpportunityDownload_" + todaysDate_formatted + ".xlsm");
 			respHeaders.setContentType(MediaType

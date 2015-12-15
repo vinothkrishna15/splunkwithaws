@@ -16,5 +16,7 @@ public interface BidOfficeGroupOwnerLinkTRepository extends
 
 	@Query("select bdt.opportunityT from BidDetailsT bdt,BidOfficeGroupOwnerLinkT bogot where bdt.bidId=bogot.bidId and bogot.bidOfficeGroupOwner=(:userId)")
 	List<OpportunityT> findOpportunityTFromBidDetailsTFromBidOfficeGroupOwnerLinkTByUserId(@Param("userId")String userId);
+	
+	List<BidOfficeGroupOwnerLinkT> findByBidId(String bidId);
 
 }

@@ -1,9 +1,5 @@
 package com.tcs.destination.scheduler;
 
-import java.text.Format;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -18,6 +14,7 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tcs.destination.enums.Switch;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.PropertyUtil;
 
 public class JobScheduler {
@@ -33,11 +30,10 @@ public class JobScheduler {
 		  
 	    logger.debug("Inside JobScheduler: run");
 
-		Format dtFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     	try {
     		if (Switch.ON.checkSwitch(PropertyUtil.getProperty(job.getName()))) {
     			
-	    	    String dateParam = dtFormat.format(new Date());
+	    	    String dateParam = DateUtils.getCurrentDateForBatch ();
 				JobParameters param = 
 				  new JobParametersBuilder().addString("date", dateParam).toJobParameters();
 						

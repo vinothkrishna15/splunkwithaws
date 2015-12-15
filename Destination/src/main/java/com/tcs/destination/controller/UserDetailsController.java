@@ -1,8 +1,6 @@
 package com.tcs.destination.controller;
 
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +38,8 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.service.UserDownloadService;
-import com.tcs.destination.service.UserUploadService;
 import com.tcs.destination.service.UserService;
+import com.tcs.destination.service.UserUploadService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
@@ -55,7 +53,7 @@ import eu.bitwalker.useragentutils.UserAgent;
  * This class deals with user details 
  * and other functionalities like login, logout, change password, forget password,
  * upload and download of User Details
- * @author tcs2
+ * @author tcs
  *
  */
 @RestController
@@ -85,12 +83,9 @@ public class UserDetailsController {
 	@Autowired
 	private SessionRegistry  sessionRegistry;
 
-	@Value("${maximum_concurrent_user}")
-	private int maxactive_session;
+	@Value("${maximum.concurrent.user}")
+	private int maxActiveSession;
 	
-	private static final DateFormat actualFormat = new SimpleDateFormat("dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yyyy");
-
 	/**
 	 * @param fields
 	 * @param view
@@ -149,10 +144,9 @@ public class UserDetailsController {
 			  for(Object principal : sessionRegistry.getAllPrincipals()) {
 			    activeSessions.addAll(sessionRegistry.getAllSessions(principal, false));
 			  }
-			  logger.info("active session size:"+activeSessions.size());
+			logger.info("active session size:"+activeSessions.size());
 			  
-			// System.out.println("active session size:"+webSecurityConfig.sessionRegistry().getAllPrincipals().size());
-			if(maxactive_session>=activeSessions.size()){
+			if(maxActiveSession>=activeSessions.size()){
 			
 			UserT user = userService.findByUserId(DestinationUtils
 					.getCurrentUserDetails().getUserId());
@@ -526,8 +520,7 @@ public class UserDetailsController {
 		try {
 			customerDownloadExcel = userDownloadService.getUsers(oppFlag);
 			respHeaders = new HttpHeaders();
-			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted=desiredFormat.format(actualFormat.parse(todaysDate));
+			String todaysDate_formatted=DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentDispositionFormData("attachment",
 					"UserDownload_" + todaysDate_formatted
 							+ ".xlsm");

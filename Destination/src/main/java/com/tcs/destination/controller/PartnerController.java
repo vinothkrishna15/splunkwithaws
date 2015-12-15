@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -20,18 +18,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.PartnerDownloadService;
 import com.tcs.destination.service.PartnerService;
+import com.tcs.destination.service.PartnerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
-import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
-import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.service.PartnerUploadService;
 
 /**
  * This controller handles the partner module
@@ -57,11 +55,6 @@ public class PartnerController {
 	@Autowired
 	PartnerDownloadService partnerDownloadService;
 
-	private static final DateFormat actualFormat = new SimpleDateFormat(
-			"dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat(
-			"MM/dd/yyyy");
-    
 	/**
 	 * This method is used to retrieve the partner details by partner id
 	 * @param partnerid
@@ -210,9 +203,7 @@ public class PartnerController {
 			InputStreamResource excelFile = partnerDownloadService
 					.getPartners(oppFlag);
 			HttpHeaders respHeaders = new HttpHeaders();
-			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted = desiredFormat.format(actualFormat
-					.parse(todaysDate));
+			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 
@@ -251,9 +242,7 @@ public class PartnerController {
 			InputStreamResource excelFile = partnerDownloadService
 					.getPartnerContacts(oppFlag);
 			HttpHeaders respHeaders = new HttpHeaders();
-			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted = desiredFormat.format(actualFormat
-					.parse(todaysDate));
+			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 

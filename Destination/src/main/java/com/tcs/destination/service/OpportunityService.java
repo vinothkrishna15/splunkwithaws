@@ -1,6 +1,6 @@
 package com.tcs.destination.service;
 
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.sql.Timestamp;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -29,13 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectOfferingLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectSecondaryOwnerLinkT;
-import com.tcs.destination.bean.ConnectSubSpLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -44,13 +37,13 @@ import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserT;
@@ -60,7 +53,6 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
-import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -1371,8 +1363,7 @@ public class OpportunityService {
 								.getUserName());
 						teamDetails.setSalesStageCode(opportunity
 								.getSalesStageCode());
-						teamDetails.setModifiedDate(new SimpleDateFormat(
-								"dd-MMM-yyyy").format(opportunity
+						teamDetails.setModifiedDate(DateUtils.ACTUAL_FORMAT.format(opportunity
 								.getModifiedDatetime()));
 
 						listOfOpportunityDetails.add(teamDetails);

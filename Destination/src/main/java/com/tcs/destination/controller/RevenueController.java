@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -51,11 +49,6 @@ public class RevenueController {
 
 	@Autowired
 	UploadErrorReport uploadErrorReport;
-
-	private static final DateFormat actualFormat = new SimpleDateFormat(
-			"dd-MMM-yyyy");
-	private static final DateFormat desiredFormat = new SimpleDateFormat(
-			"MM/dd/yyyy");
 
 	/**
 	 * This controller uploads the Revenue Details to the database
@@ -166,9 +159,7 @@ public class RevenueController {
 			ActualRevenueDownloadExcel = revenueDownloadService
 					.getActualRevenueData(oppFlag);
 			respHeaders = new HttpHeaders();
-			String todaysDate = DateUtils.getCurrentDate();
-			String todaysDate_formatted = desiredFormat.format(actualFormat
-					.parse(todaysDate));
+			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentDispositionFormData("attachment",
 					"ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
 			respHeaders.setContentType(MediaType

@@ -29,14 +29,15 @@ public class DateUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DateUtils.class);
 
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 			"yyyy-MM-dd");
-	private static final SimpleDateFormat dbDateFormat = new SimpleDateFormat(
+	private static final SimpleDateFormat DB_DATE_FORMAT = new SimpleDateFormat(
 			"MMM-yy");
-	
-	private static final SimpleDateFormat commentFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	
-	private static final Format dtBatchFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	private static final SimpleDateFormat COMMENT_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	private static final Format DT_BATCH_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
+	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
+
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
 	static {
@@ -55,11 +56,11 @@ public class DateUtils {
 	}
 	
 	public static String getCurrentDateForBatch () {
-		return dtBatchFormat.format(new Date());
+		return DT_BATCH_FORMAT.format(new Date());
 	}
 	
 	public static String convertDtToStringForUser(Date date) {
-		return dateFormat.format(date);
+		return DATE_FORMAT.format(date);
 	}
 
 	/**
@@ -73,7 +74,7 @@ public class DateUtils {
 			throws ParseException {
 		if (strDate == null)
 			return null;
-		return dateFormat.parse(strDate);
+		return DATE_FORMAT.parse(strDate);
 	}
 
 	public static String getCurrentFinancialYear() {
@@ -287,13 +288,13 @@ public class DateUtils {
 	}
 
 	public static String getFormattedMonth(Date date) {
-		return dbDateFormat.format(date).toUpperCase();
+		return DB_DATE_FORMAT.format(date).toUpperCase();
 	}
 	
 	public static String getFormattedTime(Object fromValue) throws ParseException {
 		String timeStr = fromValue.toString();  
-		Date time = commentFormat.parse(timeStr);
-		return commentFormat.format(time);
+		Date time = COMMENT_FORMAT.parse(timeStr);
+		return COMMENT_FORMAT.format(time);
 	}
 
 	/**
@@ -307,7 +308,7 @@ public class DateUtils {
 
 	public static Date getDateFromDBFormattedString(String dbFormattedString)
 			throws ParseException {
-		return dbDateFormat.parse(dbFormattedString);
+		return DB_DATE_FORMAT.parse(dbFormattedString);
 	}
 
 	public static List<String> getAllMonthsBetween(String fromMonth,
@@ -329,7 +330,7 @@ public class DateUtils {
 					"Invalid Month Format for FROM or TO month");
 		}
 		while (fromDate.before(toDate)) {
-			monthsList.add(dbDateFormat.format(fromDate.getTime())
+			monthsList.add(DB_DATE_FORMAT.format(fromDate.getTime())
 					.toUpperCase());
 			int month = fromDate.get(Calendar.MONTH) + 1;
 			int year = fromDate.get(Calendar.YEAR) + month / 12;
@@ -444,9 +445,7 @@ public class DateUtils {
 	 * @return current date
 	 */
 	public static String getCurrentDate() {
-		Date date=new Date();
-		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
-		return formatDate.format(date);
+		return ACTUAL_FORMAT.format(new Date());
 	}
 	
 	/**
@@ -468,8 +467,7 @@ public class DateUtils {
 	 * @throws ParseException 
 	 */
 	public static Date getDateFrString(String dateStr) throws ParseException {
-		SimpleDateFormat formatDate =  new SimpleDateFormat ("dd-MMM-yyyy");
-		return formatDate.parse(dateStr);
+		return ACTUAL_FORMAT.parse(dateStr);
 	}
 	
 	/**
@@ -715,6 +713,13 @@ public class DateUtils {
 	public static String convertDateToHourMinute(Date indate){
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("hh:mm");
 		return dateFormatter.format(indate);
+	}
+
+	/**
+	 * @return
+	 */
+	public static String getCurrentDateInDesiredFormat() {
+		return DESIRED_FORMAT.format(new Date());
 	}
 
 	
