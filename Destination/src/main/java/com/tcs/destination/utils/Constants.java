@@ -186,4 +186,6 @@ public class Constants {
 	public static final String DOWNLOADCONSTANT = "Download_";
 	public static final String XLSM = ".xlsm";
 	public static final String PARTNER_MASTER_SHEET_NAME = "Partner Master";
+	
+	public static final String ENVIRONMENT_NAME = "environment.name";
 }
