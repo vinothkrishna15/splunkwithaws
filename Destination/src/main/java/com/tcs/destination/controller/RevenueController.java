@@ -160,8 +160,9 @@ public class RevenueController {
 					.getActualRevenueData(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			respHeaders.setContentDispositionFormData("attachment",
-					"ActualRevenueDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "ActualRevenueDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside RevenueController / End of actual revenue download ");

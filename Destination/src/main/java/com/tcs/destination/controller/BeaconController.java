@@ -166,10 +166,9 @@ public class BeaconController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 
-			logger.info("Download Header - Attachment : " + "BeaconDownload_"
-					+ todaysDate_formatted + ".xlsm");
-			respHeaders.setContentDispositionFormData("attachment",
-					"BeaconDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "BeaconDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Beacon - DATA Downloaded Successfully ");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);

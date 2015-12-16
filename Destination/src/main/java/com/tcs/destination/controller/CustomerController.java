@@ -325,8 +325,9 @@ public class CustomerController {
 					.getCustomers(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			respHeaders.setContentDispositionFormData("attachment",
-					"CustomerMasterDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "CustomerMasterDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside CustomerController: Customer Master Report Downloaded Successfully ");
@@ -365,10 +366,10 @@ public class CustomerController {
 					.getCustomerContacts(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			respHeaders
-					.setContentDispositionFormData("attachment",
-							"CustomerContactDownload_" + todaysDate_formatted
-									+ ".xlsm");
+			String repName = "CustomerContactDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
+
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside CustomerController: Customer Contact Report Downloaded Successfully ");

@@ -206,12 +206,9 @@ public class PartnerController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 
-			logger.info("Download Header - Attachment : "
-					+ "PartnerMaster&ContactDownload_" + todaysDate_formatted
-					+ ".xlsm");
-			respHeaders.setContentDispositionFormData("attachment",
-					"PartnerMaster&ContactDownload_" + todaysDate_formatted
-							+ ".xlsm");
+			String repName = "PartnerMaster&ContactDownload_" + todaysDate_formatted+ ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside PartnerController: End of /partner/download GET");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
@@ -245,11 +242,9 @@ public class PartnerController {
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 
-			logger.info("Download Header - Attachment : "
-					+ "PartnerContactDownload_" + todaysDate_formatted
-					+ ".xlsm");
-			respHeaders.setContentDispositionFormData("attachment",
-					"PartnerContactDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "PartnerContactDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside PartnerController: End of /partner/contactDownload GET");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);

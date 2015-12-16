@@ -466,10 +466,9 @@ public class ConnectController {
 					.setContentType(MediaType
 							.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			logger.debug("Download Header - Attachment : " + "ConnectDownload_"
-					+ todaysDate_formatted + ".xlsm");
-			respHeaders.setContentDispositionFormData("attachment",
-					"ConnectDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "ConnectDownload_"	+ todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside ConnectController: End of Connect Download");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);

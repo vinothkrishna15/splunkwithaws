@@ -819,8 +819,9 @@ public class OpportunityController {
 					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			respHeaders.setContentDispositionFormData("attachment",
-					"OpportunityDownload_" + todaysDate_formatted + ".xlsm");
+			String repName = "OpportunityDownload_" + todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment",repName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside OpportunityController: End of /opportunity/download GET");
