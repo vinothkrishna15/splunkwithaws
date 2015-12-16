@@ -52,9 +52,6 @@ public class PartnerUploadService {
 	@Autowired
 	PartnerService partnerService;
 	
-	private List<String> listOfPartnerId = null;
-	
-	
 	public UploadStatusDTO upload(MultipartFile file, String userId) throws Exception 
 	{
 
@@ -67,12 +64,8 @@ public class PartnerUploadService {
 
 		try {
 			
-			//listOfPartnerId =  partnerRepository.findPartnerIdFromPartnerT();
-            
             if (validateSheetForPartner(workbook)) 
             {
-				
-				//mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
 				
 				Sheet sheet = workbook.getSheet("Partner Master");
 
@@ -82,18 +75,16 @@ public class PartnerUploadService {
 
 				Iterator<Row> rowIterator = sheet.iterator();
 				
-				while (rowIterator.hasNext()&& rowCount <= 66) {
+				while (rowIterator.hasNext()&& rowCount <= sheet.getLastRowNum()) {
 
 					Row row = rowIterator.next();
 
 					if (rowCount > 0) {
 						String actionCellValue = getIndividualCellValue(row.getCell(0));
-						System.out.println("row count : "+rowCount);
 						listOfCellValues = new ArrayList<String>();
 						try {
 						if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) 
 						{
-							System.out.println("Cell 0 at "+rowCount+" : "+actionCellValue);
 							listOfCellValues = iterateRow(row);
 							partnerService.addPartner(constructPartnerTForPartner(listOfCellValues, userId, DocumentActionType.ADD.name()));
 						} 

@@ -384,9 +384,9 @@ public class ActualRevenueDataUploadService {
 	private boolean validateSheetForCustomer(Workbook workbook)
 			throws Exception {
 		return ExcelUtils.isValidWorkbook(workbook,
-				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
+				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 8, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,
-						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
+						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 8, 2);
 	}
 
 }

@@ -148,7 +148,7 @@ public class PartnerController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-	public @ResponseBody ResponseEntity<String> uploadPartner(
+	public @ResponseBody ResponseEntity<InputStreamResource> uploadPartner(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
@@ -175,9 +175,8 @@ public class PartnerController {
 			respHeaders.setContentDispositionFormData("attachment",
 					"upload_error.xlsx");
 			logger.info("Inside PartnerController: End of /partner/upload POST");
-			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews(fields,
-							view, status), HttpStatus.OK);
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
 			logger.error("Destination Exception" + e.getMessage());
 			throw e;

@@ -148,10 +148,6 @@ public class BeaconDataUploadService {
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				beaconDataT.setBeaconGroupClient(listOfCellValues.get(2));
 			}
-			else {
-				beaconDataT.setBeaconGroupClient(null);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Group Client is NULL");
-			}
 
 			// FINANCIAL YEAR 
 			if(!StringUtils.isEmpty(listOfCellValues.get(6))){
@@ -283,9 +279,9 @@ public class BeaconDataUploadService {
 	 */
 	private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
 		return ExcelUtils.isValidWorkbook(workbook,
-				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
+				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 8, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,
-						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
+						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 8, 2);
 	}
 
 }
