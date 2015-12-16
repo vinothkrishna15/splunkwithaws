@@ -210,7 +210,7 @@ public class BDMReportsService {
 		if (salesStage.size()>13) {
 			completeList = "All";
 		} else {
-			completeList = ExcelUtils.getSalesStageCode(salesStage);
+			completeList = buildOpportunityReportService.findBySalesStageCodeDescription(salesStage);
 		}
 		row.createCell(4).setCellValue("Sales stage");
 		row.createCell(5).setCellValue(completeList);
