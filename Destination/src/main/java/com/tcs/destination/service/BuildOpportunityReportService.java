@@ -48,6 +48,7 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.ReportSummaryOpportunity;
+import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -130,6 +131,9 @@ public class BuildOpportunityReportService {
 	
 	@PersistenceContext
 	private EntityManager entityManager;
+	
+	
+	private HashMap<Integer, String> salesStageMap;
 
 	// Detailed Report For Opportunity
 	public void getOpportunities(String month, String quarter, String year,
@@ -210,22 +214,22 @@ public class BuildOpportunityReportService {
 		int headerColumnValue = 0;
 		headerRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			CreateHeaderOpportunityReportMandatoryFields(headerRow, spreadSheet,
+			createHeaderOpportunityReportMandatoryFields(headerRow, spreadSheet,
 					currency);
-			currentRow = OpportunityReportWithMandatoryFields(opportunityIdList,
+			currentRow = getOpportunityReportWithMandatoryFields(opportunityIdList,
 					spreadSheet, headerRow, currency);
 			currentRow++;
 		} else {
 			SXSSFRow currencyRow = (SXSSFRow) spreadSheet.createRow(1);
-			headerColumnValue = CreateHeaderOpportunityReportOptionalFields( headerRow,
+			headerColumnValue = createHeaderOpportunityReportOptionalFields( headerRow,
 					currencyRow, fields, workbook, spreadSheet, currentRow, currency);
-			currentRow = OpportunityReportWithOptionalFields(opportunityIdList,
+			currentRow = getOpportunityReportWithOptionalFields(opportunityIdList,
 					headerRow, spreadSheet, currentRow, fields, headerRow, currency, headerColumnValue);
 			currentRow++;
 		}
 	}
 
-	public void CreateHeaderOpportunityReportMandatoryFields(SXSSFRow row,
+	public void createHeaderOpportunityReportMandatoryFields(SXSSFRow row,
 			SXSSFSheet spreadSheet, List<String> currency) {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(
 				(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
@@ -276,7 +280,7 @@ public class BuildOpportunityReportService {
 //		spreadSheet.autoSizeColumn(6);
 	}
 
-	public int CreateHeaderOpportunityReportOptionalFields(
+	public int createHeaderOpportunityReportOptionalFields(
 			 SXSSFRow row, SXSSFRow row1,
 			List<String> fields, SXSSFWorkbook workbook, SXSSFSheet spreadSheet,
 			int currentRow, List<String> currency) {
@@ -342,7 +346,7 @@ public class BuildOpportunityReportService {
 //		}
 	}
 
-	public int OpportunityReportWithMandatoryFields(
+	public int getOpportunityReportWithMandatoryFields(
 			List<String> opportunityIdList, SXSSFSheet spreadSheet,
 			SXSSFRow row, List<String> currency) throws DestinationException {
 		int currentRow = 1;
@@ -375,7 +379,8 @@ public class BuildOpportunityReportService {
 				opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 		row.createCell(4).setCellValue(
 				opportunity.getCustomerMasterT().getGroupCustomerName());
-		row.createCell(5).setCellValue(opportunity.getSalesStageCode());
+		//set sales stage code
+		row.createCell(5).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());
 		row.createCell(6).setCellValue(opportunity.getOpportunityName());
 		
 		for(String currency : currencies) {
@@ -388,7 +393,7 @@ public class BuildOpportunityReportService {
 		}
 	}
 
-	public int OpportunityReportWithOptionalFields(
+	public int getOpportunityReportWithOptionalFields(
 			List<String> opportunityIdList, SXSSFRow headerRow,
 			SXSSFSheet spreadSheet, int currentRow, List<String> fields,
 			SXSSFRow row, List<String> currency, int headerColumnValue) throws DestinationException {
@@ -778,15 +783,15 @@ public class BuildOpportunityReportService {
 		SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
 		row1.setRowStyle(cellStyle1);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			CreateHeaderBidDetailsReportMandatoryFields(row, row1, spreadSheet,
+			createHeaderBidDetailsReportMandatoryFields(row, row1, spreadSheet,
 					currency);
-			currentRow = BidReportWithMandatoryFields(bidDetailsList,
+			currentRow = bidReportWithMandatoryFields(bidDetailsList,
 					spreadSheet, currentRow, row, currency);
 			currentRow++;
 		} else {
-			CreateHeaderBidDetailsReportOptionalFields(bidDetailsList, row,
+			createHeaderBidDetailsReportOptionalFields(bidDetailsList, row,
 					row1, fields, workbook, spreadSheet, currentRow, currency);
-			currentRow = BidReportWithOptionalFields(bidDetailsList, workbook,
+			currentRow = bidReportWithOptionalFields(bidDetailsList, workbook,
 					spreadSheet, currentRow, fields, row, currency);
 			currentRow++;
 		}
@@ -800,67 +805,52 @@ public class BuildOpportunityReportService {
 		return inputStreamResource;
 	}
 
-	public void CreateHeaderBidDetailsReportMandatoryFields(SXSSFRow row,
+	public void createHeaderBidDetailsReportMandatoryFields(SXSSFRow row,
 			SXSSFRow row1, SXSSFSheet spreadSheet, List<String> currency) {
 		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
-//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
-//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
-//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
-//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
-//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
-//		spreadSheet.autoSizeColumn(5);
 		row.createCell(6).setCellValue(ReportConstants.BIDREQUESTTYPE);
-//		spreadSheet.autoSizeColumn(6);
 		row.createCell(7).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
-//		spreadSheet.autoSizeColumn(7);
 		row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-//		spreadSheet.autoSizeColumn(8);
 		spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
 		for (int i = 0; i < currency.size(); i++) {
 			row1.createCell((8 + i)).setCellValue(currency.get(i));
 		}
 	}
 
-	public void CreateHeaderBidDetailsReportOptionalFields(
+	public void createHeaderBidDetailsReportOptionalFields(
 			List<BidDetailsT> bidDetailsList, SXSSFRow row, SXSSFRow row1,
 			List<String> fields, SXSSFWorkbook workbook, SXSSFSheet spreadSheet,
 			int currentRow, List<String> currency) {
 		/**
 		 * This method creates default headers
 		 */
-		CreateHeaderBidDetailsReportMandatoryFields(row, row1, spreadSheet,
-				currency);
+		createHeaderBidDetailsReportMandatoryFields(row, row1, spreadSheet,	currency);
 		int colValue = 9;
 		if (currency.size() > 1) {
 			colValue = 10;
 		}
+
 		for (String field : fields) {
-			Integer listCount = GetMaximumListCount.getMaxBidDetailsListCount(
-					bidDetailsList, field);
-			row.createCell(colValue).setCellValue(
-					FieldsMap.fieldsMap.get(field));
-//			spreadSheet.autoSizeColumn(colValue);
+			Integer listCount = GetMaximumListCount.getMaxBidDetailsListCount(bidDetailsList, field);
+			row.createCell(colValue).setCellValue(FieldsMap.fieldsMap.get(field));
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, colValue, colValue + listCount - 1));
 			for (int i = 0; i < listCount; i++) {
 				row1.createCell(colValue + i).setCellValue(FieldsMap.childMap.get(field));
-//				spreadSheet.autoSizeColumn(colValue + i);
 			}
 			colValue = colValue + listCount;
 		}
 	}
 
-	public int BidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList,
-			SXSSFSheet spreadSheet, int currentRow, SXSSFRow row,
+	public int bidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList, SXSSFSheet spreadSheet, int currentRow, SXSSFRow row,
 			List<String> currency) {
 		for (BidDetailsT bidDetail : bidDetailsList) {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow + 2);
-			getBidDetailsReportMandatoryFields(spreadSheet, row, currency,
-					bidDetail);
+			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail);
 			currentRow++;
 		}
 		return currentRow;
@@ -870,40 +860,27 @@ public class BuildOpportunityReportService {
 			SXSSFRow row, List<String> currency, BidDetailsT bidDetail) {
 		int i = 0;
 		row.createCell(0).setCellValue(bidDetail.getOpportunityId());
-		row.createCell(1).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getGeographyMappingT().getDisplayGeography());
-		for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail
-				.getOpportunityT().getOpportunitySubSpLinkTs()) {
-			row.createCell(2).setCellValue(
-					opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
+		row.createCell(1).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
+		for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail.getOpportunityT().getOpportunitySubSpLinkTs()) {
+			row.createCell(2).setCellValue(opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
 		}
-		row.createCell(3).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getIouCustomerMappingT().getDisplayIou());
-		row.createCell(4).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getGroupCustomerName());
-		row.createCell(5).setCellValue(
-				bidDetail.getOpportunityT().getSalesStageCode());
+		row.createCell(3).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
+		row.createCell(4).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getGroupCustomerName());
+		row.createCell(5).setCellValue(bidDetail.getOpportunityT().getSalesStageCode());
 		row.createCell(6).setCellValue(bidDetail.getBidRequestType());
 		if(bidDetail.getBidRequestReceiveDate() != null){
-		row.createCell(7).setCellValue(
-				bidDetail.getBidRequestReceiveDate().toString());
+			row.createCell(7).setCellValue(bidDetail.getBidRequestReceiveDate().toString());
 		}
-		for (OpportunityDealValue opportunityDealValue : bidDetail
-				.getOpportunityT().getOpportunityDealValues()) {
+		for (OpportunityDealValue opportunityDealValue : bidDetail.getOpportunityT().getOpportunityDealValues()) {
 			BigDecimal dealValue = opportunityDealValue.getDigitalDealValue();
 			if (dealValue != null) {
-				row.createCell(8 + i).setCellValue(
-						opportunityDealValue.getDigitalDealValue()
-								.doubleValue());
+				row.createCell(8 + i).setCellValue(opportunityDealValue.getDigitalDealValue().doubleValue());
 				i++;
 			}
 		}
 	}
 
-	public int BidReportWithOptionalFields(List<BidDetailsT> bidDetailsList,
+	public int bidReportWithOptionalFields(List<BidDetailsT> bidDetailsList,
 			SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,
 			List<String> fields, SXSSFRow row, List<String> currency) {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook,
@@ -921,61 +898,40 @@ public class BuildOpportunityReportService {
 			for (String field : fields) {
 				switch (field) {
 				case ReportConstants.IOU:
-					row.createCell(colValue).setCellValue(
-							bidDetail.getOpportunityT().getCustomerMasterT()
-									.getIouCustomerMappingT().getIou());
-//					spreadSheet.autoSizeColumn(colValue);
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getIou());
 					colValue++;
 					break;
 				case ReportConstants.GEOGRAPHY:
-					row.createCell(colValue).setCellValue(
-							bidDetail.getOpportunityT()
-									.getGeographyCountryMappingT()
-									.getGeography());
-//					spreadSheet.autoSizeColumn(colValue);
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getGeography());
 					colValue++;
 					break;
 				case ReportConstants.SUBSP:
-					for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail
-							.getOpportunityT().getOpportunitySubSpLinkTs()) {
-						row.createCell(colValue).setCellValue(
-								opportunitySubSpLinkT.getSubSpMappingT()
-										.getSubSp());
-//						spreadSheet.autoSizeColumn(colValue);
+					for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail.getOpportunityT().getOpportunitySubSpLinkTs()) {
+						row.createCell(colValue).setCellValue(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
 						colValue++;
 					}
 					break;
 				case ReportConstants.COUNTRY:
-					row.createCell(colValue)
-							.setCellValue(
-									bidDetail.getOpportunityT()
-											.getGeographyCountryMappingT()
-											.getCountry());
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getCountry());
 					colValue++;
 					break;
 				case ReportConstants.CRMID:
-					row.createCell(colValue).setCellValue(
-							bidDetail.getOpportunityT().getCrmId());
-//					spreadSheet.autoSizeColumn(colValue);
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCrmId());
 					colValue++;
 					break;
 				case ReportConstants.NEWLOGO:
-					row.createCell(colValue).setCellValue(
-							bidDetail.getOpportunityT().getNewLogo());
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getNewLogo());
 					colValue++;
 					break;
 				case ReportConstants.OPPORTUNITYNAME:
-					row.createCell(colValue).setCellValue(
-							bidDetail.getOpportunityT().getOpportunityName());
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getOpportunityName());
 					colValue++;
 					break;
 				case ReportConstants.TCSACCOUNTCONTACT:
-					Integer maxTcsAccountContactlistCount = GetMaximumListCount
-							.getMaxBidDetailsListCount(bidDetailsList,
+					Integer maxTcsAccountContactlistCount = GetMaximumListCount.getMaxBidDetailsListCount(bidDetailsList,
 									ReportConstants.TCSACCOUNTCONTACT);
 					int i = 0;
-					for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : bidDetail
-							.getOpportunityT()
+					for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : bidDetail.getOpportunityT()
 							.getOpportunityTcsAccountContactLinkTs()) {
 						row.createCell(colValue + i).setCellValue(
 								opportunityTcsAccountContactLinkT.getContactT()
@@ -1299,7 +1255,7 @@ public class BuildOpportunityReportService {
 			}
 			reportSummaryOpportunity.setSalesStageCode(salesStageCode);
 			
-			reportSummaryOpportunity.setSalesStageDescription((salesStageMappingRepository.findBySalesStageCode(salesStageCode)).getSalesStageDescription());
+			reportSummaryOpportunity.setSalesStageDescription((findBySalesStageCode(salesStageCode)));
 			
 			reportSummaryOpportunity.setSalesStageDescription(entry.getKey());
 			
@@ -1343,9 +1299,7 @@ public class BuildOpportunityReportService {
 					}
 					reportSummaryOpportunity.setSalesStageCode(salesStageCode);
 					reportSummaryOpportunity
-							.setSalesStageDescription((salesStageMappingRepository
-									.findBySalesStageCode(salesStageCode))
-									.getSalesStageDescription());
+							.setSalesStageDescription(findBySalesStageCode(salesStageCode));
 					opportunitySummaryValue.setTitle(month);
 					opportunitySummaryValue
 							.setCount((BigInteger) opportunity[1]);
@@ -1390,9 +1344,7 @@ public class BuildOpportunityReportService {
 				else
 					reportSummaryOpp.setIou(entry.getKey());
 				reportSummaryOpp
-						.setSalesStageDescription((salesStageMappingRepository
-								.findBySalesStageCode(salesStageCode))
-								.getSalesStageDescription());
+						.setSalesStageDescription(findBySalesStageCode(salesStageCode));
 				reportSummaryOpp.setSalesStageCode(salesStageCode);
 				reportSummaryOpp.setOpportunitySummaryValueList(entry
 						.getValue());
@@ -3133,12 +3085,10 @@ public class BuildOpportunityReportService {
 		if (salesStage.size()>13) {
 			completeList = "All";
 		} else {
-			completeList = ExcelUtils.getSalesStageCode(salesStage);
+			completeList = findBySalesStageCodeDescription(salesStage);
 		}
 		row.createCell(4).setCellValue("Sales stage");
 		row.createCell(5).setCellValue(completeList);
-//		spreadsheet.autoSizeColumn(5);
-		////
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
@@ -3313,5 +3263,35 @@ public class BuildOpportunityReportService {
 		} else {
 			targetList.addAll(geographyMappingTRepository.findByDisplayGeography(itemList));
 		}
+	}
+	
+	/**
+	 * THis Method is used to get concatenated sales stage code description for the given sales stage codes
+	 * @param salesStageCodes
+	 * @return
+	 */
+	public String findBySalesStageCodeDescription(List<Integer> salesStageCodes){
+		List<String> salesStageDescription = new ArrayList<String>();
+		for(Integer salesStageCode:salesStageCodes){
+			salesStageDescription.add(findBySalesStageCode(salesStageCode));
+		}
+		return salesStageDescription.toString().replace("[", "").replace("]", "");
+	}
+	
+	
+	/**
+	 * This method is used to get sales stage code description for the given sales stage code
+	 * @param salesStageCode
+	 * @return
+	 */
+	private String findBySalesStageCode(int salesStageCode){
+		if(salesStageMap==null){
+			salesStageMap=new HashMap<Integer, String>();
+			List<SalesStageMappingT> salesStageMappingTs=(List<SalesStageMappingT>) salesStageMappingRepository.findAll();
+			for(SalesStageMappingT salesStageMappingT: salesStageMappingTs){
+				salesStageMap.put(salesStageMappingT.getSalesStageCode(), salesStageMappingT.getSalesStageDescription());
+			}
+		}
+		return salesStageMap.get(salesStageCode);
 	}
 }

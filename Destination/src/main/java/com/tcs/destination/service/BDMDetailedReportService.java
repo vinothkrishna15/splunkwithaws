@@ -506,9 +506,7 @@ public class BDMDetailedReportService {
 				//set customer name
 				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
 				//set sales stage code
-				String SalesStageCode = ExcelUtils.getSalesStageCodeDescription(opportunity.getSalesStageCode());
-				row.createCell(columnNo++).setCellValue(SalesStageCode);
-				
+				row.createCell(columnNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());
 				
 				//set expected date of outcome
 				if(!opportunity.getBidDetailsTs().isEmpty()){
@@ -750,9 +748,7 @@ public class BDMDetailedReportService {
 			//set customer name
 			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
 			//set sales stage code
-			String SalesStageCode = ExcelUtils.getSalesStageCodeDescription(opportunity.getSalesStageCode());
-			row.createCell(columnNo++).setCellValue(SalesStageCode);
-			
+			row.createCell(columnNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());
 			
 			//set expected date of outcome
 			if(!opportunity.getBidDetailsTs().isEmpty()){

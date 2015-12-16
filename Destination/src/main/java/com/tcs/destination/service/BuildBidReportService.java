@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,10 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -64,6 +68,16 @@ public class BuildBidReportService {
 	BidDetailsTRepository bidDetailsTRepository;
 	
 	@Autowired
+	ContactRepository contactRepository;
+	
+	@Autowired
+	OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
+	
+	@Autowired
+	OpportunityCompetitorLinkTRepository opportunityCompetitorLinkTRepository;
+	
+	
+	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	public InputStreamResource getBidDetailsReport(
@@ -71,7 +85,7 @@ public class BuildBidReportService {
 			List<String> currency, SXSSFWorkbook workbook) throws Exception {
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Bid Report");
 		
-		spreadSheet.setDefaultColumnWidth(30);
+//		spreadSheet.setDefaultColumnWidth(30);
 		
 //		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
 		SXSSFRow row = (SXSSFRow) spreadSheet.createRow(0);
@@ -103,7 +117,6 @@ public class BuildBidReportService {
 		if (currency.size() > 1) {
 			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(8).setCellStyle(cellStyle);
-//			spreadSheet.autoSizeColumn(8);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8,
 					8 + currency.size() - 1));
 			SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
@@ -115,7 +128,6 @@ public class BuildBidReportService {
 			row.createCell(8).setCellValue(
 					ReportConstants.DIGITALDEALVALUE + " In " + currency.get(0));
 			row.getCell(8).setCellStyle(cellStyle);
-//			spreadSheet.autoSizeColumn(8);
 		}
 	}
 
@@ -123,28 +135,20 @@ public class BuildBidReportService {
 		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
 		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
 		row.getCell(0).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(0);
 		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
 		row.getCell(1).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(1);
 		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
 		row.getCell(2).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(2);
 		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
 		row.getCell(3).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(3);
 		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
 		row.getCell(4).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(4);
 		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
 		row.getCell(5).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(5);
 		row.createCell(6).setCellValue(ReportConstants.BIDREQUESTTYPE);
 		row.getCell(6).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(6);
 		row.createCell(7).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
 		row.getCell(7).setCellStyle(cellStyle);
-//		spreadSheet.autoSizeColumn(7);
 	}
 
 	public void createHeaderBidDetailsReportOptionalFields(
@@ -157,7 +161,6 @@ public class BuildBidReportService {
 		if (currency.size() > 1) {
 			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
 			row.getCell(8).setCellStyle(cellStyle);
-//			spreadSheet.autoSizeColumn(8);
 			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
 			for (int i = 0; i < currency.size(); i++) {
 				row1.createCell((8 + i)).setCellValue(currency.get(i));
@@ -167,18 +170,28 @@ public class BuildBidReportService {
 			row.createCell(8).setCellValue(
 					ReportConstants.DIGITALDEALVALUE + " In " + currency.get(0));
 			row.getCell(8).setCellStyle(cellStyle);
-//			spreadSheet.autoSizeColumn(8);
 		}
 		int colValue = 9;
 		if (currency.size() > 1) {
 			colValue = 10;
 		}
-		for (String field : fields) {
+		List<String> orderedFields = Arrays.asList("iou","geography","subSp","country","crmId", "newLogo",
+				"opportunityName","tcsAccountContact","competitors","coreAttributesUsedForWinning",	"bidId",
+				"bidOfficeGroupOwner","targetBidSubmissionDate","actualBidSubmissionDate","expectedDateOfOutcome");
+		
+		for (String field : orderedFields) {
+			if(fields.contains(field)){
 			row.createCell(colValue).setCellValue(FieldsMap.fieldsMap.get(field));
 			row.getCell(colValue).setCellStyle(cellStyle);
-//			spreadSheet.autoSizeColumn(colValue);
 			colValue++;
+			}
 		}
+		
+//		for (String field : fields) {
+//			row.createCell(colValue).setCellValue(FieldsMap.fieldsMap.get(field));
+//			row.getCell(colValue).setCellStyle(cellStyle);
+//			colValue++;
+//		}
 	}
 
 	public int getBidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList,
@@ -193,54 +206,41 @@ public class BuildBidReportService {
 					bidDetail);
 			currentRow++;
 		}
-//		for(int startCol=0;startCol<=8;startCol++){
-//			spreadSheet.autoSizeColumn(startCol);
-//		}
 		return currentRow;
 	}
 
 	public void getBidDetailsReportMandatoryFields(SXSSFSheet spreadSheet,
 			SXSSFRow row, List<String> currency, BidDetailsT bidDetail) {
 		int i = 0;
-		CellStyle cellStyle = ExcelUtils.createRowStyle(
-				spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+//		CellStyle cellStyle = ExcelUtils.createRowStyle(
+//				spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		row.createCell(0).setCellValue(bidDetail.getOpportunityId());
-		row.getCell(0).setCellStyle(cellStyle);
 		row.createCell(1).setCellValue(
 				bidDetail.getOpportunityT().getCustomerMasterT()
 						.getGeographyMappingT().getDisplayGeography());
-		row.getCell(1).setCellStyle(cellStyle);
 		for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail
 				.getOpportunityT().getOpportunitySubSpLinkTs()) {
 			row.createCell(2).setCellValue(
 					opportunitySubSpLinkT.getSubSpMappingT().getDisplaySubSp());
-			row.getCell(2).setCellStyle(cellStyle);
 		}
 		row.createCell(3).setCellValue(
 				bidDetail.getOpportunityT().getCustomerMasterT()
 						.getIouCustomerMappingT().getDisplayIou());
-		row.getCell(3).setCellStyle(cellStyle);
 		row.createCell(4).setCellValue(
 				bidDetail.getOpportunityT().getCustomerMasterT()
 						.getGroupCustomerName());
-		row.getCell(4).setCellStyle(cellStyle);
-		row.createCell(5).setCellValue(
-				bidDetail.getOpportunityT().getSalesStageCode());
-		row.getCell(5).setCellStyle(cellStyle);
+		//set sales stage code
+		row.createCell(5).setCellValue(bidDetail.getOpportunityT().getSalesStageMappingT().getSalesStageDescription());
 		row.createCell(6).setCellValue(bidDetail.getBidRequestType());
-		row.getCell(6).setCellStyle(cellStyle);
 		row.createCell(7).setCellValue(
 				bidDetail.getBidRequestReceiveDate().toString());
-		row.getCell(7).setCellStyle(cellStyle);
 		for (OpportunityDealValue opportunityDealValue : bidDetail.getOpportunityT().getOpportunityDealValues()) {
 			BigDecimal dealValue = opportunityDealValue.getDigitalDealValue();
 			if (dealValue != null) {
 				row.createCell(8 + i).setCellValue(opportunityDealValue.getDigitalDealValue().doubleValue());
-				row.getCell(8+i).setCellStyle(cellStyle);
 				i++;
 			}else{
 				row.createCell(8 + i).setCellValue(0.00);
-				row.getCell(8+i).setCellStyle(cellStyle);
 				i++;
 			}
 		}
@@ -248,159 +248,153 @@ public class BuildBidReportService {
 
 	public int getBidReportWithOptionalFields(List<BidDetailsT> bidDetailsList,
 			SXSSFSheet spreadSheet, List<String> fields, List<String> currency) {
-		CellStyle cellStyle = ExcelUtils.createRowStyle(
-				spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+//		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		int currentRow = 1;
 		SXSSFRow row = null;
 		if (currency.size() > 1) {
 			currentRow = 2;
 		}
+		
+		boolean iouFlag = fields.contains(ReportConstants.IOU);
+		boolean geographyFlag = fields.contains(ReportConstants.GEOGRAPHY);
+		boolean subFlag = fields.contains(ReportConstants.SUBSP);
+		boolean countryFlag = fields.contains(ReportConstants.COUNTRY);
+		boolean crmIdFlag = fields.contains(ReportConstants.CRM);
+		boolean newLogoFlag = fields.contains(ReportConstants.NEWLOGO);
+		boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
+		boolean tcsAccConFlag = fields.contains(ReportConstants.TCSACCOUNTCONTACT);
+		boolean competitorsFlag = fields.contains(ReportConstants.COMPETITORS);
+		boolean coreAttUsedForWinFlag = fields.contains(ReportConstants.COREATTRIBUTESUSEDFORWINNING);
+		boolean bidIdFlag = fields.contains(ReportConstants.BIDID);
+		boolean bidOffGrpOwnerFlag = fields.contains(ReportConstants.BIDOFFICEGROUPOWNER);
+		boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
+		boolean actualBidSubDtFlag = fields.contains(ReportConstants.ACTUALBIDSUBMISSIONDATE);
+		boolean expDtOfOutcomeFlag = fields.contains(ReportConstants.EXPECTEDDATEOFOUTCOME);
+		
 		for (BidDetailsT bidDetail : bidDetailsList) {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
+			
 			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail);
 			int colValue = 9;
 			if (currency.size() > 1) {
 				colValue = 10;
-			}
-			for (String field : fields) {
-				switch (field) {
-				case ReportConstants.IOU:
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getIou());
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.GEOGRAPHY:
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getGeography());
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.SUBSP:
-					List<String> subSpList=new ArrayList<String>();
-					for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail.getOpportunityT().getOpportunitySubSpLinkTs()) {
-					subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
-					}
-					row.createCell(colValue).setCellValue(subSpList.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.COUNTRY:
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getCountry());
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.CRM:
-					if(bidDetail.getOpportunityT().getCrmId()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCrmId());
-					}else{
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.NEWLOGO:
-					if(bidDetail.getOpportunityT().getNewLogo()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getNewLogo());
-					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.OPPNAME:
-					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getOpportunityName());
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.TCSACCOUNTCONTACT:
-					List<String> tcsContactNames=new ArrayList<String>();
-					for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : bidDetail.getOpportunityT().getOpportunityTcsAccountContactLinkTs()) {
-					tcsContactNames.add(opportunityTcsAccountContactLinkT.getContactT().getContactName());
-					}
-					row.createCell(colValue).setCellValue(tcsContactNames.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.COMPETITORS:
-					List<String> competitorList=new ArrayList<String>();
-					for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : bidDetail.getOpportunityT().getOpportunityCompetitorLinkTs()) {
-						competitorList.add(opportunityCompetitorLinkT.getCompetitorName());
-					}
-					row.createCell(colValue).setCellValue(competitorList.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					colValue++;
-					break;
-				case ReportConstants.COREATTRIBUTESUSEDFORWINNING:
-					if(bidDetail.getCoreAttributesUsedForWinning()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getCoreAttributesUsedForWinning());
-					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.BIDID:
-					row.createCell(colValue).setCellValue(bidDetail.getBidId());
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.BIDOFFICEGROUPOWNER:
-					if (bidDetail.getBidOfficeGroupOwnerLinkTs().size() > 0) {
-					List<String> bodofficeGroupOwner=new ArrayList<String>();
-					for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetail.getBidOfficeGroupOwnerLinkTs()) {
-					UserT userT = userRepository.findByUserId(bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner());
-					bodofficeGroupOwner.add(userT.getUserName());
-					}
-					row.createCell(colValue).setCellValue(bodofficeGroupOwner.toString().replace("[", "").replace("]", ""));
-					row.getCell(colValue).setCellStyle(cellStyle);
-//					spreadSheet.autoSizeColumn(colValue);
-					}else{
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-						row.getCell(colValue).setCellStyle(cellStyle);
-					}
-					colValue++;
-					break;
-				case ReportConstants.TARGETBIDSUBMISSIONDATE:
-					if(bidDetail.getTargetBidSubmissionDate()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getTargetBidSubmissionDate().toString());
-					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.ACTUALBIDSUBMISSIONDATE:
-					if(bidDetail.getActualBidSubmissionDate()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate().toString());
-					}else{
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
-				case ReportConstants.EXPECTEDDATEOFOUTCOME:
-					if(bidDetail.getExpectedDateOfOutcome()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getExpectedDateOfOutcome().toString());
-					} else {
-						row.createCell(colValue).setCellValue(Constants.SPACE);
-					}
-					row.getCell(colValue).setCellStyle(cellStyle);
-					colValue++;
-					break;
 				}
-				currentRow = currentRow + 0;
+//			for (String field : fields) {
+//				switch (field) {
+			if(iouFlag){
+				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getIou());
+				colValue++;
 			}
+			
+			if(geographyFlag){
+				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getGeography());
+				colValue++;
+			}
+			
+			if(subFlag){
+//				List<String> subSpList=new ArrayList<String>();
+				List<String> subSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(bidDetail.getOpportunityId());
+
+				for (OpportunitySubSpLinkT opportunitySubSpLinkT : bidDetail.getOpportunityT().getOpportunitySubSpLinkTs()) {
+				subSpList.add(opportunitySubSpLinkT.getSubSpMappingT().getSubSp());
+				}
+				row.createCell(colValue).setCellValue(subSpList.toString().replace("[", "").replace("]", ""));
+				colValue++;
+			}
+			
+			if(countryFlag){
+				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getGeographyCountryMappingT().getCountry());
+				colValue++;
+			}
+			
+			if(crmIdFlag) {
+				if(bidDetail.getOpportunityT().getCrmId()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCrmId());
+				}
+				colValue++;
+			}
+
+			if(newLogoFlag){
+				if(bidDetail.getOpportunityT().getNewLogo()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getNewLogo());
+				}
+				colValue++;
+			}
+			
+			if(opportunityNameFlag){
+				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getOpportunityName());
+				colValue++;
+			}
+			
+			
+			if(tcsAccConFlag){
+				List<String> tcsContactNames= contactRepository.findTcsAccountContactNamesByOpportinityId(bidDetail.getOpportunityId());
+//				for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : bidDetail.getOpportunityT().getOpportunityTcsAccountContactLinkTs()) {
+//					tcsContactNames.add(opportunityTcsAccountContactLinkT.getContactT().getContactName());
+//				}
+				row.createCell(colValue).setCellValue(tcsContactNames.toString().replace("[", "").replace("]", ""));
+				colValue++;
+			}
+			
+			if(competitorsFlag){
+//				List<String> competitorList=new ArrayList<String>();
+				List<String> competitorList=opportunityCompetitorLinkTRepository.findCompetitorNamesByOpportunityId(bidDetail.getOpportunityId());
+
+				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : bidDetail.getOpportunityT().getOpportunityCompetitorLinkTs()) {
+					competitorList.add(opportunityCompetitorLinkT.getCompetitorName());
+				}
+				row.createCell(colValue).setCellValue(competitorList.toString().replace("[", "").replace("]", ""));
+				colValue++;
+			}
+			
+			if(coreAttUsedForWinFlag){
+				if(bidDetail.getCoreAttributesUsedForWinning()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getCoreAttributesUsedForWinning());
+				}
+				colValue++;
+			}
+			
+			if(bidIdFlag){
+				row.createCell(colValue).setCellValue(bidDetail.getBidId());
+				colValue++;
+			}
+			
+			if(bidOffGrpOwnerFlag){
+				if (bidDetail.getBidOfficeGroupOwnerLinkTs().size() > 0) {
+//					List<String> bodofficeGroupOwner=new ArrayList<String>();
+					List<String> bodofficeGroupOwner=userRepository.findBidOfficeGroupOwnersNameByBidId(bidDetail.getBidId());
+//					for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetail.getBidOfficeGroupOwnerLinkTs()) {
+//						UserT userT = userRepository.findByUserId(bidOfficeGroupOwnerLinkT.getBidOfficeGroupOwner());
+//						bodofficeGroupOwner.add(userT.getUserName());
+//					}
+					row.createCell(colValue).setCellValue(bodofficeGroupOwner.toString().replace("[", "").replace("]", ""));
+				}
+				colValue++;
+			}
+				
+			if(targetBidSubDtFlag){
+				if(bidDetail.getTargetBidSubmissionDate()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getTargetBidSubmissionDate().toString());
+				}
+				colValue++;
+			}
+			
+			if(actualBidSubDtFlag){
+				if(bidDetail.getActualBidSubmissionDate()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate().toString());
+				}
+				colValue++;
+			}
+				
+			if(expDtOfOutcomeFlag){
+				if(bidDetail.getExpectedDateOfOutcome()!=null){
+					row.createCell(colValue).setCellValue(bidDetail.getExpectedDateOfOutcome().toString());
+				}
+				colValue++;
+			}
+			
+			currentRow = currentRow + 0;
 		}
-//		int lastCol = row.getLastCellNum();
-//		for(int startCol=8;startCol<=lastCol;startCol++){
-//			if(row.getCell(startCol)!=null)
-//			spreadSheet.autoSizeColumn(startCol);
-//		}
 		return currentRow;
 	}
 
