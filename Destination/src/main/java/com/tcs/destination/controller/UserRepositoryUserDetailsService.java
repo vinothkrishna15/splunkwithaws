@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -45,10 +46,10 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 			throw new UnAuthorizedException();
 		} catch (IncorrectResultSizeDataAccessException e) {
 			logger.error("More than one user found for the user name: " + userName);
-			throw new DestinationException("More than one user found for the user name: " + userName);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "More than one user found for the user name: " + userName);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
 		if (user == null) {

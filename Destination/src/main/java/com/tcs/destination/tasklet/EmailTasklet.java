@@ -29,6 +29,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
@@ -76,7 +77,7 @@ public class EmailTasklet implements Tasklet {
 			logger.info("Emailed opportunity daily report to Admin & Strategic group");
 		} else {
 			logger.info("Unable to email opportunity daily report to Admin & Strategic group");
-			throw new DestinationException("Unable to email opportunity daily report to Admin & Strategic group");
+			throw new DestinationException(HttpStatus.EXPECTATION_FAILED,"Unable to email opportunity daily report to Admin & Strategic group");
 		}
 
 		return RepeatStatus.FINISHED;

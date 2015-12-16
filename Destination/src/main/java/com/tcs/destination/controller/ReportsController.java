@@ -178,7 +178,7 @@ public class ReportsController {
 				--targetVsActualConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Target Vs Actual report  is experiencing high loads, please try again after sometime");
 
 		}
@@ -240,7 +240,7 @@ public class ReportsController {
 				--targetVsActualConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Target Vs Actual report module is experiencing huge loads, please try again after sometime");
 
 		}
@@ -303,7 +303,7 @@ public class ReportsController {
 				--targetVsActualConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Target Vs Actual report module is experiencing huge loads, please try again after sometime");
 
 		}
@@ -370,7 +370,7 @@ public class ReportsController {
 			}
 		} else {
 
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");
 
 		}
@@ -435,7 +435,7 @@ public class ReportsController {
 				--connectConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");
 		}
 	}
@@ -499,7 +499,7 @@ public class ReportsController {
 				--connectConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");
 
 		}
@@ -569,7 +569,7 @@ public class ReportsController {
 				--bidConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Bid report  is experiencing high loads, please try again after sometime");
 		}
 	}
@@ -630,7 +630,7 @@ public class ReportsController {
 				--opportunityConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Opportunity report  is experiencing high loads, please try again after sometime");
 		}
 
@@ -700,7 +700,7 @@ public class ReportsController {
 				--opportunityConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Opportunity report  is experiencing high loads, please try again after sometime");
 		}
 	}
@@ -767,7 +767,7 @@ public class ReportsController {
 				--opportunityConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Opportunity report  is experiencing high loads, please try again after sometime");
 
 		}
@@ -841,7 +841,7 @@ public class ReportsController {
 				--bdmConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Bdm Performance report  is experiencing high loads, please try again after sometime");
 		}
 	}
@@ -913,7 +913,7 @@ public class ReportsController {
 				--bdmConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Bdm Performance report  is experiencing high loads, please try again after sometime");
 		}
 	}
@@ -985,7 +985,7 @@ public class ReportsController {
 				--bdmConcurrentRequestCounter;
 			}
 		} else {
-			throw new DestinationException(
+			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Bdm Performance report  is experiencing high loads, please try again after sometime");
 
 		}

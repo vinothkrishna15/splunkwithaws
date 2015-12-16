@@ -50,9 +50,9 @@ import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
 
 /**
- * This class deals with user details 
- * and other functionalities like login, logout, change password, forget password,
- * upload and download of User Details
+ * This class deals with user details and other functionalities like login,
+ * logout, change password, forget password, upload and download of User Details
+ * 
  * @author tcs
  *
  */
@@ -68,7 +68,7 @@ public class UserDetailsController {
 
 	@Autowired
 	UserUploadService userUploadService;
-	
+
 	@Autowired
 	UserDownloadService userDownloadService;
 
@@ -81,11 +81,11 @@ public class UserDetailsController {
 	@Autowired
 	UploadErrorReport uploadErrorReport;
 	@Autowired
-	private SessionRegistry  sessionRegistry;
+	private SessionRegistry sessionRegistry;
 
 	@Value("${maximum.concurrent.user}")
 	private int maxActiveSession;
-	
+
 	/**
 	 * @param fields
 	 * @param view
@@ -98,9 +98,9 @@ public class UserDetailsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
-					throws DestinationException {
+			throws DestinationException {
 		logger.info("starting UserDetailsController findone method");
-		try{
+		try {
 			if (nameWith.equals("")) {
 				logger.info("Ending UserDetailsController findone method");
 				return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -111,12 +111,13 @@ public class UserDetailsController {
 				return ResponseConstructors.filterJsonForFieldAndViews(fields,
 						view, user);
 			}
-			
-		} catch(DestinationException e) {
+
+		} catch (DestinationException e) {
 			throw e;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving user details");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving user details");
 		}
 	}
 
@@ -137,142 +138,152 @@ public class UserDetailsController {
 			throws DestinationException {
 
 		logger.info("starting UserDetailsController /user/login POST");
-		try{
-			List<SessionInformation> activeSessions =null;
-			logger.info("httpServletRequest sessionId:"+httpServletRequest.getSession(false).getId());
-			  activeSessions = new ArrayList<>();
-			  for(Object principal : sessionRegistry.getAllPrincipals()) {
-			    activeSessions.addAll(sessionRegistry.getAllSessions(principal, false));
-			  }
-			logger.info("active session size:"+activeSessions.size());
-			  
-			if(maxActiveSession>=activeSessions.size()){
-			
-			UserT user = userService.findByUserId(DestinationUtils
-					.getCurrentUserDetails().getUserId());
-			if (user != null) {
-				// Log Username for debugging
-				HttpSession session = httpServletRequest.getSession(false);
-				if (session == null) {
-					session = httpServletRequest.getSession();
-				}
+		try {
+			List<SessionInformation> activeSessions = null;
+			logger.info("httpServletRequest sessionId:"
+					+ httpServletRequest.getSession(false).getId());
+			activeSessions = new ArrayList<>();
+			for (Object principal : sessionRegistry.getAllPrincipals()) {
+				activeSessions.addAll(sessionRegistry.getAllSessions(principal,
+						false));
+			}
+			logger.info("active session size:" + activeSessions.size());
 
-				// Check if the User has already logged in with the same session
-				if (userService.findByUserIdAndSessionId(user.getUserId(),
-						session.getId()) != null) {
-					throw new DestinationException(HttpStatus.FORBIDDEN,
-							"User has already logged in with the same session");
-				}
+			if (maxActiveSession >= activeSessions.size()) {
 
-				// Set the custom TimeOut
-				ApplicationSettingsT appSettings = applicationSettingsRepository
-						.findOne(Constants.TIME_OUT);
-				logger.info("Time_Out Interval: {}", appSettings.getValue());
-				session.setMaxInactiveInterval(Integer.parseInt(appSettings
-						.getValue()) * 60);
-				logger.info("Session Timeout: {}",
-						session.getMaxInactiveInterval());
+				UserT user = userService.findByUserId(DestinationUtils
+						.getCurrentUserDetails().getUserId());
+				if (user != null) {
+					// Log Username for debugging
+					HttpSession session = httpServletRequest.getSession(false);
+					if (session == null) {
+						session = httpServletRequest.getSession();
+					}
 
-				// Get Last Login Time
-				Timestamp lastLogin = userService
-						.getUserLastLogin(user.getUserId());
-				if (lastLogin != null)
-					user.setLastLogin(lastLogin);
+					// Check if the User has already logged in with the same
+					// session
+					if (userService.findByUserIdAndSessionId(user.getUserId(),
+							session.getId()) != null) {
+						throw new DestinationException(HttpStatus.FORBIDDEN,
+								"User has already logged in with the same session");
+					}
 
-				// Get Browser, Device details from request header
-				logger.info("UserAgent : "
-						+ httpServletRequest.getHeader("User-Agent"));
-				UserAgent userAgent = UserAgent
-						.parseUserAgentString(httpServletRequest
-								.getHeader("User-Agent"));
-				Browser browser = null;
-				String browserName = null;
-				String browserVersion = null;
-				if (userAgent.getBrowser() != null) {
-					browser = userAgent.getBrowser();
-					if (browser != null && browser.getName() != null)
-						browserName = browser.getName();
-				}
-				if (userAgent.getBrowserVersion() != null)
-					browserVersion = userAgent.getBrowserVersion().getVersion();
-				logger.info("Browser: {}, Version: {}", browserName, browserVersion);
+					// Set the custom TimeOut
+					ApplicationSettingsT appSettings = applicationSettingsRepository
+							.findOne(Constants.TIME_OUT);
+					logger.info("Time_Out Interval: {}", appSettings.getValue());
+					session.setMaxInactiveInterval(Integer.parseInt(appSettings
+							.getValue()) * 60);
+					logger.info("Session Timeout: {}",
+							session.getMaxInactiveInterval());
 
-				// Get OS details
-				OperatingSystem os = null;
-				String osName = null;
-				short osVersion = 0;
-				if (userAgent.getOperatingSystem() != null) {
-					os = userAgent.getOperatingSystem();
-					if (os != null) {
-						osVersion = os.getId();
-						if (os.getName() != null)
-							osName = os.getName();
+					// Get Last Login Time
+					Timestamp lastLogin = userService.getUserLastLogin(user
+							.getUserId());
+					if (lastLogin != null)
+						user.setLastLogin(lastLogin);
+
+					// Get Browser, Device details from request header
+					logger.info("UserAgent : "
+							+ httpServletRequest.getHeader("User-Agent"));
+					UserAgent userAgent = UserAgent
+							.parseUserAgentString(httpServletRequest
+									.getHeader("User-Agent"));
+					Browser browser = null;
+					String browserName = null;
+					String browserVersion = null;
+					if (userAgent.getBrowser() != null) {
+						browser = userAgent.getBrowser();
+						if (browser != null && browser.getName() != null)
+							browserName = browser.getName();
+					}
+					if (userAgent.getBrowserVersion() != null)
+						browserVersion = userAgent.getBrowserVersion()
+								.getVersion();
+					logger.info("Browser: {}, Version: {}", browserName,
+							browserVersion);
+
+					// Get OS details
+					OperatingSystem os = null;
+					String osName = null;
+					short osVersion = 0;
+					if (userAgent.getOperatingSystem() != null) {
+						os = userAgent.getOperatingSystem();
+						if (os != null) {
+							osVersion = os.getId();
+							if (os.getName() != null)
+								osName = os.getName();
+						}
+					}
+
+					logger.info("OS: {}, Version: {}", os, (byte) osVersion);
+
+					// Get Device details
+					String device = null;
+					if (os.getDeviceType() != null) {
+						if (os.getDeviceType().getName() != null)
+							device = os.getDeviceType().getName();
+					}
+					logger.info("Device: {}", device);
+
+					// Save current login session
+					LoginHistoryT loginHistory = new LoginHistoryT();
+					loginHistory.setUserId(user.getUserId());
+					loginHistory.setSessionId(session.getId());
+					loginHistory.setBrowser(browserName);
+					loginHistory.setBrowserVersion(browserVersion);
+					loginHistory.setOs(osName);
+					loginHistory.setOsVersion(Integer
+							.toString((byte) osVersion));
+					loginHistory.setDevice(device);
+					if (appVersion != null && !appVersion.isEmpty()) {
+						logger.info("App Version: {}", appVersion);
+						loginHistory.setAppVersion(appVersion);
+					}
+
+					if (!userService.addLoginHistory(loginHistory)) {
+						throw new DestinationException(
+								HttpStatus.INTERNAL_SERVER_ERROR,
+								"Could not save Login History");
 					}
 				}
 
-				logger.info("OS: {}, Version: {}", os, (byte) osVersion);
+				// Setting Application Settings in Response Header
+				List<ApplicationSettingsT> applicationSettingsTs = applicationSettingsService
+						.findAll();
 
-				// Get Device details
-				String device = null;
-				if (os.getDeviceType() != null) {
-					if (os.getDeviceType().getName() != null)
-						device = os.getDeviceType().getName();
+				HttpHeaders headers = new HttpHeaders();
+				if (applicationSettingsTs != null
+						&& !applicationSettingsTs.isEmpty()) {
+					for (ApplicationSettingsT applicationSettingsT : applicationSettingsTs) {
+						headers.add(applicationSettingsT.getKey(),
+								applicationSettingsT.getValue());
+					}
 				}
-				logger.info("Device: {}", device);
+				logger.info("Ending UserDetailsController /user/login POST");
+				return new ResponseEntity<String>(
+						ResponseConstructors.filterJsonForFieldAndViews(fields,
+								view, user), headers, HttpStatus.OK);
+			} else {
+				HttpSession maxreq_session = httpServletRequest
+						.getSession(false);
+				if (maxreq_session != null) {
 
-				// Save current login session
-				LoginHistoryT loginHistory = new LoginHistoryT();
-				loginHistory.setUserId(user.getUserId());
-				loginHistory.setSessionId(session.getId());
-				loginHistory.setBrowser(browserName);
-				loginHistory.setBrowserVersion(browserVersion);
-				loginHistory.setOs(osName);
-				loginHistory.setOsVersion(Integer.toString((byte) osVersion));
-				loginHistory.setDevice(device);
-				if (appVersion != null && !appVersion.isEmpty()) {
-					logger.info("App Version: {}", appVersion);
-					loginHistory.setAppVersion(appVersion);
+					sessionRegistry.removeSessionInformation(httpServletRequest
+							.getSession(false).getId());
+					maxreq_session.invalidate();
 				}
-
-				if (!userService.addLoginHistory(loginHistory)) {
-					throw new DestinationException(
-							HttpStatus.INTERNAL_SERVER_ERROR,
-							"Could not save Login History");
-				}
-			}
-
-			// Setting Application Settings in Response Header
-			List<ApplicationSettingsT> applicationSettingsTs = applicationSettingsService
-					.findAll();
-
-			HttpHeaders headers = new HttpHeaders();
-			if (applicationSettingsTs != null && !applicationSettingsTs.isEmpty()) {
-				for (ApplicationSettingsT applicationSettingsT : applicationSettingsTs) {
-					headers.add(applicationSettingsT.getKey(),
-							applicationSettingsT.getValue());
-				}
-			}
-			logger.info("Ending UserDetailsController /user/login POST");
-			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
-							user), headers, HttpStatus.OK);
-		}
-		else
-			{
-			HttpSession maxreq_session = httpServletRequest.getSession(false);			
-			if (maxreq_session != null) {
-				
-				sessionRegistry.removeSessionInformation(httpServletRequest.getSession(false).getId());	
-				maxreq_session.invalidate();
-			}
-			logger.info("Maximum number of users reached.Please try after sometime");			
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Maximum number of users reached.Please try after sometime");
+				logger.info("Maximum number of users reached.Please try after sometime");
+				throw new DestinationException(
+						HttpStatus.SERVICE_UNAVAILABLE,
+						"Maximum number of users reached.Please try after sometime");
 			}
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while login process");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while login process");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while login process");
 		}
 	}
 
@@ -284,7 +295,7 @@ public class UserDetailsController {
 	@RequestMapping(value = "/logout", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> userLogout(
 			HttpServletRequest httpServletRequest) throws DestinationException {
-		try{
+		try {
 			logger.info("Starting UserDetailsController /user/logout GET");
 			Status status = new Status();
 			HttpSession session = httpServletRequest.getSession(false);
@@ -305,7 +316,8 @@ public class UserDetailsController {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while logout process");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while logout process");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while logout process");
 		}
 	}
 
@@ -321,7 +333,7 @@ public class UserDetailsController {
 			throws DestinationException {
 		logger.info("starting UserDetailsController /user/changepwd PUT");
 		Status status = new Status();
-		try{
+		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
 
@@ -353,11 +365,12 @@ public class UserDetailsController {
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
-		}  catch (DestinationException e) {
+		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while updating password");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while updating password");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while updating password");
 		}
 	}
 
@@ -372,7 +385,7 @@ public class UserDetailsController {
 		logger.info("Starting UserDetailsController /user/forgotpwd POST");
 		Status status = new Status();
 
-		try{
+		try {
 			String userId = user.getUserId();
 			String userEmailId = user.getUserEmailId();
 			userService.forgotPassword(userId, userEmailId);
@@ -386,7 +399,8 @@ public class UserDetailsController {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while processing forgot password");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while processing forgot password");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while processing forgot password");
 		}
 	}
 
@@ -401,9 +415,10 @@ public class UserDetailsController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		try{
+		try {
 			logger.info("Starting UserDetailsController /user/privileges GET");
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			Status status = new Status();
 
 			List<UserAccessPrivilegesT> userPrivilegesList = userService
@@ -412,8 +427,8 @@ public class UserDetailsController {
 				status.setStatus(Status.FAILED, "Invalid userId");
 				logger.info("Ending UserDetailsController /user/privileges GET: Invalid User");
 				return new ResponseEntity<String>(
-						ResponseConstructors.filterJsonForFieldAndViews("all", "",
-								status), HttpStatus.OK);
+						ResponseConstructors.filterJsonForFieldAndViews("all",
+								"", status), HttpStatus.OK);
 			} else {
 				logger.info("Ending UserDetailsController /user/privileges GET");
 				return new ResponseEntity<String>(
@@ -424,8 +439,9 @@ public class UserDetailsController {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while retrieving privileges");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while retrieving privileges");
-		} 
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving privileges");
+		}
 	}
 
 	/**
@@ -438,7 +454,7 @@ public class UserDetailsController {
 			@RequestBody UserT user) throws DestinationException {
 		logger.info("Starting UserDetailsController /user POST");
 		Status status = new Status();
-		try{
+		try {
 			if (userService.insertUser(user, false)) {
 				status.setStatus(Status.SUCCESS, user.getUserId());
 			}
@@ -450,8 +466,9 @@ public class UserDetailsController {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while inserting user");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while inserting user");
-		} 
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while inserting user");
+		}
 	}
 
 	/**
@@ -466,9 +483,10 @@ public class UserDetailsController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws DestinationException {
-		try{
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			throws DestinationException {
+		try {
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			logger.info("Starting UserDetailsController/upload ");
 			UploadStatusDTO status = null;
 
@@ -486,21 +504,22 @@ public class UserDetailsController {
 					.getErrorSheet(errorDetailsDTOs);
 			HttpHeaders respHeaders = new HttpHeaders();
 			respHeaders
-			.setContentType(MediaType
-					.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+					.setContentType(MediaType
+							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"upload_error.xlsx");
 			logger.info("Starting UserDetailsController/upload ");
-			return new ResponseEntity<InputStreamResource>(excelFile, respHeaders,
-					HttpStatus.OK);
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error("Backend Error while uploading users");
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend Error while uploading users");
-		} 
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while uploading users");
+		}
 	}
-	
+
 	/**
 	 * @param oppFlag
 	 * @param fields
@@ -520,15 +539,15 @@ public class UserDetailsController {
 		try {
 			customerDownloadExcel = userDownloadService.getUsers(oppFlag);
 			respHeaders = new HttpHeaders();
-			String todaysDate_formatted=DateUtils.getCurrentDateInDesiredFormat();
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
 			respHeaders.setContentDispositionFormData("attachment",
-					"UserDownload_" + todaysDate_formatted
-							+ ".xlsm");
+					"UserDownload_" + todaysDate_formatted + ".xlsm");
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Start of Customer Details download: Success");
-			return new ResponseEntity<InputStreamResource>(customerDownloadExcel,
-					respHeaders, HttpStatus.OK);
+			return new ResponseEntity<InputStreamResource>(
+					customerDownloadExcel, respHeaders, HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -537,6 +556,5 @@ public class UserDetailsController {
 					"Backend error in downloading the customer details in excel");
 		}
 	}
-
 
 }
