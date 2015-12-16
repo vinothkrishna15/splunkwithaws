@@ -36,6 +36,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.PropertyUtil;
+
 /**
  * This SimpleCORSFilter class filters the request for the acceptable parameters for the services
  * 
@@ -44,6 +47,10 @@ import org.springframework.stereotype.Component;
 public class SimpleCORSFilter implements Filter {
 
 	private static final Logger logger = LoggerFactory.getLogger(SimpleCORSFilter.class);
+	
+	private static final String PROD = "PROD";
+	
+	private static final String UAT = "UAT";
 	
 	public void doFilter(ServletRequest req, ServletResponse res,
 			FilterChain chain) throws IOException, ServletException {
@@ -83,19 +90,22 @@ public class SimpleCORSFilter implements Filter {
 				throw new ServletException ("Session should not be passed for User Login service");
 			}
 		} else {
-			// Check if other services has valid session populated
-/*			if (session == null) {
-				logger.error("Valid session is required");
-				throw new ServletException("Valid session is required");
-			} else {
-				if (session.isNew()) {
-					logger.error("Invalid session requested : " + session.getId());
-					throw new ServletException("Invalid session requested");
+			// validate session based on the environment
+			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)){
+			case UAT:
+			case PROD:// Check if other services has valid session populated
+				if (session == null) {
+					logger.error("Valid session is required");
+					throw new ServletException("Valid session is required");
+				} else {
+					logger.info("SessionId : " + session.getId());
+					MDC.put("sessionId", session.getId());
 				}
-*/		    if (session != null) {
-				logger.info("SessionId : " + session.getId());
-				MDC.put("sessionId", session.getId());
+				break;
+				default : break;
+
 			}
+			
 		}
 		
 		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper(httpServletRequest);
