@@ -3,7 +3,6 @@ package com.tcs.destination.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,8 +30,6 @@ import com.tcs.destination.bean.CurrencyValue;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.CustomerRevenueValues;
 import com.tcs.destination.bean.GroupCustomerGeoIouResponse;
-import com.tcs.destination.bean.OpportunitySummaryValue;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.ReportSummaryOpportunity;
 import com.tcs.destination.bean.TargetVsActualDetailed;
 import com.tcs.destination.bean.TargetVsActualQuarter;
@@ -216,7 +213,7 @@ public class ReportsService {
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
 			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou = ARDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
-			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ "JOIN sub_sp_mapping_t SSM on ARDT.sub_sp = SSM.actual_sub_sp "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and ";
 	
 	private static final String OVER_ALL_CUSTOMER_REVENUE_QUERY_PREFIX = " select RVNU.customer_name, sum(RVNU.actual_revenue) as revenue from "
@@ -237,7 +234,7 @@ public class ReportsService {
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
 			+ "and RCMT.customer_geography=PRDT.finance_geography and RCMT.finance_iou = PRDT.finance_iou)"
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou " 
-			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ "JOIN sub_sp_mapping_t SSM on PRDT.sub_sp = SSM.actual_sub_sp "
 			+ "where RCMT.customer_name not like 'UNKNOWN%' and " ;
 	
 	private static final String OVER_ALL_CUSTOMER_REVENUE_UNION_QUERY_PREFIX = 

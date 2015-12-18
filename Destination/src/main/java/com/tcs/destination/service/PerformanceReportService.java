@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersT;
-import com.tcs.destination.bean.ActualRevenuesDataT;
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.FrequentlySearchedGroupCustomersTPK;
 import com.tcs.destination.bean.GeographyReport;
 import com.tcs.destination.bean.IOUReport;
@@ -34,7 +31,6 @@ import com.tcs.destination.bean.ReportsSalesStage;
 import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpReport;
 import com.tcs.destination.bean.TargetVsActualResponse;
-import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
@@ -751,7 +747,7 @@ public class PerformanceReportService {
 	private String getTargetRevenueQueryString(String userId) throws Exception {
 		StringBuffer queryBuffer = new StringBuffer(TARGET_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
+				.getQueryPrefixMap(GEO_COND_PREFIX, null,
 						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
@@ -2580,4 +2576,5 @@ public class PerformanceReportService {
 		}
 		return frequentlySearchedGroupCustomersTs;
 	}
+	
 }
