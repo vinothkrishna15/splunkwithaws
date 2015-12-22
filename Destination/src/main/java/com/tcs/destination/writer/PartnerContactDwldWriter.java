@@ -1,13 +1,16 @@
 package com.tcs.destination.writer;
 
+import static com.tcs.destination.utils.Constants.DOWNLOAD;
+import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
+import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
+import static com.tcs.destination.utils.Constants.XLSM;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -22,124 +25,183 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.http.HttpStatus;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.enums.ContactType;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.RequestStatus;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.ExcelUtils;
+import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.FileManager;
 
+/*
+ * This class deals with writing the Partner contacts table data 
+ * from database into an excel 
+ * using batch processing
+ */
 public class PartnerContactDwldWriter implements ItemWriter<ContactT>,
-		StepExecutionListener {
+StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PartnerContactDwldWriter.class);
 
 	private StepExecution stepExecution;
-	
+
 	private Sheet sheet;
-	
+
 	private Workbook workbook;
-	
+
 	private int rowCount = 1;
-	
+
 	private String filePath; 
-	
+
 	private FileInputStream fileInputStream;
-	
-	private Map<String,String> partnerIdPartnerMap;
-	
+
+	private DataProcessingRequestRepository dataProcessingRequestRepository;
+
+	private DataProcessingService dataProcessingService;
+
+	private String fileServerPath;
+
+	private String template;
+
+
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
-		
-        try {
-        	 fileInputStream.close();
-        	 FileOutputStream outputStream = new FileOutputStream(new File(filePath));
-             workbook.write(outputStream); //write changes
-			 outputStream.close();  //close the stream
-			 ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			 jobContext.remove("partnerIdPartnerMap");
+
+		try {
+			logger.info("Start:inside after step() PartnerContactDwldWriter:");
+			fileInputStream.close();
+			FileOutputStream outputStream = new FileOutputStream(new File(
+					filePath));
+			workbook.write(outputStream); // write changes
+			logger.info("End:inside after step() PartnerContactDwldWriter:");
+			outputStream.close(); // close the stream
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
-		
+
 		return stepExecution.getExitStatus();
 
 	}
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		
-		logger.debug("Inside before step:");
-		
+		logger.info("Start:inside beforeStep() PartnerContactDwldWriter:");
+
 		try {
-			    this.stepExecution = stepExecution;
-			    ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
-			    partnerIdPartnerMap = (Map<String, String>) jobContext.get("partnerIdPartnerMap");
-			} catch (Exception e) {
-				logger.error("Error in before step process: {}", e);
-			}
+			this.stepExecution = stepExecution;
+			ExecutionContext jobContext = stepExecution.getJobExecution()
+					.getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
+					.get(REQUEST);
+			String entity = dataProcessingService.getEntity(request
+					.getRequestType());
+			StringBuffer filePath = new StringBuffer(fileServerPath)
+			.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
+			.append(FILE_DIR_SEPERATOR)
+			.append(DateUtils.getCurrentDate())
+			.append(FILE_DIR_SEPERATOR)
+			.append(request.getUserT().getUserId())
+			.append(FILE_DIR_SEPERATOR);
+			StringBuffer fileName = new StringBuffer(entity)
+			.append(DOWNLOADCONSTANT)
+			.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			FileManager.copyFile(filePath.toString(), template,
+					fileName.toString());
+
+			request.setFilePath(filePath.toString());
+			request.setFileName(fileName.toString());
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
+			dataProcessingRequestRepository.save(request);
+
+			jobContext.put(REQUEST, request);
+			logger.info("End:inside beforeStep() of PartnerContactDwldWriter:");
+
+		} catch (Exception e) {
+			logger.error("Error in before step process: {}", e);
+		}
 
 	}
+
 
 	/* (non-Javadoc)
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
 	public void write(List<? extends ContactT> items) throws Exception {
+		logger.info("Begin: Inside write method  of PartnerContactDwldWriter:");
 
-		logger.debug("Inside write method:");
-		
 		if (rowCount == 1) {
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 			filePath = request.getFilePath() + request.getFileName();
 			fileInputStream = new FileInputStream(new File(filePath));
 			String fileName  = request.getFileName();
-			
-		    String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
-            if(fileExtension.equalsIgnoreCase("xls")){
-                workbook = new HSSFWorkbook(fileInputStream);
-            } else if(fileExtension.equalsIgnoreCase("xlsx")){
-            	workbook = new XSSFWorkbook(fileInputStream);
-            } else if(fileExtension.equalsIgnoreCase("xlsm")){
-            	workbook = new XSSFWorkbook(fileInputStream);
-            }
-	            
-			sheet = workbook.getSheet(Constants.CONNECT_TEMPLATE_PARTNER_CONTACT_SHEET_NAME);
+
+			String fileExtension = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
+			if(fileExtension.equalsIgnoreCase("xls")){
+				workbook = new HSSFWorkbook(fileInputStream);
+			} else if(fileExtension.equalsIgnoreCase("xlsx")){
+				workbook = new XSSFWorkbook(fileInputStream);
+			} else if(fileExtension.equalsIgnoreCase("xlsm")){
+				workbook = new XSSFWorkbook(fileInputStream);
+			}
+
+			sheet = workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME);
 		}
 
 		if(items!=null) {
-			for (ContactT contact : items) {
-				// Create row with rowCount
-				Row row = sheet.createRow(rowCount);
+			int rowCountPartnerSheet = 1; // Excluding the header, header starts with index 0
+			for (ContactT ct : items) {
 
-				String contactId = contact.getContactId();
-				
-				String partnerId = contact.getPartnerId();
-				String partnerName = partnerIdPartnerMap.get(partnerId);
-				ExcelUtils.createCell(partnerName, row, 0);
-				
-				String contactName = contact.getContactName();
-				ExcelUtils.createCell(contactName, row, 1);
-				
-				String contactRole =contact.getContactRole();
-				ExcelUtils.createCell(contactRole, row, 2);
-				
-				String emailId = contact.getContactEmailId();
-				ExcelUtils.createCell(emailId, row, 3);
-				
-				// Create new Cell and set cell value
-//				Cell cellBeaconCustomerName = row.createCell(0);
-//				cellBeaconCustomerName.setCellValue(iou.getDisplayIou().trim());
-//
-//				Cell cellBeaconIou = row.createCell(1);
-//				cellBeaconIou.setCellValue(iou.getIou().trim());
+				if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
+						(ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Partner Contact
 
-				// Increment row counter
-				rowCount++;
+					// Create row with rowCount
+					Row row = sheet.createRow(rowCountPartnerSheet);
+
+					// Create new Cell and set cell value
+					Cell cellPartnerName = row.createCell(1);
+					try {
+						cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
+					} catch(NullPointerException npe){
+						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
+					}
+
+					Cell cellPartnerContactName = row.createCell(2);
+					cellPartnerContactName.setCellValue(ct.getContactName());
+
+					Cell cellPartnerContactRole = row.createCell(3);
+					cellPartnerContactRole.setCellValue(ct.getContactRole());
+
+					Cell cellPartnerContactEmailId = row.createCell(4);
+					if(ct.getContactEmailId()!=null) {
+						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
+					}
+
+					Cell cellPartnerContatcTelephone = row.createCell(5);
+					if(ct.getContactEmailId()!=null) {
+						cellPartnerContatcTelephone.setCellValue(ct.getContactEmailId());
+					}
+					Cell cellPartnerContactLinkedIn = row.createCell(6);
+					if(ct.getContactEmailId()!=null) {
+						cellPartnerContactLinkedIn.setCellValue(ct.getContactEmailId());
+					}
+					// Increment row counter for partner contact sheet
+					rowCountPartnerSheet++;
+				}
+				else{
+					logger.info("partner conatcts doesnot exists for this user");
+				}
 			}
 		}
+		logger.info("Exit: Inside write method  of PartnerContactDwldWriter:");
 	}
 
 	public StepExecution getStepExecution() {
@@ -178,9 +240,43 @@ public class PartnerContactDwldWriter implements ItemWriter<ContactT>,
 		return fileInputStream;
 	}
 
+
+	public String getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+
+	public String getFileServerPath() {
+		return fileServerPath;
+	}
+
+	public void setFileServerPath(String fileServerPath) {
+		this.fileServerPath = fileServerPath;
+	}
+
+	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
+		return dataProcessingRequestRepository;
+	}
+
+	public void setDataProcessingRequestRepository(
+			DataProcessingRequestRepository dataProcessingRequestRepository) {
+		this.dataProcessingRequestRepository = dataProcessingRequestRepository;
+	}
+
+	public DataProcessingService getDataProcessingService() {
+		return dataProcessingService;
+	}
+
+	public void setDataProcessingService(
+			DataProcessingService dataProcessingService) {
+		this.dataProcessingService = dataProcessingService;
+	}
+
 	public void setFileInputStream(FileInputStream fileInputStream) {
 		this.fileInputStream = fileInputStream;
 	}
-
 
 }

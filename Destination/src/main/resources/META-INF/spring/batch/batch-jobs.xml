@@ -31,6 +31,7 @@
 	<import resource="/jobs/actualRevenueDownload-job.xml"/>
 	<import resource="/jobs/opportunityDailyDownload-job.xml"/>
 	<import resource="/jobs/partnerDownload-job.xml"/>
+	<import resource="/jobs/partnerContactDownload-job.xml"/>
 	<import resource="/jobs/partnerUpload-job.xml"/>
 	<import resource="/jobs/beaconUpload-job.xml"/>
 	<import resource="/jobs/opportunityShelving-job.xml"/>
