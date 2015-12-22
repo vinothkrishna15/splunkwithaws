@@ -34,6 +34,7 @@ import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.PropertyUtil;
 
 public class OpportunitySheetWriter implements ItemWriter<OpportunityT>,
 		StepExecutionListener {
@@ -93,15 +94,18 @@ public class OpportunitySheetWriter implements ItemWriter<OpportunityT>,
 			DataProcessingRequestT request = new DataProcessingRequestT();
 
 			String entity = EntityType.OPPORTUNITY.name();
+			String environmentName=PropertyUtil.getProperty("environment.name");
 			StringBuffer filePath = new StringBuffer(fileServerPath)
 					.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
 					.append(FILE_DIR_SEPERATOR)
 					.append(DateUtils.getCurrentDate())
 					.append(FILE_DIR_SEPERATOR).append("dailyReport")
 					.append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity)
-					.append(DOWNLOADCONSTANT)
-					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			StringBuffer fileName = new StringBuffer(environmentName)
+			.append(entity)
+			.append(DOWNLOADCONSTANT)
+			.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			
 			FileManager.copyFile(filePath.toString(), template,
 					fileName.toString());
 

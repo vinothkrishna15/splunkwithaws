@@ -28,7 +28,9 @@ import com.tcs.destination.service.CustomerDownloadService;
 import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -324,8 +326,9 @@ public class CustomerController {
 			customerDownloadExcel = customerDownloadService
 					.getCustomers(oppFlag);
 			respHeaders = new HttpHeaders();
+			String environmentName=PropertyUtil.getProperty("environment.name");
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String repName = "CustomerMasterDownload_" + todaysDate_formatted + ".xlsm";
+		    String repName =environmentName+"_CustomerMasterDownload_" + todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			respHeaders.setContentType(MediaType
@@ -366,7 +369,8 @@ public class CustomerController {
 					.getCustomerContacts(oppFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String repName = "CustomerContactDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+			String repName =environmentName+"_CustomerContactDownload_" + todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 

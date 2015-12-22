@@ -27,6 +27,7 @@ import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.service.CustomerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.PropertyUtil;
 
 /**
  * Controller to handle target related requests.
@@ -165,8 +166,8 @@ public class BeaconController {
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-
-			String repName = "BeaconDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+			String repName =environmentName+"_BeaconDownload_" + todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Beacon - DATA Downloaded Successfully ");

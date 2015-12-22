@@ -35,6 +35,7 @@ import com.tcs.destination.service.ConnectUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -466,7 +467,8 @@ public class ConnectController {
 					.setContentType(MediaType
 							.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String repName = "ConnectDownload_"	+ todaysDate_formatted + ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+			String repName = environmentName+"_ConnectDownload_"	+ todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside ConnectController: End of Connect Download");

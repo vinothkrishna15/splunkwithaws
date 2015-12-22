@@ -37,6 +37,7 @@ import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -819,7 +820,8 @@ public class OpportunityController {
 					.downloadDocument(oppFlag, userId, dealValueFlag);
 			respHeaders = new HttpHeaders();
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String repName = "OpportunityDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+			String repName = environmentName+"_OpportunityDownload_" + todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			respHeaders.setContentType(MediaType
