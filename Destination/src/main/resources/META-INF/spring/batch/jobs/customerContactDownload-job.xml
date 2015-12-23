@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="customerContactDownload">
+	<batch:step id="customerContactDwldPreprocess" next="customerContactDecider">
+			<batch:tasklet ref="customerContactDwldPreprocessor"/>
+		</batch:step>
+	
+		<batch:step id="customerContactDwldProcessing" next="customerMasterRefDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="customerContactDwldReader" writer="customerContactDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="customerMasterRefDwldProcessing" next="customerContactDwldPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="customerContactMasterRefDwldReader" writer="customerContactMasterRefDwldWriter" 
+				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="customerContactDecider" decider="customerContactFlowDecider">
+              <batch:next on="PREPROCESS" to="customerContactDwldPreprocess" />
+              <batch:next on="CUSTOMER_CONTACT_DWLD_PROCESSING" to="customerContactDwldProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="customerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="contactRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	<bean id="customerContactMasterRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="customerRepository"/>
+		<property name="methodName" value="findAll"/>
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="customerContactDwldWriter" class="com.tcs.destination.writer.CustomerContactDwldWriter">
+		<property name="template" value="${customerContactSheetTemplate}"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="fileServerPath" value="${fileserver.path}" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+	</bean>
+	
+	<bean id="customerContactMasterRefDwldWriter" class="com.tcs.destination.writer.CustomerContactMasterRefDwldWriter">
+	    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+	</bean>
+		
+	<!-- Decider -->
+    <bean id="customerContactFlowDecider" class="com.tcs.destination.decider.CustomerContactDecider" />
+	
+	<!-- scheduler  -->
+	<bean id="customerContactDwldScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="customerContactDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="customerContactDwldScheduler" method="run" cron="${customerContact.download.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
