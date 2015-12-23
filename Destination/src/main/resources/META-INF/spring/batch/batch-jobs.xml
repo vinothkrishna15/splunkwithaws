@@ -35,6 +35,8 @@
 	<import resource="/jobs/partnerUpload-job.xml"/>
 	<import resource="/jobs/beaconUpload-job.xml"/>
 	<import resource="/jobs/opportunityShelving-job.xml"/>
+	<import resource="/jobs/beaconDownload-job.xml"/>
+	<import resource="/jobs/customerContactDownload-job.xml"/>
 	
 </beans>
 	
