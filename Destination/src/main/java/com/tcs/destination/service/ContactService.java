@@ -20,6 +20,7 @@ import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -60,6 +61,19 @@ public class ContactService {
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
+	
+	/**
+	 * This service saves partner details into Contact_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void save(List<ContactT> insertList) throws Exception {
+		logger.debug("Inside save method");
+		contactRepository.save(insertList);
+	}
+	
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 
@@ -513,5 +527,4 @@ public class ContactService {
 		}
 
 	}
-
 }
