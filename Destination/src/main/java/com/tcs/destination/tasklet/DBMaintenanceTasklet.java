@@ -34,11 +34,14 @@ public class DBMaintenanceTasklet implements Tasklet {
 	@Value("${batch.table.purge.days}")
 	private int batchTablePurgeDays;
 	
-	@Value("${batch.table.purge.months}")
-	private int btchPrugeMonths;
+	@Value("${batch.table.purge.notification}")
+	private int batchPrugeNotification;
+	
+	@Value("${batch.table.purge.collaboration}")
+	private int batchPrugeCollaboration;
 	
 	@Value("${batch.table.purge.years}")
-	private int btchPrugeYears;
+	private int batchPrugeYears;
 	
 	@Autowired
 	private BatchOpportunityRepository batchOpportunityRepository;
@@ -54,7 +57,7 @@ public class DBMaintenanceTasklet implements Tasklet {
 		
 		RepeatStatus status = null;
 		
-		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, btchPrugeMonths, btchPrugeYears) == 1 ) {
+		if (batchOpportunityRepository.maintainDBTables(batchTablePurgeDays, batchPrugeNotification, batchPrugeCollaboration, batchPrugeYears) == 1 ) {
 			status = RepeatStatus.FINISHED;
 		}
 		
