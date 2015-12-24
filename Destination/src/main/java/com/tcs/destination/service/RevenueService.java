@@ -17,6 +17,10 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ *This Revenue service handles revenue related requests 
+ *
+ */
 @Service
 public class RevenueService {
 
@@ -42,6 +46,7 @@ public class RevenueService {
 		RevenueCustomerMappingT revenueT = null;
 		RevenueCustomerMappingTPK revenueTPK = null;
 		 List<RevenueCustomerMappingT> financeCustomers = null;
+		 logger.info("Begin:Inside addFinance() of RevenueService");
 		if(revenueCustomerToInsert!=null){
 			revenueT = new RevenueCustomerMappingT();
 			revenueTPK = new RevenueCustomerMappingTPK();
@@ -64,8 +69,8 @@ public class RevenueService {
             }
 			revenueT.setId(revenueTPK);
 			revenueT = revenueRepository.save(revenueT);
-			logger.info("Finance Mapping Saved .... "+ "finance mapping primary key" + revenueT.getId());
 		}
+		 logger.info("End:Inside addFinance() of RevenueService");
 		return revenueT;
 	}
 	
@@ -80,9 +85,8 @@ public class RevenueService {
 		
 		ActualRevenuesDataT actualRevenueDataT = null;
 		if(actualRevenueDataToInsert!=null){
-			
+			logger.info("begin:Inside addActualRevenue() of RevenueService");
 			actualRevenueDataT = new ActualRevenuesDataT();
-			
 			actualRevenueDataT.setQuarter(actualRevenueDataToInsert.getQuarter());
 			actualRevenueDataT.setMonth(actualRevenueDataToInsert.getMonth());
 			actualRevenueDataT.setFinancialYear(actualRevenueDataToInsert.getFinancialYear());
@@ -93,22 +97,31 @@ public class RevenueService {
 			actualRevenueDataT.setFinanceIou(actualRevenueDataToInsert.getFinanceIou());
 			actualRevenueDataT.setFinanceCustomerName(actualRevenueDataToInsert.getFinanceCustomerName());
 			actualRevenueDataT = actualRevenuesDataTRepository.save(actualRevenueDataT);
-			
-			logger.info("Actual Revenue Data Saved .... "+ "Actual Revenue Data primary key" + actualRevenueDataT.getActualRevenuesDataId());
 		}
+		logger.info("End:Inside addActualRevenue() of RevenueService");
 		return actualRevenueDataT;
 	}
+	
+	/**
+	 * this method saves the actual revenue data into the repository
+	 * @param addList
+	 */
 	@Transactional
 	public void save(List<ActualRevenuesDataT> addList) {
-		logger.info("in to save method");
-		logger.info("list size " +addList.size());
+		logger.info("Begin:Inside save() of RevenueService");
 		actualRevenuesDataTRepository.save(addList);
+		logger.info("End:Inside save() of RevenueService");
 	}
+	
+	/**
+	 * 
+	 * @param deleteList
+	 */
 	@Transactional
 	public void delete(List<ActualRevenuesDataT> deleteList) {
-		logger.info("in to delete method");
-		logger.info("list size " +deleteList.size());
+		logger.info("Begin:Inside delete() of RevenueService");
 		actualRevenuesDataTRepository.delete(deleteList);
+		logger.info("End:Inside delete() of RevenueService");
 	}
 
 }

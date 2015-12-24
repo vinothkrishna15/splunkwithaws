@@ -22,6 +22,11 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ *This service handles the frequently searched customer and partner 
+ *and its insertion and find operations 
+ *
+ */
 @Service
 public class FrequentlySearchedService {
 	
@@ -36,17 +41,24 @@ public class FrequentlySearchedService {
 	@Autowired
 	FrequentlySearchedRepository frequentRepository;
 
+	/**
+	 * This method searches  and finds the frequently searched 
+	 * customers and partners
+	 * @param entityType
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public List<FrequentlySearchedResponse> findFrequent(String entityType,
 			int count) throws Exception {
+		logger.info("Begin: findFrequent() of FrequentlySearchedService");
 		if (EntityType.contains(entityType)) {
-			logger.debug("Entity is present");
 			List<Object[]> frequentMapping = frequentRepository
 					.findFrequentEntities(entityType, count);
 
 			List<FrequentlySearchedResponse> sortedList = new ArrayList<FrequentlySearchedResponse>();
 			switch (EntityType.valueOf(entityType)) {
 			case CUSTOMER:
-				logger.debug("CUSTOMER ENTITY FOUND");
 				for (Object[] frequent : frequentMapping) {
 					CustomerMasterT customer = customerRepository
 							.findOne(frequent[1].toString());
@@ -61,10 +73,10 @@ public class FrequentlySearchedService {
 						throw new DestinationException(HttpStatus.NOT_FOUND,
 								"No Relevent Data Found in the database");
 					}else {
+						logger.info("End: findFrequent() of FrequentlySearchedService: CUSTOMER entity");
 								return sortedList; 
 	}
 			case PARTNER:
-				logger.debug("PARTNER ENTITY FOUND");
 				for (Object[] frequent : frequentMapping) {
 					PartnerMasterT partner = partnerRepository
 							.findOne(frequent[1].toString());
@@ -80,6 +92,7 @@ public class FrequentlySearchedService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Relevent Data Found in the database");
 			}else {
+				logger.info("End: findFrequent() of FrequentlySearchedService: PARTNER entity");
 						return sortedList; 
 }
 			default:
@@ -96,11 +109,16 @@ public class FrequentlySearchedService {
 		}
 	}
 
+	/**
+	 * This method allows to insert the frequently searched Customer / Partner
+	 * @param frequent
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean insertFrequent(FrequentlySearchedCustomerPartnerT frequent)	throws Exception {
 		frequent.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
-	    logger.debug("Inside insertFrequent Service");
+		logger.info("Begin: insertFrequent() of FrequentlySearchedService");
 		if (EntityType.contains(frequent.getEntityType())) {
-			logger.debug("EntityType is present");
 			if (frequent.getEntityId() == null)
 			{
 				logger.error("BAD_REQUEST: Entity ID can not be empty");
@@ -112,7 +130,7 @@ public class FrequentlySearchedService {
 						"User ID can not be empty");
 			}
 			frequent.setSearchDatetime(DateUtils.getCurrentTimeStamp());
-			logger.debug("Frequent detail is saving");
+			logger.info("End: insertFrequent() of FrequentlySearchedService");
 			return frequentRepository.save(frequent) != null;
 		}
 		logger.error("BAD_REQUEST: Invalid Entity Type");

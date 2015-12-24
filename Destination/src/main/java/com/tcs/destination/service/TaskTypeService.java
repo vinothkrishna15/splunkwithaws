@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.TaskTypeMappingT;
 import com.tcs.destination.data.repository.TaskTypeRepository;
-
+/*
+ *This service retrieves all the data from taslk_type_mapping_t table 
+ */
 @Service
 public class TaskTypeService {
 
@@ -20,7 +22,7 @@ public class TaskTypeService {
 	TaskTypeRepository taskTypeRepository;
 
 	public List<TaskTypeMappingT> findAll() {
-		logger.debug("Inside findAll service");
+		logger.info("Inside findAll() TaskTypeService");
 		return (List<TaskTypeMappingT>) taskTypeRepository.findAll();
 	}
 

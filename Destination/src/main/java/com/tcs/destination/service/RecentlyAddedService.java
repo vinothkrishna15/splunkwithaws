@@ -15,6 +15,11 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ * This service retrieves the recently added customers,
+ * and partners
+ */
+
 @Service
 public class RecentlyAddedService {
 	
@@ -26,7 +31,15 @@ public class RecentlyAddedService {
 	@Autowired
 	PartnerRepository partnerRepository;
 
+	/**
+	 * this method finds the recent customers and partners
+	 * @param entityType
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public Object recentlyAdded(String entityType, int count) throws Exception {
+		logger.info("Begin: inside recentlyAdded() of RecentlyAddedService");
 		if (EntityType.contains(entityType)) {
 			switch (EntityType.valueOf(entityType)) {
 			case CUSTOMER:
@@ -37,6 +50,7 @@ public class RecentlyAddedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				}
+				logger.info("End: inside recentlyAdded() CUSTOMER of RecentlyAddedService");
 				return recentCustomers;
 			case PARTNER:
 
@@ -46,6 +60,7 @@ public class RecentlyAddedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				}
+				logger.info("End: inside recentlyAdded() PARTNER of RecentlyAddedService");
 				return recentpartners;
 
 			default:

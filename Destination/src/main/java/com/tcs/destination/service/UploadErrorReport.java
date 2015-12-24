@@ -16,6 +16,10 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
+/**
+ * This class deals with the functionality of uploading the error report
+ *
+ */
 @Component
 public class UploadErrorReport {
 

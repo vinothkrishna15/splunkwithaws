@@ -10,6 +10,11 @@ import com.tcs.destination.bean.PushNotificationRegistrationT;
 import com.tcs.destination.data.repository.PushNotificationRepository;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ * This service handle push notification operations
+ * @author tcs2
+ *
+ */
 @Service
 public class PushNotificationService {
 
@@ -19,14 +24,22 @@ public class PushNotificationService {
 	@Autowired
 	PushNotificationRepository pushNotificationRepository;
 
+	/**
+	 * This method deletes a particular push notification record
+	 * based on userId
+	 * @param userId
+	 * @return
+	 * @throws DestinationException
+	 */
 	public boolean deletePushNotificRecords(String userId)
 			throws DestinationException {
-
+		logger.info("begin: inside deletePushNotificRecords() of PushNotificationService");
 		PushNotificationRegistrationT pushNotificationRegistration = pushNotificationRepository
 				.findByUserId(userId);
 
 		if (pushNotificationRegistration != null) {
 			pushNotificationRepository.delete(pushNotificationRegistration);
+			logger.info("End: inside deletePushNotificRecords() of PushNotificationService");
 			return true;
 
 		} else {
@@ -34,16 +47,18 @@ public class PushNotificationService {
 					+ " does not exist");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"UserNotificationSettingsId : " + userId
-							+ " does not exist");
+					+ " does not exist");
 		}
 	}
 
 	public boolean addPushNotification(
 			PushNotificationRegistrationT pushNotification)
-			throws DestinationException {
+					throws DestinationException {
+		logger.info("begin: inside addPushNotification() of PushNotificationService");
 		PushNotificationRegistrationT pushNotificationRegistration = pushNotificationRepository
 				.findByUserId(pushNotification.getUserId());
 		if (pushNotificationRegistration == null) {
+			logger.info("End: inside addPushNotification() of PushNotificationService");
 			return pushNotificationRepository.save(pushNotification) != null;
 		} else {
 			logger.error("UserNotificationSettingsId : "
@@ -56,8 +71,9 @@ public class PushNotificationService {
 
 	public boolean updatePushNotification(
 			PushNotificationRegistrationT pushNotification)
-			throws DestinationException {
+					throws DestinationException {
 		try {
+			logger.info("inside updatePushNotification() of PushNotificationService");
 			return pushNotificationRepository.save(pushNotification) != null;
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());

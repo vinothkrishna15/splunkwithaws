@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.data.repository.GeographyRepository;
 
+/*
+ *This service retrieves all the data from geography_mapping_t
+ */
 @Service
 public class GeographyService {
 	
@@ -20,7 +23,7 @@ public class GeographyService {
 	GeographyRepository geographyRepository;
 
 	public List<GeographyMappingT> findAll() {
-		logger.debug("Inside findAll Service");
+		logger.info("Inside findAll() GeographyService");
 		return (ArrayList<GeographyMappingT>) geographyRepository.findAll();
 	}
 
