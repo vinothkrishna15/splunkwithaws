@@ -22,6 +22,11 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * This service deals with opportunity reopen requests
+ * @author tcs2
+ *
+ */
 @Service
 public class OpportunityReopenRequestService {
 
@@ -48,25 +53,43 @@ public class OpportunityReopenRequestService {
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
 
+	/**
+	 * Method to find all reopen requests
+	 * @return
+	 * @throws DestinationException
+	 */
 	public List<OpportunityReopenRequestT> findAllReOpenRequests()
 			throws DestinationException {
+		logger.info("Begin:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 		UserT loggedUser = DestinationUtils.getCurrentUserDetails();
-		if (userService.isSystemAdmin(loggedUser.getUserId()))
+		if (userService.isSystemAdmin(loggedUser.getUserId())){
+			logger.info("End:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 			return (List<OpportunityReopenRequestT>) opportunityReopenRequestRepository
 					.findAll();
-		else
+		}
+		else{
+			logger.info("End:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 			return opportunityReopenRequestRepository
 					.findByRequestedBy(loggedUser.getUserId());
+		}
 	}
 
+	/**
+	 * method to find a particular opportunity reopened request based on its id
+	 * @param id
+	 * @return
+	 * @throws DestinationException
+	 */
 	public OpportunityReopenRequestT findOne(String id)
 			throws DestinationException {
+		logger.info("Begin:Inside findOne  of OpportunityReopenRequestService");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityReopenRequestT opportunityReopenRequestT = opportunityReopenRequestRepository
 				.findOne(id);
 		if (opportunityReopenRequestT.getRequestedBy().equals(userId)
 				|| opportunityReopenRequestT.getApprovedRejectedBy().equals(
 						userId) || userService.isSystemAdmin(userId)) {
+			logger.info("End:Inside findOne  of OpportunityReopenRequestService");
 			return opportunityReopenRequestT;
 		} else {
 			throw new DestinationException(HttpStatus.UNAUTHORIZED,
@@ -74,9 +97,15 @@ public class OpportunityReopenRequestService {
 		}
 	}
 
+	/**
+	 * method to create OpportunityReopenRequestT 
+	 * @param opportunityReopenRequestT
+	 * @throws Exception
+	 */
 	@Transactional
 	public void create(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		logger.info("Begin:Inside create  of OpportunityReopenRequestService");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		opportunityReopenRequestT.setRequestedBy(userId);
 		if (opportunityReopenRequestT.getApprovedRejectedComments() != null
@@ -138,10 +167,17 @@ public class OpportunityReopenRequestService {
 					e.getMessage());
 		}
 		}
+		logger.info("End:Inside create  of OpportunityReopenRequestService");
 	}
 
+	/**
+	 * method to edit OpportunityReopenRequestT and to save 
+	 * @param opportunityReopenRequestT
+	 * @throws Exception
+	 */
 	public void edit(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
+		logger.info("Begin:Inside edit of OpportunityReopenRequestService");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		opportunityReopenRequestT.setApprovedRejectedBy(userId);
 		
@@ -155,10 +191,17 @@ public class OpportunityReopenRequestService {
 					e.getMessage());
 
 		}
-
+		logger.info("End:Inside edit of OpportunityReopenRequestService");
 	}
 	
+	/**
+	 * method to send Email Notification for an request id
+	 * @param requestId
+	 * @param date
+	 * @throws Exception
+	 */
 	private void sendEmailNotification(String requestId, Date date) throws Exception {
+		logger.info("Begin:Inside sendEmailNotification of OpportunityReopenRequestService");
 		class OpportunityReopenNotificationRunnable implements Runnable{
 			 String requestId;
 			 Date date;
@@ -181,6 +224,7 @@ public class OpportunityReopenRequestService {
 		}
 		OpportunityReopenNotificationRunnable opportunityReopenNotificationRunnable = new OpportunityReopenNotificationRunnable(requestId,date);
 		mailTaskExecutor.execute(opportunityReopenNotificationRunnable);
+		logger.info("End:Inside sendEmailNotification of OpportunityReopenRequestService");
 	}
 
 }

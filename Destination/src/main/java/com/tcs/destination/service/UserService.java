@@ -29,7 +29,8 @@ import com.tcs.destination.utils.StringUtils;
 
 /**
  * 
- * This service handles functionalities related to user
+ * This service handles functionalities related to user such as find, last login, login history
+ * privileges and forgot password
  *
  */
 @Service
@@ -133,12 +134,13 @@ public class UserService {
 	 * @return
 	 */
 	public Timestamp getUserLastLogin(String userId) {
-		logger.info("Inside getUserLastLogin of UserService");
+		logger.info("Begin:Inside getUserLastLogin of UserService");
 		Timestamp lastLogin = null;
 		LoginHistoryT loginHistory = loginHistoryRepository
 				.findLastLoginByUserId(userId);
 		if (loginHistory != null)
 			lastLogin = loginHistory.getLoginDatetime();
+		logger.info("End:Inside getUserLastLogin of UserService");
 		return lastLogin;
 	}
 
@@ -149,6 +151,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public boolean adduser(UserT user) throws Exception {
+		logger.info("Begin:Inside adduser() of Userservice");
 		return userRepository.save(user) != null;
 	}
 
@@ -158,12 +161,17 @@ public class UserService {
 	 * @return
 	 */
 	public boolean addLoginHistory(LoginHistoryT loginHistory) {
+		logger.info("Begin:Inside addLoginHistory() of Userservice");
 		LoginHistoryT managedLoginHistory = loginHistoryRepository
 				.save(loginHistory);
-		if (managedLoginHistory == null)
+		if (managedLoginHistory == null){
+			logger.info("End:Inside addLoginHistory() of Userservice");
 			return false;
-		else
+		}
+		else{
+			logger.info("End:Inside addLoginHistory() of Userservice");
 			return true;
+		}
 	}
 
 	/**
@@ -203,7 +211,9 @@ public class UserService {
 	 * @param user
 	 */
 	public void updateUser(UserT user) {
+		logger.info("Begin:Inside updateUser() service");
 		userRepository.save(user);
+		logger.info("End:Inside updateUser() service");
 	}
 
 	/**
@@ -213,7 +223,9 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public UserT findByUserId(String userId) throws Exception {
+		logger.info("Begin:Inside findByUserId() service");
 		UserT dbUser = userRepository.findOne(userId);
+		logger.info("End:Inside findByUserId() service");
 		return dbUser;
 	}
 
@@ -224,6 +236,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<UserT> getUsersByRole(String userRole) throws Exception {
+		logger.info("Inside getUsersByRole() service");
 		return userRepository.findByUserRole(userRole);
 	}
 
@@ -233,6 +246,7 @@ public class UserService {
 	 * @return
 	 */
 	public boolean isSystemAdmin(String userId) {
+		logger.info("Inside isSystemAdmin() service");
 		return isUserWithRole(userId, UserRole.SYSTEM_ADMIN.getValue());
 
 	}
@@ -244,6 +258,7 @@ public class UserService {
 	 * @return
 	 */
 	private boolean isUserWithRole(String userId, String userRole) {
+		logger.info("Inside isUserWithRole() service");
 		return !(userRepository.findByUserIdAndUserRole(userId, userRole)
 				.isEmpty());
 	}
