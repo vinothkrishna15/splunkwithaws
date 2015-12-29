@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="userUpload">
+		<batch:step id="userUploadPreprocess" next="userDecider">
+	    <batch:tasklet ref="userPreprocessor"/>
+	    </batch:step>
+		
+		<batch:step id="userUploadProcessing" next="userGeneralSettingProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userSpreadSheetReader" writer="userWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="userGeneralSettingProcessing" next="userNotificationSettingProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userGeneralSettingsSpreadSheetReader" writer="userGeneralSettingsWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="userNotificationSettingProcessing" next="userAccessPriviledgeProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userNotificationSettingSpreadSheetReader" writer="userNotificationSettingsWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+	    <batch:step id="userAccessPriviledgeProcessing" next="userGoalsProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="userAccessPriviledgeSpreadSheetReader" writer="userAccessPriviledgeWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step> 
+		
+		<batch:step id="userGoalsProcessing" next="userUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="userGoalsSpreadSheetReader" writer="userGoalsWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		 <batch:decision id="userDecider" decider="userUploaddecider">
+              <batch:next on="PREPROCESS" to="userUploadPreprocess" />
+              <batch:next on="USER_PROCESSING" to="userUploadProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+	</batch:job>
+	
+	<!-- Readers -->
+	<bean id="userSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="BDM Users"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<bean id="userGeneralSettingsSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="BDM Users"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<bean id="userNotificationSettingSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="BDM Users"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+    <bean id="userAccessPriviledgeSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step"> 
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="User Privilege"/>
+		<property name="rowsToSkip" value = "1" /> 
+ 	</bean> 
+	
+	<bean id="userGoalsSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="BDM Target"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="userWriter" class="com.tcs.destination.writer.UserCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="userUploadHelper"/>
+		<property name="userService" ref="userService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="userRepository" ref="userRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<bean id="userGeneralSettingsWriter" class="com.tcs.destination.writer.UserGeneralSettingsWriter" scope="step">
+	<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="userUploadHelper"/>
+		<property name="userService" ref="userService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<bean id="userNotificationSettingsWriter" class="com.tcs.destination.writer.UserNotificationSettingsWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="userUploadHelper"/>
+		<property name="userService" ref="userService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+    <bean id="userAccessPriviledgeWriter" class="com.tcs.destination.writer.UserAccessPriviledgeSettingsWriter" scope="step">
+        <property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="userUploadHelper"/>
+		<property name="userService" ref="userService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean> 
+	
+	<bean id="userGoalsWriter" class="com.tcs.destination.writer.UserGoalsWriter" scope="step">
+	   <property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="userUploadHelper"/>
+		<property name="userService" ref="userService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="userUploaddecider" class="com.tcs.destination.decider.UserUploadDecider" />
+    
+    <bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+</beans>
+	

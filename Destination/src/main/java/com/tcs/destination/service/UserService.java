@@ -1,6 +1,8 @@
 package com.tcs.destination.service;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,19 +13,37 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.ConnectCustomerContactLinkT;
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.GoalGroupMappingT;
+import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
+import com.tcs.destination.bean.UserGeneralSettingsT;
+import com.tcs.destination.bean.UserGoalsT;
+import com.tcs.destination.bean.UserGroupMappingT;
+import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.GoalGroupMappingRepository;
+import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
+import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 //import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.StringUtils;
 
@@ -42,6 +62,9 @@ public class UserService {
 	UserRepository userRepository;
 
 	@Autowired
+	UserGeneralSettingsRepository userGeneralSettingsRepository;
+
+	@Autowired
 	LoginHistoryRepository loginHistoryRepository;
 
 	@Autowired
@@ -50,7 +73,18 @@ public class UserService {
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
 
-	UserGeneralSettingsRepository userGeneralSettingsRepository;
+	@Autowired
+	UserUploadService userUploadService;
+
+	@Autowired
+	GoalGroupMappingRepository goalGroupMappingRepository;
+
+	@Autowired
+	GoalMappingRepository goalMappingRepository;
+
+	@Autowired
+	UserGoalsRepository userGoalsRepository;
+
 
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -150,6 +184,7 @@ public class UserService {
 	public boolean adduser(UserT user) throws Exception {
 		return userRepository.save(user) != null;
 	}
+
 
 	public boolean addLoginHistory(LoginHistoryT loginHistory) {
 		logger.debug("Inside addLoginHistory Service");
@@ -415,4 +450,184 @@ public class UserService {
 
 		return users;
 	}
+
+	/**
+	 * This service saves user details into user_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void save(List<UserT> insertList) throws Exception {
+		logger.debug("Inside save method");
+		userRepository.save(insertList);
+	}
+
+	/**
+	 * This service saves user details into user_general_settings_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void saveGeneralSettings(List<UserGeneralSettingsT> insertList) throws Exception {
+		logger.debug("Inside save method");
+		userGeneralSettingsRepository.save(insertList);
+	}
+
+	/**
+	 * This service saves user details into user_notification_settings_t
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void saveNotificationSettings(List<UserT> userList) throws Exception {
+		logger.debug("Inside save notifications method");
+		// saving user notification settings for the user
+		List<UserNotificationSettingsT> userNotificationSettingsList=new ArrayList<UserNotificationSettingsT>();
+		for(UserT user:userList)
+		{
+			userNotificationSettingsList = DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user);
+		}
+		userNotificationSettingsRepository.save(userNotificationSettingsList);
+		logger.debug("User Notification Settings : saved");
+
+	}
+
+	/**
+	 * This service saves user details into user_access_priviledges_t
+	 * @param userAccessPrivilegeDTOList
+	 * @throws Exception
+	 */
+	public void saveAccessPriviledgeSettings(List<UserAccessPrivilegeDTO> userAccessPrivilegeDTOList,List<UserT> usersList) throws Exception 
+	{
+		logger.debug("Inside save access privileges method");
+
+		List<UserAccessPrivilegesT> userAccessPrivilegeList=new ArrayList<UserAccessPrivilegesT>();
+
+
+		for(UserAccessPrivilegeDTO accessPrivilegeDTO:userAccessPrivilegeDTOList)
+		{
+
+			// Primary Privilege Value List
+			List<String> primaryPrivilegeValueList=accessPrivilegeDTO.getPrimaryPrivilegeValues();
+
+			for(String primaryPrivilegeValue: primaryPrivilegeValueList)
+			{
+				UserAccessPrivilegesT userAccessPrivilegeT=new UserAccessPrivilegesT();
+				//Setting Primary Privilege Type
+				userAccessPrivilegeT.setPrivilegeType(accessPrivilegeDTO.getPrimaryPrivilegeType());
+
+				//Setting Primary Privilege Value
+				userAccessPrivilegeT.setPrivilegeValue(primaryPrivilegeValue);
+
+				//Setting UserID
+				userAccessPrivilegeT.setUserId(accessPrivilegeDTO.getUserId());
+
+				//Setting IsActive Flag
+				userAccessPrivilegeT.setIsactive("Y");
+
+				userAccessPrivilegesRepository.save(userAccessPrivilegeT);
+
+				if (!StringUtils.isEmpty(accessPrivilegeDTO.getSecondaryPrivilegeType()))
+				{
+
+					Integer parentPrivilegeId=userAccessPrivilegesRepository.getParentPrivilegeId(accessPrivilegeDTO.getUserId(),accessPrivilegeDTO.getPrimaryPrivilegeType(),primaryPrivilegeValue);
+
+					// Secondary Privilege Value List
+					List<String> secondaryPrivilegeValueList=accessPrivilegeDTO.getSecondaryPrivilegeValues();
+					for(String secondaryPrivilegeValue: secondaryPrivilegeValueList)
+					{
+						UserAccessPrivilegesT childUserAccessPrivilegeT=new UserAccessPrivilegesT();
+						//Setting ParentPrivilege Id
+						childUserAccessPrivilegeT.setParentPrivilegeId(parentPrivilegeId);
+
+						//Setting UserID
+						childUserAccessPrivilegeT.setUserId(accessPrivilegeDTO.getUserId()); 
+
+						//Setting Primary Privilege Type
+						childUserAccessPrivilegeT.setPrivilegeType(accessPrivilegeDTO.getSecondaryPrivilegeType());
+
+						//Setting Primary Privilege Value
+						childUserAccessPrivilegeT.setPrivilegeValue(secondaryPrivilegeValue);
+
+						//Setting IsActive Flag
+						childUserAccessPrivilegeT.setIsactive("Y");
+
+						userAccessPrivilegesRepository.save(childUserAccessPrivilegeT);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * This service saves goal details from excel into user_goals_t
+	 * @param goalList
+	 * @param usersList
+	 * @throws Exception
+	 */
+	public void	saveUserGoalsData( List<UserGoalsT> goalList,List<UserT> usersList,String createdModifiedBy,List<UploadServiceErrorDetailsDTO> errorList) throws Exception 
+	{
+		logger.debug("******Inside save user goals method*******");
+
+		UploadServiceErrorDetailsDTO errorDTO=new UploadServiceErrorDetailsDTO();
+
+		for(UserGoalsT userGoalTToBeUpdated:goalList)
+		{
+			String userIdGoalSheet=userGoalTToBeUpdated.getUserId();
+			BigDecimal targetValueInExcel=userGoalTToBeUpdated.getTargetValue();
+			String goalName=userGoalTToBeUpdated.getGoalMappingT().getGoalName();
+			String goalId=goalMappingRepository.findGoalId(goalName);
+			String financialYear=userGoalTToBeUpdated.getFinancialYear();
+			List<UserGoalsT> userGoalsList = userGoalsRepository.getUserGoals(userIdGoalSheet, goalId, financialYear);
+			UserGoalsT userGoalT = userGoalsList.get(0);
+			userGoalT.setTargetValue(targetValueInExcel);
+			if(!goalId.equals("G5")){
+				userGoalsRepository.save(userGoalT);
+			} else {
+				errorDTO.setMessage("Pipeline value provided is ignored for " + userIdGoalSheet);
+				errorList.add(errorDTO);
+			}
+			if(goalId.equals("G4"))
+			{
+				List<UserGoalsT> goalG5List=userGoalsRepository.getUserGoals(userIdGoalSheet, "G5", financialYear);//(userIdGoalSheet,financialYear);
+				UserGoalsT goalG5 = goalG5List.get(0);
+				goalG5.setTargetValue(targetValueInExcel.multiply(new BigDecimal(5)));
+				userGoalsRepository.save(goalG5);
+			}
+		}
+   }
+	/**
+	 * This service saves default user goal details into user_goals_t
+	 * @param usersList
+	 * @param createdModifiedBy
+	 */
+
+	public void insertDefaultGoals(List<UserT> usersList,String createdModifiedBy){
+		for(UserT userT:usersList)
+		{
+			String userId=userT.getUserId();
+			String userGroup=userT.getUserGroup();
+			String currentFinancialYear=DateUtils.getCurrentFinancialYear();
+			StringBuffer financialyear = new StringBuffer("");
+			financialyear.append(currentFinancialYear.substring(0, 3));
+			financialyear.append("'");
+			financialyear.append(currentFinancialYear.substring(3,currentFinancialYear.length()));
+			List<Object[]> goalGroupMappingList= goalGroupMappingRepository.findByUserGroupFinancialyear(userGroup,currentFinancialYear);
+			List<GoalMappingT> goalMappingT=goalMappingRepository.findByFinancialyear(currentFinancialYear);	
+			for(Object[] goalGroupMappingT:goalGroupMappingList)
+			{
+				UserGoalsT userGoalT=new UserGoalsT();
+				userGoalT.setUserId(userId);
+				userGoalT.setFinancialYear(currentFinancialYear);  
+				userGoalT.setGoalId((String)goalGroupMappingT[0]);
+				userGoalT.setTargetValue((BigDecimal)goalGroupMappingT[1]);
+				userGoalT.setCreatedModifiedBy(createdModifiedBy);
+				userGoalsRepository.save(userGoalT);
+			}
+
+		}
+	}
+
 }
