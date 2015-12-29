@@ -25,6 +25,9 @@ import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ * this service handles requests for reports upload
+ */
 @Service
 public class ReportsUploadService {
 	
@@ -35,10 +38,8 @@ public class ReportsUploadService {
 			.getLogger(ReportsUploadService.class);
 
 		public void saveDocument(MultipartFile multipartFile) throws Exception {
-			logger.debug("Inside saveDocument Service");
+			logger.info("Begin:Inside saveDocument() ReportsUploadService");
 			File file = convert(multipartFile);
-			System.out.println(multipartFile.getOriginalFilename());
-			System.out.println(multipartFile.getSize());
 
 			try {
 				FileInputStream fileInputStream = new FileInputStream(file);
@@ -48,8 +49,6 @@ public class ReportsUploadService {
 				Sheet sheet = workbook.getSheetAt(0);
 				 int rowStart = sheet.getFirstRowNum();
 				 int rowEnd = sheet.getLastRowNum();
-				System.out.println("Row Start"+rowStart);
-				System.out.println("Row EWnd"+rowEnd);
 				rowStart++;
 				 for (int rowNum = rowStart; rowNum < rowEnd; rowNum++){
 					 Row row1=sheet.getRow(rowNum);
@@ -63,7 +62,6 @@ public class ReportsUploadService {
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 				    Date parsedDate = dateFormat.parse(cellIterator.next().getStringCellValue().toString());
 				    Timestamp timestamp = new java.sql.Timestamp(parsedDate.getTime());
-				    System.out.println("Time Stamp:"+timestamp);
 					connectT.setStartDatetimeOfConnect(timestamp);
 					Date parseDate = dateFormat.parse(cellIterator.next().getStringCellValue());
 					Timestamp endDate = new java.sql.Timestamp(parseDate.getTime());
@@ -73,10 +71,8 @@ public class ReportsUploadService {
 					connectT.setDocumentsAttached(cellIterator.next().getStringCellValue());
 					String created=cellIterator.next().getNumericCellValue()+"";
 					connectT.setCreatedBy(created.substring(0, 6));
-					System.out.print(cellIterator.next().getStringCellValue() + "\n");
 //					connectT.setCreatedDatetime(timestamp);
 					connectT.setCountry(cellIterator.next().getStringCellValue());
-					System.out.print(cellIterator.next().getStringCellValue());
 //					connectT.setPartnerId(cellIterator.next().getStringCellValue());
 //					connectT.setCustomerId(cellIterator.next().getStringCellValue().toString());
 					connectT.setTimeZone(cellIterator.next().getStringCellValue());
@@ -97,6 +93,7 @@ public class ReportsUploadService {
 				 } catch (Exception e1) {
 				e1.printStackTrace();
 				}
+			logger.info("End:Inside saveDocument() ReportsUploadService");
 		}
 		
 		public File convert(MultipartFile file) throws Exception {

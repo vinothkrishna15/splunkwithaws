@@ -28,6 +28,11 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.PaginationUtils;
 
+/**
+ * This service deals with partner requests  and 
+ * provide functionalities like adding, deleting, updating, validating and saving a partner.
+ * It validates the partner requests and it also performs find and search operations.
+ */
 @Service
 public class PartnerService {
 
@@ -63,13 +68,14 @@ public class PartnerService {
 	 * @throws Exception
 	 */
 	public void save(List<PartnerMasterT> insertList) throws Exception {
-		logger.debug("Inside save method");
+		logger.info("Begin:Inside save method of PartnerService");
 		partnerRepository.save(insertList);
+		logger.info("End:Inside save method of PartnerService");
 	}
 
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
-		logger.debug("Inside findById Service");
+		logger.info("Begin:Inside findById method of PartnerService");
 		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 		if (partner == null) {
 			logger.error("NOT_FOUND: No such partner found.");
@@ -82,6 +88,7 @@ public class PartnerService {
 					opportunityPartnerLinkT.getOpportunityT(), toCurrency);
 		}
 		preparePartner(partner);
+		logger.info("End:Inside findById method of PartnerService");
 		return partner;
 	}
 
@@ -93,9 +100,9 @@ public class PartnerService {
 	 * @throws Exception
 	 */
 	public void updatePartner(List<PartnerMasterT> partnerList) {
-
+		logger.info("Begin:Inside updatePartner method of PartnerService");
 		partnerRepository.save(partnerList);
-
+		logger.info("End:Inside updatePartner method of PartnerService");
 	}
 
 	/**
@@ -106,6 +113,7 @@ public class PartnerService {
 	 * @throws Exception
 	 */
 	public void deletePartner(List<PartnerMasterT> partnerList) {
+		logger.info("Begin:Inside deletePartner method of PartnerService");
 		List<ContactT> contactListT = new ArrayList<ContactT>();
 		List<ConnectT> connectListT = new ArrayList<ConnectT>();
 		List<OpportunityPartnerLinkT> opportunityPartnerListT = new ArrayList<OpportunityPartnerLinkT>();
@@ -136,6 +144,7 @@ public class PartnerService {
 		connectRepository.delete(connectListT);
 		opportunityPartnerLinkTRepository.delete(opportunityPartnerListT);
 		partnerRepository.delete(partnerList);
+		logger.info("End:Inside deletePartner method of PartnerService");
 	}
 
 	/*
@@ -167,6 +176,7 @@ public class PartnerService {
 	 */
 	private void validateRequest(PartnerMasterT partner)
 			throws DestinationException {
+		logger.info("Begin:Inside validateRequest method of PartnerService");
 		if (partner.getPartnerName().isEmpty()
 				|| partner.getPartnerName() == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -176,7 +186,7 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Geography is required");
 		}
-
+		logger.info("End:Inside validateRequest method of PartnerService");
 	}
 
 	/**
@@ -192,7 +202,7 @@ public class PartnerService {
 
 		PartnerMasterT partnerMasterT = null;
 		List<PartnerMasterT> partners = null;
-
+		logger.info("Begin:Inside addPartner method of PartnerService");
 		if (partnerToInsert != null) {
 			partnerMasterT = new PartnerMasterT();
 			partners = partnerRepository.findByPartnerName(partnerToInsert
@@ -214,8 +224,7 @@ public class PartnerService {
 					.getGeographyMappingT());
 			partnerMasterT.setDocumentsAttached("NO");
 			partnerMasterT = partnerRepository.save(partnerMasterT);
-			logger.debug("Partner Saved .... " + partnerMasterT.getPartnerId());
-
+			logger.info("End:Inside addPartner method of PartnerService");
 		}
 
 		return partnerMasterT;
@@ -223,7 +232,7 @@ public class PartnerService {
 
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
 			int count) throws Exception {
-		logger.debug("Inside findByNameContaining Service");
+		logger.info("Begin:Inside findByNameContaining method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
@@ -239,12 +248,13 @@ public class PartnerService {
 		}
 		preparePartner(partners);
 		paginatedResponse.setPartnerMasterTs(partners);
+		logger.info("End:Inside findByNameContaining method of PartnerService");
 		return paginatedResponse;
 	}
 
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
-		logger.debug("Inside findByNameContaining Service");
+		logger.info("Begin:Inside findByNameStarting method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
@@ -260,6 +270,7 @@ public class PartnerService {
 		}
 		preparePartner(partners);
 		paginatedResponse.setPartnerMasterTs(partners);
+		logger.info("End:Inside findByNameStarting method of PartnerService");
 		return paginatedResponse;
 	}
 
@@ -286,6 +297,7 @@ public class PartnerService {
 
 	public PaginatedResponse search(String name, List<String> geography,
 			int page, int count) throws DestinationException {
+		logger.info("Begin:Inside search method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if (geography.isEmpty())
 			geography.add("");
@@ -307,12 +319,11 @@ public class PartnerService {
 			partnerMasterTs = partnerMasterTs.subList(fromIndex, toIndex);
 			preparePartner(partnerMasterTs);
 			paginatedResponse.setPartnerMasterTs(partnerMasterTs);
-			logger.debug("Partners after pagination size is "
-					+ partnerMasterTs.size());
 		} else {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available for the specified page");
 		}
+		logger.info("End:Inside search method of PartnerService");
 		return paginatedResponse;
 	}
 }

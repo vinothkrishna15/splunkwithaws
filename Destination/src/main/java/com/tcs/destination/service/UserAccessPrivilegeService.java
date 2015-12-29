@@ -23,6 +23,10 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This service handles requests regarding
+ * user access privileges
+ */
 @Service
 public class UserAccessPrivilegeService {
 
@@ -44,19 +48,32 @@ public class UserAccessPrivilegeService {
 	@Autowired
 	CustomerRepository custRepository;
 
+	/**
+	 * this method validates the request and saves the 
+	 * privileges into the database
+	 * @param privilege
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean insertAccessPrivilege(UserAccessPrivilegesT privilege) throws Exception{
+		logger.info("start: inside insertAccessPrivilege() of UserAccessPrivilegeService");
 		validateRequest(privilege);
 		if(userAccessPrivilegesRepository.save(privilege) != null){
 			return true;
 		}
+		logger.info("End: inside insertAccessPrivilege() of UserAccessPrivilegeService");
 		return false;
 	}
 	
+	/**
+	 * This method validates the request
+	 * @param privilege
+	 * @throws DestinationException
+	 */
 	private void validateRequest(UserAccessPrivilegesT privilege) throws DestinationException{
-
+		logger.info("start: inside validateRequest() of UserAccessPrivilegeService");
 		String privilegeType = privilege.getPrivilegeType();
 		if(StringUtils.isEmpty(privilegeType)){
-			logger.error("Privilege Type is null");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Privilege Type cannot be empty");
 		} else {
 			boolean validPrivilegeType = false;
@@ -66,14 +83,12 @@ public class UserAccessPrivilegeService {
 				}
 			}
 			if(!validPrivilegeType){
-				logger.error("Privilege Type is invalid");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,"Privilege Type is invalid");
 			}
 		}
 
 		String privilegeValue = privilege.getPrivilegeValue();
 		if(StringUtils.isEmpty(privilegeValue)){
-			logger.error("Privilege Value is null");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Privilege Value cannot be empty");
 		} else {
 			boolean validPrivilegeValue = false;
@@ -135,7 +150,7 @@ public class UserAccessPrivilegeService {
 				}
 				break;
 			}
-			
-		}	
+		}		
+		logger.info("End: inside validateRequest() of UserAccessPrivilegeService");
 	}
 }

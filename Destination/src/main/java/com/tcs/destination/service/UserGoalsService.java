@@ -60,6 +60,7 @@ public class UserGoalsService {
 	 * @throws DestinationException
 	 */
 	private void validateRequest(UserGoalsT userGoal) throws DestinationException{
+		logger.info("Begin: validateRequest() of UserGoalservice");
 	 UserT currentUser = DestinationUtils.getCurrentUserDetails();
 	 String currUser = currentUser.getUserId();
      userGoal.setCreatedModifiedBy(currUser);
@@ -112,7 +113,7 @@ public class UserGoalsService {
     		 throw new DestinationException(HttpStatus.BAD_REQUEST,e.getMessage());
     	 }
      }
-     
+		logger.info("End: validateRequest() of UserGoalservice");
 	}
 
 	/**

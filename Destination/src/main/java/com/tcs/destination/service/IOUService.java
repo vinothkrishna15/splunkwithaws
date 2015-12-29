@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 
+/*
+ *This service retrieves all the data from iou_customer_mapping_t
+ */
 @Service
 public class IOUService {
 	
@@ -20,7 +23,7 @@ public class IOUService {
 	CustomerIOUMappingRepository customerIOUMappingRepository;
 
 	public List<IouCustomerMappingT> findAll() {
-		logger.debug("Inside findAll Service");
+		logger.info("Inside findAll() of IOUService");
 		return (ArrayList<IouCustomerMappingT>) customerIOUMappingRepository
 				.findAll();
 	}

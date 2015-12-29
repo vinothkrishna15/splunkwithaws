@@ -3,26 +3,17 @@ package com.tcs.destination.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -47,9 +38,7 @@ import com.tcs.destination.bean.SalesStageMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.WinLossFactorMappingT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
-import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidRequestTypeRepository;
-import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DealTypeRepository;
@@ -61,16 +50,15 @@ import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
-import com.tcs.destination.utils.OpportunityUploadConstants;
-import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.PropertyUtil;
-import com.tcs.destination.utils.StringUtils;
 
-;
-
+/**
+ * this service handles requests related to 
+ * opportunity downloads and populates all the opportunity sheet templates
+ * on download request
+ */
 @Service
 public class OpportunityDownloadService {
 
@@ -110,15 +98,27 @@ public class OpportunityDownloadService {
     @Autowired
     BeaconConverterService beaconConverterService;
     
+    private static final Logger logger = LoggerFactory
+			.getLogger(OpportunityService.class);
+    
     private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yy");
 
+    /**
+     * method to download opportunity based on its deal value
+     * @param oppFlag
+     * @param userId
+     * @param dealValueFlag
+     * @return
+     * @throws Exception
+     */
     public InputStreamResource downloadDocument(boolean oppFlag, String userId, boolean dealValueFlag)
 	    throws Exception {
 
 	Workbook workbook = null;
 	InputStreamResource inputStreamResource = null;
 	
+	logger.info("Begin: Inside downloadDocument of OpportunityDownloadService");
 	
 	try {
 
@@ -184,11 +184,19 @@ public class OpportunityDownloadService {
 	    throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 		    "An Internal Exception has occured");
 	}
-
+	logger.info("End: Inside downloadDocument of OpportunityDownloadService");
 	return inputStreamResource;
     }
     
+    /**
+     * method to populate the Opportunity sheet from OpportunityT table
+     * @param opportunitySheet
+     * @param dealValueFlag
+     * @throws Exception
+     */
     private void populateOpportunitySheet(Sheet opportunitySheet, boolean dealValueFlag) throws Exception{
+    
+    	logger.info("Begin: Inside populateOpportunitySheet of OpportunityDownloadService");
 
 	List<OpportunityT> listOfOpportunity = opportunityRepository.findAll();
 		
@@ -442,11 +450,11 @@ public class OpportunityDownloadService {
 	    
 	    rowCount++;
 	}
-	
+	logger.info("End: Inside populateOpportunitySheet of OpportunityDownloadService");
     }
 
     /**
-     * This method converts the given 
+     * This method converts the given currency to USD
      * 
      * @param dealCurrency
      * @param overallDealSize
@@ -454,12 +462,17 @@ public class OpportunityDownloadService {
      * @throws Exception
      */
     private BigDecimal convertCurrencyToUSD(String dealCurrency,Integer overallDealSize) throws Exception{
-
+    	logger.info("Inside convertCurrencyToUSD of OpportunityDownloadService");
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD", overallDealSize.doubleValue());
 	}
 
+    /**
+     * 
+     * @param opportunityWinLossFactorsTs
+     * @return
+     */
 	private String constructWinLossFactors(List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs) {
-	
+
 	StringBuilder buffer = new StringBuilder();
 
 	for(OpportunityWinLossFactorsT link : opportunityWinLossFactorsTs){
@@ -469,11 +482,15 @@ public class OpportunityDownloadService {
 	if(buffer.length()>0){
 	    buffer.deleteCharAt(buffer.length()-1);
 	}
-	
+	logger.info("Inside constructWinLossFactors of OpportunityDownloadService");
 	return buffer.toString();
-	
     }
 
+	/**
+	 * to constructCompetitors
+	 * @param opportunityCompetitorLinkTs
+	 * @return
+	 */
     private String constructCompetitors(List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs) {
 	
 	StringBuilder buffer = new StringBuilder();
@@ -485,10 +502,15 @@ public class OpportunityDownloadService {
 	if(buffer.length()>0){
 	    buffer.deleteCharAt(buffer.length()-1);
 	}
-	
+	logger.info("Inside constructCompetitors of OpportunityDownloadService");
 	return buffer.toString();
     }
 
+    /**
+     * to constructPartners
+     * @param opportunityPartnerLinkTs
+     * @return
+     */
     private String constructPartners(List<OpportunityPartnerLinkT> opportunityPartnerLinkTs) {
 	
 	StringBuilder buffer = new StringBuilder();
@@ -500,7 +522,7 @@ public class OpportunityDownloadService {
 	if(buffer.length()>0){
 	    buffer.deleteCharAt(buffer.length()-1);
 	}
-	
+	logger.info("Inside constructPartners of OpportunityDownloadService");
 	return buffer.toString();
     }
 
@@ -515,7 +537,7 @@ public class OpportunityDownloadService {
 	if(buffer.length()>0){
 	    buffer.deleteCharAt(buffer.length()-1);
 	}
-	
+	logger.info("Inside constructSalesSupportOwner of OpportunityDownloadService");
 	return buffer.toString();
     }
 
@@ -536,7 +558,7 @@ public class OpportunityDownloadService {
 	if(offeringBuffer.length()>0){
 	    offeringBuffer.deleteCharAt(offeringBuffer.length()-1);
 	}
-	
+	logger.info("Inside constructOfferingCell of OpportunityDownloadService");
 	return offeringBuffer.toString();    }
 
     /**
@@ -556,7 +578,7 @@ public class OpportunityDownloadService {
 	if(subSpBuffer.length()>0){
 	    subSpBuffer.deleteCharAt(subSpBuffer.length()-1);
 	}
-	
+	logger.info("Inside constructSubSpCell of OpportunityDownloadService");
 	return subSpBuffer.toString();
     }
 
@@ -567,6 +589,7 @@ public class OpportunityDownloadService {
      */
     private void populateBidRequestDealTypeSheet(Sheet bidRequestDealType) {
 
+    	logger.info("Begin:Inside populateBidRequestDealTypeSheet of OpportunityDownloadService");
 	List<BidRequestTypeMappingT> listOfBids = (List<BidRequestTypeMappingT>) bidRequestTypeRepository.findAll();
 	
 	List<DealTypeMappingT> listOfDeals = (List<DealTypeMappingT>) dealTypeRepository.findAll();
@@ -611,6 +634,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	    
 	}
+	logger.info("End:Inside populateBidRequestDealTypeSheet of OpportunityDownloadService");
     }
 
     /**
@@ -619,7 +643,7 @@ public class OpportunityDownloadService {
      * @param customerMasterSheet
      */
     public void populateCustomerMasterSheet(Sheet customerMasterSheet) throws Exception{
-
+    	logger.info("Begin:Inside populateCustomerMasterSheet of OpportunityDownloadService");
 	List<CustomerMasterT> listOfCMT = (List<CustomerMasterT>) customerRepository
 		.findAll();
 
@@ -647,6 +671,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	}
 	}
+	logger.info("End:Inside populateCustomerMasterSheet of OpportunityDownloadService");
 
     }
 
@@ -656,7 +681,7 @@ public class OpportunityDownloadService {
      * @param subSpSheet
      */
     public void populateSubSpSheet(Sheet subSpSheet) throws Exception{
-
+    	logger.info("Begin:Inside populateSubSpSheet of OpportunityDownloadService");
 	List<SubSpMappingT> listOfSubSp = (List<SubSpMappingT>) subSpRepository.findAll();
 
 	if(listOfSubSp!=null) {
@@ -689,7 +714,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	}
 	}
-
+	logger.info("End:Inside populateSubSpSheet of OpportunityDownloadService");
     }
     
     /**
@@ -698,7 +723,7 @@ public class OpportunityDownloadService {
      * @param partnerSheet
      */
     public void populatePartnerSheet(Sheet partnerSheet) throws Exception{
-
+    	logger.info("Begin:Inside populatePartnerSheet of OpportunityDownloadService");
 	List<Object[]> listOfPartner = partnerRepository.getPartnerNameAndGeography();
 
 	if(listOfPartner!=null) {
@@ -718,7 +743,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	}
 	}
-
+	logger.info("End:Inside populatePartnerSheet of OpportunityDownloadService");
     }
     
     /**
@@ -727,7 +752,7 @@ public class OpportunityDownloadService {
      * @param partnerContactSheet
      */
     public void populateContactSheets(Sheet partnerContactSheet) throws Exception{
-
+    	logger.info("Begin:Inside populateContactSheets of OpportunityDownloadService");
 	List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
 	if(listOfContact!=null) {
@@ -765,7 +790,7 @@ public class OpportunityDownloadService {
 	    }
 	}
 	}
-
+	logger.info("End:Inside populateContactSheets of OpportunityDownloadService");
     }
     
     /**
@@ -774,7 +799,7 @@ public class OpportunityDownloadService {
      * @param currencySheet
      */
     public void populateWinLossSheet(Sheet currencySheet) throws Exception{
-
+    	logger.info("Begin:Inside populateWinLossSheet of OpportunityDownloadService");
 	List<WinLossFactorMappingT> listOfWinLoss = (List<WinLossFactorMappingT>) winLossMappingRepository.findAll();
 
 	if(listOfWinLoss!=null) {
@@ -795,7 +820,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	}
 	}
-
+	logger.info("End:Inside populateWinLossSheet of OpportunityDownloadService");
     }
     
     /**
@@ -806,7 +831,8 @@ public class OpportunityDownloadService {
     public void populateCurrencySheet(Sheet winLossSheet) throws Exception{
 
 	List<BeaconConvertorMappingT> listOfCurrencyMapping = (List<BeaconConvertorMappingT>) beaconConvertorRepository.findAll();
-	
+	logger.info("Begin:Inside populateCurrencySheet of OpportunityDownloadService");
+
 	if(listOfCurrencyMapping!=null) {
 
 	int rowCount = 1; // Excluding the header, header starts with index 0
@@ -825,7 +851,7 @@ public class OpportunityDownloadService {
 	    rowCount++;
 	}
 	}
-
+	logger.info("End:Inside populateCurrencySheet of OpportunityDownloadService");
     }
     
     /**
