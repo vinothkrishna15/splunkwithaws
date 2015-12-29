@@ -91,6 +91,10 @@ public class PerformanceReportService {
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	private static final String OPP_CUSTOMER_COND_PREFIX = "CMT.customer_name in (";
+
+	private static final String TARGET_SUB_SP_COND_PREFIX = "('') in (";
+
 	private static final String ACTUAL_REVENUE_QUERY_PREFIX = "select ARDT.quarter, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue)"
 			+ " else '0.0' end as actual_revenue from actual_revenues_data_t ARDT"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography"
@@ -218,6 +222,7 @@ public class PerformanceReportService {
 			+ " from iou_customer_mapping_t ICMT join actual_revenues_data_t ARDT on ICMT.iou = ARDT.finance_iou"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography"
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp"
+			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " where ";
 
 	private static final String ACTUAL_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) ='')"
@@ -237,6 +242,8 @@ public class PerformanceReportService {
 			+ " from iou_customer_mapping_t ICMT join projected_revenues_data_t PRDT on ICMT.iou = PRDT.finance_iou"
 			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			
+			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " where ";
 
 	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
@@ -255,14 +262,15 @@ public class PerformanceReportService {
 			+ "JOIN geography_country_mapping_t GCMT on GCMT.country = OPP.country "
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography  "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
-			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou  "
+			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
 			+ "where ";
 	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_COND_SUFFIX = "(GMT.display_geography = (:displayGeography) OR (:displayGeography) = '') "
 			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "and (ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ "and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo) "
 			+ "and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) "
-			+ "and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9)";
+			+ "and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9)"
+			+ "and (CMT.customer_name in (:customerName) OR ('') in (:customerName))";
 
 	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_GROUP_BY_ORDER_BY = " group by SSMT.display_sub_sp order by SSMT.display_sub_sp";
 
@@ -322,7 +330,8 @@ public class PerformanceReportService {
 	private static final String PIPELINE_PERFORMANCE_BY_GEO_COND_SUFFIX = " (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '')"
 			+ " and (ICMT.display_iou = (:iou) OR (:iou) = '') "
 			+ " and OPP.sales_stage_code between (:salesStageFrom) and (:salesStageTo)"
-			+ " and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) ";
+			+ " and ((OPP.deal_closure_date between (:fromDate)  and (:toDate) and OPP.sales_stage_code >=9) or OPP.sales_stage_code < 9) "
+			+ "and (CMT.customer_name in (:customerName) OR ('') in (:customerName))";
 
 	private static final String PIPELINE_PERFORMANCE_BY_GEO_GROUP_BY_ORDER_BY = "group by GMT.display_geography order by GMT.display_geography";
 
@@ -495,7 +504,7 @@ public class PerformanceReportService {
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
 			+ "where ";
-	
+
 	private static final String PIPELINE_PERFORMANCE_BY_SALES_STAGE_COND_SUFFIX = " (SSMT.display_sub_sp = (:serviceLine) OR (:serviceLine) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) OR (:displayGeography) = '')"
 			+ " and (GMT.geography = (:geography) OR (:geography) = '')"
@@ -530,7 +539,9 @@ public class PerformanceReportService {
 	private static final String GCMT_GEO_COND_PREFIX = "GCMT.geography in (";
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String CUSTOMER_COND_SUFFIX = "RCMT.customer_name in (";
+	private static final String REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
+
+	private static final String BEACON_CUSTOMER_COND_PREFIX = "BCMT.customer_name in (";
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
 			String financialYear, String quarter, String displayGeography,
@@ -597,7 +608,8 @@ public class PerformanceReportService {
 
 				List<Object[]> targetRevenueList = null;
 				targetRevenueList = findTargetRevenue(financialYear, quarter,
-						displayGeography, geography, iou, custName, userId, canValidate);
+						displayGeography, geography, iou, custName, userId,
+						canValidate);
 
 				logger.debug("Target Revenue has " + targetRevenueList.size()
 						+ " values");
@@ -708,7 +720,7 @@ public class PerformanceReportService {
 				DIGITAL_DEAL_VALUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -723,32 +735,31 @@ public class PerformanceReportService {
 
 	private List<Object[]> findTargetRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String userId, boolean canValidate) throws Exception {
+			String iou, List<String> custName, String userId,
+			boolean canValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (canValidate){
+		if (canValidate) {
 			validateUserAndUserGroup(userId);
 		}
-			String queryString = getTargetRevenueQueryString(userId);
-			Query targetRevenueQuery = entityManager
-					.createNativeQuery(queryString);
-			targetRevenueQuery.setParameter("geography", geography);
-			targetRevenueQuery.setParameter("displayGeography",
-					displayGeography);
-			targetRevenueQuery.setParameter("iou", iou);
-			targetRevenueQuery.setParameter("financialYear", financialYear);
-			targetRevenueQuery.setParameter("customerName", custName);
-			targetRevenueQuery.setParameter("quarter", quarter);
-			resultList = targetRevenueQuery.getResultList();
-			logger.info("Query string: Target Revenue {}", queryString);
+		String queryString = getTargetRevenueQueryString(userId);
+		Query targetRevenueQuery = entityManager.createNativeQuery(queryString);
+		targetRevenueQuery.setParameter("geography", geography);
+		targetRevenueQuery.setParameter("displayGeography", displayGeography);
+		targetRevenueQuery.setParameter("iou", iou);
+		targetRevenueQuery.setParameter("financialYear", financialYear);
+		targetRevenueQuery.setParameter("customerName", custName);
+		targetRevenueQuery.setParameter("quarter", quarter);
+		resultList = targetRevenueQuery.getResultList();
+		logger.info("Query string: Target Revenue {}", queryString);
 		return resultList;
 	}
 
 	private String getTargetRevenueQueryString(String userId) throws Exception {
 		StringBuffer queryBuffer = new StringBuffer(TARGET_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, null,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+				.getQueryPrefixMap(GEO_COND_PREFIX, TARGET_SUB_SP_COND_PREFIX,
+						IOU_COND_PREFIX, BEACON_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -763,30 +774,28 @@ public class PerformanceReportService {
 
 	private List<Object[]> findProjectedRevenueByQuarter(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
-			throws Exception {
+			String iou, List<String> custName, String serviceLine,
+			String userId, boolean canValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (canValidate){
+		if (canValidate) {
 			validateUserAndUserGroup(userId);
 		}
-			String queryString = getProjectedRevenueByQuarterQueryString(userId);
-			Query projectedRevenueByQuarterQuery = entityManager
-					.createNativeQuery(queryString);
-			projectedRevenueByQuarterQuery.setParameter("geography", geography);
-			projectedRevenueByQuarterQuery.setParameter("displayGeography",
-					displayGeography);
-			projectedRevenueByQuarterQuery.setParameter("iou", iou);
-			projectedRevenueByQuarterQuery.setParameter("serviceLine",
-					serviceLine);
-			projectedRevenueByQuarterQuery.setParameter("financialYear",
-					financialYear);
-			projectedRevenueByQuarterQuery.setParameter("customerName",
-					custName);
-			projectedRevenueByQuarterQuery.setParameter("quarter", quarter);
-			resultList = projectedRevenueByQuarterQuery.getResultList();
-			logger.info("Query string: Projected Revenue by Quarter {}",
-					queryString);
+		String queryString = getProjectedRevenueByQuarterQueryString(userId);
+		Query projectedRevenueByQuarterQuery = entityManager
+				.createNativeQuery(queryString);
+		projectedRevenueByQuarterQuery.setParameter("geography", geography);
+		projectedRevenueByQuarterQuery.setParameter("displayGeography",
+				displayGeography);
+		projectedRevenueByQuarterQuery.setParameter("iou", iou);
+		projectedRevenueByQuarterQuery.setParameter("serviceLine", serviceLine);
+		projectedRevenueByQuarterQuery.setParameter("financialYear",
+				financialYear);
+		projectedRevenueByQuarterQuery.setParameter("customerName", custName);
+		projectedRevenueByQuarterQuery.setParameter("quarter", quarter);
+		resultList = projectedRevenueByQuarterQuery.getResultList();
+		logger.info("Query string: Projected Revenue by Quarter {}",
+				queryString);
 		return resultList;
 	}
 
@@ -796,7 +805,7 @@ public class PerformanceReportService {
 				PROJECTED_REVENUE_BY_QUARTER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -812,26 +821,26 @@ public class PerformanceReportService {
 
 	private List<Object[]> findProjectedRevenue(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
-			throws Exception {
+			String iou, List<String> custName, String serviceLine,
+			String userId, boolean canValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (canValidate){
+		if (canValidate) {
 			validateUserAndUserGroup(userId);
 		}
-			String queryString = getProjectedRevenueQueryString(userId);
-			Query projectedRevenueQuery = entityManager
-					.createNativeQuery(queryString);
-			projectedRevenueQuery.setParameter("geography", geography);
-			projectedRevenueQuery.setParameter("displayGeography",
-					displayGeography);
-			projectedRevenueQuery.setParameter("iou", iou);
-			projectedRevenueQuery.setParameter("serviceLine", serviceLine);
-			projectedRevenueQuery.setParameter("financialYear", financialYear);
-			projectedRevenueQuery.setParameter("customerName", custName);
-			projectedRevenueQuery.setParameter("quarter", quarter);
-			resultList = projectedRevenueQuery.getResultList();
-			logger.info("Query string: Projected Revenue {}", queryString);
+		String queryString = getProjectedRevenueQueryString(userId);
+		Query projectedRevenueQuery = entityManager
+				.createNativeQuery(queryString);
+		projectedRevenueQuery.setParameter("geography", geography);
+		projectedRevenueQuery
+				.setParameter("displayGeography", displayGeography);
+		projectedRevenueQuery.setParameter("iou", iou);
+		projectedRevenueQuery.setParameter("serviceLine", serviceLine);
+		projectedRevenueQuery.setParameter("financialYear", financialYear);
+		projectedRevenueQuery.setParameter("customerName", custName);
+		projectedRevenueQuery.setParameter("quarter", quarter);
+		resultList = projectedRevenueQuery.getResultList();
+		logger.info("Query string: Projected Revenue {}", queryString);
 		return resultList;
 	}
 
@@ -841,7 +850,7 @@ public class PerformanceReportService {
 				PROJECTED_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -856,29 +865,27 @@ public class PerformanceReportService {
 
 	private List<Object[]> findActualRevenueByQuarter(String financialYear,
 			String quarter, String displayGeography, String geography,
-			String iou, List<String> custName, String serviceLine, String userId, boolean canValidate)
-			throws Exception {
+			String iou, List<String> custName, String serviceLine,
+			String userId, boolean canValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (canValidate){
+		if (canValidate) {
 			validateUserAndUserGroup(userId);
 		}
-			String queryString = getActualRevenueByQuarterQueryString(userId);
-			Query actualRevenueByQuarterQuery = entityManager
-					.createNativeQuery(queryString);
-			actualRevenueByQuarterQuery.setParameter("geography", geography);
-			actualRevenueByQuarterQuery.setParameter("displayGeography",
-					displayGeography);
-			actualRevenueByQuarterQuery.setParameter("iou", iou);
-			actualRevenueByQuarterQuery
-					.setParameter("serviceLine", serviceLine);
-			actualRevenueByQuarterQuery.setParameter("financialYear",
-					financialYear);
-			actualRevenueByQuarterQuery.setParameter("customerName", custName);
-			actualRevenueByQuarterQuery.setParameter("quarter", quarter);
-			resultList = actualRevenueByQuarterQuery.getResultList();
-			logger.info("Query string: Actual Revenue by Quarter{}",
-					queryString);
+		String queryString = getActualRevenueByQuarterQueryString(userId);
+		Query actualRevenueByQuarterQuery = entityManager
+				.createNativeQuery(queryString);
+		actualRevenueByQuarterQuery.setParameter("geography", geography);
+		actualRevenueByQuarterQuery.setParameter("displayGeography",
+				displayGeography);
+		actualRevenueByQuarterQuery.setParameter("iou", iou);
+		actualRevenueByQuarterQuery.setParameter("serviceLine", serviceLine);
+		actualRevenueByQuarterQuery
+				.setParameter("financialYear", financialYear);
+		actualRevenueByQuarterQuery.setParameter("customerName", custName);
+		actualRevenueByQuarterQuery.setParameter("quarter", quarter);
+		resultList = actualRevenueByQuarterQuery.getResultList();
+		logger.info("Query string: Actual Revenue by Quarter{}", queryString);
 		return resultList;
 	}
 
@@ -888,7 +895,7 @@ public class PerformanceReportService {
 				ACTUAL_REVENUE_BY_QUARTER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -908,7 +915,7 @@ public class PerformanceReportService {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (canValidate){
+		if (canValidate) {
 			validateUserAndUserGroup(userId);
 		}
 		String queryString = getActualRevenueQueryString(userId);
@@ -967,7 +974,7 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(ACTUAL_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1178,7 +1185,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_IOU_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1222,7 +1229,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_IOU_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1360,7 +1367,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1406,7 +1413,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1509,7 +1516,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1554,7 +1561,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1667,7 +1674,7 @@ public class PerformanceReportService {
 				PROJECTED_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1709,7 +1716,7 @@ public class PerformanceReportService {
 				ACTUAL_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1753,7 +1760,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1800,7 +1807,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1874,7 +1881,7 @@ public class PerformanceReportService {
 				TOP_OPPORTUNITIES_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2006,7 +2013,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_SALES_STAGE);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2110,7 +2117,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_IOU_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2126,17 +2133,20 @@ public class PerformanceReportService {
 	public List<SubSpReport> getOpportunitiesBySubSp(String financialYear,
 			String quarter, String displayGeography, String geography,
 			String iou, String currency, int salesStageFrom, int salesStageTo,
-			String userId) throws Exception {
+			String groupCustomer, String customerName, String userId)
+			throws Exception {
 		if (!quarter.isEmpty())
 			financialYear = "";
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<SubSpReport> subSpReports = new ArrayList<SubSpReport>();
 		List<Object[]> opportunitiesBySubSpReports = null;
+		List<String> custName = getCustomerNameListFromGroupCustomerOrCustomerName(
+				groupCustomer, customerName);
 
 		opportunitiesBySubSpReports = findPipelinePerformanceByServiceLine(
 				displayGeography, geography, iou, currency, salesStageFrom,
-				salesStageTo, fromDate, toDate, userId);
+				salesStageTo, fromDate, toDate, userId, custName);
 
 		if (opportunitiesBySubSpReports != null) {
 			for (Object[] opportunityBySubSp : opportunitiesBySubSpReports) {
@@ -2163,7 +2173,8 @@ public class PerformanceReportService {
 	private List<Object[]> findPipelinePerformanceByServiceLine(
 			String displayGeography, String geography, String iou,
 			String currency, int salesStageFrom, int salesStageTo,
-			Date fromDate, Date toDate, String userId) throws Exception {
+			Date fromDate, Date toDate, String userId, List<String> custName)
+			throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
@@ -2185,6 +2196,8 @@ public class PerformanceReportService {
 					fromDate);
 			pipelinePerformanceByServiceLineQuery
 					.setParameter("toDate", toDate);
+			pipelinePerformanceByServiceLineQuery.setParameter("customerName",
+					custName);
 			resultList = pipelinePerformanceByServiceLineQuery.getResultList();
 			logger.info("Query string:PipelinePerformanceByServiceLine {}",
 					queryString);
@@ -2198,7 +2211,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_SERVICE_LINE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2213,16 +2226,19 @@ public class PerformanceReportService {
 	}
 
 	public List<GeographyReport> getOpportunitiesByDispGeography(
-			String financialYear, String quarter, String subSp, String iou,
-			String currency, int salesStageFrom, int salesStageTo, String userId)
+			String financialYear, String quarter, String customerName,
+			String subSp, String iou, String currency, int salesStageFrom,
+			int salesStageTo, String groupCustomer, String userId)
 			throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		List<GeographyReport> geographyReports = new ArrayList<GeographyReport>();
 		List<Object[]> opportunitiesByGeographyReports = null;
+
+		// TODO: Add Group Customer Name
 		opportunitiesByGeographyReports = findPipelinePerformanceByGeography(
-				subSp, iou, currency, salesStageFrom, salesStageTo, fromDate,
-				toDate, userId);
+				customerName, groupCustomer, subSp, iou, currency,
+				salesStageFrom, salesStageTo, fromDate, toDate, userId);
 		if (opportunitiesByGeographyReports != null) {
 			for (Object[] opportunityByGeography : opportunitiesByGeographyReports) {
 				GeographyReport geographyReport = new GeographyReport();
@@ -2244,10 +2260,13 @@ public class PerformanceReportService {
 		return geographyReports;
 	}
 
-	private List<Object[]> findPipelinePerformanceByGeography(String subSp,
+	private List<Object[]> findPipelinePerformanceByGeography(
+			String customerName, String groupCustomer, String subSp,
 			String iou, String currency, int salesStageFrom, int salesStageTo,
 			Date fromDate, Date toDate, String userId) throws Exception {
 		List<Object[]> resultList = null;
+		List<String> custName = getCustomerNameListFromGroupCustomerOrCustomerName(
+				groupCustomer, customerName);
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (validateUserAndUserGroup(userId)) {
 			String queryString = getPipelinePerformanceByGeographyQueryString(userId);
@@ -2265,6 +2284,8 @@ public class PerformanceReportService {
 			pipelinePerformanceByGeographyQuery.setParameter("fromDate",
 					fromDate);
 			pipelinePerformanceByGeographyQuery.setParameter("toDate", toDate);
+			pipelinePerformanceByGeographyQuery.setParameter("customerName",
+					custName);
 			resultList = pipelinePerformanceByGeographyQuery.getResultList();
 			logger.info("Query string:PipelinePerformanceByGeography {}",
 					queryString);
@@ -2278,7 +2299,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_GEO_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2385,7 +2406,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2439,7 +2460,7 @@ public class PerformanceReportService {
 				PIPELINE_PERFORMANCE_BY_SUB_GEO_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, CUSTOMER_COND_SUFFIX);
+						IOU_COND_PREFIX, OPP_CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -2456,21 +2477,23 @@ public class PerformanceReportService {
 		public int compare(TargetVsActualResponse a, TargetVsActualResponse b) {
 			int firstIndex = 0;
 			int secondIndex = 0;
-			try {
-				firstIndex = DateUtils.getMonthIndexOnQuarter(a
-						.getSubTimeLine());
+			if (DateUtils.isDBFormattedMonth(a.getSubTimeLine())
+					&& DateUtils.isDBFormattedMonth(b.getSubTimeLine())) {
+				try {
+					firstIndex = DateUtils.getMonthIndexOnQuarter(a
+							.getSubTimeLine());
 
-				secondIndex = DateUtils.getMonthIndexOnQuarter(b
-						.getSubTimeLine());
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					secondIndex = DateUtils.getMonthIndexOnQuarter(b
+							.getSubTimeLine());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				if (firstIndex < secondIndex)
+					return -1;
+				return 1;
+			} else {
+				return 0;
 			}
-			if (firstIndex < secondIndex)
-				return -1;
-
-			return 1;
-
 		}
 	}
 
@@ -2576,5 +2599,23 @@ public class PerformanceReportService {
 		}
 		return frequentlySearchedGroupCustomersTs;
 	}
-	
+
+	private List<String> getCustomerNameListFromGroupCustomerOrCustomerName(
+			String groupCustomer, String customerName) {
+		List<String> custName = new ArrayList<String>();
+
+		if (customerName.length() == 0 && groupCustomer.length() > 0) {
+			custName = customerRepository
+					.findByGroupCustomerName(groupCustomer);
+			if (custName.isEmpty()) {
+				logger.error("NOT_FOUND: Invalid Group Customer");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Invalid Group Customer");
+			}
+		} else {
+			custName.add(customerName);
+		}
+		return custName;
+	}
+
 }
