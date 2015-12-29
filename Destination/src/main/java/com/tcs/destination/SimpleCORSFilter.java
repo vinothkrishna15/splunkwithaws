@@ -110,9 +110,9 @@ public class SimpleCORSFilter implements Filter {
 			case UAT:
 			case PROD:// Check if other services has valid session populated
 				if (session == null) {
-					logger.error("Invalid session");
+					logger.error("Session is not Valid (or) Timed out");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
-							"Invalid session");
+							"Session is not Valid (or) Timed out");
 				} else {
 					logger.info("SessionId : " + session.getId());
 					MDC.put("sessionId", session.getId());
