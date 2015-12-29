@@ -630,6 +630,7 @@ public class OpportunityController {
 			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "userId", defaultValue = "") List<String> userId,
 			@RequestParam(value = "digitalFlag", defaultValue = "") String digitalFlag,
+			@RequestParam(value = "role", defaultValue = "ALL") String role,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
@@ -643,7 +644,7 @@ public class OpportunityController {
 					dealCurrency, digitalFlag, displayIou, country, partnerId,
 					competitorName, searchKeywords, bidRequestType, offering,
 					displaySubSp, opportunityName, userId, currency, page,
-					count);
+					count, role);
 
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunityResponse);
