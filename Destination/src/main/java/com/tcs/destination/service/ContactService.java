@@ -2,12 +2,15 @@ package com.tcs.destination.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +64,6 @@ public class ContactService {
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
-	
 	/**
 	 * This service saves partner details into Contact_t
 	 * 
@@ -73,7 +75,7 @@ public class ContactService {
 		logger.debug("Inside save method");
 		contactRepository.save(insertList);
 	}
-	
+
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 
@@ -186,7 +188,7 @@ public class ContactService {
 
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		contact.setCreatedModifiedBy(userId);
 		if (isUpdate) {
 			if (contact.getContactId() == null) {
@@ -196,8 +198,8 @@ public class ContactService {
 			if (contact.getDeleteContactCustomerLinkTs() != null) {
 				for (ContactCustomerLinkT contactCustomerLinkT : contact
 						.getDeleteContactCustomerLinkTs()) {
-					
-					contactCustomerLinkT.setCreatedModifiedBy(userId);					
+
+					contactCustomerLinkT.setCreatedModifiedBy(userId);
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
 			}
@@ -526,5 +528,62 @@ public class ContactService {
 			contactRepository.delete(contactT);
 		}
 
+	}
+
+	/**
+	 * This method saves the contact list which are retreived from spreadsheet
+	 * to the database
+	 * 
+	 * @param contactList
+	 */
+	public void saveCustomerContact(List<ContactT> contactList) {
+		// TODO Auto-generated method stub
+		logger.debug("Inside save method");
+
+		Map<Integer, List<ContactCustomerLinkT>> mapContactCustomer = new HashMap<Integer, List<ContactCustomerLinkT>>(
+				contactList.size());
+		int i = 0;
+		for (ContactT contact : contactList) {
+			mapContactCustomer.put(i, contact.getContactCustomerLinkTs());
+			contact.setContactCustomerLinkTs(null);
+			i++;
+		}
+		Iterable<ContactT> savedList = contactRepository.save(contactList);
+		Iterator<ContactT> saveIterator = savedList.iterator();
+		i = 0;
+		while (saveIterator.hasNext()) {
+			ContactT contact = saveIterator.next();
+			List<ContactCustomerLinkT> contactCustomerList = mapContactCustomer
+					.get(i);
+			if (CollectionUtils.isNotEmpty(contactCustomerList)) {
+				populateContactCustomerLink(contact.getContactId(),
+						contactCustomerList);
+			}
+			i++;
+		}
+		List<ContactCustomerLinkT> contactCustomerList = new ArrayList<ContactCustomerLinkT>();
+		for (List<ContactCustomerLinkT> list : mapContactCustomer.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				contactCustomerList.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(contactCustomerList)) {
+			contactCustomerLinkTRepository.save(contactCustomerList);
+		}
+	}
+
+	/**
+	 * This method sets the contact id of the contact created in contact
+	 * customer link
+	 * 
+	 * @param contactId
+	 * @param contactCustomerList
+	 */
+	private void populateContactCustomerLink(String contactId,
+			List<ContactCustomerLinkT> contactCustomerList) {
+		// TODO Auto-generated method stub
+		for (ContactCustomerLinkT contactCustomerLinkT : contactCustomerList) {
+			contactCustomerLinkT.setContactId(contactId);
+		}
 	}
 }
