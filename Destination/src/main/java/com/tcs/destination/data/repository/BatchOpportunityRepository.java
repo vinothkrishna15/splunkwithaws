@@ -6,9 +6,6 @@ import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_QU
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_QUERY;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_SUPERVISOR;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_QUERY;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_OUTCOME;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_STATUS_CHANGE;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_TARGET_SUBMISSION_DATE;
 
 import java.util.List;
 
@@ -38,8 +35,8 @@ public interface BatchOpportunityRepository extends CrudRepository<OpportunityT,
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR, nativeQuery = true)
 	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor();
 	
-	@Query(value = "select * from db_maintenance(:btchPrugeDays, :btchPrugeMonths, :btchPrugeYears)", nativeQuery = true)
-    Integer maintainDBTables(@Param("btchPrugeDays") Integer btchPrugeDays, @Param("btchPrugeMonths") Integer btchPrugeMonths, @Param("btchPrugeYears") Integer btchPrugeYears);
+	@Query(value = "select * from db_maintenance(:btchPrugeDays, :batchPrugeNotification, :batchPrugeCollaboration, :btchPrugeYears)", nativeQuery = true)
+    Integer maintainDBTables(@Param("btchPrugeDays") Integer btchPrugeDays, @Param("batchPrugeNotification") Integer batchPrugeNotification, @Param("batchPrugeCollaboration") Integer batchPrugeCollaboration, @Param("btchPrugeYears") Integer btchPrugeYears);
     
 	@Query(value = "select * from opportunity_shelving(:shelveDays, :shelveUpdateDays)", nativeQuery = true)
 	Integer updateOpportunityToShelve(@Param("shelveDays") Integer shelveDays, @Param("shelveUpdateDays") Integer shelveUpdateDays);

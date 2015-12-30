@@ -314,6 +314,10 @@ public class UserDetailsController {
 							status), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
+		} catch (IllegalStateException e) {
+			logger.error("Invalid session.");
+			throw new DestinationException(HttpStatus.UNAUTHORIZED,
+					"Invalid session");
 		} catch (Exception e) {
 			logger.error("Backend Error while logout process");
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
