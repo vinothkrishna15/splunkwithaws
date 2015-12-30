@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 
+/**
+ * this service retrieves data from connect type repository 
+ */
 @Service
 public class ConnectTypeService {
 	
@@ -19,7 +22,7 @@ public class ConnectTypeService {
 	ConnectTypeRepository conTypeRepository;
 
 	public ArrayList<ConnectTypeMappingT> findAll() {
-		logger.debug("Inside findAll service");
+		logger.info("Inside findAll() of ConnectTypeService");
 		return (ArrayList<ConnectTypeMappingT>) conTypeRepository.findAll();
 	}
 

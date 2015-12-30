@@ -110,9 +110,14 @@ public class FollowedService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such Entity type exists. Please ensure your entity type");
 		}
-		
 	}
 
+	/**
+	 * method to add a followed
+	 * @param followed
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
 		logger.info("Start:Inside addFollowed Followed Service");
 		if (EntityType.contains(followed.getEntityType())) {
@@ -207,10 +212,13 @@ public class FollowedService {
 				"Invalid Entity Type");
 	}
 
-	// This method initializes the required fields(according to each entity) for
-	// the notifications executor and starts it
+	/**
+	 * This method initializes the required fields(according to each entity) for
+	 *  the notifications executor and starts it
+	 * @param followDBObj
+	 */
 	private void processNotification(UserTaggedFollowedT followDBObj) {
-		logger.info("start:Calling processNotifications() method");
+		logger.info("start:Calling processNotifications() Followed Service");
 
 		FollowNotifications followNotificationsHelper = new FollowNotifications();
 		String taskId = followDBObj.getTaskId();
@@ -260,7 +268,7 @@ public class FollowedService {
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
 		}
-		logger.info("End:Calling processNotifications() method");
+		logger.info("End:Calling processNotifications() Followed Service");
 	}
 
 	/**

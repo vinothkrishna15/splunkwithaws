@@ -12,6 +12,10 @@ import java.util.List;
 
 import com.tcs.destination.data.repository.CountryRepository;
 
+/**
+ * This service deals with country requests 
+ *
+ */
 @Service
 public class CountryService {
 	
@@ -21,7 +25,7 @@ public class CountryService {
 	CountryRepository countryRepository;
 
 	public List<GeographyCountryMappingT> findAll() {
-		logger.debug("Inside findAll Service");
+		logger.info("Inside findAll() of CountryService");
 		return (ArrayList<GeographyCountryMappingT>) countryRepository
 				.findAll();
 	}
