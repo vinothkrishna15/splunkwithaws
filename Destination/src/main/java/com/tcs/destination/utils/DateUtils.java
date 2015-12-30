@@ -305,6 +305,15 @@ public class DateUtils {
 	public static String getCurrentMonth() {
 		return getFormattedMonth(new Date());
 	}
+	
+	public static boolean isDBFormattedMonth(String dbFormattedMonth){
+		try{
+			DB_DATE_FORMAT.parse(dbFormattedMonth);
+			return true;
+		} catch (ParseException e){
+			return false;
+		}
+	}
 
 	public static Date getDateFromDBFormattedString(String dbFormattedString)
 			throws ParseException {
