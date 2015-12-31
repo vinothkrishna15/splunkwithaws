@@ -56,12 +56,12 @@ public class UserAccessPrivilegeService {
 	 * @throws Exception
 	 */
 	public boolean insertAccessPrivilege(UserAccessPrivilegesT privilege) throws Exception{
-		logger.info("start: inside insertAccessPrivilege() of UserAccessPrivilegeService");
+		logger.debug("start: inside insertAccessPrivilege() of UserAccessPrivilegeService");
 		validateRequest(privilege);
 		if(userAccessPrivilegesRepository.save(privilege) != null){
 			return true;
 		}
-		logger.info("End: inside insertAccessPrivilege() of UserAccessPrivilegeService");
+		logger.debug("End: inside insertAccessPrivilege() of UserAccessPrivilegeService");
 		return false;
 	}
 	
@@ -71,7 +71,7 @@ public class UserAccessPrivilegeService {
 	 * @throws DestinationException
 	 */
 	private void validateRequest(UserAccessPrivilegesT privilege) throws DestinationException{
-		logger.info("start: inside validateRequest() of UserAccessPrivilegeService");
+		logger.debug("start: inside validateRequest() of UserAccessPrivilegeService");
 		String privilegeType = privilege.getPrivilegeType();
 		if(StringUtils.isEmpty(privilegeType)){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Privilege Type cannot be empty");
@@ -151,6 +151,6 @@ public class UserAccessPrivilegeService {
 				break;
 			}
 		}		
-		logger.info("End: inside validateRequest() of UserAccessPrivilegeService");
+		logger.debug("End: inside validateRequest() of UserAccessPrivilegeService");
 	}
 }

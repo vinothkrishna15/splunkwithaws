@@ -38,6 +38,10 @@ import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This service deals with contacts upload requests 
+ * 
+ */
 @Service
 public class ContactUploadService {
 	
@@ -71,7 +75,7 @@ public class ContactUploadService {
 	 */
 	public UploadStatusDTO upload(MultipartFile file, String userId, String contactCategory)
 			throws Exception {
-
+		logger.debug("begin: inside upload() of ContactUploadService");
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
@@ -108,11 +112,9 @@ public class ContactUploadService {
 
 					if (rowCount > 0) {
 						String actionCellValue = getIndividualCellValue(row.getCell(0));
-						logger.debug("row count : "+rowCount);
 						listOfCellValues = new ArrayList<String>();
 						try {
 						if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) {
-							logger.debug("Cell 0 at "+rowCount+" : "+actionCellValue);
 							listOfCellValues = iterateRow(row, ContactsUploadConstants.CUSTOMER_CONTACT_SHEET_COLUMN_COUNT);
 							contactService.addContact(constructContactTForCustomer(listOfCellValues, contactCategory.toUpperCase(), userId, DocumentActionType.ADD.name()));
 						} else if(actionCellValue.equalsIgnoreCase(DocumentActionType.UPDATE.name())){
@@ -163,11 +165,9 @@ public class ContactUploadService {
 
 					if (rowCount > 0) {
 						String actionCellValue = getIndividualCellValue(row.getCell(0));
-						logger.debug("row count : "+rowCount);
 						listOfCellValues = new ArrayList<String>();
 						try {
 						if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) {
-							logger.debug("Cell 0 at "+rowCount+" : "+actionCellValue);
 							listOfCellValues = iterateRow(row, ContactsUploadConstants.PARTNER_CONTACT_SHEET_COLUMN_COUNT);
 							contactService.addContact(constructContactTForPartner(listOfCellValues, contactCategory.toUpperCase(), userId, DocumentActionType.ADD.name()));
 						} else if(actionCellValue.equalsIgnoreCase(DocumentActionType.UPDATE.name())){
@@ -200,6 +200,7 @@ public class ContactUploadService {
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Category");
 		}
+		logger.debug("End: inside upload() of ContactUploadService");
 		return uploadStatus;
 	}
 	
@@ -217,7 +218,7 @@ public class ContactUploadService {
 			String contactCategory, String userId, String action) throws Exception{
 
 		ContactT contactT = null;
-		
+		logger.debug("begin: inside constructContactTForPartner() of ContactUploadService");
 		if ((listOfCellValues.size() > 0)) {
 			
 			contactT = new ContactT();
@@ -292,7 +293,7 @@ public class ContactUploadService {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Partner Name NOT Found");
 			}
 		}
-		
+		logger.debug("End: inside constructContactTForPartner() of ContactUploadService");
 		return contactT;
 	}
 
@@ -306,7 +307,7 @@ public class ContactUploadService {
 	private ContactT constructContactTFromContactId(List<String> listOfCellValues) throws Exception {
 
 		ContactT contactT = null;
-
+		logger.debug("Begin: inside constructContactTFromContactId() of ContactUploadService");
 		if ((listOfCellValues.size() > 0)) {
 			contactT = new ContactT();
 			if (StringUtils.isEmpty(listOfCellValues.get(1))) {
@@ -317,7 +318,7 @@ public class ContactUploadService {
 				}
 			}
 		}
-
+		logger.debug("End: inside constructContactTFromContactId() of ContactUploadService");
 		return contactT;
 	}
 
@@ -334,7 +335,7 @@ public class ContactUploadService {
 	private ContactT constructContactTForCustomer(List<String> listOfCellValues, String contactCategory, String userId, String action) throws Exception {
 		
 		ContactT contactT = null; 
-		
+		logger.debug("Begin: inside constructContactTForCustomer() of ContactUploadService");
 		if ((listOfCellValues.size() > 0)) {
 
 				contactT = new ContactT();
@@ -415,9 +416,8 @@ public class ContactUploadService {
 				contactT.setContactCustomerLinkTs(cclt);
 				
 		}
-		
+		logger.debug("End: inside constructContactTForCustomer() of ContactUploadService");
 		return contactT;
-		
 	}
 
 	/**
@@ -427,7 +427,7 @@ public class ContactUploadService {
 	 * @return boolean
 	 */
 	private boolean validateContactRole(String contactRole) {
-
+		logger.debug("Begin: inside validateContactRole() of ContactUploadService");
 		boolean flag = false;
 		
 		for(ContactRoleMappingT role : listOfContactRole){
@@ -435,7 +435,7 @@ public class ContactUploadService {
 				flag = true;
 			}
 		}
-		
+		logger.debug("End: inside validateContactRole() of ContactUploadService");
 		return flag;
 		
 	}
@@ -450,10 +450,12 @@ public class ContactUploadService {
      */
 	private String getMapValuesForKey(Map<String, String> map, String key)
 			throws Exception {
+		logger.debug("Begin: inside getMapValuesForKey() of ContactUploadService");
 		String value = null;
 		if (map.containsKey(key)) {
 			value = map.get(key);
 		}
+		logger.debug("End: inside getMapValuesForKey() of ContactUploadService");
 		return value;
 	}
 	
@@ -467,7 +469,7 @@ public class ContactUploadService {
 	private List<String> retrieveCustomerIdFromName(List<String> listOfCustomerName) throws Exception{
 
 		List<String> listOfCustId = null;
-		
+		logger.debug("Begin: inside retrieveCustomerIdFromName() of ContactUploadService");
 		if((listOfCustomerName!=null)&&(!listOfCustomerName.isEmpty())){
 			listOfCustId = new ArrayList<String>();
 			for(String custName : listOfCustomerName){
@@ -475,7 +477,7 @@ public class ContactUploadService {
 				listOfCustId.add(custId);
 			}
 		}
-		
+		logger.debug("End: inside retrieveCustomerIdFromName() of ContactUploadService");
 		return listOfCustId;
 	}
 
@@ -491,7 +493,7 @@ public class ContactUploadService {
 			List<String> listOfCustomerId, String userId) throws Exception{
 
 		List<ContactCustomerLinkT> listOfContactCustomerLinkT = null;
-				
+		logger.debug("Begin: inside constructContactCustomerLinkT() of ContactUploadService");
 		if((listOfCustomerId!=null)&&(!listOfCustomerId.isEmpty())){
 			
 			listOfContactCustomerLinkT = new ArrayList<ContactCustomerLinkT>();
@@ -507,7 +509,7 @@ public class ContactUploadService {
 				listOfContactCustomerLinkT.add(cclt);
 			}
 		}		
-		
+		logger.debug("End: inside constructContactCustomerLinkT() of ContactUploadService");
 		return listOfContactCustomerLinkT;
 	}
 
@@ -521,7 +523,7 @@ public class ContactUploadService {
 	private List<String> splitStringByCommas(String customerNames) throws Exception{
 
 		List<String> listOfCustName = null;
-		
+		logger.debug("Begin: inside splitStringByCommas() of ContactUploadService");
 		if(!StringUtils.isEmpty(customerNames)){
 			
 			listOfCustName = new ArrayList<String>();
@@ -532,7 +534,7 @@ public class ContactUploadService {
 				listOfCustName.add(custName.trim());
 			}
 		}
-		
+		logger.debug("End: inside splitStringByCommas() of ContactUploadService");
 		return listOfCustName;
 	}
 
@@ -546,7 +548,7 @@ public class ContactUploadService {
 	private List<String> iterateRow(Row row, int columnnCount) throws Exception{
 
 		List<String> listOfCellValues = new ArrayList<String>();
-				
+		logger.debug("Begin: inside iterateRow() of ContactUploadService");
 		for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
 
 			Cell cell = row.getCell(cellCount);
@@ -557,9 +559,8 @@ public class ContactUploadService {
 				listOfCellValues.add(value.trim());
 			}
 		}
-		
+		logger.debug("End: inside iterateRow() of ContactUploadService");
 		return listOfCellValues;
-		
 	}
 	
 	/**
@@ -570,6 +571,7 @@ public class ContactUploadService {
 	 * @throws Exception
 	 */
 	private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
+		logger.debug("inside validateSheetForCustomer() of ContactUploadService");
 		return ExcelUtils.isValidWorkbook(workbook,
 			OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
 			|| ExcelUtils.isValidWorkbook(workbook,
@@ -584,6 +586,7 @@ public class ContactUploadService {
 	 * @throws Exception
 	 */
 	private boolean validateSheetForPartner(Workbook workbook) throws Exception {
+		logger.debug("inside validateSheetForPartner() of ContactUploadService");
 		return ExcelUtils.isValidWorkbook(workbook,
 			OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 5, 1)
 			|| ExcelUtils.isValidWorkbook(workbook,
@@ -598,7 +601,7 @@ public class ContactUploadService {
      * @return String
      */
 	private String getIndividualCellValue(Cell cell) {
-
+		logger.debug("Begin:inside getIndividualCellValue() of ContactUploadService");
 		String val = "";
 		if (cell != null) {
 			switch (cell.getCellType()) {
@@ -622,8 +625,8 @@ public class ContactUploadService {
 		} else {
 			val = "";
 		}
+		logger.debug("End:inside getIndividualCellValue() of ContactUploadService");
 		return val;
-
 	}
 	
 	/**
@@ -634,7 +637,7 @@ public class ContactUploadService {
 	 */
 	private Map<String, String> getNameAndIdFromCustomerMasterT()
 			throws Exception {
-
+		logger.debug("Begin:inside getNameAndIdFromCustomerMasterT() of ContactUploadService");
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
 
 		List<Object[]> listOfCustomerMasterT = customerRepository
@@ -643,7 +646,7 @@ public class ContactUploadService {
 		for (Object[] st : listOfCustomerMasterT) {
 			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
 		}
-
+		logger.debug("End:inside getNameAndIdFromCustomerMasterT() of ContactUploadService");
 		return mapOfCMT;
 
 	}
@@ -656,7 +659,7 @@ public class ContactUploadService {
 	 */
 	private Map<String, String> getNameAndIdFromPartnerMasterT()
 			throws Exception {
-
+		logger.debug("Begin:inside getNameAndIdFromPartnerMasterT() of ContactUploadService");
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
 
 		List<Object[]> listOfPartnerMasterT = partnerRepository
@@ -665,7 +668,7 @@ public class ContactUploadService {
 		for (Object[] st : listOfPartnerMasterT) {
 			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
 		}
-
+		logger.debug("End:inside getNameAndIdFromPartnerMasterT() of ContactUploadService");
 		return mapOfCMT;
 
 	}
@@ -678,7 +681,7 @@ public class ContactUploadService {
 	 * @return boolean
 	 */
 	private boolean validateContactId(String contactId) throws Exception{
-		
+		logger.debug("Begin:inside validateContactId() of ContactUploadService");
 		boolean flag = false;
 		
 		if(contactId!=null){
@@ -692,7 +695,7 @@ public class ContactUploadService {
 		if(!flag){
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Id");
 		}
-		
+		logger.debug("End:inside validateContactId() of ContactUploadService");
 		return flag;
 	}
  	

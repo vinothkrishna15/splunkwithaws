@@ -22,7 +22,7 @@ public class ConnectTypeService {
 	ConnectTypeRepository conTypeRepository;
 
 	public ArrayList<ConnectTypeMappingT> findAll() {
-		logger.info("Inside findAll() of ConnectTypeService");
+		logger.debug("Inside findAll() of ConnectTypeService");
 		return (ArrayList<ConnectTypeMappingT>) conTypeRepository.findAll();
 	}
 

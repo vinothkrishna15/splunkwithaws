@@ -50,7 +50,7 @@ public class TrendingService {
  * @return
  */
 	public List<OpportunityT> findtrendingOpportunities(int count) {
-		logger.info("Begin:findtrendingOpportunities() in TrendingService"); 
+		logger.debug("Begin:findtrendingOpportunities() in TrendingService"); 
 		List<OpportunityT> tempList;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		tempList = oppRepository.findTrendingOpportunities(userId);
@@ -60,7 +60,7 @@ public class TrendingService {
 		} else {
 			oppList = tempList;
 		}
-		logger.info("End:findtrendingOpportunities() in TrendingService"); 
+		logger.debug("End:findtrendingOpportunities() in TrendingService"); 
 		return oppList;
 	}
 
@@ -74,7 +74,7 @@ public class TrendingService {
 	 */
 	public TimelineResponse getDistinctComment(Timestamp timestamp, int count,
 			String entityType) throws Exception {
-		logger.info("Begin: getDistinctComment() in TrendingService"); 
+		logger.debug("Begin: getDistinctComment() in TrendingService"); 
 		TimelineResponse response = new TimelineResponse();
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -105,8 +105,8 @@ public class TrendingService {
 		int responseListSize = filteredList.size() - 1;
 		EntityBean lastItem = filteredList.get(responseListSize);
 		response.setToken(lastItem.getDateTime());
-		//logger.info("Page Token sent : " + response.getToken());
-		logger.info("End: getDistinctComment() in TrendingService"); 
+		//logger.debug("Page Token sent : " + response.getToken());
+		logger.debug("End: getDistinctComment() in TrendingService"); 
 		return response;
 	}
 /**
@@ -120,7 +120,7 @@ public class TrendingService {
 	private void populateAndAddtoResponseBeanList(
 			List<EntityBean> filteredList, String entityTypeRetrieved,
 			String entityId, String commentId, Timestamp dateTime) {
-		logger.info("Begin: populateAndAddtoResponseBeanList() in TrendingService"); 
+		logger.debug("Begin: populateAndAddtoResponseBeanList() in TrendingService"); 
 		EntityBean e = new EntityBean();
 		e.setCommentId(commentId);
 		if (EntityType.contains(entityTypeRetrieved)) {
@@ -138,7 +138,7 @@ public class TrendingService {
 			e.setDateTime(dateTime);
 			filteredList.add(e);
 		}
-		logger.info("End: populateAndAddtoResponseBeanList() in TrendingService"); 
+		logger.debug("End: populateAndAddtoResponseBeanList() in TrendingService"); 
 	}
 /**
  * this method returns the end index
@@ -185,7 +185,7 @@ public class TrendingService {
 	 * @return
 	 */
 	private boolean isValidPagination(int page, int count, int listSize) {
-		logger.info("Begin: inside isValidPagination() of TrendingService");
+		logger.debug("Begin: inside isValidPagination() of TrendingService");
 		boolean isValid = false;
 		int numAllowedPages = 0;
 		int numPages = listSize / count;
@@ -198,7 +198,7 @@ public class TrendingService {
 		if (page < numAllowedPages) {
 			isValid = true;
 		}
-		logger.info("End: inside isValidPagination() of TrendingService: is It valid?", isValid);
+		logger.debug("End: inside isValidPagination() of TrendingService: is It valid?", isValid);
 		return isValid;
 	}
 
@@ -208,7 +208,7 @@ public class TrendingService {
 	 * @return
 	 */
 	private boolean isValidEntity(String entityType) {
-		logger.info("Begin: inside isValidEntity() of TrendingService");
+		logger.debug("Begin: inside isValidEntity() of TrendingService");
 		boolean isValid = false;
 		if (EntityType.contains(entityType)) {
 			switch (EntityType.valueOf(entityType)) {
@@ -229,7 +229,7 @@ public class TrendingService {
 				isValid = true;
 			}
 		}
-		logger.info("end: inside isValidEntity() of TrendingService: is valid entity?", isValid);
+		logger.debug("end: inside isValidEntity() of TrendingService: is valid entity?", isValid);
 		return isValid;
 	}
 
@@ -241,7 +241,7 @@ public class TrendingService {
 	 * @throws Exception
 	 */
 	public List<EntityBean> getComment(int count) throws Exception {
-		logger.info("Begin: inside getComment() of TrendingService");
+		logger.debug("Begin: inside getComment() of TrendingService");
 		List<CollaborationCommentT> commentList;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		commentList = commentsRepository.getComments(userId);
@@ -281,7 +281,7 @@ public class TrendingService {
 		} else {
 			size = count;
 		}
-		logger.info("End: inside getComment() of TrendingService");
+		logger.debug("End: inside getComment() of TrendingService");
 		return filteredList.subList(0, size);
 	}
 	
@@ -291,14 +291,14 @@ public class TrendingService {
  * @return
  */
 	private EntityBean getEntityBean(CollaborationCommentT comment) {
-		logger.info("Begin: inside getEntityBean() of TrendingService");
+		logger.debug("Begin: inside getEntityBean() of TrendingService");
 		EntityBean e = new EntityBean();
 		e.setDateTime(comment.getUpdatedDatetime());
 		// e.setCommentId(comment.getCommentId());
 		e.setConnect(comment.getConnectT());
 		e.setTask(comment.getTaskT());
 		e.setOpportunity(comment.getOpportunityT());
-		logger.info("End: inside getEntityBean() of TrendingService");
+		logger.debug("End: inside getEntityBean() of TrendingService");
 		return e;
 	}
 

@@ -44,6 +44,10 @@ import com.tcs.destination.utils.DateUtils;
 
 import static com.tcs.destination.utils.LeadershipQueryConstants.*;
 
+/**
+ * This service is used to fetch leadership dash board connects,wins and team connects
+ *
+ */
 @Service
 public class DashBoardService {
 
@@ -79,9 +83,17 @@ public class DashBoardService {
 	
 	private static Map<String, BigDecimal> beaconConverterMap = null;
 
+	/**
+	 * This method is used to get the performance chart values
+	 * @param userId
+	 * @param financialYear
+	 * @return
+	 * @throws Exception
+	 */
 	public PerformaceChartBean getChartValues(String userId,
 			String financialYear) throws Exception {
 
+		logger.debug("start: Inside  getChartValues() of DashBoardService");
 		boolean hasValues = false;
 
 		PerformaceChartBean performanceBean = new PerformaceChartBean();
@@ -136,6 +148,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not Data found for the performance Chart");
 		}
+		logger.debug("End: Inside  getChartValues() of DashBoardService");
 		return performanceBean;
 	}
 
@@ -151,7 +164,7 @@ public class DashBoardService {
 	public PerformaceChartBean getTeamChartValues(String supervisorId,
 			String financialYear) throws Exception {
 
-		logger.debug("Inside getTeamChartValues() service");
+		logger.debug("Start: Inside getTeamChartValues() service");
 
 		boolean hasValues = false;
 
@@ -237,7 +250,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No subordinate found for supervisor id " + supervisorId);
 		}
-
+		logger.debug("End: Inside  getTeamChartValues() of DashBoardService");
 		return performanceBean;
 	}
 
@@ -255,7 +268,7 @@ public class DashBoardService {
 	public LeadershipConnectsDTO getLeadershipConnectsByGeography(
 			String userId, Date fromDate, Date toDate, String geography)
 			throws Exception {
-		logger.debug("Inside getLeadershipConnectsByGeography()");
+		logger.debug("Start:Inside getLeadershipConnectsByGeography() of DashBoardService");
 
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
 		UserT user = userService.findByUserId(userId);
@@ -284,7 +297,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		}
-
+		logger.debug("End:Inside getLeadershipConnectsByGeography() of DashBoardService");
 		return leadershipConnectsDTO;
 
 	}
@@ -303,6 +316,8 @@ public class DashBoardService {
 	private LeadershipConnectsDTO getTeamConnectsBasedOnUserPrivileges(
 			String supervisorId, Date startDate, Date endDate, String geography)
 			throws Exception {
+		
+		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
 
 		String privilegesQuery = "";
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
@@ -348,7 +363,7 @@ public class DashBoardService {
 								.size());
 			}
 		}
-
+		logger.debug("End:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
 		return leadershipConnectsDTO;
 	}
 
@@ -400,7 +415,8 @@ public class DashBoardService {
 	 */
 	private String constructPrivilegesQueryForLeadershipDashboard(
 			String supervisorId) throws Exception {
-
+        
+		logger.debug("Start:Inside  constructPrivilegesQueryForLeadershipDashboard() of DashBoardService");
 		String privilegesQuery = "";
 
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
@@ -415,9 +431,8 @@ public class DashBoardService {
 
 		if (whereClause != null && !whereClause.isEmpty()) {
 			privilegesQuery = Constants.AND_CLAUSE + whereClause;
-			// privilegesQuery = whereClause;
 		}
-
+		logger.debug("End:Inside  constructPrivilegesQueryForLeadershipDashboard() of DashBoardService");
 		return privilegesQuery;
 	}
 
@@ -435,18 +450,14 @@ public class DashBoardService {
 			String supervisorId, String displayGeography, Timestamp fromDate,
 			Timestamp toDate) throws Exception {
 
+		logger.debug("Start:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
 		StringBuffer queryBuffer = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
 
 		// Append privileges obtained above. Note that access privilege is only
 		// for customers and not for partners
 		queryBuffer
 				.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
-
-		// queryBuffer.append(fromDateTs);
-
-		// queryBuffer.append(supervisorId);
-
-		queryBuffer.append(TEAM_CONNECTS_QUERY_PART2);
+        queryBuffer.append(TEAM_CONNECTS_QUERY_PART2);
 
 		Query query = entityManager.createNativeQuery(queryBuffer.toString(),
 				ConnectT.class);
@@ -454,42 +465,9 @@ public class DashBoardService {
 		query.setParameter("fromDate", fromDate);
 		query.setParameter("toDate", toDate);
 		query.setParameter("displayGeography", displayGeography);
-
+		logger.debug("End:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
 		return query.getResultList();
-		// queryBuffer.append(toDateTs);
-
-		// queryBuffer.append(supervisorId);
-
-		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART3);
-		//
-		// queryBuffer.append(geography);
-		//
-		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART5);
-		//
-		// queryBuffer.append(geography);
-
-		// queryBuffer.append(geography);
-
-		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
-
-		// queryBuffer.append(geography);
-
-		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
-
-		// queryBuffer.append(geography);
-
-		/*
-		 * queryBuffer.append(geography);
-		 * 
-		 * queryBuffer.append(TEAM_CONNECTS_QUERY_PART6);
-		 * 
-		 * queryBuffer.append(geography);
-		 */
-
-		// queryBuffer.append(TEAM_CONNECTS_QUERY_PART7);
-
-		// return queryBuffer;
-	}
+	  }
 
 	/**
 	 * This service retrieves the WON opportunities of all users under a
@@ -505,7 +483,8 @@ public class DashBoardService {
 	 */
 	public LeadershipOverallWinsDTO getLeadershipWinsByGeography(String userId,
 			Date fromDate, Date toDate, String geography) throws Exception {
-		logger.debug("Inside getLeadershipWinsByGeography()");
+		
+		logger.debug("Start: Inside getLeadershipWinsByGeography() of DashBoardService");
 
 		LeadershipOverallWinsDTO leadershipOverallWinsDTO = null;
 		UserT user = userService.findByUserId(userId);
@@ -534,7 +513,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		}
-
+		logger.debug("End: Inside getLeadershipWinsByGeography() of DashBoardService");
 		return leadershipOverallWinsDTO;
 
 	}
@@ -553,7 +532,8 @@ public class DashBoardService {
 	private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
 			String userId, Date fromDate, Date toDate, String geography)
 			throws Exception {
-
+        
+		logger.debug("Start: Inside getLeadershipWinsByUserPrivileges() of DashBoardService");
 		String privilegesQuery = "";
 		LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
 
@@ -695,7 +675,7 @@ public class DashBoardService {
 			}
 
 		}
-
+		logger.debug("End: Inside getLeadershipWinsByUserPrivileges() of DashBoardService");
 		return leadershipTotalWinsDTO;
 	}
 
@@ -715,13 +695,14 @@ public class DashBoardService {
 			String userId, String geography, Timestamp fromDateTs,
 			Timestamp toDateTs, String privileges) throws Exception {
 
+		logger.debug("Start: Inside constructQueryForLeadershipDashboardWinsWithPrivileges() of DashBoardService");
 		StringBuffer query = new StringBuffer();
 
 		query.append(constructQueryForLeadershipDashboardWins(userId,
 				geography, fromDateTs, toDateTs));
 
 		query.append(privileges);
-
+		logger.debug("End: Inside constructQueryForLeadershipDashboardWinsWithPrivileges() of DashBoardService");
 		return query;
 
 	}
@@ -736,6 +717,7 @@ public class DashBoardService {
 	private LeadershipWinsDTO getWinsFromQueryBuffer(StringBuffer queryBuffer,
 			String userId) throws Exception {
 
+		logger.debug("Start: Inside getWinsFromQueryBuffer() of DashBoardService");
 		List<String> resultList = null;
 		LeadershipWinsDTO leadershipWinsDTO = null;
 		List<OpportunityT> opportunityList = new ArrayList<OpportunityT>();
@@ -765,7 +747,7 @@ public class DashBoardService {
 					"An Internal Error has occured while processing request for userId "
 							+ userId);
 		}
-
+		logger.debug("End: Inside getWinsFromQueryBuffer() of DashBoardService");
 		return leadershipWinsDTO;
 	}
 
@@ -782,6 +764,7 @@ public class DashBoardService {
 			String userId, String geography, Timestamp fromDateTs,
 			Timestamp toDateTs) throws Exception {
 
+		logger.debug("Start: Inside constructQueryForLeadershipDashboardWins() of DashBoardService");
 		StringBuffer queryBuffer = new StringBuffer(
 				TEAM_OPPORTUNITY_WIN_QUERY_PART1);
 
@@ -793,28 +776,15 @@ public class DashBoardService {
 
 		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
 
-		// queryBuffer.append(userId);
+        queryBuffer.append(fromDateTs);
 
-		queryBuffer.append(fromDateTs);
-
-		// queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
-
-		// queryBuffer.append(userId);
-
-		// queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
-
-		// queryBuffer.append(userId);
-
-		// queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART5);
-
-		// queryBuffer.append(fromDateTs);
-
-		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
+	    queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
 
 		queryBuffer.append(toDateTs);
 
 		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART4);
 
+		logger.debug("End: Inside constructQueryForLeadershipDashboardWins() of DashBoardService");
 		return queryBuffer;
 
 	}
@@ -834,7 +804,7 @@ public class DashBoardService {
 			String userId, Date fromDate, Date toDate, String geography)
 			throws Exception {
 
-		logger.debug("Inside getLeadershipOpportunitiesByGeography()");
+		logger.debug("Start:Inside getLeadershipOpportunitiesByGeography()");
 
 		LeadershipOpportunitiesDTO listOfOppportunities = null;
 		UserT user = userService.findByUserId(userId);
@@ -863,7 +833,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		}
-
+		logger.debug("End: Inside getLeadershipOpportunitiesByGeography() of DashBoardService");
 		return listOfOppportunities;
 
 	}
@@ -882,6 +852,7 @@ public class DashBoardService {
 			String userId, Date fromDate, Date toDate, String geography)
 			throws Exception {
 
+		logger.debug("Start: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
 		LeadershipOpportunitiesDTO listOfOppportunities = null;
 
 		List<OpportunityT> opportunitiesBySalesCode = getPrevilegedOpportunities(
@@ -896,6 +867,7 @@ public class DashBoardService {
 
 		getPrevilegedOpportunities(
 				userId, fromDate, toDate, geography);
+		logger.debug("End: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
 		return listOfOppportunities;
 
 	}
@@ -910,9 +882,8 @@ public class DashBoardService {
 	 */
 	public List<OpportunityT> getPrevilegedOpportunities(String userId,
 			Date fromDate, Date toDate, String geography) throws Exception {
+		logger.debug("Start: Inside getPrevilegedOpportunities() of DashBoardService");
 		List<OpportunityT> opportunitiesBySalesCode = null;
-		
-
 		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 		Timestamp toDateTs = new Timestamp(toDate.getTime()
 				+ Constants.ONE_DAY_IN_MILLIS - 1);
@@ -930,6 +901,7 @@ public class DashBoardService {
 		// supervisorId
 		opportunitiesBySalesCode = getAllOpportunitiesUsingQuery(query,
 				userId);
+		logger.debug("End: Inside getPrevilegedOpportunities() of DashBoardService");
 		return opportunitiesBySalesCode;
 	}
 
@@ -943,7 +915,7 @@ public class DashBoardService {
 	private LeadershipOpportunitiesDTO getOpportunitiesBySalesStageCode(
 			List<OpportunityT> opportunitiesBySalesCode,
 			String userId) throws Exception {
-
+		logger.debug("Start: Inside getOpportunitiesBySalesStageCode() of DashBoardService");
 		LeadershipOpportunitiesDTO leadershipOpportunitiesDTO = null;
 		boolean checkOppExists = false;
 		List<OpportunityT> opportunitiesProspects = null;
@@ -1049,6 +1021,7 @@ public class DashBoardService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunity found for user Id : " + userId);
 		}
+		logger.debug("End: Inside getOpportunitiesBySalesStageCode() of DashBoardService");
 		return leadershipOpportunitiesDTO;
 	}
 
@@ -1064,6 +1037,7 @@ public class DashBoardService {
 			List<OpportunityT> opportunitTs, Double sumOfDealValue, String userId)
 			throws Exception {
 
+		logger.debug("Start: Inside getLeadershipOpportunityObjectBySalesStageCode() of DashBoardService");
 		LeadershipOpportunityBySalesStageCodeDTO oppBySalesCode = new LeadershipOpportunityBySalesStageCodeDTO();
 		try {
 			if (opportunitTs != null) {
@@ -1082,12 +1056,13 @@ public class DashBoardService {
 					"An Internal Error has occured while processing request for userId "
 							+ userId);
 		}
+		logger.debug("End: Inside getLeadershipOpportunityObjectBySalesStageCode() of DashBoardService");
 		return oppBySalesCode;
 	}
 
 	/**
 	 * This method helps in retrieving the values from the database and sets the
-	 * approporate object
+	 * appropriate object
 	 * 
 	 * @param query
 	 * @return List<LeadershipAllOpportunityDTO>
@@ -1095,6 +1070,7 @@ public class DashBoardService {
 	 */
 	private List<OpportunityT> getAllOpportunitiesUsingQuery(
 			StringBuffer query, String userId) throws Exception {
+		logger.debug("Start: Inside getAllOpportunitiesUsingQuery() of DashBoardService");
 		TypedQuery<OpportunityT> opportunitiesTypedQuery=null;
 		try {
 			opportunitiesTypedQuery = (TypedQuery<OpportunityT>) entityManager
@@ -1108,6 +1084,7 @@ public class DashBoardService {
 					"An Internal Error has occured while processing request for userId "
 							+ userId);
 		}
+		logger.debug("End: Inside getAllOpportunitiesUsingQuery() of DashBoardService");
 		return opportunitiesTypedQuery.getResultList();
 	}
 
@@ -1125,6 +1102,8 @@ public class DashBoardService {
 	private StringBuffer constructQueryForLeadershipDashboardOpportunitiesWithPrivileges(
 			String userId, String geography, Timestamp fromDateTs,
 			Timestamp toDateTs, String privilegesQueryString) {
+		
+		logger.debug("Start: Inside constructQueryForLeadershipDashboardOpportunitiesWithPrivileges() of DashBoardService");
 
 		StringBuffer queryBuffer = new StringBuffer();
 
@@ -1140,32 +1119,20 @@ public class DashBoardService {
 
 		queryBuffer.append(fromDateTs);
 
-		// queryBuffer.append(userId);
-
-		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
+        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
 
 		queryBuffer.append(toDateTs);
 
-		// queryBuffer.append(userId);
+        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
 
-		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
+        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
 
-		// queryBuffer.append(userId);
-
-		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
-
-		// queryBuffer.append(fromDateTs);
-
-		// queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART6);
-
-		// queryBuffer.append(toDateTs);
-
-		// queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART7);
-
-		queryBuffer.append(privilegesQueryString);
+	    queryBuffer.append(privilegesQueryString);
 
 		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_SUFFIX);
 
+		logger.debug("End: Inside constructQueryForLeadershipDashboardOpportunitiesWithPrivileges() of DashBoardService");
+		
 		return queryBuffer;
 	}
 

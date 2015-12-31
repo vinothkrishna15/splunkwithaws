@@ -46,7 +46,7 @@ public class RevenueService {
 		RevenueCustomerMappingT revenueT = null;
 		RevenueCustomerMappingTPK revenueTPK = null;
 		 List<RevenueCustomerMappingT> financeCustomers = null;
-		 logger.info("Begin:Inside addFinance() of RevenueService");
+		 logger.debug("Begin:Inside addFinance() of RevenueService");
 		if(revenueCustomerToInsert!=null){
 			revenueT = new RevenueCustomerMappingT();
 			revenueTPK = new RevenueCustomerMappingTPK();
@@ -70,7 +70,7 @@ public class RevenueService {
 			revenueT.setId(revenueTPK);
 			revenueT = revenueRepository.save(revenueT);
 		}
-		 logger.info("End:Inside addFinance() of RevenueService");
+		 logger.debug("End:Inside addFinance() of RevenueService");
 		return revenueT;
 	}
 	
@@ -85,7 +85,7 @@ public class RevenueService {
 		
 		ActualRevenuesDataT actualRevenueDataT = null;
 		if(actualRevenueDataToInsert!=null){
-			logger.info("begin:Inside addActualRevenue() of RevenueService");
+			logger.debug("begin:Inside addActualRevenue() of RevenueService");
 			actualRevenueDataT = new ActualRevenuesDataT();
 			actualRevenueDataT.setQuarter(actualRevenueDataToInsert.getQuarter());
 			actualRevenueDataT.setMonth(actualRevenueDataToInsert.getMonth());
@@ -98,7 +98,7 @@ public class RevenueService {
 			actualRevenueDataT.setFinanceCustomerName(actualRevenueDataToInsert.getFinanceCustomerName());
 			actualRevenueDataT = actualRevenuesDataTRepository.save(actualRevenueDataT);
 		}
-		logger.info("End:Inside addActualRevenue() of RevenueService");
+		logger.debug("End:Inside addActualRevenue() of RevenueService");
 		return actualRevenueDataT;
 	}
 	
@@ -108,9 +108,9 @@ public class RevenueService {
 	 */
 	@Transactional
 	public void save(List<ActualRevenuesDataT> addList) {
-		logger.info("Begin:Inside save() of RevenueService");
+		logger.debug("Begin:Inside save() of RevenueService");
 		actualRevenuesDataTRepository.save(addList);
-		logger.info("End:Inside save() of RevenueService");
+		logger.debug("End:Inside save() of RevenueService");
 	}
 	
 	/**
@@ -119,9 +119,9 @@ public class RevenueService {
 	 */
 	@Transactional
 	public void delete(List<ActualRevenuesDataT> deleteList) {
-		logger.info("Begin:Inside delete() of RevenueService");
+		logger.debug("Begin:Inside delete() of RevenueService");
 		actualRevenuesDataTRepository.delete(deleteList);
-		logger.info("End:Inside delete() of RevenueService");
+		logger.debug("End:Inside delete() of RevenueService");
 	}
 
 }

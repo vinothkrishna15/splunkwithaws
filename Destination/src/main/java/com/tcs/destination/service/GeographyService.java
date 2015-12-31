@@ -23,7 +23,7 @@ public class GeographyService {
 	GeographyRepository geographyRepository;
 
 	public List<GeographyMappingT> findAll() {
-		logger.info("Inside findAll() GeographyService");
+		logger.debug("Inside findAll() GeographyService");
 		return (ArrayList<GeographyMappingT>) geographyRepository.findAll();
 	}
 

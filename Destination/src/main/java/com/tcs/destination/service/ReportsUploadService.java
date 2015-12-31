@@ -38,7 +38,7 @@ public class ReportsUploadService {
 			.getLogger(ReportsUploadService.class);
 
 		public void saveDocument(MultipartFile multipartFile) throws Exception {
-			logger.info("Begin:Inside saveDocument() ReportsUploadService");
+			logger.debug("Begin:Inside saveDocument() ReportsUploadService");
 			File file = convert(multipartFile);
 
 			try {
@@ -93,7 +93,7 @@ public class ReportsUploadService {
 				 } catch (Exception e1) {
 				e1.printStackTrace();
 				}
-			logger.info("End:Inside saveDocument() ReportsUploadService");
+			logger.debug("End:Inside saveDocument() ReportsUploadService");
 		}
 		
 		public File convert(MultipartFile file) throws Exception {

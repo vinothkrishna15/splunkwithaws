@@ -20,6 +20,10 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.FileManager;
 
+/**
+ * This service is used to process the batch requests being provided
+ * 
+ */
 @Service("dataProcessingService")
 public class DataProcessingService {
 	
@@ -35,9 +39,16 @@ public class DataProcessingService {
 	@Value("${fileserver.path}")
 	private String fileServerPath;
 
+	/**
+	 * This method is used to save the upload requests being provided for batch operations
+	 * @param file
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
 	public Status saveUploadRequest(MultipartFile file, int type) throws Exception {
 		
-		logger.debug("Inside saveUploadRequest method:");
+		logger.debug("Start:Inside saveUploadRequest method of DataProcessing Service:");
 		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		
@@ -60,10 +71,13 @@ public class DataProcessingService {
 		
 		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
 		
+		logger.debug("End: saveUploadRequest method of DataProcessing Service:");
+		
 		return status;
 	}
 
 	/**
+	 * This method is used to fetch the entity type
 	 * @param type
 	 * @return String
 	 */
@@ -115,6 +129,7 @@ public class DataProcessingService {
 	}
 
 	/**
+	 * This method is used to save the download requests being provided for batch operations
 	 * @param userId
 	 * @param type
 	 * @return
@@ -122,7 +137,7 @@ public class DataProcessingService {
 	public Status saveDownloadRequest(int type) {
 		
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
-		logger.debug("Inside saveDownloadRequest method:");
+		logger.debug("Start :Inside saveDownloadRequest method of DataProcessing Service ");
 		
         Status status = new Status();
 		
@@ -134,7 +149,7 @@ public class DataProcessingService {
 		dataProcessingRequestRepository.save(request);
 		
 		status.setStatus(Status.SUCCESS, "Download request is submitted successfully");
-		
+		logger.debug("End :saveDownloadRequest method of DataProcessing Service");
 		return status;
 	}
 

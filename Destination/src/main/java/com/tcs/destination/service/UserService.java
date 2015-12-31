@@ -13,20 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.GoalGroupMappingT;
 import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
-import com.tcs.destination.bean.OpportunityPartnerLinkT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.bean.UserGoalsT;
-import com.tcs.destination.bean.UserGroupMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
@@ -103,7 +96,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<UserT> findByUserName(String nameWith) throws Exception {
-		logger.info("Begin:Inside findByUserName UserService");
+		logger.debug("Begin:Inside findByUserName UserService");
 		List<UserT> users = (List<UserT>) userRepository
 				.findByUserNameIgnoreCaseLike("%" + nameWith + "%");
 
@@ -112,7 +105,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-		logger.info("End:Inside findByUserName Service");
+		logger.debug("End:Inside findByUserName Service");
 		return users;
 	}
 
@@ -123,7 +116,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<String> findByUserRole(String role) throws Exception {
-		logger.info("Begin:Inside findByUserRole Service");
+		logger.debug("Begin:Inside findByUserRole Service");
 		List<String> users = (List<String>) userRepository
 				.findUserIdByUserRole(role);
 
@@ -132,7 +125,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-		logger.info("End:Inside findByUserRole Service");
+		logger.debug("End:Inside findByUserRole Service");
 		return users;
 	}
 
@@ -143,7 +136,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public UserT findUserByName(String userName) throws Exception {
-		logger.info("Begin:Inside findUserByName UserService");
+		logger.debug("Begin:Inside findUserByName UserService");
 		UserT user = null;
 		try {
 			user = userRepository.findByUserName(userName);
@@ -158,7 +151,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found");
 		}
-		logger.info("End:Inside findUserByName UserService");
+		logger.debug("End:Inside findUserByName UserService");
 		return user;
 	}
 
@@ -168,13 +161,13 @@ public class UserService {
 	 * @return
 	 */
 	public Timestamp getUserLastLogin(String userId) {
-		logger.info("Begin:Inside getUserLastLogin of UserService");
+		logger.debug("Begin:Inside getUserLastLogin of UserService");
 		Timestamp lastLogin = null;
 		LoginHistoryT loginHistory = loginHistoryRepository
 				.findLastLoginByUserId(userId);
 		if (loginHistory != null)
 			lastLogin = loginHistory.getLoginDatetime();
-		logger.info("End:Inside getUserLastLogin of UserService");
+		logger.debug("End:Inside getUserLastLogin of UserService");
 		return lastLogin;
 	}
 
@@ -185,7 +178,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public boolean adduser(UserT user) throws Exception {
-		logger.info("Begin:Inside adduser() of Userservice");
+		logger.debug("Begin:Inside adduser() of Userservice");
 		return userRepository.save(user) != null;
 	}
 
@@ -197,15 +190,15 @@ public class UserService {
 	 */
 
 	public boolean addLoginHistory(LoginHistoryT loginHistory) {
-		logger.info("Begin:Inside addLoginHistory() of Userservice");
+		logger.debug("Begin:Inside addLoginHistory() of Userservice");
 		LoginHistoryT managedLoginHistory = loginHistoryRepository
 				.save(loginHistory);
 		if (managedLoginHistory == null){
-			logger.info("End:Inside addLoginHistory() of Userservice");
+			logger.debug("End:Inside addLoginHistory() of Userservice");
 			return false;
 		}
 		else{
-			logger.info("End:Inside addLoginHistory() of Userservice");
+			logger.debug("End:Inside addLoginHistory() of Userservice");
 			return true;
 		}
 	}
@@ -219,13 +212,13 @@ public class UserService {
 	 */
 	public LoginHistoryT findByUserIdAndSessionId(String userId,
 			String sessionId) throws Exception {
-		logger.info("Begin:Inside findByUserIdAndSessionId() of Userservice");
+		logger.debug("Begin:Inside findByUserIdAndSessionId() of Userservice");
 		LoginHistoryT loginHistory = null;
 		if (userId != null && sessionId != null) {
 			loginHistory = loginHistoryRepository.findByUserIdAndSessionId(
 					userId, sessionId);
 		}
-		logger.info("End:Inside findByUserIdAndSessionId() of Userservice");
+		logger.debug("End:Inside findByUserIdAndSessionId() of Userservice");
 		return loginHistory;
 	}
 
@@ -238,7 +231,7 @@ public class UserService {
 	 */
 	public UserT findByUserIdAndPassword(String userId, String password)
 			throws Exception {
-		logger.info("Inside findByUserIdAndPassword() service");
+		logger.debug("Inside findByUserIdAndPassword() service");
 		return (userRepository.findByUserIdAndTempPassword(userId, password));
 	}
 
@@ -247,9 +240,9 @@ public class UserService {
 	 * @param user
 	 */
 	public void updateUser(UserT user) {
-		logger.info("Begin:Inside updateUser() service");
+		logger.debug("Begin:Inside updateUser() service");
 		userRepository.save(user);
-		logger.info("End:Inside updateUser() service");
+		logger.debug("End:Inside updateUser() service");
 	}
 
 	/**
@@ -259,9 +252,9 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public UserT findByUserId(String userId) throws Exception {
-		logger.info("Begin:Inside findByUserId() service");
+		logger.debug("Begin:Inside findByUserId() service");
 		UserT dbUser = userRepository.findOne(userId);
-		logger.info("End:Inside findByUserId() service");
+		logger.debug("End:Inside findByUserId() service");
 		return dbUser;
 	}
 
@@ -272,7 +265,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<UserT> getUsersByRole(String userRole) throws Exception {
-		logger.info("Inside getUsersByRole() service");
+		logger.debug("Inside getUsersByRole() service");
 		return userRepository.findByUserRole(userRole);
 	}
 
@@ -282,7 +275,7 @@ public class UserService {
 	 * @return
 	 */
 	public boolean isSystemAdmin(String userId) {
-		logger.info("Inside isSystemAdmin() service");
+		logger.debug("Inside isSystemAdmin() service");
 		return isUserWithRole(userId, UserRole.SYSTEM_ADMIN.getValue());
 
 	}
@@ -294,7 +287,7 @@ public class UserService {
 	 * @return
 	 */
 	private boolean isUserWithRole(String userId, String userRole) {
-		logger.info("Inside isUserWithRole() service");
+		logger.debug("Inside isUserWithRole() service");
 		return !(userRepository.findByUserIdAndUserRole(userId, userRole)
 				.isEmpty());
 	}
@@ -308,7 +301,7 @@ public class UserService {
 	 */
 	public void forgotPassword(String userId, String userEmailId)
 			throws Exception {
-		logger.info("Begin:Inside forgotPassword() of Userservice");
+		logger.debug("Begin:Inside forgotPassword() of Userservice");
 		UserT user = userRepository.findOne(userId);
 		if (user != null) {
 			String retrievedMailId = user.getUserEmailId();
@@ -325,7 +318,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		}
-		logger.info("End:Inside forgotPassword() of Userservice");
+		logger.debug("End:Inside forgotPassword() of Userservice");
 	}
 
 	/**
@@ -337,7 +330,7 @@ public class UserService {
 	 */
 	public List<UserAccessPrivilegesT> getAllPrivilegesByUserId(String userId)
 			throws Exception {
-		logger.info("Inside getAllPrivilegesByUserId() service");
+		logger.debug("Inside getAllPrivilegesByUserId() service");
 		return (userAccessPrivilegesRepository
 				.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId,
 						Constants.Y));
@@ -354,7 +347,7 @@ public class UserService {
 	 */
 	public List<UserAccessPrivilegesT> getAllChildPrivilegesByUserIdAndParentPrivilegeId(
 			String userId, Integer parentPrivilegeId) throws Exception {
-		logger.info("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() of Userservice");
+		logger.debug("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() of Userservice");
 		return (userAccessPrivilegesRepository
 				.findByUserIdAndParentPrivilegeIdAndIsactive(userId,
 						parentPrivilegeId, Constants.Y));
@@ -369,14 +362,14 @@ public class UserService {
 	 */
 	public boolean insertUser(UserT user, boolean isBulkUpload)
 			throws Exception {
-		logger.info("Begin:inside insertUser() of UserService");
+		logger.debug("Begin:inside insertUser() of UserService");
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
-			logger.info("End:inside insertUser() of UserService: user Saved : " + user.getUserId());
+			logger.debug("End:inside insertUser() of UserService: user Saved : " + user.getUserId());
 			return true;
 		}
-		logger.info("End:inside insertUser() of UserService: user not Saved");
+		logger.debug("End:inside insertUser() of UserService: user not Saved");
 		return false;
 	}
 
@@ -388,7 +381,7 @@ public class UserService {
 	 */
 	public void validateUser(UserT user, boolean isInsert) throws Exception {
 		// check for not null fields
-		logger.info("Begin:inside validateUser() of UserService");
+		logger.debug("Begin:inside validateUser() of UserService");
 		if (StringUtils.isEmpty(user.getUserId())) {
 			logger.error("user id is null");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -453,7 +446,7 @@ public class UserService {
 						"User Group is invalid");
 			}
 		}
-		logger.info("End:inside validateUser() of UserService");
+		logger.debug("End:inside validateUser() of UserService");
 	}
 
 	/**
@@ -463,7 +456,7 @@ public class UserService {
 	 */
 	public List<UserT> getByUserRoles(List<String> roles) {
 
-		logger.info("Begin:Inside findByUserRole() of UserService");
+		logger.debug("Begin:Inside findByUserRole() of UserService");
 
 		List<UserT> users = (List<UserT>) userRepository.findByUserRoles(roles);
 
@@ -472,7 +465,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-		logger.info("End:Inside findByUserRole() of UserService");
+		logger.debug("End:Inside findByUserRole() of UserService");
 		return users;
 	}
 

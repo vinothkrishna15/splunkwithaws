@@ -24,7 +24,7 @@ public class CompetitorService {
 	CompetitorRepository compRepository;
 	
 	public List<CompetitorMappingT> findByNameContaining(String chars) throws Exception {
-		logger.info("Begin:Inside findByNameContaining() of CompetitorService");
+		logger.debug("Begin:Inside findByNameContaining() of CompetitorService");
 		List<CompetitorMappingT> compList = compRepository
 				.findByCompetitorNameIgnoreCaseLike("%" + chars + "%");
 		if (compList.isEmpty())

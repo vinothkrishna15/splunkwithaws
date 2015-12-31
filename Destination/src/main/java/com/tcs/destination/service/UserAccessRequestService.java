@@ -54,10 +54,10 @@ public class UserAccessRequestService {
 	 */
 	public UserAccessRequestT findUserRequestById(String reqId)
 			throws Exception {
-		logger.info("Begin:Inside findUserRequestById() UserAccessRequestService");
+		logger.debug("Begin:Inside findUserRequestById() UserAccessRequestService");
 		UserAccessRequestT newUserRequest = userAccessReqRepo.findOne(reqId);
 		if (newUserRequest != null) {
-			logger.info("End:Inside findUserRequestById() UserAccessRequestService");
+			logger.debug("End:Inside findUserRequestById() UserAccessRequestService");
 			return newUserRequest;
 		} else {
 			logger.error("NOT_FOUND: user Request not found");
@@ -75,14 +75,13 @@ public class UserAccessRequestService {
 	@Transactional
 	public boolean insertUserRequest(UserAccessRequestT userAccessRequest)
 			throws Exception {
-		logger.info("Begin:Inside insertUserRequest() UserAccessRequestService");
+		logger.debug("Begin:Inside insertUserRequest() UserAccessRequestService");
 		validateRequest(userAccessRequest, false);
 		if (userAccessReqRepo.save(userAccessRequest) != null) {
-			logger.debug("User Request Record Inserted");
 			// send notification to admin,supervisor and user on saving the
 			// request
 			sendEmailNotification(userAccessRequest.getRequestId(), new Date());
-			logger.info("End:Inside insertUserRequest() UserAccessRequestService");
+			logger.debug("End:Inside insertUserRequest() UserAccessRequestService");
 			return true;
 		}
 		return false;
@@ -97,7 +96,7 @@ public class UserAccessRequestService {
 	 */
 	private void sendEmailNotification(String requestId, Date date)
 			throws Exception {
-		logger.info("Begin:Inside sendEmailNotification() UserAccessRequestService");
+		logger.debug("Begin:Inside sendEmailNotification() UserAccessRequestService");
 		class UserAccessNotificationRunnable implements Runnable {
 			String requestId;
 			Date date;
@@ -123,7 +122,7 @@ public class UserAccessRequestService {
 		UserAccessNotificationRunnable userAccessNotificationRunnable = new UserAccessNotificationRunnable(
 				requestId, date);
 		mailTaskExecutor.execute(userAccessNotificationRunnable);
-		logger.info("End:Inside sendEmailNotification() UserAccessRequestService");
+		logger.debug("End:Inside sendEmailNotification() UserAccessRequestService");
 	}
 	/**
 	 * This method validates the request
@@ -133,7 +132,7 @@ public class UserAccessRequestService {
 	 */
 	private void validateRequest(UserAccessRequestT userAccessRequest,
 			boolean isUpdate) throws Exception {
-		logger.info("Begin:Inside validateRequest() UserAccessRequestService");
+		logger.debug("Begin:Inside validateRequest() UserAccessRequestService");
 		if (StringUtils.isEmpty(userAccessRequest.getUserId())) {
 			logger.error("BAD_REQUEST: UserId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -225,7 +224,7 @@ public class UserAccessRequestService {
 			// Set current timestamp
 			userAccessRequest.setApprovedRejectedDate(DateUtils.getCurrentTimeStamp());
 		}
-		logger.info("End:Inside validateRequest() UserAccessRequestService");
+		logger.debug("End:Inside validateRequest() UserAccessRequestService");
 	}
 
 	/**
@@ -237,10 +236,10 @@ public class UserAccessRequestService {
 	@Transactional
 	public boolean editUserRequest(UserAccessRequestT userAccessRequest)
 			throws Exception {
-		logger.info("Begin:Inside editUserRequest() UserAccessRequestService");
+		logger.debug("Begin:Inside editUserRequest() UserAccessRequestService");
 		validateRequest(userAccessRequest, true);
 		if (userAccessReqRepo.save(userAccessRequest) != null) {
-			logger.info("End:Inside editUserRequest() UserAccessRequestService");
+			logger.debug("End:Inside editUserRequest() UserAccessRequestService");
 			return true;
 		}
 		return false;
@@ -251,7 +250,7 @@ public class UserAccessRequestService {
 	 * @return
 	 */
 	public List<UserAccessRequestT> findAllUserAccessRequests() {
-		logger.info("Inside findAllUserAccessRequests() UserAccessRequestService");
+		logger.debug("Inside findAllUserAccessRequests() UserAccessRequestService");
 		return (List<UserAccessRequestT>) userAccessReqRepo.findAll(new Sort(
 				Sort.Direction.DESC, "requestReceivedDate"));
 	}

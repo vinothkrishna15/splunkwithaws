@@ -71,7 +71,7 @@ public class RevenueUploadService {
 
 	public UploadStatusDTO upload(MultipartFile file, String userId)
 			throws Exception {
-		 logger.info("Begin: inside upload() of RevenueUploadService");
+		 logger.debug("Begin: inside upload() of RevenueUploadService");
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
 		uploadStatus.setStatusFlag(true);
@@ -108,8 +108,6 @@ public class RevenueUploadService {
 					listOfCellValues = new ArrayList<String>();
 					try {
 						if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) {
-							logger.info("Cell 0 at "+rowCount+" : "+actionCellValue);
-							System.out.println("*****ADD*****");
 							listOfCellValues = iterateRow(row, CustomerUploadConstants.FINANACE_MAPPING_COLUMN_COUNT);
 							revenueService.addFinance(constructRevenueCustomerMappingT(listOfCellValues,  userId, DocumentActionType.ADD.name()));
 						} 
@@ -132,7 +130,7 @@ public class RevenueUploadService {
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
-		 logger.info("End: inside upload() of RevenueUploadService");
+		 logger.debug("End: inside upload() of RevenueUploadService");
 		return uploadStatus;
 
 	}
@@ -142,14 +140,14 @@ public class RevenueUploadService {
 	 * @return
 	 */
 	private Map<String, String> getCustomerNamesTMappingT() {
-		 logger.info("Begin: inside getCustomerNamesTMappingT() of RevenueUploadService");
+		 logger.debug("Begin: inside getCustomerNamesTMappingT() of RevenueUploadService");
 		List<CustomerMasterT> listOfCustomerMappingT = null;
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, String> customerMap = new HashMap<String, String>();
 		for (CustomerMasterT customerMasterT : listOfCustomerMappingT) {
 			customerMap.put(customerMasterT.getCustomerName(),customerMasterT.getGroupCustomerName());
 		}
-		 logger.info("End: inside getCustomerNamesTMappingT() of RevenueUploadService");
+		 logger.debug("End: inside getCustomerNamesTMappingT() of RevenueUploadService");
 		return customerMap;
 	}
 
@@ -159,7 +157,7 @@ public class RevenueUploadService {
 	 * @return
 	 */
 	private Map<String, IouCustomerMappingT> getIouCustomerMappingT() {
-		 logger.info("Begin: inside getIouCustomerMappingT() of RevenueUploadService");
+		 logger.debug("Begin: inside getIouCustomerMappingT() of RevenueUploadService");
 
 		List<IouCustomerMappingT> listOfIouCustomerMappingT = null;
 		listOfIouCustomerMappingT = (List<IouCustomerMappingT>) iouCustomerMappingRepository.findAll();
@@ -167,7 +165,7 @@ public class RevenueUploadService {
 		for (IouCustomerMappingT iouCustomerMappingT : listOfIouCustomerMappingT) {
 			iouMap.put(iouCustomerMappingT.getIou(), iouCustomerMappingT);
 		}
-		 logger.info("End: inside getIouCustomerMappingT() of RevenueUploadService");
+		 logger.debug("End: inside getIouCustomerMappingT() of RevenueUploadService");
 		return iouMap;
 	}
 
@@ -176,14 +174,14 @@ public class RevenueUploadService {
 	 * @return geographyMap
 	 */
 	private Map<String, GeographyMappingT> getGeographyMappingT() {
-		 logger.info("Begin: inside getGeographyMappingT() of RevenueUploadService");
+		 logger.debug("Begin: inside getGeographyMappingT() of RevenueUploadService");
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
 		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
 		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
 			geographyMap.put(geographyMappingT.getGeography(), geographyMappingT);
 		}
-		 logger.info("End: inside getGeographyMappingT() of RevenueUploadService");
+		 logger.debug("End: inside getGeographyMappingT() of RevenueUploadService");
 		return geographyMap;
 	}
 
@@ -197,7 +195,7 @@ public class RevenueUploadService {
 	 */
 	private RevenueCustomerMappingT constructRevenueCustomerMappingT(List<String> listOfCellValues,String userId, String action) throws Exception {
 		RevenueCustomerMappingT revenueT = null;
-		 logger.info("Begin: inside constructRevenueCustomerMappingT() of RevenueUploadService");
+		 logger.debug("Begin: inside constructRevenueCustomerMappingT() of RevenueUploadService");
 		if ((listOfCellValues.size() > 0)) {
 			revenueT = new RevenueCustomerMappingT();
 
@@ -249,7 +247,7 @@ public class RevenueUploadService {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Finanace Geography NOT Found");
 			}
 			} 
-		 logger.info("End: inside constructRevenueCustomerMappingT() of RevenueUploadService");
+		 logger.debug("End: inside constructRevenueCustomerMappingT() of RevenueUploadService");
 			return revenueT;
 		}
 
@@ -262,7 +260,7 @@ public class RevenueUploadService {
 		 */
 		private List<String> iterateRow(Row row, int columnnCount) throws Exception{
 			List<String> listOfCellValues = new ArrayList<String>();
-			 logger.info("Begin: inside iterateRow() of RevenueUploadService");
+			 logger.debug("Begin: inside iterateRow() of RevenueUploadService");
 			for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
 
 				Cell cell = row.getCell(cellCount);
@@ -273,7 +271,7 @@ public class RevenueUploadService {
 					listOfCellValues.add(value.trim());
 				}
 			}
-			 logger.info("End: inside iterateRow() of RevenueUploadService");
+			 logger.debug("End: inside iterateRow() of RevenueUploadService");
 			return listOfCellValues;
 		}
 
