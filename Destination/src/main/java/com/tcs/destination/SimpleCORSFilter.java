@@ -34,8 +34,10 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.PropertyUtil;
 
@@ -95,8 +97,9 @@ public class SimpleCORSFilter implements Filter {
 			case UAT:
 			case PROD:// Check if other services has valid session populated
 				if (session == null) {
-					logger.error("Valid session is required");
-					throw new ServletException("Valid session is required");
+					logger.error("Session is not Valid (or) Timed out");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED,
+							"Session is not Valid (or) Timed out");
 				} else {
 					logger.info("SessionId : " + session.getId());
 					MDC.put("sessionId", session.getId());
