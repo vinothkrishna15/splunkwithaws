@@ -31,17 +31,11 @@ public class FeedbackService {
 	@Autowired
 	FeedbackRepository feedbackRepository;
 
-	/**
-	 * This method is used to find feedback by id
-	 * @param feedbackId
-	 * @return
-	 * @throws Exception
-	 */
 	public FeedbackT findFeedbackById(String feedbackId) throws Exception {
-		logger.debug("starting searchforfeedbacksById service");
+		logger.info("starting searchforfeedbacksById service");
 		FeedbackT feedback = feedbackRepository.findOne(feedbackId);
 		if (feedback != null) {
-			logger.debug("Ending searchforfeedbacksById service");
+			logger.info("Ending searchforfeedbacksById service");
 			return feedback;
 		} else {
 			logger.error("NOT_FOUND: feedback record not found");
@@ -50,53 +44,35 @@ public class FeedbackService {
 		}
 	}
 
-	/**
-	 * This method is used to insert feedback 
-	 * @param feedback
-	 * @return
-	 * @throws Exception
-	 */
 	@Transactional
 	public boolean insertFeedback(FeedbackT feedback) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		feedback.setUserId(userId);
-		    logger.debug("starting insertFeedback Service");
+		logger.info("starting insertFeedback Service");
 		validateRequest(feedback, true);
 		if (feedbackRepository.save(feedback) != null) {
-			logger.debug("Ending insertFeedback Service");
+			logger.info("Ending insertFeedback Service");
 			return true;
 		}
 		return false;
 	}
-    
-	/**
-	 * This method is used to edit the feedback
-	 * @param feedback
-	 * @return
-	 * @throws Exception
-	 */
+
 	@Transactional
 	public boolean editFeedback(FeedbackT feedback) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		feedback.setUserId(userId);
-		logger.debug("starting editFeedback Service");
+		logger.info("starting editFeedback Service");
 		validateRequest(feedback, false);
 		if (feedbackRepository.save(feedback) != null) {
-			logger.debug("Ending editFeedback Service");
+			logger.info("Ending editFeedback Service");
 			return true;
 		}
 		return false;
 	}
-    
-	/**
-	 * This method is used to validate the request 
-	 * @param feedback
-	 * @param isInsert
-	 * @throws Exception
-	 */
+
 	private void validateRequest(FeedbackT feedback, boolean isInsert)
 			throws Exception {
-		logger.debug("starting validateRequest for Feedback Service");
+		logger.info("starting validateRequest for Feedback Service");
 		// Validate Issue Type
 		if (!FeedbackIssueType.contains(feedback.getIssueType())) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -153,28 +129,14 @@ public class FeedbackService {
 
 			}
 		}
-		logger.debug("Ending validateRequest for Feedback Service");
+		logger.info("Ending validateRequest for Feedback Service");
 	}
-    
-	/**
-	 *  This method is used to find the feedback with values provided
-	 * @param titleWith
-	 * @param descriptionWith
-	 * @param issueType
-	 * @param priority
-	 * @param status
-	 * @param userId
-	 * @param module
-	 * @param updatedUserId
-	 * @param subModule
-	 * @return
-	 * @throws Exception
-	 */
+
 	public List<FeedbackT> findFeedbacksWith(String titleWith,
 			String descriptionWith, String issueType, String priority,
 			String status, String userId, String module, String updatedUserId,
 			String subModule) throws Exception {
-		logger.debug("Starting findFeedbacksWith for Feedback Service");
+		logger.info("Starting findFeedbacksWith for Feedback Service");
 
 		titleWith = (titleWith.length() == 0) ? titleWith.trim() : "%"
 				+ titleWith + "%";
@@ -190,7 +152,7 @@ public class FeedbackService {
 			logger.error(message);
 			throw new DestinationException(HttpStatus.NOT_FOUND, message);
 		}
-		logger.debug("Ending findFeedbacksWith for Feedback Service");
+		logger.info("Ending findFeedbacksWith for Feedback Service");
 		return feedbackTs;
 	}
 }

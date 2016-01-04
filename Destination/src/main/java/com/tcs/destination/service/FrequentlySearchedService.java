@@ -51,7 +51,7 @@ public class FrequentlySearchedService {
 	 */
 	public List<FrequentlySearchedResponse> findFrequent(String entityType,
 			int count) throws Exception {
-		logger.debug("Begin: findFrequent() of FrequentlySearchedService");
+		logger.info("Begin: findFrequent() of FrequentlySearchedService");
 		if (EntityType.contains(entityType)) {
 			List<Object[]> frequentMapping = frequentRepository
 					.findFrequentEntities(entityType, count);
@@ -73,7 +73,7 @@ public class FrequentlySearchedService {
 						throw new DestinationException(HttpStatus.NOT_FOUND,
 								"No Relevent Data Found in the database");
 					}else {
-						logger.debug("End: findFrequent() of FrequentlySearchedService: CUSTOMER entity");
+						logger.info("End: findFrequent() of FrequentlySearchedService: CUSTOMER entity");
 								return sortedList; 
 	}
 			case PARTNER:
@@ -92,7 +92,7 @@ public class FrequentlySearchedService {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Relevent Data Found in the database");
 			}else {
-				logger.debug("End: findFrequent() of FrequentlySearchedService: PARTNER entity");
+				logger.info("End: findFrequent() of FrequentlySearchedService: PARTNER entity");
 						return sortedList; 
 }
 			default:
@@ -117,7 +117,7 @@ public class FrequentlySearchedService {
 	 */
 	public boolean insertFrequent(FrequentlySearchedCustomerPartnerT frequent)	throws Exception {
 		frequent.setUserId(DestinationUtils.getCurrentUserDetails().getUserId());
-		logger.debug("Begin: insertFrequent() of FrequentlySearchedService");
+		logger.info("Begin: insertFrequent() of FrequentlySearchedService");
 		if (EntityType.contains(frequent.getEntityType())) {
 			if (frequent.getEntityId() == null)
 			{
@@ -130,7 +130,7 @@ public class FrequentlySearchedService {
 						"User ID can not be empty");
 			}
 			frequent.setSearchDatetime(DateUtils.getCurrentTimeStamp());
-			logger.debug("End: insertFrequent() of FrequentlySearchedService");
+			logger.info("End: insertFrequent() of FrequentlySearchedService");
 			return frequentRepository.save(frequent) != null;
 		}
 		logger.error("BAD_REQUEST: Invalid Entity Type");

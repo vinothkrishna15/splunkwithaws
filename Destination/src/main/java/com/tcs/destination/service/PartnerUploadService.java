@@ -55,7 +55,7 @@ public class PartnerUploadService {
 	 */
 	public UploadStatusDTO upload(MultipartFile file, String userId) throws Exception 
 	{
-		logger.debug("Begin: upload() of PartnerUploadService");
+		logger.info("Begin: upload() of PartnerUploadService");
 		UploadStatusDTO uploadStatus = null;
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 
@@ -113,7 +113,7 @@ public class PartnerUploadService {
 		} catch(Exception e){
 			e.printStackTrace();
 		}
-		logger.debug("End: upload() of PartnerUploadService");
+		logger.info("End: upload() of PartnerUploadService");
 		return uploadStatus;
 	}
 
@@ -130,7 +130,7 @@ public class PartnerUploadService {
 	private PartnerMasterT constructPartnerTForPartner(List<String> listOfCellValues,
 			String userId, String action) throws Exception{
 	
-		logger.debug("Begin: constructPartnerTForPartner() of PartnerUploadService");
+		logger.info("Begin: constructPartnerTForPartner() of PartnerUploadService");
 		PartnerMasterT partnerMasterT = null;
 
 		if ((listOfCellValues.size() > 0)) {
@@ -183,7 +183,7 @@ public class PartnerUploadService {
 
 
 		}
-		logger.debug("End: constructPartnerTForPartner() of PartnerUploadService");
+		logger.info("End: constructPartnerTForPartner() of PartnerUploadService");
 		return partnerMasterT;
 	}
 
@@ -257,7 +257,7 @@ public class PartnerUploadService {
 	 */
 	private boolean validateSheetForPartner(Workbook workbook) throws Exception 
 	{
-		logger.debug("Inside constructPartnerTForPartner() of PartnerUploadService");
+		logger.info("Inside constructPartnerTForPartner() of PartnerUploadService");
 		return ExcelUtils.isValidWorkbook(workbook,
 				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 5, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,

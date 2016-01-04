@@ -25,7 +25,7 @@ public class CountryService {
 	CountryRepository countryRepository;
 
 	public List<GeographyCountryMappingT> findAll() {
-		logger.debug("Inside findAll() of CountryService");
+		logger.info("Inside findAll() of CountryService");
 		return (ArrayList<GeographyCountryMappingT>) countryRepository
 				.findAll();
 	}

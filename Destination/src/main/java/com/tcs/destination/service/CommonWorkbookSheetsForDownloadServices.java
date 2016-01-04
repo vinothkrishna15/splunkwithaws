@@ -1,23 +1,29 @@
 package com.tcs.destination.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.GeographyCountryMappingT;
+import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.GeographyCountryRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.UserRepository;
 
 /**
  * This service holds the common sheets for download services of opportunity,
  * connects
+ * 
+ * @author bnpp
+ *
  */
 @Service
 public class CommonWorkbookSheetsForDownloadServices {
@@ -34,9 +40,6 @@ public class CommonWorkbookSheetsForDownloadServices {
     @Autowired
     UserRepository userRepository;
     
-    private static final Logger logger = LoggerFactory
-			.getLogger(CommonWorkbookSheetsForDownloadServices.class);
-
     /**
      * This method populates Competitor Ref sheet in workbook
      * 
@@ -46,7 +49,6 @@ public class CommonWorkbookSheetsForDownloadServices {
      */
     public void populateCompetitorRefSheet(Sheet competitorRefSheet) throws Exception{
 
-    	logger.debug("Begin: Inside populateCompetitorRefSheet() of CommonWorkbookSheetsForDownloadServices");
 	// Get competitor names from repository
 	List<String> listOfCompetitors = competitorRepository.getCompetitorName();
 	
@@ -66,7 +68,6 @@ public class CommonWorkbookSheetsForDownloadServices {
 	    rowCount++;
 	}
 	}
-	logger.debug("End: Inside populateCompetitorRefSheet() of CommonWorkbookSheetsForDownloadServices");
     }
     
     /**
@@ -76,7 +77,7 @@ public class CommonWorkbookSheetsForDownloadServices {
      * @throws Exception
      */
     public void populateGeographyCountryRef(Sheet geoCountrySheet) throws Exception{
-    	logger.debug("Begin: Inside populateGeographyCountryRef() of CommonWorkbookSheetsForDownloadServices");
+	
 	List<Object[]> listOfGeoCountry = geoCountryRepository.getGeographyCountry();
 
 	if(listOfGeoCountry!=null){
@@ -97,7 +98,7 @@ public class CommonWorkbookSheetsForDownloadServices {
 	    rowCount++;
 	}
 	}
-	logger.debug("End: Inside populateGeographyCountryRef() of CommonWorkbookSheetsForDownloadServices");
+	
     }
     
     /**
@@ -107,7 +108,7 @@ public class CommonWorkbookSheetsForDownloadServices {
      * @throws Exception
      */
     public void populateOfferingRefSheet(Sheet offeringSheet) throws Exception{
-    	logger.debug("Begin: Inside populateOfferingRefSheet() of CommonWorkbookSheetsForDownloadServices");
+	
 	List<Object[]> listOfOffering = offeringRepository.getSubSpOffering();
 	
 	if(listOfOffering!=null) {
@@ -128,11 +129,11 @@ public class CommonWorkbookSheetsForDownloadServices {
 	    rowCount++;
 	}
 	}
-	logger.debug("End: Inside populateOfferingRefSheet() of CommonWorkbookSheetsForDownloadServices");
+	
     }
     
     public void populateUserRefSheet(Sheet userSheet) throws Exception {
-    	logger.debug("Begin: Inside populateUserRefSheet() of CommonWorkbookSheetsForDownloadServices");
+
 	 List<Object[]> listOfUsers = userRepository.getNameAndId();
 	
 	 if(listOfUsers!=null) { 
@@ -152,7 +153,6 @@ public class CommonWorkbookSheetsForDownloadServices {
 	    rowCount++;
 	 }
 	 }
- 	logger.debug("End: Inside populateUserRefSheet() of CommonWorkbookSheetsForDownloadServices");
     }
 
 }

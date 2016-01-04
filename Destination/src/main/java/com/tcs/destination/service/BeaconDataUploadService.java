@@ -37,10 +37,7 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
-/**
- * This service deals with beacon data upload requests 
- *
- */
+
 @Service
 public class BeaconDataUploadService {
 	@Autowired
@@ -68,7 +65,6 @@ public class BeaconDataUploadService {
 
 	public UploadStatusDTO upload(MultipartFile file)
 			throws Exception {
-		logger.debug("Begin:inside upload() of BeaconDataUploadService");
 		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
@@ -95,8 +91,10 @@ public class BeaconDataUploadService {
 				Row row = rowIterator.next();
 
 				if (rowCount > 0) {
+					logger.info("row count : "+rowCount);
 					listOfCellValues = new ArrayList<String>();
 					try {
+						logger.info("*****BEACON DATA *****");
 						listOfCellValues = iterateRow(row, CustomerUploadConstants.BEACON_DATA_COLUMN_COUNT);
 						beaconDataService.addBeaconData(constructBeaconDataT(listOfCellValues,userId));
 					} catch (Exception e) {
@@ -118,19 +116,18 @@ public class BeaconDataUploadService {
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
-		logger.debug("End:inside upload() of BeaconDataUploadService");
+
 		return uploadStatus;
+
 	}
 
 	private Map<String, IouBeaconMappingT> getBeaconIouMappingT() {
 		List<IouBeaconMappingT> listOfIouBeconMappingT = null;
-		logger.debug("Begin:inside getBeaconIouMappingT() of BeaconDataUploadService");
 		listOfIouBeconMappingT = (List<IouBeaconMappingT>) iouBeaconMappingTRepository.findAll();
 		Map<String, IouBeaconMappingT> iouMap = new HashMap<String, IouBeaconMappingT>();
 		for (IouBeaconMappingT iouBeaconMappingT : listOfIouBeconMappingT) {
 			iouMap.put(iouBeaconMappingT.getBeaconIou(), iouBeaconMappingT);
 		}
-		logger.debug("End:inside getBeaconIouMappingT() of BeaconDataUploadService");
 		return iouMap;
 	}
 
@@ -144,7 +141,6 @@ public class BeaconDataUploadService {
 	 */
 	private BeaconDataT constructBeaconDataT(List<String> listOfCellValues,String userId) throws Exception {
 		BeaconDataT beaconDataT = null;
-		logger.debug("Begin:inside constructBeaconDataT() of BeaconDataUploadService");
 		if ((listOfCellValues.size() > 0)) {
 			beaconDataT = new BeaconDataT();
 
@@ -212,7 +208,6 @@ public class BeaconDataUploadService {
 							throw new DestinationException(HttpStatus.NOT_FOUND, "TARGET NOT Found");
 						}
 		} 
-		logger.debug("End:inside constructBeaconDataT() of BeaconDataUploadService");
 		return beaconDataT;
 	}
 
@@ -225,7 +220,7 @@ public class BeaconDataUploadService {
 	 */
 	private List<String> iterateRow(Row row, int columnnCount) throws Exception{
 		List<String> listOfCellValues = new ArrayList<String>();
-		logger.debug("Begin:inside iterateRow() of BeaconDataUploadService");
+
 		for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
 
 			Cell cell = row.getCell(cellCount);
@@ -236,8 +231,9 @@ public class BeaconDataUploadService {
 				listOfCellValues.add(value.trim());
 			}
 		}
-		logger.debug("End:inside iterateRow() of BeaconDataUploadService");
+
 		return listOfCellValues;
+
 	}
 
 	/**
@@ -247,7 +243,7 @@ public class BeaconDataUploadService {
 	 * @return String
 	 */
 	private String getIndividualCellValue(Cell cell) {
-		logger.debug("Begin:inside getIndividualCellValue() of BeaconDataUploadService");
+
 		String val = "";
 		if (cell != null) {
 			switch (cell.getCellType()) {
@@ -271,7 +267,6 @@ public class BeaconDataUploadService {
 		} else {
 			val = "";
 		}
-		logger.debug("End:inside getIndividualCellValue() of BeaconDataUploadService");
 		return val;
 
 	}
@@ -283,7 +278,6 @@ public class BeaconDataUploadService {
 	 * @throws Exception
 	 */
 	private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
-		logger.debug("inside validateSheetForCustomer() of BeaconDataUploadService");
 		return ExcelUtils.isValidWorkbook(workbook,
 				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 8, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,

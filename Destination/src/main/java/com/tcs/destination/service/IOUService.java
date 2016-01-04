@@ -23,7 +23,7 @@ public class IOUService {
 	CustomerIOUMappingRepository customerIOUMappingRepository;
 
 	public List<IouCustomerMappingT> findAll() {
-		logger.debug("Inside findAll() of IOUService");
+		logger.info("Inside findAll() of IOUService");
 		return (ArrayList<IouCustomerMappingT>) customerIOUMappingRepository
 				.findAll();
 	}

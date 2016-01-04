@@ -22,7 +22,7 @@ public class TaskTypeService {
 	TaskTypeRepository taskTypeRepository;
 
 	public List<TaskTypeMappingT> findAll() {
-		logger.debug("Inside findAll() TaskTypeService");
+		logger.info("Inside findAll() TaskTypeService");
 		return (List<TaskTypeMappingT>) taskTypeRepository.findAll();
 	}
 

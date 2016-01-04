@@ -108,7 +108,7 @@ public class UserDownloadService {
 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
-		logger.debug("Begin: Inside getUsers method of UserDownloadService");
+		logger.info("Begin: Inside getUsers method of UserDownloadService");
 		mapOfCustomerMasterT = getcustomerMappingT();
 
 		try {
@@ -141,7 +141,7 @@ public class UserDownloadService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"An Internal Exception has occured");
 		}
-		logger.debug("End: Inside getUsers method of UserDownloadService");
+		logger.info("End: Inside getUsers method of UserDownloadService");
 		return inputStreamResource;
 	}
 
@@ -150,14 +150,14 @@ public class UserDownloadService {
 	 * @return customerMap
 	 */
 	private Map<String, CustomerMasterT> getcustomerMappingT() {
-		logger.debug("Begin: Inside getcustomerMappingT method of UserDownloadService");
+		logger.info("Begin: Inside getcustomerMappingT method of UserDownloadService");
 		List<CustomerMasterT> listOfCustomerMappingT = null;
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, CustomerMasterT> customerMap = new HashMap<String, CustomerMasterT>();
 		for (CustomerMasterT customerMappingT : listOfCustomerMappingT) {
 			customerMap.put(customerMappingT.getCustomerName(), customerMappingT);
 		}
-		logger.debug("End: Inside getcustomerMappingT method of UserDownloadService");
+		logger.info("End: Inside getcustomerMappingT method of UserDownloadService");
 		return customerMap;
 	}
 
@@ -168,7 +168,7 @@ public class UserDownloadService {
 	 * @throws Exception
 	 */
 	private void populateUserGeoCountryIOUSubspSheet(Sheet otherReferncesSheet)  throws Exception{
-		logger.debug("Begin: Inside populateUserGeoCountryIOUSubspSheet method of UserDownloadService");
+		logger.info("Begin: Inside populateUserGeoCountryIOUSubspSheet method of UserDownloadService");
 		List<Object[]> listOfReferences = geographyCountryRepository.getGeographyCountry();
 		List<GeographyMappingT> listOfGeos = (List<GeographyMappingT>) geographyRepository.findAll();
 		List<Object> listOfIous = (List<Object>) customerIOUMappingRepository.findDistintDisplayIou();
@@ -253,7 +253,7 @@ public class UserDownloadService {
 				rowCount++;
 			}
 		} 
-		logger.debug("End: Inside populateUserGeoCountryIOUSubspSheet method of UserDownloadService");
+		logger.info("End: Inside populateUserGeoCountryIOUSubspSheet method of UserDownloadService");
 	}
 
 	/**
@@ -262,7 +262,7 @@ public class UserDownloadService {
 	 * @throws Exception
 	 */
 	private void populateUserTimezoneSheet(Sheet userTimezoneSheet)  throws Exception{
-		logger.debug("Begin: Inside populateUserTimezoneSheet method of UserDownloadService");
+		logger.info("Begin: Inside populateUserTimezoneSheet method of UserDownloadService");
 		List<TimeZoneMappingT> listOfTimezone = (List<TimeZoneMappingT>) timezoneMappingRepository.findAll();
 		if(listOfTimezone!=null) {
 			int rowCount = 1; // Excluding the header, header starts with index 0
@@ -284,7 +284,7 @@ public class UserDownloadService {
 				rowCount++;
 			}
 		} 
-		logger.debug("End: Inside populateUserTimezoneSheet method of UserDownloadService");
+		logger.info("End: Inside populateUserTimezoneSheet method of UserDownloadService");
 	}
 
 	/**
@@ -294,7 +294,7 @@ public class UserDownloadService {
 	 */
 	private void populateTargetMappingSheet(Sheet targetSheet)  throws Exception{
 		
-		logger.debug("Begin: Inside populateTargetMappingSheet method of UserDownloadService");
+		logger.info("Begin: Inside populateTargetMappingSheet method of UserDownloadService");
 		List<GoalMappingT> listOfGoals = (List<GoalMappingT>) goalMappingRepository.findAll();
 		
 		//for retrieving the goalGroupName and isActive from goal_group_mapping_t
@@ -357,7 +357,7 @@ public class UserDownloadService {
 				rowCount++;
 			}
 		} 
-		logger.debug("End: Inside populateTargetMappingSheet method of UserDownloadService");
+		logger.info("End: Inside populateTargetMappingSheet method of UserDownloadService");
 	}
 
 /**
@@ -383,7 +383,7 @@ public class UserDownloadService {
 	 * @throws Exception
 	 */
 	public void populateCustomerMasterSheet(Sheet customerMasterSheet) throws Exception{
-		logger.debug("Begin: Inside populateCustomerMasterSheet method of UserDownloadService");
+		logger.info("Begin: Inside populateCustomerMasterSheet method of UserDownloadService");
 		List<CustomerMasterT> listOfCMT = (List<CustomerMasterT>) customerRepository.findAll();
 
 		if(listOfCMT!=null) {
@@ -410,7 +410,7 @@ public class UserDownloadService {
 				rowCount++;
 			}
 		} 
-		logger.debug("End: Inside populateCustomerMasterSheet method of UserDownloadService");
+		logger.info("End: Inside populateCustomerMasterSheet method of UserDownloadService");
 	}
 
 }

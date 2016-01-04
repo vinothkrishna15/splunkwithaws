@@ -17,6 +17,7 @@ import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
+import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
@@ -25,6 +26,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.FollowNotifications;
+import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.DateUtils;
 
 /**
@@ -76,7 +78,7 @@ public class FollowedService {
 	public List<UserTaggedFollowedT> findFollowedFor(String userId,
 			String entityType) throws Exception {
 
-		logger.debug("satrt: Inside findFollowedFor Service");
+		logger.info("satrt: Inside findFollowedFor Service");
 
 		if (EntityType.contains(entityType)) {
 
@@ -94,7 +96,7 @@ public class FollowedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				} else {
-					logger.debug("End: Inside findFollowedFor Service");
+					logger.info("End: Inside findFollowedFor Service");
 					return userFollowed;
 				}
 
@@ -117,7 +119,7 @@ public class FollowedService {
 	 * @throws Exception
 	 */
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
-		logger.debug("Start:Inside addFollowed Followed Service");
+		logger.info("Start:Inside addFollowed Followed Service");
 		if (EntityType.contains(followed.getEntityType())) {
 			switch (EntityType.valueOf(followed.getEntityType())) {
 			case CONNECT:
@@ -197,7 +199,7 @@ public class FollowedService {
 				UserTaggedFollowedT followDBObj = followedRepository
 						.save(followed);
 				processNotification(followDBObj);
-				logger.debug("End: Inside addFollowed Service");
+				logger.info("End: Inside addFollowed Service");
 				return followDBObj != null;
 			} catch (Exception e) {
 				logger.error("BAD_REQUEST" + e.getMessage());
@@ -216,7 +218,7 @@ public class FollowedService {
 	 * @param followDBObj
 	 */
 	private void processNotification(UserTaggedFollowedT followDBObj) {
-		logger.debug("start:Calling processNotifications() Followed Service");
+		logger.info("start:Calling processNotifications() Followed Service");
 
 		FollowNotifications followNotificationsHelper = new FollowNotifications();
 		String taskId = followDBObj.getTaskId();
@@ -266,7 +268,7 @@ public class FollowedService {
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
 		}
-		logger.debug("End:Calling processNotifications() Followed Service");
+		logger.info("End:Calling processNotifications() Followed Service");
 	}
 
 	/**
@@ -275,11 +277,11 @@ public class FollowedService {
 	 * @throws Exception
 	 */
 	public void unFollow(String userTaggedFollowedId) throws Exception {
-		logger.debug("start:Calling unFollow() method");
+		logger.info("start:Calling unFollow() method");
 		try {
 			if (userTaggedFollowedId != null)
 				followedRepository.delete(userTaggedFollowedId);
-			logger.debug("End:Calling unFollow() method");
+			logger.info("End:Calling unFollow() method");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

@@ -30,7 +30,7 @@ public class ApplicationSettingsService {
 	 * @return
 	 */
 	public List<ApplicationSettingsT> findAll() {
-		logger.debug("Inside findAll() of ApplicationSettingsService");
+		logger.info("Inside findAll() of ApplicationSettingsService");
 		return (List<ApplicationSettingsT>) applicationSettingsRepository
 				.findAll();
 	}
@@ -43,9 +43,9 @@ public class ApplicationSettingsService {
 	public void edit(List<ApplicationSettingsT> applicationSettingsTs)
 			throws DestinationException {
 		try {
-			logger.debug("Begin:Inside edit() of ApplicationSettingsService");
+			logger.info("Begin:Inside edit() of ApplicationSettingsService");
 			applicationSettingsRepository.save(applicationSettingsTs);
-			logger.debug("End:Inside edit() of ApplicationSettingsService");
+			logger.info("End:Inside edit() of ApplicationSettingsService");
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());

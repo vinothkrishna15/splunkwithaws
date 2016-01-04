@@ -69,7 +69,7 @@ public class PartnerDownloadService
 	 */
 	public InputStreamResource getPartners(boolean oppFlag) throws Exception 
 	{
-		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService"); 
+		logger.info("Begin:Inside getPartners() method of PartnerDownloadService"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
@@ -94,7 +94,7 @@ public class PartnerDownloadService
 			e.printStackTrace();
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
 		}
-		logger.debug("End:Inside getPartners() method of PartnerDownloadService"); 
+		logger.info("End:Inside getPartners() method of PartnerDownloadService"); 
 		return inputStreamResource;
 	}
 
@@ -106,7 +106,7 @@ public class PartnerDownloadService
 	 */
 	public InputStreamResource getPartnerContacts(boolean oppFlag) throws Exception 
 	{
-		logger.debug("Begin:Inside getPartnerContacts() method of PartnerDownloadService"); 
+		logger.info("Begin:Inside getPartnerContacts() method of PartnerDownloadService"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
@@ -134,7 +134,7 @@ public class PartnerDownloadService
 			e.printStackTrace();
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
 		}
-		logger.debug("End:Inside getPartnerContacts() method of PartnerDownloadService"); 
+		logger.info("End:Inside getPartnerContacts() method of PartnerDownloadService"); 
 		return inputStreamResource;
 	}
 
@@ -145,7 +145,7 @@ public class PartnerDownloadService
 	private void  populatePartnerMasterSheet(Sheet partnerSheet) 
 	{
 		//Get the Partner Master Sheet From Workbook
-		logger.debug("Begin:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
+		logger.info("Begin:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
 		List<Object[]> partnerMasterNamesList=partnerRepository.getPartnerNameAndGeography();
@@ -160,7 +160,7 @@ public class PartnerDownloadService
 			// Increment row counter
 			currentRow++;
 		}
-		logger.debug("End:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
+		logger.info("End:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 	}
 
 	/**
@@ -170,7 +170,7 @@ public class PartnerDownloadService
 	 */
 	public void populateContactSheets(Sheet partnerContactSheet) throws Exception
 	{
-		logger.debug("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
+		logger.info("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
 		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
 		if(listOfContact!=null) {
@@ -208,6 +208,6 @@ public class PartnerDownloadService
 				}
 			}
 		}
-		logger.debug("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
+		logger.info("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
 	}
 }

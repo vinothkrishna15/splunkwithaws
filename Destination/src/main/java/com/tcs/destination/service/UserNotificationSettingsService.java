@@ -56,7 +56,7 @@ public class UserNotificationSettingsService {
 	public boolean saveUserNotifications(
 			List<UserNotificationSettingsT> userNotificationSettingsList)
 			throws DestinationException {
-		logger.debug("Begin:Inside saveUserNotifications() UserNotificationSettings service");
+		logger.info("Begin:Inside saveUserNotifications() UserNotificationSettings service");
 		// Save notification settings conditions first
 		for (UserNotificationSettingsT userNotificationSettings : userNotificationSettingsList) {
 			if (userNotificationSettings
@@ -75,7 +75,7 @@ public class UserNotificationSettingsService {
 		try {
 			if (userNotificationSettingsRepository
 					.save(userNotificationSettingsList) != null) {
-				logger.debug("End:Inside saveUserNotifications() UserNotificationSettings service");
+				logger.info("End:Inside saveUserNotifications() UserNotificationSettings service");
 				return true;
 			} else {
 				logger.error("Error occurred while adding UserNotificationSettings settings");
@@ -101,7 +101,7 @@ public class UserNotificationSettingsService {
 	 */
 	public List<NotificationSettingsGroupMappingT> getUserNotificationSettings(
 			String userId) throws Exception {
-		logger.debug("Begin:Inside getUserNotificationSettings() UserNotificationSettings service");
+		logger.info("Begin:Inside getUserNotificationSettings() UserNotificationSettings service");
 		if (!userId.equalsIgnoreCase(DestinationUtils.getCurrentUserDetails()
 				.getUserId())) {
 			throw new DestinationException(HttpStatus.UNAUTHORIZED,
@@ -158,7 +158,7 @@ public class UserNotificationSettingsService {
 			default:
 			}
 		}
-		logger.debug("End:Inside getUserNotificationSettings() UserNotificationSettings service");
+		logger.info("End:Inside getUserNotificationSettings() UserNotificationSettings service");
 		return notificationSettingsGroupMappingTs;
 	}
 
@@ -170,10 +170,10 @@ public class UserNotificationSettingsService {
 	private void removeNotificationSettingsFromIndex(
 			List<NotificationSettingsGroupMappingT> notificationSettingsGroupMappingTs,
 			int index) {
-		logger.debug("Begin:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
+		logger.info("Begin:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
 		if (index < notificationSettingsGroupMappingTs.size())
 			notificationSettingsGroupMappingTs.remove(index);
-		logger.debug("End:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
+		logger.info("End:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
 
 	}
 }

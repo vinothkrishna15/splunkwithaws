@@ -13,10 +13,6 @@ import com.tcs.destination.bean.CityMapping;
 import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.exception.DestinationException;
 
-/**
- * This service deals with city requests
- *
- */
 @Service
 public class CityService {
 	
@@ -25,14 +21,7 @@ public class CityService {
 	@Autowired
 	CityMappingRepository cityRepository;
 
-	/**
-	 * to retrieve the city by city name
-	 * @param pattern
-	 * @return
-	 * @throws Exception
-	 */
 	public List<String> getCityByCityName(String pattern) throws Exception{
-		logger.debug("Begin: inside getCityByCityName() of CityService");
 		List<CityMapping> cityNameList = new ArrayList<CityMapping>();
 		List<String> resultList = new ArrayList<String>();
 		cityNameList = cityRepository.findByCityIgnoreCaseContainingOrderByCityAsc(pattern.toUpperCase());
@@ -44,7 +33,8 @@ public class CityService {
 				resultList.add(city.getCity());
 			}
 		}
-		logger.debug("Begin: inside getCityByCityName() of CityService");
 		return resultList;
 	}
+	
+
 }
