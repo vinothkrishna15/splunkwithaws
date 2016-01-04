@@ -460,10 +460,18 @@ public class ConnectService {
 			case CUSTOMER:
 				if (customerId != null && !customerId.trim().isEmpty())
 					isValid = true;
+				if (partnerId != null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Invalid Request - Partner Id set for category : " + connectCategory);
+				}
 				break;
 			case PARTNER:
 				if (partnerId != null && !partnerId.trim().isEmpty())
 					isValid = true;
+				if (customerId != null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Invalid Request - Customer Id set for category : " + connectCategory);
+				}
 				break;
 			default:
 				logger.error("BAD_REQUEST: Invalid Connect Category: {}",
