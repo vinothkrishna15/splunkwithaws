@@ -24,6 +24,11 @@ import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 
+
+/**
+ * This service is used to save and delete documents
+ * 
+ */
 @Service
 public class DocumentService {
 
@@ -35,23 +40,47 @@ public class DocumentService {
 	@Value("${fileBaseDir}")
 	private String fileBasePath;
 
+	/**
+	 * This method is used to find the document using id
+	 * @param documentId
+	 * @return
+	 * @throws Exception
+	 */
 	public DocumentRepositoryT findByDocumentId(String documentId) throws Exception{
-		logger.debug("Inside findByDocumentId Service");
+		logger.debug("Start: Inside  findByDocumentId() of DocumentService");
 		DocumentRepositoryT docRep = documentRepository.findByDocumentId(documentId);
 		if(docRep==null){
 			logger.error("NOT_FOUND: No Relevent Data/document Found in the database");
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No Relevent Data/document Found in the database");
 		}
+		logger.debug("End: Inside  findByDocumentId() of DocumentService");
 		return docRep;
 	}
 	
+	/**
+	 * This method is used to save the document
+	 * @param documentName
+	 * @param documentType
+	 * @param entityType
+	 * @param parentEntity
+	 * @param commentId
+	 * @param connectId
+	 * @param customerId
+	 * @param opportunityId
+	 * @param partnerId
+	 * @param taskId
+	 * @param uploadedBy
+	 * @param file
+	 * @return
+	 * @throws Exception
+	 */
 	public String saveDocument(String documentName,
-			 String documentType,
+			String documentType,
 			String entityType, String parentEntity,
 			String commentId, String connectId, String customerId,
 			String opportunityId, String partnerId, String taskId,
 			String uploadedBy, MultipartFile file) throws Exception {
-		    logger.debug("Inside saveDocument Service");
+		    logger.debug("Start: Inside  saveDocument() of DocumentService");
 		    DocumentRepositoryT document=new DocumentRepositoryT();
 		    document.setCommentId(commentId);
 		    document.setConnectId(connectId);
@@ -67,7 +96,7 @@ public class DocumentService {
 		    if(isDuplicateRecord(document)){
 				throw new DestinationException(HttpStatus.BAD_REQUEST,"Failure : Duplicate found");
 			} else {
-				 document.setCommentId(null);
+				    document.setCommentId(null);
 				    document.setConnectId(null);
 				    document.setCustomerId(null);
 				    document.setOpportunityId(null);
@@ -88,10 +117,8 @@ public class DocumentService {
 				logger.debug("customerId Not Empty");
 				document.setCustomerId(customerId);
 			}
-			
 			document.setDocumentName(documentName);
-			//document.setDocumentSearchKeywords(documentSearchKeywords);
-			document.setDocumentType(documentType);
+            document.setDocumentType(documentType);
 			document.setEntityType(entityType);
 			document.setFileReference(fileBasePath);
 			if(!opportunityId.equals(""))
@@ -116,16 +143,9 @@ public class DocumentService {
 			document.setUserT(user);
 			document.setUploadedBy(uploadedBy);
 			document.setUploadedDatetime(new Timestamp(Calendar.getInstance().getTimeInMillis()));
-
-			//document.setFileReference(file.getBytes());
-			/**/
-			
-			String docId = "";
+            String docId = "";
 			validateInputs(document);
 			logger.debug("validated input(document record) for insertion");
-			
-			
-			
 			if(documentRepository.save(document)!=null){
 				docId = document.getDocumentId();
 				logger.debug("document record saved with id: " + docId);
@@ -139,9 +159,7 @@ public class DocumentService {
 					String fileName = file.getOriginalFilename();
 					String fileExtension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
 					String relativePath = getRelativePath(entityType, entityId) + docId + fileExtension;
-
-					//document.setFileReference(saveDirLoc + docId + fileExtension);
-					document.setFileReference(relativePath);
+                    document.setFileReference(relativePath);
 					if(documentRepository.save(document)!=null){
 						logger.debug(docId + " - Record(File Reference) in DB updated " + document.getFileReference());
 						return document.getDocumentId();
@@ -158,11 +176,17 @@ public class DocumentService {
 				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Insertion failed - outer");
 			}
 			}
+		   
 	}
-
+    
+	/**
+	 * This method is used to validate duplicate records
+	 * @param document
+	 * @return
+	 */
 	private boolean isDuplicateRecord(DocumentRepositoryT document) {
+	    logger.debug("Start: Inside  isDuplicateRecord() of DocumentService");
 		boolean isDuplicate = false;
-		
 		String documentName = document.getDocumentName();
 		String customerId = document.getCustomerId();
 		String partnerId = document.getPartnerId();
@@ -175,20 +199,34 @@ public class DocumentService {
 		if(doc!=null){
 			isDuplicate = true;
 		}
-		
+		logger.debug("End: Inside  isDuplicateRecord() of DocumentService");
 		return isDuplicate;
 	}
 
+	/**
+	 * This method is used to fetch the relative path of the file
+	 * @param entityType
+	 * @param entityId
+	 * @return
+	 */
 	private String getRelativePath(String entityType,String entityId){
+		logger.debug("Start: Inside  getRelativePath() of DocumentService");
 		StringBuffer relativePath = new StringBuffer("");
 		relativePath.append(File.separator);
 		relativePath.append(entityType);
 		relativePath.append(File.separator);
 		relativePath.append(entityId);
 		relativePath.append(File.separator);
+		logger.debug("End: Inside  getRelativePath() of DocumentService");
 		return relativePath.toString();
 	}
 	
+	/**
+	 * This method is used to fetch the entity id 
+	 * @param document
+	 * @return
+	 * @throws Exception
+	 */
 	private String getEntityId(DocumentRepositoryT document) throws Exception {
 		logger.debug("Inside getEntityId Service");
 		String entityType = document.getEntityType();
@@ -226,9 +264,14 @@ public class DocumentService {
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Entity Type");
 		}
+		logger.debug("End: Inside  getEntityId() of DocumentService");
 		return entityId;
 		}
-
+   /**
+    * This method is used to validate the inputs provided
+    * @param document
+    * @throws Exception
+    */
 	private void validateInputs(DocumentRepositoryT document) throws Exception{
 		logger.debug("Inside validateInputs Service");
 		String entityType = document.getEntityType();
@@ -286,10 +329,11 @@ public class DocumentService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Entity Type");
 		}
+		logger.debug("End: validateInputs() of Document Service");
 	}
 
 	private void saveFile(MultipartFile file, String saveDirLoc, String docId) throws IOException {
-		logger.debug("Inside saveFile service");
+		logger.debug("Start: Inside saveFile() method of Document service");
 		try {
 			byte[] bytes = file.getBytes();
 			File dir = new File(saveDirLoc);
@@ -313,10 +357,14 @@ public class DocumentService {
 			logger.error("Exception: "+e.getMessage());
 			throw e;
 		}
-		
-		
-		
-	}
+		logger.debug("End: saveFile() method of Document service");
+	 }
+	/**
+	 * This method is used to construct the file path 
+	 * @param entityType
+	 * @param entityId
+	 * @return
+	 */
 
 	private String getPathFromForm(String entityType,String entityId){
 		logger.debug("Inside getPathFromForm Form");
@@ -329,10 +377,16 @@ public class DocumentService {
 		saveDir.append(File.separator);
 		return saveDir.toString();
 	}
-
-	@Transactional
+	
+	/**
+	 * This method is used to delete the document records
+	 * @param docIds
+	 * @return
+	 * @throws Exception
+	 */
+    @Transactional
 	public String deleteDocRecords(String[] docIds) throws Exception{
-		logger.debug("Inside deleteDocRecords Service");
+		logger.debug("Start:Inside deleteDocRecords() of Document Service");
 		StringBuffer deletedRecords = new StringBuffer("");
 		int index = 0;
 		List<DocumentRepositoryT> docList = new ArrayList<DocumentRepositoryT>();
@@ -370,11 +424,16 @@ public class DocumentService {
 		}
 		String delRecords = deletedRecords.toString();
 		logger.debug("Records deleted : " + delRecords);
+		logger.debug("End:Inside deleteDocRecords() of Document Service");
 		return delRecords;
 	}
-		
+	/**
+	 * This method is used to delete the file	
+	 * @param fullPath
+	 * @throws Exception
+	 */
 		public void deleteFile(String fullPath) throws Exception{
-			logger.debug("Insdie deleteFile Service");
+			logger.debug("Start:Inside deleteFile() of Document Service");
 	    	try{
 	    		 //String fullPath = fileBasePath+File.separator+"my.pdf";
 	    		    File file = new File(fullPath);
@@ -385,9 +444,9 @@ public class DocumentService {
 	        		}
 	    	    } catch (Exception ex) {
 	    	    	logger.error("INTERNAL_SERVER_ERROR"+ex.getMessage());
-	    	      //logger.info("Error writing file to output stream. Filename was '{}'", "", ex);
-	    	      throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,ex.getMessage() );
+	    	        throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,ex.getMessage() );
 	    	    }
+	    	logger.debug("End:Inside deleteFile() of Document Service");
 	    }
 	
 	

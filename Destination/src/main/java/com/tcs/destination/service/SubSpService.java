@@ -23,7 +23,7 @@ public class SubSpService {
 	SubSpRepository subSpRepository;
 
 	public ArrayList<SubSpMappingT> findAll() {
-		logger.info("Inside findAll() SubSpService");
+		logger.debug("Inside findAll() SubSpService");
 		return (ArrayList<SubSpMappingT>) subSpRepository.findAll();
 	}
 

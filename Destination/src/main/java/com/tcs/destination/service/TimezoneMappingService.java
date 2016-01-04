@@ -24,7 +24,7 @@ public class TimezoneMappingService {
 	TimezoneMappingRepository timezoneMappingRepository;
 
 	public List<TimeZoneMappingT> findAll() {
-		logger.info("Inside findAll() TimezoneMappingService");
+		logger.debug("Inside findAll() TimezoneMappingService");
 		return (List<TimeZoneMappingT>) timezoneMappingRepository
 				.findAll();
 	}

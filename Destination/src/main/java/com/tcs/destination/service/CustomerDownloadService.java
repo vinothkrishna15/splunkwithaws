@@ -11,7 +11,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +37,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
-import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.PropertyUtil;
-import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class CustomerDownloadService {
@@ -79,6 +76,7 @@ public class CustomerDownloadService {
 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
+		logger.debug("Begin: inside getCustomers() of CustomerDownloadService");
 		mapOfCustomerMasterT = getcustomerMappingT();
 
 		try {
@@ -111,6 +109,7 @@ public class CustomerDownloadService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"An Internal Exception has occured");
 		}
+		logger.debug("End: inside getCustomers() of CustomerDownloadService");
 		return inputStreamResource;
 	}
 
@@ -120,15 +119,18 @@ public class CustomerDownloadService {
 	 */
 	private Map<String, CustomerMasterT> getcustomerMappingT() {
 		List<CustomerMasterT> listOfCustomerMappingT = null;
+		logger.debug("Begin: inside getcustomerMappingT() of CustomerDownloadService");
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, CustomerMasterT> customerMap = new HashMap<String, CustomerMasterT>();
 		for (CustomerMasterT customerMappingT : listOfCustomerMappingT) {
 			customerMap.put(customerMappingT.getCustomerName(), customerMappingT);
 		}
+		logger.debug("End: inside getcustomerMappingT() of CustomerDownloadService");
 		return customerMap;
 	}
 
 	private void populateBeaconIouSheet(Sheet beaconIouSheet) {
+		logger.debug("Begin: inside populateBeaconIouSheet() of CustomerDownloadService");
 		List<IouBeaconMappingT> listOfBeaconIou = (List<IouBeaconMappingT>) iouBeaconMappingTRepository.findAll();
 
 		if(listOfBeaconIou!=null) {
@@ -147,10 +149,12 @@ public class CustomerDownloadService {
 				// Increment row counter
 				rowCount++;
 			}
-		} 		
+		} 	
+		logger.debug("End: inside populateBeaconIouSheet() of CustomerDownloadService");
 	}
 
 	private void populateIouCustomerSheet(Sheet iouCustomerMap)  throws Exception{
+		logger.debug("Begin: inside populateIouCustomerSheet() of CustomerDownloadService");
 		List<IouCustomerMappingT> listOfIou = (List<IouCustomerMappingT>) customerIOUMappingRepository.findAll();
 
 		if(listOfIou!=null) {
@@ -170,12 +174,14 @@ public class CustomerDownloadService {
 				rowCount++;
 			}
 		} 
+		logger.debug("End: inside populateIouCustomerSheet() of CustomerDownloadService");
 	}
 
 	/*
 	 * Populate Beacon Mapping from beacon_mapping_t
 	 */
 	private void populateBeaconMappingSheet(Sheet beaconMappingSheet)  throws Exception{
+		logger.debug("Begin: inside populateBeaconMappingSheet() of CustomerDownloadService");
 		List<BeaconCustomerMappingT> listOfBeacon = (List<BeaconCustomerMappingT>) beaconRepository.findAll();
 		CustomerMasterT customerObj = null;
 		if(listOfBeacon!=null) {
@@ -212,9 +218,11 @@ public class CustomerDownloadService {
 				rowCount++;
 			}
 		} 
+		logger.debug("End: inside populateBeaconMappingSheet() of CustomerDownloadService");
 	}
 
 	private void populateFinanceMappingSheet(Sheet financeMappingSheet)  throws Exception{
+		logger.debug("Begin: inside populateFinanceMappingSheet() of CustomerDownloadService");
 		List<RevenueCustomerMappingT> listOffinance = (List<RevenueCustomerMappingT>) revenueCustomerMappingTRepository.findAll();
 		CustomerMasterT customerObj = null;
 		if(listOffinance!=null) {
@@ -251,13 +259,14 @@ public class CustomerDownloadService {
 				rowCount++;
 			}
 		} 
+		logger.debug("End: inside populateFinanceMappingSheet() of CustomerDownloadService");
 	}
 
 	/*
 	 * Populate CustomerMaster Sheet from customer_master_t
 	 */
 	public void populateCustomerMasterSheet(Sheet customerMasterSheet) throws Exception{
-
+		logger.debug("Begin: inside populateCustomerMasterSheet() of CustomerDownloadService");
 		List<CustomerMasterT> listOfCMT = (List<CustomerMasterT>) customerRepository.findAll();
 
 		if(listOfCMT!=null) {
@@ -284,6 +293,7 @@ public class CustomerDownloadService {
 				rowCount++;
 			}
 		} 
+		logger.debug("End: inside populateCustomerMasterSheet() of CustomerDownloadService");
 	}
 
 	public InputStreamResource getCustomerContacts(boolean oppFlag)
@@ -291,6 +301,7 @@ public class CustomerDownloadService {
 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
+		logger.debug("Begin: inside getCustomerContacts() of CustomerDownloadService");
 		mapOfCustomerMasterT = getcustomerMappingT();
 		// Get List of IOU from DB for validating the IOU which comes from the sheet	
 		mapOfContactCustomerLinkT = getContactCustomerLinkT();
@@ -317,23 +328,26 @@ public class CustomerDownloadService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"An Internal Exception has occured");
 		}
+		logger.debug("End: inside getCustomerContacts() of CustomerDownloadService");
 		return inputStreamResource;
 	}
 
 		private Map<String, CustomerMasterT> getContactCustomerLinkT() {
 		List<ContactCustomerLinkT> listOfContactCustomerLinkT = null;
+		logger.debug("Begin: inside getContactCustomerLinkT() of CustomerDownloadService");
 		listOfContactCustomerLinkT = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository.findAll();
 		Map<String, CustomerMasterT> contactCustomerMap = new HashMap<String, CustomerMasterT>();
 		for (ContactCustomerLinkT contactCustomerMappingT : listOfContactCustomerLinkT) {
 			contactCustomerMap.put(contactCustomerMappingT.getContactId(), contactCustomerMappingT.getCustomerMasterT());
 		}
+		logger.debug("End: inside getContactCustomerLinkT() of CustomerDownloadService");
 		return contactCustomerMap;
 	}
 	/*
 	 * Populate CustomerMaster Sheet from customer_master_t
 	 */
 	public void populateCustomerMasterRefSheet(Sheet customerMasterSheet) throws Exception{
-
+		logger.debug("Begin: inside populateCustomerMasterRefSheet() of CustomerDownloadService");
 		List<CustomerMasterT> listOfCMT = (List<CustomerMasterT>) customerRepository.findAll();
 
 		if(listOfCMT!=null) {
@@ -357,6 +371,7 @@ public class CustomerDownloadService {
 						.trim());
 
 				// Increment row counter
+				logger.debug("End: inside populateCustomerMasterRefSheet() of CustomerDownloadService");
 				rowCount++;
 			}
 		} 
@@ -366,6 +381,7 @@ public class CustomerDownloadService {
 
 	private void populateCustomerContactSheet(Sheet customerContactSheet) {
 		// TODO Auto-generated method stub
+		logger.debug("Begin: inside populateCustomerContactSheet() of CustomerDownloadService");
 		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
 		if(listOfContact!=null) {
@@ -412,6 +428,6 @@ public class CustomerDownloadService {
 				}
 			}
 		}
-
+		logger.debug("End: inside populateCustomerContactSheet() of CustomerDownloadService");
 	}
 }

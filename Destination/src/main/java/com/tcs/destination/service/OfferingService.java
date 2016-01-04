@@ -22,7 +22,7 @@ public class OfferingService {
 	OfferingRepository offeringRepository;
 
 	public ArrayList<OfferingMappingT> findAll() {
-		logger.info("Inside findAll() OfferingService");
+		logger.debug("Inside findAll() OfferingService");
 		return (ArrayList<OfferingMappingT>) offeringRepository.findAll();
 	}
 

@@ -114,7 +114,7 @@ public class TaskService {
 	 * @return task details for the given task id.
 	 */
 	public TaskT findTaskById(String taskId) throws Exception {
-		logger.info("Begin:Inside findTaskById() of TaskService");
+		logger.debug("Begin:Inside findTaskById() of TaskService");
 		TaskT task = taskRepository.findOne(taskId);
 
 		if (task == null) {
@@ -122,7 +122,7 @@ public class TaskService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No task found for the TaskId:" + taskId);
 		}
-		logger.info("End::Inside findTaskById() of TaskService");
+		logger.debug("End::Inside findTaskById() of TaskService");
 		return task;
 	}
 
@@ -135,7 +135,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByNameContaining(String taskDescription)
 			throws Exception {
-		logger.info("Begin:Inside findTasksByNameContaining() of TaskService");
+		logger.debug("Begin:Inside findTasksByNameContaining() of TaskService");
 		List<TaskT> taskList = taskRepository
 				.findByTaskDescriptionIgnoreCaseContaining(taskDescription);
 
@@ -147,7 +147,7 @@ public class TaskService {
 					"No tasks found with the given task description: "
 							+ taskDescription);
 		}
-		logger.info("End::Inside findTasksByNameContaining() of TaskService");
+		logger.debug("End::Inside findTasksByNameContaining() of TaskService");
 		return taskList;
 	}
 
@@ -158,7 +158,7 @@ public class TaskService {
 	 * @return tasks for the given connect id.
 	 */
 	public List<TaskT> findTasksByConnectId(String connectId) throws Exception {
-		logger.info("Begin:Inside findTasksByConnectId() of TaskService");
+		logger.debug("Begin:Inside findTasksByConnectId() of TaskService");
 		List<TaskT> taskList = taskRepository.findByConnectId(connectId);
 
 		if ((taskList == null) || taskList.isEmpty()) {
@@ -167,7 +167,7 @@ public class TaskService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No tasks found for the ConnectId: " + connectId);
 		}
-		logger.info("End:Inside findTasksByConnectId() of TaskService");
+		logger.debug("End:Inside findTasksByConnectId() of TaskService");
 		return taskList;
 	}
 
@@ -179,7 +179,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByOpportunityId(String opportunityId)
 			throws Exception {
-		logger.info("Begin: Inside findTasksByOpportunityId() of TaskService");
+		logger.debug("Begin: Inside findTasksByOpportunityId() of TaskService");
 		List<TaskT> taskList = taskRepository
 				.findByOpportunityId(opportunityId);
 
@@ -189,7 +189,7 @@ public class TaskService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No tasks found for the OpportunityId: " + opportunityId);
 		}
-		logger.info("End: Inside findTasksByOpportunityId() of TaskService");
+		logger.debug("End: Inside findTasksByOpportunityId() of TaskService");
 		return taskList;
 	}
 
@@ -203,7 +203,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByTaskOwnerAndStatus(String taskOwner,
 			String taskStatus) throws Exception {
-		logger.info("Begin: Inside findTasksByTaskOwnerAndStatus() of TaskService");
+		logger.debug("Begin: Inside findTasksByTaskOwnerAndStatus() of TaskService");
 		List<TaskT> taskList = null;
 		if (!taskStatus.isEmpty()) {
 			if (!taskStatus.equalsIgnoreCase("all")) {
@@ -231,7 +231,7 @@ public class TaskService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No tasks found for the Task Owner: " + taskOwner);
 		}
-		logger.info("End: Inside findTasksByTaskOwnerAndStatus() of TaskService");
+		logger.debug("End: Inside findTasksByTaskOwnerAndStatus() of TaskService");
 		return taskList;
 	}
 
@@ -244,7 +244,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksAssignedtoOthersByUser(String userId)
 			throws Exception {
-		logger.info("Begin: Inside findTasksAssignedtoOthersByUser() of TaskService");
+		logger.debug("Begin: Inside findTasksAssignedtoOthersByUser() of TaskService");
 
 		List<TaskT> taskList = taskRepository
 				.findByCreatedByAndTaskOwnerNotOrderByTargetDateForCompletionAsc(
@@ -258,7 +258,7 @@ public class TaskService {
 					"No assigned to others tasks found for the UserId: "
 							+ userId);
 		}
-		logger.info("End: Inside findTasksAssignedtoOthersByUser() of TaskService");
+		logger.debug("End: Inside findTasksAssignedtoOthersByUser() of TaskService");
 		return taskList;
 	}
 
@@ -273,7 +273,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTasksByUserAndTargetDate(String userId,
 			Date fromDate, Date toDate) throws Exception {
-		logger.info("Begin: Inside findTasksByUserAndTargetDate() of TaskService");
+		logger.debug("Begin: Inside findTasksByUserAndTargetDate() of TaskService");
 
 		List<TaskT> taskList = null;
 
@@ -290,7 +290,7 @@ public class TaskService {
 							+ "and Target completion date: " + fromDate + ", "
 							+ toDate);
 		}
-		logger.info("End: Inside findTasksByUserAndTargetDate() of TaskService");
+		logger.debug("End: Inside findTasksByUserAndTargetDate() of TaskService");
 		return taskList;
 	}
 
@@ -302,7 +302,7 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT createTask(TaskT task) throws Exception {
-		logger.info("Begin: Inside createTask() of TaskService");
+		logger.debug("Begin: Inside createTask() of TaskService");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null;
 		TaskT managedTask = null;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -345,7 +345,7 @@ public class TaskService {
 		processAutoComments(managedTask.getTaskId(), null);
 		// Invoke Asynchronous Notifications Thread
 		processNotifications(managedTask.getTaskId(), null);
-		logger.info("End: Inside createTask() of TaskService");
+		logger.debug("End: Inside createTask() of TaskService");
 		return managedTask;
 	}
 
@@ -358,11 +358,11 @@ public class TaskService {
 	 * @throws Exception
 	 */
 	public TaskT loadDbTaskWithLazyCollections(String taskId) throws Exception {
-		logger.info("Begin: Inside loadDbTaskWithLazyCollections() of TaskService");
+		logger.debug("Begin: Inside loadDbTaskWithLazyCollections() of TaskService");
 		TaskT task = (TaskT) NotificationsLazyLoader.loadLazyCollections(
 				taskId, EntityType.TASK.name(), taskRepository,
 				notificationEventFieldsTRepository, null);
-		logger.info("End: Inside loadDbTaskWithLazyCollections() of TaskService");
+		logger.debug("End: Inside loadDbTaskWithLazyCollections() of TaskService");
 		return task;
 	}
 
@@ -374,7 +374,7 @@ public class TaskService {
 	 */
 	@Transactional
 	public TaskT editTask(TaskT task) throws Exception {
-		logger.info("Begin: Inside editTask() of TaskService");
+		logger.debug("Begin: Inside editTask() of TaskService");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null;
 		List<TaskBdmsTaggedLinkT> removeBdmsTaggedLinkTs = null;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -453,7 +453,7 @@ public class TaskService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Task not found for update: " + task.getTaskId());
 		}
-		logger.info("End: Inside editTask() of TaskService");
+		logger.debug("End: Inside editTask() of TaskService");
 		return dbTask;
 	}
 
@@ -464,7 +464,7 @@ public class TaskService {
 	 * @return
 	 */
 	private void validateTask(TaskT task) throws DestinationException {
-		logger.info("Begin: Inside validateTask() of TaskService");
+		logger.debug("Begin: Inside validateTask() of TaskService");
 		// Validate Task Entity Reference
 		if (task.getEntityReference() != null) {
 			String entityRef = task.getEntityReference();
@@ -548,7 +548,7 @@ public class TaskService {
 								+ collaborationPreference);
 			}
 		}
-		logger.info("End: Inside validateTask() of TaskService");
+		logger.debug("End: Inside validateTask() of TaskService");
 	}
 
 	/**
@@ -561,7 +561,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTeamTasks(String supervisorId, String status)
 			throws Exception {
-		logger.info("Begin: Inside findTeamTasks() of TaskService");
+		logger.debug("Begin: Inside findTeamTasks() of TaskService");
 		// Get all sub-ordinates user id's
 		List<String> userIds = userRepository
 				.getAllSubordinatesIdBySupervisorId(supervisorId);
@@ -602,14 +602,14 @@ public class TaskService {
 					"No team tasks found for the Supervisor user: "
 							+ supervisorId);
 		}
-		logger.info("End: Inside findTeamTasks() of TaskService");
+		logger.debug("End: Inside findTeamTasks() of TaskService");
 		return taskList;
 	}
 
 	// This method is used to invoke asynchronous thread for auto comments
 	private void processAutoComments(String taskId, Object oldObject)
 			throws Exception {
-		logger.info("Begin: Inside processAutoComments() of TaskService");
+		logger.debug("Begin: Inside processAutoComments() of TaskService");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
 		autoCommentsHelper.setEntityId(taskId);
 		autoCommentsHelper.setEntityType(EntityType.TASK.name());
@@ -628,12 +628,12 @@ public class TaskService {
 		autoCommentsHelper.setCollCommentsService(collaborationCommentsService);
 		// Invoking Auto Comments Task Executor Thread
 		autoCommentsTaskExecutor.execute(autoCommentsHelper);
-		logger.info("End: Inside processAutoComments() of TaskService");
+		logger.debug("End: Inside processAutoComments() of TaskService");
 	}
 
 	// This method is used to invoke asynchronous thread for notifications
 	private void processNotifications(String taskId, Object oldObject) {
-		logger.info("Begin: Inside processNotifications() of TaskService");
+		logger.debug("Begin: Inside processNotifications() of TaskService");
 		NotificationHelper notificationsHelper = new NotificationHelper();
 		notificationsHelper.setEntityId(taskId);
 		notificationsHelper.setEntityType(EntityType.TASK.name());
@@ -653,7 +653,7 @@ public class TaskService {
 				.getEntityManagerFactory());
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
-		logger.info("End: Inside processNotifications() of TaskService");
+		logger.debug("End: Inside processNotifications() of TaskService");
 	}
 
 	/**
@@ -666,7 +666,7 @@ public class TaskService {
 	 */
 	public List<TaskT> findTeamTasksAssignedtoOthers(String supervisorId)
 			throws Exception {
-		logger.info("Begin: Inside findTeamTasksAssignedtoOthers() of TaskService");
+		logger.debug("Begin: Inside findTeamTasksAssignedtoOthers() of TaskService");
 
 		List<TaskT> taskList = null;
 		List<String> userIds = null;
@@ -704,7 +704,7 @@ public class TaskService {
 					"No assigned to others tasks found for the supervisorId: "
 							+ supervisorId);
 		}
-		logger.info("End: Inside findTeamTasksAssignedtoOthers() of TaskService");
+		logger.debug("End: Inside findTeamTasksAssignedtoOthers() of TaskService");
 		return taskList;
 	}
 

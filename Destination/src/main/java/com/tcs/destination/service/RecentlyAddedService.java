@@ -39,7 +39,7 @@ public class RecentlyAddedService {
 	 * @throws Exception
 	 */
 	public Object recentlyAdded(String entityType, int count) throws Exception {
-		logger.info("Begin: inside recentlyAdded() of RecentlyAddedService");
+		logger.debug("Begin: inside recentlyAdded() of RecentlyAddedService");
 		if (EntityType.contains(entityType)) {
 			switch (EntityType.valueOf(entityType)) {
 			case CUSTOMER:
@@ -50,7 +50,7 @@ public class RecentlyAddedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				}
-				logger.info("End: inside recentlyAdded() CUSTOMER of RecentlyAddedService");
+				logger.debug("End: inside recentlyAdded() CUSTOMER of RecentlyAddedService");
 				return recentCustomers;
 			case PARTNER:
 
@@ -60,7 +60,7 @@ public class RecentlyAddedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				}
-				logger.info("End: inside recentlyAdded() PARTNER of RecentlyAddedService");
+				logger.debug("End: inside recentlyAdded() PARTNER of RecentlyAddedService");
 				return recentpartners;
 
 			default:

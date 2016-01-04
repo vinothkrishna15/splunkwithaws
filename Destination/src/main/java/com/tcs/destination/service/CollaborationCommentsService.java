@@ -29,6 +29,10 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This service validates requests related to collaboration comments
+ * and inserts them into the comments repository
+ */
 @Service
 public class CollaborationCommentsService {
 
@@ -72,9 +76,15 @@ public class CollaborationCommentsService {
 	@Autowired
 	UserRepository userRepository;
 
+	/**
+	 * method to insert collaboration comments to comments repository
+	 * @param comments
+	 * @return
+	 * @throws Exception
+	 */
 	public String insertComments(CollaborationCommentT comments)
 			throws Exception {
-		logger.info("Inside insertComments Service1");
+		logger.debug("Begin:Inside insertComments() of CollaborationCommentsService");
 		
 		String returnVal = null;
 		
@@ -84,10 +94,8 @@ public class CollaborationCommentsService {
 			} else {
 				comments.setUserId(Constants.SYSTEM_USER);
 			}
-			logger.info("Inside insertComments Service1", comments.getUserId());
 		}
 		if (isValidComment(comments)) {
-			logger.info("Inside insertComments Service");
 			try {
 				CollaborationCommentT collaborationCommentT = commentsRepository
 						.save(comments);
@@ -100,11 +108,16 @@ public class CollaborationCommentsService {
 						HttpStatus.INTERNAL_SERVER_ERROR, "Backend Error while posting comments");
 			}
 		}
+		logger.debug("End:Inside insertComments() of CollaborationCommentsService");
 		return returnVal;
 	}
 
+	/**
+	 * method to process notifications
+	 * @param commentId
+	 */
 	private void processNotifications(String commentId) {
-		logger.debug("Calling processNotifications() method");
+		logger.debug("Begin:processNotifications() method of CollaborationCommentsService");
 		NotificationHelper notificationsHelper = new NotificationHelper();
 		notificationsHelper.setEntityId(commentId);
 		notificationsHelper.setEntityType(EntityType.COMMENT.name());
@@ -127,11 +140,18 @@ public class CollaborationCommentsService {
 		notificationsHelper.setUserRepository(userRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
+		logger.debug("End:processNotifications() method of CollaborationCommentsService");
 	}
 
+	/**
+	 * method to check whether the collaboration comment is valid or not
+	 * @param comments
+	 * @return
+	 * @throws Exception
+	 */
 	private boolean isValidComment(CollaborationCommentT comments)
 			throws Exception {
-		logger.debug("Inside isValidComment Service");
+		logger.debug("Inside isValidComment() of CollaborationCommentsService");
 		if (!CommentType.contains(comments.getCommentType())) {
 			logger.error("BAD_REQUEST:Comment Type must be USER or AUTO");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -143,13 +163,10 @@ public class CollaborationCommentsService {
 					"Comment must not be empty");
 		}
 		if (EntityType.contains(comments.getEntityType())) {
-			logger.debug("Entity Type is present");
 			switch (EntityType.valueOf(comments.getEntityType())) {
 			case CONNECT:
-				logger.debug("Connect Found");
 				if (comments.getConnectId() != null) {
 					comments.setEntityId(comments.getConnectId());
-					logger.debug("Customer Id Available");
 					return true;
 				} else {
 					logger.error("BAD_REQUEST: Connect ID cannot be Empty");
@@ -157,10 +174,8 @@ public class CollaborationCommentsService {
 							"Connect ID cannot be Empty");
 				}
 			case OPPORTUNITY:
-				logger.debug("Opportunity Found");
 				if (comments.getOpportunityId() != null) {
 					comments.setEntityId(comments.getOpportunityId());
-					logger.debug("Opportunity Id Available");
 					return true;
 				}
 
@@ -185,7 +200,9 @@ public class CollaborationCommentsService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid Entity Type");
 			}
+			
 			}
+			
 		} else {
 			logger.error("BAD_REQUEST:Invalid Entity Type");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,

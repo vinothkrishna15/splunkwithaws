@@ -28,10 +28,12 @@ import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
-import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.PropertyUtil;
 
-
+/**
+ * This service deals with requests related to beacon download 
+ *
+ */
 @Service
 public class BeaconDownloadService 
 {
@@ -51,7 +53,7 @@ public class BeaconDownloadService
 	{
 
 
-		logger.info("Inside getBeaconData() method"); 
+		logger.debug("Begin:Inside getBeaconData() method"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
@@ -82,6 +84,7 @@ public class BeaconDownloadService
 			e.printStackTrace();
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
 		}
+		logger.debug("End:Inside getBeaconData() method"); 
 		return inputStreamResource;
 	}
 
@@ -92,8 +95,7 @@ public class BeaconDownloadService
 	private void  populateBeaconDataSheet(Sheet beaconDataSheet) 
 	{
 		//Get the Beacon Data Sheet From Workbook
-		logger.info("Populating Beacon Data Sheet"); 
-
+		logger.debug("Begin:Inside populateBeaconDataSheet() method"); 
 
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
@@ -150,6 +152,7 @@ public class BeaconDownloadService
 			// Increment row counter
 			currentRow++;
 		}
+		logger.debug("End:Inside populateBeaconDataSheet() method"); 
 	}
 
 	/**
@@ -159,7 +162,7 @@ public class BeaconDownloadService
 	private void  populateBeaconMappingSheet(Sheet beaconMappingDataSheet) 
 	{
 		//Get the Beacon Mapping Data Sheet From Workbook
-		logger.info("Populating Beacon Mapping Data Sheet"); 
+		logger.debug("Begin:Inside populateBeaconMappingSheet() method"); 
 
 
 		int currentRow = 1; // Excluding the header, header starts with index 0
@@ -192,6 +195,7 @@ public class BeaconDownloadService
 			// Increment row counter
 			currentRow++;
 		}
+		logger.debug("End:Inside populateBeaconMappingSheet() method"); 
 	}
 
 	/**
@@ -201,7 +205,7 @@ public class BeaconDownloadService
 	private void  populateIouMappingSheet(Sheet beaconIouMapSheet) 
 	{
 		//Get the Beacon Iou Mapping Data Sheet From Workbook
-		logger.info("Populating Beacon Iou Mapping Data Sheet");
+		logger.debug("Begin:Inside populateIouMappingSheet() method"); 
 
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
@@ -226,6 +230,7 @@ public class BeaconDownloadService
 			currentRow++;
 
 		}
+		logger.debug("End:Inside populateIouMappingSheet() method"); 
 	}
 }
 
