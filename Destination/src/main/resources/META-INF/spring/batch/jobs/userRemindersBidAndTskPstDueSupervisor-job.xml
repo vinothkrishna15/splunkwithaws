@@ -38,14 +38,29 @@
 	<bean id="bidDetailTgtPostSReader" class="com.tcs.destination.reader.NativeQueryReader">
 		<property name="repository" ref="batchOpportunityRepository"/>
 		<property name="methodName" value="getBidDtRmdsPostTrgtDtSupervisor"/>
+		<property name="arguments">
+			<list>
+				<value>#{T(java.lang.Integer).parseInt(${reminder.days})}</value>
+			</list>
+		</property>
 	</bean>
 	<bean id="bidDetailOutcomePostSReader" class="com.tcs.destination.reader.NativeQueryReader">
 		<property name="repository" ref="batchOpportunityRepository"/>
 		<property name="methodName" value="getBidDtRmdsPostOutcomeDtSupervisor"/>
+		<property name="arguments">
+			<list>
+				<value>#{T(java.lang.Integer).parseInt(${reminder.days})}</value>
+			</list>
+		</property>
 	</bean>
 	<bean id="taskPostSReader" class="com.tcs.destination.reader.NativeQueryReader">
 		<property name="repository" ref="taskRepository"/>
 		<property name="methodName" value="getTaskRemindersSupervisorPost"/>
+		<property name="arguments">
+			<list>
+				<value>#{T(java.lang.Integer).parseInt(${reminder.days})}</value>
+			</list>
+		</property>
 	</bean>
 	<!-- Processor -->
 	<bean id="bidDetailTgtPostSProcessor" class="com.tcs.destination.processor.ReminderProcessor">

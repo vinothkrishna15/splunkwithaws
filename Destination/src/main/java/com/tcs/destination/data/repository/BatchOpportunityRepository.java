@@ -6,9 +6,6 @@ import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_OUTCOME_DT_QU
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_QUERY;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_POST_SUPERVISOR;
 import static com.tcs.destination.utils.QueryConstants.BID_DETAILS_TRGT_DT_QUERY;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_OUTCOME;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_STATUS_CHANGE;
-import static com.tcs.destination.utils.QueryConstants.OPPORTUNITY_SHELVE_BASED_ON_TARGET_SUBMISSION_DATE;
 
 import java.util.List;
 
@@ -27,16 +24,16 @@ public interface BatchOpportunityRepository extends CrudRepository<OpportunityT,
 	List<Object[]> getBidDetailsRemindersForOutcomeDt();
 	
 	@Query(value = BID_DETAILS_TRGT_DT_POST_QUERY, nativeQuery = true)
-	List<Object[]> getBidDetailsRemindersPostTrgtDt();
+	List<Object[]> getBidDetailsRemindersPostTrgtDt(@Param("remindForDays") Integer remindForDays);
 	
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_QUERY, nativeQuery = true)
-	List<Object[]> getBidDetailsRemindersPostOutcomeDt();
+	List<Object[]> getBidDetailsRemindersPostOutcomeDt(@Param("remindForDays") Integer remindForDays);
 	
 	@Query(value = BID_DETAILS_TRGT_DT_POST_SUPERVISOR, nativeQuery = true)
-	List<Object[]> getBidDtRmdsPostTrgtDtSupervisor();
+	List<Object[]> getBidDtRmdsPostTrgtDtSupervisor(@Param("remindForDays") Integer remindForDays);
 	
 	@Query(value = BID_DETAILS_OUTCOME_DT_POST_SUPERVISOR, nativeQuery = true)
-	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor();
+	List<Object[]> getBidDtRmdsPostOutcomeDtSupervisor(@Param("remindForDays") Integer remindForDays);
 	
 	@Query(value = "select * from db_maintenance(:btchPrugeDays, :btchPrugeMonths, :btchPrugeYears)", nativeQuery = true)
     Integer maintainDBTables(@Param("btchPrugeDays") Integer btchPrugeDays, @Param("btchPrugeMonths") Integer btchPrugeMonths, @Param("btchPrugeYears") Integer btchPrugeYears);

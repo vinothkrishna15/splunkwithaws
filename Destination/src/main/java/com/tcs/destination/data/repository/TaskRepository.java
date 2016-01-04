@@ -118,8 +118,8 @@ public interface TaskRepository extends CrudRepository<TaskT, String> {
 	List<Object[]> getTaskReminders();
 	
 	@Query(value = TASK_TRGT_DT_POST_QUERY, nativeQuery = true)
-	List<Object[]> getTaskRemindersPost();
+	List<Object[]> getTaskRemindersPost(@Param("remindForDays") Integer remindForDays);
 	
 	@Query(value = TASK_TRGT_DT_POST_SUPERVISOR, nativeQuery = true)
-	List<Object[]> getTaskRemindersSupervisorPost();
+	List<Object[]> getTaskRemindersSupervisorPost(@Param("remindForDays") Integer remindForDays);
 }
