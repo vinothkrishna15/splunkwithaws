@@ -433,18 +433,23 @@ public class DestinationMailUtils {
 		} catch (MailSendException e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailParseException e) {
 			logger.error("Error parsing mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailAuthenticationException e) {
 			logger.error("Error authnticatingh e-mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailPreparationException e) {
 			logger.error("Error preparing mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (Exception e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		}
 
 		return status;
@@ -615,6 +620,7 @@ public class DestinationMailUtils {
 		} catch (Exception e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		}
 
 		return status;
@@ -733,9 +739,10 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("Forgot Password : Mail sent");
+				logger.info("Forgot Password : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
 			}
 		}
 	}
@@ -784,9 +791,10 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("User Access : Mail sent");
+				logger.info("User Access : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
 			}
 		}
 
@@ -838,9 +846,11 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("Opportunity Reopen : Mail sent");
+				logger.info("Opportunity Reopen : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
+				
 			}
 		}
 

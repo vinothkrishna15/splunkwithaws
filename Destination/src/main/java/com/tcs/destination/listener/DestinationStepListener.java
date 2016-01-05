@@ -35,15 +35,20 @@ public class DestinationStepListener implements StepExecutionListener {
 	 */
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
+		
 
 		ExitStatus exitStatus = stepExecution.getExitStatus();
 
-		if (exitStatus != ExitStatus.COMPLETED) {
-			logger.info(
-					"Step - {} exit with the exit code - {}, exit status - {}",
-					stepExecution.getStepName(), exitStatus.getExitCode(),
-					exitStatus.getExitDescription());
+		if (!exitStatus.equals(ExitStatus.COMPLETED)) {
+			for (Throwable e: stepExecution.getFailureExceptions()) {
+				logger.error("Error sending e-mail message: {}", e.getMessage());
+			}
 		}
+		
+		logger.info(
+				"Step - {} exit with the exit code - {}, exit status - {}",
+				stepExecution.getStepName(), exitStatus.getExitCode(),
+				exitStatus.getExitDescription());
 
 		return exitStatus;
 	}
