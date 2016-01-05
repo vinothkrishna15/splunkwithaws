@@ -1898,7 +1898,7 @@ public class PerformanceReportService {
 			String quarter, String displayGeography, String geography,
 			String iou, String serviceLine, String currency,
 			int salesStageFrom, int salesStageTo, String customerName,
-			String groupCustomer, String userId) throws Exception {
+			String groupCustomer, String userId, Boolean shouldValidate) throws Exception {
 		Date fromDate = getDate(financialYear, quarter, true);
 		Date toDate = getDate(financialYear, quarter, false);
 		ReportsOpportunity reportsOpportunity = new ReportsOpportunity();
@@ -1929,7 +1929,7 @@ public class PerformanceReportService {
 		List<Object[]> pipeLinesBySalesStage = findPipelinePerformanceBySalesStage(
 				displayGeography, geography, iou, serviceLine, currency,
 				custName, fromDate, toDate, salesStageFrom, salesStageTo,
-				userId);
+				userId, shouldValidate);
 		if (pipeLinesBySalesStage != null) {
 			for (Object[] pipeLineBySalesStage : pipeLinesBySalesStage) {
 				ReportsSalesStage reportsSalesStage = new ReportsSalesStage();
@@ -1975,10 +1975,13 @@ public class PerformanceReportService {
 			String displayGeography, String geography, String iou,
 			String serviceLine, String currency, List<String> custName,
 			Date fromDate, Date toDate, int salesStageFrom, int salesStageTo,
-			String userId) throws Exception {
+			String userId, Boolean shouldValidate) throws Exception {
 		List<Object[]> resultList = null;
 		userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		if (validateUserAndUserGroup(userId)) {
+		if(!shouldValidate){
+			shouldValidate=validateUserAndUserGroup(userId);
+		}
+		if (shouldValidate) {
 			String queryString = getPipelinePerformanceBySalesStageQueryString(userId);
 			Query pipelinePerformanceBySalesStageQuery = entityManager
 					.createNativeQuery(queryString);

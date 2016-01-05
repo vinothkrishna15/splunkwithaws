@@ -332,6 +332,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "stageto") int salesStageTo,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
+			@RequestParam(value = "shouldValidate", defaultValue = "false") Boolean shouldValidate,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
@@ -342,7 +343,7 @@ public class PerformanceReportController {
 			reportsOpportunity = perfService.getOpportunity(financialYear,
 					quarter, displayGeography, geography, iou, serviceLine,
 					currency, salesStageFrom, salesStageTo, customerName,
-					groupCustomer, userId);
+					groupCustomer, userId, shouldValidate);
 			logger.info("Inside PerformanceReportController: End of /perfreport/opportunity GET");
 			return ResponseConstructors.filterJsonForFieldAndViews("all", "",
 					reportsOpportunity);
