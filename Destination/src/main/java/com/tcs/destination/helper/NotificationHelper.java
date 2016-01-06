@@ -848,11 +848,12 @@ public class NotificationHelper implements Runnable {
 		addToList(userIds,
 				userNotificationSettingsConditionRepository
 						.findUserIdByConditionIdAndConditionValue(5, country));
-
+        if(digitalDealValue != null) {
 		addToList(
 				userIds,
 				userNotificationSettingsConditionRepository
 						.findUserIdByDigitalDealValueGreaterThan(digitalDealValue));
+        }
 
 		List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
 				.getAllOwners(opportunity.getOpportunityId());
