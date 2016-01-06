@@ -25,5 +25,8 @@ public interface UserAccessPrivilegesRepository extends JpaRepository<UserAccess
 	List<Object[]> findPrivilegesWithUserId();
 	
 	List<UserAccessPrivilegesT> findByParentPrivilegeIdIsNull();
+	
+	@Query(value = "select privilege_id from user_access_privileges_t where user_id=?1 and privilege_type=?2 and privilege_value=?3", nativeQuery = true)
+	Integer  getParentPrivilegeId(String userId,String privilegeType,String privilegeValue);
 
 }

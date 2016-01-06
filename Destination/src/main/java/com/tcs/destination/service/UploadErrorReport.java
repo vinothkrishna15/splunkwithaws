@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -16,6 +17,10 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
+/**
+ * This class deals with the functionality of uploading the error report
+ *
+ */
 @Component
 public class UploadErrorReport {
 
@@ -46,6 +51,17 @@ public class UploadErrorReport {
 	public XSSFWorkbook writeErrorToWorkbook(List<UploadServiceErrorDetailsDTO> errorDetailsDTOs) throws Exception {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		writeErrorReportIntoExcel(workbook, errorDetailsDTOs);
+		return workbook;
+	}
+	
+	public void writeErrorToWorkbook(List<UploadServiceErrorDetailsDTO> errorDetailsDTOs, Workbook workbook,String sheetName) throws Exception {
+		writeErrorReportIntoExcel((XSSFWorkbook)workbook, errorDetailsDTOs,sheetName);
+		//return workbook;
+	}
+	
+	public XSSFWorkbook writeErrorToWorkbook(List<UploadServiceErrorDetailsDTO> errorDetailsDTOs,String sheetName) throws Exception {
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		writeErrorReportIntoExcel(workbook, errorDetailsDTOs,sheetName);
 		return workbook;
 	}
 
@@ -88,4 +104,40 @@ public class UploadErrorReport {
 			}
 		}		
 	}
+	
+	private void writeErrorReportIntoExcel(XSSFWorkbook workbook,
+			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs,String sheetName) {
+		XSSFSheet spreadSheet = workbook.createSheet(sheetName);
+		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER);
+		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.DATAROW);
+		int currentRow = 0;
+		XSSFRow row = null;
+		row = spreadSheet.createRow((short) currentRow);
+		row.createCell(0).setCellValue(Constants.SHEETNAME);
+		row.getCell(0).setCellStyle(headerSyle);
+		spreadSheet.autoSizeColumn(0);
+		row.createCell(1).setCellValue(Constants.ROWNUMBER);
+		row.getCell(1).setCellStyle(headerSyle);
+		spreadSheet.autoSizeColumn(1);
+		row.createCell(2).setCellValue(Constants.ERROR_MESSAGE);
+		row.getCell(2).setCellStyle(headerSyle);
+		spreadSheet.autoSizeColumn(2);
+		currentRow++;
+		if (errorDetailsDTOs != null) {
+			for (UploadServiceErrorDetailsDTO upErorDto : errorDetailsDTOs) {
+				row = spreadSheet.createRow((short) currentRow);
+				row.createCell(0).setCellValue(upErorDto.getSheetName());
+				row.getCell(0).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(0);
+				row.createCell(1).setCellValue(upErorDto.getRowNumber());
+				row.getCell(1).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(1);
+				row.createCell(2).setCellValue(upErorDto.getMessage());
+				row.getCell(2).setCellStyle(rowStyle);
+				spreadSheet.autoSizeColumn(2);				
+				currentRow++;
+			}
+		}		
+	}
+	
 }

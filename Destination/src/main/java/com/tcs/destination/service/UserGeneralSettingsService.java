@@ -34,11 +34,13 @@ public class UserGeneralSettingsService {
 	public boolean addUserGeneralSettings(
 			UserGeneralSettingsT userGeneralSettings)
 			throws DestinationException {
+		logger.debug("Begin: inside addUserGeneralSetting() of UserGeneralSettingsService");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		userGeneralSettings.setUserId(userId);
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository
 				.findByUserId(userGeneralSettings.getUserId());
 		if (userGenSettings == null) {
+			logger.debug("End: inside addUserGeneralSetting() of UserGeneralSettingsService");
 			return userGeneralSettingsRepository.save(userGeneralSettings) != null;
 
 		} else {
@@ -57,12 +59,14 @@ public class UserGeneralSettingsService {
 	 */
 	public boolean updateUserGeneralSettings(UserGeneralSettingsT userGeneralSettings)
 			throws Exception {
+		logger.debug("Begin: inside updateUserGeneralSettings() of UserGeneralSettingsService");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		userGeneralSettings.setUserId(userId);
 		if(userGeneralSettings.getUserId()!=null){
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository
 				.findByUserId(userGeneralSettings.getUserId());
 		if (userGenSettings!= null) {
+			logger.debug("End: inside updateUserGeneralSettings() of UserGeneralSettingsService");
 			return userGeneralSettingsRepository.save(userGeneralSettings) != null;
 
 		} else {
@@ -83,8 +87,10 @@ public class UserGeneralSettingsService {
 	 * @throws Exception
 	 */
 	public UserGeneralSettingsT findGeneralSettingsByUserId(String userId) throws Exception {
+		logger.debug("Begin: inside findGeneralSettingsByUserId() of UserGeneralSettingsService");
 		UserGeneralSettingsT userGenSettings = userGeneralSettingsRepository.findByUserId(userId);
 		if(userGenSettings!=null){
+			logger.debug("End: inside findGeneralSettingsByUserId() of UserGeneralSettingsService");
 			return userGenSettings;
 		} else {
 			logger.error("NOT_FOUND: Settings Not Found");

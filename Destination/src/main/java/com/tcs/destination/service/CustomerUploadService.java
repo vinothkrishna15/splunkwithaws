@@ -20,14 +20,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
-import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -40,6 +37,10 @@ import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This service is used to upload the customer sheet synchronously
+ *
+ */
 @Service
 public class CustomerUploadService {
 
@@ -69,10 +70,8 @@ public class CustomerUploadService {
 	 */
 	public UploadStatusDTO upload(MultipartFile file)
 			throws Exception {
+		logger.debug("Start: Inside upload() of CustomerUploadService");
 		Workbook workbook = ExcelUtils.getWorkBook(file);
-		if(workbook!= null){
-			System.out.println("workbook notnull");
-		}
 
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
 		uploadStatus.setStatusFlag(true);
@@ -93,7 +92,6 @@ public class CustomerUploadService {
 
 			// Get Name and Id from DB to get Id from Name of customer
 			//	mapOfCustomerMasterT = getNameAndIdFromCustomerMasterT(); 
-			System.out.println("inside validate sheet");
 			Sheet sheet = workbook.getSheet(CustomerUploadConstants.CUSTOMER_MASTER_SHEET_NAME);
 			if(sheet==null){
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Please upload the workbook for CUSTOMER UPLOAD or missing "+CustomerUploadConstants.CUSTOMER_MASTER_SHEET_NAME+" sheet");
@@ -112,12 +110,9 @@ public class CustomerUploadService {
 
 				if (rowCount > 0) {
 					String actionCellValue = getIndividualCellValue(row.getCell(0));
-					logger.debug("row count : "+rowCount);
 					listOfCellValues = new ArrayList<String>();
 					try {
 						if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) {
-							logger.info("Cell 0 at "+rowCount+" : "+actionCellValue);
-							System.out.println("*****ADD*****");
 							listOfCellValues = iterateRow(row, CustomerUploadConstants.CUSTOMER_MASTER_SHEET_COLUMN_COUNT);
 							customerService.addCustomer(constructCustomerMasterTForCustomer(listOfCellValues,  DestinationUtils.getCurrentUserDetails().getUserId(), DocumentActionType.ADD.name()));
 						} 
@@ -125,24 +120,19 @@ public class CustomerUploadService {
 						if (uploadStatus.isStatusFlag()) {
 							uploadStatus.setStatusFlag(false);
 						}
-
-						UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
-						error.setRowNumber(rowCount + 1);
+                        UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+                        error.setRowNumber(rowCount + 1);
 						error.setMessage(e.getMessage());
-
-						uploadStatus.getListOfErrors().add(error);
+                        uploadStatus.getListOfErrors().add(error);
 					}
-
-				}
-				rowCount++;
+                 }
+			  rowCount++;
 			}
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
-
+		logger.debug("End: Inside upload() of CustomerUploadService");
 		return uploadStatus;
-
 	}
 
 	/**
@@ -150,12 +140,14 @@ public class CustomerUploadService {
 	 * @return geographyMap
 	 */
 	private Map<String, GeographyMappingT> getGeographyMappingT() {
+		logger.debug("Start: Inside getGeographyMappingT() of CustomerUploadService");
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
 		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
 		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
 			geographyMap.put(geographyMappingT.getGeography(), geographyMappingT);
 		}
+		logger.debug("End: Inside getGeographyMappingT() of CustomerUploadService");
 		return geographyMap;
 	}
 
@@ -164,12 +156,14 @@ public class CustomerUploadService {
 	 * @return iouMap
 	 */
 	private Map<String, IouCustomerMappingT> getIouMappingT() {
+		logger.debug("Start: Inside getIouMappingT() of CustomerUploadService");
 		List<IouCustomerMappingT> listOfIouMappingT = null;
 		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository.findAll();
 		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
 		for (IouCustomerMappingT iouMappingT : listOfIouMappingT) {
 			iouMap.put(iouMappingT.getIou(), iouMappingT);
 		}
+		logger.debug("End: Inside getIouMappingT() of CustomerUploadService");
 		return iouMap;
 	}
 
@@ -182,6 +176,7 @@ public class CustomerUploadService {
 	 */
 	private boolean validateCustomerId(String customerId) throws Exception{
 
+		logger.debug("Start: Inside validateCustomerId() of CustomerUploadService");
 		boolean flag = false;
 
 		if(customerId!=null){
@@ -195,7 +190,7 @@ public class CustomerUploadService {
 		if(!flag){
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Customer Id");
 		}
-
+		logger.debug("End: Inside validateCustomerId() of CustomerUploadService");
 		return flag;
 	}
 
@@ -209,7 +204,7 @@ public class CustomerUploadService {
 	 * @throws Exception
 	 */
 	private CustomerMasterT constructCustomerMasterTForCustomer(List<String> listOfCellValues,String userId, String action) throws Exception {
-		logger.info("constructCustomerMasterTForCustomer");
+		logger.debug("Begin:Inside constructCustomerMasterTForCustomer() for CustomerUploadService");
 		CustomerMasterT customerT = null; 
 
 		if ((listOfCellValues.size() > 0)) {
@@ -235,7 +230,6 @@ public class CustomerUploadService {
 			if(listOfCellValues.get(3).length()>0){
 				if(mapOfIouMappingT.containsKey(listOfCellValues.get(3))){
 					customerT.setIou(listOfCellValues.get(3));
-					logger.info("after setting iou mapping" + "\n iou - " + listOfCellValues.get(3));
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid IOU");
 				}
@@ -245,12 +239,12 @@ public class CustomerUploadService {
 			if(listOfCellValues.get(4).length()>0){
 				if(mapOfGeographyMappingT.containsKey(listOfCellValues.get(4))){
 					customerT.setGeography(listOfCellValues.get(4));
-					logger.info("after setting geography mapping" + "\n iou - " + listOfCellValues.get(4));
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid geography");
 				}
 			}
 		} 
+		logger.debug("End:Inside constructCustomerMasterTForCustomer() for CustomerUploadService");
 		return customerT;
 	}
 
@@ -262,7 +256,7 @@ public class CustomerUploadService {
 	 * @throws Exception
 	 */
 	private List<String> iterateRow(Row row, int columnnCount) throws Exception{
-		logger.info("inside iterate row");
+		logger.debug("Begin:Inside iterateRow() for CustomerUploadService");
 		List<String> listOfCellValues = new ArrayList<String>();
 
 		for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
@@ -275,7 +269,7 @@ public class CustomerUploadService {
 				listOfCellValues.add(value.trim());
 			}
 		}
-
+		logger.debug("End:Inside iterateRow() for CustomerUploadService");
 		return listOfCellValues;
 
 	}
@@ -327,16 +321,15 @@ public class CustomerUploadService {
 			throws Exception {
 
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
-
+		logger.debug("Begin:Inside getNameAndIdFromCustomerMasterT() for CustomerUploadService");
 		List<Object[]> listOfCustomerMasterT = customerRepository
 				.getNameAndId();
 
 		for (Object[] st : listOfCustomerMasterT) {
 			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
 		}
-
+		logger.debug("End:Inside getNameAndIdFromCustomerMasterT() for CustomerUploadService");
 		return mapOfCMT;
-
 	}
 
 	/**

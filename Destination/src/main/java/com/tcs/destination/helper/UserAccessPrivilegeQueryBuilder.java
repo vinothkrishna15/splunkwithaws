@@ -316,7 +316,7 @@ public class UserAccessPrivilegeQueryBuilder {
 		if (condBuffer != null) {
 			String condStr = condBuffer.toString();
 			// Append condition string and join string after last paranthesis
-			if (condStr.contains(Constants.RIGHT_PARANTHESIS)) {
+			if (condStr.contains(Constants.RIGHT_PARANTHESIS) && !condStr.equalsIgnoreCase("('') in (") ) {
 				clauseBuffer.append(condBuffer);
 				clauseBuffer.append(joinString);
 			}

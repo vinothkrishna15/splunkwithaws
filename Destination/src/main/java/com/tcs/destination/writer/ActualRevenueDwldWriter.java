@@ -43,6 +43,7 @@ import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.PropertyUtil;
 
 /**
  * This ActualRevenueDwldWriter class contains the functionality to populate
@@ -102,6 +103,7 @@ public class ActualRevenueDwldWriter implements
 
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
+			String environmentName=PropertyUtil.getProperty("environment.name");
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 			String entity = dataProcessingService.getEntity(request
@@ -113,10 +115,11 @@ public class ActualRevenueDwldWriter implements
 					.append(FILE_DIR_SEPERATOR)
 					.append(request.getUserT().getUserId())
 					.append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity)
-					.append(DOWNLOADCONSTANT)
-					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
-			FileManager.copyFile(filePath.toString(), template,
+			StringBuffer fileName = new StringBuffer(environmentName)
+			.append(entity)
+			.append(DOWNLOADCONSTANT)
+			.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+		    FileManager.copyFile(filePath.toString(), template,
 					fileName.toString());
 
 			request.setFilePath(filePath.toString());

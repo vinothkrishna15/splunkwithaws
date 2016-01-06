@@ -51,6 +51,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 public class ConnectDwldWriter implements ItemWriter<ConnectT>,
@@ -133,8 +134,6 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 				userIdUserMap = (Map<String, UserT>) jobContext.get("userIdUserMap");
 				contactIdContactMap = (Map<String, ContactT>) jobContext.get("contactIdContactMap");
 				
-				
-				
 				DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 				
 //				String path = fileServerPath + dataProcessingService.getEntityName(request.getRequestType()) + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + request.getUserT().getUserId() + FILE_DIR_SEPERATOR;
@@ -158,6 +157,8 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 				
 				String entity = dataProcessingService.getEntity(request
 						.getRequestType());
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				
 				StringBuffer filePath = new StringBuffer(fileServerPath)
 						.append(entity).append(FILE_DIR_SEPERATOR).append(DOWNLOAD)
 						.append(FILE_DIR_SEPERATOR)
@@ -165,9 +166,12 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 						.append(FILE_DIR_SEPERATOR)
 						.append(request.getUserT().getUserId())
 						.append(FILE_DIR_SEPERATOR);
-				StringBuffer fileName = new StringBuffer(entity)
-						.append(DOWNLOADCONSTANT)
-						.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+				
+				StringBuffer fileName = new StringBuffer(environmentName)
+				.append(entity)
+				.append(DOWNLOADCONSTANT)
+				.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+				
 				FileManager.copyFile(filePath.toString(), template,
 						fileName.toString());
 

@@ -27,7 +27,11 @@ public enum JobName {
 		opportunityUpload("opportunityUpload"),
 		revenueUpload("revenueUpload"),
 		partnerUpload("partnerUpload"),
-		beaconUpload("beaconUpload");
+		partnerContactUpload("partnerContactUpload"),
+		beaconUpload("beaconUpload"),
+        userUpload("userUpload"),
+        customerContactUpload("customerContactUpload");
+
 		
 		private String job;
 		

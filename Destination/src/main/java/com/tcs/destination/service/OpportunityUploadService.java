@@ -1,7 +1,6 @@
 package com.tcs.destination.service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,8 +20,6 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.neo4j.cypher.internal.compiler.v2_1.perty.docbuilders.simpleDocBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +31,9 @@ import com.tcs.destination.utils.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.BidDetailsT;
-import com.tcs.destination.bean.BidRequestTypeMappingT;
 import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.ContactTMapDTO;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -50,11 +45,9 @@ import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WinLossFactorMappingT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.CompetitorRepository;
@@ -71,16 +64,12 @@ import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DateUtils;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
 
 /**
  * This service helps in uploading opportunities to database
  * 
- * @author bnpp
- *
  */
 @Service
 public class OpportunityUploadService {
@@ -154,7 +143,7 @@ public class OpportunityUploadService {
     public UploadStatusDTO saveDocument(MultipartFile multipartFile,
 	    String userId) throws Exception {
 
-	logger.debug("Inside saveDocument Service");
+	logger.debug("Begin:Inside saveDocument of OpportunityUploadService");
 
 	UploadStatusDTO uploadStatus = null;
 
@@ -170,8 +159,6 @@ public class OpportunityUploadService {
 	    if (validateSheet(workbook)) {
 
 		Sheet sheet = workbook.getSheet("Opportunity");
-
-		logger.debug("count " + workbook.getSheetAt(2).getLastRowNum());
 
 		boolean isBulkDataLoad = true;
 
@@ -216,8 +203,6 @@ public class OpportunityUploadService {
 		    if (rowCount > 1) {
 
 			int emptyCount = 0;
-			logger.debug("Total Cells"
-				+ row.getPhysicalNumberOfCells());
 
 			listOfCellValues = new ArrayList<String>();
 		
@@ -233,11 +218,7 @@ public class OpportunityUploadService {
 				    emptyCount++;
 				}
 			    }
-			    logger.debug(cellCount + "      " + value);
 			}
-
-			logger.debug("size of list " + listOfCellValues.size());
-			logger.debug("empty count " + emptyCount);
 
 			// set the cell values to the corresponding fields in
 			// the OpportunityT entity object
@@ -544,11 +525,8 @@ public class OpportunityUploadService {
 			    	actualSubmissionDate = null;
 			    }
 			    
-				logger.debug("Inserting...");
-				
 				opportunityService.createOpportunity(opp,
 					isBulkDataLoad, bidRequestType, actualSubmissionDate);
-				logger.debug("Done");
 				remarks.clear();
 				
 				listOfCellValues.clear();
@@ -570,7 +548,6 @@ public class OpportunityUploadService {
 			} else if (emptyCount == OpportunityUploadConstants.OPPORTUNITY_UPLOAD_COLUMN_SIZE) {
 			    // If a row is empty, assume that there are no
 			    // values to process and exit the iteration
-			    logger.debug("BREAK...");
 			    break;
 			}
 
@@ -600,6 +577,7 @@ public class OpportunityUploadService {
 		    "An Exception has occured while processing the request for "
 			    + userId);
 	}
+	logger.debug("End:Inside saveDocument of OpportunityUploadService");
 	return uploadStatus;
     }
     
@@ -611,7 +589,7 @@ public class OpportunityUploadService {
      * @throws Exception
      */
     private Date validateDate(String date, String columnName) throws Exception{
-	
+    	logger.debug("Begin:Inside validateDate of OpportunityUploadService");
 	Date formattedDate = null;
 	
 	try {
@@ -619,7 +597,7 @@ public class OpportunityUploadService {
 	}catch(Exception e){
 	    throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid "+columnName);
 	}
-
+	logger.debug("End:Inside validateDate of OpportunityUploadService");
 	return formattedDate;
     }
 
@@ -647,7 +625,7 @@ public class OpportunityUploadService {
      * @return
      */
     private List<NotesT> constructNotesT(List<String> dealRemarks,String customerId,String userUpdated) {
-    
+    	logger.debug("Begin:Inside constructNotesT of OpportunityUploadService");
     List<NotesT> listOfNotes = new ArrayList<NotesT>();
 	for(int i=0;i<dealRemarks.size();i++)
 	{
@@ -658,6 +636,7 @@ public class OpportunityUploadService {
 		notes.setUserUpdated(userUpdated);
 		listOfNotes.add(notes);
 	}
+	logger.debug("End:Inside constructNotesT of OpportunityUploadService");
 	return listOfNotes;
     }
 
@@ -669,7 +648,7 @@ public class OpportunityUploadService {
      * @return String
      */
     private String getIndividualCellValue(Cell cell) {
-
+    	logger.debug("Begin:Inside getIndividualCellValue of OpportunityUploadService");
 	String val = "";
 	if (cell != null) {
 	    switch (cell.getCellType()) {
@@ -693,8 +672,8 @@ public class OpportunityUploadService {
 	} else {
 	    val = "";
 	}
+	logger.debug("End:Inside getIndividualCellValue of OpportunityUploadService");
 	return val;
-
     }
 
     /**
@@ -708,7 +687,7 @@ public class OpportunityUploadService {
      */
     private List<OpportunityWinLossFactorsT> constructOppWinLoss(
 	    String factors, String userId) throws Exception {
-
+    	logger.debug("Begin:Inside constructOppWinLoss of OpportunityUploadService");
 	List<OpportunityWinLossFactorsT> listOfWinLossFactors = null;
 
 	if (factors != null) {
@@ -739,7 +718,7 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside constructOppWinLoss of OpportunityUploadService");
 	return listOfWinLossFactors;
     }
 
@@ -750,10 +729,12 @@ public class OpportunityUploadService {
      * @return boolean
      */
     private boolean searchWinLossFactor(String value) {
+    	logger.debug("Begin:Inside searchWinLossFactor of OpportunityUploadService");
 	boolean flag = false;
 	if (listOfWinLossFactors.contains(value)) {
 	    flag = true;
 	}
+	logger.debug("End:Inside searchWinLossFactor of OpportunityUploadService");
 	return flag;
     }
 
@@ -766,7 +747,7 @@ public class OpportunityUploadService {
      */
     private List<String> getCompetitorNameFromCompetitorMappingT()
 	    throws Exception {
-
+    	logger.debug("Begin:Inside getCompetitorNameFromCompetitorMappingT of OpportunityUploadService");
 	List<String> listOfCompName = new ArrayList<String>();
 
 	List<CompetitorMappingT> listOfCompMapping = (List<CompetitorMappingT>) competitorRepository
@@ -777,9 +758,8 @@ public class OpportunityUploadService {
 		listOfCompName.add(cmt.getCompetitorName());
 	    }
 	}
-
+	logger.debug("End:Inside getCompetitorNameFromCompetitorMappingT of OpportunityUploadService");
 	return listOfCompName;
-
     }
 
     /**
@@ -790,7 +770,7 @@ public class OpportunityUploadService {
      * @throws Exception
      */
     private List<String> getSubSpFromSubSpMappingT() throws Exception {
-
+    	logger.debug("Begin:Inside getSubSpFromSubSpMappingT of OpportunityUploadService");
 	List<String> subSpnames = new ArrayList<String>();
 
 	List<SubSpMappingT> listOfSubSpMapping = (List<SubSpMappingT>) subSpRepository
@@ -801,9 +781,8 @@ public class OpportunityUploadService {
 		subSpnames.add(ssmt.getSubSp());
 	    }
 	}
-
+	logger.debug("End:Inside getSubSpFromSubSpMappingT of OpportunityUploadService");
 	return subSpnames;
-
     }
 
     /**
@@ -815,7 +794,7 @@ public class OpportunityUploadService {
      */
     private List<String> getWinLossFactorsFromWinLossFactorsMappingT()
 	    throws Exception {
-
+    	logger.debug("Begin:Inside getWinLossFactorsFromWinLossFactorsMappingT of OpportunityUploadService");
 	List<String> winLossFactors = new ArrayList<String>();
 
 	List<WinLossFactorMappingT> listOfWinLossFactorMapping = (List<WinLossFactorMappingT>) winLossMappingRepository
@@ -827,9 +806,8 @@ public class OpportunityUploadService {
 		winLossFactors.add(wlfmt.getWinLossFactor());
 	    }
 	}
-
+	logger.debug("End:Inside getWinLossFactorsFromWinLossFactorsMappingT of OpportunityUploadService");
 	return winLossFactors;
-
     }
 
     /**
@@ -842,7 +820,7 @@ public class OpportunityUploadService {
     private List<String> getOfferingsFromOfferingMappingT() throws Exception {
 
 	List<String> offerings = new ArrayList<String>();
-
+	logger.debug("Begin:Inside getOfferingsFromOfferingMappingT of OpportunityUploadService");
 	List<OfferingMappingT> listOfOfferingMapping = (List<OfferingMappingT>) offeringRepository
 		.findAll();
 
@@ -852,9 +830,8 @@ public class OpportunityUploadService {
 		offerings.add(omt.getOffering());
 	    }
 	}
-
+	logger.debug("End:Inside getOfferingsFromOfferingMappingT of OpportunityUploadService");
 	return offerings;
-
     }
 
     /**
@@ -870,6 +847,7 @@ public class OpportunityUploadService {
 	    String values, String userId) throws Exception {
 
 	List<OpportunityCompetitorLinkT> listCompetitorLink = null;
+	logger.debug("Begin:Inside constructOppCompetitorLink of OpportunityUploadService");
 	if (values != null) {
 
 	    listCompetitorLink = new ArrayList<OpportunityCompetitorLinkT>();
@@ -895,9 +873,8 @@ public class OpportunityUploadService {
 		}
 
 	    }
-
 	}
-
+	logger.debug("End:Inside constructOppCompetitorLink of OpportunityUploadService");
 	return listCompetitorLink;
     }
 
@@ -908,12 +885,12 @@ public class OpportunityUploadService {
      * @return boolean
      */
     private boolean searchCompetitorMappingT(String cName) throws Exception {
-
+    	logger.debug("Begin:Inside searchCompetitorMappingT of OpportunityUploadService");
 	boolean flag = false;
 	if (listOfCompetitors.contains(cName)) {
 	    flag = true;
 	}
-
+	logger.debug("End:Inside searchCompetitorMappingT of OpportunityUploadService");
 	return flag;
     }
 
@@ -930,6 +907,7 @@ public class OpportunityUploadService {
 	    String values, String userId) throws Exception {
 
 	List<OpportunitySalesSupportLinkT> listOfOppSubSpLink = null;
+	logger.debug("Begin:Inside constructOppSalesSupportLink of OpportunityUploadService");
 	if (!StringUtils.isEmpty(values)) {
 
 	    listOfOppSubSpLink = new ArrayList<OpportunitySalesSupportLinkT>();
@@ -953,9 +931,8 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside constructOppSalesSupportLink of OpportunityUploadService");
 	return listOfOppSubSpLink;
-
     }
 
     /**
@@ -965,12 +942,12 @@ public class OpportunityUploadService {
      * @return boolean
      */
     private boolean searchGeographyCountryMappingT(String cName) throws Exception {
-
+    	logger.debug("Begin:Inside searchGeographyCountryMappingT of OpportunityUploadService");
 	boolean flag = false;
 	if (listOfCountry.contains(cName)) {
 	    flag = true;
 	}
-
+	logger.debug("End:Inside searchGeographyCountryMappingT of OpportunityUploadService");
 	return flag;
     }
     
@@ -981,12 +958,12 @@ public class OpportunityUploadService {
      * @return boolean
      */
     private boolean searchBidDetailsMappingT(String bidType) throws Exception {
-
+    	logger.debug("Begin:Inside searchBidDetailsMappingT of OpportunityUploadService");
 	boolean flag = false;
 	if (listOfBidRequestType.contains(bidType)) {
 	    flag = true;
 	}
-
+	logger.debug("End:Inside searchBidDetailsMappingT of OpportunityUploadService");
 	return flag;
     }
 
@@ -1010,6 +987,7 @@ public class OpportunityUploadService {
 	    String winProbability, String coreAttributes, String userId)
 	    throws Exception {
 
+    	logger.debug("Begin:Inside constructbidDetailsT of OpportunityUploadService");
 	List<BidDetailsT> listOfBidDetailsT = new ArrayList<BidDetailsT>();
 
 	if(searchBidDetailsMappingT(bidReqType)){
@@ -1048,9 +1026,8 @@ public class OpportunityUploadService {
 	} else {
 	    throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Bid Request Type");
 	} 
-
+	logger.debug("End:Inside constructbidDetailsT of OpportunityUploadService");
 	return listOfBidDetailsT;
-
     }
 
     /**
@@ -1061,6 +1038,7 @@ public class OpportunityUploadService {
      * @return String
      */
     private String validateAndRectifyValue(String value) {
+    	logger.debug("Begin:Inside validateAndRectifyValue of OpportunityUploadService");
 	String val = value;
 	if (value != null) {
 	    if (value.substring(value.length() - 2, value.length())
@@ -1068,6 +1046,7 @@ public class OpportunityUploadService {
 		val = value.substring(0, value.length() - 2);
 	    }
 	}
+	logger.debug("End:Inside validateAndRectifyValue of OpportunityUploadService");
 	return val;
     }
 
@@ -1082,7 +1061,7 @@ public class OpportunityUploadService {
      */
     private List<OpportunitySubSpLinkT> constructOppSubSpLink(String values,
 	    String userId) throws Exception {
-
+    	logger.debug("Begin:Inside constructOppSubSpLink of OpportunityUploadService");
 	List<OpportunitySubSpLinkT> listOfOppSubSpLink = null;
 	if (values != null) {
 
@@ -1105,13 +1084,10 @@ public class OpportunityUploadService {
 		    throw new DestinationException(HttpStatus.NOT_FOUND,
 			    "Invalid SubSp");
 		}
-
 	    }
-
 	}
-
+	logger.debug("End:Inside constructOppSubSpLink of OpportunityUploadService");
 	return listOfOppSubSpLink;
-
     }
 
     /**
@@ -1121,10 +1097,12 @@ public class OpportunityUploadService {
      * @return boolean
      */
     private boolean searchSubSpMappingT(String value) throws Exception {
+    	logger.debug("Begin:Inside searchSubSpMappingT of OpportunityUploadService");
 	boolean flag = false;
 	if (listOfSubSp.contains(value)) {
 	    flag = true;
 	}
+	logger.debug("End:Inside searchSubSpMappingT of OpportunityUploadService");
 	return flag;
     }
 
@@ -1139,7 +1117,7 @@ public class OpportunityUploadService {
      */
     private List<OpportunityOfferingLinkT> constructOppOfferingLink(
 	    String values, String userId) throws Exception {
-
+    	logger.debug("Begin:Inside constructOppOfferingLink of OpportunityUploadService");
 	List<OpportunityOfferingLinkT> listOfOppOfferingLink = null;
 	if (values != null) {
 
@@ -1165,9 +1143,8 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside constructOppOfferingLink of OpportunityUploadService");
 	return listOfOppOfferingLink;
-
     }
 
     /**
@@ -1224,11 +1201,13 @@ public class OpportunityUploadService {
      * @throws Exception
      */
     public File convert(MultipartFile file) throws Exception {
+    	logger.debug("Begin:Inside convert of OpportunityUploadService");
 	File convFile = new File(file.getOriginalFilename());
 	convFile.createNewFile();
 	FileOutputStream fos = new FileOutputStream(convFile);
 	fos.write(file.getBytes());
 	fos.close();
+	logger.debug("End:Inside convert of OpportunityUploadService");
 	return convFile;
     }
 
@@ -1240,7 +1219,7 @@ public class OpportunityUploadService {
      */
     private Map<String, String> getNameAndIdFromCustomerMasterT()
 	    throws Exception {
-
+    	logger.debug("Begin:Inside getNameAndIdFromCustomerMasterT of OpportunityUploadService");
 	Map<String, String> mapOfCMT = new HashMap<String, String>();
 	try {
 	    List<Object[]> listOfCustomerMasterT = customerRepository
@@ -1252,9 +1231,8 @@ public class OpportunityUploadService {
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
-
+	logger.debug("End:Inside getNameAndIdFromCustomerMasterT of OpportunityUploadService");
 	return mapOfCMT;
-
     }
 
     /**
@@ -1265,7 +1243,8 @@ public class OpportunityUploadService {
      */
     private Map<String, String> getNameAndIdFromPartnerMasterT()
 	    throws Exception {
-
+    
+    	logger.debug("Begin:Inside getNameAndIdFromPartnerMasterT of OpportunityUploadService");
 	List<Object[]> listOfPartnerMasterT = partnerRepository
 		.getPartnerNameAndId();
 
@@ -1274,9 +1253,8 @@ public class OpportunityUploadService {
 	for (Object[] ob : listOfPartnerMasterT) {
 	    mapOfPMT.put(ob[0].toString().trim(), ob[1].toString().trim());
 	}
-
+	logger.debug("End:Inside getNameAndIdFromPartnerMasterT of OpportunityUploadService");
 	return mapOfPMT;
-
     }
 
     /**
@@ -1286,7 +1264,7 @@ public class OpportunityUploadService {
      * @throws Exception
      */
     private Map<String, String> getNameAndIdFromUserT() throws Exception {
-
+    	logger.debug("Begin:Inside getNameAndIdFromUserT of OpportunityUploadService");
 	List<Object[]> listOfUsers = userRepository.getNameAndId();
 
 	Map<String, String> mapOfUserT = new HashMap<String, String>();
@@ -1294,9 +1272,8 @@ public class OpportunityUploadService {
 	for (Object[] ut : listOfUsers) {
 	    mapOfUserT.put(ut[0].toString().trim(), ut[1].toString().trim());
 	}
-
+	logger.debug("End:Inside getNameAndIdFromUserT of OpportunityUploadService");
 	return mapOfUserT;
-
     }
 
     /**
@@ -1306,7 +1283,7 @@ public class OpportunityUploadService {
      * @throws Exception
      */
     private ContactTMapDTO getNameAndIdFromContactT() throws Exception {
-
+    	logger.debug("Begin:Inside getNameAndIdFromContactT of OpportunityUploadService");
 	List<ContactT> listOfContactT = (List<ContactT>) contactRepository
 		.findAll();
 
@@ -1341,9 +1318,8 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside getNameAndIdFromContactT of OpportunityUploadService");
 	return cmDTO;
-
     }
 
     /**
@@ -1361,7 +1337,7 @@ public class OpportunityUploadService {
 	    throws Exception {
 
 	List<OpportunityPartnerLinkT> listOppPartnerLinkT = null;
-
+	logger.debug("Begin:Inside constructOppPartnerLink of OpportunityUploadService");
 	if (partnerValues != null) {
 
 	    listOppPartnerLinkT = new ArrayList<OpportunityPartnerLinkT>();
@@ -1381,7 +1357,7 @@ public class OpportunityUploadService {
 		}
 	    }
 	}
-
+	logger.debug("End:Inside constructOppPartnerLink of OpportunityUploadService");
 	return listOppPartnerLinkT;
     }
 
@@ -1400,6 +1376,7 @@ public class OpportunityUploadService {
 	    throws Exception {
 
 	List<OpportunityCustomerContactLinkT> listOppCustomerLinkT = null;
+	logger.debug("Begin:Inside constructOppCustomerContactLink of OpportunityUploadService");
 	if (custNames != null) {
 
 	    listOppCustomerLinkT = new ArrayList<OpportunityCustomerContactLinkT>();
@@ -1420,7 +1397,7 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside constructOppCustomerContactLink of OpportunityUploadService");
 	return listOppCustomerLinkT;
     }
 
@@ -1439,6 +1416,8 @@ public class OpportunityUploadService {
 	    throws Exception {
 
 	List<OpportunityTcsAccountContactLinkT> listTcsContactLinkT = null;
+	logger.debug("Begin:Inside constructOppTCSContactLink of OpportunityUploadService");
+
 	if (tcsNames != null) {
 
 	    listTcsContactLinkT = new ArrayList<OpportunityTcsAccountContactLinkT>();
@@ -1459,7 +1438,7 @@ public class OpportunityUploadService {
 	    }
 
 	}
-
+	logger.debug("End:Inside constructOppTCSContactLink of OpportunityUploadService");
 	return listTcsContactLinkT;
     }
 

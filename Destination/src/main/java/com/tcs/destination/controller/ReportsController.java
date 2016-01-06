@@ -26,6 +26,7 @@ import com.tcs.destination.service.ReportsService;
 import com.tcs.destination.service.ReportsUploadService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /*
@@ -158,8 +159,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-
-				String repName = "TargetVsActualDetailReport_" + todaysDate
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_TargetVsActualDetailReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
@@ -220,8 +221,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-
-				String repName = "TargetVsActualSummaryReport_" + todaysDate
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_TargetVsActualSummaryReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
@@ -284,8 +285,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-
-				String repName = "TargetVsActualReport_" + todaysDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName =environmentName+"_TargetVsActualReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -350,7 +351,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-				String repName = "connectDetailedReport_" + todaysDate
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName =environmentName+"_connectDetailedReport_" + todaysDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
@@ -414,7 +416,8 @@ public class ReportsController {
 								geography, country, serviceline, userId, fields);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String todaysDate = DateUtils.getCurrentDate();
-				String repName = "connectSummaryReport_" + todaysDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_connectSummaryReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -481,7 +484,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String todaysDate = DateUtils.getCurrentDate();
-				String repName = "connectReport_" + todaysDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName =environmentName+"_connectReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -548,7 +552,8 @@ public class ReportsController {
 								userId, fields);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String todaysDate = DateUtils.getCurrentDate();
-				String repName = "bidDetailsReport_" + todaysDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_bidDetailsReport_" + todaysDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -608,7 +613,8 @@ public class ReportsController {
 								country, iou, serviceline, salesStage,
 								currency, userId, fields, toDate);
 				HttpHeaders respHeaders = new HttpHeaders();
-				String repName = "OpportunityReport_" + toDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -679,7 +685,8 @@ public class ReportsController {
 								salesStage, userId);
 				HttpHeaders respHeaders = new HttpHeaders();
 				String toDate = DateUtils.getCurrentDate();
-				String repName = "OpportunityReport_" + toDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName =environmentName+"_OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentType(MediaType
@@ -749,7 +756,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String toDate = DateUtils.getCurrentDate();
-				String repName = "OpportunityReport_" + toDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_OpportunityReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
 						.setContentDispositionFormData("attachment", repName);
@@ -821,8 +829,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String toDate = DateUtils.getCurrentDate();
-
-				String repName = "BdmPerformanceDetailedReport_" + toDate
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName =environmentName+"_BdmPerformanceDetailedReport_" + toDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
 				respHeaders
@@ -892,8 +900,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String toDate = DateUtils.getCurrentDate();
-
-				String repName = "BdmPerformanceSummaryReport_" + toDate
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_BdmPerformanceSummaryReport_" + toDate
 						+ ".xlsx";
 				respHeaders.add("reportName", repName);
 
@@ -965,8 +973,8 @@ public class ReportsController {
 						.setContentType(MediaType
 								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 				String toDate = DateUtils.getCurrentDate();
-
-				String repName = "BdmPerformanceReport_" + toDate + ".xlsx";
+				String environmentName=PropertyUtil.getProperty("environment.name");
+				String repName = environmentName+"_BdmPerformanceReport_" + toDate + ".xlsx";
 				respHeaders.add("reportName", repName);
 
 				respHeaders

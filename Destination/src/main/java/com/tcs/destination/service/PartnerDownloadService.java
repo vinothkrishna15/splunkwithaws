@@ -44,6 +44,9 @@ import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.PropertyUtil;
 
+/**
+ * This service downloads partner data from database into an excel
+ */
 @Service
 public class PartnerDownloadService 
 {
@@ -58,9 +61,15 @@ public class PartnerDownloadService
 
 	private static final Logger logger = LoggerFactory.getLogger(PartnerDownloadService .class);
 
+	/**
+	 * this method downloads the sheet Partner Master
+	 * @param oppFlag
+	 * @return
+	 * @throws Exception
+	 */
 	public InputStreamResource getPartners(boolean oppFlag) throws Exception 
 	{
-		logger.info("Inside getPartners() method"); 
+		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
@@ -85,12 +94,19 @@ public class PartnerDownloadService
 			e.printStackTrace();
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
 		}
+		logger.debug("End:Inside getPartners() method of PartnerDownloadService"); 
 		return inputStreamResource;
 	}
 
+	/**
+	 * this method downloads the sheet Partner Contacts
+	 * @param oppFlag
+	 * @return
+	 * @throws Exception
+	 */
 	public InputStreamResource getPartnerContacts(boolean oppFlag) throws Exception 
 	{
-		logger.info("Inside getPartnerscontacts() method"); 
+		logger.debug("Begin:Inside getPartnerContacts() method of PartnerDownloadService"); 
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
 		try 
@@ -98,7 +114,7 @@ public class PartnerDownloadService
 			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
 					(PropertyUtil.getProperty
 							(Constants.PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME)));
-			
+
 			// Populate Partner Contacts Sheet
 			if(oppFlag){
 				populateContactSheets(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME));
@@ -118,18 +134,18 @@ public class PartnerDownloadService
 			e.printStackTrace();
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
 		}
+		logger.debug("End:Inside getPartnerContacts() method of PartnerDownloadService"); 
 		return inputStreamResource;
 	}
+
 	/**
 	 * This Method Writes partner names into the workbook
-	 * 
+	 * @param partnerSheet
 	 */
 	private void  populatePartnerMasterSheet(Sheet partnerSheet) 
 	{
 		//Get the Partner Master Sheet From Workbook
-		logger.info("Populating Partner Master Sheet"); 
-
-
+		logger.debug("Begin:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
 		List<Object[]> partnerMasterNamesList=partnerRepository.getPartnerNameAndGeography();
@@ -144,6 +160,7 @@ public class PartnerDownloadService
 			// Increment row counter
 			currentRow++;
 		}
+		logger.debug("End:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 	}
 
 	/**
@@ -153,7 +170,7 @@ public class PartnerDownloadService
 	 */
 	public void populateContactSheets(Sheet partnerContactSheet) throws Exception
 	{
-
+		logger.debug("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
 		List<ContactT> listOfContact = (List<ContactT>) contactRepository.findAll();
 
 		if(listOfContact!=null) {
@@ -191,7 +208,6 @@ public class PartnerDownloadService
 				}
 			}
 		}
-
+		logger.debug("Begin:Inside populateContactSheets() method of PartnerDownloadService"); 
 	}
-
 }

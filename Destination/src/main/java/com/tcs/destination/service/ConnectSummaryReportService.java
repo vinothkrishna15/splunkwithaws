@@ -23,6 +23,9 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
 
+/**
+ * This service deals with connect summary reports related requests
+ */
 @Component
 public class ConnectSummaryReportService {
 
@@ -42,6 +45,7 @@ public class ConnectSummaryReportService {
 			List<Object[]> geographyConnectCountList,
 			List<Object[]> iouConnectCountList, String month, String quarter,
 			String year, SXSSFWorkbook workbook) throws Exception {
+		logger.debug("Begin: Inside getSummaryReport() of ConnectSummaryReportService");
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Summary Report");
 		SXSSFRow row = null;
 		int currentRow = 0;
@@ -71,6 +75,7 @@ public class ConnectSummaryReportService {
 					spreadSheet, row, currentRow, colValue, cellStyle,
 					cellStyle1);
 		}
+		logger.debug("End: Inside getSummaryReport() of ConnectSummaryReportService");
 	}
 
 	public int connectSummaryReport(List<Object[]> subSpConnectCountList,
@@ -78,6 +83,7 @@ public class ConnectSummaryReportService {
 			List<Object[]> iouConnectCountList, String date,
 			SXSSFSheet spreadSheet, SXSSFRow row, int currentRow, int colValue,
 			CellStyle cellStyle, CellStyle cellStyle1) {
+		logger.debug("Begin: Inside connectSummaryReport() of ConnectSummaryReportService");
 		SXSSFCell cell1 = (SXSSFCell) row.createCell(colValue);
 		cell1.setCellValue(date);
 		cell1.setCellStyle(cellStyle);
@@ -94,12 +100,14 @@ public class ConnectSummaryReportService {
 		currentRow = summaryReport(iouConnectCountList, spreadSheet,
 				currentRow, colValue, cellStyle1, ReportConstants.IOUSPLIT);
 		currentRow++;
+		logger.debug("End:: Inside connectSummaryReport() of ConnectSummaryReportService");
 		return currentRow;
 	}
 
 	public int summaryReport(List<Object[]> connectCountList,
 			SXSSFSheet spreadSheet, int currentRow, int colValue,
 			CellStyle cellStyle, String subHeader) {
+		logger.debug("Begin:: Inside summaryReport() of ConnectSummaryReportService");
 		SXSSFRow row;
 		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		SXSSFCell cell2 = (SXSSFCell) row.createCell(colValue);
@@ -148,6 +156,7 @@ public class ConnectSummaryReportService {
 			currentRow++;
 		}
 		}
+		logger.debug("End:: Inside summaryReport() of ConnectSummaryReportService");
 		return currentRow;
 	}
 

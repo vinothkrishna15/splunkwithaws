@@ -22,6 +22,10 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * This service finds the trending opportunities,  
+ * to retrieve a comment, to retrieve  a distinct comment
+ */
 @Service
 public class TrendingService {
 
@@ -40,7 +44,13 @@ public class TrendingService {
 	@Autowired
 	CollaborationCommentsRepository commentsRepository;
 
+/**
+ * this method finds the trending opportunities
+ * @param count
+ * @return
+ */
 	public List<OpportunityT> findtrendingOpportunities(int count) {
+		logger.debug("Begin:findtrendingOpportunities() in TrendingService"); 
 		List<OpportunityT> tempList;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		tempList = oppRepository.findTrendingOpportunities(userId);
@@ -50,14 +60,21 @@ public class TrendingService {
 		} else {
 			oppList = tempList;
 		}
+		logger.debug("End:findtrendingOpportunities() in TrendingService"); 
 		return oppList;
 	}
 
+	/**
+	 * this method retrieves distinct comments
+	 * @param timestamp
+	 * @param count
+	 * @param entityType
+	 * @return
+	 * @throws Exception
+	 */
 	public TimelineResponse getDistinctComment(Timestamp timestamp, int count,
 			String entityType) throws Exception {
-
-		logger.info("Page Token(timestamp) : " + timestamp
-				+ " , records to fetch : " + count + " , entityType");
+		logger.debug("Begin: getDistinctComment() in TrendingService"); 
 		TimelineResponse response = new TimelineResponse();
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -66,9 +83,6 @@ public class TrendingService {
 				userId, timestamp, count);
 
 		if (entityIdList != null && entityIdList.size() != 0) {
-			int listSize = entityIdList.size();
-			logger.info("Distinct Comments Retrieved Size : " + listSize
-					+ " for token: " + timestamp.toString());
 			for (Object[] item : entityIdList) {
 				String commentId = (String) item[0];
 				String entityTypeRetrieved = (String) item[1];
@@ -79,27 +93,34 @@ public class TrendingService {
 						entityTypeRetrieved, entityId, commentId, dateTime);
 			}
 		} else {
-			logger.info("Datalist empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Relevant Data found");
 		}
 
 		response.setBean(filteredList);
 		if(filteredList.isEmpty()){
-			logger.info("Datalist Doesnt have any Destired Entity Types");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Relevant Data found");
 		}
 		int responseListSize = filteredList.size() - 1;
 		EntityBean lastItem = filteredList.get(responseListSize);
 		response.setToken(lastItem.getDateTime());
-		logger.info("Page Token sent : " + response.getToken());
+		//logger.debug("Page Token sent : " + response.getToken());
+		logger.debug("End: getDistinctComment() in TrendingService"); 
 		return response;
 	}
-
+/**
+ * 
+ * @param filteredList
+ * @param entityTypeRetrieved
+ * @param entityId
+ * @param commentId
+ * @param dateTime
+ */
 	private void populateAndAddtoResponseBeanList(
 			List<EntityBean> filteredList, String entityTypeRetrieved,
 			String entityId, String commentId, Timestamp dateTime) {
+		logger.debug("Begin: populateAndAddtoResponseBeanList() in TrendingService"); 
 		EntityBean e = new EntityBean();
 		e.setCommentId(commentId);
 		if (EntityType.contains(entityTypeRetrieved)) {
@@ -117,8 +138,15 @@ public class TrendingService {
 			e.setDateTime(dateTime);
 			filteredList.add(e);
 		}
+		logger.debug("End: populateAndAddtoResponseBeanList() in TrendingService"); 
 	}
-
+/**
+ * this method returns the end index
+ * @param page
+ * @param count
+ * @param listSize
+ * @return
+ */
 	private int getEndIndex(int page, int count, int listSize) {
 		int endIndex = listSize;
 		if (page == 0) {
@@ -132,6 +160,13 @@ public class TrendingService {
 		return endIndex;
 	}
 
+	/**
+	 * this method returns the start index
+	 * @param page
+	 * @param count
+	 * @param listSize
+	 * @return
+	 */
 	private int getStartIndex(int page, int count, int listSize) {
 		int startIndex = 0;
 		if (page == 0) {
@@ -142,7 +177,15 @@ public class TrendingService {
 		return startIndex;
 	}
 
+	/**
+	 * this method checks whether it is a valid pagination or not
+	 * @param page
+	 * @param count
+	 * @param listSize
+	 * @return
+	 */
 	private boolean isValidPagination(int page, int count, int listSize) {
+		logger.debug("Begin: inside isValidPagination() of TrendingService");
 		boolean isValid = false;
 		int numAllowedPages = 0;
 		int numPages = listSize / count;
@@ -155,10 +198,17 @@ public class TrendingService {
 		if (page < numAllowedPages) {
 			isValid = true;
 		}
+		logger.debug("End: inside isValidPagination() of TrendingService: is It valid?", isValid);
 		return isValid;
 	}
 
+	/**
+	 * this method checks whether it is a valid Entity or not
+	 * @param entityType
+	 * @return
+	 */
 	private boolean isValidEntity(String entityType) {
+		logger.debug("Begin: inside isValidEntity() of TrendingService");
 		boolean isValid = false;
 		if (EntityType.contains(entityType)) {
 			switch (EntityType.valueOf(entityType)) {
@@ -179,11 +229,19 @@ public class TrendingService {
 				isValid = true;
 			}
 		}
-
+		logger.debug("end: inside isValidEntity() of TrendingService: is valid entity?", isValid);
 		return isValid;
 	}
 
+	/**
+	 * this method retrieves a comment from comments repository 
+	 * based on userId
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public List<EntityBean> getComment(int count) throws Exception {
+		logger.debug("Begin: inside getComment() of TrendingService");
 		List<CollaborationCommentT> commentList;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		commentList = commentsRepository.getComments(userId);
@@ -223,16 +281,24 @@ public class TrendingService {
 		} else {
 			size = count;
 		}
+		logger.debug("End: inside getComment() of TrendingService");
 		return filteredList.subList(0, size);
 	}
-
+	
+/**
+ * this method returns the Entity Bean corresponding to the collaboration comment
+ * @param comment
+ * @return
+ */
 	private EntityBean getEntityBean(CollaborationCommentT comment) {
+		logger.debug("Begin: inside getEntityBean() of TrendingService");
 		EntityBean e = new EntityBean();
 		e.setDateTime(comment.getUpdatedDatetime());
 		// e.setCommentId(comment.getCommentId());
 		e.setConnect(comment.getConnectT());
 		e.setTask(comment.getTaskT());
 		e.setOpportunity(comment.getOpportunityT());
+		logger.debug("End: inside getEntityBean() of TrendingService");
 		return e;
 	}
 

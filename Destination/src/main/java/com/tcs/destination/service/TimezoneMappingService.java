@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
 
+/**
+ *This service retrieves all the data from timezone_mapping_t 
+ *
+ */
 @Service
 public class TimezoneMappingService {
 
@@ -20,11 +24,8 @@ public class TimezoneMappingService {
 	TimezoneMappingRepository timezoneMappingRepository;
 
 	public List<TimeZoneMappingT> findAll() {
-		logger.debug("Inside TimeZoneMappingT findAll Service");
+		logger.debug("Inside findAll() TimezoneMappingService");
 		return (List<TimeZoneMappingT>) timezoneMappingRepository
 				.findAll();
 	}
-
-	
-
 }

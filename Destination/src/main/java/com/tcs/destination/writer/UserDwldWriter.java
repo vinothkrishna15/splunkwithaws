@@ -36,6 +36,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.PropertyUtil;
 
 public class UserDwldWriter implements ItemWriter<String[]>,
 		StepExecutionListener {
@@ -98,7 +99,7 @@ public class UserDwldWriter implements ItemWriter<String[]>,
 					.getExecutionContext();
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
-
+			String environmentName=PropertyUtil.getProperty("environment.name");
 			String entity = dataProcessingService.getEntity(request
 					.getRequestType());
 			StringBuffer filePath = new StringBuffer(fileServerPath)
@@ -108,13 +109,14 @@ public class UserDwldWriter implements ItemWriter<String[]>,
 					.append(FILE_DIR_SEPERATOR)
 					.append(request.getUserT().getUserId())
 					.append(FILE_DIR_SEPERATOR);
-			StringBuffer fileName = new StringBuffer(entity)
-					.append(DOWNLOADCONSTANT)
-					.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			StringBuffer fileName = new StringBuffer(environmentName)
+			.append(entity)
+			.append(DOWNLOADCONSTANT)
+			.append(DateUtils.getCurrentDateForFile()).append(XLSM);
+			
 			FileManager.copyFile(filePath.toString(), template,
 					fileName.toString());
-
-			request.setFilePath(filePath.toString());
+            request.setFilePath(filePath.toString());
 			request.setFileName(fileName.toString());
 			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 			dataProcessingRequestRepository.save(request);

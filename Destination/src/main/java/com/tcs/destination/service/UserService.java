@@ -1,6 +1,8 @@
 package com.tcs.destination.service;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -11,25 +13,37 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
+import com.tcs.destination.bean.UserGeneralSettingsT;
+import com.tcs.destination.bean.UserGoalsT;
+import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.GoalGroupMappingRepository;
+import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
+import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 //import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.StringUtils;
 
 /**
  * 
- * This service handles functionalities related to user
+ * This service handles functionalities related to user such as find, last login, login history
+ * privileges and forgot password
  *
  */
 @Service
@@ -42,6 +56,9 @@ public class UserService {
 	UserRepository userRepository;
 
 	@Autowired
+	UserGeneralSettingsRepository userGeneralSettingsRepository;
+
+	@Autowired
 	LoginHistoryRepository loginHistoryRepository;
 
 	@Autowired
@@ -50,7 +67,18 @@ public class UserService {
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
 
-	UserGeneralSettingsRepository userGeneralSettingsRepository;
+	@Autowired
+	UserUploadService userUploadService;
+
+	@Autowired
+	GoalGroupMappingRepository goalGroupMappingRepository;
+
+	@Autowired
+	GoalMappingRepository goalMappingRepository;
+
+	@Autowired
+	UserGoalsRepository userGoalsRepository;
+
 
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -68,7 +96,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<UserT> findByUserName(String nameWith) throws Exception {
-		logger.debug("Inside findByUserName Service");
+		logger.debug("Begin:Inside findByUserName UserService");
 		List<UserT> users = (List<UserT>) userRepository
 				.findByUserNameIgnoreCaseLike("%" + nameWith + "%");
 
@@ -77,7 +105,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-
+		logger.debug("End:Inside findByUserName Service");
 		return users;
 	}
 
@@ -88,7 +116,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<String> findByUserRole(String role) throws Exception {
-		logger.debug("Inside findByUserRole Service");
+		logger.debug("Begin:Inside findByUserRole Service");
 		List<String> users = (List<String>) userRepository
 				.findUserIdByUserRole(role);
 
@@ -97,7 +125,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-
+		logger.debug("End:Inside findByUserRole Service");
 		return users;
 	}
 
@@ -108,7 +136,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public UserT findUserByName(String userName) throws Exception {
-		logger.debug("Inside findUserByName Service");
+		logger.debug("Begin:Inside findUserByName UserService");
 		UserT user = null;
 		try {
 			user = userRepository.findByUserName(userName);
@@ -123,6 +151,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found");
 		}
+		logger.debug("End:Inside findUserByName UserService");
 		return user;
 	}
 
@@ -132,12 +161,13 @@ public class UserService {
 	 * @return
 	 */
 	public Timestamp getUserLastLogin(String userId) {
-		logger.debug("Inside getUserNotification Service");
+		logger.debug("Begin:Inside getUserLastLogin of UserService");
 		Timestamp lastLogin = null;
 		LoginHistoryT loginHistory = loginHistoryRepository
 				.findLastLoginByUserId(userId);
 		if (loginHistory != null)
 			lastLogin = loginHistory.getLoginDatetime();
+		logger.debug("End:Inside getUserLastLogin of UserService");
 		return lastLogin;
 	}
 
@@ -148,17 +178,29 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public boolean adduser(UserT user) throws Exception {
+		logger.debug("Begin:Inside adduser() of Userservice");
 		return userRepository.save(user) != null;
 	}
 
+
+	/**
+	 * This method is used to add login history
+	 * @param loginHistory
+	 * @return
+	 */
+
 	public boolean addLoginHistory(LoginHistoryT loginHistory) {
-		logger.debug("Inside addLoginHistory Service");
+		logger.debug("Begin:Inside addLoginHistory() of Userservice");
 		LoginHistoryT managedLoginHistory = loginHistoryRepository
 				.save(loginHistory);
-		if (managedLoginHistory == null)
+		if (managedLoginHistory == null){
+			logger.debug("End:Inside addLoginHistory() of Userservice");
 			return false;
-		else
+		}
+		else{
+			logger.debug("End:Inside addLoginHistory() of Userservice");
 			return true;
+		}
 	}
 
 	/**
@@ -170,12 +212,13 @@ public class UserService {
 	 */
 	public LoginHistoryT findByUserIdAndSessionId(String userId,
 			String sessionId) throws Exception {
-		logger.debug("Inside findByUserIdAndSessionId() service");
+		logger.debug("Begin:Inside findByUserIdAndSessionId() of Userservice");
 		LoginHistoryT loginHistory = null;
 		if (userId != null && sessionId != null) {
 			loginHistory = loginHistoryRepository.findByUserIdAndSessionId(
 					userId, sessionId);
 		}
+		logger.debug("End:Inside findByUserIdAndSessionId() of Userservice");
 		return loginHistory;
 	}
 
@@ -197,7 +240,9 @@ public class UserService {
 	 * @param user
 	 */
 	public void updateUser(UserT user) {
+		logger.debug("Begin:Inside updateUser() service");
 		userRepository.save(user);
+		logger.debug("End:Inside updateUser() service");
 	}
 
 	/**
@@ -207,7 +252,9 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public UserT findByUserId(String userId) throws Exception {
+		logger.debug("Begin:Inside findByUserId() service");
 		UserT dbUser = userRepository.findOne(userId);
+		logger.debug("End:Inside findByUserId() service");
 		return dbUser;
 	}
 
@@ -218,6 +265,7 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public List<UserT> getUsersByRole(String userRole) throws Exception {
+		logger.debug("Inside getUsersByRole() service");
 		return userRepository.findByUserRole(userRole);
 	}
 
@@ -227,6 +275,7 @@ public class UserService {
 	 * @return
 	 */
 	public boolean isSystemAdmin(String userId) {
+		logger.debug("Inside isSystemAdmin() service");
 		return isUserWithRole(userId, UserRole.SYSTEM_ADMIN.getValue());
 
 	}
@@ -238,6 +287,7 @@ public class UserService {
 	 * @return
 	 */
 	private boolean isUserWithRole(String userId, String userRole) {
+		logger.debug("Inside isUserWithRole() service");
 		return !(userRepository.findByUserIdAndUserRole(userId, userRole)
 				.isEmpty());
 	}
@@ -251,7 +301,7 @@ public class UserService {
 	 */
 	public void forgotPassword(String userId, String userEmailId)
 			throws Exception {
-		logger.debug("Inside forgotPassword() service");
+		logger.debug("Begin:Inside forgotPassword() of Userservice");
 		UserT user = userRepository.findOne(userId);
 		if (user != null) {
 			String retrievedMailId = user.getUserEmailId();
@@ -268,6 +318,7 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"User not found: " + userId);
 		}
+		logger.debug("End:Inside forgotPassword() of Userservice");
 	}
 
 	/**
@@ -296,7 +347,7 @@ public class UserService {
 	 */
 	public List<UserAccessPrivilegesT> getAllChildPrivilegesByUserIdAndParentPrivilegeId(
 			String userId, Integer parentPrivilegeId) throws Exception {
-		logger.debug("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() service");
+		logger.debug("Inside getAllChildPrivilegesByUserIdAndParentPrivilegeId() of Userservice");
 		return (userAccessPrivilegesRepository
 				.findByUserIdAndParentPrivilegeIdAndIsactive(userId,
 						parentPrivilegeId, Constants.Y));
@@ -311,14 +362,14 @@ public class UserService {
 	 */
 	public boolean insertUser(UserT user, boolean isBulkUpload)
 			throws Exception {
-		logger.debug("inside insertUser method");
+		logger.debug("Begin:inside insertUser() of UserService");
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
-			logger.debug("user Saved : " + user.getUserId());
+			logger.debug("End:inside insertUser() of UserService: user Saved : " + user.getUserId());
 			return true;
 		}
-		logger.debug("user not Saved");
+		logger.debug("End:inside insertUser() of UserService: user not Saved");
 		return false;
 	}
 
@@ -330,6 +381,7 @@ public class UserService {
 	 */
 	public void validateUser(UserT user, boolean isInsert) throws Exception {
 		// check for not null fields
+		logger.debug("Begin:inside validateUser() of UserService");
 		if (StringUtils.isEmpty(user.getUserId())) {
 			logger.error("user id is null");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -394,6 +446,7 @@ public class UserService {
 						"User Group is invalid");
 			}
 		}
+		logger.debug("End:inside validateUser() of UserService");
 	}
 
 	/**
@@ -403,7 +456,7 @@ public class UserService {
 	 */
 	public List<UserT> getByUserRoles(List<String> roles) {
 
-		logger.debug("Inside findByUserRole Service");
+		logger.debug("Begin:Inside findByUserRole() of UserService");
 
 		List<UserT> users = (List<UserT>) userRepository.findByUserRoles(roles);
 
@@ -412,7 +465,187 @@ public class UserService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No matching user found");
 		}
-
+		logger.debug("End:Inside findByUserRole() of UserService");
 		return users;
 	}
+
+	/**
+	 * This service saves user details into user_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void save(List<UserT> insertList) throws Exception {
+		logger.debug("Inside save method");
+		userRepository.save(insertList);
+	}
+
+	/**
+	 * This service saves user details into user_general_settings_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void saveGeneralSettings(List<UserGeneralSettingsT> insertList) throws Exception {
+		logger.debug("Inside save method");
+		userGeneralSettingsRepository.save(insertList);
+	}
+
+	/**
+	 * This service saves user details into user_notification_settings_t
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void saveNotificationSettings(List<UserT> userList) throws Exception {
+		logger.debug("Inside save notifications method");
+		// saving user notification settings for the user
+		List<UserNotificationSettingsT> userNotificationSettingsList=new ArrayList<UserNotificationSettingsT>();
+		for(UserT user:userList)
+		{
+			userNotificationSettingsList = DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user);
+		}
+		userNotificationSettingsRepository.save(userNotificationSettingsList);
+		logger.debug("User Notification Settings : saved");
+
+	}
+
+	/**
+	 * This service saves user details into user_access_priviledges_t
+	 * @param userAccessPrivilegeDTOList
+	 * @throws Exception
+	 */
+	public void saveAccessPriviledgeSettings(List<UserAccessPrivilegeDTO> userAccessPrivilegeDTOList,List<UserT> usersList) throws Exception 
+	{
+		logger.debug("Inside save access privileges method");
+
+		List<UserAccessPrivilegesT> userAccessPrivilegeList=new ArrayList<UserAccessPrivilegesT>();
+
+
+		for(UserAccessPrivilegeDTO accessPrivilegeDTO:userAccessPrivilegeDTOList)
+		{
+
+			// Primary Privilege Value List
+			List<String> primaryPrivilegeValueList=accessPrivilegeDTO.getPrimaryPrivilegeValues();
+
+			for(String primaryPrivilegeValue: primaryPrivilegeValueList)
+			{
+				UserAccessPrivilegesT userAccessPrivilegeT=new UserAccessPrivilegesT();
+				//Setting Primary Privilege Type
+				userAccessPrivilegeT.setPrivilegeType(accessPrivilegeDTO.getPrimaryPrivilegeType());
+
+				//Setting Primary Privilege Value
+				userAccessPrivilegeT.setPrivilegeValue(primaryPrivilegeValue);
+
+				//Setting UserID
+				userAccessPrivilegeT.setUserId(accessPrivilegeDTO.getUserId());
+
+				//Setting IsActive Flag
+				userAccessPrivilegeT.setIsactive("Y");
+
+				userAccessPrivilegesRepository.save(userAccessPrivilegeT);
+
+				if (!StringUtils.isEmpty(accessPrivilegeDTO.getSecondaryPrivilegeType()))
+				{
+
+					Integer parentPrivilegeId=userAccessPrivilegesRepository.getParentPrivilegeId(accessPrivilegeDTO.getUserId(),accessPrivilegeDTO.getPrimaryPrivilegeType(),primaryPrivilegeValue);
+
+					// Secondary Privilege Value List
+					List<String> secondaryPrivilegeValueList=accessPrivilegeDTO.getSecondaryPrivilegeValues();
+					for(String secondaryPrivilegeValue: secondaryPrivilegeValueList)
+					{
+						UserAccessPrivilegesT childUserAccessPrivilegeT=new UserAccessPrivilegesT();
+						//Setting ParentPrivilege Id
+						childUserAccessPrivilegeT.setParentPrivilegeId(parentPrivilegeId);
+
+						//Setting UserID
+						childUserAccessPrivilegeT.setUserId(accessPrivilegeDTO.getUserId()); 
+
+						//Setting Primary Privilege Type
+						childUserAccessPrivilegeT.setPrivilegeType(accessPrivilegeDTO.getSecondaryPrivilegeType());
+
+						//Setting Primary Privilege Value
+						childUserAccessPrivilegeT.setPrivilegeValue(secondaryPrivilegeValue);
+
+						//Setting IsActive Flag
+						childUserAccessPrivilegeT.setIsactive("Y");
+
+						userAccessPrivilegesRepository.save(childUserAccessPrivilegeT);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * This service saves goal details from excel into user_goals_t
+	 * @param goalList
+	 * @param usersList
+	 * @throws Exception
+	 */
+	public void	saveUserGoalsData( List<UserGoalsT> goalList,List<UserT> usersList,String createdModifiedBy,List<UploadServiceErrorDetailsDTO> errorList) throws Exception 
+	{
+		logger.debug("******Inside save user goals method*******");
+
+		UploadServiceErrorDetailsDTO errorDTO=new UploadServiceErrorDetailsDTO();
+
+		for(UserGoalsT userGoalTToBeUpdated:goalList)
+		{
+			String userIdGoalSheet=userGoalTToBeUpdated.getUserId();
+			BigDecimal targetValueInExcel=userGoalTToBeUpdated.getTargetValue();
+			String goalName=userGoalTToBeUpdated.getGoalMappingT().getGoalName();
+			String goalId=goalMappingRepository.findGoalId(goalName);
+			String financialYear=userGoalTToBeUpdated.getFinancialYear();
+			List<UserGoalsT> userGoalsList = userGoalsRepository.getUserGoals(userIdGoalSheet, goalId, financialYear);
+			UserGoalsT userGoalT = userGoalsList.get(0);
+			userGoalT.setTargetValue(targetValueInExcel);
+			if(!goalId.equals("G5")){
+				userGoalsRepository.save(userGoalT);
+			} else {
+				errorDTO.setMessage("Pipeline value provided is ignored for " + userIdGoalSheet);
+				errorList.add(errorDTO);
+			}
+			if(goalId.equals("G4"))
+			{
+				List<UserGoalsT> goalG5List=userGoalsRepository.getUserGoals(userIdGoalSheet, "G5", financialYear);//(userIdGoalSheet,financialYear);
+				UserGoalsT goalG5 = goalG5List.get(0);
+				goalG5.setTargetValue(targetValueInExcel.multiply(new BigDecimal(5)));
+				userGoalsRepository.save(goalG5);
+			}
+		}
+   }
+	/**
+	 * This service saves default user goal details into user_goals_t
+	 * @param usersList
+	 * @param createdModifiedBy
+	 */
+
+	public void insertDefaultGoals(List<UserT> usersList,String createdModifiedBy){
+		for(UserT userT:usersList)
+		{
+			String userId=userT.getUserId();
+			String userGroup=userT.getUserGroup();
+			String currentFinancialYear=DateUtils.getCurrentFinancialYear();
+			StringBuffer financialyear = new StringBuffer("");
+			financialyear.append(currentFinancialYear.substring(0, 3));
+			financialyear.append("'");
+			financialyear.append(currentFinancialYear.substring(3,currentFinancialYear.length()));
+			List<Object[]> goalGroupMappingList= goalGroupMappingRepository.findByUserGroupFinancialyear(userGroup,currentFinancialYear);
+			List<GoalMappingT> goalMappingT=goalMappingRepository.findByFinancialyear(currentFinancialYear);	
+			for(Object[] goalGroupMappingT:goalGroupMappingList)
+			{
+				UserGoalsT userGoalT=new UserGoalsT();
+				userGoalT.setUserId(userId);
+				userGoalT.setFinancialYear(currentFinancialYear);  
+				userGoalT.setGoalId((String)goalGroupMappingT[0]);
+				userGoalT.setTargetValue((BigDecimal)goalGroupMappingT[1]);
+				userGoalT.setCreatedModifiedBy(createdModifiedBy);
+				userGoalsRepository.save(userGoalT);
+			}
+
+		}
+	}
+
 }

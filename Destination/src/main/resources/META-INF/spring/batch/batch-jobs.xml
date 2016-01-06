@@ -31,9 +31,16 @@
 	<import resource="/jobs/actualRevenueDownload-job.xml"/>
 	<import resource="/jobs/opportunityDailyDownload-job.xml"/>
 	<import resource="/jobs/partnerDownload-job.xml"/>
+	<import resource="/jobs/partnerContactDownload-job.xml"/>
+	<import resource="/jobs/partnerContactUpload-job.xml"/>
 	<import resource="/jobs/partnerUpload-job.xml"/>
 	<import resource="/jobs/beaconUpload-job.xml"/>
 	<import resource="/jobs/opportunityShelving-job.xml"/>
+	<import resource="/jobs/beaconDownload-job.xml"/>
+	<import resource="/jobs/customerContactDownload-job.xml"/>
+    <import resource="/jobs/userUpload-job.xml"/>
+    <import resource="/jobs/customerContactUpload-job.xml"/>
+
 	
 </beans>
 	

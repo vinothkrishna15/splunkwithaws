@@ -58,7 +58,7 @@ import com.tcs.destination.utils.FieldValidator;
 import com.tcs.destination.utils.StringUtils;
 
 /**
- * This service helps in uploading opportunities to database
+ * This service helps in uploading users to database
  *
  */
 @Service
@@ -132,7 +132,7 @@ public class UserUploadService {
 	public UploadStatusDTO saveDocument(MultipartFile multipartFile,
 			String userId) throws Exception {
 
-		logger.debug("Inside saveDocument Service");
+		logger.info("start: Inside UserUploadService");
 		UploadStatusDTO uploadStatus = null;
 		Workbook workbook = ExcelUtils.getWorkBook(multipartFile);
 		// Validates the spreadsheet for errors after validating the excel sheet
@@ -174,6 +174,7 @@ public class UserUploadService {
 			}
 
 		}
+		logger.info("start: Inside UserUploadService");
 		return uploadStatus;
 	}
 
@@ -182,6 +183,7 @@ public class UserUploadService {
 	 * @return
 	 */
 	private Map<String, HashMap<String, GoalMappingT>> populateGoalsMap() {
+		logger.info("start: Inside  populateGoalsMap() of UserUploadService");
 
 		Map<String, HashMap<String, GoalMappingT>> goalsMap = new HashMap<String, HashMap<String, GoalMappingT>>();
 
@@ -194,6 +196,7 @@ public class UserUploadService {
 		for (String group : groupArr) {
 			goalsMap.put(group, getGoalsForGroup(group));
 		}
+		logger.info("End: Inside  populateGoalsMap() of UserUploadService");
 		return goalsMap;
 	}
 
@@ -203,13 +206,14 @@ public class UserUploadService {
 	 * @return
 	 */
 	private HashMap<String, GoalMappingT> getGoalsForGroup(String group) {
-
+		
+		logger.info("Start: Inside  getGoalsForGroup() of UserUploadService");
 		HashMap<String, GoalMappingT> goals;
 
 		List<Object[]> goalObjArr = getGoalObjArr(group);
 
 		goals = convertObjArrToGoalMapping(goalObjArr);
-
+		logger.info("End: Inside  getGoalsForGroup() of UserUploadService");
 		return goals;
 	}
 
@@ -221,6 +225,7 @@ public class UserUploadService {
 	private HashMap<String, GoalMappingT> convertObjArrToGoalMapping(
 			List<Object[]> goalObjArr) {
 
+		logger.info("Start: Inside  convertObjArrToGoalMapping() of UserUploadService");
 		HashMap<String, GoalMappingT> goals = new HashMap<String, GoalMappingT>();
 
 		if (!goalObjArr.isEmpty()) {
@@ -244,6 +249,7 @@ public class UserUploadService {
 				goals.put(goalId, goal);
 			}
 		}
+		logger.info("End: Inside  convertObjArrToGoalMapping() of UserUploadService");
 		return goals;
 	}
 
@@ -269,8 +275,8 @@ public class UserUploadService {
 			List<UploadServiceErrorDetailsDTO> sheetErrors,
 			Iterator<Row> userMasterIterator, int processedCount)
 			throws Exception {
+		logger.info("Start: Inside  saveUser() of UserUploadService");
 		Row userRow = userMasterIterator.next();
-		logger.debug("Row : " + (userRow.getRowNum() + 1));
 		List<CellModel> CellModelList = new ArrayList<CellModel>();
 		String action = userRow.getCell(0).getStringCellValue();
 		if (action.equalsIgnoreCase(Constants.ACTION_ADD)) {
@@ -329,9 +335,6 @@ public class UserUploadService {
 					user.setSupervisorUserName(supervisorNameCellModel
 							.getCellValue());
 					userRepository.save(user);
-					logger.debug(userNameCellModel.getCellValue());
-					logger.debug(userGroupCellModel.getCellValue());
-					logger.debug("User : saved");
 
 					// saving user general settings for the user
 					UserGeneralSettingsT userGenSettings = DestinationUserDefaultObjectsHelper
@@ -340,14 +343,14 @@ public class UserUploadService {
 											.getCellValue()),
 									userGenTimeZoneCellModel.getCellValue());
 					userGenSettingsRepository.save(userGenSettings);
-					logger.debug("User General Settings : saved");
+					logger.info("User General Settings : saved");
 
 					// saving user notification settings for the user
 					List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
 							.getUserNotificationSettingsList(user);
 					userNotificationSettingsRepository
 							.save(userNotificationSettingsList);
-					logger.debug("User Notification Settings : saved");
+					logger.info("User Notification Settings : saved");
 
 					// saving privileges for the user
 					populateAndSavePrivileges(workbook, user, sheetErrors);
@@ -366,7 +369,7 @@ public class UserUploadService {
 				}
 			}
 		}
-
+		logger.info("End: Inside  saveUser() of UserUploadService");
 	}
 
 	/**
@@ -377,6 +380,8 @@ public class UserUploadService {
 	 */
 	private void populateAndSaveGoals(Workbook workbook, UserT user,
 			List<UploadServiceErrorDetailsDTO> sheetErrors) {
+		
+		logger.info("Start: Inside  populateAndSaveGoals() of UserUploadService");
 		Sheet userGoalsSheet = workbook.getSheetAt(4);
 
 		BigDecimal pipeline_value_for_heads = null;
@@ -385,8 +390,7 @@ public class UserUploadService {
 		HashMap<String, GoalMappingT> defaultGoalsForCurrentUser = defaultGoalsMap
 				.get(userGroup);
 
-		HashMap<String, GoalMappingT> specificGoalsForCurrentUser = (HashMap<String, GoalMappingT>) defaultGoalsForCurrentUser
-				.clone();
+		HashMap<String, GoalMappingT> specificGoalsForCurrentUser = (HashMap<String, GoalMappingT>) defaultGoalsForCurrentUser.clone();
 
 		List<Row> userGoalsRows = getUserRows(user, userGoalsSheet,
 				FieldValidator.UserGoals_UserId);
@@ -464,7 +468,6 @@ public class UserUploadService {
 							.equalsIgnoreCase(UserGroup.STRATEGIC_INITIATIVES
 									.getValue()))) {
 				for (String goalId : specificGoalsSet) {
-					logger.debug("Not found Value for : " + goalId);
 					GoalMappingT defaultgoal = specificGoalsForCurrentUser
 							.get(goalId);
 					UserGoalsT usergoal = new UserGoalsT();
@@ -480,16 +483,15 @@ public class UserUploadService {
 					usergoal.setFinancialYear(defaultgoal.getFinancialyear());
 					usergoal.setCreatedModifiedBy("System");
 					userGoals.add(usergoal);
-					logger.debug("Added goal : " + goalId);
 				}
 			}
 		}
 
 		for (UserGoalsT userGoal : userGoals) {
-			logger.debug("Saving Goal : " + userGoal.getGoalId());
 			userGoalsRepository.save(userGoal);
+			logger.info("Saving Goal : " + userGoal.getGoalId());
 		}
-
+		logger.info("End: Inside  populateAndSaveGoals() of UserUploadService");
 	}
 
 	/**
@@ -501,11 +503,11 @@ public class UserUploadService {
 	private void populateAndSavePrivileges(Workbook workbook, UserT user,
 			List<UploadServiceErrorDetailsDTO> sheetErrors) {
 		Sheet userPrivilegesSheet = workbook.getSheetAt(3);
-
+		logger.info("start: Inside  populateAndSavePrivileges() of UserUploadService");
 		List<Row> userPrivilegeRows = getUserRows(user, userPrivilegesSheet,
 				FieldValidator.User_PrivilegesT_UserId);
 		if (userPrivilegeRows.isEmpty()) {
-			logger.debug("No Access privileges defined");
+			logger.info("No Access privileges defined");
 		} else {
 			for (Row userPrivilegeRow : userPrivilegeRows) {
 				List<CellModel> privilegeModelList = new ArrayList<CellModel>();
@@ -553,10 +555,10 @@ public class UserUploadService {
 								.save(parentAccessPrivilege);
 						Integer parentAccessPrivilegeId = parentAccessPrivilege
 								.getPrivilegeId();
-						logger.debug("Parent Privilege saved : Id - "
-								+ parentAccessPrivilegeId + ", "
-								+ parentTypeCellModel.getCellValue() + " - "
-								+ parentPrivilege);
+				//		logger.debug("Parent Privilege saved : Id - "
+				//				+ parentAccessPrivilegeId + ", "
+					//			+ parentTypeCellModel.getCellValue() + " - "
+					//			+ parentPrivilege);
 						List<String> childValuesList = childValueCellModel
 								.getCellValues();
 						for (String childPrivilege : childValuesList) {
@@ -573,16 +575,17 @@ public class UserUploadService {
 									.save(childAccessPrivilege);
 							Integer childAccessPrivilegeId = childAccessPrivilege
 									.getPrivilegeId();
-							logger.debug("Child Privilege saved : Id - "
-									+ childAccessPrivilegeId + ", parent Id - "
-									+ parentAccessPrivilegeId + ", "
-									+ childTypeCell.getCellValue() + " - "
-									+ childPrivilege);
+						//	logger.debug("Child Privilege saved : Id - "
+						//			+ childAccessPrivilegeId + ", parent Id - "
+						//			+ parentAccessPrivilegeId + ", "
+						//			+ childTypeCell.getCellValue() + " - "
+						//			+ childPrivilege);
 						}
 					}
 				}
 			}
 		}
+		logger.info("End: Inside  populateAndSavePrivileges() of UserUploadService");
 	}
 
 	/**
@@ -594,6 +597,7 @@ public class UserUploadService {
 	private void populateInvalidPrivileges(List<CellModel> privilegeModelList,
 			CellModel cellModel, CellModel parentTypeCellModel) {
 		List<String> privilegeValues = null;
+		logger.info("start: Inside  populateInvalidPrivileges() of UserUploadService");
 		if (cellModel.getErrors() != null && !cellModel.getErrors().isEmpty()) {
 			privilegeModelList.add(cellModel);
 		} else {
@@ -607,6 +611,7 @@ public class UserUploadService {
 			}
 			privilegeModelList.add(cellModel);
 		}
+		logger.info("End: Inside  populateInvalidPrivileges() of UserUploadService");
 	}
 
 	/**
@@ -617,7 +622,7 @@ public class UserUploadService {
 	 */
 	private List<String> getErrorList(List<String> privilegeValues,
 			String privilegeType) {
-
+		logger.info("Start: Inside  getErrorList() of UserUploadService");
 		List<String> errors = new ArrayList<String>();
 		if (privilegeType != null) {
 			for (String privilegeValue : privilegeValues) {
@@ -678,6 +683,7 @@ public class UserUploadService {
 				}
 			}
 		}
+		logger.info("End: Inside  getErrorList() of UserUploadService");
 		return errors;
 	}
 
@@ -687,6 +693,7 @@ public class UserUploadService {
 	 * @return
 	 */
 	private List<String> getValuesList(String value) {
+		logger.info("Start:inside getValuesList() of userUploadService");
 		List<String> values = new ArrayList<String>();
 		if (!StringUtils.isEmpty(value)) {
 			values = Arrays.asList(value.split(", "));
@@ -694,6 +701,7 @@ public class UserUploadService {
 				pValue.trim();
 			}
 		}
+		logger.info("End:inside getValuesList() of userUploadService");
 		return values;
 	}
 
@@ -705,6 +713,7 @@ public class UserUploadService {
 	 * @return
 	 */
 	private List<Row> getUserRows(UserT user, Sheet sheet, String idCol) {
+		logger.info("Start: inside getUserRows() of userUploadService");
 		Iterator<Row> iterator = sheet.iterator();
 		int lastValidRow = sheet.getPhysicalNumberOfRows();
 		int processedCount = 1;
@@ -723,12 +732,11 @@ public class UserUploadService {
 			String action = row.getCell(0).getStringCellValue();
 			if (excelStr.equalsIgnoreCase(user.getUserId())
 					&& action.equalsIgnoreCase(Constants.ACTION_ADD)) {
-				logger.debug("record found in " + sheet.getSheetName());
 				userRows.add(row);
 			}
 			processedCount++;
 		}
-
+		logger.info("End:inside getUserRows() of userUploadService");
 		return userRows;
 	}
 
@@ -741,7 +749,7 @@ public class UserUploadService {
 	private void populateErrorListForRow(Row userRow,
 			List<UploadServiceErrorDetailsDTO> sheetErrors,
 			List<CellModel> cellModelList) {
-
+		logger.info("Start: inside populateErrorListForRow() of userUploadService");
 		for (CellModel cellModel : cellModelList) {
 			List<String> errors = cellModel.getErrors();
 			if (errors != null && !errors.isEmpty()) {
@@ -755,7 +763,7 @@ public class UserUploadService {
 				}
 			}
 		}
-
+		logger.info("End: inside populateErrorListForRow() of userUploadService");
 	}
 
 	/**
@@ -846,6 +854,7 @@ public class UserUploadService {
 	 */
 	private CellModel validateEmptyStrAndLengthForPrivilegeValue(Row userRow,
 			String fieldName, boolean isMandatory) {
+		logger.info("Start: inside validateEmptyStrAndLengthForPrivilegeValue() of userUploadService");
 		Cell cell = userRow.getCell(FieldValidator.FIELD_INDEX_MAP
 				.get(fieldName));
 		String excelStr = getIndividualCellValue(cell);
@@ -867,7 +876,7 @@ public class UserUploadService {
 			cellModel.setCellValue(excelStr);
 			cellModel.setCellValues(values);
 		}
-
+		logger.info("End: inside validateEmptyStrAndLengthForPrivilegeValue() of userUploadService");
 		return cellModel;
 	}
 

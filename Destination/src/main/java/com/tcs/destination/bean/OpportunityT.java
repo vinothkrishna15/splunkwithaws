@@ -277,6 +277,19 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	@Transient
 	private List<OpportunityDealValue> opportunityDealValues;
+	
+	@Transient
+	private boolean isUserFavourite;
+	
+	
+
+	public boolean isUserFavourite() {
+		return isUserFavourite;
+	}
+
+	public void setUserFavourite(boolean isUserFavourite) {
+		this.isUserFavourite = isUserFavourite;
+	}
 
 	public OpportunityT() {
 	}

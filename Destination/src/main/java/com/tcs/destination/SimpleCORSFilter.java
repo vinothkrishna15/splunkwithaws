@@ -9,6 +9,7 @@
  */
 package com.tcs.destination;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +34,6 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -42,47 +42,39 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.PropertyUtil;
 
 /**
- * This SimpleCORSFilter class filters the request for the acceptable parameters
- * for the services
+ * This SimpleCORSFilter class filters the request for the acceptable parameters for the services
  * 
  */
 @Component
 public class SimpleCORSFilter implements Filter {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(SimpleCORSFilter.class);
-
+	private static final Logger logger = LoggerFactory.getLogger(SimpleCORSFilter.class);
+	
 	private static final String PROD = "PROD";
-
+	
 	private static final String UAT = "UAT";
-
-	@Value("${allowed.orgins}")
-	private String allowedOrgin;
-
+	
 	public void doFilter(ServletRequest req, ServletResponse res,
 			FilterChain chain) throws IOException, ServletException {
 		HttpServletResponse response = (HttpServletResponse) res;
-		response.setHeader("Access-Control-Allow-Origin", allowedOrgin);
+		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods",
 				"POST, GET, OPTIONS, DELETE, PUT");
 		response.setHeader("Access-Control-Max-Age", "3600");
-		response.setHeader("Access-Control-Allow-Headers",
-				"accept,authorization,x-requested-with,Content-Type,APP_VERSION,x-auth-token");
-		response.setHeader("Access-Control-Expose-Headers",
-				"x-auth-token,Date,reportName");
+		response.setHeader("Access-Control-Allow-Headers", "accept,authorization,x-requested-with,Content-Type,APP_VERSION,x-auth-token");
+		response.setHeader("Access-Control-Expose-Headers","x-auth-token,Date,reportName");
 		DestinationHttpRequestWrapper myRequestWrapper = logRequest(req);
-		if (myRequestWrapper != null)
+		if(myRequestWrapper!=null)
 			chain.doFilter(myRequestWrapper, res);
 		else
 			chain.doFilter(req, res);
 	}
 
-	private DestinationHttpRequestWrapper logRequest(ServletRequest req)
-			throws ServletException {
+	private DestinationHttpRequestWrapper logRequest(ServletRequest req) throws ServletException {
 		final HttpServletRequest httpServletRequest = (HttpServletRequest) req;
-
+		
 		MDC.remove("userId");
-		MDC.remove("sessionId");
+		MDC.remove("sessionId"); 
 
 		logger.info("======REQUEST DETAILS======");
 		logger.info("Timestamp : " + new Date());
@@ -91,22 +83,17 @@ public class SimpleCORSFilter implements Filter {
 
 		// Get the current HttpSession, do not create one
 		HttpSession session = httpServletRequest.getSession(false);
-
+		
 		// Check if the Login Service has Session populated
-		if (httpServletRequest.getRequestURL().indexOf("/user/login") > 0
-				|| httpServletRequest.getRequestURL()
-						.indexOf("/user/forgotpwd") > 0
-				|| httpServletRequest.getRequestURL().indexOf(
-						"/useraccess/request") > 0) {
+		if (httpServletRequest.getRequestURL().indexOf("/user/login") > 0) {
 			if (session != null) {
-				logger.error("Session should not be passed for this service : "
-						+ session.getId());
-				throw new ServletException(
-						"Session should not be passed for this service");
+				logger.error("Session should not be passed for User Login service : " + 
+						session.getId());
+				throw new ServletException ("Session should not be passed for User Login service");
 			}
 		} else {
 			// validate session based on the environment
-			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)) {
+			switch (PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME)){
 			case UAT:
 			case PROD:// Check if other services has valid session populated
 				if (session == null) {
@@ -118,15 +105,13 @@ public class SimpleCORSFilter implements Filter {
 					MDC.put("sessionId", session.getId());
 				}
 				break;
-			default:
-				break;
+				default : break;
 
 			}
-
+			
 		}
-
-		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper(
-				httpServletRequest);
+		
+		DestinationHttpRequestWrapper myRequestWrapper = new DestinationHttpRequestWrapper(httpServletRequest);
 		try {
 			ServletInputStream inputStream = myRequestWrapper.getInputStream();
 			String postStr = convertStreamToString(inputStream);
@@ -134,22 +119,23 @@ public class SimpleCORSFilter implements Filter {
 				logger.info("POST Data");
 				logger.info(postStr);
 			}
-
-		} catch (Exception e) {
-			logger.error("Cannot read the request details");
-		}
+			
+	    } catch(Exception e){
+	    	logger.error("Cannot read the request details");
+	    }
 		return myRequestWrapper;
 	}
 
 	private StringBuffer getUrlWithParams(final HttpServletRequest httpRequest) {
 		StringBuffer baseUrl = httpRequest.getRequestURL();
-		// logger.info("base url = " + baseUrl);
+		//logger.info("base url = " + baseUrl);
 		Map<String, String[]> parameterMap = httpRequest.getParameterMap();
-		if (parameterMap.size() != 0) {
+		if(parameterMap.size() != 0){
 			baseUrl.append("?");
-			for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+			for (Map.Entry<String, String[]> entry : parameterMap.entrySet())
+			{
 				StringBuffer val = new StringBuffer("");
-				for (String str : entry.getValue()) {
+				for( String str : entry.getValue()){
 					val.append(str);
 				}
 				baseUrl.append(entry.getKey() + "=" + val + "&");
@@ -164,32 +150,33 @@ public class SimpleCORSFilter implements Filter {
 
 	public void destroy() {
 	}
-
-	public String convertStreamToString(InputStream is) throws IOException {
-		//
-		// To convert the InputStream to String we use the
-		// Reader.read(char[] buffer) method. We iterate until the
-		// Reader return -1 which means there's no more data to
-		// read. We use the StringWriter class to produce the string.
-		//
-		if (is != null) {
-			Writer writer = new StringWriter();
-
-			char[] buffer = new char[1024];
-			try {
-				Reader reader = new BufferedReader(new InputStreamReader(is,
-						"UTF-8"));
-				int n;
-				while ((n = reader.read(buffer)) != -1) {
-					writer.write(buffer, 0, n);
-				}
-			} finally {
-				is.close();
-			}
-			return writer.toString();
-		} else {
-			return "";
-		}
-	}
+	
+	public String convertStreamToString(InputStream is)
+            throws IOException {
+        //
+        // To convert the InputStream to String we use the
+        // Reader.read(char[] buffer) method. We iterate until the
+        // Reader return -1 which means there's no more data to
+        // read. We use the StringWriter class to produce the string.
+        //
+        if (is != null) {
+            Writer writer = new StringWriter();
+ 
+            char[] buffer = new char[1024];
+            try {
+                Reader reader = new BufferedReader(
+                        new InputStreamReader(is, "UTF-8"));
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+                is.close();
+            }
+            return writer.toString();
+        } else {        
+            return "";
+        }
+    }
 
 }

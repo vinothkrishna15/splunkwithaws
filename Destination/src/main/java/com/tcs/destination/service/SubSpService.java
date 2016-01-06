@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.data.repository.SubSpRepository;
 
+/**
+ *This class retrieves all the data from subsp_mapping_t 
+ *
+ */
 @Service
 public class SubSpService {
 	
@@ -19,7 +23,7 @@ public class SubSpService {
 	SubSpRepository subSpRepository;
 
 	public ArrayList<SubSpMappingT> findAll() {
-		logger.debug("Inside findAll Service");
+		logger.debug("Inside findAll() SubSpService");
 		return (ArrayList<SubSpMappingT>) subSpRepository.findAll();
 	}
 

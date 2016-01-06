@@ -47,10 +47,13 @@ public class UserGoalsService {
 	 * @throws Exception
 	 */
 	public boolean insertTarget(UserGoalsT userGoal) throws Exception{
+		logger.debug("Begin: insertTarget() of UserGoalservice");
 		validateRequest(userGoal);
 		if(userGoalsRepository.save(userGoal) != null){
+			logger.debug("End: insertTarget() of UserGoalservice");
 			return true;
 		}
+		logger.debug("End: insertTarget() of UserGoalservice");
 		return false;
 	}
 	
@@ -60,6 +63,7 @@ public class UserGoalsService {
 	 * @throws DestinationException
 	 */
 	private void validateRequest(UserGoalsT userGoal) throws DestinationException{
+		logger.debug("Begin: validateRequest() of UserGoalservice");
 	 UserT currentUser = DestinationUtils.getCurrentUserDetails();
 	 String currUser = currentUser.getUserId();
      userGoal.setCreatedModifiedBy(currUser);
@@ -112,7 +116,7 @@ public class UserGoalsService {
     		 throw new DestinationException(HttpStatus.BAD_REQUEST,e.getMessage());
     	 }
      }
-     
+		logger.debug("End: validateRequest() of UserGoalservice");
 	}
 
 	/**
@@ -121,9 +125,12 @@ public class UserGoalsService {
 	 * @return
 	 */
 	private boolean isMultiplierGoalId(String goalId) {
+		logger.debug("Begin: isMultiplierGoalId() of UserGoalservice");
 		if(goalId.equalsIgnoreCase("G5")){
+			logger.debug("End: isMultiplierGoalId() of UserGoalservice");
 		 return true;
 		}
+		logger.debug("End: isMultiplierGoalId() of UserGoalservice");
 		return false;
 	}
 }

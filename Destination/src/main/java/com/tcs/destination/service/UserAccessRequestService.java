@@ -22,6 +22,9 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * This Service handles the requests related to UserAccessRequest service
+ */
 @Service
 public class UserAccessRequestService {
 
@@ -43,11 +46,18 @@ public class UserAccessRequestService {
 	@Autowired
 	UserRepository userRepository;
 
+	/**
+	 * To find the user based on the request id
+	 * @param reqId
+	 * @return
+	 * @throws Exception
+	 */
 	public UserAccessRequestT findUserRequestById(String reqId)
 			throws Exception {
-		logger.debug("Inside searchforfeedbacksById service");
+		logger.debug("Begin:Inside findUserRequestById() UserAccessRequestService");
 		UserAccessRequestT newUserRequest = userAccessReqRepo.findOne(reqId);
 		if (newUserRequest != null) {
+			logger.debug("End:Inside findUserRequestById() UserAccessRequestService");
 			return newUserRequest;
 		} else {
 			logger.error("NOT_FOUND: user Request not found");
@@ -56,23 +66,37 @@ public class UserAccessRequestService {
 		}
 	}
 
+	/**
+	 * to validate and insert the user access request
+	 * @param userAccessRequest
+	 * @return
+	 * @throws Exception
+	 */
 	@Transactional
 	public boolean insertUserRequest(UserAccessRequestT userAccessRequest)
 			throws Exception {
-		logger.debug("Inside insertUserRequest Service");
+		logger.debug("Begin:Inside insertUserRequest() UserAccessRequestService");
 		validateRequest(userAccessRequest, false);
 		if (userAccessReqRepo.save(userAccessRequest) != null) {
-			logger.debug("User Request Record Inserted");
 			// send notification to admin,supervisor and user on saving the
 			// request
 			sendEmailNotification(userAccessRequest.getRequestId(), new Date());
+			logger.debug("End:Inside insertUserRequest() UserAccessRequestService");
 			return true;
 		}
 		return false;
 	}
 
+	/**
+	 * This method handles the operations 
+	 * related to sending the email notifications
+	 * @param requestId
+	 * @param date
+	 * @throws Exception
+	 */
 	private void sendEmailNotification(String requestId, Date date)
 			throws Exception {
+		logger.debug("Begin:Inside sendEmailNotification() UserAccessRequestService");
 		class UserAccessNotificationRunnable implements Runnable {
 			String requestId;
 			Date date;
@@ -98,11 +122,17 @@ public class UserAccessRequestService {
 		UserAccessNotificationRunnable userAccessNotificationRunnable = new UserAccessNotificationRunnable(
 				requestId, date);
 		mailTaskExecutor.execute(userAccessNotificationRunnable);
+		logger.debug("End:Inside sendEmailNotification() UserAccessRequestService");
 	}
-
+	/**
+	 * This method validates the request
+	 * @param userAccessRequest
+	 * @param isUpdate
+	 * @throws Exception
+	 */
 	private void validateRequest(UserAccessRequestT userAccessRequest,
 			boolean isUpdate) throws Exception {
-
+		logger.debug("Begin:Inside validateRequest() UserAccessRequestService");
 		if (StringUtils.isEmpty(userAccessRequest.getUserId())) {
 			logger.error("BAD_REQUEST: UserId is required");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -115,7 +145,7 @@ public class UserAccessRequestService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"User already exists");
 			}
-			
+
 			// Check if any existing pending requests
 			if (!isUpdate) {
 				if (userAccessReqRepo.findByUserIdAndApprovedRejectedByIsNull(
@@ -194,22 +224,33 @@ public class UserAccessRequestService {
 			// Set current timestamp
 			userAccessRequest.setApprovedRejectedDate(DateUtils.getCurrentTimeStamp());
 		}
-
+		logger.debug("End:Inside validateRequest() UserAccessRequestService");
 	}
 
+	/**
+	 * To edit and save the user access request
+	 * @param userAccessRequest
+	 * @return
+	 * @throws Exception
+	 */
 	@Transactional
 	public boolean editUserRequest(UserAccessRequestT userAccessRequest)
 			throws Exception {
-		logger.debug("Inside editUserRequest Service");
+		logger.debug("Begin:Inside editUserRequest() UserAccessRequestService");
 		validateRequest(userAccessRequest, true);
 		if (userAccessReqRepo.save(userAccessRequest) != null) {
-			logger.debug("userRequest Record edited");
+			logger.debug("End:Inside editUserRequest() UserAccessRequestService");
 			return true;
 		}
 		return false;
 	}
 
+	/**
+	 * this method finds all the user access requests
+	 * @return
+	 */
 	public List<UserAccessRequestT> findAllUserAccessRequests() {
+		logger.debug("Inside findAllUserAccessRequests() UserAccessRequestService");
 		return (List<UserAccessRequestT>) userAccessReqRepo.findAll(new Sort(
 				Sort.Direction.DESC, "requestReceivedDate"));
 	}

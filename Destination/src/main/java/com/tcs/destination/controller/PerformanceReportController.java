@@ -179,6 +179,7 @@ public class PerformanceReportController {
 			@RequestParam(value = "iou", defaultValue = "") String iou,
 			@RequestParam(value = "customer", defaultValue = "") String customerName,
 			@RequestParam(value = "groupCustomer", defaultValue = "") String groupCustomer,
+			@RequestParam(value = "customer", defaultValue = "") String customer,
 			@RequestParam(value = "currency", defaultValue = "INR") String currency,
 			@RequestParam(value = "stagefrom", defaultValue = "-1") int salesStageFrom,
 			@RequestParam(value = "stageto", defaultValue = "-1") int salesStageTo,
@@ -195,7 +196,7 @@ public class PerformanceReportController {
 			if (salesStageFrom != salesStageTo || salesStageFrom != -1) {
 				subSpList = perfService.getOpportunitiesBySubSp(financialYear,
 						quarter, displayGeography, geography, iou, currency,
-						salesStageFrom, salesStageTo, userId);
+						salesStageFrom, salesStageTo,groupCustomer,customer, userId);
 
 			} else {
 				subSpList = perfService.getRevenuesBySubSp(financialYear,
@@ -259,8 +260,8 @@ public class PerformanceReportController {
 						financialYear = DateUtils.getCurrentFinancialYear();
 					}
 					geoList = perfService.getOpportunitiesByDispGeography(
-							financialYear, quarter, serviceLine, iou, currency,
-							salesStageFrom, salesStageTo, userId);
+							financialYear, quarter, customerName,serviceLine, iou, currency,
+							salesStageFrom, salesStageTo,groupCustomer, userId);
 				} else {
 					if (financialYear.isEmpty()) {
 						financialYear = DateUtils.getCurrentFinancialYear();

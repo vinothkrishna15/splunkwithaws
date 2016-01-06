@@ -17,7 +17,6 @@ import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
-import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
@@ -26,7 +25,6 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.FollowNotifications;
-import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.DateUtils;
 
 /**
@@ -78,7 +76,7 @@ public class FollowedService {
 	public List<UserTaggedFollowedT> findFollowedFor(String userId,
 			String entityType) throws Exception {
 
-		logger.info("satrt: Inside findFollowedFor Service");
+		logger.debug("satrt: Inside findFollowedFor Service");
 
 		if (EntityType.contains(entityType)) {
 
@@ -96,7 +94,7 @@ public class FollowedService {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"No Relevent Data Found in the database");
 				} else {
-					logger.info("End: Inside findFollowedFor Service");
+					logger.debug("End: Inside findFollowedFor Service");
 					return userFollowed;
 				}
 
@@ -110,11 +108,16 @@ public class FollowedService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No such Entity type exists. Please ensure your entity type");
 		}
-		
 	}
 
+	/**
+	 * method to add a followed
+	 * @param followed
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean addFollow(UserTaggedFollowedT followed) throws Exception {
-		logger.info("Start:Inside addFollowed Followed Service");
+		logger.debug("Start:Inside addFollowed Followed Service");
 		if (EntityType.contains(followed.getEntityType())) {
 			switch (EntityType.valueOf(followed.getEntityType())) {
 			case CONNECT:
@@ -194,7 +197,7 @@ public class FollowedService {
 				UserTaggedFollowedT followDBObj = followedRepository
 						.save(followed);
 				processNotification(followDBObj);
-				logger.info("End: Inside addFollowed Service");
+				logger.debug("End: Inside addFollowed Service");
 				return followDBObj != null;
 			} catch (Exception e) {
 				logger.error("BAD_REQUEST" + e.getMessage());
@@ -207,10 +210,13 @@ public class FollowedService {
 				"Invalid Entity Type");
 	}
 
-	// This method initializes the required fields(according to each entity) for
-	// the notifications executor and starts it
+	/**
+	 * This method initializes the required fields(according to each entity) for
+	 *  the notifications executor and starts it
+	 * @param followDBObj
+	 */
 	private void processNotification(UserTaggedFollowedT followDBObj) {
-		logger.info("start:Calling processNotifications() method");
+		logger.debug("start:Calling processNotifications() Followed Service");
 
 		FollowNotifications followNotificationsHelper = new FollowNotifications();
 		String taskId = followDBObj.getTaskId();
@@ -260,7 +266,7 @@ public class FollowedService {
 			followNotificationsHelper.setEventId(3);
 			notificationsTaskExecutor.execute(followNotificationsHelper);
 		}
-		logger.info("End:Calling processNotifications() method");
+		logger.debug("End:Calling processNotifications() Followed Service");
 	}
 
 	/**
@@ -269,11 +275,11 @@ public class FollowedService {
 	 * @throws Exception
 	 */
 	public void unFollow(String userTaggedFollowedId) throws Exception {
-		logger.info("start:Calling unFollow() method");
+		logger.debug("start:Calling unFollow() method");
 		try {
 			if (userTaggedFollowedId != null)
 				followedRepository.delete(userTaggedFollowedId);
-			logger.info("End:Calling unFollow() method");
+			logger.debug("End:Calling unFollow() method");
 		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

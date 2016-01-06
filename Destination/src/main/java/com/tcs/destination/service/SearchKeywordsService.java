@@ -32,13 +32,14 @@ public class SearchKeywordsService {
 	 * @return keywords
 	 */
 	public List<String> findKeywordsWithNameContaining(String keyword) throws Exception {
-		logger.debug("Inside findKeywordsWithNameContaining Service");
+		logger.info("Begin: Inside findKeywordsWithNameContaining SearchKeywordsService");
 		List<String> keywords = searchKeywordsRepository.findKeywordsWithNameContaining("%" + keyword + "%");
 		if ((keywords == null) || keywords.isEmpty()) {
 			logger.error("NOT_FOUND: No keywords found with the given keyword");
 			throw new DestinationException(
 					HttpStatus.NOT_FOUND, "No keywords found with the given keyword");
 		}
+		logger.info("End: Inside findKeywordsWithNameContaining SearchKeywordsService");
 		return keywords;
 	}
 
@@ -49,7 +50,7 @@ public class SearchKeywordsService {
 	 * @return keywords
 	 */
 	public List<SearchKeywordsT> findKeywordsByEntityTypeAndId(String entityType, String entityId) throws Exception {
-		logger.debug("Inside findKeywordsByEntityTypeAndId Service");
+		logger.info("Begin: Inside findKeywordsByEntityTypeAndId SearchKeywordsService");
 
 		if (!EntityType.contains(entityType)) {
 			logger.error("Invalid Entity Type");
@@ -62,6 +63,7 @@ public class SearchKeywordsService {
 			throw new DestinationException(
 					HttpStatus.NOT_FOUND, "No keywords found with the given Entity Type & Id");
 		}
+		logger.info("End: Inside findKeywordsByEntityTypeAndId SearchKeywordsService");
 		return keywords;
 	}
 }

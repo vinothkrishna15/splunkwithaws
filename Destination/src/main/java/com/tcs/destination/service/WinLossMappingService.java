@@ -25,11 +25,10 @@ public class WinLossMappingService {
 	WinLossMappingRepository winLossMappingRepository;
 
 	/**
-	 * 
-	 * This method is used to retrieve Win Loss Mapping
+	 * This method is used to retrieve all Win Loss Mappings
 	 */
 	public ArrayList<WinLossFactorMappingT> findAll() {
-		logger.debug("Inside findAll Service");
+		logger.debug("Inside findAll method of WinLossMappingService");
 		return (ArrayList<WinLossFactorMappingT>) winLossMappingRepository
 				.findAll();
 	}

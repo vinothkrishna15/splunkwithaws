@@ -58,6 +58,7 @@ public class UserNotificationsService {
 			String read, long fromTime, long toTime)
 			throws DestinationException {
 		try {
+			logger.debug("Begin:Inside getNotifications() UserNotification service");
 			if (!DestinationUtils.getCurrentUserDetails().getUserId()
 					.equalsIgnoreCase(userId))
 				throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -109,6 +110,7 @@ public class UserNotificationsService {
 				}
 			}
 		}
+		logger.debug("End:Inside getNotifications() UserNotification service");
 		return userNotificationsTs;
 	}
 
@@ -124,6 +126,7 @@ public class UserNotificationsService {
 	public boolean saveUserNotifications(
 			List<UserNotificationSettingsT> userNotificationSettings)
 			throws Exception {
+		logger.debug("Begin:Inside saveUserNotifications() UserNotification service");
 		boolean isUpdated = false;
 		for (UserNotificationSettingsT userNotificationSettingsT : userNotificationSettings) {
 			if (userNotificationSettingsT.getUserNotificationSettingsId() != null) {
@@ -154,6 +157,7 @@ public class UserNotificationsService {
 								+ " is invalid user notification settings id");
 			}
 		}
+		logger.debug("End:Inside saveUserNotifications() UserNotification service");
 		return isUpdated;
 	}
 
@@ -169,7 +173,7 @@ public class UserNotificationsService {
 			throws Exception {
 		String status = "";
 		String message = "No User Notification Id provided";
-
+		logger.debug("Begin:Inside updateReadStatus() UserNotification service");
 		if (userNotificationIds != null && userNotificationIds.size() != 0) {
 			if (read.equalsIgnoreCase(Constants.YES)) {
 				status = Constants.YES;
@@ -191,7 +195,7 @@ public class UserNotificationsService {
 				message = updateCount + " " + message;
 			}
 		}
-
+		logger.debug("End:Inside updateReadStatus() UserNotification service");
 		return message;
 	}
 }

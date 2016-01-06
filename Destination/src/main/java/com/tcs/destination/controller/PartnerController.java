@@ -29,6 +29,7 @@ import com.tcs.destination.service.PartnerUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -205,8 +206,8 @@ public class PartnerController {
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-
-			String repName = "PartnerMaster&ContactDownload_" + todaysDate_formatted+ ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+            String repName = environmentName+"_PartnerMaster&ContactDownload_" + todaysDate_formatted+ ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside PartnerController: End of /partner/download GET");
@@ -241,8 +242,8 @@ public class PartnerController {
 			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-
-			String repName = "PartnerContactDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName=PropertyUtil.getProperty("environment.name");
+			String repName = environmentName+"_PartnerContactDownload_" + todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
 			respHeaders.setContentDispositionFormData("attachment",repName);
 			logger.info("Inside PartnerController: End of /partner/contactDownload GET");

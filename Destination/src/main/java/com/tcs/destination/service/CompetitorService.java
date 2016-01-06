@@ -12,6 +12,9 @@ import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.exception.DestinationException;
 
+/**
+ * This service retrieves data from competitor repository
+ */
 @Service
 public class CompetitorService {
 	
@@ -21,6 +24,7 @@ public class CompetitorService {
 	CompetitorRepository compRepository;
 	
 	public List<CompetitorMappingT> findByNameContaining(String chars) throws Exception {
+		logger.debug("Begin:Inside findByNameContaining() of CompetitorService");
 		List<CompetitorMappingT> compList = compRepository
 				.findByCompetitorNameIgnoreCaseLike("%" + chars + "%");
 		if (compList.isEmpty())
@@ -28,8 +32,8 @@ public class CompetitorService {
 			logger.error("NOT_FOUND: No such competitor");
 			throw new DestinationException(HttpStatus.NOT_FOUND,"No such competitor");
 		}
+		logger.info("End:Inside findByNameContaining() of CompetitorService");
 		return compList;
-
 	}
 
 }

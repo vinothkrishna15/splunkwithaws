@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.data.repository.OfferingRepository;
 
+/*
+ *This service retrieves all the data from offering_mapping_t table from DB
+ */
 @Service
 public class OfferingService {
 	
@@ -19,7 +22,7 @@ public class OfferingService {
 	OfferingRepository offeringRepository;
 
 	public ArrayList<OfferingMappingT> findAll() {
-		logger.debug("Inside findAll service");
+		logger.debug("Inside findAll() OfferingService");
 		return (ArrayList<OfferingMappingT>) offeringRepository.findAll();
 	}
 

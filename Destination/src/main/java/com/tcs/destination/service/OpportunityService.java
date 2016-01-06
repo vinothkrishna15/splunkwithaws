@@ -46,6 +46,7 @@ import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
+import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -1017,10 +1018,23 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
+		setUserFavourite(opportunityT);
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
 		removeCyclicForCustomers(opportunityT);
 
+	}
+
+	private void setUserFavourite(OpportunityT opportunityT) {
+		// TODO Auto-generated method stub
+		boolean flag = false;
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		for(UserFavoritesT userFavorite : opportunityT.getUserFavoritesTs()) {
+			if(userFavorite.getUserId().equalsIgnoreCase(userId)){
+				flag = true;
+			}
+		}
+		opportunityT.setUserFavourite(flag);
 	}
 
 	private void checkAccessControl(OpportunityT opportunityT,
@@ -1408,7 +1422,7 @@ public class OpportunityService {
 			List<String> searchKeywords, List<String> bidRequestType,
 			List<String> offering, List<String> displaySubSp,
 			List<String> opportunityName, List<String> userId,
-			List<String> toCurrency, int page, int count)
+			List<String> toCurrency, int page, int count, String role)
 			throws DestinationException {
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
@@ -1427,14 +1441,46 @@ public class OpportunityService {
 		String defaultDealRange = "NO";
 		if (minDigitalDealValue == 0 && maxDigitalDealValue == Double.MAX_VALUE)
 			defaultDealRange = "YES";
-		List<OpportunityT> opportunity = opportunityRepository
-				.findByOpportunitiesIgnoreCaseLike(customerIdList,
-						salesStageCode, strategicInitiative, newLogo,
-						defaultDealRange, minDigitalDealValue,
-						maxDigitalDealValue, dealCurrency, digitalFlag,
-						displayIou, country, partnerId, competitorName,
-						searchKeywordString, bidRequestType, offering,
-						displaySubSp, opportunityNameString, userId);
+		boolean isPrimary=false;
+		boolean isSalesSupport=false;
+		boolean isBidOffice=false;
+		List<OpportunityT> opportunity = new ArrayList<OpportunityT>();
+		if(OpportunityRole.contains(role)) {
+			switch (OpportunityRole.valueOf(role)) {
+			case PRIMARY_OWNER:
+				logger.debug("Primary Owner Found");
+				isPrimary=true;
+				break;
+			case SALES_SUPPORT:
+				logger.debug("Sales Support Found");
+				isSalesSupport = true;
+				break;
+			case BID_OFFICE:
+				logger.debug("Bid Office Found");
+				isBidOffice = true;
+				break;
+			case ALL:
+				logger.debug("ALL Found");
+				isPrimary=true;
+				isSalesSupport = true;
+				isBidOffice = true;
+				break;
+			}
+			opportunity = opportunityRepository
+					.findByOpportunitiesIgnoreCaseLike(customerIdList,
+							salesStageCode, strategicInitiative, newLogo,
+							defaultDealRange, minDigitalDealValue,
+							maxDigitalDealValue, dealCurrency, digitalFlag,
+							displayIou, country, partnerId, competitorName,
+							searchKeywordString, bidRequestType, offering,
+							displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice);
+
+		} else {
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}",
+					role);
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Invalid Oppurtunity Role: " + role);
+		}
 
 		if (opportunity.isEmpty()) {
 			logger.error("NOT_FOUND: No Opportunities found");
