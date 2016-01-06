@@ -587,12 +587,12 @@ public class DestinationMailUtils {
 
 			}
 
-			Map userRequestMap = new HashMap();
+			Map<String, Object> userRequestMap = new HashMap<String, Object>();
 			userRequestMap.put("userName", userName);
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", fileName);
 			userRequestMap.put("submittedDate", dateStr);
-			userRequestMap.put("requestId", request.getProcessRequestId());
+			userRequestMap.put("requestId", request.getProcessRequestId().toString());
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
