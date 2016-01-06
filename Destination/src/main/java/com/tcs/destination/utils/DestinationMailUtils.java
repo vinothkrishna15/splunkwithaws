@@ -202,11 +202,11 @@ public class DestinationMailUtils {
 
 			String userName = null;
 			String entity = null;
-			String fileName = null;
-			String filePath = null;
 			String uploadedFileName = null;
 			String attachmentFileName = null;
 			String attachmentFilePath = null;
+			String requestId = null;
+
 			int requestType = request.getRequestType();
 
 			switch (requestType) {
@@ -385,8 +385,7 @@ public class DestinationMailUtils {
 			
 			if (requestType > 0 && requestType < 10) {
 				template = uploadTemplateLoc;
-				fileName = request.getFileName();
-				filePath = request.getFilePath();
+				requestId = request.getProcessRequestId().toString();
 				uploadedFileName = request.getFileName();
 				attachmentFilePath = request.getErrorFilePath() + request.getErrorFileName();
 				attachmentFileName = request.getErrorFileName();
@@ -398,11 +397,13 @@ public class DestinationMailUtils {
 				template = dailyDownloadTemplateLoc;
 			}
 
-			Map userRequestMap = new HashMap();
+			Map<String, Object> userRequestMap = new HashMap<String, Object>();
 			userRequestMap.put("userName", userName);
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", uploadedFileName);
 			userRequestMap.put("submittedDate", dateStr);
+			userRequestMap.put("requestId",requestId);
+
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
