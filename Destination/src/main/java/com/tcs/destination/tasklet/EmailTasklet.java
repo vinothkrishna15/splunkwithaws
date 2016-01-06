@@ -70,19 +70,19 @@ public class EmailTasklet implements Tasklet, StepExecutionListener{
 		logger.debug("Inside execute method:");
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-		
 		DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-		
 		List<UserRole> roles = Arrays.asList(UserRole.SYSTEM_ADMIN, UserRole.STRATEGIC_GROUP_ADMIN);
 		
 		if(destinationMailUtils.sendUserRequestResponse(request, roles)) {
 			
 			logger.info("Emailed opportunity daily report to Admin & Strategic group");
 		} else {
+			
 			logger.info("Unable to email opportunity daily report to Admin & Strategic group");
 			throw new DestinationException(HttpStatus.EXPECTATION_FAILED,"Unable to email opportunity daily report to Admin & Strategic group");
 		}
 
+		jobContext.remove(REQUEST);
 		return RepeatStatus.FINISHED;
 	}
 
