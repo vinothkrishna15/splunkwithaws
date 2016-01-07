@@ -44,6 +44,8 @@ public class DataProcessingController {
 	public @ResponseBody ResponseEntity<String> batchUploadRequest(
 			@RequestParam("file") MultipartFile file,
 			@RequestParam("type") int type,
+			@RequestParam(value = "deleteFrom", defaultValue = "") String deleteFrom,
+			@RequestParam(value = "deleteTo", defaultValue = "") String deleteTo,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws Exception {
@@ -52,8 +54,8 @@ public class DataProcessingController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (type > 0 && type < 10) {
-				status = service.saveUploadRequest(file, type);
+			if(type > 0 && type < 10)   {
+				status = service.saveUploadRequest(file, type,deleteFrom,deleteTo);
 				logger.info("UPLOAD SUCCESS - Record Created ");
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,

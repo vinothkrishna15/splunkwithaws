@@ -43,10 +43,12 @@ public class DataProcessingService {
 	 * This method is used to save the upload requests being provided for batch operations
 	 * @param file
 	 * @param type
+	 * @param deleteTo 
+	 * @param deleteFrom 
 	 * @return
 	 * @throws Exception
 	 */
-	public Status saveUploadRequest(MultipartFile file, int type) throws Exception {
+	public Status saveUploadRequest(MultipartFile file, int type, String deleteFrom, String deleteTo) throws Exception {
 		
 		logger.debug("Start:Inside saveUploadRequest method of DataProcessing Service:");
 		
@@ -71,8 +73,9 @@ public class DataProcessingService {
 		request.setFilePath(path);
 		request.setUserT(userRepository.findByUserId(userId));
 		request.setStatus(RequestStatus.SUBMITTED.getStatus());
-		request.setRequestType(type);
-		
+		request.setDeleteFrom(deleteFrom);
+		request.setDeleteTo(deleteTo);
+		request.setRequestType(type);		
 		dataProcessingRequestRepository.save(request);
 		
 		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");
