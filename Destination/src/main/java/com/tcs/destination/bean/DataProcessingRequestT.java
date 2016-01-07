@@ -46,6 +46,12 @@ public class DataProcessingRequestT implements Serializable {
 
 	@Column(name="status")
 	private int status;
+	
+	@Column(name="delete_from")
+	private String deleteFrom;
+
+	@Column(name="delete_to")
+	private String deleteTo;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -136,4 +142,19 @@ public class DataProcessingRequestT implements Serializable {
 	}
 	
 
+	public String getDeleteFrom() {
+		return deleteFrom;
+	}
+
+	public void setDeleteFrom(String deleteFrom) {
+		this.deleteFrom = deleteFrom;
+	}
+
+	public String getDeleteTo() {
+		return deleteTo;
+	}
+
+	public void setDeleteTo(String deleteTo) {
+		this.deleteTo = deleteTo;
+	}
 }
