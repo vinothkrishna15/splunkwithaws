@@ -159,6 +159,7 @@ public class Constants {
 	public static final String BEACON_IOU_MAPPING_TEMPLATE_BEACON_SHEET_NAME="IOU Map(Ref)";
 	
 	public static final String DOWNLOAD = "download";
+	public static final String UPLOAD = "upload";
 	public static final String CUSTOMER_MAP = "CUSTOMER_MAP";
 	
 	//User data template

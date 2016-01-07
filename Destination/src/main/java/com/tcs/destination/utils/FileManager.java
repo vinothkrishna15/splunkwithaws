@@ -79,38 +79,41 @@ public class FileManager {
 	 * Method to delete the file older than the number of days
 	 * @param days
 	 * @param rootPath
+	 * @throws IOException 
 	 */
-	public static void purgeOldFile(int days, String rootPath) {
+	public static void purgeOldFile(int days, String filePath) throws IOException {
 		
-		logger.debug("Inside the purge method:");
+		logger.debug("Inside the purgeOldFile method:");
 		
-		File root = new File(rootPath);
+		File file = new File(filePath);
+		if (file.isDirectory()) {
+			purgeFile(days, file);
+		}
+	}
+
+	/**
+	 * @param days
+	 * @param file
+	 * @throws IOException 
+	 */
+	private static void purgeFile(int days, File file) throws IOException {
 		
-		if (root.isDirectory()) {
-			File[] files = root.listFiles();
-			for (File file: files) {
-				if (file.isDirectory()) {
-					File[] subFiles = file.listFiles();
-					for (File f: subFiles) {
-						if (f.isDirectory()) {
-							String temp = null;
-							try {
-								temp = f.getName();
-								Date dirDate = DateUtils.getDateFrString(temp);
-								if (dirDate.before(DateUtils.addDays(new Date(), -days))) {
-									FileUtils.cleanDirectory(f);
-									f.delete();
-								}
-							} catch (ParseException e) {
-								logger.error("Invalid date: {}, exception: {}", temp, e);
-							} catch (IOException e) {
-								logger.error("Error while deleting files: {}", e);
-							}
-						}
+		logger.debug("Inside the purgeFile method:");
+		
+		for (File f: file.listFiles()) {
+			if (f.isDirectory()) { 
+				try {
+					Date dirDate = DateUtils.getDateFrString(f.getName());
+					if (dirDate.before(DateUtils.addDays(new Date(), -days))) {
+						FileUtils.cleanDirectory(f);
+						f.delete();
 					}
-				}
+				} catch (ParseException e) {
+					purgeFile(days, f);
+				} 
 			}
 		}
+			
 		
 	}
 

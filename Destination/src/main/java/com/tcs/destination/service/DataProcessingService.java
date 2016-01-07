@@ -1,7 +1,7 @@
 package com.tcs.destination.service;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.DOWNLOAD;
+import static com.tcs.destination.utils.Constants.UPLOAD;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,13 @@ public class DataProcessingService {
 		
 		String entity = getEntity(type);
 		
-		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		String path = new StringBuffer(fileServerPath)
+		.append(entity).append(FILE_DIR_SEPERATOR).append(UPLOAD)
+		.append(FILE_DIR_SEPERATOR)
+		.append(DateUtils.getCurrentDate())
+		.append(FILE_DIR_SEPERATOR)
+		.append(userId)
+		.append(FILE_DIR_SEPERATOR).toString();
 		
 		FileManager.saveFile(file, path);
 		
