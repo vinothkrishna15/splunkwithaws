@@ -5,12 +5,16 @@ import static com.tcs.destination.utils.Constants.DATE_TYPE;
 import static com.tcs.destination.utils.Constants.NO;
 import static com.tcs.destination.utils.Constants.PATTERN;
 import static com.tcs.destination.utils.Constants.SYSTEM_USER;
+import static com.tcs.destination.utils.Constants.TOKEN_CST_OR_PARTNER;
+import static com.tcs.destination.utils.Constants.TOKEN_CST_OR_PARTNER_VALUE;
 import static com.tcs.destination.utils.Constants.TOKEN_ENTITY_NAME;
 import static com.tcs.destination.utils.Constants.TOKEN_ENTITY_TYPE;
 import static com.tcs.destination.utils.Constants.TOKEN_FROM;
+import static com.tcs.destination.utils.Constants.TOKEN_PRIMARY_OWNER;
+import static com.tcs.destination.utils.Constants.TOKEN_SECONDARY_OWNERS;
+import static com.tcs.destination.utils.Constants.TOKEN_SUBORDINATE;
 import static com.tcs.destination.utils.Constants.TOKEN_TO;
 import static com.tcs.destination.utils.Constants.TOKEN_USER;
-import static com.tcs.destination.utils.Constants.TOKEN_SUBORDINATE;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +22,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +45,12 @@ public class NotificationProcessHelper {
 	@Autowired
 	private NotificationEventGroupMappingTRepository notificationEvtGrpMTRepository;
 
-	public UserNotificationsT processNotification(EntityType entity, String entityId, String entityName, int eventId, String dateType,
-			String date, String recipientId, String recipientName, String subordinateId, String subordinateName) throws DestinationException {
+	public UserNotificationsT processNotification(EntityType entity,
+			String entityId, String entityName, int eventId, String dateType,
+			String date, String recipientId, String recipientName,
+			String subordinateName, String entityReference,
+			String referenceValue, String primaryOwner, String secondaryOwners)
+			throws DestinationException {
 
 		logger.debug("Inside processNotification() method");
 
@@ -52,10 +61,20 @@ public class NotificationProcessHelper {
 		if (!notificationTemplateList.isEmpty()) {
 
 			try {
+				String[] values = { recipientName, entityName, null, null,
+						WordUtils.capitalize(entity.toString().toLowerCase()),
+						dateType, date, subordinateName, entityReference,
+						referenceValue, primaryOwner, secondaryOwners };
+
 				String msgTemplate = replaceTokens(
-						notificationTemplateList.get(0).getMessageTemplate(),
-						populateTokens(recipientName, entityName, null, null,
-								WordUtils.capitalize(entity.toString().toLowerCase()), dateType, date, subordinateName));
+						StringUtils.isEmpty(secondaryOwners) ? notificationTemplateList
+								.get(0)
+								.getMessageTemplate()
+								.replace(" and <secondaryOwners>(Secondary)",
+										"")
+								: notificationTemplateList.get(0)
+										.getMessageTemplate(),
+						populateTokens(values));
 
 				if (msgTemplate != null) {
 
@@ -71,15 +90,15 @@ public class NotificationProcessHelper {
 					case OPPORTUNITY:
 						notification.setOpportunityId(entityId);
 						break;
-						
+
 					case TASK:
 						notification.setTaskId(entityId);
 						break;
-						
+
 					case CONNECT:
 						notification.setConnectId(entityId);
 						break;
-						
+
 					default:
 						break;
 					}
@@ -109,45 +128,58 @@ public class NotificationProcessHelper {
 		while (matcher.find()) {
 			String replacement = tokens.get(matcher.group(1));
 			builder.append(message.substring(i, matcher.start()));
-			if (replacement == null)
+			if (replacement == null) {
 				builder.append(matcher.group(0));
-			else
+			} else {
 				builder.append(replacement);
+			}
 			i = matcher.end();
 		}
 		builder.append(message.substring(i, message.length()));
 		return builder.toString();
 	}
 
-	private HashMap<String, String> populateTokens(String user,
-			String entityName, String from, String to, String entityType,
-			String dateType, String date, String subordinateName) throws Exception {
-		
+	private HashMap<String, String> populateTokens(String[] values)
+			throws Exception {
+
 		logger.debug("Inside populateTokens() method");
+
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
-		if (user != null) {
-			tokensMap.put(TOKEN_USER, user);
+		if (values[0] != null) {
+			tokensMap.put(TOKEN_USER, values[0]);
 		}
-		if (entityName != null) {
-			tokensMap.put(TOKEN_ENTITY_NAME, entityName);
+		if (values[1] != null) {
+			tokensMap.put(TOKEN_ENTITY_NAME, values[1]);
 		}
-		if (from != null) {
-			tokensMap.put(TOKEN_FROM, from);
+		if (values[2] != null) {
+			tokensMap.put(TOKEN_FROM, values[2]);
 		}
-		if (to != null) {
-			tokensMap.put(TOKEN_TO, to);
+		if (values[3] != null) {
+			tokensMap.put(TOKEN_TO, values[3]);
 		}
-		if (entityType != null) {
-			tokensMap.put(TOKEN_ENTITY_TYPE, entityType);
+		if (values[4] != null) {
+			tokensMap.put(TOKEN_ENTITY_TYPE, values[4]);
 		}
-		if (entityType != null) {
-			tokensMap.put(DATE_TYPE, dateType);
+		if (values[5] != null) {
+			tokensMap.put(DATE_TYPE, values[5]);
 		}
-		if (entityType != null) {
-			tokensMap.put(DATE, date);
+		if (values[6] != null) {
+			tokensMap.put(DATE, values[6]);
 		}
-		if (subordinateName != null) {
-			tokensMap.put(TOKEN_SUBORDINATE, subordinateName);
+		if (values[7] != null) {
+			tokensMap.put(TOKEN_SUBORDINATE, values[7]);
+		}
+		if (values[8] != null) {
+			tokensMap.put(TOKEN_CST_OR_PARTNER, values[8]);
+		}
+		if (values[9] != null) {
+			tokensMap.put(TOKEN_CST_OR_PARTNER_VALUE, values[9]);
+		}
+		if (values[10] != null) {
+			tokensMap.put(TOKEN_PRIMARY_OWNER, values[10]);
+		}
+		if (values[11] != null) {
+			tokensMap.put(TOKEN_SECONDARY_OWNERS, values[11]);
 		}
 
 		return tokensMap;

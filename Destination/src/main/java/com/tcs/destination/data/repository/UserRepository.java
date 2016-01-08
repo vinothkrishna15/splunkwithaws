@@ -74,4 +74,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct user_name from user_t U join connect_secondary_owner_link_t CSW on U.user_id=CSW.secondary_owner"
 			+ " where CSW.connect_id=?1", nativeQuery = true)
 	List<String> getSecondaryOwnerNamesByConnectId(String connectId);
+	
+	@Query(value = "select user_name from user_t where user_id = :userId", nativeQuery = true)
+	String findUserNameByUserId(@Param("userId")String userId);
 }

@@ -1,6 +1,6 @@
 /**
  * 
- * ReminderProcessor.java 
+ * SupervisorReminderProcessor.java 
  *
  * @author TCS
  * @Version 1.0 - 2015
@@ -21,12 +21,12 @@ import com.tcs.destination.helper.NotificationProcessHelper;
 import com.tcs.destination.utils.DateUtils;
 
 /**
- * This ReminderProcessor class holds the functionality for sending user notifications
+ * This SupervisorReminderProcessor class holds the functionality for sending user notifications
  * 
  */
-public class ReminderProcessor implements ItemProcessor<Object[], UserNotificationsT> {
+public class SupervisorReminderProcessor implements ItemProcessor<Object[], UserNotificationsT> {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ReminderProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(SupervisorReminderProcessor.class);
 	
 	private NotificationProcessHelper notificationProcessHelper;
 	
@@ -42,12 +42,14 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 		logger.debug("Inside process method:");
 		
 		String date = null;
-		String subordinateId = null;
-		String subordinateName = null;
 		String recipientId= null;
 		String recipientName= null;
 		String entityId = null;
 		String entityName = null;
+		String entityReference = null;
+		String referenceName = null;
+		String subordinateName = null;
+		
 		int i = 0;
 		
 		for (Object item: items) {
@@ -69,10 +71,13 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 					date = DateUtils.convertDtToStringForUser((Date) item);
 					break;
 				case 5:
-					subordinateId = (String)item;
+					subordinateName = (String)item;
 					break;
 				case 6:
-					subordinateName = (String)item;
+					entityReference = (String)item;
+					break;
+				case 7:
+					referenceName = (String)item;
 					break;
 				default: break;
 			}
@@ -80,7 +85,8 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 				
 		}
 		
-		return notificationProcessHelper.processNotification(entityType, entityId, entityName, eventId, dateType, date, recipientId, recipientName, subordinateId, subordinateName);
+		return notificationProcessHelper.processNotification(entityType, entityId, entityName, eventId, dateType, date, recipientId, recipientName, subordinateName, entityReference, referenceName,
+				null, null);
 	}
 
 	public NotificationProcessHelper getNotificationProcessHelper() {
@@ -115,6 +121,6 @@ public class ReminderProcessor implements ItemProcessor<Object[], UserNotificati
 	public void setEventId(int eventId) {
 		this.eventId = eventId;
 	}
-	
+
 
 }

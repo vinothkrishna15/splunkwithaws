@@ -24,12 +24,14 @@
 	
 	<!-- Reader -->
 	<bean id="connectReader" class="com.tcs.destination.reader.NativeQueryReader">
-		<property name="repository" ref="contactRepository"/>
+		<property name="repository" ref="connectRepository"/>
 		<property name="methodName" value="getConnectReminders"/>
 	</bean>
 	<!-- Processor -->
-	<bean id="connectProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+	<bean id="connectProcessor" class="com.tcs.destination.processor.ConnectReminderProcessor">
 		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="connectRepository" ref="connectRepository"/>
+		<property name="userRepository" ref="userRepository"/>
 		<property name="dateType" value="Target date"/>
 		<property name="entityType">
 			<value type="com.tcs.destination.enums.EntityType">CONNECT</value>

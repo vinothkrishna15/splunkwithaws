@@ -48,24 +48,31 @@
 		<property name="methodName" value="getTaskReminders"/>
 	</bean>
 	<!-- Processor -->
-	<bean id="bidDetailTargetProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+	<bean id="bidDetailTargetProcessor" class="com.tcs.destination.processor.UserReminderProcessor">
 		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="opportunityRepository" ref="opportunityRepository"/>
+		<property name="userRepository" ref="userRepository"/>
 		<property name="dateType" value="Target date"/>
 		<property name="entityType">
 			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
 		</property>
 		<property name="eventId" value="5"/>
 	</bean>
-	<bean id="bidDetailOutcomeProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+	<bean id="bidDetailOutcomeProcessor" class="com.tcs.destination.processor.UserReminderProcessor">
 		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="opportunityRepository" ref="opportunityRepository"/>
+		<property name="userRepository" ref="userRepository"/>
 		<property name="dateType" value="Outcome date"/>
 		<property name="entityType">
 			<value type="com.tcs.destination.enums.EntityType">OPPORTUNITY</value>
 		</property>
 		<property name="eventId" value="5"/>
 	</bean>
-	<bean id="taskProcessor" class="com.tcs.destination.processor.ReminderProcessor">
+	<bean id="taskProcessor" class="com.tcs.destination.processor.TaskReminderProcessor">
 		<property name="notificationProcessHelper" ref="notificationProcessHelper"/>
+		<property name="opportunityRepository" ref="opportunityRepository"/>
+		<property name="connectRepository" ref="connectRepository"/>
+		<property name="userRepository" ref="userRepository"/>
 		<property name="dateType" value="Target date"/>
 		<property name="entityType">
 			<value type="com.tcs.destination.enums.EntityType">TASK</value>
