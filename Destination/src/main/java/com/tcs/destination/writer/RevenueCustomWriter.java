@@ -114,72 +114,23 @@ public class RevenueCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
-		
 		List<ActualRevenuesDataT> addList = new ArrayList<ActualRevenuesDataT>();
-		List<ActualRevenuesDataT> updateList = new ArrayList<ActualRevenuesDataT>();
-		List<ActualRevenuesDataT> deleteList = new ArrayList<ActualRevenuesDataT>();
-		String operation = null; 
 		for (String[] data: items) {
-
-			operation = (String) data[1];
-			
-			if ((!StringUtils.isEmpty(operation))) {
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				logger.info("***ADDING****");
 				ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
 				UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueAdd(data, request.getUserT().getUserId() ,revenueT);
 				if (errorDTO.getMessage() != null) {
-					logger.info("validation error in operation "+operation+"with error " +errorDTO.getMessage());
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
 				} else if (errorDTO.getMessage() == null) {
 					addList.add(revenueT);
 				}
 				
-			} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){
-				logger.info("****UPDATE****");
-				ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
-				UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueUpdate(data, request.getUserT().getUserId() ,revenueT);
-				if (errorDTO.getMessage() != null) {
-					logger.info("validation error in operation "+operation+"with error " +errorDTO.getMessage());
-					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
-					errorList.add(errorDTO);
-				} else if (errorDTO.getMessage() == null) {
-					updateList.add(revenueT);
-				}
-				
-			} else if (operation.equalsIgnoreCase(Operation.DELETE.name())){
-				logger.info("****DELETE****");
-				ActualRevenuesDataT revenueT =  new ActualRevenuesDataT();;
-				UploadServiceErrorDetailsDTO errorDTO = helper.validateRevenueDelete(data, request.getUserT().getUserId() ,revenueT);
-				if (errorDTO.getMessage() != null) {
-					logger.info("validation error in operation "+operation+"with error " +errorDTO.getMessage());
-					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
-					errorList.add(errorDTO);
-				} else if (errorDTO.getMessage() == null) {
-					deleteList.add(revenueT);
-				}
-				
-			}
-			
-			
-		}}
-		
+		}
 		// for saving the rows which are valid
-				if (CollectionUtils.isNotEmpty(addList)) {
-					logger.info("list size " +updateList.size());
-					revenueService.save(addList);
-				}
-				// for deleting the rows which are valid
-				if (CollectionUtils.isNotEmpty(deleteList)) {
-					logger.info("list size " +updateList.size());
-					revenueService.delete(deleteList);
-				}
-				// for updating the rows which are valid
-						if (CollectionUtils.isNotEmpty(updateList)) {
-							logger.info("list size " +updateList.size());
-							revenueService.save(updateList);
-						}
+		if (CollectionUtils.isNotEmpty(addList)) {
+			revenueService.save(addList);
+		}
 		
 	}
 

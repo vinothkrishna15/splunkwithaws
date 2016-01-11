@@ -204,4 +204,8 @@ public interface ActualRevenuesDataTRepository extends
 			@Param("subSp") String subSp,
 			@Param("financeIou") String financeIou, 
 			@Param("financeCustomerName") String financeCustomerName);
+	
+	
+	List<ActualRevenuesDataT> findByMonth(String month);
+	
 }

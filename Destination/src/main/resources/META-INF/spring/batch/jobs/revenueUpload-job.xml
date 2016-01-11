@@ -15,6 +15,10 @@
 	   <batch:step id="revenueUploadPreprocess" next="revenueDecider">
          <batch:tasklet ref="revenuePreprocessor"/>
 		</batch:step>
+		
+		<batch:step id="revenueDeleteProcessing" next="revenueProcessing">
+		 <batch:tasklet ref="revenueDeleteProcessor"/>
+		</batch:step>
 	
 		<batch:step id="revenueProcessing" next="revenueUploadPreprocess">
 			<batch:tasklet>
@@ -26,6 +30,7 @@
        <batch:decision id="revenueDecider" decider="revenueFlowdecider">
               <batch:next on="PREPROCESS" to="revenueUploadPreprocess" />
               <batch:next on="REVENUE_PROCESSING" to="revenueProcessing" />
+              <batch:next on="REVENUE_DELETE_PROCESSING" to="revenueDeleteProcessing" />
               <batch:end on="END"/>
          </batch:decision>
 	</batch:job>

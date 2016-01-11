@@ -82,4 +82,6 @@ public interface BeaconDataTRepository extends
 			@Param("financialYear")String financialYear, 
 			@Param("beaconGeography")String beaconGeography, 
 			@Param("beaconCustomerName")String beaconCustomerName);
+
+	List<BeaconDataT> findByQuarter(String quarter);
 }

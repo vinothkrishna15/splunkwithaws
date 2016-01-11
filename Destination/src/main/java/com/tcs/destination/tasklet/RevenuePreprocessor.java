@@ -1,6 +1,7 @@
 package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.REVENUE_PROCESSING;
+import static com.tcs.destination.enums.JobStep.REVENUE_DELETE_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
 import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.ACTUAL_REVENUE_UPLOAD;
@@ -67,7 +68,7 @@ public class RevenuePreprocessor implements Tasklet{
 			
 		    jobContext.put(FILE_PATH,filePath);
 		    jobContext.put(REQUEST,request);
-		    jobContext.put(NEXT_STEP,REVENUE_PROCESSING);
+		    jobContext.put(NEXT_STEP,REVENUE_DELETE_PROCESSING);
 			
 		} else {
 			

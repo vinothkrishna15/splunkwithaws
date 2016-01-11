@@ -15,6 +15,10 @@
 			<batch:tasklet ref="beaconPreprocessor"/>
 		</batch:step>
 		
+		<batch:step id="beaconDeleteProcessing" next="beaconProcessing">
+		 <batch:tasklet ref="beaconDeleteProcessor"/>
+		</batch:step>
+		
 		<batch:step id="beaconProcessing" next="beaconUploadPreprocess">
 			<batch:tasklet>
 				<batch:chunk reader="beaconSpreadSheetReader" writer="beaconWriter" 
@@ -25,6 +29,7 @@
 		 <batch:decision id="beaconDecider" decider="beaconFlowdecider">
               <batch:next on="PREPROCESS" to="beaconUploadPreprocess" />
               <batch:next on="BEACON_PROCESSING" to="beaconProcessing" />
+              <batch:next on="BEACON_DELETE_PROCESSING" to="beaconDeleteProcessing" /> 
               <batch:end on="END"/>
          </batch:decision>
 	</batch:job>

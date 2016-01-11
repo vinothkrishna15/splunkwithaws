@@ -29,6 +29,8 @@ public class BeaconDecider implements JobExecutionDecider {
 			status = new FlowExecutionStatus(JobStep.BEACON_PROCESSING.name());
         } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
         	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.BEACON_DELETE_PROCESSING)) {
+        	status = new FlowExecutionStatus(JobStep.BEACON_DELETE_PROCESSING.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());
