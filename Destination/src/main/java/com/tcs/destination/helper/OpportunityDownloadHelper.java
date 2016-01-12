@@ -141,6 +141,15 @@ public class OpportunityDownloadHelper {
 			Cell cellOppId = row.createCell(1);
 			cellOppId.setCellValue(opportunity.getOpportunityId().trim());
 
+			// IOU
+			Cell cellIOU = row.createCell(3);
+			cellIOU.setCellValue(opportunity.getCustomerMasterT().getIou());
+
+			// Client Geo
+			Cell cellGeo = row.createCell(4);
+			cellGeo.setCellValue(opportunity.getCustomerMasterT()
+					.getGeography());
+
 			// Country
 			Cell cellCountry = row.createCell(5);
 			cellCountry.setCellValue(opportunity.getCountry().trim());
