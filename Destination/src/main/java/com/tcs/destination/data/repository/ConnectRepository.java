@@ -1,6 +1,9 @@
 package com.tcs.destination.data.repository;
 
-import java.util.Date;
+import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
+
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -10,12 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigInteger;
-import java.sql.Timestamp;
-
-import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactT;
 
 /**
  * 
@@ -467,5 +465,8 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	@Query(value = "select connect_name from connect_t CONN "
 			+ "join connect_opportunity_link_id_t COPPL on CONN.connect_id=COPPL.connect_id where opportunity_id=?1",nativeQuery=true)
 	List<String> findConnectNameByOpportunityId(String opportunityId);
+	
+	@Query(value = CONNECT_REMINDER, nativeQuery = true)
+	List<Object[]> getConnectReminders();
 	
 }

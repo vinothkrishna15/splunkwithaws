@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.ss.formula.functions.T;
@@ -41,6 +42,14 @@ public class NativeQueryReader implements ItemReader<Object[]>, InitializingBean
 		Object[] returnValue = null;
 		if (rowNo == 0) {
 			MethodInvoker invoker = createMethodInvoker(repository, methodName);
+			
+			List<Object> parameters = new ArrayList<Object>();
+
+			if(CollectionUtils.isNotEmpty(arguments)) {
+				parameters.addAll(arguments);
+			}
+			invoker.setArguments(parameters.toArray());
+			
 			resultSet = doInvoke(invoker);
 		}
 		if (!resultSet.isEmpty() && rowNo < resultSet.size()) {
@@ -64,13 +73,6 @@ public class NativeQueryReader implements ItemReader<Object[]>, InitializingBean
 		}
 
 		try {
-			List<Object> parameters = new ArrayList<Object>();
-
-			if(arguments != null && arguments.size() > 0) {
-				parameters.addAll(arguments);
-			}
-
-			invoker.setArguments(parameters.toArray());
 			
 			return ((List<Object[]>) invoker.invoke());
 		}

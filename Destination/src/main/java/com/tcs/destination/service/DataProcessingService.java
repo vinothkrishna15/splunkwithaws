@@ -1,7 +1,7 @@
 package com.tcs.destination.service;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.DOWNLOAD;
+import static com.tcs.destination.utils.Constants.UPLOAD;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +43,12 @@ public class DataProcessingService {
 	 * This method is used to save the upload requests being provided for batch operations
 	 * @param file
 	 * @param type
+	 * @param deleteTo 
+	 * @param deleteFrom 
 	 * @return
 	 * @throws Exception
 	 */
-	public Status saveUploadRequest(MultipartFile file, int type) throws Exception {
+	public Status saveUploadRequest(MultipartFile file, int type, String deleteFrom, String deleteTo) throws Exception {
 		
 		logger.debug("Start:Inside saveUploadRequest method of DataProcessing Service:");
 		
@@ -56,7 +58,13 @@ public class DataProcessingService {
 		
 		String entity = getEntity(type);
 		
-		String path = fileServerPath + entity + FILE_DIR_SEPERATOR + DateUtils.getCurrentDate() + FILE_DIR_SEPERATOR + userId + FILE_DIR_SEPERATOR;
+		String path = new StringBuffer(fileServerPath)
+		.append(entity).append(FILE_DIR_SEPERATOR).append(UPLOAD)
+		.append(FILE_DIR_SEPERATOR)
+		.append(DateUtils.getCurrentDate())
+		.append(FILE_DIR_SEPERATOR)
+		.append(userId)
+		.append(FILE_DIR_SEPERATOR).toString();
 		
 		FileManager.saveFile(file, path);
 		
@@ -65,8 +73,9 @@ public class DataProcessingService {
 		request.setFilePath(path);
 		request.setUserT(userRepository.findByUserId(userId));
 		request.setStatus(RequestStatus.SUBMITTED.getStatus());
-		request.setRequestType(type);
-		
+		request.setDeleteFrom(deleteFrom);
+		request.setDeleteTo(deleteTo);
+		request.setRequestType(type);		
 		dataProcessingRequestRepository.save(request);
 		
 		status.setStatus(Status.SUCCESS, "Upload request is submitted successfully");

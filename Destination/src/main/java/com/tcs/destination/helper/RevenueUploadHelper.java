@@ -1,12 +1,14 @@
 package com.tcs.destination.helper;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
@@ -21,6 +23,9 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("revenueUploadHelper")
@@ -63,51 +68,46 @@ public class RevenueUploadHelper {
 		mapOfIouCustomerMappingT = mapOfIouCustomerMappingT != null ? mapOfIouCustomerMappingT
 				: commonHelper.getIouCustomerMappingT();
 
-		// Get List of IOU from DB for validating the IOU which comes from the
+		// Get List of actual subsp from DB for validating the subsp which comes from the
 		// sheet
 		mapOfSubSpMappingT = mapOfSubSpMappingT != null ? mapOfSubSpMappingT
-				: commonHelper.getSubSpMappingT();
+				: commonHelper.getSubSpMappingT(false);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
-		String quarter = data[6];
-		String month = data[5];
-		String financeCustomerName = data[12];
-		String customerGeography = data[10];
-		String financeIou = data[13];
-		String financialYear = data[7];
-		String revenueAmount = data[8];
-		String clientCountryName = data[9];
-		String subSp = data[11];
+		//String quarter = data[6];
+		String month = data[4].trim();
+		
+		
+		
+		String financeCustomerName = data[11];
+		String customerGeography = data[9];
+		String financeIou = data[12];
+		//String financialYear = data[7];
+		String revenueAmount = data[7];
+		String clientCountryName = data[8];
+		String subSp = data[10];
 
-		// QUARTER
-		if (!StringUtils.isEmpty(quarter)) {
-			actualRevenueT.setQuarter(quarter);
-		} else {
+					if (!StringUtils.isEmpty(month)) {
 
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("Quarter Is Mandatory; ");
+						try {
+							String[] strArr = DateUtils.formatUploadDateData(
+									month,
+									PropertyUtil.getProperty("upload.month.db.format"),
+									PropertyUtil.getProperty("upload.month.format"));
+							actualRevenueT.setMonth(strArr[0].toUpperCase());
+							actualRevenueT.setQuarter(strArr[1]);
+							actualRevenueT.setFinancialYear(strArr[2]);
 
-		}
+						} catch (ParseException e) {
+							throw new DestinationException(HttpStatus.NOT_FOUND,
+									"Invalid month format.");
+						}
 
-		// MONTH
-		if (!StringUtils.isEmpty(month)) {
-			actualRevenueT.setMonth(month);
-		} else {
+					} else {
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"MONTH NOT Found");
+					}
 
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("GL MONTH Is Mandatory; ");
-
-		}
-
-		// FINANCIAL YEAR
-		if (!StringUtils.isEmpty(financialYear)) {
-			actualRevenueT.setFinancialYear(financialYear);
-		} else {
-
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("financialYear Is Mandatory; ");
-
-		}
 
 		// REVENUE AMOUNT
 		if (!StringUtils.isEmpty(revenueAmount)) {
@@ -210,10 +210,10 @@ public class RevenueUploadHelper {
 		mapOfIouCustomerMappingT = mapOfIouCustomerMappingT != null ? mapOfIouCustomerMappingT
 				: commonHelper.getIouCustomerMappingT();
 
-		// Get List of IOU from DB for validating the IOU which comes from the
+		// Get List of actual sub sp from DB for validating the sub sp which comes from the
 		// sheet
 		mapOfSubSpMappingT = mapOfSubSpMappingT != null ? mapOfSubSpMappingT
-				: commonHelper.getSubSpMappingT();
+				: commonHelper.getSubSpMappingT(false);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
 		String quarter = data[6];
@@ -323,10 +323,10 @@ public class RevenueUploadHelper {
 		mapOfIouCustomerMappingT = mapOfIouCustomerMappingT != null ? mapOfIouCustomerMappingT
 				: commonHelper.getIouCustomerMappingT();
 
-		// Get List of IOU from DB for validating the IOU which comes from the
+		// Get List of actual sub sp from DB for validating the sub sp which comes from the
 		// sheet
 		mapOfSubSpMappingT = mapOfSubSpMappingT != null ? mapOfSubSpMappingT
-				: commonHelper.getSubSpMappingT();
+				: commonHelper.getSubSpMappingT(false);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
 		String quarter = data[6];

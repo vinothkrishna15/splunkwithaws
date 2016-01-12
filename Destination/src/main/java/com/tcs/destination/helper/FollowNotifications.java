@@ -45,6 +45,14 @@ public class FollowNotifications implements Runnable {
 	private static final String TOKEN_ENTITY_TYPE = "entityType";
 	private static final String PATTERN = "\\<(.+?)\\>";
 
+	private static final String TOKEN_CUSTOMER_OR_PARTNER = "customerOrPartner";
+
+	private static final String TOKEN_CUSTOMER_NAME = "customerName";
+
+	private static final String TOKEN_PARENT_ENTITY = "parentEntity";
+
+	private static final String TOKEN_PARENT_ENTITY_NAME = "parentEntityName";
+
 	private String entityId;
 	private String entityName;
 	private String entityType;
@@ -212,25 +220,42 @@ public class FollowNotifications implements Runnable {
 	}
 
 	private void processFollowNotifications() throws Exception {
-		// Object dbObject =
-		// NotificationsLazyLoader.loadLazyCollections(entityId,
-		// entityType, crudRepository,
-		// notificationsEventFieldsTRepository, entityManagerFactory);
 
 		// fetching event field list based on active event id
 		NotificationEventGroupMappingT notificationEventGroupMappingT = getNotificationEventFields(
 				eventId, entityType);
-
+		String customerOrPartner = null;
+		String customerOrPartnerName = null;
+		String parentEntity = null;
+		String parentEntityName = null;
+		
 		if (notificationEventGroupMappingT.getMessageTemplate() != null) {
 			switch (EntityType.valueOf(entityType)) {
 			case TASK: {
 				if (!createdUserId.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 					TaskT task = (TaskT) taskRepository.findOne(entityId);
 					entityName = task.getTaskDescription();
+					//If task is for a connect
+					if(task.getEntityReference().equalsIgnoreCase("CONNECT"))
+					{
+						customerOrPartner = task.getConnectT().getConnectCategory().toLowerCase();
+						customerOrPartnerName = validateConnectCategory(task.getConnectT(), customerOrPartner);
+						parentEntity = task.getEntityReference().toLowerCase();
+						parentEntityName = task.getConnectT().getConnectName();						
+						
+					}
+					// Task for opportunity
+					else {
+						customerOrPartner = "Customer";
+						customerOrPartnerName = task.getOpportunityT().getCustomerMasterT().getCustomerName();
+						parentEntity = task.getEntityReference().toLowerCase();
+						parentEntityName = task.getOpportunityT().getOpportunityName();
+						
+					}
 					String msgTemplate = replaceTokens(
 							notificationEventGroupMappingT.getMessageTemplate(),
 							populateTokensFollow(createdUser.getUserName(),
-									entityName, Constants.TASK));
+									entityName, Constants.TASK,customerOrPartner, customerOrPartnerName, parentEntity, parentEntityName));
 					if (!followUserId.equals(createdUserId)) {
 						String recipientId = followUserId;
 						if (msgTemplate != null) {
@@ -249,10 +274,15 @@ public class FollowNotifications implements Runnable {
 					ConnectT connect = (ConnectT) connectRepository
 							.findOne(entityId);
 					entityName = connect.getConnectName();
+					
+					customerOrPartner = connect.getConnectCategory().toLowerCase();
+					customerOrPartnerName = validateConnectCategory(connect, customerOrPartner);
+					
+					
 					String msgTemplate = replaceTokens(
 							notificationEventGroupMappingT.getMessageTemplate(),
 							populateTokensFollow(createdUser.getUserName(),
-									entityName, Constants.CONNECT));
+									entityName, Constants.CONNECT, customerOrPartner, customerOrPartnerName, null, null));
 					List<String> recipientList = getRecipientsList(entityId,
 							entityType);
 					for (String recipientId : recipientList) {
@@ -274,10 +304,13 @@ public class FollowNotifications implements Runnable {
 					OpportunityT opportunity = (OpportunityT) opportunityRepository
 							.findOne(entityId);
 					entityName = opportunity.getOpportunityName();
+					customerOrPartner = "Customer";
+					customerOrPartnerName= opportunity.getCustomerMasterT().getCustomerName();
+					
 					String msgTemplate = replaceTokens(
 							notificationEventGroupMappingT.getMessageTemplate(),
 							populateTokensFollow(followUser.getUserName(),
-									entityName, Constants.OPPORTUNITY));
+									entityName, Constants.OPPORTUNITY, customerOrPartner, customerOrPartnerName, null, null));
 					List<String> recipientList = getRecipientsList(entityId,
 							entityType);
 					for (String recipientId : recipientList) {
@@ -297,6 +330,18 @@ public class FollowNotifications implements Runnable {
 			}
 			}
 		}
+	}
+
+	private String validateConnectCategory(ConnectT connect,
+			String connectCategory) {
+		String customerOrPartnerName = null;
+		if(connectCategory.equalsIgnoreCase("CUSTOMER")) {
+			customerOrPartnerName = connect.getCustomerMasterT().getCustomerName();
+		}
+		else if(connectCategory.equalsIgnoreCase("PARTNER")) {
+			customerOrPartnerName = connect.getPartnerMasterT().getPartnerName();
+		}
+		return customerOrPartnerName;
 	}
 
 	/**
@@ -340,7 +385,7 @@ public class FollowNotifications implements Runnable {
 	}
 
 	private HashMap<String, String> populateTokensFollow(String user,
-			String entityName, String entityType) throws Exception {
+			String entityName, String entityType, String customerOrPartner, String customerOrPartnerName, String parentEntity, String parentEntityName) throws Exception {
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
 		if (user != null)
@@ -349,6 +394,14 @@ public class FollowNotifications implements Runnable {
 			tokensMap.put(TOKEN_ENTITY_NAME, entityName);
 		if (entityType != null)
 			tokensMap.put(TOKEN_ENTITY_TYPE, entityType);
+		if (entityType != null)
+			tokensMap.put(TOKEN_CUSTOMER_OR_PARTNER, customerOrPartner);
+		if (entityType != null)
+			tokensMap.put(TOKEN_CUSTOMER_NAME, customerOrPartnerName);
+		if (entityType != null)
+			tokensMap.put(TOKEN_PARENT_ENTITY, parentEntity);
+		if (entityType != null)
+			tokensMap.put(TOKEN_PARENT_ENTITY_NAME, parentEntityName);
 		return tokensMap;
 	}
 

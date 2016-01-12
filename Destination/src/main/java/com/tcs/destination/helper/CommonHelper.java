@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
@@ -27,6 +28,7 @@ import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
@@ -56,6 +58,9 @@ public class CommonHelper {
 	private CustomerIOUMappingRepository iouCustomerMappingRepository;
 	
 	@Autowired
+	private IouBeaconMappingTRepository iouBeaconMappingRepository;
+	
+	@Autowired
 	private CustomerRepository customerRepository;
 
 	@Autowired
@@ -75,6 +80,20 @@ public class CommonHelper {
 		Map<String, SubSpMappingT> subSpMap = new HashMap<String, SubSpMappingT>();
 		for (SubSpMappingT subSpT : listOfSubSpT) {
 			subSpMap.put(subSpT.getSubSp().trim(), subSpT);
+		}
+		return subSpMap;
+	}
+	
+	/**
+	 * Method to return actual sub sp details as map
+	 * @return  Map<String, SubSpMappingT>
+	 */
+	public Map<String, SubSpMappingT> getSubSpMappingT(boolean isConnect) {
+		List<SubSpMappingT> listOfSubSpT = null;
+		listOfSubSpT = (List<SubSpMappingT>) subSpRepository.findAll();
+		Map<String, SubSpMappingT> subSpMap = new HashMap<String, SubSpMappingT>();
+		for (SubSpMappingT subSpT : listOfSubSpT) {
+			subSpMap.put(subSpT.getActualSubSp().trim(), subSpT);
 		}
 		return subSpMap;
 	}
@@ -184,6 +203,17 @@ public class CommonHelper {
 			customerMap.put(customerMappingT.getCustomerName(), customerMappingT);
 		}
 		return customerMap;
+	}
+
+	public Map<String, IouBeaconMappingT> getIouBeaconMappingT() {
+		List<IouBeaconMappingT> listOfIouBeaconMappingT = null;
+		listOfIouBeaconMappingT = (List<IouBeaconMappingT>) iouBeaconMappingRepository
+				.findAll();
+		Map<String, IouBeaconMappingT> iouMap = new HashMap<String, IouBeaconMappingT>();
+		for (IouBeaconMappingT iouBeaconMappingT : listOfIouBeaconMappingT) {
+			iouMap.put(iouBeaconMappingT.getBeaconIou(), iouBeaconMappingT);
+		}
+		return iouMap;
 	}
 
 

@@ -100,6 +100,9 @@ public class DestinationMailUtils {
 	
 	@Value("${daily.download.template}")
 	private String dailyDownloadTemplateLoc;
+	
+	@Value("${environment.name}")
+	private String environmentName;
 
 	@Autowired
 	private UserService userService;
@@ -149,9 +152,9 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		message.setSubject(subject);
-		logger.info("Subject : " + subject);
-		// df.setTimeZone(TimeZone.getTimeZone("GMT+5.30"));
+		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		message.setSubject(sub);
+		logger.info("Subject : " + sub);
 		sendPasswordMail(message, user, dateStr);
 	}
 
@@ -195,23 +198,21 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = null;
-			StringBuffer subject = new StringBuffer("Admin: ");
+			StringBuffer subject = new StringBuffer(environmentName).append(" Admin: ");
 
 			String userName = null;
 			String entity = null;
-			String fileName = null;
-			String filePath = null;
-			String requestId = null;
 			String uploadedFileName = null;
 			String attachmentFileName = null;
 			String attachmentFilePath = null;
+			String requestId = null;
+
 			int requestType = request.getRequestType();
 
 			switch (requestType) {
 
 			case 1: {
 				// User upload
-				template = uploadTemplateLoc;
 				subject.append(USER_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.USER.name()
@@ -221,7 +222,6 @@ public class DestinationMailUtils {
 
 			case 2: {
 				// Customer upload
-				template = uploadTemplateLoc;
 				subject.append(CUSTOMER_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
@@ -231,7 +231,6 @@ public class DestinationMailUtils {
 
 			case 3: {
 				// Connect upload
-				template = uploadTemplateLoc;
 				subject.append(CONNECT_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
@@ -241,7 +240,6 @@ public class DestinationMailUtils {
 
 			case 4: {
 				// Opportunity upload
-				template = uploadTemplateLoc;
 				subject.append(OPPORTUNITY_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
@@ -251,7 +249,6 @@ public class DestinationMailUtils {
 
 			case 5: {
 				// Actual revenue upload
-				template = uploadTemplateLoc;
 				subject.append(ACTUAL_REVENUE_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
@@ -261,7 +258,6 @@ public class DestinationMailUtils {
 				
 			case 6: {
 				// Customer contact upload
-				template = uploadTemplateLoc;
 				subject.append(CUSTOMER_CONTACT_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
@@ -271,7 +267,6 @@ public class DestinationMailUtils {
 				
 			case 7: {
 				// Partner upload
-				template = uploadTemplateLoc;
 				subject.append(PARTNER_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
@@ -281,7 +276,6 @@ public class DestinationMailUtils {
 
 			case 8: {
 				// Partner contact upload
-				template = uploadTemplateLoc;
 				subject.append(PARTNER_CONTACT_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
@@ -290,7 +284,6 @@ public class DestinationMailUtils {
 				break;
 			case 9: {
 				// Beacon upload
-				template = uploadTemplateLoc;
 				subject.append(BEACON_UPLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
@@ -300,7 +293,6 @@ public class DestinationMailUtils {
 
 			case 10: {
 				// User download
-				template = downloadTemplateLoc;
 				subject.append(USER_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.USER.name()
@@ -310,7 +302,6 @@ public class DestinationMailUtils {
 
 			case 11: {
 				// Customer download
-				template = downloadTemplateLoc;
 				subject.append(CUSTOMER_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
@@ -320,7 +311,6 @@ public class DestinationMailUtils {
 
 			case 12: {
 				// Connect download
-				template = downloadTemplateLoc;
 				subject.append(CONNECT_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
@@ -330,7 +320,6 @@ public class DestinationMailUtils {
 
 			case 13: {
 				// Opportunity download
-				template = downloadTemplateLoc;
 				subject.append(OPPORTUNITY_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
@@ -340,7 +329,6 @@ public class DestinationMailUtils {
 
 			case 14: {
 				// Actual revenue download
-				template = downloadTemplateLoc;
 				subject.append(ACTUAL_REVENUE_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
@@ -350,7 +338,6 @@ public class DestinationMailUtils {
 
 			case 15: {
 				// Customer contact download
-				template = downloadTemplateLoc;
 				subject.append(CUSTOMER_CONTACT_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
@@ -360,7 +347,6 @@ public class DestinationMailUtils {
 
 			case 16: {
 				// Partner download
-				template = downloadTemplateLoc;
 				subject.append(PARTNER_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
@@ -370,7 +356,6 @@ public class DestinationMailUtils {
 
 			case 17: {
 				// Partner contact download
-				template = downloadTemplateLoc;
 				subject.append(PARTNER_CONTACT_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
@@ -380,7 +365,6 @@ public class DestinationMailUtils {
 
 			case 18: {
 				// Beacon download
-				template = downloadTemplateLoc;
 				subject.append(BEACON_DOWNLOAD_SUBJECT);
 				userName = user.getUserName();
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
@@ -390,7 +374,6 @@ public class DestinationMailUtils {
 				
 			case 19: {
 				// Opportunity download
-				template = dailyDownloadTemplateLoc;
 				subject.append(OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT);
 				userName = "System Admin/Strategic Group Admin";
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
@@ -400,24 +383,27 @@ public class DestinationMailUtils {
 
 			}
 			
-			requestId = new Long(request.getProcessRequestId()).toString();
-			if (requestType >= 0 && requestType < 10) {
-				fileName = request.getFileName();
-				filePath = request.getFilePath();
+			if (requestType > 0 && requestType < 10) {
+				template = uploadTemplateLoc;
+				requestId = request.getProcessRequestId().toString();
 				uploadedFileName = request.getFileName();
 				attachmentFilePath = request.getErrorFilePath() + request.getErrorFileName();
 				attachmentFileName = request.getErrorFileName();
-			} else {
+			} else if (requestType > 9 && requestType < 19){
+				template = downloadTemplateLoc;
 				attachmentFilePath = request.getFilePath() + request.getFileName();
 				attachmentFileName = request.getFileName();
+			} else {
+				template = dailyDownloadTemplateLoc;
 			}
 
-			Map userRequestMap = new HashMap();
+			Map<String, Object> userRequestMap = new HashMap<String, Object>();
 			userRequestMap.put("userName", userName);
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", uploadedFileName);
-			userRequestMap.put("requestId",requestId);
 			userRequestMap.put("submittedDate", dateStr);
+			userRequestMap.put("requestId",requestId);
+
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
@@ -433,18 +419,23 @@ public class DestinationMailUtils {
 		} catch (MailSendException e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailParseException e) {
 			logger.error("Error parsing mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailAuthenticationException e) {
 			logger.error("Error authnticatingh e-mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (MailPreparationException e) {
 			logger.error("Error preparing mail message", e.getMessage());
 			status = false;
+			throw e;
 		} catch (Exception e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		}
 
 		return status;
@@ -506,7 +497,7 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = uploadNotifyTemplateLoc;
-			StringBuffer subject = new StringBuffer("Admin: ");
+			StringBuffer subject = new StringBuffer(environmentName).append(" Admin: ");
 
 			String userName = user.getUserName();;
 			String entity = null;
@@ -596,12 +587,12 @@ public class DestinationMailUtils {
 
 			}
 
-			Map userRequestMap = new HashMap();
+			Map<String, Object> userRequestMap = new HashMap<String, Object>();
 			userRequestMap.put("userName", userName);
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", fileName);
 			userRequestMap.put("submittedDate", dateStr);
-			userRequestMap.put("requestId", request.getProcessRequestId());
+			userRequestMap.put("requestId", request.getProcessRequestId().toString());
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
@@ -615,6 +606,7 @@ public class DestinationMailUtils {
 		} catch (Exception e) {
 			logger.error("Error sending mail message", e.getMessage());
 			status = false;
+			throw e;
 		}
 
 		return status;
@@ -649,7 +641,9 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
 
-		message.setSubject(subject);
+		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		message.setSubject(sub);
+		logger.info("Subject : " + sub);
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String requestedDateStr = df.format(requestedDateTime);
@@ -691,7 +685,9 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		message.setSubject(subject);
+		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		message.setSubject(sub);
+		logger.info("Subject : " + sub);
 		sendOpportunityReopenMail(message, oppReopenRequest, user, opp, dateStr);
 	}
 
@@ -733,9 +729,10 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("Forgot Password : Mail sent");
+				logger.info("Forgot Password : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
 			}
 		}
 	}
@@ -753,7 +750,6 @@ public class DestinationMailUtils {
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
 		String[] ccMailIdsArray = getMailAddressArr(message.getCcList());
-		// shuffling the order of Ids
 		int size = ccMailIdsArray.length;
 		ccMailIdsArray = Arrays.copyOf(ccMailIdsArray, size + 1);
 		ccMailIdsArray[1] = ccMailIdsArray[0];
@@ -784,9 +780,10 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("User Access : Mail sent");
+				logger.info("User Access : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
 			}
 		}
 
@@ -838,9 +835,11 @@ public class DestinationMailUtils {
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				// logger.info("Opportunity Reopen : Mail sent");
+				logger.info("Opportunity Reopen : Mail sent");
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
+				
 			}
 		}
 

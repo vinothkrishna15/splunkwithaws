@@ -1,6 +1,7 @@
 package com.tcs.destination.tasklet;
 
 import static com.tcs.destination.enums.JobStep.BEACON_PROCESSING;
+import static com.tcs.destination.enums.JobStep.BEACON_DELETE_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
 import static com.tcs.destination.enums.RequestStatus.VERIFIED;
 import static com.tcs.destination.enums.RequestType.BEACON_UPLOAD;
@@ -56,7 +57,7 @@ public class BeaconPreprocessor implements Tasklet{
 		   
 		    jobContext.put(FILE_PATH,filePath);
 		    jobContext.put(REQUEST,request);
-		    jobContext.put(NEXT_STEP, BEACON_PROCESSING);
+		    jobContext.put(NEXT_STEP, BEACON_DELETE_PROCESSING);
 			
 		} else {
 			 jobContext.put(NEXT_STEP, END);

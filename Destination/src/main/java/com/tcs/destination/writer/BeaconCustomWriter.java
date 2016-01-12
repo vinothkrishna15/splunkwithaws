@@ -61,38 +61,22 @@ public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionLi
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
-		
 		List<BeaconDataT> insertList = new ArrayList<BeaconDataT>();
-		List<BeaconDataT> updateList = new ArrayList<BeaconDataT>();
-		List<BeaconDataT> deleteList = new ArrayList<BeaconDataT>();
-		String operation = null; 
-		
 		for (String[] data: items) {
-			operation = (String) data[1];
-			if(operation!=null)
-			{
-		     if (operation.equalsIgnoreCase(Operation.ADD.name())) 
-		     {
-		        logger.debug("****BEACON ADD****");	
-				BeaconDataT beacon =  new BeaconDataT();
-				UploadServiceErrorDetailsDTO errorDTO = helper.validateBeaconData(data, request.getUserT().getUserId() ,beacon);
-				if (errorDTO.getMessage() != null) {
-					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
-					errorList.add(errorDTO);
-				} else if (errorDTO.getMessage() == null) {
-					insertList.add(beacon);
-				}
+			logger.debug("****BEACON ADD****");	
+			BeaconDataT beacon =  new BeaconDataT();
+			UploadServiceErrorDetailsDTO errorDTO = helper.validateBeaconData(data, request.getUserT().getUserId() ,beacon);
+			if (errorDTO.getMessage() != null) {
+				errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+				errorList.add(errorDTO);
+			} else if (errorDTO.getMessage() == null) {
+				insertList.add(beacon);
 			}
-		 
-	        if (CollectionUtils.isNotEmpty(insertList)) {
-			
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-	        	beaconDataService.save(insertList);
-			} 
+		}
+	    if (CollectionUtils.isNotEmpty(insertList)) {
+	        beaconDataService.save(insertList);
 		}
 	  }
-	 }
-	}
 
 
 	public BeaconUploadHelper getHelper() {

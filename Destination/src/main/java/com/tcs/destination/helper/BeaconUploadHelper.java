@@ -3,12 +3,15 @@ package com.tcs.destination.helper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconDataT;
+import com.tcs.destination.bean.IouBeaconMappingT;
+import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
@@ -51,17 +54,25 @@ public class BeaconUploadHelper {
 	@Autowired
 	private BeaconDataTRepository beaconDataTRepository;
 	
+	@Autowired
+	CommonHelper commonHelper;
+	
+	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
+	
 	
 	public UploadServiceErrorDetailsDTO validateBeaconData(String[] data, String userId, BeaconDataT beaconDataT) throws Exception 
 	{
 		
 			UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 			
+			mapOfIouBeaconMappingT = mapOfIouBeaconMappingT != null ? mapOfIouBeaconMappingT
+					: commonHelper.getIouBeaconMappingT();
+			
 			List<BeaconCustomerMappingT> beaconCustomerMappingData=new ArrayList<BeaconCustomerMappingT>();
 			
 			
 		        // BEACON GEOGRAPHY
-				String beaconGeography = data[2];
+				String beaconGeography = data[1];
 				if(!StringUtils.isEmpty(beaconGeography))
 				{
 				    beaconDataT.setBeaconGeography(beaconGeography);
@@ -73,7 +84,7 @@ public class BeaconUploadHelper {
 				}
 				
 				// BEACON CUSTOMER NAME
-				String beaconCustomerName = data[3];
+				String beaconCustomerName = data[2];
 				if(!StringUtils.isEmpty(beaconCustomerName))
 				{
 					
@@ -85,16 +96,23 @@ public class BeaconUploadHelper {
 				}
 				
 				// BEACON_GROUP_CLIENT - does not have NOT_NULL constraint
-				String beaconGroupClient = data[4];
+				String beaconGroupClient = data[3];
 				if(!StringUtils.isEmpty(beaconGroupClient)){
 					beaconDataT.setBeaconGroupClient(beaconGroupClient);
 				}
 				
 				
 				// BEACON_CUSTOMER_IOU - to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
-				String beaconIou = data[5];
+				String beaconIou = data[4];
 				if(!StringUtils.isEmpty(beaconIou)){
-					beaconDataT.setBeaconIou(beaconIou);
+					if (mapOfIouBeaconMappingT.containsKey(beaconIou)) {
+						beaconDataT.setBeaconIou(beaconIou);
+					} else {
+
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Iou not found in database");
+					}
+					
 				}
 				else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -102,7 +120,7 @@ public class BeaconUploadHelper {
 				}
 				
 				//QUARTER
-				String quarter = data[9];
+				String quarter = data[8];
 				if(!StringUtils.isEmpty(quarter)){
 					beaconDataT.setQuarter(quarter);
 				}
@@ -113,7 +131,7 @@ public class BeaconUploadHelper {
 				}
 				
 				//REVENUE 
-				BigDecimal beaconRevenue=new BigDecimal(data[11]);
+				BigDecimal beaconRevenue=new BigDecimal(data[10]);
 				if(beaconRevenue!=null)
 				{
 					beaconDataT.setTarget(beaconRevenue);
@@ -124,7 +142,7 @@ public class BeaconUploadHelper {
 				}
 				
 				//FINANCIAL YEAR
-				String financialYear= data[8];
+				String financialYear= data[7];
 				if(!StringUtils.isEmpty(financialYear)){
 					beaconDataT.setFinancialYear(financialYear);
 				}

@@ -71,6 +71,17 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 					filePath));
 			workbook.write(outputStream); // write changes
 			outputStream.close(); // close the stream
+			
+			ExecutionContext jobContext = stepExecution.getJobExecution()
+					.getExecutionContext();
+			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
+					.get(REQUEST);
+
+			request.setStatus(RequestStatus.PROCESSED.getStatus());
+			dataProcessingRequestRepository.save(request);
+
+			jobContext.remove(REQUEST);
+			
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}

@@ -98,6 +98,10 @@ public class Constants {
 	public static final String NEXT_STEP = "NEXT_STEP";
 	public static final String REQUEST_ID = "REQUEST_ID";
 	public static final String REQUEST = "REQUEST";
+	public static final String TOKEN_CST_OR_PARTNER = "customerOrPartner";
+	public static final String TOKEN_CST_OR_PARTNER_VALUE = "custOrPartValue";
+	public static final String TOKEN_PRIMARY_OWNER = "primaryOwner";
+	public static final String TOKEN_SECONDARY_OWNERS = "secondaryOwners";
 	
 	public static final String CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME = "customerSheetTemplate";
 	public static final String CUSTOMER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "customerContactSheetTemplate";
@@ -159,6 +163,7 @@ public class Constants {
 	public static final String BEACON_IOU_MAPPING_TEMPLATE_BEACON_SHEET_NAME="IOU Map(Ref)";
 	
 	public static final String DOWNLOAD = "download";
+	public static final String UPLOAD = "upload";
 	public static final String CUSTOMER_MAP = "CUSTOMER_MAP";
 	
 	//User data template

@@ -1,5 +1,18 @@
 package com.tcs.destination.helper;
 
+import static com.tcs.destination.utils.Constants.DATE;
+import static com.tcs.destination.utils.Constants.DATE_TYPE;
+import static com.tcs.destination.utils.Constants.TOKEN_CST_OR_PARTNER;
+import static com.tcs.destination.utils.Constants.TOKEN_CST_OR_PARTNER_VALUE;
+import static com.tcs.destination.utils.Constants.TOKEN_ENTITY_NAME;
+import static com.tcs.destination.utils.Constants.TOKEN_ENTITY_TYPE;
+import static com.tcs.destination.utils.Constants.TOKEN_FROM;
+import static com.tcs.destination.utils.Constants.TOKEN_PRIMARY_OWNER;
+import static com.tcs.destination.utils.Constants.TOKEN_SECONDARY_OWNERS;
+import static com.tcs.destination.utils.Constants.TOKEN_SUBORDINATE;
+import static com.tcs.destination.utils.Constants.TOKEN_TO;
+import static com.tcs.destination.utils.Constants.TOKEN_USER;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +83,12 @@ public class NotificationHelper implements Runnable {
 	private static final String TOKEN_SALES_STAGE = "sales_stage";
 
 	private static final String TOKEN_PARENT_ENTITY_NAME = "parentEntityName";
+	
+	private static final String TOKEN_CUSTOMER_NAME = "customerName";
 
+	private static final String TOKEN_CONNECT_CATEGORY="connectCategory";
+
+	private static final String TOKEN_PARENT_ENTITY = "parentEntity";
 	private Object oldObject;
 	private String entityId;
 	private String entityType;
@@ -478,6 +496,12 @@ public class NotificationHelper implements Runnable {
 		String msgTemplate = null;
 		String addRecipient = null;
 		String removeReceipient = null;
+		String customerOrPartnerName = null;
+		String connectCategory = null;
+		String customerOrPartner = null;
+		String customerName = null;
+		String parentEntity =null;
+		String parentEntityName = null;
 		Object dbObject = NotificationsLazyLoader.loadLazyCollections(entityId,
 				entityType, crudRepository,
 				notificationsEventFieldsTRepository, entityManagerFactory);
@@ -486,20 +510,30 @@ public class NotificationHelper implements Runnable {
 			if (EntityType.contains(entityType)) {
 				switch (EntityType.valueOf(entityType)) {
 				case CONNECT: {
+					
 					logger.debug(
 							"Processing Notifications for Add, ConnectId: {}",
 							entityId);
 					ConnectT connect = (ConnectT) dbObject;
-					// ((ConnectRepository) crudRepository).findOne(entityId);
 					String fieldType = null;
 					if (connect != null) {
+						
 						user = connect.getModifiedByUser().getUserName();
 						entityName = connect.getConnectName();
+						connectCategory = connect.getConnectCategory().toLowerCase();
+						customerOrPartnerName = validateConnectCategory(connect, connectCategory);
+							
+						
+						logger.info("customer/partner name: "  + customerOrPartnerName);
+						
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
+							
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
+								
 								// Handling update
 								if (oldObject != null) {
+									
 									String oldValue = PropertyUtils
 											.getProperty(
 													oldObject,
@@ -513,6 +547,7 @@ public class NotificationHelper implements Runnable {
 															.getFieldName())
 											.toString();
 									if (!oldValue.equalsIgnoreCase(newValue)) {
+										
 										// Get notification recipient user id
 										addRecipient = (String) PropertyUtils
 												.getProperty(
@@ -537,13 +572,15 @@ public class NotificationHelper implements Runnable {
 
 								if (!connect.getModifiedBy().equals(
 										addRecipient)) {
+									String[] tokenValues = {user, entityName,
+											null, null, null, null,
+											"added", null, null, customerOrPartnerName, connectCategory};
 									msgTemplate = replaceTokens(
 											notificationField
 													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"added", null, null));
+											populateTokens(tokenValues));
 									if (msgTemplate != null) {
+										logger.info(msgTemplate);
 										addUserNotifications(
 												msgTemplate,
 												addRecipient,
@@ -554,13 +591,14 @@ public class NotificationHelper implements Runnable {
 
 								if (!connect.getModifiedBy().equals(
 										removeReceipient)) {
+									String[] tokenValues = {user, entityName,
+											null, null, null, null,
+											"removed", null, null,customerOrPartnerName, connectCategory};
 
 									msgTemplate = replaceTokens(
 											notificationField
 													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"removed", null, null));
+											populateTokens(tokenValues));
 									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
@@ -572,7 +610,7 @@ public class NotificationHelper implements Runnable {
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
 								processCollections(user, entityName,
-										notificationField, oldObject, connect);
+										notificationField, oldObject, connect, customerOrPartnerName, connectCategory);
 							}
 						}
 
@@ -596,6 +634,7 @@ public class NotificationHelper implements Runnable {
 					if (opportunity != null) {
 						user = opportunity.getModifiedByUser().getUserName();
 						entityName = opportunity.getOpportunityName();
+						customerName = opportunity.getCustomerMasterT().getCustomerName();
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
@@ -637,12 +676,13 @@ public class NotificationHelper implements Runnable {
 
 								if (!opportunity.getModifiedBy().equals(
 										addRecipient)) {
+									String[] tokenValues={user, entityName,
+											null, null, null, null,
+											"added", null, null,customerName,null};
 									msgTemplate = replaceTokens(
 											notificationField
 													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"added", null, null));
+											populateTokens(tokenValues));
 									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
@@ -654,13 +694,14 @@ public class NotificationHelper implements Runnable {
 
 								if (!opportunity.getModifiedBy().equals(
 										removeReceipient)) {
+									String[] tokenValues={user, entityName,
+											null, null, null, null,
+											"removed", null, null,customerName, null};
 
 									msgTemplate = replaceTokens(
 											notificationField
 													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"removed", null, null));
+											populateTokens(tokenValues));
 									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
@@ -673,7 +714,7 @@ public class NotificationHelper implements Runnable {
 									.equalsIgnoreCase(Constants.COLLECTION)) {
 								processCollections(user, entityName,
 										notificationField, oldObject,
-										opportunity);
+										opportunity, customerName, null);
 							}
 						}
 
@@ -712,6 +753,21 @@ public class NotificationHelper implements Runnable {
 					if (task != null) {
 						user = task.getModifiedByUser().getUserName();
 						entityName = task.getTaskDescription();
+						parentEntity = task.getEntityReference().toLowerCase();
+						//If task is for a connect
+						if(parentEntity.equalsIgnoreCase("CONNECT"))
+						{
+							parentEntityName = task.getConnectT().getConnectName();
+							 customerOrPartner = task.getConnectT().getConnectCategory().toLowerCase();
+							customerOrPartnerName = validateConnectCategory(task.getConnectT(), connectCategory);
+							
+						}
+						// Task for opportunity
+						else {
+							parentEntityName = task.getOpportunityT().getOpportunityName();
+							customerOrPartner  = "Customer";
+							customerOrPartnerName = task.getOpportunityT().getCustomerMasterT().getCustomerName();
+						}
 						for (NotificationEventFieldsT notificationField : notificationEventFieldsList) {
 							fieldType = notificationField.getFieldType();
 							if (fieldType.equalsIgnoreCase(Constants.FIELD)) {
@@ -757,13 +813,14 @@ public class NotificationHelper implements Runnable {
 										taskOwners);
 								for (String recipient : taskOwnerSet) {
 									if (!task.getModifiedBy().equals(recipient)) {
+										String[] tokenValues = {user,
+												entityName, null, null,
+												null, null, "added",
+												null, parentEntityName, customerOrPartnerName, customerOrPartner, parentEntity};
 										msgTemplate = replaceTokens(
 												notificationField
 														.getMessageTemplate(),
-												populateTokens(user,
-														entityName, null, null,
-														null, null, "added",
-														null, null));
+												populateTokens(tokenValues));
 										if (msgTemplate != null) {
 											addUserNotifications(
 													msgTemplate,
@@ -776,13 +833,14 @@ public class NotificationHelper implements Runnable {
 
 								if (!task.getModifiedBy().equals(
 										removeReceipient)) {
+									String[] tokenValues = {user, entityName,
+											null, null, null, null,
+											"removed", null, parentEntityName, customerOrPartnerName, customerOrPartner, parentEntity};
 
 									msgTemplate = replaceTokens(
 											notificationField
 													.getMessageTemplate(),
-											populateTokens(user, entityName,
-													null, null, null, null,
-													"removed", null, null));
+											populateTokens(tokenValues));
 									if (msgTemplate != null) {
 										addUserNotifications(
 												msgTemplate,
@@ -794,7 +852,7 @@ public class NotificationHelper implements Runnable {
 							} else if (fieldType
 									.equalsIgnoreCase(Constants.COLLECTION)) {
 								processCollections(user, entityName,
-										notificationField, oldObject, task);
+										notificationField, oldObject, task, customerOrPartnerName, customerOrPartner);
 							}
 						}
 						sendNotificationsToSupervisorForTaskForSubordinateOwnerAddision(task);
@@ -848,11 +906,12 @@ public class NotificationHelper implements Runnable {
 		addToList(userIds,
 				userNotificationSettingsConditionRepository
 						.findUserIdByConditionIdAndConditionValue(5, country));
-
+               if(digitalDealValue != null) {
 		addToList(
 				userIds,
 				userNotificationSettingsConditionRepository
 						.findUserIdByDigitalDealValueGreaterThan(digitalDealValue));
+}
 
 		List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
 				.getAllOwners(opportunity.getOpportunityId());
@@ -872,15 +931,14 @@ public class NotificationHelper implements Runnable {
 		for (String userId : notifyUserIds) {
 			if ((!opportunityOwners.contains(userId))
 					&& (!opportunity.getCreatedBy().equals(userId))) {
-				// autoCommentsEntityTRepository
-				// .findOne(fieldId).getAddMessageTemplate();
+				String[] tokenValues={opportunity.getCreatedByUser()
+						.getUserName(), opportunity
+						.getOpportunityName(), null, null, null, null,
+						null, null, opportunity.getCustomerMasterT()
+								.getCustomerName(), null, null};
 				String notificationMessage = replaceTokens(
 						addMessageTemplate,
-						populateTokens(opportunity.getCreatedByUser()
-								.getUserName(), opportunity
-								.getOpportunityName(), null, null, null, null,
-								null, null, opportunity.getCustomerMasterT()
-										.getCustomerName()));
+						populateTokens(tokenValues));
 				notificationMessage = notificationMessage.replace(
 						"[Auto Comment]: ", "");
 				addUserNotifications(notificationMessage, userId, eventId,
@@ -944,12 +1002,13 @@ public class NotificationHelper implements Runnable {
 				else if (connectT.getPartnerMasterT() != null)
 					parentEntityName = connectT.getPartnerMasterT()
 							.getPartnerName();
+				String tokenValues[] = {connectT.getCreatedByUser()
+						.getUserName(), connectT.getConnectName(),
+						null, null, null, null, null, null,
+						parentEntityName,null,null};
 				String notificationMessage = replaceTokens(
 						addMessageTemplate,
-						populateTokens(connectT.getCreatedByUser()
-								.getUserName(), connectT.getConnectName(),
-								null, null, null, null, null, null,
-								parentEntityName));
+						populateTokens(tokenValues));
 				notificationMessage = notificationMessage.replace(
 						"[Auto Comment]: ", "");
 				addUserNotifications(notificationMessage, userId, eventId,
@@ -1015,6 +1074,8 @@ public class NotificationHelper implements Runnable {
 		userIds.add(opportunity.getPrimaryOwnerUser().getUserId());
 		String userNames = opportunity.getPrimaryOwnerUser().getUserName()
 				+ " (Primary)";
+		String ownership = null;
+		
 		int size = opportunity.getOpportunitySalesSupportLinkTs().size();
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
@@ -1057,15 +1118,17 @@ public class NotificationHelper implements Runnable {
 		}
 		String supervisorOwnerWonOrLost = null;
 		if (opportunity.getSalesStageCode() == 9) {
+			String[] tokenValues={userNames, opportunity.getOpportunityName(),
+					null, null, null, null, "won", null, null,opportunity.getCustomerMasterT().getCustomerName(), null};
 			supervisorOwnerWonOrLost = replaceTokens(
 					notificationTemplate,
-					populateTokens(userNames, opportunity.getOpportunityName(),
-							null, null, null, null, "won", null, null));
+					populateTokens(tokenValues));
 		} else if (opportunity.getSalesStageCode() == 10) {
+			String[] tokenValues={userNames, opportunity.getOpportunityName(),
+					null, null, null, null, "lost", null, null, opportunity.getCustomerMasterT().getCustomerName(), null};
 			supervisorOwnerWonOrLost = replaceTokens(
 					notificationTemplate,
-					populateTokens(userNames, opportunity.getOpportunityName(),
-							null, null, null, null, "lost", null, null));
+					populateTokens(tokenValues));
 		}
 		List<String> supervisorIdList = userRepository
 				.getSupervisorUserId(userIds);
@@ -1088,6 +1151,12 @@ public class NotificationHelper implements Runnable {
 				.getMessageTemplate();
 		String oldPrimaryOwner = null;
 		List<String> oldSecondaryOwners = null;
+		String connectCategory = null;
+		String customerOrPartnerName= null;
+		
+		connectCategory = connect.getConnectCategory().toLowerCase();
+		customerOrPartnerName = validateConnectCategory(connect, connectCategory);
+		
 		if (oldObject != null) {
 			ConnectT oldConnect = (ConnectT) oldObject;
 			oldPrimaryOwner = oldConnect.getPrimaryOwner();
@@ -1101,12 +1170,13 @@ public class NotificationHelper implements Runnable {
 		if (oldPrimaryOwner == null
 				|| connect.getPrimaryOwner() != oldPrimaryOwner) {
 
+			String[] tokenValues={connect.getPrimaryOwnerUser().getUserName(),
+					connect.getConnectName(), null, null,
+					Constants.CONNECT, "Primary Owner", null, null,
+					null,customerOrPartnerName , connectCategory};
 			String supervisorOwner = replaceTokens(
 					notificationTemplate,
-					populateTokens(connect.getPrimaryOwnerUser().getUserName(),
-							connect.getConnectName(), null, null,
-							Constants.CONNECT, "Primary Owner", null, null,
-							null));
+					populateTokens(tokenValues));
 			if (supervisorOwner != null) {
 				if (!connect.getPrimaryOwnerUser().getSupervisorUserId()
 						.equals(connect.getModifiedBy()))
@@ -1123,13 +1193,14 @@ public class NotificationHelper implements Runnable {
 						.contains(connectSecondaryOwnerLinkT
 								.getSecondaryOwner()))
 						|| oldSecondaryOwners == null) {
+					String[] tokenValues={connectSecondaryOwnerLinkT
+							.getSecondaryOwnerUser().getUserName(),
+							connect.getConnectName(), null, null,
+							EntityType.CONNECT.name(),
+							"Secondary Owner", null, null, null,customerOrPartnerName , connectCategory};
 					String supervisorOwner = replaceTokens(
 							notificationTemplate,
-							populateTokens(connectSecondaryOwnerLinkT
-									.getSecondaryOwnerUser().getUserName(),
-									connect.getConnectName(), null, null,
-									EntityType.CONNECT.name(),
-									"Secondary Owner", null, null, null));
+							populateTokens(tokenValues));
 					if (supervisorOwner != null) {
 						if (!connectSecondaryOwnerLinkT.getSecondaryOwnerUser()
 								.getSupervisorUserId()
@@ -1147,6 +1218,22 @@ public class NotificationHelper implements Runnable {
 		}
 	}
 
+	/**
+	 * @param connect
+	 * @param connectCategory
+	 */
+	private String validateConnectCategory(ConnectT connect,
+			String connectCategory) {
+		String customerOrPartnerName = null;
+		if(connectCategory.equalsIgnoreCase("CUSTOMER")) {
+			customerOrPartnerName = connect.getCustomerMasterT().getCustomerName();
+		}
+		else if(connectCategory.equalsIgnoreCase("PARTNER")) {
+			customerOrPartnerName = connect.getPartnerMasterT().getPartnerName();
+		}
+		return customerOrPartnerName;
+	}
+
 	private void sendNotificationsToSupervisorForTaskForSubordinateOwnerAddision(
 			TaskT taskT) throws Exception {
 		List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = notificationEventGroupMappingTRepository
@@ -1154,7 +1241,26 @@ public class NotificationHelper implements Runnable {
 		String notificationTemplate = notificationEventGroupMappingTs.get(0)
 				.getMessageTemplate();
 		String oldPrimaryOwner = null;
+		String customerOrPartnerName=null;
+		String customerOrPartner=null;
 		List<String> oldSecondaryOwners = null;
+		String parentEntityName = null;
+		String parentEntity = null;
+		parentEntity = taskT.getEntityReference().toLowerCase();
+		//If task is for a connect
+		if(parentEntity.equalsIgnoreCase("CONNECT"))
+		{
+			parentEntityName= taskT.getConnectT().getConnectName();
+			customerOrPartner = taskT.getConnectT().getConnectCategory().toLowerCase();
+			customerOrPartnerName = validateConnectCategory(taskT.getConnectT(), customerOrPartner);
+			
+		}
+		// Task for opportunity
+		else {
+			parentEntityName= taskT.getOpportunityT().getOpportunityName();
+			customerOrPartner = "Customer";
+			customerOrPartnerName = taskT.getOpportunityT().getCustomerMasterT().getCustomerName();
+		}
 		if (oldObject != null) {
 			TaskT oldTask = (TaskT) oldObject;
 			oldPrimaryOwner = oldTask.getTaskOwner();
@@ -1167,11 +1273,12 @@ public class NotificationHelper implements Runnable {
 		}
 		if (oldPrimaryOwner == null || taskT.getTaskOwner() != oldPrimaryOwner) {
 
+			String[] tokenValues={taskT.getTaskOwnerT().getUserName(),
+					taskT.getTaskDescription(), null, null,
+					Constants.TASK, "Primary Owner", null, null, parentEntityName,customerOrPartnerName, customerOrPartner, parentEntity};
 			String supervisorOwner = replaceTokens(
 					notificationTemplate,
-					populateTokens(taskT.getTaskOwnerT().getUserName(),
-							taskT.getTaskDescription(), null, null,
-							Constants.TASK, "Primary Owner", null, null, null));
+					populateTokens(tokenValues));
 			if (supervisorOwner != null) {
 				if (!taskT.getTaskOwnerT().getSupervisorUserId()
 						.equals(taskT.getModifiedBy()))
@@ -1187,12 +1294,13 @@ public class NotificationHelper implements Runnable {
 				if ((oldSecondaryOwners != null && !oldSecondaryOwners
 						.contains(taskBdmsTaggedLinkT.getUserT().getUserId()))
 						|| oldSecondaryOwners == null) {
+					String[] tokenValues={taskBdmsTaggedLinkT.getUserT()
+							.getUserName(), taskT.getTaskDescription(),
+							null, null, EntityType.TASK.name(),
+							"Secondary Owner", null, null, parentEntityName, customerOrPartnerName, customerOrPartner, parentEntity};
 					String supervisorOwner = replaceTokens(
 							notificationTemplate,
-							populateTokens(taskBdmsTaggedLinkT.getUserT()
-									.getUserName(), taskT.getTaskDescription(),
-									null, null, EntityType.TASK.name(),
-									"Secondary Owner", null, null, null));
+							populateTokens(tokenValues));
 					if (supervisorOwner != null) {
 						if (!taskBdmsTaggedLinkT.getUserT()
 								.getSupervisorUserId()
@@ -1217,6 +1325,7 @@ public class NotificationHelper implements Runnable {
 		String oldPrimaryOwner = null;
 		List<String> oldSalesSupportOwners = null;
 		List<String> oldBidOfficeGroupOwners = null;
+	
 		if (oldObject != null) {
 			OpportunityT oldOpportunity = (OpportunityT) oldObject;
 			oldPrimaryOwner = oldOpportunity.getOpportunityOwner();
@@ -1238,12 +1347,13 @@ public class NotificationHelper implements Runnable {
 		if (oldPrimaryOwner == null
 				|| opportunity.getOpportunityOwner() != oldPrimaryOwner) {
 
+			String[] tokenValues={opportunity.getPrimaryOwnerUser()
+					.getUserName(), opportunity.getOpportunityName(),
+					null, null, Constants.OPPORTUNITY, "Primary Owner",
+					null, null, null, opportunity.getCustomerMasterT().getCustomerName(), null};
 			String supervisorOwner = replaceTokens(
 					notificationTemplate,
-					populateTokens(opportunity.getPrimaryOwnerUser()
-							.getUserName(), opportunity.getOpportunityName(),
-							null, null, Constants.OPPORTUNITY, "Primary Owner",
-							null, null, null));
+					populateTokens(tokenValues));
 			if (supervisorOwner != null) {
 				if (!opportunity.getPrimaryOwnerUser().getSupervisorUserId()
 						.equals(opportunity.getModifiedBy()))
@@ -1261,13 +1371,14 @@ public class NotificationHelper implements Runnable {
 						.contains(opportunitySalesSupportLinkT
 								.getSalesSupportOwner()))
 						|| oldSalesSupportOwners == null) {
+					String[] tokenValues={opportunitySalesSupportLinkT
+							.getSalesSupportOwnerUser().getUserName(),
+							opportunity.getOpportunityName(), null,
+							null, EntityType.OPPORTUNITY.name(),
+							"Sales Support Owner", null, null, null,opportunity.getCustomerMasterT().getCustomerName(), null};
 					String supervisorOwner = replaceTokens(
 							notificationTemplate,
-							populateTokens(opportunitySalesSupportLinkT
-									.getSalesSupportOwnerUser().getUserName(),
-									opportunity.getOpportunityName(), null,
-									null, EntityType.OPPORTUNITY.name(),
-									"Sales Support Owner", null, null, null));
+							populateTokens(tokenValues));
 					if (supervisorOwner != null) {
 						if (!opportunitySalesSupportLinkT
 								.getSalesSupportOwnerUser()
@@ -1293,15 +1404,16 @@ public class NotificationHelper implements Runnable {
 								.contains(bidOfficeGroupOwnerLinkT
 										.getBidOfficeGroupOwner()))
 								|| (oldBidOfficeGroupOwners == null)) {
+							String[] tokenValues={bidOfficeGroupOwnerLinkT
+									.getBidOfficeGroupOwnerUser()
+									.getUserName(), opportunity
+									.getOpportunityName(), null, null,
+									EntityType.OPPORTUNITY.name(),
+									"Bid Office Owner", null, null,
+									null,opportunity.getCustomerMasterT().getCustomerName(), null};
 							String supervisorOwner = replaceTokens(
 									notificationTemplate,
-									populateTokens(bidOfficeGroupOwnerLinkT
-											.getBidOfficeGroupOwnerUser()
-											.getUserName(), opportunity
-											.getOpportunityName(), null, null,
-											EntityType.OPPORTUNITY.name(),
-											"Bid Office Owner", null, null,
-											null));
+									populateTokens(tokenValues));
 							if (supervisorOwner != null) {
 								if (!bidOfficeGroupOwnerLinkT
 										.getBidOfficeGroupOwnerUser()
@@ -1325,11 +1437,30 @@ public class NotificationHelper implements Runnable {
 
 	private void processCollections(String user, String entityName,
 			NotificationEventFieldsT notificationField, Object oldObj,
-			Object newObj) throws Exception {
+			Object newObj, String customerOrPartnerName, String connectCategory) throws Exception {
 		logger.debug("Inside processCollections() method");
 		Object beforeUpdate = null;
 		Object afterUpdate = null;
-
+		String parentEntity =null;
+		String parentEntityName =null;
+		
+		if(newObj.getClass() == TaskT.class)
+		{
+			TaskT task = (TaskT)newObj;
+			parentEntity = task.getEntityReference().toLowerCase();
+			//If task is for a connect
+			if(parentEntity.equalsIgnoreCase("CONNECT"))
+			{
+				parentEntityName = task.getConnectT().getConnectName();	
+				
+			}
+			// Task for opportunity
+			else {
+				parentEntityName = task.getOpportunityT().getOpportunityName();
+				
+			}
+			
+		}
 		if (notificationField != null) {
 			logger.debug("Field: {}", notificationField.getFieldName());
 			if (oldObj != null) {
@@ -1447,11 +1578,12 @@ public class NotificationHelper implements Runnable {
 							}
 
 							// Add Notification with the message template
+							String[] tokenValues={user, entityName, null,
+									null, null, null, "added", null,
+									parentEntityName, customerOrPartnerName, connectCategory, parentEntity};
 							msgTemplate = replaceTokens(
 									eventField.getMessageTemplate(),
-									populateTokens(user, entityName, null,
-											null, null, null, "added", null,
-											null));
+									populateTokens(tokenValues));
 							sendNotificationForCollections(newObj, recipient,
 									msgTemplate, eventField);
 						}
@@ -1460,10 +1592,12 @@ public class NotificationHelper implements Runnable {
 					List<Object> afterUpdateObjectList = null;
 					if (afterUpdate != null)
 						afterUpdateObjectList = (List<Object>) afterUpdate;
+					
+					
 					sendRemovedNotificationToSecondaryOwners(user, entityName,
 							notificationField, newObj, afterUpdate,
 							beforeObjectMap, msgTemplate, eventField,
-							afterUpdateObjectList);
+							afterUpdateObjectList, customerOrPartnerName, connectCategory);
 				} else if (fieldType.equalsIgnoreCase(Constants.COLLECTION)) {
 					// Process inner collections
 					if (afterUpdate != null) {
@@ -1479,10 +1613,10 @@ public class NotificationHelper implements Runnable {
 									&& !beforeObjectMap.isEmpty()) {
 								processCollections(user, entityName,
 										eventField, beforeObjectMap.get(keyId),
-										afterUpdateObject);
+										afterUpdateObject, customerOrPartnerName, connectCategory);
 							} else {
 								processCollections(user, entityName,
-										eventField, null, afterUpdateObject);
+										eventField, null, afterUpdateObject, customerOrPartnerName, connectCategory);
 							}
 						}
 					}
@@ -1499,7 +1633,7 @@ public class NotificationHelper implements Runnable {
 			Object newObj, Object afterUpdate,
 			HashMap<String, Object> beforeObjectMap, String msgTemplate,
 			NotificationEventFieldsT eventField,
-			List<Object> afterUpdateObjectList) throws IllegalAccessException,
+			List<Object> afterUpdateObjectList, String customerOrPartnerName, String connectCategory) throws IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, Exception {
 		if (Arrays.asList(103, 203, 206, 311).contains(eventField.getFieldId())
 				&& beforeObjectMap != null) {
@@ -1541,10 +1675,11 @@ public class NotificationHelper implements Runnable {
 					}
 					// Add Notification with the message
 					// template
+					String[] tokenValues={user, entityName, null, null, null,
+							null, "removed", null, null, customerOrPartnerName, connectCategory};
 					msgTemplate = replaceTokens(
 							eventField.getMessageTemplate(),
-							populateTokens(user, entityName, null, null, null,
-									null, "removed", null, null));
+							populateTokens(tokenValues));
 					sendNotificationForCollections(newObj, deleteRecipient,
 							msgTemplate, eventField);
 				}
@@ -1587,6 +1722,41 @@ public class NotificationHelper implements Runnable {
 	private HashMap<String, String> populateTokens(String user,
 			String entityName, String from, String to, String entityType,
 			String ownership, String status, String salesStageDesc,
+			String parentEntityName, String customerOrPartnerName, String connectCategory, String parentEntity) throws Exception {
+		logger.debug("Inside populateTokens() method");
+		HashMap<String, String> tokensMap = new HashMap<String, String>();
+		if (user != null)
+			tokensMap.put(TOKEN_USER, user);
+		if (entityName != null)
+			tokensMap.put(TOKEN_ENTITY_NAME, entityName);
+		if (from != null)
+			tokensMap.put(TOKEN_FROM, from);
+		if (to != null)
+			tokensMap.put(TOKEN_TO, to);
+		if (entityType != null)
+			tokensMap.put(TOKEN_ENTITY_TYPE, entityType);
+		if (ownership != null)
+			tokensMap.put(TOKEN_OWNERSHIP, ownership);
+		if (status != null)
+			tokensMap.put(TOKEN_STATUS, status);
+		if (salesStageDesc != null)
+			tokensMap.put(TOKEN_SALES_STAGE, salesStageDesc);
+		if (parentEntityName != null)
+			tokensMap.put(TOKEN_PARENT_ENTITY_NAME, parentEntityName);
+		if (customerOrPartnerName != null)
+			tokensMap.put(TOKEN_CUSTOMER_NAME, customerOrPartnerName);
+		if (connectCategory != null)
+			tokensMap.put(TOKEN_CONNECT_CATEGORY, connectCategory);
+		if (parentEntity != null)
+			tokensMap.put(TOKEN_PARENT_ENTITY, parentEntity);
+
+		return tokensMap;
+		
+	}
+//This method is overloaded for populating customer name 
+	private HashMap<String, String> populateTokens(String user,
+			String entityName, String from, String to, String entityType,
+			String ownership, String status, String salesStageDesc,
 			String parentEntityName) throws Exception {
 		logger.debug("Inside populateTokens() method");
 		HashMap<String, String> tokensMap = new HashMap<String, String>();
@@ -1610,7 +1780,6 @@ public class NotificationHelper implements Runnable {
 			tokensMap.put(TOKEN_PARENT_ENTITY_NAME, parentEntityName);
 		return tokensMap;
 	}
-
 	// This method is used to replace tokens in the auto comments message
 	// template
 	private String replaceTokens(String message, Map<String, String> tokens)
@@ -1714,6 +1883,59 @@ public class NotificationHelper implements Runnable {
 		} else {
 			logger.info("Notification settings not available.");
 		}
+	}
+	
+	/**
+	 * This method is used to get the tokens for message templates used for notification
+	 * @param values
+	 * @return
+	 * @throws Exception
+	 */
+	private HashMap<String, String> populateTokens(String[] values)
+			throws Exception {
+
+		logger.debug("Inside populateTokens() method");
+
+		HashMap<String, String> tokensMap = new HashMap<String, String>();
+		if (values[0] != null) {
+			tokensMap.put(TOKEN_USER, values[0]);
+		}
+		if (values[1] != null) {
+			tokensMap.put(TOKEN_ENTITY_NAME, values[1]);
+		}
+		if (values[2] != null) {
+			tokensMap.put(TOKEN_FROM, values[2]);
+		}
+		if (values[3] != null) {
+			tokensMap.put(TOKEN_TO, values[3]);
+		}
+		if (values[4] != null) {
+			tokensMap.put(TOKEN_ENTITY_TYPE, values[4]);
+		}
+		
+		if (values[5] != null) {
+			tokensMap.put(TOKEN_OWNERSHIP, values[5]);
+		}
+		if (values[6] != null) {
+			tokensMap.put(TOKEN_STATUS, values[6]);
+		}
+		if (values[7] != null) {
+			tokensMap.put(TOKEN_SALES_STAGE, values[7]);
+		}
+		if (values[8] != null) {
+			tokensMap.put(TOKEN_PARENT_ENTITY_NAME, values[8]);
+		}
+		if (values[9] != null) {
+			tokensMap.put(TOKEN_CUSTOMER_NAME, values[9]);
+		}
+		if (values[10] != null) {
+			tokensMap.put(TOKEN_CONNECT_CATEGORY, values[10]);
+		}
+		if (values[11] != null) {
+			tokensMap.put(TOKEN_PARENT_ENTITY, values[11]);
+		}
+
+		return tokensMap;
 	}
 
 	public void setOpportunityRepository(

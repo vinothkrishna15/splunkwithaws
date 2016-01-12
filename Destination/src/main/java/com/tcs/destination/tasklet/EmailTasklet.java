@@ -23,7 +23,10 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
@@ -45,7 +48,7 @@ import com.tcs.destination.utils.DestinationMailUtils;
  * 
  */
 @Component("emailTasklet")
-public class EmailTasklet implements Tasklet {
+public class EmailTasklet implements Tasklet, StepExecutionListener{
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(EmailTasklet.class);
@@ -67,20 +70,48 @@ public class EmailTasklet implements Tasklet {
 		logger.debug("Inside execute method:");
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
-		
 		DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
-		
 		List<UserRole> roles = Arrays.asList(UserRole.SYSTEM_ADMIN, UserRole.STRATEGIC_GROUP_ADMIN);
 		
 		if(destinationMailUtils.sendUserRequestResponse(request, roles)) {
 			
 			logger.info("Emailed opportunity daily report to Admin & Strategic group");
 		} else {
+			
 			logger.info("Unable to email opportunity daily report to Admin & Strategic group");
 			throw new DestinationException(HttpStatus.EXPECTATION_FAILED,"Unable to email opportunity daily report to Admin & Strategic group");
 		}
 
+		jobContext.remove(REQUEST);
 		return RepeatStatus.FINISHED;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#beforeStep(org.springframework.batch.core.StepExecution)
+	 */
+	@Override
+	public void beforeStep(StepExecution stepExecution) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.batch.core.StepExecutionListener#afterStep(org.springframework.batch.core.StepExecution)
+	 */
+	@Override
+	public ExitStatus afterStep(StepExecution stepExecution) {
+		logger.info("Unable to email opportunity daily report to Admin & Strategic group");
+		ExitStatus status = stepExecution.getExitStatus();
+		if (!status.equals(ExitStatus.COMPLETED)) {
+			for (Throwable e: stepExecution.getFailureExceptions()) {
+				logger.error("Error sending e-mail message: {}", e.getMessage());
+			}
+		}
+		logger.info(
+				"Step - {} exit with the exit code - {}, exit status - {}",
+				stepExecution.getStepName(), status.getExitCode(),
+				status.getExitDescription());
+		return status;
 	}
 
 }

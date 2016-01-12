@@ -31,6 +31,8 @@ public class RevenueDecider implements JobExecutionDecider {
         	status = new FlowExecutionStatus(JobStep.REVENUE_DWLD_PROCESSING.name());
         } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.PREPROCESS)) {
         	status = new FlowExecutionStatus(JobStep.PREPROCESS.name());
+        } else if (jobExecution.getExecutionContext().get(NEXT_STEP).equals(JobStep.REVENUE_DELETE_PROCESSING)) {
+			status = new FlowExecutionStatus(JobStep.REVENUE_DELETE_PROCESSING.name());
         } 
 		
 		logger.debug("Decider next step:" + status.getName());
