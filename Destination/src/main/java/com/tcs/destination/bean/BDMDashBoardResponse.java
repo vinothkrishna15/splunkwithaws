@@ -63,6 +63,9 @@ public class BDMDashBoardResponse {
 	}
 
 	public BigDecimal getTotalOppWinsAchieved() {
+		if(totalOppWinsAchieved!=null){
+			totalOppWinsAchieved = totalOppWinsAchieved.setScale(2, RoundingMode.CEILING);
+			}
 		//totalOppWinsAchieved = primaryOrBidOppWinsAchieved.add(salesOwnerOppWinsAchieved);
 		return totalOppWinsAchieved;
 	}
