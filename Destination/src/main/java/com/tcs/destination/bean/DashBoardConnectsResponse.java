@@ -3,6 +3,8 @@ package com.tcs.destination.bean;
 import java.io.Serializable;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
 
@@ -17,8 +19,19 @@ public class DashBoardConnectsResponse implements Serializable{
 	private int weekCount;
 
 	private int monthCount;
+	
+	private PaginatedResponse paginatedConnectResponse;
+	
+	
+	
+	public PaginatedResponse getPaginatedConnectResponse() {
+		return paginatedConnectResponse;
+	}
 
-	private List<ConnectT> connectTs;
+	public void setPaginatedConnectResponse(
+			PaginatedResponse paginatedConnectResponse) {
+		this.paginatedConnectResponse = paginatedConnectResponse;
+	}
 
 	public int getWeekCount() {
 		return weekCount;
@@ -34,14 +47,6 @@ public class DashBoardConnectsResponse implements Serializable{
 
 	public void setMonthCount(int monthCount) {
 		this.monthCount = monthCount;
-	}
-
-	public List<ConnectT> getConnectTs() {
-		return connectTs;
-	}
-
-	public void setConnectTs(List<ConnectT> connectTs) {
-		this.connectTs = connectTs;
 	}
 	
 	
