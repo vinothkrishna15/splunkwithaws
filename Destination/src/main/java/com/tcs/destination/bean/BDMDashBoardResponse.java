@@ -61,9 +61,7 @@ public class BDMDashBoardResponse {
 	}
 
 	public BigDecimal getTotalOppWinsAchieved() {
-		if(totalOppWinsAchieved!=null){
 		totalOppWinsAchieved = primaryOrBidOppWinsAchieved.add(salesOwnerOppWinsAchieved);
-		}
 		return totalOppWinsAchieved;
 	}
 
