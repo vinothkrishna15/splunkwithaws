@@ -1311,6 +1311,7 @@ public class ConnectService {
 					e.getMessage());
 		}
 		paginatedResponse.setConnectTs(listOfConnects);
+		prepareConnect(listOfConnects);
 		return paginatedResponse;
 	}
 
