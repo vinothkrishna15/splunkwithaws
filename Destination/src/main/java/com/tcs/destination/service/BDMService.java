@@ -459,8 +459,13 @@ public class BDMService {
 		}
 		Object[][] connectsCount = connectRepository.findConnectsByPrimaryOwnerOrSecondaryOwner(userId, fromDateTs, toDateTs);
 		if(opportunityWin!=null && opportunityWin.length>0){
-			oppOwnerWinValue = ((BigDecimal) opportunityWin[0][0]);
-			salesSupOwnerWinValue = ((BigDecimal) opportunityWin[0][1]);
+			if((BigDecimal) opportunityWin[0][0]!=null){
+				oppOwnerWinValue = ((BigDecimal) opportunityWin[0][0]);
+			}
+			if((BigDecimal) opportunityWin[0][1]!=null){
+				salesSupOwnerWinValue = ((BigDecimal) opportunityWin[0][1]);
+			}
+			
 		}
 		if(proposalSupported!=null && proposalSupported.length>0){
 			if(proposalSupported[0][0]!=null){
