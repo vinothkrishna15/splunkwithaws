@@ -201,7 +201,7 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 	
 	</bean>
 	
-	<bean id="connectDwldPartnerContactDwldWriter" class="com.tcs.destination.writer.PartnerContactDwldWriter">
+	<bean id="connectDwldPartnerContactDwldWriter" class="com.tcs.destination.writer.ConnectPartnerContactDwldWriter">
 	
 	</bean>
 	

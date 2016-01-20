@@ -338,7 +338,7 @@ public class BuildOpportunityReportService {
 			CellStyle cellStyle, List<String> fields, int columnNo) {
 		
 		if(fields.contains("projectDealValue")){
-			row.createCell(columnNo).setCellValue("Project Digital Deal Value");
+			row.createCell(columnNo).setCellValue("Digital Deal Value (in Project Currency)");
 			row.getCell(columnNo).setCellStyle(cellStyle);
 			columnNo++;
 		}

@@ -74,6 +74,7 @@ import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 @Service("connectService")
@@ -243,32 +244,41 @@ public class ConnectService {
 	public DashBoardConnectsResponse searchDateRangwWithWeekAndMonthCount(
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, Date weekStartDate,
-			Date weekEndDate, Date monthStartDate, Date monthEndDate)
-			throws Exception {
+			Date weekEndDate, Date monthStartDate, Date monthEndDate, int page,
+			int count) throws Exception {
 		logger.debug("Inside searchDateRangwWithWeekAndMonthCount() service");
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
-		response.setConnectTs(searchforConnectsBetweenForUserOrCustomerOrPartner(
-				fromDate, toDate, userId, owner, customerId, partnerId, false));
+		response.setPaginatedConnectResponse(searchforConnectsBetweenForUserOrCustomerOrPartner(
+				fromDate, toDate, userId, owner, customerId, partnerId, page, count));
 		if (weekStartDate.getTime() != weekEndDate.getTime()) {
 			logger.debug("WeekStartDate and WeekEndDate Time are Not Equal");
-			response.setWeekCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
+			long totalCount = searchforConnectsBetweenForUserOrCustomerOrPartner(
 					weekStartDate, weekEndDate, userId, owner, customerId,
-					partnerId, true).size());
+					partnerId, page, count).getTotalCount();
+			int weekCount = (int) totalCount;
+			response.setWeekCount(weekCount);
 		}
 		if (monthStartDate.getTime() != monthEndDate.getTime()) {
 			logger.debug("MonthStartDate  and MonthEndDate are Not Equal");
-			response.setMonthCount(searchforConnectsBetweenForUserOrCustomerOrPartner(
+			long totalCount = searchforConnectsBetweenForUserOrCustomerOrPartner(
 					monthStartDate, monthEndDate, userId, owner, customerId,
-					partnerId, true).size());
-		}
+					partnerId, page, count).getTotalCount();
+			int monthCount = (int) totalCount;
+			response.setMonthCount(monthCount);
+		} 
+		validateDashboardConnectResponse(
+				response, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()),
+				response.getPaginatedConnectResponse().getConnectTs(), new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime()),
+				new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime()));
 		return response;
 	}
 
-	public List<ConnectT> searchforConnectsBetweenForUserOrCustomerOrPartner(
+	public PaginatedResponse searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
-			String customerId, String partnerId, boolean isForCount)
-			throws Exception {
+			String customerId, String partnerId, int page,
+			int count) throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner() service");
+		PaginatedResponse connectResponse = new PaginatedResponse();
 		Timestamp toTimestamp = new Timestamp(toDate.getTime()
 				+ ONE_DAY_IN_MILLIS - 1);
 		if (OwnerType.contains(owner)) {
@@ -281,37 +291,67 @@ public class ConnectService {
 						.findByPrimaryOwnerIgnoreCaseAndStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
 								toTimestamp, customerId, partnerId);
+				connectResponse.setTotalCount(connects.size());
+				connects = paginateConnects(page, count, connects);
+				
+				connectResponse.setConnectTs(connects);
+				
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
 				connects = connectSecondaryOwnerRepository
 						.findConnectTWithDateWithRangeForSecondaryOwnerForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
 								toTimestamp, customerId, partnerId);
+				connectResponse.setTotalCount(connects.size());
+				connects = paginateConnects(page, count, connects);
+				
+				connectResponse.setConnectTs(connects);
+				
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner is ALL");
 				connects = connectRepository
 						.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
 								userId, new Timestamp(fromDate.getTime()),
 								toTimestamp, customerId, partnerId);
-			}
-			if (connects.isEmpty() && !isForCount) {
-				logger.error("NOT_FOUND: Connects not found");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"Connects not found");
+				connectResponse.setTotalCount(connects.size());
+				connects = paginateConnects(page, count, connects);
+				
+				connectResponse.setConnectTs(connects);
+				
 			}
 			prepareConnect(connects);
-			return connects;
+			return connectResponse;
 		}
 		logger.error("BAD_REQUEST: Invalid Owner Type: {}", owner);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
-				"Ivalid Owner Type: " + owner);
+				"Invalid Owner Type: " + owner);
+
+	}
+
+	private List<ConnectT> paginateConnects(int page, int count,
+			List<ConnectT> connects) {
+		if (PaginationUtils.isValidPagination(page, count,
+				connects.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					connects.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					connects.size()) + 1;
+			connects = connects.subList(fromIndex, toIndex);
+			logger.debug("ConnectT  after pagination size is "
+					+ connects.size());
+		} else {
+			connects=null;
+		}
+		return connects;
 	}
 
 	@Transactional
 	public boolean createConnect(ConnectT connect, boolean isBulkDataLoad)
 			throws Exception {
-		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
+		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
 		logger.debug("Inside insertConnect() service");
 		// Validate request
 		validateRequest(connect, true);
@@ -322,7 +362,6 @@ public class ConnectService {
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
 
-		
 		if (connectRepository.save(connect) != null) {
 			requestConnect.setConnectId(connect.getConnectId());
 			logger.debug("Parent Object Saved, ConnectId: {}",
@@ -391,7 +430,8 @@ public class ConnectService {
 						.getSearchKeywordsTs()) {
 					searchKeywordT.setEntityType(EntityType.CONNECT.toString());
 					searchKeywordT.setEntityId(connect.getConnectId());
-					searchKeywordT.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+					searchKeywordT.setCreatedModifiedBy(DestinationUtils
+							.getCurrentUserDetails().getUserId());
 					searchKeywordsRepository.save(searchKeywordT);
 				}
 			}
@@ -548,8 +588,10 @@ public class ConnectService {
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
 			conTcsAccConLink.setConnectId(connectId);
-			conTcsAccConLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conTcsAccConLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conTcsAccConLink.setCreatedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
+			conTcsAccConLink.setModifiedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -560,8 +602,10 @@ public class ConnectService {
 		for (ConnectSecondaryOwnerLinkT conSecOwnLink : conSecOwnLinkTList) {
 			// conSecOwnLink.setCreatedModifiedBy(currentUserId);
 			conSecOwnLink.setConnectId(connectId);
-			conSecOwnLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conSecOwnLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conSecOwnLink.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			conSecOwnLink.setModifiedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
 		}
 
 	}
@@ -571,8 +615,10 @@ public class ConnectService {
 		logger.debug("Inside populateConnectSubSpLinks() method");
 		for (ConnectSubSpLinkT conSubSpLink : conSubSpLinkTList) {
 			conSubSpLink.setConnectId(connectId);
-			conSubSpLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conSubSpLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conSubSpLink.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			conSubSpLink.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 			// conSubSpLink.setCreatedModifiedBy(currentUserId);
 		}
 
@@ -584,8 +630,10 @@ public class ConnectService {
 		for (ConnectOfferingLinkT conOffLink : conOffLinkTList) {
 			// conOffLink.setCreatedModifiedBy(currentUserId);
 			conOffLink.setConnectId(connectId);
-			conOffLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conOffLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conOffLink.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			conOffLink.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 		}
 
 	}
@@ -596,8 +644,10 @@ public class ConnectService {
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
 			// conCustConLink.setCreatedModifiedBy(currentUserId);
 			conCustConLink.setConnectId(connectId);
-			conCustConLink.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conCustConLink.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conCustConLink.setCreatedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
+			conCustConLink.setModifiedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
 		}
 	}
 
@@ -607,12 +657,14 @@ public class ConnectService {
 		for (NotesT note : noteList) {
 			note.setEntityType(EntityType.CONNECT.name());
 			note.setConnectId(connectId);
-			note.setUserUpdated(DestinationUtils.getCurrentUserDetails().getUserId());
+			note.setUserUpdated(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 			if (categoryUpperCase.equalsIgnoreCase(EntityType.CUSTOMER.name())) {
 				logger.debug("Category is CUSTOMER");
 				CustomerMasterT customer = new CustomerMasterT();
 				customer.setCustomerId(customerId);
-				customer.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+				customer.setCreatedModifiedBy(DestinationUtils
+						.getCurrentUserDetails().getUserId());
 				note.setCustomerMasterT(customer);
 			} else if (categoryUpperCase.equalsIgnoreCase(EntityType.PARTNER
 					.name())) {
@@ -648,8 +700,10 @@ public class ConnectService {
 	@Transactional
 	public boolean updateConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside updateConnect() service");
-		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
+		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
 		String connectId = connect.getConnectId();
 		if (connectId == null) {
 			logger.error("BAD_REQUEST: ConnectId is required for update");
@@ -778,7 +832,8 @@ public class ConnectService {
 			for (SearchKeywordsT searchKeywordT : connect.getSearchKeywordsTs()) {
 				searchKeywordT.setEntityType(EntityType.CONNECT.toString());
 				searchKeywordT.setEntityId(connect.getConnectId());
-				searchKeywordT.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+				searchKeywordT.setCreatedModifiedBy(DestinationUtils
+						.getCurrentUserDetails().getUserId());
 				searchKeywordsRepository.save(searchKeywordT);
 			}
 		}
@@ -880,8 +935,10 @@ public class ConnectService {
 		for (ConnectOpportunityLinkIdT conOppLinkId : conOppLinkIdTList) {
 			// conOppLinkId.setCreatedModifiedBy(currentUserId);
 			conOppLinkId.setConnectId(connectId);
-			conOppLinkId.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			conOppLinkId.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			conOppLinkId.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			conOppLinkId.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 		}
 
 	}
@@ -891,8 +948,10 @@ public class ConnectService {
 		for (TaskT task : taskList) {
 			// task.setCreatedBy(currentUserId);
 			task.setConnectId(connectId);
-			task.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			task.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			task.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			task.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 		}
 	}
 
@@ -993,9 +1052,11 @@ public class ConnectService {
 	 */
 	public DashBoardConnectsResponse getTeamConnects(String supervisorId,
 			Date fromDate, Date toDate, String role, Date weekStartDate,
-			Date weekEndDate, Date monthStartDate, Date monthEndDate)
-			throws Exception {
+			Date weekEndDate, Date monthStartDate, Date monthEndDate, int page,
+			int count) throws Exception {
 		logger.debug("Inside getTeamConnects service");
+		PaginatedResponse connectResponse = new PaginatedResponse();
+		Pageable pageable = new PageRequest(page, count);
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 
 		// Get all users under a supervisor
@@ -1015,8 +1076,13 @@ public class ConnectService {
 				// Get connects between two dates
 				List<ConnectT> connects = connectRepository.getTeamConnects(
 						users, fromDateTs, toDateTs);
+				connectResponse.setTotalCount(connects.size());
+				connects = paginateConnects(page, count, connects);
+				connectResponse.setConnectTs(connects);
+				dashBoardConnectsResponse
+				.setPaginatedConnectResponse(connectResponse);
+				
 				prepareConnect(connects);
-				dashBoardConnectsResponse.setConnectTs(connects);
 
 				// Get weekly count of connects
 				Timestamp weekStartDateTs = new Timestamp(
@@ -1025,7 +1091,7 @@ public class ConnectService {
 						+ ONE_DAY_IN_MILLIS - 1);
 				List<ConnectT> weekConnects = connectRepository
 						.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
-				prepareConnect(weekConnects);
+				
 				dashBoardConnectsResponse.setWeekCount(weekConnects.size());
 
 				// Get monthly count of connects
@@ -1036,39 +1102,23 @@ public class ConnectService {
 				List<ConnectT> monthConnects = connectRepository
 						.getTeamConnects(users, monthStartDateTs,
 								monthEndDateTs);
-				prepareConnect(monthConnects);
-				dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+				dashBoardConnectsResponse
+				.setMonthCount(monthConnects.size());
 
-				// throw an exception if connects is empty and
-				// size of monthConnects and weekConnects are zero
-				if ((connects == null || connects.isEmpty())
-						&& dashBoardConnectsResponse.getWeekCount() == 0
-						&& dashBoardConnectsResponse.getMonthCount() == 0) {
-					logger.error(
-							"NOT_FOUND: No Connects found for supervisor with id {} for days between {} and {}, "
-									+ "days of week between {} and {}, days of month between {} and {}",
-							supervisorId, fromDateTs, toDateTs,
-							weekStartDateTs, weekEndDateTs, monthStartDateTs,
-							monthEndDateTs);
-					throw new DestinationException(HttpStatus.NOT_FOUND,
-							"No Connects found for supervisor with id "
-									+ supervisorId + " for days between "
-									+ fromDateTs + " and " + toDateTs
-									+ ", days of week between "
-									+ weekStartDateTs + " and " + weekEndDateTs
-									+ ", days of month between "
-									+ monthStartDateTs + " and "
-									+ monthEndDateTs);
-				}
+				validateDashboardConnectResponse(dashBoardConnectsResponse, fromDateTs, toDateTs,
+						connects, weekStartDateTs, weekEndDateTs,
+						monthStartDateTs, monthEndDateTs);
 
 			}
 
 			// If ROLE is PRIMARY
 			else if (role.equalsIgnoreCase(OwnerType.PRIMARY.toString())) {
 
-				List<ConnectT> connects = connectRepository
+				Page<ConnectT> pageConnects = connectRepository
 						.findByPrimaryOwnerInAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectAsc(
-								users, fromDateTs, toDateTs);
+								users, fromDateTs, toDateTs, pageable);
+				connectResponse.setTotalCount(pageConnects.getTotalElements());
+				List<ConnectT> connects = pageConnects.getContent();
 
 				if ((connects != null) && (connects.isEmpty())) {
 					logger.error(
@@ -1080,7 +1130,9 @@ public class ConnectService {
 				}
 
 				prepareConnect(connects);
-				dashBoardConnectsResponse.setConnectTs(connects);
+				connectResponse.setConnectTs(connects);
+				dashBoardConnectsResponse
+						.setPaginatedConnectResponse(connectResponse);
 			}
 
 			// If ROLE is SECONDARY
@@ -1098,9 +1150,13 @@ public class ConnectService {
 							"No Connects found with role SECONDARY for supervisor Id : "
 									+ supervisorId);
 				}
+				connectResponse.setTotalCount(connects.size());
+				connects = paginateConnects(page, count, connects);
+				connectResponse.setConnectTs(connects);
+				dashBoardConnectsResponse
+				.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
-				dashBoardConnectsResponse.setConnectTs(connects);
 
 			}
 
@@ -1124,6 +1180,33 @@ public class ConnectService {
 		return dashBoardConnectsResponse;
 	}
 
+	private void validateDashboardConnectResponse(
+			DashBoardConnectsResponse dashBoardConnectsResponse,
+			Timestamp fromDateTs, Timestamp toDateTs, List<ConnectT> connects,
+			Timestamp weekStartDateTs, Timestamp weekEndDateTs,
+			Timestamp monthStartDateTs, Timestamp monthEndDateTs) {
+		// throw an exception if connects is empty and
+		// size of monthConnects and weekConnects are zero
+		if ((connects == null || connects.isEmpty())
+				&& dashBoardConnectsResponse.getWeekCount() == 0
+				&& dashBoardConnectsResponse.getMonthCount() == 0) {
+			logger.error(
+					"NOT_FOUND: No Connects found for for days between {} and {}, "
+							+ "days of week between {} and {}, days of month between {} and {}",
+					 fromDateTs, toDateTs,
+					weekStartDateTs, weekEndDateTs, monthStartDateTs,
+					monthEndDateTs);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Connects found for days between "
+							+ fromDateTs + " and " + toDateTs
+							+ ", days of week between "
+							+ weekStartDateTs + " and " + weekEndDateTs
+							+ ", days of month between "
+							+ monthStartDateTs + " and "
+							+ monthEndDateTs);
+		}
+	}
+
 	/**
 	 * This method removes the ConnectTs present in CustomerMappingT in ConnectT
 	 * 
@@ -1134,11 +1217,11 @@ public class ConnectService {
 
 		if (dashBoardConnectsResponse != null) {
 
-			if ((dashBoardConnectsResponse.getConnectTs() != null)
-					&& (!dashBoardConnectsResponse.getConnectTs().isEmpty())) {
+			if ((dashBoardConnectsResponse.getPaginatedConnectResponse().getConnectTs() != null)
+					&& (!dashBoardConnectsResponse.getPaginatedConnectResponse().getConnectTs().isEmpty())) {
 
 				for (ConnectT connectT : dashBoardConnectsResponse
-						.getConnectTs()) {
+						.getPaginatedConnectResponse().getConnectTs()) {
 
 					if (connectT.getCustomerMasterT() != null) {
 
@@ -1157,9 +1240,11 @@ public class ConnectService {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<ConnectT> getAllConnectsForDashbaord(String status,
-			String financialYear) throws Exception {
-
+	public PaginatedResponse getAllConnectsForDashbaord(String status,
+			String financialYear, int page, int count) throws Exception {
+		Pageable pageable = new PageRequest(page, count);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Page<ConnectT> pageConnects = null;
 		List<ConnectT> listOfConnects = null;
 		List<String> connectIds = null;
 		try {
@@ -1187,19 +1272,32 @@ public class ConnectService {
 								.getAllConnectsForDashbaordStatusOpen(
 										connectIds, startTimestamp,
 										endTimestamp);
-						listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
+								connectIdsForStatusOpenClosed, pageable);
+						paginatedResponse.setTotalCount(pageConnects
+								.getTotalElements());
+						listOfConnects = pageConnects.getContent();
+
 					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
 							.toString())) { // If Status is closed, check for
 											// connects which has notes in
 											// notes_t table
 						connectIdsForStatusOpenClosed = notesRepository
 								.getAllConnectsForDashbaordStatusClosed(connectIds);
-						listOfConnects = retrieveConnectsByConnetIdOrderByStartDateTime(connectIdsForStatusOpenClosed);
+						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
+								connectIdsForStatusOpenClosed, pageable);
+						paginatedResponse.setTotalCount(pageConnects
+								.getTotalElements());
+						listOfConnects = pageConnects.getContent();
 					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
 							.toString())) { // If status is ALL, get connects
 											// from connect_t
-						listOfConnects = connectRepository
-								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(connectIds);
+						pageConnects = connectRepository
+								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
+										connectIds, pageable);
+						paginatedResponse.setTotalCount(pageConnects
+								.getTotalElements());
+						listOfConnects = pageConnects.getContent();
 					}
 				}
 			} else {
@@ -1212,6 +1310,28 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
 		}
+		paginatedResponse.setConnectTs(listOfConnects);
+		prepareConnect(listOfConnects);
+		return paginatedResponse;
+	}
+
+	/**
+	 * This method retrieves list of Connects based on the connectIds provided
+	 * 
+	 * @param connectIds
+	 * @return List<ConnectT>
+	 */
+	private Page<ConnectT> retrieveConnectsByConnetIdOrderByStartDateTime(
+			List<String> connectIds, Pageable pageable) {
+
+		Page<ConnectT> listOfConnects = null;
+
+		if ((connectIds != null) && (!connectIds.isEmpty())) {
+			listOfConnects = connectRepository
+					.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
+							connectIds, pageable);
+		}
+
 		return listOfConnects;
 	}
 

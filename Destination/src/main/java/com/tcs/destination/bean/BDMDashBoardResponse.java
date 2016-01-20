@@ -28,7 +28,9 @@ public class BDMDashBoardResponse {
 	private int connectSecondary;
 	
 	private int totalConnects;
-
+	
+	
+	
 	public String getTimeLine() {
 		return timeLine;
 	}
@@ -62,8 +64,9 @@ public class BDMDashBoardResponse {
 
 	public BigDecimal getTotalOppWinsAchieved() {
 		if(totalOppWinsAchieved!=null){
-		totalOppWinsAchieved = primaryOrBidOppWinsAchieved.add(salesOwnerOppWinsAchieved);
-		}
+			totalOppWinsAchieved = totalOppWinsAchieved.setScale(2, RoundingMode.CEILING);
+			}
+		//totalOppWinsAchieved = primaryOrBidOppWinsAchieved.add(salesOwnerOppWinsAchieved);
 		return totalOppWinsAchieved;
 	}
 

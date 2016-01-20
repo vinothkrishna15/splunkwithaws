@@ -65,7 +65,8 @@ public class ConnectController {
 	 * This Method is used to find connection details for the given connection
 	 * id.
 	 * 
-	 * @param connectIds.            
+	 * @param connectIds
+	 *            .
 	 * @param fields
 	 * @param view
 	 * @return connection details for the particular connection id.
@@ -94,7 +95,8 @@ public class ConnectController {
 	}
 
 	/**
-	 * This Method is used to find connection details for the given connection name
+	 * This Method is used to find connection details for the given connection
+	 * name
 	 * 
 	 * @param connectName
 	 * @param page
@@ -152,6 +154,9 @@ public class ConnectController {
 	public @ResponseBody String search(
 			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
@@ -162,29 +167,18 @@ public class ConnectController {
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
 			@RequestParam(value = "monthEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthEndDate)
 			throws DestinationException {
+		DashBoardConnectsResponse dashboardConnectsResponse = null;
 		try {
-			String userId = DestinationUtils.getCurrentUserDetails()
-					.getUserId();
 			logger.info("Inside ConnectController: Start of retrieving Connects by Date range");
-			if (weekStartDate.getTime() == weekEndDate.getTime()
-					&& monthStartDate.getTime() == monthEndDate.getTime()) {
-				List<ConnectT> connects = connectService
-						.searchforConnectsBetweenForUserOrCustomerOrPartner(
-								fromDate, toDate, userId, owner, customerId,
-								partnerId, false);
-				logger.info("Inside ConnectController: End of retrieving Connects");
-				return ResponseConstructors.filterJsonForFieldAndViews(fields,
-						view, connects);
-			} else {
-				DashBoardConnectsResponse dashBoardConnectsResponse = connectService
-						.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
-								userId, owner, customerId, partnerId,
-								weekStartDate, weekEndDate, monthStartDate,
-								monthEndDate);
-				logger.info("Inside ConnectController: End of retrieving Connects by Date range");
-				return ResponseConstructors.filterJsonForFieldAndViews(fields,
-						view, dashBoardConnectsResponse);
-			}
+			dashboardConnectsResponse = connectService
+					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
+							userId, owner, customerId, partnerId,
+							weekStartDate, weekEndDate, monthStartDate,
+							monthEndDate, page, count);
+			logger.info("Inside ConnectController: End of retrieving Connects by Date range");
+			// }
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, dashboardConnectsResponse);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -279,6 +273,8 @@ public class ConnectController {
 	public @ResponseBody ResponseEntity<String> getTeamConnects(
 			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam("supervisorId") String supervisorId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
@@ -294,7 +290,7 @@ public class ConnectController {
 			// Calling the service method
 			dashBoardConnectsResponse = connectService.getTeamConnects(
 					supervisorId, fromDate, toDate, role, weekStartDate,
-					weekEndDate, monthStartDate, monthEndDate);
+					weekEndDate, monthStartDate, monthEndDate, page, count);
 			logger.info("Inside ConnectController: End of retrieving Team connects");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -372,17 +368,19 @@ public class ConnectController {
 	 */
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getAllConnectsForDashboard(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "status", defaultValue = "ALL") String status,
 			@RequestParam("fy") String financialYear)
 			throws DestinationException {
 		logger.info("Inside ConnectController: Start of retrieving all Connects for Dashboard");
-		List<ConnectT> listOfConnects = null;
+		PaginatedResponse pageConnects = null;
 		try {
-			listOfConnects = connectService.getAllConnectsForDashbaord(status,
-					financialYear);
-			if (listOfConnects == null) {
+			pageConnects = connectService.getAllConnectsForDashbaord(status,
+					financialYear, page, count);
+			if (pageConnects == null) {
 				logger.error(
 						"NOT_FOUND : No Connects found for the status {} and FY {}",
 						status, financialYear);
@@ -393,7 +391,7 @@ public class ConnectController {
 			logger.info("Inside ConnectController: End of retrieving all Connects for Dashboard");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
-							view, listOfConnects), HttpStatus.OK);
+							view, pageConnects), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -411,7 +409,7 @@ public class ConnectController {
 	 * @param keyword
 	 * @param fields
 	 * @param view
-	 * @return 
+	 * @return
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/name", method = RequestMethod.GET)
@@ -466,11 +464,14 @@ public class ConnectController {
 			respHeaders
 					.setContentType(MediaType
 							.parseMediaType("application/vnd.ms-excel.sheet.macroEnabled.12"));
-			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String environmentName=PropertyUtil.getProperty("environment.name");
-			String repName = environmentName+"_ConnectDownload_"	+ todaysDate_formatted + ".xlsm";
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String repName = environmentName + "_ConnectDownload_"
+					+ todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment",repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
 			logger.info("Inside ConnectController: End of Connect Download");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
@@ -489,7 +490,7 @@ public class ConnectController {
 	 * @param connectIds
 	 * @param fields
 	 * @param view
-	 * @return 
+	 * @return
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/list", method = RequestMethod.GET)

@@ -191,6 +191,10 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	List<ConnectT> findByPrimaryOwnerInAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectAsc(
 			List<String> users, Timestamp startTimestamp, Timestamp endTimestamp);
+	
+	Page<ConnectT> findByPrimaryOwnerInAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectAsc(
+			List<String> users, Timestamp startTimestamp, Timestamp endTimestamp, Pageable pageable);
+
 
 	/**
 	 * This query retrieves all the connects under a supervisor if they are
@@ -398,6 +402,9 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	List<ConnectT> findByConnectIdInOrderByStartDatetimeOfConnectAsc(
 			List<String> connectIds);
+	
+	Page<ConnectT> findByConnectIdInOrderByStartDatetimeOfConnectAsc(
+			List<String> connectIds, Pageable pageable);
 
 	/**
 	 * This query performs search of connect_t and search_keyword_t based on
