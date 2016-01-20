@@ -242,9 +242,9 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_PREFIX = " (select ICMT.display_iou as displayIOU, sum(PRDT.revenue) as actualRevenue"
 			+ " from iou_customer_mapping_t ICMT join projected_revenues_data_t PRDT on ICMT.iou = PRDT.finance_iou"
 			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
-			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			
-			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name"
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "		
+			+ " join revenue_customer_mapping_t RCMT on (PRDT.finance_customer_name = RCMT.finance_customer_name"
+			+ " and PRDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou)"
 			+ " where ";
 
 	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
