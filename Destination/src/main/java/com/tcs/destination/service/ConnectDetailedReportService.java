@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.ReportConstants;
@@ -47,32 +49,32 @@ public class ConnectDetailedReportService {
 
 	@Autowired
 	ConnectRepository connectRepository;
-	
+
 	@Autowired
 	ContactRepository contactRepository;
 
 	@Autowired
 	TaskRepository taskRepository;
 
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
-	
+
 	@Autowired
 	ConnectSubSpLinkRepository connectSubSpLinkRepository;
-	
+
 	@Autowired
 	ConnectOfferingLinkRepository connectOfferingLinkRepository;
-	
+
 	@Autowired
 	OpportunityRepository opportunityRepository;
-	
+
 	@Autowired
 	NotesTRepository notesTRepository;
-	
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectDetailedReportService.class);
 
@@ -120,15 +122,15 @@ public class ConnectDetailedReportService {
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,	ReportConstants.REPORTHEADER);
 		List<String> orderedFields = Arrays.asList("iou","geography","country","subSp","offering","tcsAccountContact","custContactName",
 				"startDateOfConnect","endDateOfConnect","primaryOwner", "secondaryOwner","connectNotes","linkOpportunity","connectCategory",
-				"customerOrPartnerName");
+				"customerOrPartnerName","createdDate","createdBy", "modifiedDate","modifiedBy");
 		for (String field : orderedFields) {
 			if(fields.contains(field)){
-			row.createCell(columnNo).setCellValue(FieldsMap.fieldsMap.get(field));
-			row.getCell(columnNo).setCellStyle(headerStyle);
-			columnNo++;
+				row.createCell(columnNo).setCellValue(FieldsMap.fieldsMap.get(field));
+				row.getCell(columnNo).setCellStyle(headerStyle);
+				columnNo++;
 			}
 		}
-		
+
 		if(fields.contains(ReportConstants.TASK)) {
 			row.createCell(columnNo).setCellValue(ReportConstants.TASKCOUNT);
 			row.getCell(columnNo).setCellStyle(headerStyle);
@@ -154,7 +156,7 @@ public class ConnectDetailedReportService {
 			row.createCell(columnNo).setCellValue(ReportConstants.TASKNOTE);
 			row.getCell(columnNo).setCellStyle(headerStyle);
 			columnNo++;
-			}
+		}
 	}
 
 	public int connectReportWithMandatoryFields(List<ConnectT> connectList,SXSSFSheet spreadSheet, int currentRow, SXSSFRow row) {
@@ -173,16 +175,16 @@ public class ConnectDetailedReportService {
 	 * @param connect
 	 */
 	public void getConnectReportMandatoryFields(SXSSFSheet spreadSheet, SXSSFRow row, ConnectT connect) {
-//		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+		//		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		row.createCell(0).setCellValue(connect.getConnectId());
 		row.createCell(4).setCellValue(connect.getConnectName());
 		List<String> displaySubSpList = new ArrayList<String>();
-		
+
 		for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
 			displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
 		}
 		row.createCell(2).setCellValue(displaySubSpList.toString().replace("[", "").replace("]", ""));
-		
+
 		if(connect.getCustomerMasterT()!=null){
 			row.createCell(1).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
 			row.createCell(3).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
@@ -190,8 +192,8 @@ public class ConnectDetailedReportService {
 
 		}else{
 			row.createCell(1).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
-//			row.createCell(3).setCellValue(Constants.SPACE);
-//			row.createCell(5).setCellValue(Constants.SPACE);
+			//			row.createCell(3).setCellValue(Constants.SPACE);
+			//			row.createCell(5).setCellValue(Constants.SPACE);
 		}
 	}
 
@@ -208,7 +210,7 @@ public class ConnectDetailedReportService {
 	 */
 	public int connectReportWithOptionalFields(List<ConnectT> connectList, SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,
 			List<String> fields, SXSSFRow row) throws DestinationException {
-//		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
+		//		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
 		currentRow = currentRow + 1;
 		boolean iouFlag = fields.contains(ReportConstants.IOU);
 		boolean geoFlag = fields.contains(ReportConstants.GEOGRAPHY);
@@ -226,14 +228,20 @@ public class ConnectDetailedReportService {
 		boolean linkOppFlag = fields.contains(ReportConstants.LINKOPPORTUNITY);
 		boolean notesFlag = fields.contains(ReportConstants.CONNECTNOTES);
 		boolean taskFlag = fields.contains(ReportConstants.TASK);
-		
+		//4 columns added as per prod tracker
+		boolean createdDateFlag = fields.contains(ReportConstants.CREATEDDATE);
+		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
+		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
+		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+
+
 		for (ConnectT connect : connectList) {
 			List<TaskT> taskList = taskRepository.findByConnectId(connect.getConnectId());
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
-			
+
 			//set Connect Mandatory Details 
 			getConnectReportMandatoryFields(spreadSheet, row, connect);
-			
+
 			int colValue = 6;
 			if(iouFlag) {
 				SXSSFCell iouCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
@@ -242,7 +250,7 @@ public class ConnectDetailedReportService {
 				}
 				colValue++;
 			}
-					
+
 			if(geoFlag) {
 				SXSSFCell geographyCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				if(connect.getCustomerMasterT()!=null){
@@ -252,13 +260,12 @@ public class ConnectDetailedReportService {
 				}
 				colValue++;
 			}
-			
+
 			if(countryFlag) {
 				SXSSFCell countryCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				countryCell.setCellValue(connect.getGeographyCountryMappingT().getCountry());
 				colValue++;
 			}
-//			
 			if(subSpFlag) {
 				List<String> connectSubSpList =connectSubSpLinkRepository.findSubSpByConnectId(connect.getConnectId());
 				SXSSFCell subSpCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
@@ -272,67 +279,67 @@ public class ConnectDetailedReportService {
 				offeringCell.setCellValue(connectOffering.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(tcsContactNameFlag) {
 				List<String> tcsContactNames=contactRepository.findTcsAccountContactNamesByConnectId(connect.getConnectId());
 				SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				tcsAccountContactCell.setCellValue(tcsContactNames.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(custContactNameFlag) {
 				List<String> cusContactNames=contactRepository.findCustomerContactNamesByConnectId(connect.getConnectId());
 				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				customerContactNameCell.setCellValue(cusContactNames.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(startDateFlag) {
 				SXSSFCell startDateOfConnectCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				startDateOfConnectCell.setCellValue(connect.getStartDatetimeOfConnect().toString());
 				colValue++;
 			}
-			
+
 			if(endDateFlag) {
 				SXSSFCell endDateOfConnectCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				endDateOfConnectCell.setCellValue(connect.getEndDatetimeOfConnect().toString());
 				colValue++;
 			}
-			
+
 			if(primaryOwnerFlag) {
 				SXSSFCell primaryOwnerCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				UserT userT = userRepository.findByUserId(connect.getPrimaryOwner());
 				primaryOwnerCell.setCellValue(userT.getUserName());
 				colValue++;
 			}
-			
+
 			if(secondaryOwnerFlag) {
 				List<String> secondaryOwnersList=userRepository.getSecondaryOwnerNamesByConnectId(connect.getConnectId());
 				SXSSFCell secondaryOwnerCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				secondaryOwnerCell.setCellValue(secondaryOwnersList.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(notesFlag) {
 				List<String> connectNotesList=notesTRepository.findConnectNotesByConnectId(connect.getConnectId());
 				SXSSFCell connectNotesCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				connectNotesCell.setCellValue(connectNotesList.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(linkOppFlag) {
 				List<String> opportunityNames= opportunityRepository.findLinkOpportunityByConnectId(connect.getConnectId());
 				SXSSFCell opportunityCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				opportunityCell.setCellValue(opportunityNames.toString().replace("[", "").replace("]", ""));
 				colValue++;
 			}
-			
+
 			if(categoryFlag) {
 				SXSSFCell categoryCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				categoryCell.setCellValue(connect.getConnectCategory());
 				colValue++;
 			}
-			
+
 			if(custPartNameFlag) {
 				if (connect.getCustomerMasterT() != null) {
 					SXSSFCell cusPartcell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
@@ -347,6 +354,37 @@ public class ConnectDetailedReportService {
 				}
 			}
 
+			// 4 columns added as per prod tracker 
+			if(createdDateFlag) {
+				SXSSFCell createdDateCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				Timestamp createdDateTimeStamp = connect.getCreatedDatetime();
+				java.util.Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+				String dateOfCreation = DateUtils.convertDateToString(createdDate);
+				createdDateCell.setCellValue(dateOfCreation);
+				colValue++;
+			}
+			if(createdByFlag) {
+				if(!connect.getCreatedBy().isEmpty()){
+				SXSSFCell createdByCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				createdByCell.setCellValue(connect.getCreatedBy());
+				colValue++;
+				}
+			}
+			if(modifiedDateFlag) {
+				SXSSFCell modifiedDateCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				Timestamp modifiedDateTimeStamp = connect.getModifiedDatetime();
+				java.util.Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
+				modifiedDateCell.setCellValue(dateOfModification);
+				colValue++;
+			}
+			if(modifieddByFlag) {
+				if(!connect.getModifiedBy().isEmpty()){
+				SXSSFCell modifiedByCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				modifiedByCell.setCellValue(connect.getModifiedBy());
+				colValue++;
+				}
+			}
 			if(taskFlag) {
 				SXSSFCell taskCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				taskCell.setCellValue(taskList.size());
@@ -363,21 +401,23 @@ public class ConnectDetailedReportService {
 				} else {
 					colValue=colValue+8;
 				}
+				
+				if (taskList.size() > 1) {
+					currentRow = currentRow + taskList.size() - 1;
+				} else {
+					currentRow = currentRow + 0;
+				}
 			}
+
 			
-			if (taskList.size() > 1) {
-				currentRow = currentRow + taskList.size() - 1;
-			} else {
-				currentRow = currentRow + 0;
-			}
 		}
 		return currentRow;
 	}
 
 	public int getTaskDetails(SXSSFSheet spreadSheet, SXSSFRow row,
 			List<TaskT> taskList, int columnNo, int i) {
-//		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),
-//				ReportConstants.DATAROW);
+		//		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),
+		//				ReportConstants.DATAROW);
 		int columnOffset=1;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskId());
 		columnOffset++;
@@ -395,7 +435,7 @@ public class ConnectDetailedReportService {
 		List<String> taskNotesUpdatedList=notesTRepository.findNotesUpdatedByNotesId(taskList.get(i).getTaskId());
 		row.createCell(columnNo+columnOffset).setCellValue(taskNotesUpdatedList.toString().replace("[", "").replace("]", ""));
 		return columnNo;
-		}
+	}
 
 	/**
 	 * This Method Writes The Connect Report Title Page In WorkBook
@@ -414,7 +454,7 @@ public class ConnectDetailedReportService {
 	public void getConnectTitlePage(SXSSFWorkbook workbook,
 			List<String> geography, List<String> iou,
 			List<String> serviceLines, String userId, String tillDate, List<String> country, String month, String quarter, String year, String reportType) {
-		
+
 		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet("Title");
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,	ReportConstants.REPORTHEADER);
@@ -423,8 +463,8 @@ public class ConnectDetailedReportService {
 		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
 				ReportConstants.DATAROW);
 		SXSSFRow row = null;
-		
-		
+
+
 		row = (SXSSFRow) spreadsheet.createRow(4);
 		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
 		row.createCell(4).setCellValue("Connect report as on " + tillDate);
@@ -440,8 +480,8 @@ public class ConnectDetailedReportService {
 		row.createCell(4).setCellValue("Period");
 		String period=ExcelUtils.getPeriod(month, quarter, year);
 		row.createCell(5).setCellValue(period);
-		
-		
+
+
 		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
 				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
@@ -471,7 +511,7 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-//			
+			//			
 			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 15, dataRow);
 			break;
 		case ReportConstants.BDM:
@@ -482,31 +522,31 @@ public class ConnectDetailedReportService {
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
-			}
+		}
 		row = (SXSSFRow) spreadsheet.createRow(21);
-//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 7));
+		//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 7));
 		row.createCell(4).setCellValue("Display Preferences");
 		row.getCell(4).setCellStyle(subHeadingStyle);
 		row = (SXSSFRow) spreadsheet.createRow(22);
 		row.createCell(4).setCellValue("Report Type");
 		row.createCell(5).setCellValue(reportType);
-		
+
 		spreadsheet.addMergedRegion(new CellRangeAddress(24, 24, 4, 7));
 		row = (SXSSFRow) spreadsheet.createRow(24);
 		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
-		
+
 	}
-	
+
 	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,
 			String searchType, List<String> searchList, int rowValue,
 			CellStyle dataRowStyle) {
 		SXSSFRow row = null;
 		row = (SXSSFRow) spreadsheet.createRow(rowValue);
 		row.createCell(4).setCellValue(searchType);
-//		spreadsheet.autoSizeColumn(4);
+		//		spreadsheet.autoSizeColumn(4);
 		String completeList = getCompleteList(searchList);
 		row.createCell(5).setCellValue(completeList);
-//		spreadsheet.autoSizeColumn(5);
+		//		spreadsheet.autoSizeColumn(5);
 	}
 
 	private String getCompleteList(List<String> itemList) {

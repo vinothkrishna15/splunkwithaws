@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -352,7 +353,7 @@ public class BuildOpportunityReportService {
 		List<String> orderedFields = Arrays.asList("projectDealValue","customerName", "country", "iou", "geography", "subSp", "offering", "tcsAccountContact", "custContactName"
 				, "opportunityDescription", "requestReceivedDate", "newLogo", "competitors", "partnershipsInvolved", "dealType", "salesSupportOwner",
 				"dealRemarksNotes", "descriptionForWinLoss", "dealClosureDate", "factorsForWinLoss", "oppLinkId", "bidId", "bidOfficeGroupOwner",  "bidRequestReceiveDate",
-				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome");
+				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy", "modifiedDate","modifiedBy");
 		
 		for (String field : orderedFields) {
 			if(fields.contains(field)){
@@ -452,6 +453,12 @@ public class BuildOpportunityReportService {
 		boolean coreAttUsedForWinFlag = fields.contains(ReportConstants.COREATTRIBUTESUSEDFORWINNING);
 		boolean expDtOfOutcomeFlag = fields.contains(ReportConstants.EXPECTEDDATEOFOUTCOME);
 		
+		//4 columns added as per prod tracker
+		boolean createdDateFlag = fields.contains(ReportConstants.CREATEDDATE);
+		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
+		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
+		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+
 		
 		if (currency.size() > 1) {
 			currentRow = currentRow + 2;
@@ -768,6 +775,30 @@ public class BuildOpportunityReportService {
 				} else {
 					colValue++;
 				}
+			}
+			
+			// 4 columns added as per prod tracker 
+			if (createdDateFlag) {
+				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
+				java.util.Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+				String dateOfCreation = DateUtils.convertDateToString(createdDate);
+				row.createCell(colValue).setCellValue(dateOfCreation);
+				colValue++;
+			}
+			if (createdByFlag) {
+				row.createCell(colValue).setCellValue(opportunity.getCreatedBy());
+				colValue++;
+			}
+			if (modifiedDateFlag) {
+				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
+				java.util.Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
+				row.createCell(colValue).setCellValue(dateOfModification);
+				colValue++;
+			}
+			if (modifieddByFlag) {
+				row.createCell(colValue).setCellValue(opportunity.getModifiedBy());
+				colValue++;
 			}
 						
 			if(opportunity.getBidDetailsTs().size() > 1)

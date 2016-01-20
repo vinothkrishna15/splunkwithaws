@@ -15,6 +15,10 @@ public class FieldsMap {
 		fieldsMap.put("subSp", "SubSp");
 		fieldsMap.put("offering", "Offering");
 		fieldsMap.put("connectCategory", "Connect Category");
+		fieldsMap.put("createdDate", "Created Date");
+		fieldsMap.put("createdBy", "Created By");
+		fieldsMap.put("modifiedDate", "Modified Date");
+		fieldsMap.put("modifiedBy", "Modified By");
 		fieldsMap.put("startDateOfConnect", "Start Date Of Connect");
 		fieldsMap.put("endDateOfConnect", "End Date Of Connect");
 		fieldsMap.put("country", "Country");
