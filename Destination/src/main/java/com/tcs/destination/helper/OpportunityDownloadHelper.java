@@ -433,7 +433,23 @@ public class OpportunityDownloadHelper {
 				Cell cellNotes = row.createCell(41);
 				cellNotes.setCellValue(oppNotes.get(0).getNotesUpdated());
 			}
-
+			
+			//Created Date
+			Cell cellCreatedDate = row.createCell(42);
+			cellCreatedDate.setCellValue(getFormattedDate(opportunity.getCreatedDatetime().toString(),actualFormat, desiredFormat));
+			
+			//Created By
+			Cell cellCreatedBy = row.createCell(43);
+			cellCreatedBy.setCellValue(opportunity.getCreatedBy());
+			
+			//Modified Date
+			Cell cellModifiedDate = row.createCell(44);
+			cellModifiedDate.setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(),actualFormat, desiredFormat));
+			
+			//Modified By
+			Cell cellModifiedBy = row.createCell(45);
+			cellModifiedBy.setCellValue(opportunity.getModifiedBy());
+			
 			rowCount++;
 		}
 		return rowCount;

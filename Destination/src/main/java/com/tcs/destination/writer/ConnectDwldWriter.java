@@ -4,21 +4,17 @@ import static com.tcs.destination.utils.Constants.DOWNLOAD;
 import static com.tcs.destination.utils.Constants.DOWNLOADCONSTANT;
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
 import static com.tcs.destination.utils.Constants.REQUEST;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.XLSM;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.Date;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -38,10 +34,8 @@ import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.NotesT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.EntityType;
@@ -79,6 +73,7 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 	private String filePath; 
 	
 	private FileInputStream fileInputStream;
+	
 	
 	Map<String,String> customerIdCustomerMap;
 	Map<String,String> partnerIdPartnerMap;
@@ -283,6 +278,24 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 				String notesStr = getNotesStr(connect.getConnectId());
 				ExcelUtils.createCell(notesStr, row, 18);
 				
+				Timestamp createdDate =connect.getCreatedDatetime();
+				java.util.Date createdDt = DateUtils.toDate(createdDate);
+				String dateCreated = DateUtils.convertDateToString(createdDt);
+				ExcelUtils.createCell(dateCreated, row, 19);
+				
+				String createdBy = connect.getCreatedBy();
+				ExcelUtils.createCell(createdBy, row, 20);
+				
+				Timestamp modifiedDate = connect.getModifiedDatetime();
+				java.util.Date modifiedDt = DateUtils.toDate(modifiedDate);
+				String dateModified = DateUtils.convertDateToString(modifiedDt);
+				ExcelUtils.createCell(dateModified, row, 21);
+				
+				String modifiedBy = connect.getModifiedBy();
+				ExcelUtils.createCell(modifiedBy, row, 22);
+				
+				
+				
 				// Increment row counter
 				rowCount++;
 			}
@@ -304,8 +317,9 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 		
 		return notesBuffer.toString();
 	}
+	
 
-	private String getCustomerContactStr(
+    private String getCustomerContactStr(
 			String connectId) {
 		StringBuffer customerContactBuffer = new StringBuffer("");
 		List<ConnectCustomerContactLinkT> connectCustomerContactList = connectCustomerContactMap.get(connectId);
