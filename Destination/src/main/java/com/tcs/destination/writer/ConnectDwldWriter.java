@@ -26,6 +26,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectOfferingLinkT;
@@ -38,6 +39,7 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.service.DataProcessingService;
@@ -73,6 +75,9 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 	private String filePath; 
 	
 	private FileInputStream fileInputStream;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	
 	Map<String,String> customerIdCustomerMap;
@@ -211,6 +216,7 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
             }
 	            
 			sheet = workbook.getSheet(Constants.CONNECT_TEMPLATE_CONNECT_SHEET_NAME);
+			workbook.setActiveSheet(2);
 		}
 		
 		
@@ -283,7 +289,7 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 				String dateCreated = DateUtils.convertDateToString(createdDt);
 				ExcelUtils.createCell(dateCreated, row, 19);
 				
-				String createdBy = connect.getCreatedBy();
+				String createdBy = connect.getCreatedByUser().getUserName();
 				ExcelUtils.createCell(createdBy, row, 20);
 				
 				Timestamp modifiedDate = connect.getModifiedDatetime();
@@ -291,7 +297,7 @@ public class ConnectDwldWriter implements ItemWriter<ConnectT>,
 				String dateModified = DateUtils.convertDateToString(modifiedDt);
 				ExcelUtils.createCell(dateModified, row, 21);
 				
-				String modifiedBy = connect.getModifiedBy();
+				String modifiedBy = connect.getModifiedByUser().getUserName();
 				ExcelUtils.createCell(modifiedBy, row, 22);
 				
 				

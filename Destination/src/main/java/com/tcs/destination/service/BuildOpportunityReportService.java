@@ -786,7 +786,7 @@ public class BuildOpportunityReportService {
 				colValue++;
 			}
 			if (createdByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getCreatedBy());
+				row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
 				colValue++;
 			}
 			if (modifiedDateFlag) {
@@ -797,7 +797,7 @@ public class BuildOpportunityReportService {
 				colValue++;
 			}
 			if (modifieddByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getModifiedBy());
+				row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
 				colValue++;
 			}
 						

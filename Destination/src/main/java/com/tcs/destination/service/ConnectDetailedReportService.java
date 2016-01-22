@@ -366,7 +366,7 @@ public class ConnectDetailedReportService {
 			if(createdByFlag) {
 				if(!connect.getCreatedBy().isEmpty()){
 				SXSSFCell createdByCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				createdByCell.setCellValue(connect.getCreatedBy());
+				createdByCell.setCellValue(connect.getCreatedByUser().getUserName());
 				colValue++;
 				}
 			}
@@ -381,7 +381,7 @@ public class ConnectDetailedReportService {
 			if(modifieddByFlag) {
 				if(!connect.getModifiedBy().isEmpty()){
 				SXSSFCell modifiedByCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				modifiedByCell.setCellValue(connect.getModifiedBy());
+				modifiedByCell.setCellValue(connect.getModifiedByUser().getUserName());
 				colValue++;
 				}
 			}

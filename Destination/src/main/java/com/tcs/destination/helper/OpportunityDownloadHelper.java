@@ -11,7 +11,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.BidDetailsT;
@@ -115,6 +114,9 @@ public class OpportunityDownloadHelper {
 
 	@Autowired
 	NotesTRepository notesTRepository;
+	
+	
+	
 
 	private static final DateFormat actualFormat = new SimpleDateFormat(
 			"yyyy-MM-dd");
@@ -440,7 +442,7 @@ public class OpportunityDownloadHelper {
 			
 			//Created By
 			Cell cellCreatedBy = row.createCell(43);
-			cellCreatedBy.setCellValue(opportunity.getCreatedBy());
+	        cellCreatedBy.setCellValue(opportunity.getCreatedByUser().getUserName());
 			
 			//Modified Date
 			Cell cellModifiedDate = row.createCell(44);
@@ -448,7 +450,7 @@ public class OpportunityDownloadHelper {
 			
 			//Modified By
 			Cell cellModifiedBy = row.createCell(45);
-			cellModifiedBy.setCellValue(opportunity.getModifiedBy());
+			cellModifiedBy.setCellValue(opportunity.getModifiedByUser().getUserName());
 			
 			rowCount++;
 		}
