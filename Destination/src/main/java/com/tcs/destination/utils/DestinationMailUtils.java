@@ -58,13 +58,16 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
+import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
+import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.UserRole;
@@ -89,18 +92,21 @@ public class DestinationMailUtils {
 	@Value("${reopenOpportunityTemplateLoc}")
 	private String reopenOpportunityTemplateLoc;
 
+	@Value("${reopenOpportunityProcessedTemplateLoc}")
+	private String reopenOpportunityProcessedTemplateLoc;
+
 	@Value("${upload.template}")
 	private String uploadTemplateLoc;
 
 	@Value("${download.template}")
 	private String downloadTemplateLoc;
-	
+
 	@Value("${upload.notify.template}")
 	private String uploadNotifyTemplateLoc;
-	
+
 	@Value("${daily.download.template}")
 	private String dailyDownloadTemplateLoc;
-	
+
 	@Value("${environment.name}")
 	private String environmentName;
 
@@ -121,6 +127,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	OpportunityReopenRequestRepository oppReopenRepo;
+
+	@Autowired
+	OpportunitySalesSupportLinkTRepository opportunitySalesSupportLinkTRepository;
 
 	@Autowired
 	private OpportunityService oppService;
@@ -152,7 +161,8 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		String sub = new StringBuffer(environmentName).append(" ")
+				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
 		sendPasswordMail(message, user, dateStr);
@@ -165,8 +175,8 @@ public class DestinationMailUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean sendUserRequestResponse(DataProcessingRequestT request, List<UserRole> roles)
-			throws Exception {
+	public boolean sendUserRequestResponse(DataProcessingRequestT request,
+			List<UserRole> roles) throws Exception {
 
 		logger.debug("inside sendUserRequestResponse method");
 
@@ -176,17 +186,17 @@ public class DestinationMailUtils {
 		String dateStr = null;
 		UserT user = request.getUserT();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		
+
 		if (user != null) {
 			recipientIdList.add(user.getUserId());
 			dateStr = df.format(request.getSubmittedDatetime());
 			recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
-		} 
+		}
 		if (CollectionUtils.isNotEmpty(roles)) {
 			recipientMailIdsArray = getMailIdsFromRoles(roles);
 			dateStr = df.format(DateUtils.getCurrentTimeStamp());
 		}
-		
+
 		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 				.createMimeMessage();
 
@@ -198,7 +208,8 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = null;
-			StringBuffer subject = new StringBuffer(environmentName).append(" Admin: ");
+			StringBuffer subject = new StringBuffer(environmentName)
+					.append(" Admin: ");
 
 			String userName = null;
 			String entity = null;
@@ -255,7 +266,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 			}
 				break;
-				
+
 			case 6: {
 				// Customer contact upload
 				subject.append(CUSTOMER_CONTACT_UPLOAD_SUBJECT);
@@ -264,7 +275,7 @@ public class DestinationMailUtils {
 						.name().toLowerCase());
 			}
 				break;
-				
+
 			case 7: {
 				// Partner upload
 				subject.append(PARTNER_UPLOAD_SUBJECT);
@@ -371,7 +382,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 			}
 				break;
-				
+
 			case 19: {
 				// Opportunity download
 				subject.append(OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT);
@@ -382,16 +393,18 @@ public class DestinationMailUtils {
 				break;
 
 			}
-			
+
 			if (requestType > 0 && requestType < 10) {
 				template = uploadTemplateLoc;
 				requestId = request.getProcessRequestId().toString();
 				uploadedFileName = request.getFileName();
-				attachmentFilePath = request.getErrorFilePath() + request.getErrorFileName();
+				attachmentFilePath = request.getErrorFilePath()
+						+ request.getErrorFileName();
 				attachmentFileName = request.getErrorFileName();
-			} else if (requestType > 9 && requestType < 19){
+			} else if (requestType > 9 && requestType < 19) {
 				template = downloadTemplateLoc;
-				attachmentFilePath = request.getFilePath() + request.getFileName();
+				attachmentFilePath = request.getFilePath()
+						+ request.getFileName();
 				attachmentFileName = request.getFileName();
 			} else {
 				template = dailyDownloadTemplateLoc;
@@ -402,8 +415,7 @@ public class DestinationMailUtils {
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", uploadedFileName);
 			userRequestMap.put("submittedDate", dateStr);
-			userRequestMap.put("requestId",requestId);
-
+			userRequestMap.put("requestId", requestId);
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
@@ -440,32 +452,32 @@ public class DestinationMailUtils {
 
 		return status;
 	}
-	
+
 	/**
 	 * @param roles
 	 * @return emails Id's
 	 */
 	private String[] getMailIdsFromRoles(List<UserRole> roles) {
-		
+
 		logger.debug("Inside method: getMailIdsFromRoles");
-		
+
 		List<String> recipientMailIds = new ArrayList<String>();
 		List<String> values = new ArrayList<String>(roles.size());
 		for (UserRole role : roles) {
 			values.add(role.getValue());
-			
+
 		}
-		
+
 		List<UserT> users = userService.getByUserRoles(values);
-		
+
 		for (UserT user : users) {
 			String mailId = user.getUserEmailId();
 			recipientMailIds.add(mailId);
 		}
-		
+
 		String[] recipientMailIdsArray = recipientMailIds
 				.toArray(new String[recipientMailIds.size()]);
-		
+
 		return recipientMailIdsArray;
 	}
 
@@ -485,7 +497,8 @@ public class DestinationMailUtils {
 		UserT user = request.getUserT();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(request.getSubmittedDatetime());
-		String[] recipientMailIdsArray = getGroupdMailIdsFromUserIds(user.getUserRole());
+		String[] recipientMailIdsArray = getGroupdMailIdsFromUserIds(user
+				.getUserRole());
 
 		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 				.createMimeMessage();
@@ -497,9 +510,11 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = uploadNotifyTemplateLoc;
-			StringBuffer subject = new StringBuffer(environmentName).append(" Admin: ");
+			StringBuffer subject = new StringBuffer(environmentName)
+					.append(" Admin: ");
 
-			String userName = user.getUserName();;
+			String userName = user.getUserName();
+			;
 			String entity = null;
 			String fileName = null;
 
@@ -549,7 +564,7 @@ public class DestinationMailUtils {
 				fileName = request.getFileName();
 			}
 				break;
-				
+
 			case 6: {
 				// Customer contact upload
 				subject.append(CUSTOMER_CONTACT_UPLOAD_NOTIFY_SUBJECT);
@@ -558,7 +573,7 @@ public class DestinationMailUtils {
 				fileName = request.getFileName();
 			}
 				break;
-				
+
 			case 7: {
 				// Partner upload
 				subject.append(PARTNER_UPLOAD_NOTIFY_SUBJECT);
@@ -592,7 +607,8 @@ public class DestinationMailUtils {
 			userRequestMap.put("entity", entity);
 			userRequestMap.put("fileName", fileName);
 			userRequestMap.put("submittedDate", dateStr);
-			userRequestMap.put("requestId", request.getProcessRequestId().toString());
+			userRequestMap.put("requestId", request.getProcessRequestId()
+					.toString());
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, template, Constants.UTF8, userRequestMap);
@@ -641,7 +657,8 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
 
-		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		String sub = new StringBuffer(environmentName).append(" ")
+				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
 
@@ -685,7 +702,8 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ").append(subject).toString();
+		String sub = new StringBuffer(environmentName).append(" ")
+				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
 		sendOpportunityReopenMail(message, oppReopenRequest, user, opp, dateStr);
@@ -839,7 +857,7 @@ public class DestinationMailUtils {
 			} catch (Exception e) {
 				logger.error("Error sending mail message", e.getMessage());
 				throw e;
-				
+
 			}
 		}
 
@@ -875,7 +893,7 @@ public class DestinationMailUtils {
 				.toArray(new String[recipientMailIds.size()]);
 		return recipientMailIdsArray;
 	}
-	
+
 	/**
 	 * @param userRole
 	 * @return
@@ -917,11 +935,118 @@ public class DestinationMailUtils {
 	 */
 	private void logMailIds(String recipientType, String[] mailIdsArray) {
 		logger.info(recipientType + "Mail Ids : ");
-		if(mailIdsArray!=null){
+		if (mailIdsArray != null) {
 			for (String id : mailIdsArray) {
 				logger.info(id);
 			}
 		}
+	}
+
+	public void sendOpportunityReopenProcessedAutomatedEmail(
+			String reopenOpportunityProcessedSubject, String requestId,
+			Date date) throws Exception {
+		logger.debug("inside sendUserAccessAutomatedEmail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+		message.setMessageType(Constants.MIME);
+
+		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo
+				.findOne(requestId);
+		UserT user = userService
+				.findByUserId(oppReopenRequest.getRequestedBy());
+		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest
+				.getOpportunityId());
+		CustomerMasterT customer = opp.getCustomerMasterT();
+
+		String recepientId = user.getUserId();
+		List<String> recepientIds = new ArrayList<String>();
+		recepientIds.add(recepientId);
+		message.setRecipients(recepientIds);
+
+		List<String> ccIds = new ArrayList<String>();
+		List<String> salesSupportOwners = new ArrayList<String>();
+		String primaryOwner = opp.getOpportunityOwner();
+		List<OpportunitySalesSupportLinkT> opportunitySalesSupportOwners = new ArrayList<OpportunitySalesSupportLinkT>();
+		opportunitySalesSupportOwners = opportunitySalesSupportLinkTRepository
+				.findByOpportunityId(opp.getOpportunityId());
+		if (opportunitySalesSupportOwners != null
+				&& !opportunitySalesSupportOwners.isEmpty()) {
+			for (OpportunitySalesSupportLinkT osslt : opportunitySalesSupportOwners) {
+				salesSupportOwners.add(osslt.getSalesSupportOwner());
+			}
+
+			ccIds.addAll(salesSupportOwners);
+		}
+		ccIds.add(primaryOwner);
+		for (String ccId : ccIds) {
+			if (ccId.equalsIgnoreCase(recepientId)) {
+				ccIds.remove(ccId);
+			}
+		}
+
+		message.setCcList(ccIds);
+
+		List<String> bccIds = new ArrayList<String>();
+		message.setBccList(bccIds);
+
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(date);
+		String sub = new StringBuffer(environmentName).append(" ")
+				.append(reopenOpportunityProcessedSubject).toString();
+		message.setSubject(sub);
+		logger.info("Subject : " + sub);
+		sendOpportunityReopenProcessedMail(message, oppReopenRequest, user,
+				opp, dateStr, customer);
+	}
+
+	private void sendOpportunityReopenProcessedMail(
+			DestinationMailMessage message,
+			OpportunityReopenRequestT oppReopenRequest, UserT user,
+			OpportunityT opp, String dateStr, CustomerMasterT customer)
+			throws Exception {
+		logger.debug("Inside sendOpportunityReopenMail method");
+		List<String> recipientIdList = message.getRecipients();
+		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
+		String[] ccMailIdsArray = getMailAddressArr(message.getCcList());
+		String[] bccMailIdsArray = getMailAddressArr(message.getBccList());
+		String userName = user.getUserName();
+		String opportunityName = opp.getOpportunityName();
+		String customerName = customer.getCustomerName();
+
+		if (message.getMessageType().equals(Constants.MIME)) {
+			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+					.createMimeMessage();
+			try {
+				MimeMessageHelper helper = new MimeMessageHelper(
+						automatedMIMEMessage, true);
+				helper.setTo(recipientMailIdsArray);
+				helper.setCc(ccMailIdsArray);
+				helper.setBcc(bccMailIdsArray);
+				String subject = message.getSubject();
+				helper.setSubject(subject);
+				helper.setFrom(senderEmailId);
+				logger.info("Opportuity Reopen - Sender : " + senderEmailId);
+				logger.info("Opportuity Reopen - date : " + dateStr);
+				Map<String, Object> oppReopenRequestProcessedMap = new HashMap<String, Object>();
+				oppReopenRequestProcessedMap.put("userName", userName);
+				oppReopenRequestProcessedMap.put("opportunityName",
+						opportunityName);
+				oppReopenRequestProcessedMap.put("customerName", customerName);
+				oppReopenRequestProcessedMap.put("submittedDate", dateStr);
+				String text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine, reopenOpportunityProcessedTemplateLoc,
+						Constants.UTF8, oppReopenRequestProcessedMap);
+				helper.setText(text, true);
+				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
+						bccMailIdsArray, subject, text);
+				mailSender.send(automatedMIMEMessage);
+				logger.info("Opportunity Reopen : Mail sent");
+			} catch (Exception e) {
+				logger.error("Error sending mail message", e.getMessage());
+				throw e;
+
+			}
+		}
+
 	}
 
 }

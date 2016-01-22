@@ -16,5 +16,7 @@ public interface OpportunitySalesSupportLinkTRepository extends
 
 	@Query("select ossl.opportunityT from OpportunitySalesSupportLinkT ossl where ossl.salesSupportOwner=(:userId)")
 	List<OpportunityT> findOpportunityTByUserId(@Param("userId") String userId);
+
+	List<OpportunitySalesSupportLinkT> findByOpportunityId(String opportunityId);
 	
 }
