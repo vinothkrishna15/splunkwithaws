@@ -15,6 +15,9 @@ import static com.tcs.destination.utils.Constants.TOKEN_SECONDARY_OWNERS;
 import static com.tcs.destination.utils.Constants.TOKEN_SUBORDINATE;
 import static com.tcs.destination.utils.Constants.TOKEN_TO;
 import static com.tcs.destination.utils.Constants.TOKEN_USER;
+import static com.tcs.destination.utils.Constants.TOKEN_OWNERSHIP;
+import static com.tcs.destination.utils.Constants.NOTIFICATION_PRIMARY_OWNER;
+import static com.tcs.destination.utils.Constants.NOTIFICATION_SECONDARY_OWNER;
 
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +60,19 @@ public class NotificationProcessHelper {
 		UserNotificationsT notification = null;
 		List<NotificationEventGroupMappingT> notificationTemplateList = notificationEvtGrpMTRepository
 				.findByEventId(eventId);
+		String ownership = null;
+		String[] secondaryOwner = null;
+		if (subordinateName.equalsIgnoreCase(primaryOwner.trim())) {
+			ownership = NOTIFICATION_PRIMARY_OWNER;
+		} else if (secondaryOwners != null) {
+			secondaryOwner = secondaryOwners.split(",");
+			for (String secOwner : secondaryOwner) {
+				if (secOwner.equalsIgnoreCase(subordinateName.trim())) {
+					ownership = NOTIFICATION_SECONDARY_OWNER;
+					break;
+				}
+			}
+		} 
 
 		if (!notificationTemplateList.isEmpty()) {
 
@@ -64,7 +80,8 @@ public class NotificationProcessHelper {
 				String[] values = { recipientName, entityName, null, null,
 						WordUtils.capitalize(entity.toString().toLowerCase()),
 						dateType, date, subordinateName, entityReference,
-						referenceValue, primaryOwner, secondaryOwners };
+						referenceValue, primaryOwner, secondaryOwners,
+						ownership };
 
 				String msgTemplate = replaceTokens(
 						StringUtils.isEmpty(secondaryOwners) ? notificationTemplateList
@@ -180,6 +197,9 @@ public class NotificationProcessHelper {
 		}
 		if (values[11] != null) {
 			tokensMap.put(TOKEN_SECONDARY_OWNERS, values[11]);
+		}
+		if (values[12] != null) {
+			tokensMap.put(TOKEN_OWNERSHIP, values[12]);
 		}
 
 		return tokensMap;

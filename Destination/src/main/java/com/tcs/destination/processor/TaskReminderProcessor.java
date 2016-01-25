@@ -28,6 +28,8 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.helper.NotificationProcessHelper;
 import com.tcs.destination.utils.DateUtils;
 
+import static com.tcs.destination.utils.Constants.NOTIFICATION_CUSTOMER;
+
 /**
  * This TaskReminderProcessor class holds the functionality for sending user
  * notifications
@@ -66,9 +68,10 @@ public class TaskReminderProcessor implements
 		String recipientName = null;
 		String entityId = null;
 		String entityName = null;
-		String primaryOwner = null;
+		String primaryOwnerId = null;
 		String secondaryOwners = null;
 		String subordinateName = null;
+		String primaryOwner = null;
 		int i = 0;
 
 		for (Object item : items) {
@@ -120,10 +123,11 @@ public class TaskReminderProcessor implements
 						.getPrimaryOwner());
 				List<String> secOwners = connectRepository
 						.getSecondaryOwnerByConnectId(referenceId);
-				;
-				if (CollectionUtils.isNotEmpty(secOwners)) {
+				List<String> secOwnerNames = userRepository
+						.findUserNamesByUserIds(secOwners);
+				if (CollectionUtils.isNotEmpty(secOwnerNames)) {
 					secondaryOwners = StringUtils
-							.collectionToCommaDelimitedString(secOwners);
+							.collectionToCommaDelimitedString(secOwnerNames);
 				}
 			} else {
 				logger.error("Connect not found for the Id: {}", referenceId);
@@ -133,12 +137,14 @@ public class TaskReminderProcessor implements
 			OpportunityT opportunity = opportunityRepository
 					.findByOpportunityId(referenceId);
 			if (opportunity != null) {
+				entityReference = NOTIFICATION_CUSTOMER;
 				referenceValue = opportunity.getCustomerMasterT()
 						.getCustomerName();
 				List<String> owners = opportunityRepository
 						.getAllOwners(referenceId);
 				if (CollectionUtils.isNotEmpty(owners)) {
-					primaryOwner = opportunity.getOpportunityOwner();
+					primaryOwnerId = opportunity.getOpportunityOwner();
+					primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
 					owners.remove(primaryOwner);
 					List<String> secOwners = userRepository
 							.findUserNamesByUserIds(owners);

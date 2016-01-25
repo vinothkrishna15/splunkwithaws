@@ -102,6 +102,7 @@ public class Constants {
 	public static final String TOKEN_CST_OR_PARTNER_VALUE = "custOrPartValue";
 	public static final String TOKEN_PRIMARY_OWNER = "primaryOwner";
 	public static final String TOKEN_SECONDARY_OWNERS = "secondaryOwners";
+	public static final String TOKEN_OWNERSHIP = "ownership";
 	
 	public static final String CUSTOMER_TEMPLATE_LOCATION_PROPERTY_NAME = "customerSheetTemplate";
 	public static final String CUSTOMER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "customerContactSheetTemplate";
@@ -191,6 +192,9 @@ public class Constants {
 	public static final String DOWNLOADCONSTANT = "Download_";
 	public static final String XLSM = ".xlsm";
 	public static final String PARTNER_MASTER_SHEET_NAME = "Partner Master";
+	public static final String NOTIFICATION_CUSTOMER = "CUSTOMER";
+	public static final String NOTIFICATION_PRIMARY_OWNER = "(Primary)";
+	public static final String NOTIFICATION_SECONDARY_OWNER = "(Secondary)";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 }

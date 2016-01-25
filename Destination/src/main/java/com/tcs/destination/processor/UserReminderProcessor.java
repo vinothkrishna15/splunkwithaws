@@ -58,8 +58,9 @@ public class UserReminderProcessor implements ItemProcessor<Object[], UserNotifi
 		String entityName = null;
 		String entityReference = null;
 		String referenceName = null;
-		String primaryOwner = null;
+		String primaryOwnerId = null;
 		String secondaryOwners = null;
+		String primaryOwner = null;
 		
 		int i = 0;
 		
@@ -101,8 +102,9 @@ public class UserReminderProcessor implements ItemProcessor<Object[], UserNotifi
 			List<String> owners = opportunityRepository
 					.getAllOwners(entityId);
 			if (CollectionUtils.isNotEmpty(owners)) {
-				primaryOwner = userRepository.findUserNameByUserId(owners
-						.remove(0));
+				primaryOwnerId = opportunity.getOpportunityOwner();
+				primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
+				owners.remove(primaryOwner);
 				List<String> secOwners = userRepository
 						.findUserNamesByUserIds(owners);
 				if (CollectionUtils.isNotEmpty(secOwners)) {
