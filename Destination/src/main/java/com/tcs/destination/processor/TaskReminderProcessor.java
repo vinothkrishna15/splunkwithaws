@@ -138,8 +138,8 @@ public class TaskReminderProcessor implements
 				List<String> owners = opportunityRepository
 						.getAllOwners(referenceId);
 				if (CollectionUtils.isNotEmpty(owners)) {
-					primaryOwner = userRepository.findUserNameByUserId(owners
-							.remove(0));
+					primaryOwner = opportunity.getOpportunityOwner();
+					owners.remove(primaryOwner);
 					List<String> secOwners = userRepository
 							.findUserNamesByUserIds(owners);
 					if (CollectionUtils.isNotEmpty(secOwners)) {
