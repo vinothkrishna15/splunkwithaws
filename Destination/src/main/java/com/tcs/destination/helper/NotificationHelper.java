@@ -70,6 +70,7 @@ import com.tcs.destination.utils.Constants;
  * 
  *
  */
+
 public class NotificationHelper implements Runnable {
 
 	private static final Logger logger = LoggerFactory
@@ -745,16 +746,19 @@ public class NotificationHelper implements Runnable {
 						// Send Win or lost notifications
 						sendNotificationWhenSubordinateOwnedOpportunitiesWonOrLost(opportunity);
 
+
 						if (oldObject == null) {
-							// Send Notification for users selected customers,
-							// IOU , Geo ,Digital deal value...
-							notifyNewDesiredOpportunities(opportunity);
 
 							// Send Notification for Digital Re-imagination
 							notifyNewDigitalReimaginationOpportunities(opportunity);
 
 							// Send Notification for Strategic Initiatives
 							notifyNewStategicInitiativeOpportunities(opportunity);
+							
+							// Send Notification for users selected customers,
+							// IOU , Geo ,Digital deal value...
+							notifyNewDesiredOpportunities(opportunity);
+
 						}
 
 					} else {
@@ -960,15 +964,29 @@ public class NotificationHelper implements Runnable {
 			Set<String> notifyUserIds, List<String> opportunityOwners,
 			int eventId, int fieldId, String addMessageTemplate)
 			throws Exception {
+		String usernames = getOpportunityOwners(opportunity);
+		String tokenValues[];
 		for (String userId : notifyUserIds) {
 			if ((!opportunityOwners.contains(userId))
 					&& (!opportunity.getCreatedBy().equals(userId))) {
-				String[] tokenValues = {
-						opportunity.getCreatedByUser().getUserName(),
-						opportunity.getOpportunityName(), null, null, null,
-						null, null, null,
-						opportunity.getCustomerMasterT().getCustomerName(),
-						null, null, null };
+				if (((opportunity.getDigitalFlag() != null) && (opportunity
+						.getDigitalFlag().equals("Y")))
+						|| ((opportunity.getStrategicInitiative() != null) && (opportunity
+								.getStrategicInitiative().equals("YES")))) {
+					tokenValues = new String[] { usernames,
+							opportunity.getOpportunityName(), null, null, null,
+							null, null, null, null,
+							opportunity.getCustomerMasterT().getCustomerName(),
+							null, null };
+				} else {
+					tokenValues = new String[] {
+							opportunity.getCreatedByUser().getUserName(),
+							opportunity.getOpportunityName(), null, null, null,
+							null, null, null, null,
+							opportunity.getCustomerMasterT().getCustomerName(),
+							null, null };
+				}
+
 				String notificationMessage = replaceTokens(addMessageTemplate,
 						populateTokens(tokenValues));
 				notificationMessage = notificationMessage.replace(
@@ -978,6 +996,60 @@ public class NotificationHelper implements Runnable {
 						opportunity.getOpportunityId());
 			}
 		}
+	}
+
+	/**
+	 * This method is used to get the primary and second owners of the opportunity
+	 * @param opportunity
+	 * @return
+	 */
+	private String getOpportunityOwners(OpportunityT opportunity) {
+		String userNames = opportunity.getPrimaryOwnerUser().getUserName()
+				+ " (Primary)";
+		
+		int salesSize = opportunity.getOpportunitySalesSupportLinkTs().size();
+		int bidSize = 0;
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				bidSize += bidDetailsT.getBidOfficeGroupOwnerLinkTs().size();
+			}
+		}
+		
+		int size = salesSize + bidSize;
+		
+		for (int i = 0; i < salesSize; i++) {
+			if (i < (salesSize - 1)) {
+				userNames += " , ";
+			} else if (bidSize == 0) {
+				userNames += " and ";
+			}
+			else if(bidSize > 0)
+			{
+				userNames += " , ";
+			}
+			userNames += opportunity.getOpportunitySalesSupportLinkTs()
+					.get(i).getSalesSupportOwnerUser().getUserName()
+					+ " (Sales)";
+			
+		}
+		if (opportunity.getBidDetailsTs() != null) {
+			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				
+				for (int i = 0; i < bidSize; i++) {
+
+					if (i < (bidSize - 1)) {
+						userNames += " , ";
+					} else {
+						userNames += " and ";
+					}
+					userNames += bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+							.get(i).getBidOfficeGroupOwnerUser().getUserName()
+							+ " (Bid)";
+					
+				}
+			}
+		}
+		return userNames;
 	}
 
 	/**
@@ -1151,21 +1223,24 @@ public class NotificationHelper implements Runnable {
 		userIds.add(opportunity.getPrimaryOwnerUser().getUserId());
 		String userNames = opportunity.getPrimaryOwnerUser().getUserName()
 				+ " (Primary)";
-		String ownership = null;
 
-		int size = opportunity.getOpportunitySalesSupportLinkTs().size();
+		int salesSize = opportunity.getOpportunitySalesSupportLinkTs().size();
+
+		int bidSize = 0;
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
-				size += bidDetailsT.getBidOfficeGroupOwnerLinkTs().size();
+			bidSize += bidDetailsT.getBidOfficeGroupOwnerLinkTs().size();
 			}
-		}
-
-		if (opportunity.getOpportunitySalesSupportLinkTs() != null) {
-			for (int i = 0; i < size; i++) {
-				if (i < (size - 1)) {
+			}
+		int size = salesSize + bidSize;
+ 
+			for (int i = 0; i < salesSize; i++) {
+				if (i < (salesSize - 1)) {
 					userNames += " , ";
-				} else {
+				} else if (bidSize == 0){
 					userNames += " and ";
+				}else if(bidSize > 0){
+					userNames += " , ";
 				}
 				userNames += opportunity.getOpportunitySalesSupportLinkTs()
 						.get(i).getSalesSupportOwnerUser().getUserName()
@@ -1173,13 +1248,13 @@ public class NotificationHelper implements Runnable {
 				userIds.add(opportunity.getOpportunitySalesSupportLinkTs()
 						.get(i).getSalesSupportOwnerUser().getUserId());
 			}
-		}
+		
+		
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
-				for (int i = 0; i < bidDetailsT.getBidOfficeGroupOwnerLinkTs()
-						.size(); i++) {
+				for (int i = 0; i < bidSize; i++) {
 
-					if (i < (size - 1)) {
+					if (i < (bidSize - 1)) {
 						userNames += " , ";
 					} else {
 						userNames += " and ";
@@ -1221,7 +1296,6 @@ public class NotificationHelper implements Runnable {
 						opportunity.getOpportunityId());
 			}
 		}
-
 	}
 
 	/**
@@ -1857,14 +1931,23 @@ public class NotificationHelper implements Runnable {
 			String recipient, String msgTemplate,
 			NotificationEventFieldsT eventField) throws Exception {
 		if (msgTemplate != null) {
-			if (newObj instanceof OpportunityT || newObj instanceof BidDetailsT) {
+			if (newObj instanceof OpportunityT ) {
 				OpportunityT opportunityT = (OpportunityT) newObj;
 				if (((opportunityT.getModifiedBy() != null) && (!opportunityT
 						.getModifiedBy().equals(recipient)))
 						|| (!opportunityT.getCreatedBy().equals(recipient)))
 					addUserNotifications(msgTemplate, recipient,
 							eventField.getNotificationEventId());
-			} else if (newObj instanceof ConnectT) {
+			}else if(newObj instanceof BidDetailsT) {
+				BidDetailsT bidDetailsT = (BidDetailsT) newObj;
+					if (((bidDetailsT.getModifiedBy() != null) && (!bidDetailsT
+							.getModifiedBy().equals(recipient)))
+							|| (!bidDetailsT.getCreatedBy().equals(recipient)))
+						addUserNotifications(msgTemplate, recipient,
+								eventField.getNotificationEventId());
+				}
+			
+			else if (newObj instanceof ConnectT) {
 				ConnectT connectT = (ConnectT) newObj;
 				if (((connectT.getModifiedBy() != null) && (!connectT
 						.getModifiedBy().equals(recipient)))
@@ -1879,9 +1962,8 @@ public class NotificationHelper implements Runnable {
 					addUserNotifications(msgTemplate, recipient,
 							eventField.getNotificationEventId());
 			}
-
 		}
-	}
+		}
 
 	/**
 	 * This method is used to populate the replacement tokens in the auto
