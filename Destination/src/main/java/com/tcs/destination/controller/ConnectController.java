@@ -156,7 +156,6 @@ public class ConnectController {
 			@RequestParam("to") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
-			@RequestParam(value = "userId", defaultValue = "") String userId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
@@ -170,6 +169,8 @@ public class ConnectController {
 		DashBoardConnectsResponse dashboardConnectsResponse = null;
 		try {
 			logger.info("Inside ConnectController: Start of retrieving Connects by Date range");
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			dashboardConnectsResponse = connectService
 					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
 							userId, owner, customerId, partnerId,

@@ -10,12 +10,18 @@
 package com.tcs.destination.processor;
 
 import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.util.StringUtils;
 
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.helper.NotificationProcessHelper;
 import com.tcs.destination.utils.DateUtils;
@@ -36,6 +42,10 @@ public class SupervisorReminderProcessor implements ItemProcessor<Object[], User
 	
 	private int eventId;
 	
+	private OpportunityRepository opportunityRepository;
+	
+	private UserRepository userRepository;
+	
 	@Override
 	public UserNotificationsT process(Object[] items) throws Exception {
 		
@@ -49,6 +59,9 @@ public class SupervisorReminderProcessor implements ItemProcessor<Object[], User
 		String entityReference = null;
 		String referenceName = null;
 		String subordinateName = null;
+		String primaryOwnerId = null;
+		String secondaryOwners = null;
+		String primaryOwner = null;
 		
 		int i = 0;
 		
@@ -84,9 +97,28 @@ public class SupervisorReminderProcessor implements ItemProcessor<Object[], User
 			i++;
 				
 		}
+		OpportunityT opportunity = opportunityRepository
+				.findByOpportunityId(entityId);
+		if (opportunity != null) {
+			referenceName = opportunity.getCustomerMasterT()
+					.getCustomerName();
+			List<String> owners = opportunityRepository
+					.getAllOwners(entityId);
+			if (CollectionUtils.isNotEmpty(owners)) {
+				primaryOwnerId = opportunity.getOpportunityOwner();
+				primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
+				owners.remove(primaryOwner);
+				List<String> secOwners = userRepository
+						.findUserNamesByUserIds(owners);
+				if (CollectionUtils.isNotEmpty(secOwners)) {
+					secondaryOwners = StringUtils
+							.collectionToCommaDelimitedString(secOwners);
+				}
+			}
+		}
 		
 		return notificationProcessHelper.processNotification(entityType, entityId, entityName, eventId, dateType, date, recipientId, recipientName, subordinateName, entityReference, referenceName,
-				null, null);
+				primaryOwner, secondaryOwners);
 	}
 
 	public NotificationProcessHelper getNotificationProcessHelper() {
@@ -121,6 +153,24 @@ public class SupervisorReminderProcessor implements ItemProcessor<Object[], User
 	public void setEventId(int eventId) {
 		this.eventId = eventId;
 	}
+
+	public OpportunityRepository getOpportunityRepository() {
+		return opportunityRepository;
+	}
+
+	public void setOpportunityRepository(OpportunityRepository opportunityRepository) {
+		this.opportunityRepository = opportunityRepository;
+	}
+
+	public UserRepository getUserRepository() {
+		return userRepository;
+	}
+
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+	
+	
 
 
 }

@@ -10,6 +10,11 @@ public class ReportConstants {
 
 	public static final String IOU = "iou";
 	public static final String GEOGRAPHY = "geography";
+	public static final String CREATEDDATE = "createdDate";
+	public static final String CREATEDBY = "createdBy";
+	public static final String MODIFIEDDATE = "modifiedDate";
+	public static final String MODIFIEDBY = "modifiedBy";
+
 	public static final String SUBSP = "subSp";
 	public static final String COUNTRY = "country";
 	public static final String OFFERING = "offering";

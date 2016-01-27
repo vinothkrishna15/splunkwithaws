@@ -24,6 +24,7 @@ import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * This service deals with opportunity reopen requests
+ * 
  * @author tcs2
  *
  */
@@ -43,18 +44,22 @@ public class OpportunityReopenRequestService {
 
 	@Autowired
 	UserService userService;
-	
+
 	@Autowired
 	DestinationMailUtils mailUtils;
-	
+
 	@Value("${reopenOpportunity}")
 	private String reopenOpportunitySubject;
-	
+
+	@Value("${reopenOpportunityProcessed}")
+	private String reopenOpportunityProcessedSubject;
+
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
 
 	/**
 	 * Method to find all reopen requests
+	 * 
 	 * @return
 	 * @throws DestinationException
 	 */
@@ -62,12 +67,11 @@ public class OpportunityReopenRequestService {
 			throws DestinationException {
 		logger.debug("Begin:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 		UserT loggedUser = DestinationUtils.getCurrentUserDetails();
-		if (userService.isSystemAdmin(loggedUser.getUserId())){
+		if (userService.isSystemAdmin(loggedUser.getUserId())) {
 			logger.debug("End:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 			return (List<OpportunityReopenRequestT>) opportunityReopenRequestRepository
 					.findAll();
-		}
-		else{
+		} else {
 			logger.debug("End:Inside findAllReOpenRequests  of OpportunityReopenRequestService");
 			return opportunityReopenRequestRepository
 					.findByRequestedBy(loggedUser.getUserId());
@@ -76,6 +80,7 @@ public class OpportunityReopenRequestService {
 
 	/**
 	 * method to find a particular opportunity reopened request based on its id
+	 * 
 	 * @param id
 	 * @return
 	 * @throws DestinationException
@@ -98,7 +103,8 @@ public class OpportunityReopenRequestService {
 	}
 
 	/**
-	 * method to create OpportunityReopenRequestT 
+	 * method to create OpportunityReopenRequestT
+	 * 
 	 * @param opportunityReopenRequestT
 	 * @throws Exception
 	 */
@@ -106,7 +112,7 @@ public class OpportunityReopenRequestService {
 	public void create(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
 		logger.debug("Begin:Inside create  of OpportunityReopenRequestService");
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		opportunityReopenRequestT.setRequestedBy(userId);
 		if (opportunityReopenRequestT.getApprovedRejectedComments() != null
 				|| opportunityReopenRequestT.getApprovedRejectedBy() != null
@@ -114,78 +120,90 @@ public class OpportunityReopenRequestService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot create a request with approval details");
 		String oppId = opportunityReopenRequestT.getOpportunityId();
-		List<OpportunityReopenRequestT> oppReopenRequestList = opportunityReopenRequestRepository.findByOpportunityId(oppId);
-		if(oppReopenRequestList!=null && !oppReopenRequestList.isEmpty()){
+		List<OpportunityReopenRequestT> oppReopenRequestList = opportunityReopenRequestRepository
+				.findByOpportunityId(oppId);
+		if (oppReopenRequestList != null && !oppReopenRequestList.isEmpty()) {
 			logger.error("Reopen request already exists for this opportunity.");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Reopen request already exists for this opportunity.");
 		} else {
-		boolean canUpdate = false;
-		OpportunityT opportunityT = opportunityRepository
-				.findOne(oppId);
-		opportunityT.setCreatedBy(userId);
-		opportunityT.setModifiedBy(userId);
-		if (opportunityT != null) {
-			if (opportunityT.getSalesStageCode() != 12) {
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Cannot reopen a request which is on "
-								+ opportunityT.getSalesStageMappingT()
-										.getSalesStageDescription());
-			}
+			boolean canUpdate = false;
+			OpportunityT opportunityT = opportunityRepository.findOne(oppId);
+			opportunityT.setCreatedBy(userId);
+			opportunityT.setModifiedBy(userId);
+			if (opportunityT != null) {
+				if (opportunityT.getSalesStageCode() != 12) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Cannot reopen a request which is on "
+									+ opportunityT.getSalesStageMappingT()
+											.getSalesStageDescription());
+				}
 
-			if (opportunityT.getOpportunityOwner().equals(
-					DestinationUtils.getCurrentUserDetails().getUserId()))
-				canUpdate = true;
-			if (opportunityT.getOpportunitySalesSupportLinkTs() != null) {
-				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunityT
-						.getOpportunitySalesSupportLinkTs()) {
-					if (opportunitySalesSupportLinkT.getSalesSupportOwner()
-							.equals(DestinationUtils.getCurrentUserDetails()
-									.getUserId()))
-						canUpdate = true;
+				if (opportunityT.getOpportunityOwner().equals(
+						DestinationUtils.getCurrentUserDetails().getUserId()))
+					canUpdate = true;
+				if (opportunityT.getOpportunitySalesSupportLinkTs() != null) {
+					for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunityT
+							.getOpportunitySalesSupportLinkTs()) {
+						if (opportunitySalesSupportLinkT.getSalesSupportOwner()
+								.equals(DestinationUtils
+										.getCurrentUserDetails().getUserId()))
+							canUpdate = true;
+					}
 				}
 			}
-		}
-		logger.error("Can update? " + canUpdate);
-		try {
-			if (canUpdate){
-				
-				
-				opportunityReopenRequestRepository
-						.save(opportunityReopenRequestT);
-				
-				//mail notification to admin, supervisor and user regarding the request
-				sendEmailNotification(opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
-				//mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject,opportunityReopenRequestT.getOpportunityReopenRequestId(),new Date());
-			}
-			else
+			logger.error("Can update? " + canUpdate);
+			try {
+				if (canUpdate) {
+
+					opportunityReopenRequestRepository
+							.save(opportunityReopenRequestT);
+
+					// mail notification to admin, supervisor and user regarding
+					// the request
+					sendEmailNotification(
+							opportunityReopenRequestT
+									.getOpportunityReopenRequestId(),
+							new Date(), false);
+					// mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject,opportunityReopenRequestT.getOpportunityReopenRequestId(),new
+					// Date());
+				} else
+					throw new DestinationException(
+							HttpStatus.UNAUTHORIZED,
+							"You are not authorised to Request for reopen. Only Opportunity Owner or Sales Support Owner are allowed to request for update");
+			} catch (Exception e) {
 				throw new DestinationException(
-						HttpStatus.UNAUTHORIZED,
-						"You are not authorised to Request for reopen. Only Opportunity Owner or Sales Support Owner are allowed to request for update");
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
-		}
+						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+			}
 		}
 		logger.debug("End:Inside create  of OpportunityReopenRequestService");
 	}
 
 	/**
-	 * method to edit OpportunityReopenRequestT and to save 
+	 * method to edit OpportunityReopenRequestT and to save
+	 * 
 	 * @param opportunityReopenRequestT
 	 * @throws Exception
 	 */
 	public void edit(OpportunityReopenRequestT opportunityReopenRequestT)
 			throws Exception {
 		logger.debug("Begin:Inside edit of OpportunityReopenRequestService");
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		opportunityReopenRequestT.setApprovedRejectedBy(userId);
-		
+
 		if (opportunityReopenRequestT.getOpportunityReopenRequestId() == null)
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot edit a request without request id");
 		try {
-			opportunityReopenRequestRepository.save(opportunityReopenRequestT);
+			opportunityReopenRequestRepository
+					.saveAndFlush(opportunityReopenRequestT);
+			if (opportunityReopenRequestT.getApprovedFlag().equals("Y")) {
+				sendEmailNotification(
+						opportunityReopenRequestT
+								.getOpportunityReopenRequestId(),
+						opportunityReopenRequestT.getRequestReceivedDatetime(),
+						true);
+			}
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -193,36 +211,51 @@ public class OpportunityReopenRequestService {
 		}
 		logger.debug("End:Inside edit of OpportunityReopenRequestService");
 	}
-	
+
 	/**
 	 * method to send Email Notification for an request id
+	 * 
 	 * @param requestId
 	 * @param date
 	 * @throws Exception
 	 */
-	private void sendEmailNotification(String requestId, Date date) throws Exception {
+	private void sendEmailNotification(String requestId, Date date,
+			boolean isProcessed) throws Exception {
 		logger.debug("Begin:Inside sendEmailNotification of OpportunityReopenRequestService");
-		class OpportunityReopenNotificationRunnable implements Runnable{
-			 String requestId;
-			 Date date;
-			 OpportunityReopenNotificationRunnable(String requestId,Date date) {
-				 this.requestId = requestId; 
-				 this.date=date;
-		     }
-			
+		@Transactional
+		class OpportunityReopenNotificationRunnable implements Runnable {
+			String requestId;
+			Date date;
+			boolean isProcessed;
+
+			OpportunityReopenNotificationRunnable(String requestId, Date date,
+					boolean isProcessed) {
+				this.requestId = requestId;
+				this.date = date;
+				this.isProcessed = isProcessed;
+			}
+
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				try {
-					mailUtils.sendOpportunityReopenAutomatedEmail(reopenOpportunitySubject, requestId, date);
+					if (isProcessed) {
+						mailUtils.sendOpportunityReopenProcessedAutomatedEmail(
+								reopenOpportunityProcessedSubject, requestId,
+								date);
+					} else {
+						mailUtils.sendOpportunityReopenAutomatedEmail(
+								reopenOpportunitySubject, requestId, date);
+					}
+
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					logger.error(e.getMessage()); 
+					logger.error("Error sending reopen mail" + e.getMessage());
 				}
 			}
-			
+
 		}
-		OpportunityReopenNotificationRunnable opportunityReopenNotificationRunnable = new OpportunityReopenNotificationRunnable(requestId,date);
+		OpportunityReopenNotificationRunnable opportunityReopenNotificationRunnable = new OpportunityReopenNotificationRunnable(
+				requestId, date, isProcessed);
 		mailTaskExecutor.execute(opportunityReopenNotificationRunnable);
 		logger.debug("End:Inside sendEmailNotification of OpportunityReopenRequestService");
 	}
