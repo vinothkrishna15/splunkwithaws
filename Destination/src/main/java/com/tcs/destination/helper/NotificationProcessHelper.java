@@ -60,7 +60,7 @@ public class NotificationProcessHelper {
 		UserNotificationsT notification = null;
 		List<NotificationEventGroupMappingT> notificationTemplateList = notificationEvtGrpMTRepository
 				.findByEventId(eventId);
-		String ownership = null;
+		String ownership = "";
 		String[] secondaryOwner = null;
 		if (subordinateName.equalsIgnoreCase(primaryOwner.trim())) {
 			ownership = NOTIFICATION_PRIMARY_OWNER;
@@ -72,7 +72,7 @@ public class NotificationProcessHelper {
 					break;
 				}
 			}
-		} 
+		}
 
 		if (!notificationTemplateList.isEmpty()) {
 
