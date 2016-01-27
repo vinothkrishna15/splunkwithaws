@@ -249,8 +249,7 @@ public class OpportunityReopenRequestService {
 					}
 
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					logger.error(e.getMessage());
+					logger.error("Error sending reopen mail" + e.getMessage());
 				}
 			}
 

@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.MailAuthenticationException;
+import org.springframework.mail.MailException;
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.MailSendException;
@@ -945,14 +947,21 @@ public class DestinationMailUtils {
 	public void sendOpportunityReopenProcessedAutomatedEmail(
 			String reopenOpportunityProcessedSubject, String requestId,
 			Date date) throws Exception {
-		logger.debug("inside sendUserAccessAutomatedEmail method");
+		logger.debug("inside sendOpportunityReopenProcessedAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setMessageType(Constants.MIME);
 
 		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo
 				.findOne(requestId);
-		UserT user = userService
-				.findByUserId(oppReopenRequest.getRequestedBy());
+		UserT user;
+		try {
+			user = userService.findByUserId(oppReopenRequest.getRequestedBy());
+		} catch (Exception e) {
+			logger.error(
+					"Error occured while retrieving reopen request:{}"
+							+ e.getMessage(), oppReopenRequest.getRequestedBy());
+			throw e;
+		}
 		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest
 				.getOpportunityId());
 		CustomerMasterT customer = opp.getCustomerMasterT();
@@ -980,14 +989,12 @@ public class DestinationMailUtils {
 		for (String ccId : ccIds) {
 			if (ccId.equalsIgnoreCase(recepientId)) {
 				ccIds.remove(ccId);
+				break;
 			}
 		}
-
 		message.setCcList(ccIds);
-
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
-
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		String sub = new StringBuffer(environmentName).append(" ")
@@ -1003,7 +1010,7 @@ public class DestinationMailUtils {
 			OpportunityReopenRequestT oppReopenRequest, UserT user,
 			OpportunityT opp, String dateStr, CustomerMasterT customer)
 			throws Exception {
-		logger.debug("Inside sendOpportunityReopenMail method");
+		logger.debug("Inside sendOpportunityReopenProcessedMail method");
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
 		String[] ccMailIdsArray = getMailAddressArr(message.getCcList());
@@ -1035,13 +1042,18 @@ public class DestinationMailUtils {
 				String text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine, reopenOpportunityProcessedTemplateLoc,
 						Constants.UTF8, oppReopenRequestProcessedMap);
+				logger.info("Mail text framed :");
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
 						bccMailIdsArray, subject, text);
 				mailSender.send(automatedMIMEMessage);
-				logger.info("Opportunity Reopen : Mail sent");
-			} catch (Exception e) {
-				logger.error("Error sending mail message", e.getMessage());
+				logger.info("Opportunity Reopen Processed: Mail sent");
+			} catch (MessagingException e) {
+				logger.error("Error while creating mail message:{}",
+						e.getMessage());
+				throw e;
+			} catch (MailException e) {
+				logger.error("Error sending mail message:{}", e.getMessage());
 				throw e;
 
 			}
