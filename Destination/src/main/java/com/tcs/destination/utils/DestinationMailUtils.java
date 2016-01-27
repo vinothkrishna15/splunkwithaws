@@ -410,6 +410,9 @@ public class DestinationMailUtils {
 				attachmentFileName = request.getFileName();
 			} else {
 				template = dailyDownloadTemplateLoc;
+				attachmentFilePath = request.getFilePath()
+						+ request.getFileName();
+				attachmentFileName = request.getFileName();
 			}
 
 			Map<String, Object> userRequestMap = new HashMap<String, Object>();
