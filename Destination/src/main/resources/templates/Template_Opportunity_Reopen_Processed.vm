@@ -2,7 +2,7 @@
 	<body>
 		<h3>Dear ${userName},</h3>
 		<p>
-			 Your request to reopen the opportunity ${opportunityName} for Customer ${customerName} submitted on ${submittedDate} has been processed.
+			 Your request to reopen the Opportunity: ${opportunityName} for Customer ${customerName} submitted on ${submittedDate} has been processed.
 		</p>		
 		<p>
 		Regards,<br>
