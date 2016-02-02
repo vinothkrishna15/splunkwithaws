@@ -746,6 +746,11 @@ public class NotificationHelper implements Runnable {
 						// Send Win or lost notifications
 						sendNotificationWhenSubordinateOwnedOpportunitiesWonOrLost(opportunity);
 
+						//Send notification for Digital Re-imagination
+						sendNotificationForDigitalReimagination(opportunity);
+						
+						//Send notification for Strategic Initiative
+						sendNotificationForStrategicInitiatives(opportunity);
 
 						if (oldObject == null) {
 
@@ -956,26 +961,33 @@ public class NotificationHelper implements Runnable {
 		String messageTemplate = notificationEventGroupMappingTRepository
 				.findByEventId(eventId).get(0).getMessageTemplate();
 		notifyForNewOpportunities(opportunity, userIds, opportunityOwners,
-				eventId, fieldId, messageTemplate);
+				eventId, fieldId, messageTemplate, null);
 
 	}
-
+/**
+ * This method is used to notify users of new opportunities
+ * @param opportunity
+ * @param notifyUserIds
+ * @param opportunityOwners
+ * @param eventId
+ * @param fieldId
+ * @param addMessageTemplate
+ * @param status
+ * @throws Exception
+ */
 	private void notifyForNewOpportunities(OpportunityT opportunity,
 			Set<String> notifyUserIds, List<String> opportunityOwners,
-			int eventId, int fieldId, String addMessageTemplate)
+			int eventId, int fieldId, String addMessageTemplate, String status)
 			throws Exception {
 		String usernames = getOpportunityOwners(opportunity);
 		String tokenValues[];
 		for (String userId : notifyUserIds) {
 			if ((!opportunityOwners.contains(userId))
 					&& (!opportunity.getCreatedBy().equals(userId))) {
-				if (((opportunity.getDigitalFlag() != null) && (opportunity
-						.getDigitalFlag().equals("Y")))
-						|| ((opportunity.getStrategicInitiative() != null) && (opportunity
-								.getStrategicInitiative().equals("YES")))) {
+				if(status!= null){
 					tokenValues = new String[] { usernames,
 							opportunity.getOpportunityName(), null, null, null,
-							null, null, null, null,
+							null, status, null, null,
 							opportunity.getCustomerMasterT().getCustomerName(),
 							null, null };
 				} else {
@@ -1176,7 +1188,7 @@ public class NotificationHelper implements Runnable {
 						.findByEventId(eventId).get(0).getMessageTemplate();
 				notifyForNewOpportunities(opportunity, new HashSet<String>(
 						userIds), opportunityOwners, eventId, fieldId,
-						messageTemplate);
+						messageTemplate, "added");
 			}
 	}
 
@@ -1202,7 +1214,7 @@ public class NotificationHelper implements Runnable {
 						.findByEventId(eventId).get(0).getMessageTemplate();
 				notifyForNewOpportunities(opportunity, new HashSet<String>(
 						userIds), opportunityOwners, eventId, fieldId,
-						messageTemplate);
+						messageTemplate, "added");
 			}
 	}
 
@@ -1596,15 +1608,12 @@ public class NotificationHelper implements Runnable {
 											.getBidOfficeGroupOwnerUser()
 											.getUserName(),
 									opportunity.getOpportunityName(),
-									null,
-									null,
+									null, null,
 									EntityType.OPPORTUNITY.name(),
 									"Bid Office Owner",
-									null,
-									null,
-									null,
+									null, null, null,
 									opportunity.getCustomerMasterT()
-											.getCustomerName(), null, null };
+											.getCustomerName(), "Customer", null };
 							String supervisorOwner = replaceTokens(
 									notificationTemplate,
 									populateTokens(tokenValues));
@@ -1628,7 +1637,94 @@ public class NotificationHelper implements Runnable {
 			}
 		}
 	}
+/**
+ * This method is used to send notification for any update of Digital Re-imagination flag 
+ * @param opportunity
+ * @throws Exception
+ */
+	private void sendNotificationForDigitalReimagination(
+			OpportunityT opportunity) throws Exception {
+		String newDigitalFlag = null;
+		String oldDigitalFlag = null;
+		if (oldObject != null) {
+			if (opportunity.getDigitalFlag() != null) {
+				OpportunityT oldOpportunity = (OpportunityT) oldObject;
+				newDigitalFlag = opportunity.getDigitalFlag();
+				oldDigitalFlag = oldOpportunity.getDigitalFlag();
+				if(oldDigitalFlag==null)
+				{
+					oldDigitalFlag = "";
+				}
+				if ((!newDigitalFlag.equalsIgnoreCase(oldDigitalFlag))) {
+					int eventId = 15;
+					int fieldId = 201;
+					List<String> owners = ((OpportunityRepository) crudRepository)
+							.getAllOwners(opportunity.getOpportunityId());
+					List<String> userIds = userRepository
+							.getSupervisorUserId(owners);
+					List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
+							.getAllOwners(entityId);
+					String messageTemplate = notificationEventGroupMappingTRepository
+							.findByEventId(eventId).get(0).getMessageTemplate();
 
+					if (((opportunity.getDigitalFlag() != null) && (opportunity
+							.getDigitalFlag().equals("Y")))) {
+						notifyForNewOpportunities(opportunity,
+								new HashSet<String>(userIds),
+								opportunityOwners, eventId, fieldId,
+								messageTemplate, "added");
+					} else if (((opportunity.getDigitalFlag() != null) && (opportunity
+							.getDigitalFlag().equals("N")))) {
+						notifyForNewOpportunities(opportunity,
+								new HashSet<String>(userIds),
+								opportunityOwners, eventId, fieldId,
+								messageTemplate, "removed");
+					}
+				}
+			}
+		}
+	}
+/**
+ * This method is used to send notification for any update of Strategic Initiative Flag
+ * @param opportunity
+ * @throws Exception
+ */
+	private void sendNotificationForStrategicInitiatives(
+			OpportunityT opportunity) throws Exception {
+		String newSIFlag = null;
+		String oldSIFlag = null;
+		if (oldObject != null) {
+			if (opportunity.getStrategicInitiative() != null) {
+				OpportunityT oldOpportunity = (OpportunityT) oldObject;
+				newSIFlag = opportunity.getStrategicInitiative();
+				oldSIFlag = oldOpportunity.getStrategicInitiative();
+				if (!newSIFlag.equalsIgnoreCase(oldSIFlag)) {
+					int eventId = 16;
+					int fieldId = 201;
+					List<String> userIds = userRepository
+							.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
+									.toString());
+					List<String> opportunityOwners = ((OpportunityRepository) crudRepository)
+							.getAllOwners(entityId);
+					String messageTemplate = notificationEventGroupMappingTRepository
+							.findByEventId(eventId).get(0).getMessageTemplate();
+					if (((opportunity.getStrategicInitiative() != null) && (opportunity
+							.getStrategicInitiative().equals("YES")))) {
+						notifyForNewOpportunities(opportunity,
+								new HashSet<String>(userIds),
+								opportunityOwners, eventId, fieldId,
+								messageTemplate, "added");
+					} else if (((opportunity.getStrategicInitiative() != null) && (opportunity
+							.getStrategicInitiative().equals("NO")))) {
+						notifyForNewOpportunities(opportunity,
+								new HashSet<String>(userIds),
+								opportunityOwners, eventId, fieldId,
+								messageTemplate, "removed");
+					}
+				}
+			}
+		}
+	}
 	/**
 	 * This method is used to generate the notifications for changes in
 	 * collection values

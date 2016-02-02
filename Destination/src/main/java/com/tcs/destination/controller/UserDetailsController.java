@@ -149,9 +149,13 @@ public class UserDetailsController {
 						false));
 			}
 			logger.info("active session size:" + activeSessions.size());
-
-			if (maxActiveSession >= activeSessions.size()) {
-
+			 /*
+			 Max active session is commented as the sessions are not expired when timeout occurs
+			i.e when the user leaves the application without logout.
+			 */
+			 
+			//if (maxActiveSession >= activeSessions.size()) {
+			if (true) {
 				UserT user = userService.findByUserId(DestinationUtils
 						.getCurrentUserDetails().getUserId());
 				if (user != null) {
