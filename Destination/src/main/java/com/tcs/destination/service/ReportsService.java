@@ -2067,8 +2067,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					break;
 				case BDM_SUPERVISOR:
 					userIds = userRepository
-							.getAllSubordinatesIdBySupervisorId(user
-									.getSupervisorUserId());
+							.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					connectList = connectRepository.findByConnectReport(
 							new Timestamp(fromDate.getTime()), new Timestamp(
@@ -2206,8 +2205,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					break;
 				case BDM_SUPERVISOR:
 					userIds = userRepository
-							.getAllSubordinatesIdBySupervisorId(user
-									.getSupervisorUserId());
+							.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					getConnectSummaryDetailsByUserIds(userIds, fromDate,
 							toDate, subSpConnectCountList,
@@ -2411,8 +2409,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				break;
 			case BDM_SUPERVISOR:
 				userIds = userRepository
-						.getAllSubordinatesIdBySupervisorId(user
-								.getSupervisorUserId());
+						.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
 				connectList = connectRepository.findByConnectReport(
 						new Timestamp(fromDate.getTime()), new Timestamp(
