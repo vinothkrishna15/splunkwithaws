@@ -958,8 +958,8 @@ public class NotificationHelper implements Runnable {
 				.getAllOwners(opportunity.getOpportunityId());
 		int eventId = 10;
 		int fieldId = 201;
-		String messageTemplate = notificationEventGroupMappingTRepository
-				.findByEventId(eventId).get(0).getMessageTemplate();
+		String messageTemplate = autoCommentsEntityTRepository
+		.findOne(fieldId).getAddMessageTemplate();
 		notifyForNewOpportunities(opportunity, userIds, opportunityOwners,
 				eventId, fieldId, messageTemplate, null);
 
@@ -994,7 +994,7 @@ public class NotificationHelper implements Runnable {
 					tokenValues = new String[] {
 							opportunity.getCreatedByUser().getUserName(),
 							opportunity.getOpportunityName(), null, null, null,
-							null, null, null, null,
+							null, null, null, opportunity.getCustomerMasterT().getCustomerName(),
 							opportunity.getCustomerMasterT().getCustomerName(),
 							null, null };
 				}
@@ -1343,7 +1343,7 @@ public class NotificationHelper implements Runnable {
 			}
 		}
 		if (oldPrimaryOwner == null
-				|| connect.getPrimaryOwner() != oldPrimaryOwner) {
+				|| !connect.getPrimaryOwner().equals(oldPrimaryOwner)) {
 
 			String[] tokenValues = {
 					connect.getPrimaryOwnerUser().getUserName(),
@@ -1459,7 +1459,7 @@ public class NotificationHelper implements Runnable {
 						.getUserId());
 			}
 		}
-		if (oldPrimaryOwner == null || taskT.getTaskOwner() != oldPrimaryOwner) {
+		if (oldPrimaryOwner == null || !taskT.getTaskOwner().equals(oldPrimaryOwner)) {
 
 			String[] tokenValues = { taskT.getTaskOwnerT().getUserName(),
 					taskT.getTaskDescription(), null, null, Constants.TASK,
@@ -1541,7 +1541,7 @@ public class NotificationHelper implements Runnable {
 			}
 		}
 		if (oldPrimaryOwner == null
-				|| opportunity.getOpportunityOwner() != oldPrimaryOwner) {
+				|| !opportunity.getOpportunityOwner().equals(oldPrimaryOwner)) {
 
 			String[] tokenValues = {
 					opportunity.getPrimaryOwnerUser().getUserName(),

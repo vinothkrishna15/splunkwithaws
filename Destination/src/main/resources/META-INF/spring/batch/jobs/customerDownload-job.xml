@@ -23,25 +23,25 @@
 		</batch:step>
 		<batch:step id="customerBeaconDwldProcessing" next="customerRevenueDwldProcessing">
 			<batch:tasklet>
-				<batch:chunk reader="beaconDwldReader" writer="beaconDwldWriter" 
+				<batch:chunk reader="customerBeaconDwldReader" writer="customerBeaconDwldWriter" 
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		<batch:step id="customerRevenueDwldProcessing" next="customerIouDwldProcessing">
 			<batch:tasklet>
-				<batch:chunk reader="revenueDwldReader" writer="revenueDwldWriter" 
+				<batch:chunk reader="customerRevenueDwldReader" writer="customerRevenueDwldWriter" 
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		<batch:step id="customerIouDwldProcessing" next="customerIouBeaconDwldProcessing">
 			<batch:tasklet>
-				<batch:chunk reader="iouDwldReader" writer="iouDwldWriter" 
+				<batch:chunk reader="customerIouDwldReader" writer="customerIouDwldWriter" 
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		<batch:step id="customerIouBeaconDwldProcessing" next="customerDownloadPreprocess">
 			<batch:tasklet>
-				<batch:chunk reader="iouBeaconDwldReader" writer="iouBeaconDwldWriter" 
+				<batch:chunk reader="customerIouBeaconDwldReader" writer="customerIouBeaconDwldWriter" 
 				commit-interval="${download.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
@@ -58,19 +58,19 @@
 		<property name="repository" ref="customerRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
-		<property name="repository" ref="beaconRepository"/>
+	<bean id="customerBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+		<property name="repository" ref="beaconCustomerMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="revenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="revenueCustomerMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="iouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerIouDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="customerIOUMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="iouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerIouBeaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
 		<property name="repository" ref="iouBeaconMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
@@ -83,15 +83,15 @@
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
 	
-	<bean id="beaconDwldWriter" class="com.tcs.destination.writer.BeaconDwldWriter">
+	<bean id="customerBeaconDwldWriter" class="com.tcs.destination.writer.BeaconDwldWriter">
 		<property name="commonHelper" ref="commonHelper" />
 	</bean>
 	
-	<bean id="revenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter"/>
+	<bean id="customerRevenueDwldWriter" class="com.tcs.destination.writer.RevenueDwldWriter"/>
 	
-	<bean id="iouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" />
+	<bean id="customerIouDwldWriter" class="com.tcs.destination.writer.IouDwldWriter" />
 	
-	<bean id="iouBeaconDwldWriter" class="com.tcs.destination.writer.IouBeaconDwldWriter">
+	<bean id="customerIouBeaconDwldWriter" class="com.tcs.destination.writer.IouBeaconDwldWriter">
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 		
