@@ -33,14 +33,12 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.data.repository.ApplicationSettingsRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.service.UserDownloadService;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.service.UserUploadService;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PropertyUtil;
@@ -77,13 +75,11 @@ public class UserDetailsController {
 	ApplicationSettingsService applicationSettingsService;
 
 	@Autowired
-	ApplicationSettingsRepository applicationSettingsRepository;
-
-	@Autowired
 	UploadErrorReport uploadErrorReport;
+	
 	@Autowired
 	private SessionRegistry sessionRegistry;
-
+	
 	@Value("${maximum.concurrent.user}")
 	private int maxActiveSession;
 
@@ -144,6 +140,7 @@ public class UserDetailsController {
 			logger.info("httpServletRequest sessionId:"
 					+ httpServletRequest.getSession(false).getId());
 			activeSessions = new ArrayList<>();
+			
 			for (Object principal : sessionRegistry.getAllPrincipals()) {
 				activeSessions.addAll(sessionRegistry.getAllSessions(principal,
 						false));
@@ -154,8 +151,7 @@ public class UserDetailsController {
 			i.e when the user leaves the application without logout.
 			 */
 			 
-			//if (maxActiveSession >= activeSessions.size()) {
-			if (true) {
+			if (maxActiveSession >= activeSessions.size()) {
 				UserT user = userService.findByUserId(DestinationUtils
 						.getCurrentUserDetails().getUserId());
 				if (user != null) {
@@ -173,12 +169,6 @@ public class UserDetailsController {
 								"User has already logged in with the same session");
 					}
 
-					// Set the custom TimeOut
-					ApplicationSettingsT appSettings = applicationSettingsRepository
-							.findOne(Constants.TIME_OUT);
-					logger.info("Time_Out Interval: {}", appSettings.getValue());
-					session.setMaxInactiveInterval(Integer.parseInt(appSettings
-							.getValue()) * 60);
 					logger.info("Session Timeout: {}",
 							session.getMaxInactiveInterval());
 

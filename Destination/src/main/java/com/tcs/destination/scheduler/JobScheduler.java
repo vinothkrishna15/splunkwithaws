@@ -35,7 +35,7 @@ public class JobScheduler {
     			
 	    	    String dateParam = DateUtils.getCurrentDateForBatch ();
 				JobParameters param = 
-				  new JobParametersBuilder().addString("date", dateParam).toJobParameters();
+				  new JobParametersBuilder().addString("date", dateParam).addString("jobName", job.getName()).toJobParameters();
 						
 				logger.info("Job: {} starting with parameters: {}.", job.getName() ,dateParam );
 				

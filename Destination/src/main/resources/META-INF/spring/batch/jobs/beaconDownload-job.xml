@@ -47,7 +47,7 @@
 		<property name="methodName" value="findAll"/>
 	</bean>
 	<bean id="beaconMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
-		<property name="repository" ref="beaconRepository"/>
+		<property name="repository" ref="beaconCustomerMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	<bean id="beaconIouMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">

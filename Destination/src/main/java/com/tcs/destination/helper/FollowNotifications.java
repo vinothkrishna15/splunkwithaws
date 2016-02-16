@@ -47,7 +47,7 @@ public class FollowNotifications implements Runnable {
 
 	private static final String TOKEN_CUSTOMER_OR_PARTNER = "customerOrPartner";
 
-	private static final String TOKEN_CUSTOMER_NAME = "customerName";
+	private static final String TOKEN_CUSTOMER_NAME = "custOrPartValue";
 
 	private static final String TOKEN_PARENT_ENTITY = "parentEntity";
 
