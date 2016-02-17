@@ -25,8 +25,16 @@ public enum UserRole {
 				return true;
 			}
 		}
-
 		return false;
+	}
+	
+	public static String getName(String value){
+		for (UserRole c : UserRole.values()) {
+			if (c.getValue().equals(value)) {
+				return c.name();
+			}
+		}
+		return null;
 	}
 	
 	public String getValue() {

@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -22,19 +23,25 @@ import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.enums.UserGroup;
+import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class CustomerService {
@@ -60,6 +67,12 @@ public class CustomerService {
 
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	GeographyRepository geographyRepository;
+
+	@Autowired
+	CustomerIOUMappingRepository customerIouMappingTRepository;
 
 	@Autowired
 	OpportunityService opportunityService;
@@ -90,6 +103,10 @@ public class CustomerService {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
+	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
+
 
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
@@ -672,5 +689,137 @@ public class CustomerService {
 		}
 		return paginatedResponse;
 	}
+	
+	@Transactional
+	public boolean updateCustomer(CustomerMasterT customerMaster) throws Exception {
 
+		String customerId = customerMaster.getCustomerId();
+		String customerIOU = customerMaster.getIou();
+		String customerGeography = customerMaster.getGeography();
+		String customerName = customerMaster.getCustomerName();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		CustomerMasterT oldCustomerObj = new CustomerMasterT();
+
+		boolean isValid = false; 
+
+		// Get List of geographies from DB for validating the geographies which comes from the update object	
+		mapOfGeographyMappingT = getGeographyMappingT();
+
+		// Get List of IOU from DB for validating the IOU which comes from the update object
+		mapOfIouMappingT = getIouMappingT();
+
+		logger.debug("Inside updateCustomer() of CustomerService");
+		UserT userT = userRepository.findByUserId(userId);
+
+		String userRole = userT.getUserRole();
+		
+		if(UserRole.contains(userRole)){
+			switch (UserRole.valueOf(UserRole.getName(userRole))){
+			
+			case SYSTEM_ADMIN: 
+			case STRATEGIC_GROUP_ADMIN: 
+				
+				customerMaster.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+				if (customerId == null) {
+					logger.error("BAD_REQUEST: customerId is required for update");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"customerId is required for update");
+				}
+				
+				// Check if the customer exists
+				if (customerRepository.exists(customerId)) {
+					oldCustomerObj = customerRepository.findOne(customerId);
+				}
+				else{
+					logger.error("NOT_FOUND: Customer not found for update: {}",customerId);
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer not found for update: " + customerId);
+				}
+
+				// MASTER_CUSTOMER_NAME	
+				if(!StringUtils.isEmpty(customerName)){
+					oldCustomerObj.setCustomerName(customerName);
+				}
+				else{
+					logger.error("NOT_VALID: Customer Name is empty for update: {}",customerName);
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer name is Empty" + customerName);
+				}
+
+				// IOU 
+				if(customerIOU.length()>0){
+					if(mapOfIouMappingT.containsKey(customerMaster.getIou())){
+						oldCustomerObj.setIou(customerIOU);
+					} else {
+						logger.error("NOT_VALID: IOU is not valid for update: {}",customerIOU);
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid IOU");
+					}
+				}
+				
+				customerMaster.setDocumentsAttached("NO");
+
+				// MASTER_GEOGRAPHY
+				if(customerGeography.length()>0){
+					if(mapOfGeographyMappingT.containsKey(customerGeography)){
+						oldCustomerObj.setGeography(customerGeography);
+					} else {
+						logger.error("NOT_VALID: Geography is not valid for update: {}",customerGeography);
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid geography");
+					}
+				}
+				
+				// updated customer object is saved to the database
+					CustomerMasterT afterCustomer = editCustomer(oldCustomerObj);
+
+					if (afterCustomer != null) {
+						isValid = true;
+						logger.info("Customer has been updated successfully: " + customerId);
+						return isValid;
+					}
+					break;
+			default: 
+				logger.error("NOT_AUTHORISED: user is not authorised to update the customer");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer" );
+			}
+		}
+		return isValid;
+	}
+
+	/**
+	 * This method creates a geography Map
+	 * @return geographyMap
+	 */
+	private Map<String, GeographyMappingT> getGeographyMappingT() {
+		logger.debug("Start: Inside getGeographyMappingT() of CustomerService");
+		List<GeographyMappingT> listOfGeographyMappingT = null;
+		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
+		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
+		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
+			geographyMap.put(geographyMappingT.getGeography(), geographyMappingT);
+		}
+		logger.debug("End: Inside getGeographyMappingT() of CustomerService");
+		return geographyMap;
+	}
+
+	/**
+	 * This method creates a IOU Map
+	 * @return iouMap
+	 */
+	private Map<String, IouCustomerMappingT> getIouMappingT() {
+		logger.debug("Start: Inside getIouMappingT() of CustomerService");
+		List<IouCustomerMappingT> listOfIouMappingT = null;
+		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository.findAll();
+		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
+		for (IouCustomerMappingT iouMappingT : listOfIouMappingT) {
+			iouMap.put(iouMappingT.getIou(), iouMappingT);
+		}
+		logger.debug("End: Inside getIouMappingT() of CustomerService");
+		return iouMap;
+	}
+
+	// Customer object is updated into the repository
+	private CustomerMasterT editCustomer(CustomerMasterT customerMaster) {
+
+		return (customerRepository.save(customerMaster));
+
+	}
 }

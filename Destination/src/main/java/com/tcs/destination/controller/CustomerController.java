@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -479,5 +481,33 @@ public class CustomerController {
 					"Backend error in retrieving the customer details");
 		}
 		return response;
+	}
+	/**
+	 * This handles the request for handling the edit operation on Customer details
+	 * @param customerMaster
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editCustomer(
+			@RequestBody CustomerMasterT customerMaster) throws DestinationException {
+		logger.info("Inside CustomerController: Start of Edit Customer");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (customerService.updateCustomer(customerMaster)) {
+				status.setStatus(Status.SUCCESS, customerMaster.getCustomerId());
+			}
+			logger.info("Inside CustomerController: End of Edit Customer");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating customer");
+		}
 	}
 }
