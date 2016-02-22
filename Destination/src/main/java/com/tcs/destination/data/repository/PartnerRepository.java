@@ -71,4 +71,8 @@ public interface PartnerRepository extends
 	@Query(value ="select partner_name from partner_master_t where partner_id in ("
 			+ "select partner_id from opportunity_partner_link_t  where opportunity_id=?1)",nativeQuery = true)
 	List<String> findPartnerNameByOpportunityId(String opportunityId);
+	
+	
+	@Query(value ="select partner_name from partner_master_t where partner_name = (:partnerName)",nativeQuery=true)
+	String findPartnerName(@Param("partnerName") String partnerName);
 }

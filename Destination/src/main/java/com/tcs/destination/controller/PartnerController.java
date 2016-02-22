@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.exception.DestinationException;
@@ -297,5 +299,29 @@ public class PartnerController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving partner details");
 		}
+	}
+	
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editPartner(
+			@RequestBody PartnerMasterT partnerMaster) throws DestinationException {
+		logger.info("Inside PartnerController: Start of Edit Partner");        
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (partnerService.updatePartner(partnerMaster)) {
+				status.setStatus(Status.SUCCESS,"Partner Details updated successfully");
+			}
+			logger.info("Inside PartnerController: End of Edit Partner");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while editing partner");
+		}
+		
 	}
 }
