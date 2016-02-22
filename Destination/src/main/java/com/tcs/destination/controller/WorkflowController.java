@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.ApproveOrRejectStubResponse;
 import com.tcs.destination.bean.MyWorklistDTO;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
@@ -30,6 +31,65 @@ public class WorkflowController {
 	private static final Logger logger = LoggerFactory
 			.getLogger(WorkflowController.class);
 
+	/**
+	 * This handles the request for approval of a new customer request
+	 * @param customerMaster
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/approve", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approveCustomers(
+			@RequestBody WorkflowCustomerT workflowCustomerT,
+			@RequestParam(value = "fields", defaultValue = "all") String fields
+			) throws DestinationException {
+		logger.info("Inside WorkflowController: Start of approve Customer");
+		ApproveOrRejectStubResponse stubResponse = new ApproveOrRejectStubResponse();
+		stubResponse.setStepStatus("Approved");
+		stubResponse.setUserT1("125697");
+		stubResponse.setComments("");
+		logger.info("Inside WorkflowController: End of approve Customer");
+
+		try {
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFields(fields,
+							stubResponse), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating customer");
+		}
+	}
+
+	/**
+	 * This handles the request for approval of a new customer request
+	 * @param customerMaster
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/reject", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> rejectCustomers(
+			@RequestBody WorkflowCustomerT workflowCustomerT,
+			@RequestParam(value = "fields", defaultValue = "all") String fields) throws DestinationException {
+		logger.info("Inside WorkflowController: Start of reject Customer");
+		ApproveOrRejectStubResponse stubResponse = new ApproveOrRejectStubResponse();
+		stubResponse.setStepStatus("Rejected");
+		stubResponse.setUserT1("125697");
+		stubResponse.setComments("customer not in business");
+		logger.info("Inside WorkflowController: End of reject Customer");
+		try {
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFields(fields,
+							stubResponse), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating customer");
+		}
+	}
 
 	@RequestMapping(value = "/requestCustomer", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertRequestedCustomer(
