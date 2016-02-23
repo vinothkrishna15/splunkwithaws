@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -12,6 +17,8 @@ import java.util.List;
  * The persistent class for the workflow_request_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property="requestId")
 @Entity
 @Table(name="workflow_request_t")
 @NamedQuery(name="WorkflowRequestT.findAll", query="SELECT w FROM WorkflowRequestT w")
@@ -34,16 +41,24 @@ public class WorkflowRequestT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
+	
+	@Column(name="created_by")
+	private String createdBy;
+	
+	@Column(name="modified_by")
+	private String modifiedBy;
+	
+	private String status;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_by")
-	private UserT userT1;
+	@JoinColumn(name="created_by", updatable = false, insertable = false)
+	private UserT createdByUser;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="modified_by")
-	private UserT userT2;
+	@JoinColumn(name="modified_by", updatable = false, insertable = false)
+	private UserT modifiedByUser;
 
 	//bi-directional many-to-one association to WorkflowStepT
 	@OneToMany(mappedBy="workflowRequestT")
@@ -92,20 +107,21 @@ public class WorkflowRequestT implements Serializable {
 		this.modifiedDatetime = modifiedDatetime;
 	}
 	
-	public UserT getUserT1() {
-		return this.userT1;
+    
+    public UserT getCreatedByUser() {
+		return createdByUser;
 	}
 
-	public void setUserT1(UserT userT1) {
-		this.userT1 = userT1;
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
 	}
 
-	public UserT getUserT2() {
-		return this.userT2;
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
 	}
 
-	public void setUserT2(UserT userT2) {
-		this.userT2 = userT2;
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
 	}
 
 	public List<WorkflowStepT> getWorkflowStepTs() {
@@ -129,5 +145,32 @@ public class WorkflowRequestT implements Serializable {
 
 		return workflowStepT;
 	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+	
+	
+	
 
 }

@@ -300,40 +300,40 @@ public class UserT implements Serializable {
 	
 
 		//bi-directional many-to-one association to RequestedCustomerT
-		@OneToMany(mappedBy="userT1")
-		private List<WorkflowCustomerT> requestedCustomerTs1;
+		@OneToMany(mappedBy="createdByUser")
+		private List<WorkflowCustomerT> workflowCustomerTs1;
 
 		//bi-directional many-to-one association to RequestedCustomerT
-		@OneToMany(mappedBy="userT2")
-		private List<WorkflowCustomerT> requestedCustomerTs2;
+		@OneToMany(mappedBy="modifiedByUser")
+		private List<WorkflowCustomerT> workflowCustomerTs2;
 
 		//bi-directional many-to-one association to RequestedPartnerT
-		@OneToMany(mappedBy="userT1")
-		private List<WorkflowPartnerT> requestedPartnerTs1;
+		@OneToMany(mappedBy="createdByUser")
+		private List<WorkflowPartnerT> workflowPartnerTs1;
 
 		//bi-directional many-to-one association to RequestedPartnerT
-		@OneToMany(mappedBy="userT2")
-		private List<WorkflowPartnerT> requestedPartnerTs2;
+		@OneToMany(mappedBy="modifiedByUser")
+		private List<WorkflowPartnerT> workflowPartnerTs2;
 
 		
 		//bi-directional many-to-one association to WorkflowRequestT
-		@OneToMany(mappedBy="userT1")
+		@OneToMany(mappedBy="createdByUser")
 		private List<WorkflowRequestT> workflowRequestTs1;
 
 		//bi-directional many-to-one association to WorkflowRequestT
-		@OneToMany(mappedBy="userT2")
+		@OneToMany(mappedBy="modifiedByUser")
 		private List<WorkflowRequestT> workflowRequestTs2;
 
 		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="userT1")
+		@OneToMany(mappedBy="user")
 		private List<WorkflowStepT> workflowStepTs1;
 
 		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="userT2")
+		@OneToMany(mappedBy="createdByUser")
 		private List<WorkflowStepT> workflowStepTs2;
 
 		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="userT3")
+		@OneToMany(mappedBy="modifiedByUser")
 		private List<WorkflowStepT> workflowStepTs3;
 
 	@Transient
@@ -1396,92 +1396,68 @@ public class UserT implements Serializable {
 		this.userGoalsTs2 = userGoalsTs2;
 	}
 
-	public List<WorkflowCustomerT> getRequestedCustomerTs1() {
-		return this.requestedCustomerTs1;
+	
+
+	public WorkflowCustomerT addWorkflowCustomerTs1(WorkflowCustomerT workflowCustomerTs1) {
+		getWorkflowCustomerTs1().add(workflowCustomerTs1);
+		workflowCustomerTs1.setCreatedByUser(this);
+
+		return workflowCustomerTs1;
 	}
 
-	public void setRequestedCustomerTs1(List<WorkflowCustomerT> requestedCustomerTs1) {
-		this.requestedCustomerTs1 = requestedCustomerTs1;
+	public WorkflowCustomerT removeRequestedCustomerTs1(WorkflowCustomerT workflowCustomerTs1) {
+		getWorkflowCustomerTs1().remove(workflowCustomerTs1);
+		workflowCustomerTs1.setCreatedByUser(null);
+
+		return workflowCustomerTs1;
 	}
 
-	public WorkflowCustomerT addRequestedCustomerTs1(WorkflowCustomerT requestedCustomerTs1) {
-		getRequestedCustomerTs1().add(requestedCustomerTs1);
-		requestedCustomerTs1.setUserT1(this);
+	
 
-		return requestedCustomerTs1;
+	public WorkflowCustomerT addWorkflowCustomerTs2(WorkflowCustomerT workflowCustomerTs2) {
+		getWorkflowCustomerTs2().add(workflowCustomerTs2);
+		workflowCustomerTs2.setModifiedByUser(this);
+
+		return workflowCustomerTs2;
 	}
 
-	public WorkflowCustomerT removeRequestedCustomerTs1(WorkflowCustomerT requestedCustomerTs1) {
-		getRequestedCustomerTs1().remove(requestedCustomerTs1);
-		requestedCustomerTs1.setUserT1(null);
+	public WorkflowCustomerT removeRequestedCustomerTs2(WorkflowCustomerT workflowCustomerTs2) {
+		getWorkflowCustomerTs2().remove(workflowCustomerTs2);
+		workflowCustomerTs2.setModifiedByUser(null);
 
-		return requestedCustomerTs1;
+		return workflowCustomerTs2;
 	}
 
-	public List<WorkflowCustomerT> getRequestedCustomerTs2() {
-		return this.requestedCustomerTs2;
+	
+
+	public WorkflowPartnerT addWorkflowPartnerTs1(WorkflowPartnerT workflowPartnerTs1) {
+		getWorkflowPartnerTs1().add(workflowPartnerTs1);
+		workflowPartnerTs1.setCreatedByUser(this);
+
+		return workflowPartnerTs1;
 	}
 
-	public void setRequestedCustomerTs2(List<WorkflowCustomerT> requestedCustomerTs2) {
-		this.requestedCustomerTs2 = requestedCustomerTs2;
+	public WorkflowPartnerT removeWorkflowPartnerTs1(WorkflowPartnerT workflowPartnerTs1) {
+		getWorkflowPartnerTs1().remove(workflowPartnerTs1);
+		workflowPartnerTs1.setCreatedByUser(null);
+
+		return workflowPartnerTs1;
 	}
 
-	public WorkflowCustomerT addRequestedCustomerTs2(WorkflowCustomerT requestedCustomerTs2) {
-		getRequestedCustomerTs2().add(requestedCustomerTs2);
-		requestedCustomerTs2.setUserT2(this);
+	
 
-		return requestedCustomerTs2;
+	public WorkflowPartnerT addWorkflowPartnerTs2(WorkflowPartnerT workflowPartnerTs2) {
+		getWorkflowPartnerTs2().add(workflowPartnerTs2);
+		workflowPartnerTs2.setModifiedByUser(this);
+
+		return workflowPartnerTs2;
 	}
 
-	public WorkflowCustomerT removeRequestedCustomerTs2(WorkflowCustomerT requestedCustomerTs2) {
-		getRequestedCustomerTs2().remove(requestedCustomerTs2);
-		requestedCustomerTs2.setUserT2(null);
+	public WorkflowPartnerT removeWorkflowPartnerTs2(WorkflowPartnerT workflowPartnerTs2) {
+		getWorkflowPartnerTs2().remove(workflowPartnerTs2);
+		workflowPartnerTs2.setModifiedByUser(null);
 
-		return requestedCustomerTs2;
-	}
-
-	public List<WorkflowPartnerT> getRequestedPartnerTs1() {
-		return this.requestedPartnerTs1;
-	}
-
-	public void setRequestedPartnerTs1(List<WorkflowPartnerT> requestedPartnerTs1) {
-		this.requestedPartnerTs1 = requestedPartnerTs1;
-	}
-
-	public WorkflowPartnerT addRequestedPartnerTs1(WorkflowPartnerT requestedPartnerTs1) {
-		getRequestedPartnerTs1().add(requestedPartnerTs1);
-		requestedPartnerTs1.setUserT1(this);
-
-		return requestedPartnerTs1;
-	}
-
-	public WorkflowPartnerT removeRequestedPartnerTs1(WorkflowPartnerT requestedPartnerTs1) {
-		getRequestedPartnerTs1().remove(requestedPartnerTs1);
-		requestedPartnerTs1.setUserT1(null);
-
-		return requestedPartnerTs1;
-	}
-
-	public List<WorkflowPartnerT> getRequestedPartnerTs2() {
-		return this.requestedPartnerTs2;
-	}
-
-	public void setRequestedPartnerTs2(List<WorkflowPartnerT> requestedPartnerTs2) {
-		this.requestedPartnerTs2 = requestedPartnerTs2;
-	}
-
-	public WorkflowPartnerT addRequestedPartnerTs2(WorkflowPartnerT requestedPartnerTs2) {
-		getRequestedPartnerTs2().add(requestedPartnerTs2);
-		requestedPartnerTs2.setUserT2(this);
-
-		return requestedPartnerTs2;
-	}
-
-	public WorkflowPartnerT removeRequestedPartnerTs2(WorkflowPartnerT requestedPartnerTs2) {
-		getRequestedPartnerTs2().remove(requestedPartnerTs2);
-		requestedPartnerTs2.setUserT2(null);
-
-		return requestedPartnerTs2;
+		return workflowPartnerTs2;
 	}
 	
 	public List<WorkflowRequestT> getWorkflowRequestTs1() {
@@ -1494,14 +1470,14 @@ public class UserT implements Serializable {
 
 	public WorkflowRequestT addWorkflowRequestTs1(WorkflowRequestT workflowRequestTs1) {
 		getWorkflowRequestTs1().add(workflowRequestTs1);
-		workflowRequestTs1.setUserT1(this);
+		workflowRequestTs1.setCreatedByUser(this);
 
 		return workflowRequestTs1;
 	}
 
 	public WorkflowRequestT removeWorkflowRequestTs1(WorkflowRequestT workflowRequestTs1) {
 		getWorkflowRequestTs1().remove(workflowRequestTs1);
-		workflowRequestTs1.setUserT1(null);
+		workflowRequestTs1.setCreatedByUser(null);
 
 		return workflowRequestTs1;
 	}
@@ -1516,14 +1492,14 @@ public class UserT implements Serializable {
 
 	public WorkflowRequestT addWorkflowRequestTs2(WorkflowRequestT workflowRequestTs2) {
 		getWorkflowRequestTs2().add(workflowRequestTs2);
-		workflowRequestTs2.setUserT2(this);
+		workflowRequestTs2.setModifiedByUser(this);
 
 		return workflowRequestTs2;
 	}
 
 	public WorkflowRequestT removeWorkflowRequestTs2(WorkflowRequestT workflowRequestTs2) {
 		getWorkflowRequestTs2().remove(workflowRequestTs2);
-		workflowRequestTs2.setUserT2(null);
+		workflowRequestTs2.setModifiedByUser(null);
 
 		return workflowRequestTs2;
 	}
@@ -1538,14 +1514,14 @@ public class UserT implements Serializable {
 
 	public WorkflowStepT addWorkflowStepTs1(WorkflowStepT workflowStepTs1) {
 		getWorkflowStepTs1().add(workflowStepTs1);
-		workflowStepTs1.setUserT1(this);
+		workflowStepTs1.setUser(this);
 
 		return workflowStepTs1;
 	}
 
 	public WorkflowStepT removeWorkflowStepTs1(WorkflowStepT workflowStepTs1) {
 		getWorkflowStepTs1().remove(workflowStepTs1);
-		workflowStepTs1.setUserT1(null);
+		workflowStepTs1.setUser(null);
 
 		return workflowStepTs1;
 	}
@@ -1560,14 +1536,14 @@ public class UserT implements Serializable {
 
 	public WorkflowStepT addWorkflowStepTs2(WorkflowStepT workflowStepTs2) {
 		getWorkflowStepTs2().add(workflowStepTs2);
-		workflowStepTs2.setUserT2(this);
+		workflowStepTs2.setCreatedByUser(this);
 
 		return workflowStepTs2;
 	}
 
 	public WorkflowStepT removeWorkflowStepTs2(WorkflowStepT workflowStepTs2) {
 		getWorkflowStepTs2().remove(workflowStepTs2);
-		workflowStepTs2.setUserT2(null);
+		workflowStepTs2.setCreatedByUser(null);
 
 		return workflowStepTs2;
 	}
@@ -1582,15 +1558,49 @@ public class UserT implements Serializable {
 
 	public WorkflowStepT addWorkflowStepTs3(WorkflowStepT workflowStepTs3) {
 		getWorkflowStepTs3().add(workflowStepTs3);
-		workflowStepTs3.setUserT3(this);
+		workflowStepTs3.setModifiedByUser(this);
 
 		return workflowStepTs3;
 	}
 
 	public WorkflowStepT removeWorkflowStepTs3(WorkflowStepT workflowStepTs3) {
 		getWorkflowStepTs3().remove(workflowStepTs3);
-		workflowStepTs3.setUserT3(null);
+		workflowStepTs3.setModifiedByUser(null);
 
 		return workflowStepTs3;
 	}
+
+	public List<WorkflowCustomerT> getWorkflowCustomerTs1() {
+		return workflowCustomerTs1;
+	}
+
+	public void setWorkflowCustomerTs1(List<WorkflowCustomerT> workflowCustomerTs1) {
+		this.workflowCustomerTs1 = workflowCustomerTs1;
+	}
+
+	public List<WorkflowCustomerT> getWorkflowCustomerTs2() {
+		return workflowCustomerTs2;
+	}
+
+	public void setWorkflowCustomerTs2(List<WorkflowCustomerT> workflowCustomerTs2) {
+		this.workflowCustomerTs2 = workflowCustomerTs2;
+	}
+
+	public List<WorkflowPartnerT> getWorkflowPartnerTs1() {
+		return workflowPartnerTs1;
+	}
+
+	public void setWorkflowPartnerTs1(List<WorkflowPartnerT> workflowPartnerTs1) {
+		this.workflowPartnerTs1 = workflowPartnerTs1;
+	}
+
+	public List<WorkflowPartnerT> getWorkflowPartnerTs2() {
+		return workflowPartnerTs2;
+	}
+
+	public void setWorkflowPartnerTs2(List<WorkflowPartnerT> workflowPartnerTs2) {
+		this.workflowPartnerTs2 = workflowPartnerTs2;
+	}
+	
+	
 }

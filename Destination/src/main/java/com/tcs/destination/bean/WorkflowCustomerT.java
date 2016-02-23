@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -12,6 +17,8 @@ import java.util.List;
  * The persistent class for the workflow_customer_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property="workflowCustomerId")
 @Entity
 @Table(name="workflow_customer_t")
 @NamedQuery(name="WorkflowCustomerT.findAll", query="SELECT r FROM WorkflowCustomerT r")
@@ -44,6 +51,12 @@ public class WorkflowCustomerT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
+	
+	@Column(name="created_by")
+	private String createdBy;
+	
+	@Column(name="modified_by")
+	private String modifiedBy;
 
 	private String notes;
 
@@ -61,13 +74,13 @@ public class WorkflowCustomerT implements Serializable {
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="created_by")
-	private UserT userT1;
+	@JoinColumn(name="created_by", updatable = false, insertable = false)
+	private UserT createdByUser;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
-	@JoinColumn(name="modified_by")
-	private UserT userT2;
+	@JoinColumn(name="modified_by", updatable = false, insertable = false)
+	private UserT modifiedByUser;
 	
 	@Transient
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
@@ -174,41 +187,25 @@ public class WorkflowCustomerT implements Serializable {
 	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
 		this.geographyMappingT = geographyMappingT;
 	}
+    
+	
 
-	public UserT getUserT1() {
-		return this.userT1;
+	public UserT getCreatedByUser() {
+		return createdByUser;
 	}
 
-	public void setUserT1(UserT userT1) {
-		this.userT1 = userT1;
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
 	}
 
-	public UserT getUserT2() {
-		return this.userT2;
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
 	}
 
-	public void setUserT2(UserT userT2) {
-		this.userT2 = userT2;
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
 	}
-
-	public List<RevenueCustomerMappingT> getRevenueCustomerMappingT() {
-		return revenueCustomerMappingTs;
-	}
-
-	public void setRevenueCustomerMappingT(
-			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
-		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
-	}
-
-	public List<BeaconCustomerMappingT> getBeaconCustomerMappingT() {
-		return beaconCustomerMappingTs;
-	}
-
-	public void setBeaconCustomerMappingT(
-			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
-		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
-	}
-
+	
 	public String getIou() {
 		return iou;
 	}
@@ -223,6 +220,40 @@ public class WorkflowCustomerT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {
+		return revenueCustomerMappingTs;
+	}
+
+	public void setRevenueCustomerMappingTs(
+			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		this.revenueCustomerMappingTs = revenueCustomerMappingTs;
+	}
+
+	public List<BeaconCustomerMappingT> getBeaconCustomerMappingTs() {
+		return beaconCustomerMappingTs;
+	}
+
+	public void setBeaconCustomerMappingTs(
+			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+		this.beaconCustomerMappingTs = beaconCustomerMappingTs;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
 	}
 	
 	
