@@ -226,6 +226,9 @@ public class UserAccessPrivilegeQueryBuilder {
 		logger.debug("Inside handleCustomer() method");
 		if (!privilegeValue.equals(Constants.GLOBAL)) {
 			// Master customers
+//			if(privilegeValue.contains("'")){
+				privilegeValue = privilegeValue.replace("'", "''");
+//			}
 			customerBuffer.append(Constants.SINGLE_QUOTE + privilegeValue
 					+ Constants.SINGLE_QUOTE + Constants.COMMA);
 			privilegeGroup.setCustomerBuffer(customerBuffer);
@@ -240,14 +243,18 @@ public class UserAccessPrivilegeQueryBuilder {
 				// Value is Group customer name
 				if (custList != null && !custList.isEmpty()) {
 					for (CustomerMasterT customer : custList) {
+						String customerName = customer.getCustomerName();
+						customerName=	customerName.replace("'", "''");
 						customerBuffer.append(Constants.SINGLE_QUOTE
-								+ customer.getCustomerName()
+								+ customerName
 								+ Constants.SINGLE_QUOTE + Constants.COMMA);
 					}
 				} else {
 					// Value is Master customer name
+					String customerName = miscItem.getValue() ;
+					customerName=	customerName.replace("'", "''");
 					customerBuffer.append(Constants.SINGLE_QUOTE
-							+ miscItem.getValue() + Constants.SINGLE_QUOTE
+							+ customerName + Constants.SINGLE_QUOTE
 							+ Constants.COMMA);
 				}
 			}
