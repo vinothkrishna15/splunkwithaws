@@ -226,9 +226,7 @@ public class UserAccessPrivilegeQueryBuilder {
 		logger.debug("Inside handleCustomer() method");
 		if (!privilegeValue.equals(Constants.GLOBAL)) {
 			// Master customers
-//			if(privilegeValue.contains("'")){
-				privilegeValue = privilegeValue.replace("'", "''");
-//			}
+		    privilegeValue = privilegeValue.replace("'", "''");
 			customerBuffer.append(Constants.SINGLE_QUOTE + privilegeValue
 					+ Constants.SINGLE_QUOTE + Constants.COMMA);
 			privilegeGroup.setCustomerBuffer(customerBuffer);
