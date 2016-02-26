@@ -27,33 +27,36 @@ import com.tcs.destination.helper.NotificationProcessHelper;
 import com.tcs.destination.utils.DateUtils;
 
 /**
- * This UserReminderProcessor class holds the functionality for sending user notifications
+ * This UserReminderProcessor class holds the functionality for sending user
+ * notifications
  * 
  */
-public class UserReminderProcessor implements ItemProcessor<Object[], UserNotificationsT> {
-	
-	private static final Logger logger = LoggerFactory.getLogger(UserReminderProcessor.class);
-	
+public class UserReminderProcessor implements
+		ItemProcessor<Object[], UserNotificationsT> {
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(UserReminderProcessor.class);
+
 	private NotificationProcessHelper notificationProcessHelper;
-	
+
 	private OpportunityRepository opportunityRepository;
 
 	private UserRepository userRepository;
-	
+
 	private String dateType;
-	
+
 	private EntityType entityType;
-	
+
 	private int eventId;
-	
+
 	@Override
 	public UserNotificationsT process(Object[] items) throws Exception {
-		
+
 		logger.debug("Inside process method:");
-		
+
 		String date = null;
-		String recipientId= null;
-		String recipientName= null;
+		String recipientId = null;
+		String recipientName = null;
 		String entityId = null;
 		String entityName = null;
 		String entityReference = null;
@@ -61,60 +64,67 @@ public class UserReminderProcessor implements ItemProcessor<Object[], UserNotifi
 		String primaryOwnerId = null;
 		String secondaryOwners = null;
 		String primaryOwner = null;
-		
+
 		int i = 0;
-		
-		for (Object item: items) {
-			
+
+		for (Object item : items) {
+
 			switch (i) {
-				case 0:
-					entityId = (String)item;
-					break;
-				case 1:
-					entityName = (String)item;
-					break;
-				case 2:
-					recipientId = (String)item;
-					break;
-				case 3:
-					recipientName = (String)item;
-					break;
-				case 4:
-					date = DateUtils.convertDtToStringForUser((Date) item);
-					break;
-				case 5:
-					entityReference = (String)item;
-					break;
-				case 6:
-					referenceName = (String)item;
-					break;
-				default: break;
+			case 0:
+				entityId = (String) item;
+				break;
+			case 1:
+				entityName = (String) item;
+				break;
+			case 2:
+				recipientId = (String) item;
+				break;
+			case 3:
+				recipientName = (String) item;
+				break;
+			case 4:
+				date = DateUtils.convertDtToStringForUser((Date) item);
+				break;
+			case 5:
+				entityReference = (String) item;
+				break;
+			case 6:
+				referenceName = (String) item;
+				break;
+			default:
+				break;
 			}
 			i++;
-				
+
 		}
-		
+
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(entityId);
 		if (opportunity != null) {
-			referenceName = opportunity.getCustomerMasterT()
-					.getCustomerName();
-			List<String> owners = opportunityRepository
-					.getAllOwners(entityId);
+			referenceName = opportunity.getCustomerMasterT().getCustomerName();
+			List<String> owners = opportunityRepository.getAllOwners(entityId);
 			if (CollectionUtils.isNotEmpty(owners)) {
 				primaryOwnerId = opportunity.getOpportunityOwner();
-				primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
-				owners.remove(primaryOwner);
-				List<String> secOwners = userRepository
-						.findUserNamesByUserIds(owners);
-				if (CollectionUtils.isNotEmpty(secOwners)) {
-					secondaryOwners = StringUtils
-							.collectionToCommaDelimitedString(secOwners);
+				primaryOwner = userRepository
+						.findUserNameByUserId(primaryOwnerId);
+				owners.remove(primaryOwnerId);
+				if (CollectionUtils.isNotEmpty(owners)) {
+					List<String> secOwners = userRepository
+							.findUserNamesByUserIds(owners);
+					if (CollectionUtils.isNotEmpty(secOwners)) {
+						secondaryOwners = StringUtils
+								.collectionToCommaDelimitedString(secOwners);
+					}
 				}
+
 			}
+		} else {
+			logger.error("Opportunity not found for the Id: {}", entityId);
 		}
-			
-		return notificationProcessHelper.processNotification(entityType, entityId, entityName, eventId, dateType, date, recipientId, recipientName, null, entityReference, referenceName,
+
+		return notificationProcessHelper.processNotification(entityType,
+				entityId, entityName, eventId, dateType, date, recipientId,
+				recipientName, null, entityReference, referenceName,
 				primaryOwner, secondaryOwners);
 	}
 
@@ -155,7 +165,8 @@ public class UserReminderProcessor implements ItemProcessor<Object[], UserNotifi
 		return opportunityRepository;
 	}
 
-	public void setOpportunityRepository(OpportunityRepository opportunityRepository) {
+	public void setOpportunityRepository(
+			OpportunityRepository opportunityRepository) {
 		this.opportunityRepository = opportunityRepository;
 	}
 
@@ -166,6 +177,5 @@ public class UserReminderProcessor implements ItemProcessor<Object[], UserNotifi
 	public void setUserRepository(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
-	
 
 }

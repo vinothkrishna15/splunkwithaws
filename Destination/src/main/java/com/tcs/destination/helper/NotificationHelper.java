@@ -1599,7 +1599,7 @@ public class NotificationHelper implements Runnable {
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
 					for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetailsT
 							.getBidOfficeGroupOwnerLinkTs()) {
-						if ((oldBidOfficeGroupOwners != null && oldBidOfficeGroupOwners
+						if ((oldBidOfficeGroupOwners != null && !oldBidOfficeGroupOwners
 								.contains(bidOfficeGroupOwnerLinkT
 										.getBidOfficeGroupOwner()))
 								|| (oldBidOfficeGroupOwners == null)) {

@@ -86,9 +86,13 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		<batch:step id="connectDwldUserProcessing" next="connectDwldConnectTypeProcessing">
-			<batch:tasklet ref="connectDwldUserProcessTasklet" />
+		<batch:step id="connectDwldUserProcessing" next="connectDwldConnectTypeProcessing" >
+			<batch:tasklet>
+			<ref bean="connectDwldUserTasklet"/>
+			</batch:tasklet>
 		</batch:step>
+		
+		
 		
 		<batch:step id="connectDwldConnectTypeProcessing" next="connectDwldTimeZoneDwldProcessing">
 			<batch:tasklet>
@@ -115,101 +119,102 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 
 	</batch:job>
 
-
+<bean id="connectDwldUserTasklet" class="com.tcs.destination.tasklet.ConnectDwldUserProcessTasklet" scope="step"/>
+		
 	<!-- Readers -->
-	<bean id="connectDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="connectRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="connectDwldCustomerReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldCustomerReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="customerRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="connectDwldPartnerReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldPartnerReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="partnerRepository" />
 		<property name="methodName" value="getPartnerNameAndGeography" />
 	</bean>
 	
-	<bean id="connectDwldGeoCountryReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldGeoCountryReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="geographyCountryRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="connectDwldSubspReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldSubspReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="subSpRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="connectDwldOfferingDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldOfferingDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="offeringRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="connectDwldCustContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldCustContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="contactRepository" />
 		<property name="methodName" value="getAllCustomerContacts" />
 	</bean>
 	
-	<bean id="connectDwldPartnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldPartnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="contactRepository" />
 		<property name="methodName" value="getAllPartnerContacts" />
 	</bean>
 	
-	<bean id="connectDwldConnectTypeDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldConnectTypeDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="connectTypeRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 		
 		
-	<bean id="connectDwldTimeZoneDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="connectDwldTimeZoneDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="timezoneMappingRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="connectDwldWriter" class="com.tcs.destination.writer.ConnectDwldWriter">
+	<bean id="connectDwldWriter" class="com.tcs.destination.writer.ConnectDwldWriter" scope="step">
 		<property name="template" value="${connectSheetTemplate}" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		<property name="dataProcessingService" ref="dataProcessingService" />
 		<property name="fileServerPath" value="${fileserver.path}" />
 	</bean>
 	
-	<bean id="connectDwldCustomerWriter" class="com.tcs.destination.writer.ConnectDwldCustomerWriter">
+	<bean id="connectDwldCustomerWriter" class="com.tcs.destination.writer.ConnectDwldCustomerWriter" scope="step">
 		
 	</bean>
 	
-	<bean id="connectDwldPartnerWriter" class="com.tcs.destination.writer.ConnectPartnerDwldWriter">
+	<bean id="connectDwldPartnerWriter" class="com.tcs.destination.writer.ConnectPartnerDwldWriter" scope="step">
 	
 	</bean>
 	
-	<bean id="connectDwldGeoCountryWriter" class="com.tcs.destination.writer.ConnectDwldGeoCountryWriter">
+	<bean id="connectDwldGeoCountryWriter" class="com.tcs.destination.writer.ConnectDwldGeoCountryWriter" scope="step">
 		
 	</bean>
 	
-	<bean id="connectDwldSubspWriter" class="com.tcs.destination.writer.ConnectDwldSubspWriter">
+	<bean id="connectDwldSubspWriter" class="com.tcs.destination.writer.ConnectDwldSubspWriter" scope="step">
 		
 	</bean>
 	
 	
-	<bean id="connectDwldOfferingDwldWriter" class="com.tcs.destination.writer.OfferingDwldWriter">
+	<bean id="connectDwldOfferingDwldWriter" class="com.tcs.destination.writer.OfferingDwldWriter" scope="step">
 	
 	</bean>
 	
-	<bean id="connectDwldCustContactDwldWriter" class="com.tcs.destination.writer.CustContactDwldWriter">
+	<bean id="connectDwldCustContactDwldWriter" class="com.tcs.destination.writer.CustContactDwldWriter" scope="step">
 	
 	</bean>
 	
-	<bean id="connectDwldPartnerContactDwldWriter" class="com.tcs.destination.writer.ConnectPartnerContactDwldWriter">
+	<bean id="connectDwldPartnerContactDwldWriter" class="com.tcs.destination.writer.ConnectPartnerContactDwldWriter" scope="step">
 	
 	</bean>
 	
-	<bean id="connectDwldConnectTypeDwldWriter" class="com.tcs.destination.writer.ConnectTypeDwldWriter">
+	<bean id="connectDwldConnectTypeDwldWriter" class="com.tcs.destination.writer.ConnectTypeDwldWriter" scope="step">
 		
 	</bean>
 	
-	<bean id="connectDwldTimezoneWriter" class="com.tcs.destination.writer.ConnectDwldTimezoneWriter">
+	<bean id="connectDwldTimezoneWriter" class="com.tcs.destination.writer.ConnectDwldTimezoneWriter" scope="step">
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 	

@@ -123,11 +123,13 @@ public class TaskReminderProcessor implements
 						.getPrimaryOwner());
 				List<String> secOwners = connectRepository
 						.getSecondaryOwnerByConnectId(referenceId);
-				List<String> secOwnerNames = userRepository
-						.findUserNamesByUserIds(secOwners);
-				if (CollectionUtils.isNotEmpty(secOwnerNames)) {
-					secondaryOwners = StringUtils
-							.collectionToCommaDelimitedString(secOwnerNames);
+				if (CollectionUtils.isNotEmpty(secOwners)) {
+					List<String> secOwnerNames = userRepository
+							.findUserNamesByUserIds(secOwners);
+					if (CollectionUtils.isNotEmpty(secOwnerNames)) {
+						secondaryOwners = StringUtils
+								.collectionToCommaDelimitedString(secOwnerNames);
+					}
 				}
 			} else {
 				logger.error("Connect not found for the Id: {}", referenceId);
@@ -144,14 +146,18 @@ public class TaskReminderProcessor implements
 						.getAllOwners(referenceId);
 				if (CollectionUtils.isNotEmpty(owners)) {
 					primaryOwnerId = opportunity.getOpportunityOwner();
-					primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
-					owners.remove(primaryOwner);
-					List<String> secOwners = userRepository
-							.findUserNamesByUserIds(owners);
-					if (CollectionUtils.isNotEmpty(secOwners)) {
-						secondaryOwners = StringUtils
-								.collectionToCommaDelimitedString(secOwners);
+					primaryOwner = userRepository
+							.findUserNameByUserId(primaryOwnerId);
+					owners.remove(primaryOwnerId);
+					if (CollectionUtils.isNotEmpty(owners)) {
+						List<String> secOwners = userRepository
+								.findUserNamesByUserIds(owners);
+						if (CollectionUtils.isNotEmpty(secOwners)) {
+							secondaryOwners = StringUtils
+									.collectionToCommaDelimitedString(secOwners);
+						}
 					}
+
 				}
 			} else {
 				logger.error("Opportunity not found for the Id: {}",
@@ -162,8 +168,8 @@ public class TaskReminderProcessor implements
 
 		return notificationProcessHelper.processNotification(entityType,
 				entityId, entityName, eventId, dateType, date, recipientId,
-				recipientName, subordinateName, entityReference, referenceValue,
-				primaryOwner, secondaryOwners);
+				recipientName, subordinateName, entityReference,
+				referenceValue, primaryOwner, secondaryOwners);
 	}
 
 	public NotificationProcessHelper getNotificationProcessHelper() {
@@ -211,7 +217,8 @@ public class TaskReminderProcessor implements
 		return opportunityRepository;
 	}
 
-	public void setOpportunityRepository(OpportunityRepository opportunityRepository) {
+	public void setOpportunityRepository(
+			OpportunityRepository opportunityRepository) {
 		this.opportunityRepository = opportunityRepository;
 	}
 
@@ -223,5 +230,4 @@ public class TaskReminderProcessor implements
 		this.userRepository = userRepository;
 	}
 
-	
 }

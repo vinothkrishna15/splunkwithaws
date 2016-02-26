@@ -101,7 +101,7 @@
 	</batch:job>	
 	
 	<!-- Readers -->
-	<bean id="opportunityDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="opportunityDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="opportunityRepository"/>
 	<property name="methodName" value="findAll"/></bean> 
 	
@@ -110,15 +110,15 @@
 	    <property name="queryString" value="select o from OpportunityT o" />
     </bean> -->
 	
-	<bean id="customerDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="customerDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="customerRepository"/>
 	<property name="methodName" value="findAll"/></bean>
 	
-	<bean id="subSpDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="subSpDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="subSpRepository"/>
 	<property name="methodName" value="findAll"/></bean>
 	
-	<bean id="partnerDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="partnerDownloadReader" class="com.tcs.destination.reader.NativeQueryReader" scope="step">
 	<property name="repository" ref="partnerRepository"/>
 	<property name="methodName" value="getPartnerNameAndGeography"/></bean>
 	
@@ -126,15 +126,15 @@
 	<property name="repository" ref="contactRepository"/>
 	<property name="methodName" value="findAll"/></bean> -->
 	
-	<bean id="beaconDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="beaconDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="beaconConvertorRepository"/>
 	<property name="methodName" value="findAll"/></bean>
 	
-	<bean id="winLossDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="winLossDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="winLossMappingRepository"/>
 	<property name="methodName" value="findAll"/></bean>
 	
-	<bean id="bidAndDealCompReader" class="com.tcs.destination.reader.CompositeNativeQueryObjectReader">
+	<bean id="bidAndDealCompReader" class="com.tcs.destination.reader.CompositeNativeQueryObjectReader" scope="step">
 		<property name="readers">
 			<list>
 				<ref bean="bidDwldReader"/>
@@ -143,29 +143,29 @@
 		</property>
 	</bean>
 	
-	<bean id="bidDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="bidDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="prototype">
 		<property name="repository" ref="bidRequestTypeRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
-	<bean id="dealDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="dealDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="prototype">
 		<property name="repository" ref="dealTypeRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
-	<bean id="competitorDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="competitorDownloadReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 	<property name="repository" ref="competitorRepository"/>
 	<property name="methodName" value="getCompetitorName"/></bean>
 	
-	<bean id="geoCountryDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="geoCountryDownloadReader" class="com.tcs.destination.reader.NativeQueryReader" scope="step">
 	<property name="repository" ref="geographyCountryRepository"/>
 	<property name="methodName" value="getGeographyCountry"/></bean>
 	
-	<bean id="offeringDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="offeringDownloadReader" class="com.tcs.destination.reader.NativeQueryReader" scope="step">
 	<property name="repository" ref="offeringRepository"/>
 	<property name="methodName" value="getSubSpOffering"/></bean>
 	
-	<bean id="userDownloadReader" class="com.tcs.destination.reader.NativeQueryReader">
+	<bean id="userDownloadReader" class="com.tcs.destination.reader.NativeQueryReader" scope="step">
 	<property name="repository" ref="userRepository"/>
 	<property name="methodName" value="getNameAndId"/></bean>
 	
@@ -173,7 +173,7 @@
 	
 	
 	<!-- Writers -->
-	<bean id="opportunityExcelWriter" class="com.tcs.destination.writer.OpportunityExcelWriter">
+	<bean id="opportunityExcelWriter" class="com.tcs.destination.writer.OpportunityExcelWriter" scope="step">
 	<property name="template" value="${opportunitySheetTemplate}"/>
 	<property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/>
 	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
@@ -181,16 +181,16 @@
 	<property name="fileServerPath" value = "${fileserver.path}" />
 	</bean>
 	
-	<bean id="customerSheetWriter" class="com.tcs.destination.writer.CustomerSheetWriter">
+	<bean id="customerSheetWriter" class="com.tcs.destination.writer.CustomerSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	
 	</bean>
 	
-	<bean id="subSpSheetWriter" class="com.tcs.destination.writer.SubSpSheetWriter">
+	<bean id="subSpSheetWriter" class="com.tcs.destination.writer.SubSpSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	</bean>
 	
-	<bean id="partnerSheetWriter" class="com.tcs.destination.writer.PartnerSheetWriter">
+	<bean id="partnerSheetWriter" class="com.tcs.destination.writer.PartnerSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	</bean>
 	
@@ -198,28 +198,28 @@
 	<property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/>
 	</bean> -->
 	
-	<bean id="beaconSheetWriter" class="com.tcs.destination.writer.BeaconSheetWriter">
+	<bean id="beaconSheetWriter" class="com.tcs.destination.writer.BeaconSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	</bean>
 	
-	<bean id="winLossSheetWriter" class="com.tcs.destination.writer.WinLossSheetWriter">
+	<bean id="winLossSheetWriter" class="com.tcs.destination.writer.WinLossSheetWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	</bean>
 	
-	<bean id="bidAndDealCompositeWriter" class="com.tcs.destination.writer.BidAndDealCompositeWriter">
+	<bean id="bidAndDealCompositeWriter" class="com.tcs.destination.writer.BidAndDealCompositeWriter" scope="step">
 	<!-- <property name="opportunityDownloadHelper" ref="opportunityDownloadHelper"/> -->
 	</bean>
 	
-	<bean id="competitorSheetWriter" class="com.tcs.destination.writer.CompetitorSheetWriter">
+	<bean id="competitorSheetWriter" class="com.tcs.destination.writer.CompetitorSheetWriter" scope="step">
 	</bean>
 	
-	<bean id="geoCountrySheetWriter" class="com.tcs.destination.writer.GeoCountrySheetWriter">
+	<bean id="geoCountrySheetWriter" class="com.tcs.destination.writer.GeoCountrySheetWriter" scope="step">
 	</bean>
 	
-	<bean id="offeringSheetWriter" class="com.tcs.destination.writer.OfferingSheetWriter">
+	<bean id="offeringSheetWriter" class="com.tcs.destination.writer.OfferingSheetWriter" scope="step">
 	</bean>
 	
-	<bean id="userSheetWriter" class="com.tcs.destination.writer.UserSheetWriter">
+	<bean id="userSheetWriter" class="com.tcs.destination.writer.UserSheetWriter" scope="step">
 	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 
@@ -234,4 +234,4 @@
 	<task:scheduled-tasks>
         <task:scheduled ref="opportunityDownloadScheduler" method="run" cron="${opportunity.download.job.cron}"/>
     </task:scheduled-tasks> 
-</beans>	
+</beans>
