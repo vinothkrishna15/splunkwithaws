@@ -59,6 +59,8 @@ public class Constants {
 	public static final String EMPTY_PARANTHESIS = "()";
 	public static final String GEOGRAPHY = "GEOGRAPHY";
 	public static final String IOU = "IOU";
+	public static final String CUSTOMER = "CUSTOMER";
+	public static final String PARTNER ="PARTNER";
 	
 	public static final String APPLICATION_PROPERTIES_FILENAME = "application";
 	public static final String OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME = "opportunitySheetTemplate";
@@ -195,6 +197,7 @@ public class Constants {
 	public static final String NOTIFICATION_CUSTOMER = "CUSTOMER";
 	public static final String NOTIFICATION_PRIMARY_OWNER = "(Primary)";
 	public static final String NOTIFICATION_SECONDARY_OWNER = "(Secondary)";
+	
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 }
