@@ -321,7 +321,7 @@ public class BDMReportsService {
 			    if (UserGroup.contains(userGroup)) {
 			    	
 			    	userIds = bdmDetailedReportService.getRequiredBDMs(userId, opportunityOwners);
-			    	
+			    	List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
@@ -341,12 +341,12 @@ public class BDMReportsService {
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 					    }
-					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
-					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
-					getGeoHeadOrIouHeadPerformanceExcelReportForSI(userIds, userId, financialYear, workbook);
+					 	getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
+						getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
+						List<String> geoHeadOrIouSpocsUserIds = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
+						getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
 					break;
 				default :
-					List<String> userGroupsGeoIouHeads = Arrays.asList("GEO Heads","IOU Heads");
 					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor");
 					List<String> bdmUser = Arrays.asList("BDM");
 					

@@ -2,13 +2,16 @@ package com.tcs.destination.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.persistence.EntityManager;
@@ -121,12 +124,23 @@ public class ReportsService {
 
 	private static final String CONNECT_REPORT_QUERY_PREFIX = "select distinct CON.connect_id ";
 	
-	private static final String CONNECT_COUNT_GEO_SUMMARY_QUERY_PREFIX = "select count(connect_count), display_geography  from (((select distinct(CON.connect_id) as connect_count,display_geography "; 
-	private static final String CONNECT_SUMMARY_GEO_UNION_PARTNER_REPORT_QUERY_PREFIX =  " UNION select distinct(CON.connect_id) as connect_count, display_geography "; 
-	private static final String CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX = "select count(distinct(CON.connect_id)),display_iou ";
+	private static final String CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX =  "select count(distinct(connectIds)), displaySubSp from ( ";
+	private static final String CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX =  "select count(distinct(connectIds)), displayGeography from ( ";
+	private static final String CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX =  "select count(distinct(connectIds)), displayIou from ( ";
+			
+	private static final String CONNECT_SUMMARY_SUBSP_REPORT_SUB_QUERY_PREFIX = "select distinct(CON.connect_id) as connectIds,COALESCE(display_sub_sp, 'SubSp Not Defined') as displaySubSp from connect_t CON  JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+	+ " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
+	+ " LEFT OUTER JOIN connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id LEFT OUTER JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "; 
+	
+	private static final String CONNECT_SUMMARY_GEO_REPORT_SUB_QUERY_PREFIX = "select distinct(CON.connect_id) as connectIds, GMT.display_geography as displayGeography from connect_t CON  JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+	+ " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
+	+ " LEFT OUTER JOIN connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id LEFT OUTER JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "; 
+	
+	private static final String CONNECT_SUMMARY_IOU_REPORT_SUB_QUERY_PREFIX = "select distinct(CON.connect_id) as connectIds, ICMT.display_iou as displayIou from connect_t CON  JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+	+ " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
+	+ " LEFT OUTER JOIN connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id LEFT OUTER JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "; 
 
-	private static final String CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX =  "select count(connect_count), display_sub_sp  from (((select distinct(CON.connect_id) as connect_count,display_sub_sp "; 
-	private static final String CONNECT_SUMMARY_SUBSP_UNION_PARTNER_REPORT_QUERY_PREFIX =  " UNION select distinct(CON.connect_id) as connect_count, display_sub_sp "; 
+	
 	private static final String CONNECT_JOIN_CUS_GEO_IOU_SUBSP = "from connect_t CON "
 			+ "   JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
 			+ "   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
@@ -135,7 +149,6 @@ public class ReportsService {
 			+ "   left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id"
 			+ "   left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp"
 			+ " where ";
-	private static final String CONNECT_ID_PARTNER_UNION_REPORT_QUERY_PREFIX = 	" union select distinct CON.connect_id";	
 	
 	private static final String CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX = 
 			" from connect_t CON   "
@@ -394,15 +407,34 @@ public class ReportsService {
 			+ " where ";
 
 	private static final String CONNECT_START_DATE_COND_PREFIX = "CON.start_datetime_of_connect between '";
+	
+	private static final String CONNECT_START_AND_END_DATE_COND_PREFIX = "CON.start_datetime_of_connect between (:startDate) AND (:endDate)";
+	private static final String CONNECT_PRIMARY_OR_SECONDARY_OWNER_IN_PREFIX = " AND ((CON.primary_owner in (:userIds)) OR CSOL.secondary_owner in (:userIds) OR ('') in (:userIds)) ";
+
+	
+	
 	private static final String CONNECT_END_DATE_COND_PREFIX = " AND '";
 	private static final String GEO_COND_PREFIX = "GMT.geography in (";
+	private static final String DISPLAY_GEO_COND_PREFIX = "GMT.display_geography = ('";
+	
+	
+	private static final String DISPLAY_GEOGRAPHY_COND_PREFIX = "AND GMT.display_geography = (:displayGeography) ";
+	
+	private static final String DISPLAY_IOU_PREFIX = " AND ICMT.display_iou in (:iouList) ";
+	
+	private static final String DISPLAY_SUBSP_PREFIX = " AND SSM.display_sub_sp in (:serviceLinesList) ";
+	
+	private static final String COUNTRY_PREFIX = " AND GCM.country in (:countryList) ";
+	
+	
 	private static final String SUBSP_COND_PREFIX = "SSM.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String COUNTRY_COND_PREFIX = "GCM.country in (";
-	private static final String CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX = " ))) as geo group by display_geography ";
-	private static final String CONNECT_GROUP_BY_SUBSP_COND_PREFIX = " ))) as geo group by display_sub_sp ";
-	private static final String CONNECT_IOU_GROUP_BY_COND_PREFIX = "group by display_iou";
-//	private static final String CONNECT_SUBSP_GROUP_BY_COND_PREFIX = "group by display_sub_sp";
+	
+	private static final String CONNECT_GROUP_BY_SUBSP_COND_PREFIX = " ) as CONNECT_SUBSP_SUMMARY group by displaySubSp ";
+	private static final String CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX = " ) as CONNECT_GEOGRAPHY_SUMMARY group by displayGeography ";
+	private static final String CONNECT_GROUP_BY_IOU_COND_PREFIX = " ) as CONNECT_IOU_SUMMARY group by displayIou ";
+	
 	private static final String BID_START_DATE_COND_PREFIX = "BID.bid_request_receive_date between '";
 	private static final String BID_END_DATE_COND_C_PREFIX = " AND '";
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
@@ -417,12 +449,8 @@ public class ReportsService {
 	private static final String TARVSACT_ACTUAL_QUARTER_COND_PREFIX = "BDT.quarter in (";
 	private static final String TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX = "))) as RVNU";
 	private static final String TARVSACT_GROUP_BY_ORDER_BY_COND_PREFIX = "30) as top_Revenue";
-//	private static final String GROUP_BY_ORDER_BY_TOP_LIMIT_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU order by revenue desc LIMIT ";
 	private static final String TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX = "group by BCMT.customer_name order by revenue_sum desc";
-//	private static final String TARVSACT_OVERALL_GROUP_BY_ORDER_BY_COND_PREFIX = "group by RCMT.customer_name order by actual_revenue desc) as RVNU group by RVNU.customer_name order by revenue desc";
 
-//	private static final String TARVS_ACT_OVERALL_GROUP_BY_GEO_COND_PREFIX = "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
-//			+ "as RVNU group by RVNU.customer_name ,RVNU.display_geography order by revenue desc";
 
 	// ADDED STATIC STRINGS
 	
@@ -440,6 +468,11 @@ public class ReportsService {
 		private static final String OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX = "group by SSMT.display_sub_sp";
 		private static final String TOP_REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
 
+		private static final String CONNECT_CATEGORY_CUSTOMER_PREFIX = " CON.connect_category='CUSTOMER' and ";
+		private static final String CONNECT_CATEGORY_PARTNER_PREFIX = " CON.connect_category='PARTNER' and ";
+		private static final String CONNECT_SECONDARY_OWNER_LINK_JOIN_PREFIX = " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id ";
+
+
 	
 	
 	public List<TargetVsActualDetailed> getTargetVsActual(
@@ -451,7 +484,7 @@ public class ReportsService {
 		List<String> geographyList = new ArrayList<String>();
 		List<String> countryList = new ArrayList<String>();
 		List<String> iouList = new ArrayList<String>();
-		addEmptyItemToListIfAll(countries, countryList);
+		ExcelUtils.addItemToList(countries, countryList);
 		if (toMonth.isEmpty()) {
 			toMonth = DateUtils.getCurrentMonth();
 		}
@@ -494,7 +527,7 @@ public class ReportsService {
 						setCurrency(targetVsActualDetails, currency);
 						return targetVsActualDetails;
 					} else {
-						addEmptyItemToListIfAll(iou, iouList);
+						ExcelUtils.addItemToList(iou, iouList);
 						addEmptyItemToListIfGeo(geography, geographyList);
 						if (formattedMonths == null || formattedMonths.isEmpty()) {
 							throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -986,24 +1019,14 @@ public class ReportsService {
 		}
 	}
 
-	private void addEmptyItemToListIfGeo(List<String> itemList,
-			List<String> targetList) {
-		if (itemList.contains("All") || itemList.isEmpty()) {
-			targetList.add("");
+	private void addEmptyItemToListIfGeo(List<String> displayGeography, List<String> geographyList) {
+		if (displayGeography.contains("All") || displayGeography.isEmpty()) {
+			geographyList.add("");
 		} else {
-			targetList.addAll(geographyRepository
-					.findByDisplayGeography(itemList));
+			geographyList.addAll(geographyRepository.findByDisplayGeography(displayGeography));
 		}
 	}
 
-	private void addEmptyItemToListIfAll(List<String> itemList,
-			List<String> targetList) {
-		if (itemList.contains("All") || itemList.isEmpty()) {
-			targetList.add("");
-		} else {
-			targetList.addAll(itemList);
-		}
-	}
 
 	private List<TargetVsActualYearToDate> getTargetVsActualYtdList(
 			List<TargetVsActualQuarter> targetVsActualQuarterList) {
@@ -1058,12 +1081,7 @@ public class ReportsService {
 		buildExcelTargetVsActualDetailedReportService.getTargetVsActualExcel(targetVsActualDetailedList, fields, currencyList, fromMonth,
 				workbook);
 		
-		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-		workbook.write(byteOutPutStream);
-		byteOutPutStream.flush();
-		byteOutPutStream.close();
-		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStream = new InputStreamResource(new ByteArrayInputStream(bytes));
+		InputStreamResource inputStream = getInputStreamResource(workbook);
 		return inputStream;
 	}
 
@@ -1086,13 +1104,7 @@ public class ReportsService {
 			logger.error("NOT_FOUND: Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no targetVsActual details are available for user selection and privilege combination");
 		}
-		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-		workbook.write(byteOutPutStream);
-		byteOutPutStream.flush();
-		byteOutPutStream.close();
-		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStream = new InputStreamResource(
-				new ByteArrayInputStream(bytes));
+		InputStreamResource inputStream = getInputStreamResource(workbook);
 		return inputStream;
 	}
 
@@ -1106,13 +1118,7 @@ public class ReportsService {
 				.getTargetVsActualTitlePage(workbook, geography, iou, userId, tillDate, currencyList, fromMonth, toMonth, "Summary");
 		getTargetVsActualSummaryExcel(geography, iou, fromMonth, toMonth,
 				currencyList, userId, workbook);
-		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-		workbook.write(byteOutPutStream);
-		byteOutPutStream.flush();
-		byteOutPutStream.close();
-		byte[] bytes = byteOutPutStream.toByteArray();
-		InputStreamResource inputStream = new InputStreamResource(
-				new ByteArrayInputStream(bytes));
+		InputStreamResource inputStream = getInputStreamResource(workbook);
 		return inputStream;
 	}
 
@@ -1189,7 +1195,7 @@ public class ReportsService {
 						geoIouGroupCustNameList = getGroupCustGeoIouByUserPrivilages(
 								formattedMonths, userId);
 					} else {
-						addEmptyItemToListIfAll(iou, iouList);
+						ExcelUtils.addItemToList(iou, iouList);
 						addEmptyItemToListIfGeo(geography, geographyList);
 						if (formattedMonths == null
 								|| formattedMonths.isEmpty()) {
@@ -1840,127 +1846,229 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	}
 
 	/**
-	 * This method forms and executes the query to find Top revenue customers
-	 * based on user access privileges
+	 * This method forms and executes the query to find customers connects based on user access privileges
 	 * 
+	 * @param fromDate
+	 * @param toDate
 	 * @param userId
-	 * @param financialYear
-	 * @param count
 	 * @return
-	 * @return Top revenue customers
 	 * @throws Exception
 	 */
-	private List<ConnectT> getConnectDetailsBasedOnUserPrivileges(
-			Date fromDate, Date toDate, String userId) throws Exception {
+	private List<String> getCustomerConnectDetailsBasedOnUserPrivileges(
+			Date fromDate, Date toDate, String userId, String displayGeography, List<String> iouList, 
+			List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getConnectDetailsBasedOnUserPrivileges() method");
 		// Form the native top revenue query string
-		String queryString = getConnectDetailedQueryString(userId, fromDate,
-				toDate);
+		String queryString = getCustomerConnectDetailedQueryString(userId, displayGeography,iouList,serviceLinesList,countryList);
 		logger.info("Query string: {}", queryString);
+		
 		// Execute the native revenue query string
-		Query connectDetailedReportQuery = entityManager
-				.createNativeQuery(queryString);
-		List<String> resultList = connectDetailedReportQuery.getResultList();
-		// Retrieve connect details
-		List<ConnectT> connectDetailsList = null;
-		if ((resultList != null) && !(resultList.isEmpty())) {
-			connectDetailsList = connectRepository.getConnectsByIds(resultList);
+		Query connectDetailedReportQuery = entityManager.createNativeQuery(queryString);
+		connectDetailedReportQuery.setParameter("startDate",fromDate);
+		connectDetailedReportQuery.setParameter("endDate",toDate);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			connectDetailedReportQuery.setParameter("displayGeography", displayGeography);
 		}
-//		if (connectDetailsList == null || connectDetailsList.isEmpty()) {
-//			logger.error("NOT_FOUND: Connects not found");
-//			throw new DestinationException(HttpStatus.NOT_FOUND,
-//					"Report could not be downloaded, as no bids are available for user selection and privilege combination" );
-//		}
+		if(!iouList.contains("") && iouList!=null){
+			connectDetailedReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			connectDetailedReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+		}
+		if(!countryList.contains("") && countryList!=null){
+			connectDetailedReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+		}
+		
+		List<String> connectDetailsList = connectDetailedReportQuery.getResultList();
 		return connectDetailsList;
 	}
-
-	private String getConnectGeoSummaryQueryString(String userId,
-			Date fromDate, Date toDate) throws Exception {
-		logger.debug("Inside getConnectSummaryQueryString() method");
+	
+	/**
+	 * This method forms and executes the query to find partner connects based on user access privileges
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param userId
+	 * @param countryList 
+	 * @param serviceLinesList 
+	 * @param iouList 
+	 * @param displayGeography 
+	 * @return
+	 * @throws Exception
+	 */
+	private List<String> getPartnerConnectDetails(
+			Date fromDate, Date toDate, String userId, String displayGeography, List<String> serviceLinesList, List<String> countryList) throws Exception {
+		logger.info("Inside getConnectDetailsBasedOnUserPrivileges() method");
+		// Form the native top revenue query string
+		String queryString = getPartnerConnectDetailedQueryString(userId, displayGeography,serviceLinesList,countryList);
+		logger.info("Query string: {}", queryString);
+		// Execute the native revenue query string
+		Query connectDetailedReportQuery = entityManager.createNativeQuery(queryString);
+		connectDetailedReportQuery.setParameter("startDate",fromDate);
+		connectDetailedReportQuery.setParameter("endDate",toDate);
 		
-		StringBuffer queryBuffer = new StringBuffer(CONNECT_COUNT_GEO_SUMMARY_QUERY_PREFIX);
-		String unionPartner = CONNECT_SUMMARY_GEO_UNION_PARTNER_REPORT_QUERY_PREFIX;
-		getConnectCustPartUnionQueryString(userId, fromDate, toDate, queryBuffer, unionPartner);
+		if(!displayGeography.equals("") && displayGeography!=null){
+			connectDetailedReportQuery.setParameter("displayGeography", displayGeography);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			connectDetailedReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+		}
+		if(!countryList.contains("") && countryList!=null){
+			connectDetailedReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+		}
+		
+		List<String> connectDetailsList = connectDetailedReportQuery.getResultList();
+		return connectDetailsList;
+	}
+	
+
+	/**
+	 * This Method is used to construct the Geo or Iou Heads customer connect summary details by displayGeo 
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param userIds
+	 * @return
+	 * @throws Exception
+	 */
+	private String getConnectGeoSummaryQueryString(String userId,
+			Date fromDate, Date toDate, String geography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
+		logger.info("Inside getConnectGeoSummaryQueryString() method");
+		
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_SUMMARY_GEO_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_SUMMARY_GEO_REPORT_SUB_QUERY_PREFIX);
+		String unionQuery ="UNION " +CONNECT_SUMMARY_GEO_REPORT_SUB_QUERY_PREFIX;
+		getCustomerConnectSubSpQueryString(userId, fromDate, toDate, queryBuffer, unionQuery,geography,iouList,serviceLinesList,countryList,userIds,"displayGeography");
 		queryBuffer.append(CONNECT_GROUP_BY_GEOGRAPHY_COND_PREFIX);
 		
 		return queryBuffer.toString();
 	}
 	
-	private String getConnectSubSpSummaryQueryString(String userId,
-			Date fromDate, Date toDate) throws Exception {
+	/**
+	 * This Method is used to construct the Geo or Iou Heads customer connect summary details by displayIou
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param userIds
+	 * @return
+	 * @throws Exception
+	 */
+	private String getConnectIouSummaryQueryString(String userId,
+			Date fromDate, Date toDate, String geography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
 		logger.debug("Inside getConnectSummaryQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_SUMMARY_IOU_REPORT_SUB_QUERY_PREFIX);
+		String unionQuery ="UNION " +CONNECT_SUMMARY_IOU_REPORT_SUB_QUERY_PREFIX;
+		getCustomerConnectSubSpQueryString(userId, fromDate, toDate, queryBuffer, unionQuery,geography,iouList,serviceLinesList,countryList,userIds,"displayIou");
+		queryBuffer.append(CONNECT_GROUP_BY_IOU_COND_PREFIX);
+		return queryBuffer.toString();
+	}
+
+	/**
+	 * This Method is used to construct the Geo or Iou Heads customer connect summary details by subsp 
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param countryList 
+	 * @param serviceLinesList 
+	 * @param iouList 
+	 * @param geography 
+	 * @param userIds 
+	 * @return
+	 * @throws Exception
+	 */
+	private String getConnectSubSpSummaryQueryString(String userId,
+			Date fromDate, Date toDate, String geography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
+		logger.info("Inside getConnectSummaryQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(CONNECT_SUMMARY_SUBSP_REPORT_QUERY_PREFIX);
-		String unionPartner = CONNECT_SUMMARY_SUBSP_UNION_PARTNER_REPORT_QUERY_PREFIX;
-		getConnectCustPartUnionQueryString(userId, fromDate, toDate, queryBuffer, unionPartner);
-		
+		queryBuffer.append(CONNECT_SUMMARY_SUBSP_REPORT_SUB_QUERY_PREFIX);
+		String unionQuery = "UNION " +CONNECT_SUMMARY_SUBSP_REPORT_SUB_QUERY_PREFIX;
+		getCustomerConnectSubSpQueryString(userId, fromDate, toDate, queryBuffer, unionQuery,geography,iouList,serviceLinesList,countryList,userIds,"displaySubSp");
 		queryBuffer.append(CONNECT_GROUP_BY_SUBSP_COND_PREFIX);
 		return queryBuffer.toString();
 	}
 
-	public void getConnectCustPartUnionQueryString(String userId,
-			Date fromDate, Date toDate, StringBuffer queryBuffer, String unionPartner)
-			throws Exception {
-		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
+	/**
+	 * This method is used to construct the customer connect summary details by subsp based on privileges + subordinate logic
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param queryBuffer
+	 * @param unionPartner
+	 * @param countryList 
+	 * @param serviceLinesList 
+	 * @param iouList 
+	 * @param geography 
+	 * @param userIds 
+	 * @throws Exception
+	 */
+	public void getCustomerConnectSubSpQueryString(String userId, Date fromDate, Date toDate, 
+			StringBuffer queryBuffer, String unionPartner, String displayGeography, List<String> iouList, 
+			List<String> serviceLinesList, List<String> countryList, List<String> userIds, String groupBy) throws Exception {
+		logger.debug("Inside getCustomerConnectSubSpQueryString() method");
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, null);
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
 		// Get WHERE clause string   
-		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
+		queryBuffer.append("where  ");
+		queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
+		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			queryBuffer.append(DISPLAY_GEOGRAPHY_COND_PREFIX);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			queryBuffer.append(DISPLAY_IOU_PREFIX);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			queryBuffer.append(DISPLAY_SUBSP_PREFIX);
+		}
+		if(!countryList.contains("") && countryList!=null){
+			queryBuffer.append(COUNTRY_PREFIX);
+		}
+		
+		queryBuffer.append(" group by "+groupBy+ ",CON.connect_id ");
 		queryBuffer.append(unionPartner);
-		queryBuffer.append(CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX);
-		// Get user access privilege groups
-		HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						null, null);
+		queryBuffer.append(CONNECT_SECONDARY_OWNER_LINK_JOIN_PREFIX);
+		queryBuffer.append(" where ");
 		// Get WHERE clause string
-		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-		String whereUnionClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryUnionPrefixMap);
-		if (whereUnionClause != null && !whereUnionClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereUnionClause);
+		queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			queryBuffer.append(DISPLAY_GEOGRAPHY_COND_PREFIX);
 		}
+		if(!iouList.contains("") && iouList!=null){
+			queryBuffer.append(DISPLAY_IOU_PREFIX);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			queryBuffer.append(DISPLAY_SUBSP_PREFIX);
+		}
+		if(!countryList.contains("") && countryList!=null){
+			queryBuffer.append(COUNTRY_PREFIX);
+		}
+		
+		queryBuffer.append(CONNECT_PRIMARY_OR_SECONDARY_OWNER_IN_PREFIX);
+		
+		queryBuffer.append("group by "+groupBy+ ",CON.connect_id");
 	}
 
-	private String getConnectIouSummaryQueryString(String userId,
-			Date fromDate, Date toDate) throws Exception {
-		logger.debug("Inside getConnectSummaryQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(
-				CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX);
-		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
-		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, null);
-		// Get WHERE clause string
-		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-		queryBuffer.append(CONNECT_IOU_GROUP_BY_COND_PREFIX);
-		return queryBuffer.toString();
-	}
-
-
+	
 	/**
 	 * This Method returns the Connect Detailed Query String
 	 * @param userId
@@ -1969,50 +2077,77 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	 * @return Query string
 	 * @throws Exception
 	 */
-	private String getConnectDetailedQueryString(String userId, Date fromDate,
-			Date toDate) throws Exception {
+	private String getCustomerConnectDetailedQueryString(String userId,String displayGeography, List<String> iouList, 
+			List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(CONNECT_REPORT_QUERY_PREFIX);
 		queryBuffer.append(CONNECT_JOIN_CUS_GEO_IOU_SUBSP);
 		// Get user access privilege groups
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, null);
+				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
 		// Get WHERE clause string
-		queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-				+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-		queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-				+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
+		queryBuffer.append(CONNECT_CATEGORY_CUSTOMER_PREFIX);
+		queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
+		
+		String whereClause = 
+				userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 		if (whereClause != null && !whereClause.isEmpty()) {
 			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
 		}
-			queryBuffer.append(CONNECT_ID_PARTNER_UNION_REPORT_QUERY_PREFIX);
-			queryBuffer.append(CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX);
-			// Get user access privilege groups
-			HashMap<String, String> queryUnionPrefixMap = userAccessPrivilegeQueryBuilder
-					.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,null, null);
-			
-			// Get WHERE clause string
-			queryBuffer.append(CONNECT_START_DATE_COND_PREFIX
-					+ new Timestamp(fromDate.getTime()) + Constants.SINGLE_QUOTE);
-			queryBuffer.append(CONNECT_END_DATE_COND_PREFIX
-					+ new Timestamp(toDate.getTime()) + Constants.SINGLE_QUOTE);
-			String whereClauseUnion = userAccessPrivilegeQueryBuilder
-					.getUserAccessPrivilegeWhereConditionClause(userId,
-							queryUnionPrefixMap);
-			if (whereClauseUnion != null && !whereClauseUnion.isEmpty()) {
-				queryBuffer.append(Constants.AND_CLAUSE + whereClauseUnion);	
 		
-			}
+		if(!displayGeography.equals("") && displayGeography!=null){
+			queryBuffer.append(DISPLAY_GEOGRAPHY_COND_PREFIX);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			queryBuffer.append(DISPLAY_IOU_PREFIX);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			queryBuffer.append(DISPLAY_SUBSP_PREFIX);
+		}
+		if(!countryList.contains("") && countryList!=null){
+			queryBuffer.append(COUNTRY_PREFIX);
+		}
+	
 		return queryBuffer.toString();
 	}
-
+	
+	
+	
 	/**
-	 * This method validate the input details based on user access and
-	 * privileges, and gets the connect detailed report in excel
+	 * This Method returns the Connect Detailed Query String
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param countryList 
+	 * @param serviceLinesList 
+	 * @param iouList 
+	 * @param displayGeography 
+	 * @return Query string
+	 * @throws Exception
+	 */
+	private String getPartnerConnectDetailedQueryString(String userId, String displayGeography, List<String> serviceLinesList, List<String> countryList) throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(CONNECT_REPORT_QUERY_PREFIX);
+		queryBuffer.append(CONNECT_PARTNER_UNION_REPORT_QUERY_PREFIX);
+		// Get WHERE clause string
+		queryBuffer.append(CONNECT_CATEGORY_PARTNER_PREFIX);
+		queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			queryBuffer.append(DISPLAY_GEOGRAPHY_COND_PREFIX);
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			queryBuffer.append(DISPLAY_SUBSP_PREFIX);
+		}
+		if(!countryList.contains("") && countryList!=null){
+			queryBuffer.append(COUNTRY_PREFIX);
+		}
+		return queryBuffer.toString();
+	}
+	
+	
+	/**
+	 * This method validate the input details based on user access and privileges, and gets the connect detailed report in excel
 	 * 
 	 * @param month
 	 * @param quarter
@@ -2023,135 +2158,732 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	 * @param serviceLines
 	 * @param userId
 	 * @param fields
+	 * @param connectCategory 
 	 * @return connect detailed report in excel from
 	 * @throws Exception
 	 */
 	public InputStreamResource getConnectDetailedReport(String month,
-			String quarter, String year, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines, String userId, List<String> fields)
+			String quarter, String year, List<String> iou, String displayGeography, List<String> country,
+			List<String> serviceLines, String userId, List<String> fields, String connectCategory)
 			throws Exception {
 		logger.debug("Inside getConnectDetailedReport Service");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-		List<String> geographyList = new ArrayList<String>();
-		List<String> iouList = new ArrayList<String>();
-		List<String> countryList = new ArrayList<String>();
-		List<String> serviceLinesList = new ArrayList<String>();
-		List<String> userIds = new ArrayList<String>();
-		// user access
-		Date fromDate = DateUtils.getDate(month, quarter, year, true);
-		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		String tillDate = DateUtils.getCurrentDate();
-		List<ConnectT> connectList = new ArrayList<ConnectT>();
 		UserT user = userService.findByUserId(userId);
-		if (user == null) {
-			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
-		} else {
-			addEmptyItemToListIfGeo(geography, geographyList);
-			addEmptyItemToListIfAll(iou, iouList);
-			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-			addEmptyItemToListIfAll(country, countryList);
+		
+		if (user != null) {
+			
+			SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+			
+			List<String> iouList = new ArrayList<String>();
+			
+			List<String> countryList = new ArrayList<String>();
+			
+			List<String> serviceLinesList = new ArrayList<String>();
+			
+			List<String> connectIdList = new ArrayList<String>();
+			
+			Date fromDate = DateUtils.getDate(month, quarter, year, true);
+			
+			Date toDate = DateUtils.getDate(month, quarter, year, false);
+			
+			ExcelUtils.addItemToList(iou, iouList);
+			
+			ExcelUtils.addItemToList(serviceLines, serviceLinesList);
+			
+			ExcelUtils.addItemToList(country, countryList);
+			
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			
+			List<String> userIds = new ArrayList<String>();
+			
 			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
+			
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				
 				case BDM:
 					userIds.add(userId);
-					connectList = connectRepository.findByConnectReport(
-							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds, iouList,
-									geographyList, countryList, serviceLinesList);
+					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					break;
+
 				case BDM_SUPERVISOR:
-					userIds = userRepository
-							.getAllSubordinatesIdBySupervisorId(userId);
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
-					connectList = connectRepository.findByConnectReport(
-							new Timestamp(fromDate.getTime()), new Timestamp(
-									toDate.getTime()), userIds, iouList,
-									geographyList, countryList, serviceLinesList);
+					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					break;
+				
+				case GEO_HEADS:
+				case IOU_HEADS:
+					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+					break;
+				
 				default:
-					if (geography.contains("All")
-							&& (iou.contains("All") && serviceLines
-									.contains("All"))
-							&& country.contains("All")) {
-						connectList = getConnectDetailsBasedOnUserPrivileges(
-								fromDate, toDate, userId);
-					} else {
-						connectList = connectRepository.findByConnectReport(
-								new Timestamp(fromDate.getTime()),
-								new Timestamp(toDate.getTime()), iouList,
-								geographyList, countryList, serviceLinesList);
-					}
+					connectIdList = getConnectIdsForStratagicInitiative(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					break;
 				}
 			} else {
 				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid User Group");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
 			}
-			if (connectList != null) {
-				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Detailed");
-				getConnectDetailedReportInExcel(connectList, iouList,
-						geographyList, countryList, serviceLinesList, fields,
-						workbook);
+			if (!connectIdList.isEmpty()) {
+				
+				connectDetailedReportService.getConnectTitlePage(workbook, displayGeography, iou, serviceLines, user, country, month, quarter, year, ReportConstants.DETAILED,connectCategory);
+				
+				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
+				
 			} else {
 				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
 			}
-			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-			workbook.write(byteOutPutStream);
-			byteOutPutStream.flush();
-			byteOutPutStream.close();
-			byte[] bytes = byteOutPutStream.toByteArray();
-			InputStreamResource inputStreamResource = new InputStreamResource(
-					new ByteArrayInputStream(bytes));
+			
+			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
+			
 			return inputStreamResource;
+		
+		} else {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
 		}
 	}
 
 	/**
-	 * This method
+	 * This method is used to convert workbook to inputStreamResource
 	 * 
-	 * @param month
-	 * @param quarter
-	 * @param year
-	 * @param connectList
+	 * @param workbook
+	 * @return
+	 * @throws IOException
+	 */
+	private InputStreamResource getInputStreamResource(SXSSFWorkbook workbook)
+			throws IOException {
+		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
+		workbook.write(byteOutPutStream);
+		byteOutPutStream.flush();
+		byteOutPutStream.close();
+		byte[] bytes = byteOutPutStream.toByteArray();
+		InputStreamResource inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
+		return inputStreamResource;
+	}
+
+	/**
+	 * This Method is used to get customer or partner or both connect id's for SI
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param userId
 	 * @param iouList
 	 * @param geographyList
-	 * @param country
-	 * @param serviceLines
-	 * @param userIds
-	 * @param fields
-	 * @param workbook
-	 * @throws Exception
+	 * @param countryList
+	 * @param serviceLinesList
+	 * @param connectCategory
+	 * @return
+	 * @throws Exception 
 	 */
-	private void getConnectDetailedReportInExcel(List<ConnectT> connectList,
-			List<String> iouList, List<String> geographyList,
-			List<String> country, List<String> serviceLines,
-			List<String> fields, SXSSFWorkbook workbook) throws Exception {
-		logger.debug("Inside connectDetailedReportInExcel Service");
-		if (connectList.isEmpty() || connectList == null) {
-			logger.error("NOT_FOUND: Connects Not Found");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Connects Not Found");
-		} else {
-			connectDetailedReportService.getConnectDetailedReport(connectList,
-					fields, workbook);
-		}
+	private List<String> getConnectIdsForStratagicInitiative(Date fromDate,
+			Date toDate, String userId, List<String> iouList, String displayGeography, List<String> countryList,
+			List<String> serviceLinesList, String connectCategory) throws Exception {
+		
+			List<String> connectIdList = new ArrayList<String>();
+		
+			if(isCustomer(connectCategory)){
+				
+				List<String> customerConnectIdList = connectRepository.findCustomerConnectIds(new Timestamp(fromDate.getTime()),
+						new Timestamp(toDate.getTime()), iouList, displayGeography, countryList, serviceLinesList);
+				connectIdList.addAll(customerConnectIdList);
+			}
+			
+			if(isPartner(connectCategory)){
+				
+				List<String> partnerConnectIdList = connectRepository.findPartnerConnectIds(new Timestamp(fromDate.getTime()),
+						new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList);
+				connectIdList.addAll(partnerConnectIdList);
+		}		
+		
+		return connectIdList;
 	}
 
 	/**
-	 * This method validate the input details based on user access and
-	 * privileges, and gets the connect summary report in excel
+	 * This method is used to get Geo Head or Iou Head Connect Details
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param userIds
+	 * @param iouList
+	 * @param geographyList
+	 * @param countryList
+	 * @param serviceLinesList
+	 * @param connectCategory
+	 * @return
+	 * @throws Exception 
+	 */
+	private List<String> getGeoHeadOrIouHeadConnectDetails(Date fromDate, Date toDate, String userId, List<String> iouList,
+			String displayGeography, List<String> countryList, List<String> serviceLinesList, String connectCategory) throws Exception {
+		
+		Set<String> connectIdSet = new HashSet<String>();
+		List<String> userIds = new ArrayList<String>();
+			
+		if(isCustomer(connectCategory)){
+		
+			List<String> customerConnectIdList = getCustomerConnectDetailsBasedOnUserPrivileges(fromDate, toDate, userId,displayGeography,iouList,serviceLinesList,countryList);
+				connectIdSet.addAll(customerConnectIdList);
+			} 
+		
+		if(isPartner(connectCategory)){
+		
+			List<String> partnerConnectIdList = getPartnerConnectDetails(fromDate, toDate, userId,displayGeography,serviceLinesList,countryList);	
+				connectIdSet.addAll(partnerConnectIdList);
+			}
+
+		userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+		userIds.add(userId);
+
+		List<String> subOrdinatesConnectList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+		connectIdSet.addAll(subOrdinatesConnectList);
+		List<String> connectList = new ArrayList<String>(connectIdSet);
+		return connectList;
+	}
+
+
+	/**
+	 * This Method is used to get the Customer Connects or Partner Connects Or Both for the given input parameters
+	 * @param fromDate
+	 * @param toDate
+	 * @param userId
+	 * @param iouList
+	 * @param geographyList
+	 * @param countryList
+	 * @param serviceLinesList
+	 * @param connectCategory
+	 * @return
+	 */
+	private List<String> getConnectDetailsByUserIds(Date fromDate, Date toDate, List<String> userIds, List<String> iouList, String displayGeography,
+			List<String> countryList, List<String> serviceLinesList, String connectCategory) {
+		List<String> connectList = new ArrayList<String>();
+		
+		if(isCustomer(connectCategory)){
+			
+			List<String> customerConnectList = connectRepository.findByCustomerConnects(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), 
+					userIds, iouList, displayGeography, countryList, serviceLinesList);
+			connectList.addAll(customerConnectList);
+		}
+		
+		if(isPartner(connectCategory)){
+			
+			List<String> partnerConnectList = connectRepository.findByPartnerConnects(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), 
+					userIds, displayGeography, countryList, serviceLinesList);
+			connectList.addAll(partnerConnectList);
+		}
+		return connectList;
+	}
+
+	/**
+	 * This Method is used to check whether connect category is partner or All
+	 * 
+	 * @param connectCategory
+	 * @return
+	 */
+	private boolean isPartner(String connectCategory) {
+		return connectCategory.equals(ReportConstants.PARTNER) || connectCategory.equals(ReportConstants.All);
+	}
+
+	/**
+	 * This Method is used to check whether connect category is customer or All
+	 * 
+	 * @param connectCategory
+	 * @return
+	 */
+	private boolean isCustomer(String connectCategory) {
+		return connectCategory.equals(ReportConstants.CUSTOMER) || connectCategory.equals(ReportConstants.All);
+	}
+
+
+	/**
+	 * This method validate the input details based on user access and privileges, and gets the connect summary report in excel
 	 * 
 	 * @param month
 	 * @param quarter
 	 * @param year
+	 * @param iou
+	 * @param geography
+	 * @param country
+	 * @param serviceLines
+	 * @param userId
+	 * @param fields
+	 * @param connectCategory 
+	 * @return
+	 * @throws Exception
+	 */
+	public InputStreamResource connectSummaryReport(String month, String quarter, String year, List<String> iou,
+			String geography, List<String> country, List<String> serviceLines, String userId, List<String> fields,
+			String connectCategory) throws Exception {
+		
+		logger.debug("Inside connectSummaryReport() method");
+		
+		UserT user = userService.findByUserId(userId);
+
+		if (user != null) {
+		
+			SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+			
+			List<String> iouList = new ArrayList<String>();
+			
+			List<String> countryList = new ArrayList<String>();
+			
+			List<String> serviceLinesList = new ArrayList<String>();
+			
+			List<String> userIds = new ArrayList<String>();
+			
+			Date fromDate = DateUtils.getDate(month, quarter, year, true);
+			
+			Date toDate = DateUtils.getDate(month, quarter, year, false);
+			
+			List<Object[]> subSpCustomerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> subSpPartnerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> geographyCustomerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> geographyPartnerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
+			
+			ExcelUtils.addItemToList(iou, iouList);
+			
+			ExcelUtils.addItemToList(serviceLines, serviceLinesList);
+			
+			ExcelUtils.addItemToList(country, countryList);
+
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			
+			if (UserGroup.contains(userGroup)) {
+			
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				
+				case BDM:
+					userIds.add(userId);
+					
+					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList
+							, geographyPartnerConnectCountList, iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
+					break;
+				
+				case BDM_SUPERVISOR:
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+					userIds.add(userId);
+					
+					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
+							geographyPartnerConnectCountList ,iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
+					break;
+				
+				case GEO_HEADS:
+				case IOU_HEADS:
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+					userIds.add(userId);
+				
+					if(isCustomer(connectCategory)){
+						subSpCustomerConnectCountList = getCustomerConnectSubSpSummaryDetails(userId, fromDate, toDate,geography,iouList,serviceLinesList,countryList,userIds);
+						geographyCustomerConnectCountList = getCustomerConnectGeoSummaryDetails(userId, fromDate, toDate,geography,iouList,serviceLinesList,countryList,userIds);
+						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate,geography,iouList,serviceLinesList,countryList,userIds);
+					}
+					
+					if(isPartner(connectCategory)) {
+						subSpPartnerConnectCountList = connectRepository.findSubSpPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), geography, countryList, serviceLinesList);
+						geographyPartnerConnectCountList = connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), geography, countryList, serviceLinesList);
+					}
+					break;
+
+				default:
+					
+					getConnectSummaryDetailsForSI(fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,
+							geographyCustomerConnectCountList, geographyPartnerConnectCountList,
+							iouConnectCountList, iouList, geography, countryList, serviceLinesList,connectCategory);
+					break;
+				}
+				
+			} else {
+
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
+				
+			}
+			
+			if (!subSpCustomerConnectCountList.isEmpty() || !(geographyCustomerConnectCountList.isEmpty()) || !(iouConnectCountList.isEmpty())) {
+					
+				connectDetailedReportService.getConnectTitlePage(workbook, geography, iou, serviceLines, user, country, month, quarter, year, ReportConstants.SUMMARY,connectCategory);
+				
+				connectSummaryReportService.getConnectSummaryExcelReport(subSpCustomerConnectCountList, subSpPartnerConnectCountList,
+						geographyCustomerConnectCountList, geographyPartnerConnectCountList, iouConnectCountList, month, quarter, year, workbook,connectCategory);
+				
+			} else {
+				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
+			}
+			
+			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
+			
+			return inputStreamResource;
+		
+		} else {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
+		}
+	}
+
+	/**
+	 * This method is used to get Geo Or Iou Heads Customer connects summary details by displaySubsp
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param userIds
+	 * @param connectCategory 
+	 * @return
+	 * @throws Exception
+	 */
+	private List<Object[]> getCustomerConnectSubSpSummaryDetails(String userId, Date fromDate, Date toDate, String displayGeography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
+		
+		String subSpQueryString = getConnectSubSpSummaryQueryString(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+		logger.debug("SUBSP Query string: {}", subSpQueryString);
+		// Execute the native revenue query string
+		Query connectSubSpSummaryReportQuery = entityManager.createNativeQuery(subSpQueryString);
+		
+		connectSubSpSummaryReportQuery.setParameter("startDate",fromDate);
+		connectSubSpSummaryReportQuery.setParameter("endDate",toDate);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			connectSubSpSummaryReportQuery.setParameter("displayGeography", displayGeography);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			connectSubSpSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			connectSubSpSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+		}
+		if(!countryList.contains("") && countryList!=null){
+			connectSubSpSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+		}
+		connectSubSpSummaryReportQuery.setParameter("userIds",userIds);
+		
+		return connectSubSpSummaryReportQuery.getResultList();
+	}
+
+	/**
+	 * This method is used to get Geo Or Iou Heads Customer connects summary details by displayGeography
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param userIds
+	 * @return
+	 * @throws Exception
+	 */
+	private List<Object[]> getCustomerConnectGeoSummaryDetails(String userId, Date fromDate, Date toDate, String displayGeography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
+		// Form the native top revenue query string
+		String geoQueryString = getConnectGeoSummaryQueryString(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+		// Execute the native revenue query string
+		Query connectGeoSummaryReportQuery = entityManager.createNativeQuery(geoQueryString);
+		connectGeoSummaryReportQuery.setParameter("startDate",fromDate);
+		connectGeoSummaryReportQuery.setParameter("endDate",toDate);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			connectGeoSummaryReportQuery.setParameter("displayGeography", displayGeography);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			connectGeoSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			connectGeoSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+		}
+		if(!countryList.contains("") && countryList!=null){
+			connectGeoSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+		}
+		connectGeoSummaryReportQuery.setParameter("userIds",userIds);
+		
+		return connectGeoSummaryReportQuery.getResultList();
+	}
+	
+	/**
+	 * This method is used to get Geo Or Iou Heads Customer connects summary details by displayIou
+	 * 
+	 * @param userId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @param userIds
+	 * @return
+	 * @throws Exception
+	 */
+	private List<Object[]> getConnectIouSummaryDetails(String userId,
+			Date fromDate, Date toDate, String displayGeography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
+		String iouQueryString = getConnectIouSummaryQueryString(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+		// Execute the native revenue query string
+		Query connectIouSummaryReportQuery = entityManager.createNativeQuery(iouQueryString);
+		connectIouSummaryReportQuery.setParameter("startDate",fromDate);
+		connectIouSummaryReportQuery.setParameter("endDate",toDate);
+		
+		if(!displayGeography.equals("") && displayGeography!=null){
+			connectIouSummaryReportQuery.setParameter("displayGeography", displayGeography);
+		}
+		if(!iouList.contains("") && iouList!=null){
+			connectIouSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+		}
+		if(!serviceLinesList.contains("") && serviceLinesList!=null){
+			connectIouSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+		}
+		if(!countryList.contains("") && countryList!=null){
+			connectIouSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+		}
+		connectIouSummaryReportQuery.setParameter("userIds",userIds);
+		
+		return connectIouSummaryReportQuery.getResultList();
+	}
+
+
+	/**
+	 * This Method is used to get connect summary details for BDM and BDM Supervisor
+	 * 
+	 * @param userIds
+	 * @param fromDate
+	 * @param toDate
+	 * @param subSpCustomerConnectCountList
+	 * @param subSpPartnerConnectCountList
+	 * @param geographyCustomerConnectCountList
+	 * @param geographyPartnerConnectCountList
+	 * @param iouConnectCountList
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLinesList
+	 * @param connectCategory
+	 */
+	public void getConnectSummaryDetailsByUserIds(List<String> userIds,
+			Date fromDate, Date toDate, List<Object[]> subSpCustomerConnectCountList,List<Object[]> subSpPartnerConnectCountList,
+			List<Object[]> geographyCustomerConnectCountList, List<Object[]> geographyPartnerConnectCountList, List<Object[]> iouConnectCountList, 
+			  List<String> iouList, String displayGeography, List<String> countryList, List<String> serviceLinesList, String connectCategory) {
+		logger.info("Inside getConnectSummaryDetailsByUserIds() method");
+		
+		if(isCustomer(connectCategory)){
+		
+			subSpCustomerConnectCountList.addAll(connectRepository.findBySubSpCustomerConnectSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), userIds, iouList, displayGeography, countryList, serviceLinesList));
+			
+			geographyCustomerConnectCountList.addAll(connectRepository.findByGeographyCustomerConnectSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), userIds, iouList, displayGeography, countryList, serviceLinesList));
+			
+			iouConnectCountList.addAll(connectRepository.findByIouConnectSummaryReport(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), userIds, iouList, displayGeography, countryList, serviceLinesList));
+		}
+		
+		if(isPartner(connectCategory)){
+
+			subSpPartnerConnectCountList.addAll(connectRepository.findBySubSpPartnerConnectSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), userIds, displayGeography, countryList, serviceLinesList));
+		
+			geographyPartnerConnectCountList.addAll(connectRepository.findByGeographyPartnerConnectSummaryDetails(new Timestamp(fromDate.getTime()),
+				new Timestamp(toDate.getTime()), userIds, displayGeography, countryList, serviceLinesList));
+		}
+		
+	}
+
+	/**
+	 *  This Method is used to get connect summary details for SI
+	 *  
+	 * @param fromDate
+	 * @param toDate
+	 * @param subSpCustomerConnectCountList
+	 * @param subSpPartnerConnectCountList
+	 * @param geographyCustomerConnectCountList
+	 * @param geographyPartnerConnectCountList
+	 * @param iouConnectCountList
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLinesList
+	 * @param connectCategory
+	 */
+	private void getConnectSummaryDetailsForSI(Date fromDate, Date toDate, List<Object[]> subSpCustomerConnectCountList,
+			List<Object[]> subSpPartnerConnectCountList, List<Object[]> geographyCustomerConnectCountList,
+			List<Object[]> geographyPartnerConnectCountList, List<Object[]> iouConnectCountList, List<String> iouList,
+			String displayGeography, List<String> countryList, List<String> serviceLinesList, String connectCategory) {
+		logger.info("Inside getConnectSummaryDetailsForSI() method");
+		
+		if(isCustomer(connectCategory)){
+
+			subSpCustomerConnectCountList.addAll(connectRepository.findSubSpCustomerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), iouList, displayGeography, countryList, serviceLinesList));
+			
+			geographyCustomerConnectCountList.addAll(connectRepository.findGeographyCustomerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), iouList, displayGeography, countryList, serviceLinesList));
+			
+			iouConnectCountList.addAll(connectRepository.findIouConnectsSummaryReport(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), iouList, displayGeography, countryList, serviceLinesList));
+		}
+		
+		if(isPartner(connectCategory)){
+
+			subSpPartnerConnectCountList.addAll(connectRepository.findSubSpPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+					new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList));
+		
+			geographyPartnerConnectCountList.addAll(connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+				new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList));
+		}
+		
+	}
+	
+	
+	/**
+	 * This Method is used to get both connect detailed and summary report
+	 * 
+	 * @param month
+	 * @param quarter
+	 * @param year
+	 * @param iou
+	 * @param displayGeography
+	 * @param country
+	 * @param serviceLines
+	 * @param userId
+	 * @param fields
+	 * @param connectCategory
+	 * @return
+	 * @throws Exception
+	 */
+	public InputStreamResource getConnectDetailedAndSummaryReports(String month, String quarter, String year, List<String> iou, String displayGeography,
+			List<String> country, List<String> serviceLines, String userId, List<String> fields, String connectCategory) throws Exception {
+		logger.debug("Inside getConnectReports() method");
+		
+		UserT user = userService.findByUserId(userId);
+		
+		if (user != null) {
+			
+			SXSSFWorkbook workbook = new SXSSFWorkbook(50);
+
+			List<String> iouList = new ArrayList<String>();
+
+			List<String> serviceLinesList = new ArrayList<String>();
+
+			List<String> countryList = new ArrayList<String>();
+
+			List<String> userIds = new ArrayList<String>();
+			
+			Date fromDate = DateUtils.getDate(month, quarter, year, true);
+			
+			Date toDate = DateUtils.getDate(month, quarter, year, false);
+			
+			List<Object[]> subSpCustomerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> subSpPartnerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> geographyCustomerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> geographyPartnerConnectCountList = new ArrayList<Object[]>();
+			
+			List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
+			
+			List<String> connectIdList = new ArrayList<String>();
+		
+			ExcelUtils.addItemToList(iou, iouList);
+			
+			ExcelUtils.addItemToList(serviceLines, serviceLinesList);
+			
+			ExcelUtils.addItemToList(country, countryList);
+			
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+
+			if (UserGroup.contains(userGroup)) {
+
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+					userIds.add(userId);
+					
+					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+					
+					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList
+							, geographyPartnerConnectCountList, iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
+					break;
+				case BDM_SUPERVISOR:
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+					userIds.add(userId);
+					
+					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+					
+					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList, 
+							geographyPartnerConnectCountList ,iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
+					break;
+				case GEO_HEADS:
+				case IOU_HEADS:
+					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
+					userIds.add(userId);
+					
+					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+					
+					if(connectCategory.equals("CUSTOMER") || connectCategory.equals("All")){
+						subSpCustomerConnectCountList = getCustomerConnectSubSpSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+						geographyCustomerConnectCountList = getCustomerConnectGeoSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
+					}
+					
+					if(connectCategory.equals("PARTNER") || connectCategory.equals("All")) {
+						subSpPartnerConnectCountList = connectRepository.findSubSpPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList);
+						geographyPartnerConnectCountList = connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
+								new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList);
+					}
+					break;
+				default:
+					
+					connectIdList = getConnectIdsForStratagicInitiative(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
+					
+					getConnectSummaryDetailsForSI(fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,
+							geographyCustomerConnectCountList, geographyPartnerConnectCountList,
+							iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
+					break;
+				}
+			} else {
+				logger.error("Invalid User Group: {}", userGroup);
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
+			}
+			if (!connectIdList.isEmpty()) {
+				
+				connectDetailedReportService.getConnectTitlePage(workbook, displayGeography, iou, serviceLines, user, country, month, quarter, year, "Summary, Detailed",connectCategory);
+				
+				connectSummaryReportService.getConnectSummaryExcelReport(subSpCustomerConnectCountList, subSpPartnerConnectCountList,
+						geographyCustomerConnectCountList, geographyPartnerConnectCountList, iouConnectCountList, month,
+						quarter, year, workbook, connectCategory);
+				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
+				
+			} else {
+				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
+			}
+			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
+		
+			return inputStreamResource;
+		
+		} else {
+			logger.error("NOT_FOUND: User not found: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
+		}
+	}
+
+	
+
+	/**
+	 * This Method is used to get bid detailed report
+	 * 
+	 * @param year
+	 * @param fromMonth
+	 * @param toMonth
+	 * @param bidOwner
+	 * @param currency
 	 * @param iou
 	 * @param geography
 	 * @param country
@@ -2161,310 +2893,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 	 * @return
 	 * @throws Exception
 	 */
-	public InputStreamResource connectSummaryReport(String month,
-			String quarter, String year, List<String> iou,
-			List<String> geography, List<String> country,
-			List<String> serviceLines, String userId, List<String> fields)
-			throws Exception {
-		logger.debug("Inside connectSummaryReport() method");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-		List<String> geographyList = new ArrayList<String>();
-		List<String> iouList = new ArrayList<String>();
-		List<String> countryList = new ArrayList<String>();
-		List<String> serviceLinesList = new ArrayList<String>();
-		List<String> userIds = new ArrayList<String>();
-		// user access
-		Date fromDate = DateUtils.getDate(month, quarter, year, true);
-		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		String tillDate = DateUtils.getCurrentDate();
-		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
-		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
-		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
-		UserT user = userService.findByUserId(userId);
-		if (user == null) {
-			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
-		} else {
-			addEmptyItemToListIfGeo(geography, geographyList);
-			addEmptyItemToListIfAll(iou, iouList);
-			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-			addEmptyItemToListIfAll(country, countryList);
-			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case BDM:
-					userIds.add(userId);
-					getConnectSummaryDetailsByUserIds(userIds, fromDate,
-							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList, iouList,
-							geographyList, countryList,
-							serviceLinesList);
-					break;
-				case BDM_SUPERVISOR:
-					userIds = userRepository
-							.getAllSubordinatesIdBySupervisorId(userId);
-					userIds.add(userId);
-					getConnectSummaryDetailsByUserIds(userIds, fromDate,
-							toDate, subSpConnectCountList,
-							geographyConnectCountList, iouConnectCountList, iouList,
-							geographyList, countryList,
-							serviceLinesList);
-					break;
-				default:
-					if (geography.contains("All")
-							&& (iou.contains("All") && serviceLines
-									.contains("All"))
-							&& country.contains("All")) {
-
-						geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
-						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
-						subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
-					} else {
-						subSpConnectCountList = connectRepository
-								.findBySubSpConnectSummaryReport(new Timestamp(
-										fromDate.getTime()), new Timestamp(
-										toDate.getTime()), iouList,
-										geographyList, countryList,
-										serviceLinesList);
-						geographyConnectCountList = connectRepository
-								.findByGeographyConnectSummaryReport(
-										new Timestamp(fromDate.getTime()),
-										new Timestamp(toDate.getTime()),
-										iouList, geographyList, countryList,
-										serviceLinesList);
-						iouConnectCountList = connectRepository
-								.findByIouConnectSummaryReport(new Timestamp(
-										fromDate.getTime()), new Timestamp(
-										toDate.getTime()), iouList,
-										geographyList, countryList,
-										serviceLinesList);
-					}
-					break;
-				}
-			} else {
-				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"Invalid User Group");
-			}
-			if (subSpConnectCountList != null
-					&& geographyConnectCountList != null
-					&& iouConnectCountList != null) {
-				connectDetailedReportService.getConnectTitlePage(workbook,
-						geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary");
-				getConnectSummaryReportExcel(month, quarter, year,
-						subSpConnectCountList, geographyConnectCountList,
-						iouConnectCountList, country, fields, workbook);
-			} else {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
-			}
-			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-			workbook.write(byteOutPutStream);
-			byteOutPutStream.flush();
-			byteOutPutStream.close();
-			byte[] bytes = byteOutPutStream.toByteArray();
-			InputStreamResource inputStreamResource = new InputStreamResource(
-					new ByteArrayInputStream(bytes));
-			return inputStreamResource;
-		}
-	}
-
-	private List<Object[]> getConnectSubSpSummaryDetails(String userId,
-			Date fromDate, Date toDate) throws Exception {
-		String subSpQueryString = getConnectSubSpSummaryQueryString(
-				userId, fromDate, toDate);
-		logger.info("SUBSP Query string: {}", subSpQueryString);
-		// Execute the native revenue query string
-		Query connectSubSpSummaryReportQuery = entityManager
-				.createNativeQuery(subSpQueryString);
-		return connectSubSpSummaryReportQuery
-				.getResultList();
-	}
-
-	private List<Object[]> getConnectIouSummaryDetails(String userId,
-			Date fromDate, Date toDate) throws Exception {
-		String iouQueryString = getConnectIouSummaryQueryString(
-				userId, fromDate, toDate);
-		logger.info("IOU Query string: {}", iouQueryString);
-		// Execute the native revenue query string
-		Query connectIouSummaryReportQuery = entityManager
-				.createNativeQuery(iouQueryString);
-		return connectIouSummaryReportQuery.getResultList();
-	}
-
-	private List<Object[]> getConnectGeoSummaryDetails(String userId, Date fromDate, Date toDate) throws Exception {
-		// Form the native top revenue query string
-		String geoQueryString = getConnectGeoSummaryQueryString(userId, fromDate, toDate);
-		logger.info("GEO Query string: {}", geoQueryString);
-		// Execute the native revenue query string
-		Query connectGeoSummaryReportQuery = entityManager
-				.createNativeQuery(geoQueryString);
-		return connectGeoSummaryReportQuery.getResultList();
-	}
-
-	public void getConnectSummaryDetailsByUserIds(List<String> userIds,
-			Date fromDate, Date toDate, List<Object[]> subSpConnectCountList,
-			List<Object[]> geographyConnectCountList,
-			List<Object[]> iouConnectCountList, List<String> iouList, List<String> geographyList, List<String> countryList, List<String> serviceLinesList) {
-		subSpConnectCountList.addAll(connectRepository
-				.findBySubSpConnectSummaryReport(
-						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds, iouList,
-						geographyList, countryList,
-						serviceLinesList));
-		geographyConnectCountList.addAll(connectRepository
-				.findByGeographyConnectSummaryReport(
-						new Timestamp(fromDate.getTime()),
-						new Timestamp(toDate.getTime()), userIds, iouList,
-						geographyList, countryList,
-						serviceLinesList));
-		iouConnectCountList.addAll(connectRepository.findByIouConnectSummaryReport(
-				new Timestamp(fromDate.getTime()),
-				new Timestamp(toDate.getTime()), userIds, iouList,
-				geographyList, countryList,
-				serviceLinesList));
-	}
-
-	/**
-	 * This method
-	 * 
-	 * @param month
-	 * @param quarter
-	 * @param year
-	 * @param iouList
-	 * @param geographyList
-	 * @param country
-	 * @param serviceLines
-	 * @param userId
-	 * @param fields
-	 * @param workbook
-	 * @throws Exception
-	 */
-	public void getConnectSummaryReportExcel(String month, String quarter,
-			String year, List<Object[]> subSpConnectCountList,
-			List<Object[]> geographyConnectCountList,
-			List<Object[]> iouConnectCountList, List<String> country,
-			List<String> fields, SXSSFWorkbook workbook) throws Exception {
-		logger.debug("Inside ConnectSummaryReportExcel() method");
-		if ((subSpConnectCountList.isEmpty() || subSpConnectCountList == null)
-				&& (geographyConnectCountList.isEmpty() || geographyConnectCountList == null)
-				&& (iouConnectCountList.isEmpty() || iouConnectCountList == null)) {
-			logger.error("Connects Not Found");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Connects Not Found");
-		} else {
-			connectSummaryReportService.getSummaryReport(subSpConnectCountList,
-					geographyConnectCountList, iouConnectCountList, month,
-					quarter, year, workbook);
-		}
-	}
-
-	public InputStreamResource getConnectReports(String month, String quarter,
-			String year, List<String> iou, List<String> geography,
-			List<String> country, List<String> serviceLines, String userId,
-			List<String> fields) throws Exception {
-		logger.debug("Inside getConnectReports() method");
-		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
-		List<String> geographyList = new ArrayList<String>();
-		List<String> iouList = new ArrayList<String>();
-		List<String> serviceLinesList = new ArrayList<String>();
-		List<String> countryList = new ArrayList<String>();
-		List<String> userIds = new ArrayList<String>();
-		// user access
-		Date fromDate = DateUtils.getDate(month, quarter, year, true);
-		Date toDate = DateUtils.getDate(month, quarter, year, false);
-		String tillDate =DateUtils.getCurrentDate();
-		List<Object[]> subSpConnectCountList = new ArrayList<Object[]>();
-		List<Object[]> geographyConnectCountList = new ArrayList<Object[]>();
-		List<Object[]> iouConnectCountList = new ArrayList<Object[]>();
-		List<ConnectT> connectList = new ArrayList<ConnectT>();
-		UserT user = userService.findByUserId(userId);
-		if (user == null) {
-			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
-		} else {
-			addEmptyItemToListIfGeo(geography, geographyList);
-			addEmptyItemToListIfAll(iou, iouList);
-			addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-			addEmptyItemToListIfAll(country, countryList);
-			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (UserGroup.contains(userGroup)) {
-			// Validate user group, BDM's & BDM supervisor's are not
-			// authorized for this service
-			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-			case BDM:
-				userIds.add(userId);
-				connectList = connectRepository.findByConnectReport(
-						new Timestamp(fromDate.getTime()), new Timestamp(
-								toDate.getTime()), userIds,  iouList,
-								geographyList, countryList, serviceLinesList);
-				getConnectSummaryDetailsByUserIds(userIds, fromDate,
-						toDate, subSpConnectCountList,
-						geographyConnectCountList, iouConnectCountList, iouList,
-						geographyList, countryList, serviceLinesList);
-				break;
-			case BDM_SUPERVISOR:
-				userIds = userRepository
-						.getAllSubordinatesIdBySupervisorId(userId);
-				userIds.add(userId);
-				connectList = connectRepository.findByConnectReport(
-						new Timestamp(fromDate.getTime()), new Timestamp(
-								toDate.getTime()), userIds, iouList,
-								geographyList, countryList, serviceLinesList);
-				getConnectSummaryDetailsByUserIds(userIds, fromDate,
-						toDate, subSpConnectCountList,
-						geographyConnectCountList, iouConnectCountList, iouList,
-						geographyList, countryList, serviceLinesList);
-				break;
-			default:
-				if (geography.contains("All") && (iou.contains("All") && serviceLines.contains("All"))&& country.contains("All")) {
-					connectList = getConnectDetailsBasedOnUserPrivileges(fromDate, toDate, userId);
-					geographyConnectCountList = getConnectGeoSummaryDetails(userId, fromDate, toDate);
-					iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate);
-					subSpConnectCountList = getConnectSubSpSummaryDetails(userId, fromDate, toDate);
-
-				} else {
-					connectList = connectRepository.findByConnectReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
-							geographyList, countryList, serviceLinesList);
-					subSpConnectCountList = connectRepository.findBySubSpConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
-									geographyList, countryList, serviceLinesList);
-					geographyConnectCountList = connectRepository.findByGeographyConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
-									geographyList, countryList, serviceLinesList);
-					iouConnectCountList = connectRepository.findByIouConnectSummaryReport(new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()), iouList,
-									geographyList, countryList, serviceLinesList);
-				}
-				break;
-			}
-			} else {
-				logger.error("Invalid User Group: {}", userGroup);
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid User Group");
-			}
-			if (connectList != null && subSpConnectCountList != null && geographyConnectCountList != null && iouConnectCountList != null) {
-				
-				connectDetailedReportService.getConnectTitlePage(workbook, geography, iou, serviceLines, userId, tillDate, country, month, quarter, year, "Summary, Detailed");
-				
-				getConnectSummaryReportExcel(month, quarter, year, subSpConnectCountList, geographyConnectCountList, iouConnectCountList, country, fields, workbook);
-				
-				getConnectDetailedReportInExcel(connectList, iouList, geographyList, country, serviceLines, fields, workbook);
-			
-			} else {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
-			}
-			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-			workbook.write(byteOutPutStream);
-			byteOutPutStream.flush();
-			byteOutPutStream.close();
-			byte[] bytes = byteOutPutStream.toByteArray();
-			InputStreamResource inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
-			return inputStreamResource;
-		}
-	}
-
 	public InputStreamResource getBidReport(String year, String fromMonth,
 			String toMonth, List<String> bidOwner, List<String> currency,
 			List<String> iou, List<String> geography, List<String> country,
@@ -2501,9 +2929,9 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
 			default:
 				addEmptyItemToListIfGeo(geography, geographyList);
-				addEmptyItemToListIfAll(iou, iouList);
-				addEmptyItemToListIfAll(serviceLines, serviceLinesList);
-				addEmptyItemToListIfAll(country, countryList);
+				ExcelUtils.addItemToList(iou, iouList);
+				ExcelUtils.addItemToList(serviceLines, serviceLinesList);
+				ExcelUtils.addItemToList(country, countryList);
 				bidDetails = getBidDetailsBasedOnUserPrivileges(startDate, endDate, userId, bidOwner, geographyList, iouList, serviceLinesList, countryList);
 				
 				bidDetailsList = beaconConverterService.convertBidDetailsCurrency(bidDetails, currency);
@@ -2524,6 +2952,20 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				currency, workbook);
 	}
 
+	/**
+	 * This Method is used to get list of BidDetailsT object based on privileges and fileter applied
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userId
+	 * @param bidOwner
+	 * @param geographyList
+	 * @param iouList
+	 * @param serviceLinesList
+	 * @param countryList
+	 * @return
+	 * @throws Exception
+	 */
 	private List<BidDetailsT> getBidDetailsBasedOnUserPrivileges(Date startDate, Date endDate, String userId, List<String> bidOwner,
 			List<String> geographyList, List<String> iouList, List<String> serviceLinesList, List<String> countryList) throws Exception {
 		logger.debug("Inside getBidDetailsBasedOnUserPrivileges() method");
@@ -2547,6 +2989,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 
 	/**
 	 * This Method used to form bid details query based on user access priviledges
+	 * 
 	 * @param userId
 	 * @param startDate
 	 * @param endDate
@@ -2606,24 +3049,20 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				Date toDate, List<Integer> salesStage)throws Exception {
 			logger.debug("Inside getOpportunityDetailedQueryString() method" );
 			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_DETAILED_QUERY_PREFIX);
-				// Get user access privilege groups 
+			// Get user access privilege groups 
 			HashMap<String, String> queryPrefixMap = 
 						userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
 								OPPORTUNITY_IOU_COND_PREFIX, null);
-				// Get WHERE clause string
+			// Get WHERE clause string
 			queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
 			queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
 			queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
-				String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-				if (whereClause != null && !whereClause.isEmpty()) { 
-					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-				}
-//				String salesStageCode = Joiner.on("\',\'").join(salesStage);
-//				if (!salesStage.isEmpty()) {
-//					salesStageCode = "\'" + salesStageCode + "\'";
-//				}
-				queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
-				return queryBuffer.toString();
+			String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+			if (whereClause != null && !whereClause.isEmpty()) { 
+				queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+			}
+			queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+			return queryBuffer.toString();
 		}
 		
 		
@@ -2632,22 +3071,23 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 		public String getOpportunityServiceLineSummaryQueryString(String userId, Date fromDate,
 				Date toDate, Integer salesStage)throws Exception {
 			logger.debug("Inside getOpportunityServiceLineSummaryQueryString() method" );
+			
 			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_SUMMARY_SUBSP_QUERY_PREFIX);
 				// Get user access privilege groups 
-			HashMap<String, String> queryPrefixMap = 
-						userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
+			HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(OPPORTUNITY_GEO_COND_PREFIX, OPPORTUNITY_SUBSP_COND_PREFIX, 
 								OPPORTUNITY_IOU_COND_PREFIX, null);
-				// Get WHERE clause string
+			// Get WHERE clause string
 			queryBuffer.append(Constants.LEFT_PARANTHESIS+OPPORTUNITY_SALES_STAGE_CODE_COND_PREFIX );
 			queryBuffer.append(OPPORTUNITY_START_DATE_COND_PREFIX  + fromDate + Constants.SINGLE_QUOTE);
 			queryBuffer.append(OPPORTUNITY_END_DATE_COND_PREFIX  + toDate + Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
-				String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-				if (whereClause != null && !whereClause.isEmpty()) { 
-					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-				}
-				queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
-				queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
-				return queryBuffer.toString();
+			String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+			
+			if (whereClause != null && !whereClause.isEmpty()) { 
+				queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+			}
+			queryBuffer.append(Constants.SPACE+ Constants.AND_CLAUSE +OPPORTUNITY_SALES_STAGE_COND_PREFIX +salesStage.toString().replace("[", "").replace("]", "")+Constants.RIGHT_PARANTHESIS);
+			queryBuffer.append(Constants.SPACE+ OPPORTUNITY_SUBSP_GROUP_BY_COND_PREFIX);
+			return queryBuffer.toString();
 		}
 		
 		//
@@ -2783,12 +3223,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,tillDate, country, "Summary", month, quarter, year, currency);
 				getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
 				ExcelUtils.arrangeSheetOrder(workbook);
-				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-				workbook.write(byteOutPutStream);
-				byteOutPutStream.flush();
-				byteOutPutStream.close();
-				byte[] bytes = byteOutPutStream.toByteArray();
-				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 				return inputStreamResource;
 			}
 			
@@ -2806,12 +3241,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				buildOpportunityReportService.getTitleSheet(workbook,geography,iou,serviceLines,salesStage,userId,toDate, country,"Detailed", month, quarter, year, currency);
 				buildOpportunityReportService.getOpportunities(month, quarter,year, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 				ExcelUtils.arrangeSheetOrder(workbook);
-				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-				workbook.write(byteOutPutStream);
-				byteOutPutStream.flush();
-				byteOutPutStream.close();
-				byte[] bytes = byteOutPutStream.toByteArray();
-				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 				return inputStreamResource;
 			}
 			
@@ -2836,12 +3266,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				getOpportunitySummaryReportExcel(month, year, quarter, geography, country, iou, currency, serviceLines, salesStageCodeList, userId,workbook);
 				buildOpportunityReportService.getOpportunities(fmonth, fquarter,fyear, geography, country,iou, serviceLines, salesStage, currency, userId,fields,workbook);
 				ExcelUtils.arrangeSheetOrder(workbook);
-				ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
-				workbook.write(byteOutPutStream);
-				byteOutPutStream.flush();
-				byteOutPutStream.close();
-				byte[] bytes = byteOutPutStream.toByteArray();
-				InputStreamResource inputStreamResource= new InputStreamResource(new ByteArrayInputStream(bytes));
+				InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 				return inputStreamResource;
 			}
 			
@@ -2874,9 +3299,9 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				List<String> countryList = new ArrayList<String>();
 				List<String> serviceLinesList = new ArrayList<String>();
 				addItemToListGeo(geography,geoList);
-				addItemToList(iou,iouList);
-				addItemToList(country,countryList);
-				addItemToList(serviceLines,serviceLinesList);
+				ExcelUtils.addItemToList(iou,iouList);
+				ExcelUtils.addItemToList(country,countryList);
+				ExcelUtils.addItemToList(serviceLines,serviceLinesList);
 				// ADD USERIDS HERE ITSELF
 				UserT user = userRepository.findByUserId(userId);
 				if(user == null){
@@ -2987,13 +3412,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				}
 			}
 
-			public void addItemToList(List<String> itemList, List<String> targetList){
-				if(itemList.contains("All") || itemList.isEmpty()){
-					targetList.add("");
-				} else {
-					targetList.addAll(itemList);
-				}
-			}
 			
 			public void addItemToListGeo(List<String> itemList, List<String> targetList){
 				if(itemList.contains("All") || itemList.isEmpty()){
@@ -3002,28 +3420,5 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
 				}
 			}
-
-		/**
-		 * 
-		 * @param from
-		 * @param to
-		 * @param geography
-		 * @param country
-		 * @param currency
-		 * @param serviceLines
-		 * @param salesStage
-		 * @param opportunityOwnerIds
-		 * @param supervisorId
-		 * @return
-		 */
-		public InputStreamResource getBdmDetailedReport(String from, String to, List<String> geography, List<String> country,
-				List<String> currency, List<String> serviceLines, List<Integer> salesStage, List<String> opportunityOwnerIds,
-				String supervisorId) {
-
-			
-			
-			return null;
-		}
-		
 
 }
