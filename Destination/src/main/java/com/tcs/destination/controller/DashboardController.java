@@ -109,45 +109,8 @@ public class DashboardController {
 	 * @return String
 	 * @throws Exception
 	 */
-//	@RequestMapping(value = "/leadership/connect", method = RequestMethod.GET)
-//	public String getLeadershipConnectsByGeography(
-//			@RequestParam(value = "geography", defaultValue = "") String geography,
-//			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
-//			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-//			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
-//			@RequestParam(value = "connectCategory") String connectCategory,
-//			@RequestParam(value = "view", defaultValue = "") String view)
-//			throws DestinationException {
-//		logger.info("Start of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
-//		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-//		LeadershipConnectsDTO connects = null;
-//		try {
-//			connects = dashboardService.getLeadershipConnectsByGeography(
-//					userId, fromDate, toDate, geography, connectCategory);
-//			logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
-//			return ResponseConstructors.filterJsonForFieldAndViews(
-//					includeFields, view, connects);
-//		} catch (DestinationException e) {
-//			throw e;
-//		} catch (Exception e) {
-//			logger.error(e.getMessage());
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					"Backend error in retrieving a list of Connects based on the user");
-//		}
-//	}
-	/**
-	 * This method is used to generate stub for getLeadershipConnectsByGeography method
-	 * @param geography
-	 * @param fromDate
-	 * @param toDate
-	 * @param includeFields
-	 * @param connectCategory
-	 * @param view
-	 * @return
-	 * @throws DestinationException
-	 */
 	@RequestMapping(value = "/leadership/connect", method = RequestMethod.GET)
-	public String getLeadershipConnectsByGeographyStub(
+	public String getLeadershipConnectsByGeography(
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
@@ -155,22 +118,13 @@ public class DashboardController {
 			@RequestParam(value = "connectCategory") String connectCategory,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Start of stub to retrieve a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
-		LeadershipConnectsDTO connects = new LeadershipConnectsDTO();
+		logger.info("Start of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		LeadershipConnectsDTO connects = null;
 		try {
-			if(connectCategory.equalsIgnoreCase("CUSTOMER")){
-				
-				ObjectMapper mapper = new ObjectMapper();
-				String json ="{\"pastConnects\":[{\"connectId\":\"CNN139\",\"connectName\":\"sample 2\",\"customerId\":\"CUS1\",\"location\":\"Kochi, Kerala, India\",\"cityMapping\":{\"city\":\"Kochi, Kerala, India\",\"latitude\":\"9.9312328\",\"longitude\":\"76.26730410000005\"},\"customerMasterT\":{\"customerId\":\"CUS1\",\"customerName\":\"1-800-FLOWERS.COM Americas\"}},{\"connectId\":\"CNN138\",\"connectName\":\"test sample\",\"customerId\":\"CUS1\",\"location\":\"Pune, Maharashtra 411001, India\",\"cityMapping\":{\"city\":\"Pune, Maharashtra 411001, India\",\"latitude\":\"18.5204303\",\"longitude\":\"73.85674369999992\"},\"customerMasterT\":\"CUS1\"}],\"sizeOfPastConnects\":2,\"upcomingConnects\":[{\"connectId\":\"CNN130\",\"connectName\":\"meeibf\",\"customerId\":\"CUS37\",\"location\":\"Chennai, Tamil Nadu, India\",\"cityMapping\":{\"city\":\"Chennai, Tamil Nadu, India\",\"latitude\":\"13.0826802\",\"longitude\":\"80.27071840000008\"},\"customerMasterT\":{\"customerId\":\"CUS37\",\"customerName\":\"Airtel India\"}}],\"sizeOfUpcomingConnects\":1}";
-				connects =  mapper.readValue(json, LeadershipConnectsDTO.class);
-				
-			}
-			else if(connectCategory.equalsIgnoreCase("PARTNER")){
-				ObjectMapper mapper = new ObjectMapper();
-				String json ="{\"pastConnects\": [{\"connectId\": \"CNN80\",\"connectName\": \"Discuss capability enablement for ABN Amro Digital Ambition\",\"partnerId\": \"PAT10\",\"location\": \"Amsterdam, Netherlands\",\"cityMapping\": {\"city\": \"Amsterdam, Netherlands\",\"latitude\": \"52.3702157\",\"longitude\": \"4.895167899999933\"},\"partnerMasterT\": {\"partnerId\": \"PAT10\",\"partnerName\": \"Backbase\"}}],\"sizeOfPastConnects\": 1,\"upcomingConnects\": [{\"connectId\": \"CNN218\",\"connectName\": \"Hortonworks pricing for Netherland opportunity\",\"partnerId\": \"PAT27\",\"location\": \"Mumbai, Maharashtra, India\",\"cityMapping\": {\"city\": \"Mumbai, Maharashtra, India\",\"latitude\": \"19.0759837\",\"longitude\": \"72.87765590000004\"},\"partnerMasterT\": {\"partnerId\": \"PAT27\",\"partnerName\": \"Hortonworks\"}}  ],\"sizeOfUpcomingConnects\": 1}";
-				connects =  mapper.readValue(json, LeadershipConnectsDTO.class);
-			}
-			logger.info("End of stub to retrieve a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
+			connects = dashboardService.getLeadershipConnectsByGeography(
+					userId, fromDate, toDate, geography, connectCategory);
+			logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
 			return ResponseConstructors.filterJsonForFieldAndViews(
 					includeFields, view, connects);
 		} catch (DestinationException e) {
