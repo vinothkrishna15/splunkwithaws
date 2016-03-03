@@ -266,7 +266,7 @@ public interface OpportunityRepository extends
 	 * @return
 	 */
 	@Query(value = "select sum((digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) "
-			+ "/ (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'INR')),OPP.sales_stage_code,count(*),SSM.sales_stage_description "
+			+ "/ (select conversion_rate from beacon_convertor_mapping_t where currency_name = 'USD')),OPP.sales_stage_code,count(*),SSM.sales_stage_description "
 			+ "from opportunity_t OPP JOIN sales_stage_mapping_t SSM ON OPP.sales_stage_code=SSM.sales_stage_code "
 			+ "where OPP.opportunity_id in ((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
 			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
