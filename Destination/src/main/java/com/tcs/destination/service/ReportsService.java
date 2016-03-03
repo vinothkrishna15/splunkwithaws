@@ -2195,6 +2195,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			
 			List<String> userIds = new ArrayList<String>();
 			
+			String category="";
+			
 			if (UserGroup.contains(userGroup)) {
 			
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -2230,8 +2232,11 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
 				
 			} else {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				if(!connectCategory.equals("All")){
+					category=category+connectCategory+Constants.SPACE;
+				}
+				logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
 			}
 			
 			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
@@ -2452,6 +2457,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			
+			String category = "";
+			
 			if (UserGroup.contains(userGroup)) {
 			
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
@@ -2505,7 +2512,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				
 			}
 			
-			if (!subSpCustomerConnectCountList.isEmpty() || !(geographyCustomerConnectCountList.isEmpty()) || !(iouConnectCountList.isEmpty())) {
+			if (!subSpCustomerConnectCountList.isEmpty() || !subSpPartnerConnectCountList.isEmpty() || !(geographyCustomerConnectCountList.isEmpty()) || !(geographyPartnerConnectCountList.isEmpty()) || !(iouConnectCountList.isEmpty())) {
 					
 				connectDetailedReportService.getConnectTitlePage(workbook, geography, iou, serviceLines, user, country, month, quarter, year, ReportConstants.SUMMARY,connectCategory);
 				
@@ -2513,8 +2520,11 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 						geographyCustomerConnectCountList, geographyPartnerConnectCountList, iouConnectCountList, month, quarter, year, workbook,connectCategory);
 				
 			} else {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				if(!connectCategory.equals("All")){
+					category=category+connectCategory+Constants.SPACE;
+				}
+				logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
 			}
 			
 			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
@@ -2797,6 +2807,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			ExcelUtils.addItemToList(country, countryList);
 			
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			
+			String category="";
 
 			if (UserGroup.contains(userGroup)) {
 
@@ -2861,8 +2873,11 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
 				
 			} else {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no connects are available for user selection and privilege combination");
+				if(!connectCategory.equals("All")){
+					category=category+connectCategory+Constants.SPACE;
+				}
+				logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
 			}
 			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 		
