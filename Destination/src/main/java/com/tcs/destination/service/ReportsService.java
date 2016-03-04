@@ -2229,7 +2229,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				
 				connectDetailedReportService.getConnectTitlePage(workbook, displayGeography, iou, serviceLines, user, country, month, quarter, year, ReportConstants.DETAILED,connectCategory);
 				
-				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
+				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook,connectCategory);
 				
 			} else {
 				if(!connectCategory.equals("All")){
@@ -2870,7 +2870,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				connectSummaryReportService.getConnectSummaryExcelReport(subSpCustomerConnectCountList, subSpPartnerConnectCountList,
 						geographyCustomerConnectCountList, geographyPartnerConnectCountList, iouConnectCountList, month,
 						quarter, year, workbook, connectCategory);
-				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook);
+				connectDetailedReportService.getConnectDetailedReport(connectIdList, fields, workbook,connectCategory);
 				
 			} else {
 				if(!connectCategory.equals("All")){
