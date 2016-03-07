@@ -296,6 +296,12 @@ public class DateUtils {
 		Date time = COMMENT_FORMAT.parse(timeStr);
 		return COMMENT_FORMAT.format(time);
 	}
+	
+	public static String getFormattedDate(Object fromValue) throws ParseException {
+		String timeStr = fromValue.toString();  
+		Date time = DATE_FORMAT.parse(timeStr);
+		return DATE_FORMAT.format(time);
+	}
 
 	/**
 	 * Gets current month in the format as per database
