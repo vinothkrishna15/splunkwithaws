@@ -8,8 +8,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -266,7 +268,7 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	public LeadershipConnectsDTO getLeadershipConnectsByGeography(
-			String userId, Date fromDate, Date toDate, String geography)
+			String userId, Date fromDate, Date toDate, String geography, String connectCategory)
 			throws Exception {
 		logger.debug("Start:Inside getLeadershipConnectsByGeography() of DashBoardService");
 
@@ -288,7 +290,7 @@ public class DashBoardService {
 							"User is not authorised to access this service");
 				default:
 					leadershipConnectsDTO = getTeamConnectsBasedOnUserPrivileges(
-							userId, fromDate, toDate, geography);
+							userId, fromDate, toDate, geography, connectCategory);
 				}
 			}
 
@@ -314,7 +316,7 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	private LeadershipConnectsDTO getTeamConnectsBasedOnUserPrivileges(
-			String supervisorId, Date startDate, Date endDate, String geography)
+			String supervisorId, Date startDate, Date endDate, String geography, String connectCategory)
 			throws Exception {
 		
 		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
@@ -336,11 +338,11 @@ public class DashBoardService {
 
 		// Get the Past connects
 		List<ConnectT> listOfPastConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, fromDateTs, nowTs);
+				supervisorId, geography, fromDateTs, nowTs, connectCategory);
 
 		// Get the Future Connects using the constructed query
 		List<ConnectT> listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, nowNextMsTs, toDateTs);
+				supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
 
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
@@ -437,8 +439,7 @@ public class DashBoardService {
 	}
 
 	/**
-	 * This method appends the query to retrieve the connects sans the
-	 * privileges.
+	 * This method appends the query to retrieve the connects for partner or customer
 	 * 
 	 * @param supervisorId
 	 * @param displayGeography
@@ -448,26 +449,112 @@ public class DashBoardService {
 	 */
 	private List<ConnectT> getLeadershipDashboardTeamConnects(
 			String supervisorId, String displayGeography, Timestamp fromDate,
-			Timestamp toDate) throws Exception {
+			Timestamp toDate, String connectCategory) throws Exception {
+		logger.debug("Start:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");		
+		List<ConnectT> leadershipConnects = null;
+		
+		//For retrieving customer connects alone
+		if(connectCategory.equalsIgnoreCase(Constants.CUSTOMER)){			
+			
+			leadershipConnects = getLeadershipDashboardConnectsForCustomer(supervisorId, displayGeography,
+					fromDate, toDate);
+		}
+		//For retrieving partner connects, without access privileges logic
+		else if(connectCategory.equalsIgnoreCase(Constants.PARTNER)){
+			leadershipConnects = getLeadershipDashboardConnectsForPartner(
+					fromDate, toDate);
+			
+		}
+		logger.debug("End:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
+		return leadershipConnects;
+	  }
 
-		logger.debug("Start:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
-		StringBuffer queryBuffer = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
-
-		// Append privileges obtained above. Note that access privilege is only
-		// for customers and not for partners
-		queryBuffer
-				.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
-        queryBuffer.append(TEAM_CONNECTS_QUERY_PART2);
-
-		Query query = entityManager.createNativeQuery(queryBuffer.toString(),
+	/**
+	 * This method is used to retrieve partner connects for leadership dashboard without access privileges logic
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	private List<ConnectT> getLeadershipDashboardConnectsForPartner(
+			Timestamp fromDate, Timestamp toDate) throws Exception {
+		logger.debug("Start:Inside  getLeadershipDashboardConnectsForPartner() of DashBoardService");
+		
+		//Query to get partner connects
+		StringBuffer queryBufferForPartner = new StringBuffer(TEAM_CONNECTS_QUERY_PARTNER);
+		Query queryForPartnerConnects = entityManager.createNativeQuery(queryBufferForPartner.toString(),
 				ConnectT.class);
 
-		query.setParameter("fromDate", fromDate);
-		query.setParameter("toDate", toDate);
-		query.setParameter("displayGeography", displayGeography);
-		logger.debug("End:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
-		return query.getResultList();
-	  }
+		queryForPartnerConnects.setParameter("fromDate", fromDate);
+		queryForPartnerConnects.setParameter("toDate", toDate);		
+		
+		logger.debug("End:Inside  getLeadershipDashboardConnectsForPartner() of DashBoardService");
+		return queryForPartnerConnects.getResultList();
+	}
+
+	/**
+	 * This method is used to retrieve customer connects for leadership dashboard based on access privileges
+	 * @param supervisorId
+	 * @param displayGeography
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws Exception
+	 */
+	private List<ConnectT> getLeadershipDashboardConnectsForCustomer(String supervisorId,
+			String displayGeography, Timestamp fromDate, Timestamp toDate)
+			throws Exception {
+		logger.debug("Start: Inside getConnectsForCustomer() method of Dashboard Service");
+
+		//Connects for a customer are stored
+		Set<ConnectT> customerConnects = null;
+		
+		StringBuffer queryBufferForCustomerConnects = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
+		// Append privileges obtained above. Note that access privilege is only
+		// for customers and not for partners
+		queryBufferForCustomerConnects
+				.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
+		queryBufferForCustomerConnects.append(TEAM_CONNECTS_QUERY_PART2);
+		Query queryForCustomerConnects = entityManager.createNativeQuery(queryBufferForCustomerConnects.toString(),
+				ConnectT.class);
+
+		queryForCustomerConnects.setParameter("fromDate", fromDate);
+		queryForCustomerConnects.setParameter("toDate", toDate);
+		queryForCustomerConnects.setParameter("displayGeography", displayGeography);
+		customerConnects= new HashSet<ConnectT>(queryForCustomerConnects.getResultList());
+		
+		//Check if user is a GEO HEAD or IOU HEAD
+		UserT user = userService.findByUserId(supervisorId);
+		if (user != null) {
+			String userGroup = user.getUserGroupMappingT().getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				if((userGroup.equalsIgnoreCase(UserGroup.GEO_HEADS.getValue()))||
+						(userGroup.equalsIgnoreCase(UserGroup.IOU_HEADS.getValue()))){
+					
+					//Query to get the user's subordinates till n-level
+					List<String> userIds = userRepository
+							.getAllSubordinatesIdBySupervisorId(supervisorId);
+					//User is also added to the list of userIds
+					userIds.add(supervisorId);
+					
+					//Query to get subordinate's connects
+					StringBuffer queryBufferForSub = new StringBuffer(TEAM_CONNECTS_QUERY_CUSTOMER);
+					Query queryForSubordinateConnects = entityManager.createNativeQuery(queryBufferForSub.toString(),
+							ConnectT.class);
+					queryForSubordinateConnects.setParameter("fromDate", fromDate);
+					queryForSubordinateConnects.setParameter("toDate", toDate);						
+					queryForSubordinateConnects.setParameter("userIdList", userIds);
+					// The customer connects owned by sub-ordinates and user is retrieved and added to the connects obtained based on geography
+					List<ConnectT> resultSet = queryForSubordinateConnects.getResultList();
+					if(resultSet!=null && resultSet.size()!=0){
+						customerConnects.addAll(resultSet);
+					}						
+				}
+			}
+			
+		}	
+		logger.debug("End: Inside getConnectsForCustomer() method of Dashboard Service");
+		return new ArrayList<ConnectT>(customerConnects);
+	}
 
 	/**
 	 * This service retrieves the WON opportunities of all users under a

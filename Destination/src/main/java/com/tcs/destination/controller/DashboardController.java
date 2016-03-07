@@ -1,5 +1,6 @@
 package com.tcs.destination.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.LeadershipConnectsDTO;
 import com.tcs.destination.bean.LeadershipOpportunitiesDTO;
 import com.tcs.destination.bean.LeadershipOverallWinsDTO;
@@ -20,6 +22,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DashBoardService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * 
@@ -112,6 +115,7 @@ public class DashboardController {
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
+			@RequestParam(value = "connectCategory") String connectCategory,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
@@ -119,7 +123,7 @@ public class DashboardController {
 		LeadershipConnectsDTO connects = null;
 		try {
 			connects = dashboardService.getLeadershipConnectsByGeography(
-					userId, fromDate, toDate, geography);
+					userId, fromDate, toDate, geography, connectCategory);
 			logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
 			return ResponseConstructors.filterJsonForFieldAndViews(
 					includeFields, view, connects);
