@@ -68,11 +68,23 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowCustomerT;
+import com.tcs.destination.bean.WorkflowProcessTemplate;
+import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
+import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
+import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
+import com.tcs.destination.data.repository.WorkflowRequestTRepository;
+import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
+import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -96,6 +108,12 @@ public class DestinationMailUtils {
 
 	@Value("${reopenOpportunityProcessedTemplateLoc}")
 	private String reopenOpportunityProcessedTemplateLoc;
+
+	@Value("${workflowPendingTemplateLoc}")
+	private String workflowPendingTemplateLoc;
+
+	@Value("${workflowApproveOrRejectTemplateLoc}")
+	private String workflowApproveOrRejectTemplateLoc;
 
 	@Value("${upload.template}")
 	private String uploadTemplateLoc;
@@ -132,6 +150,24 @@ public class DestinationMailUtils {
 
 	@Autowired
 	OpportunitySalesSupportLinkTRepository opportunitySalesSupportLinkTRepository;
+
+	@Autowired
+	WorkflowRequestTRepository workflowRequestRepository;
+
+	@Autowired
+	WorkflowStepTRepository workflowStepRepository;
+
+	@Autowired
+	WorkflowCustomerTRepository workflowCustomerRepository;
+
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	WorkflowProcessTemplateRepository workflowProcessTemplateRepository;
 
 	@Autowired
 	private OpportunityService oppService;
@@ -1062,6 +1098,260 @@ public class DestinationMailUtils {
 			}
 		}
 
+	}
+
+	/**
+	 * This method is used to send mail notification to whom the request is
+	 * pending
+	 * 
+	 * @param workflowCustomerPendingSubject
+	 * @param requestId
+	 * @param date
+	 * @throws Exception
+	 */
+	public void sendWorkflowPendingMail(String workflowCustomerPendingSubject,
+			Integer requestId, Date date) throws Exception {
+		logger.info("Inside sendWorkflowPendingMail method");
+		List<String> recepientIds = new ArrayList<String>();
+		String userGroupOrUserRoleOrUserId = null;
+		String workflowEntity = null;
+		String workflowEntityName = null;
+		String[] recipientMailIdsArray = null;
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(date);
+		String subject = new StringBuffer(environmentName).append(" ")
+				.append(workflowCustomerPendingSubject).toString();
+		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+				.createMimeMessage();
+		MimeMessageHelper helper;
+		try {
+			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			WorkflowRequestT workflowRequestT = workflowRequestRepository
+					.findOne(requestId);
+			WorkflowStepT workflowStepPending = workflowStepRepository
+					.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.PENDING.getStatus());
+			WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
+					.findOne(workflowRequestT.getEntityId());
+			String userName = userRepository
+					.findUserNameByUserId(workflowCustomerT.getCreatedBy());
+			workflowEntity = Constants.WORKFLOW_CUSTOMER;
+			workflowEntityName = workflowCustomerT.getCustomerName();
+			if (workflowStepPending.getUserGroup() != null
+					|| workflowStepPending.getUserRole() != null
+					|| workflowStepPending.getUserId() != null) {
+				if (workflowStepPending.getUserGroup() != null) {
+					switch (workflowStepPending.getUserGroup()) {
+					case Constants.WORKFLOW_GEO_HEADS_PMO:
+
+						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+						recepientIds.addAll(userAccessPrivilegesRepository
+								.findUserIdsForWorkflowUserGroupWithPMO(
+										workflowCustomerT.getGeography(),
+										UserGroup.GEO_HEADS.getValue(),
+										pmoValue));
+						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS_PMO;
+						break;
+					default:
+					}
+				}
+				if (workflowStepPending.getUserRole() != null) {
+					recepientIds.addAll(userRepository
+							.findUserIdByUserRole(workflowStepPending
+									.getUserRole()));
+					userGroupOrUserRoleOrUserId = workflowStepPending
+							.getUserRole();
+
+				}
+				if (workflowStepPending.getUserId() != null) {
+					String[] workflowUserIds = workflowStepPending.getUserId()
+							.split(",");
+					List<String> workflowUserIdList = Arrays
+							.asList(workflowUserIds);
+					recepientIds.addAll(workflowUserIdList);
+				}
+			}
+			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+			Map<String, Object> workflowMap = new HashMap<String, Object>();
+			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
+			workflowMap.put("workflowEntity", workflowEntity);
+			workflowMap.put("workflowEntityName", workflowEntityName);
+			workflowMap.put("submittedDate", dateStr);
+			workflowMap.put("userName", userName);
+			helper.setTo(recipientMailIdsArray);
+			helper.setFrom(senderEmailId);
+
+			String text = VelocityEngineUtils.mergeTemplateIntoString(
+					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
+					workflowMap);
+			logger.info("framed text for mail :" + text);
+
+			helper.setSubject(subject);
+			helper.setText(text, true);
+			logMailDetails(recipientMailIdsArray, null, null, subject, text);
+			mailSender.send(automatedMIMEMessage);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MailSendException e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		} catch (MailParseException e) {
+			logger.error("Error parsing mail message", e.getMessage());
+			throw e;
+		} catch (MailAuthenticationException e) {
+			logger.error("Error authnticatingh e-mail message", e.getMessage());
+			throw e;
+		} catch (MailPreparationException e) {
+			logger.error("Error preparing mail message", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		}
+
+	}
+
+	public void sendWorkflowApprovedOrRejectMail(
+			String workflowCustomerApprovedOrRejectSubject, Integer requestId,
+			Date date) throws Exception {
+		logger.info("Inside sendWorkflowApprovedOrRejectMail method");
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		String[] recipientMailIdsArray = null;
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(date);
+		String subject = new StringBuffer(environmentName).append(" ")
+				.append(workflowCustomerApprovedOrRejectSubject).toString();
+		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+				.createMimeMessage();
+		MimeMessageHelper helper;
+		try {
+			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			WorkflowRequestT workflowRequestT = workflowRequestRepository
+					.findOne(requestId);
+			WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
+					.findOne(workflowRequestT.getEntityId());
+			String entityName = workflowCustomerT.getCustomerName();
+			WorkflowStepT workflowStepSubmitted = workflowStepRepository
+					.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.SUBMITTED.getStatus());
+			if (workflowStepSubmitted != null) {
+				recepientIds.add(workflowStepSubmitted.getUserId());
+				String userName = userRepository
+						.findUserNameByUserId(workflowStepSubmitted.getUserId());
+				WorkflowStepT workflowStepApprovedOrRejected = workflowStepRepository
+						.findWorkflowStepApprovedorRejected(requestId);
+				String approvedOrRejectedUserName = userRepository
+						.findUserNameByUserId(workflowStepApprovedOrRejected
+								.getUserId());
+
+				List<WorkflowStepT> workflowStepsBeforeApprovalOrRejection = workflowStepRepository
+						.findWorkflowTemplateBeforeApprovalOrRejection(requestId);
+				if (workflowStepsBeforeApprovalOrRejection != null) {
+
+					workflowStepsBeforeApprovalOrRejection
+							.remove(workflowStepSubmitted.getStep());
+				}
+				if (workflowStepsBeforeApprovalOrRejection != null) {
+					for (WorkflowStepT workflowStep : workflowStepsBeforeApprovalOrRejection) {
+						if (workflowStep.getUserGroup() != null
+								|| workflowStep.getUserRole() != null
+								|| workflowStep.getUserId() != null) {
+							if (workflowStep.getUserGroup() != null) {
+								switch (workflowStep.getUserGroup()) {
+								case Constants.WORKFLOW_GEO_HEADS_PMO:
+
+									String pmoValue = "%"
+											+ Constants.PMO_KEYWORD + "%";
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForWorkflowUserGroupWithPMO(
+													workflowCustomerT
+															.getGeography(),
+													UserGroup.GEO_HEADS
+															.getValue(),
+													pmoValue));
+								default:
+
+								}
+							}
+							if (workflowStep.getUserRole() != null) {
+								ccIds.addAll(userRepository
+										.findUserIdByUserRole(workflowStep
+												.getUserRole()));
+							}
+							if (workflowStep.getUserId() != null) {
+								String[] workflowUserIds = workflowStep
+										.getUserId().split(",");
+								List<String> workflowUserIdList = Arrays
+										.asList(workflowUserIds);
+								ccIds.addAll(workflowUserIdList);
+							}
+						}
+					}
+				}
+				String comment = "";
+				recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+				String[] ccMailIdsArray = getMailAddressArr(ccIds);
+				helper.setCc(ccMailIdsArray);
+				helper.setTo(recipientMailIdsArray);
+				helper.setFrom(senderEmailId);
+				helper.setSubject(subject);
+				Map<String, Object> workflowMap = new HashMap<String, Object>();
+				workflowMap.put("userName", userName);
+				workflowMap.put("entity", Constants.WORKFLOW_CUSTOMER);
+				workflowMap.put("entityName", entityName);
+				workflowMap.put("submittedDate", dateStr);
+				workflowMap.put("approvedOrRejectedUserName",
+						approvedOrRejectedUserName);
+				if (workflowRequestT.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
+
+					if (workflowStepApprovedOrRejected.getComments() != null) {
+						comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
+								.append(" ")
+								.append(workflowStepApprovedOrRejected
+										.getComments()).toString();
+					}
+					workflowMap.put("status", "approved");
+					workflowMap.put("comment", comment);
+				} else {
+					comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
+							.append(" ")
+							.append(workflowStepApprovedOrRejected
+									.getComments()).toString();
+					workflowMap.put("status", "rejected");
+					workflowMap.put("comment", comment);
+				}
+				String text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine, workflowApproveOrRejectTemplateLoc,
+						Constants.UTF8, workflowMap);
+				logger.info("framed text for mail :" + text);
+				helper.setText(text, true);
+				logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
+						subject, text);
+				mailSender.send(automatedMIMEMessage);
+			}
+
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MailSendException e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		} catch (MailParseException e) {
+			logger.error("Error parsing mail message", e.getMessage());
+			throw e;
+		} catch (MailAuthenticationException e) {
+			logger.error("Error authnticatingh e-mail message", e.getMessage());
+			throw e;
+		} catch (MailPreparationException e) {
+			logger.error("Error preparing mail message", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		}
 	}
 
 }

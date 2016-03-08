@@ -4,12 +4,14 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -36,19 +38,22 @@ public class WorkflowStepT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
-
+	
 	@Column(name="user_id")
 	private String userId;
-
+	
+	@Column(name="request_id")
+	private Integer requestId;
+	
 	@Column(name="created_by")
 	private String createdBy;
-
+	
 	@Column(name="modified_by")
 	private String modifiedBy;
-
+	
 	@Column(name="user_group")
 	private String userGroup;
-
+	
 	@Column(name="user_role")
 	private String userRole;
 
@@ -56,6 +61,10 @@ public class WorkflowStepT implements Serializable {
 
 	@Column(name="step_status")
 	private String stepStatus;
+	
+	//bi-directional many-to-one association to WorkflowStepUserT
+		@OneToMany(mappedBy="workflowStepT")
+		private List<WorkflowStepUserT> workflowStepUserTs;
 
 
 	//bi-directional many-to-one association to UserT
@@ -75,7 +84,7 @@ public class WorkflowStepT implements Serializable {
 
 	//bi-directional many-to-one association to WorkflowRequestT
 	@ManyToOne
-	@JoinColumn(name="request_id")
+	@JoinColumn(name="request_id", updatable = false, insertable = false)
 	private WorkflowRequestT workflowRequestT;
 
 	public WorkflowStepT() {
@@ -129,7 +138,7 @@ public class WorkflowStepT implements Serializable {
 		this.stepStatus = stepStatus;
 	}
 
-
+	
 
 	public UserT getUser() {
 		return user;
@@ -202,5 +211,37 @@ public class WorkflowStepT implements Serializable {
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
 	}
+	
+	public List<WorkflowStepUserT> getWorkflowStepUserTs() {
+		return this.workflowStepUserTs;
+	}
+
+	public void setWorkflowStepUserTs(List<WorkflowStepUserT> workflowStepUserTs) {
+		this.workflowStepUserTs = workflowStepUserTs;
+	}
+
+	public WorkflowStepUserT addWorkflowStepUserT(WorkflowStepUserT workflowStepUserT) {
+		getWorkflowStepUserTs().add(workflowStepUserT);
+		workflowStepUserT.setWorkflowStepT(this);
+
+		return workflowStepUserT;
+	}
+
+	public WorkflowStepUserT removeWorkflowStepUserT(WorkflowStepUserT workflowStepUserT) {
+		getWorkflowStepUserTs().remove(workflowStepUserT);
+		workflowStepUserT.setWorkflowStepT(null);
+
+		return workflowStepUserT;
+	}
+
+	public Integer getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(Integer requestId) {
+		this.requestId = requestId;
+	}
+	
+	
 
 }

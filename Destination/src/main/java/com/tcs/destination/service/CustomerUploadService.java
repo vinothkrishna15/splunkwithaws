@@ -139,7 +139,7 @@ public class CustomerUploadService {
 	 * This method creates a geography Map
 	 * @return geographyMap
 	 */
-	private Map<String, GeographyMappingT> getGeographyMappingT() {
+	public Map<String, GeographyMappingT> getGeographyMappingT() {
 		logger.debug("Start: Inside getGeographyMappingT() of CustomerUploadService");
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
@@ -155,7 +155,7 @@ public class CustomerUploadService {
 	 * This method creates a IOU Map
 	 * @return iouMap
 	 */
-	private Map<String, IouCustomerMappingT> getIouMappingT() {
+	public Map<String, IouCustomerMappingT> getIouMappingT() {
 		logger.debug("Start: Inside getIouMappingT() of CustomerUploadService");
 		List<IouCustomerMappingT> listOfIouMappingT = null;
 		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository.findAll();

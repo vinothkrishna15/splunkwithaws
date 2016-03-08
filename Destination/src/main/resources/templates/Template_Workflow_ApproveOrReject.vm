@@ -1,0 +1,18 @@
+<html>
+	<body>
+		<h3>Dear ${userName},</h3>
+		<p>
+			  Your request to create the ${entity} : ${entityName} submitted on ${submittedDate} has been ${status} by ${approvedOrRejectedUserName}.
+			  ${comment}
+			  
+		</p>		
+		<p>
+		Regards,<br>
+		Destination Team.
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>
