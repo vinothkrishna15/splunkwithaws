@@ -127,10 +127,10 @@ public class UserDwldGoalRefWriter implements ItemWriter<GoalMappingT>,
 				String goalName = goal.getGoalName();
 				ExcelUtils.createCell(goalName.trim(), row, 1);
 				
-				String displayUnit = goal.getGoalName();
+				String displayUnit = goal.getDisplayUnit();
 				ExcelUtils.createCell(displayUnit.trim(), row, 2);
 				
-				String finYear = goal.getGoalName();
+				String finYear = goal.getFinancialyear();
 				ExcelUtils.createCell(finYear.trim(), row, 3);
 				
 				String defTarget = goal.getDefaultTarget().toString();
