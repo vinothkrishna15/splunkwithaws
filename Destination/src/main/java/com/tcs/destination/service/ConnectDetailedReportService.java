@@ -131,19 +131,34 @@ public class ConnectDetailedReportService {
 		int colNo=0;
 		row.createCell(colNo).setCellValue(connect.getConnectId());
 		colNo++;
-		if(!connectCategory.equals(ReportConstants.PARTNER)){
-			row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
-			colNo++;
-			List<String> displaySubSpList = new ArrayList<String>();
-			for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
-				displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+		if(!connectCategory.equals(ReportConstants.PARTNER)) {
+			if(connect.getCustomerMasterT()!=null){
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
+				colNo++;
+				List<String> displaySubSpList = new ArrayList<String>();
+				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+				}
+				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				colNo++;
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
+				colNo++;
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
+				colNo++;
+			} else {
+				row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
+				colNo++;
+				List<String> displaySubSpList = new ArrayList<String>();
+				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+				}
+				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				colNo++;
+				row.createCell(colNo).setCellValue(Constants.SPACE);
+				colNo++;
+				row.createCell(colNo).setCellValue(Constants.SPACE);
+				colNo++;
 			}
-			row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
-			colNo++;
-			row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
-			colNo++;
-			row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
-			colNo++;
 			row.createCell(colNo).setCellValue(connect.getConnectName());
 		} else{
 			row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
@@ -260,7 +275,6 @@ public class ConnectDetailedReportService {
 		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
-
 
 		for (String connectId : connectIdList) {
 			ConnectT connect = connectRepository.findByConnectId(connectId);
@@ -486,8 +500,6 @@ public class ConnectDetailedReportService {
 					currentRow = currentRow + 0;
 				}
 			}
-
-			
 		}
 		return currentRow;
 	}

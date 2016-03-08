@@ -1,6 +1,10 @@
 package com.tcs.destination.service;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -13,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.ConnectSummaryResponse;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -135,7 +140,7 @@ public class ConnectSummaryReportService {
 		currentRow++;
 		
 		if(!connectCategory.equals("PARTNER")){
-			currentRow = connectSummaryReport(iouConnectCountList, null, spreadSheet, currentRow, colValue, ReportConstants.IOUSPLIT,cellStyle,cellStyle1,connectCategory);
+			currentRow = connectSummaryReportByIou(iouConnectCountList, spreadSheet, currentRow, colValue, ReportConstants.IOUSPLIT,cellStyle,cellStyle1,connectCategory);
 			currentRow++;
 		}
 		
@@ -162,9 +167,7 @@ public class ConnectSummaryReportService {
 
 		logger.debug("Begin:: Inside summaryReport() of ConnectSummaryReportService");
 		SXSSFRow row;
-		int customerRow=0;
-		int partnerRow=0;
-		int colNo=0;
+		int rowNo=0;
 		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		row.createCell(colValue).setCellValue(subHeader);
 		row.getCell(colValue).setCellStyle(headerStyle);
@@ -173,52 +176,146 @@ public class ConnectSummaryReportService {
 		
 		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		
-		if(connectCategory.equals("All") || connectCategory.equals("CUSTOMER")){
+		if(connectCategory.equals("All")){
+			List<ConnectSummaryResponse> connectSummaryResponsesList = new ArrayList<ConnectSummaryResponse>();
+			
+			getCustomerAndPartnerConnectSummary(connectCustomerCountList, connectPartnerCountList,connectSummaryResponsesList);
+			
 			row.createCell(colValue).setCellValue(ReportConstants.ROWLABEL);
 			row.getCell(colValue).setCellStyle(subHeaderStyle);
-			colNo++;
-			row.createCell(colValue+colNo).setCellValue(ReportConstants.COUNTOFCUSTOMERCONNECTS);
-			row.getCell(colValue+colNo).setCellStyle(subHeaderStyle);
-			customerRow = currentRow+1;
+			row.createCell(colValue+1).setCellValue(ReportConstants.COUNTOFCUSTOMERCONNECTS);
+			row.getCell(colValue+1).setCellStyle(subHeaderStyle);
+			row.createCell(colValue+2).setCellValue(ReportConstants.COUNTOFPARTNERCONNECTS);
+			row.getCell(colValue+2).setCellStyle(subHeaderStyle);
+			rowNo = currentRow+1;
+			for (ConnectSummaryResponse connectSummaryResponse : connectSummaryResponsesList) {
+				row = (SXSSFRow) spreadSheet.createRow((short) rowNo);
+					row.createCell(colValue).setCellValue(connectSummaryResponse.getRowLabel());
+					row.createCell(colValue+1).setCellValue(connectSummaryResponse.getCustomerConnectCount().intValue());
+					row.createCell(colValue+2).setCellValue(connectSummaryResponse.getPartnerConnectCount().intValue());
+					rowNo++;
+			}
+			
+		} else if(connectCategory.equals("CUSTOMER")){
+			row.createCell(colValue).setCellValue(ReportConstants.ROWLABEL);
+			row.getCell(colValue).setCellStyle(subHeaderStyle);
+			row.createCell(colValue+1).setCellValue(ReportConstants.COUNTOFCUSTOMERCONNECTS);
+			row.getCell(colValue+1).setCellStyle(subHeaderStyle);
+			rowNo = currentRow+1;
 			for (Object[] object : connectCustomerCountList) {
-				row = (SXSSFRow) spreadSheet.createRow((short) customerRow);
+				row = (SXSSFRow) spreadSheet.createRow((short) rowNo);
 				if(object[1]!=null){
 					row.createCell(colValue).setCellValue(object[1].toString());
-					row.createCell(colValue+colNo).setCellValue(object[0].toString());
-					customerRow++;
+					row.createCell(colValue+1).setCellValue(((BigInteger) object[0]).intValue());
+					rowNo++;
 				}
 			}
-			colNo++;
-		}
-	
-		if(connectPartnerCountList!=null){
-			if(connectCategory.equals("All") || connectCategory.equals("PARTNER")){
+			
+		} else if(connectPartnerCountList!=null && connectCategory.equals("PARTNER")){
 				row = ExcelUtils.getRow(spreadSheet, currentRow);
-				row.createCell(colValue+colNo).setCellValue(ReportConstants.ROWLABEL);
-				row.getCell(colValue+colNo).setCellStyle(subHeaderStyle);
-				colNo++;
-				row.createCell(colValue+colNo).setCellValue(ReportConstants.COUNTOFPARTNERCONNECTS);
-				row.getCell(colValue+colNo).setCellStyle(subHeaderStyle);
-				partnerRow = currentRow+1;
+				row.createCell(colValue).setCellValue(ReportConstants.ROWLABEL);
+				row.getCell(colValue).setCellStyle(subHeaderStyle);
+				row.createCell(colValue+1).setCellValue(ReportConstants.COUNTOFPARTNERCONNECTS);
+				row.getCell(colValue+1).setCellStyle(subHeaderStyle);
+				rowNo = currentRow+1;
 			
 				for (Object[] object : connectPartnerCountList) {
-					row = ExcelUtils.getRow(spreadSheet, partnerRow);
+					row = ExcelUtils.getRow(spreadSheet, rowNo);
 					if(object[1]!=null){
-						row.createCell(colValue+colNo-1).setCellValue(object[1].toString());
-						row.createCell(colValue+colNo).setCellValue(object[0].toString());
-						partnerRow++;
+						row.createCell(colValue).setCellValue(object[1].toString());
+						row.createCell(colValue+1).setCellValue(((BigInteger) object[0]).intValue());
+						rowNo++;
 					}
 				}
 			}
-		}
 		
-		if(customerRow>partnerRow){
-			currentRow=customerRow;
-		} else {
-			currentRow=partnerRow;
-		}
 		logger.debug("End:: Inside summaryReport() of ConnectSummaryReportService");
-		return currentRow;
+		return rowNo;
 	}
 
+	/**
+	 * This method is used to set the customer or partner or both connects summary details to the corresponding rows and columns
+	 *  
+	 * @param connectCustomerCountList
+	 * @param connectPartnerCountList
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param colValue
+	 * @param subHeader
+	 * @param headerStyle
+	 * @param subHeaderStyle
+	 * @param connectCategory
+	 * @return
+	 */
+	public int connectSummaryReportByIou(List<Object[]> connectCustomerCountList, SXSSFSheet spreadSheet, int currentRow, int colValue, String subHeader, CellStyle headerStyle, CellStyle subHeaderStyle, String connectCategory) {
+
+		logger.debug("Begin:: Inside summaryReport() of ConnectSummaryReportService");
+		SXSSFRow row;
+		int rowNo=0;
+		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+		row.createCell(colValue).setCellValue(subHeader);
+		row.getCell(colValue).setCellStyle(headerStyle);
+		spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, colValue, colValue + 1));
+		currentRow++;
+		
+		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+		
+			row.createCell(colValue).setCellValue(ReportConstants.ROWLABEL);
+			row.getCell(colValue).setCellStyle(subHeaderStyle);
+			row.createCell(colValue+1).setCellValue(ReportConstants.COUNTOFCUSTOMERCONNECTS);
+			row.getCell(colValue+1).setCellStyle(subHeaderStyle);
+			rowNo = currentRow+1;
+			for (Object[] object : connectCustomerCountList) {
+				row = (SXSSFRow) spreadSheet.createRow((short) rowNo);
+				if(object[1]!=null){
+					row.createCell(colValue).setCellValue(object[1].toString());
+					row.createCell(colValue+1).setCellValue(((BigInteger) object[0]).intValue());
+					rowNo++;
+				}
+			}
+		logger.debug("End:: Inside summaryReport() of ConnectSummaryReportService");
+		return rowNo;
+	}
+	
+	
+	/**
+	 * This Method is used to combine customer connects summary and partner connects summary into List
+	 * @param connectCustomerCountList
+	 * @param connectPartnerCountList
+	 * @param connectSummaryResponseList
+	 */
+	private void getCustomerAndPartnerConnectSummary(List<Object[]> connectCustomerCountList,
+			List<Object[]> connectPartnerCountList, List<ConnectSummaryResponse> connectSummaryResponseList) {
+			List<String> custRowLabel = new ArrayList<String>();
+			BigInteger custPartZeroCount = BigInteger.ZERO;
+		 	for (Object[] object : connectCustomerCountList) {
+		 		ConnectSummaryResponse connectSummaryResponse = new ConnectSummaryResponse();
+				connectSummaryResponse.setRowLabel(object[1].toString());
+				custRowLabel.add(object[1].toString());
+				connectSummaryResponse.setCustomerConnectCount((BigInteger) object[0]);
+				connectSummaryResponse.setPartnerConnectCount(custPartZeroCount);
+				connectSummaryResponseList.add(connectSummaryResponse);
+				}
+		 	
+		 	List<ConnectSummaryResponse> partnerConnectSummaryList = new ArrayList<ConnectSummaryResponse>();
+		 	for(Object[] partnerObject : connectPartnerCountList){
+		 		for(ConnectSummaryResponse connectSummary:connectSummaryResponseList) {
+		 			if(connectSummary.getRowLabel().equals((String) partnerObject[1])) {
+		 				connectSummary.setPartnerConnectCount((BigInteger) partnerObject[0]);
+		 				
+		 			}
+		 		}
+		 		
+		 	for(ConnectSummaryResponse connectSummary:connectSummaryResponseList) {
+		 		if(!connectSummary.getRowLabel().equals((String) partnerObject[1]) && !custRowLabel.contains((String) partnerObject[1])) {
+		 			ConnectSummaryResponse partnerConnectSummaryResponse = new ConnectSummaryResponse();
+		 			partnerConnectSummaryResponse.setRowLabel(partnerObject[1].toString());
+		 			partnerConnectSummaryResponse.setCustomerConnectCount(custPartZeroCount);
+		 			partnerConnectSummaryResponse.setPartnerConnectCount((BigInteger) partnerObject[0]);
+		 			partnerConnectSummaryList.add(partnerConnectSummaryResponse);
+		 			}
+		 		}
+		 	}
+		 	connectSummaryResponseList.addAll(partnerConnectSummaryList);
+		}
 }

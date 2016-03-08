@@ -11,25 +11,34 @@ public class ConnectSummaryResponse implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
+	private String rowLabel;
 	
-	private String RowLabel;
+	private BigInteger customerConnectCount;
 
-	private BigInteger connectCount;
+	private BigInteger partnerConnectCount;
+
+	public BigInteger getCustomerConnectCount() {
+		return customerConnectCount;
+	}
+
+	public void setCustomerConnectCount(BigInteger customerConnectCount) {
+		this.customerConnectCount = customerConnectCount;
+	}
+
+	public BigInteger getPartnerConnectCount() {
+		return partnerConnectCount;
+	}
+
+	public void setPartnerConnectCount(BigInteger partnerConnectCount) {
+		this.partnerConnectCount = partnerConnectCount;
+	}
 
 	public String getRowLabel() {
-		return RowLabel;
+		return rowLabel;
 	}
 
 	public void setRowLabel(String rowLabel) {
-		RowLabel = rowLabel;
-	}
-
-	public BigInteger getConnectCount() {
-		return connectCount;
-	}
-
-	public void setConnectCount(BigInteger connectCount) {
-		this.connectCount = connectCount;
+		this.rowLabel = rowLabel;
 	}
 
 }
