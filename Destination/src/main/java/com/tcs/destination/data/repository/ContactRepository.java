@@ -73,16 +73,16 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param connectId
 	 * @return
 	 */
-	@Query(value = "select contact_name from contact_t CONT "
+	@Query(value = "select contact_name,contact_role from contact_t CONT "
 			+ "join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
-	List<String> findTcsAccountContactNamesByConnectId(String connectId);
+	List<Object[]> findTcsAccountContactNamesByConnectId(String connectId);
 	
 	/**
 	 * This Method is used to get customer contact names for the given connectId
 	 * @param opportunityId
 	 * @return
 	 */
-	@Query(value = "select contact_name from contact_t CONT "
+	@Query(value = "select contact_name,contact_role from contact_t CONT "
 			+ "join connect_customer_contact_link_t CCACL on CONT.contact_id=CCACL.contact_id where CCACL.connect_id=?1" , nativeQuery = true)
-	List<String> findCustomerContactNamesByConnectId(String connectId);
+	List<Object[]> findCustomerContactNamesByConnectId(String connectId);
 }

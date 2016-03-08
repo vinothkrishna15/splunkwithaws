@@ -4,6 +4,7 @@ import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -54,111 +55,60 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("customerId") String customerId,
 			@Param("partnerId") String partnerId);
 
-	@Query(value = "select distinct (CON.*) from connect_t CON "
+	/**
+	 * This Method is used to get customer connect ids for the given input parameters
+	 * @param startDate
+	 * @param endDate
+	 * @param iou
+	 * @param geography
+	 * @param country
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select distinct (CON.connect_id) from connect_t CON "
 			+ " JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
 			+ " JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
 			+ " JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id"
-			+ " left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp where "
+			+ " left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp where CON.connect_category='CUSTOMER' and "
 			+ " CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
 			+ " (ICMT.display_iou IN (:iou) OR ('') IN (:iou)) AND"
-			+ " (GMT.geography IN (:geography) OR ('') IN (:geography)) AND"
+			+ " (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography)) AND"
 			+ " (CON.country IN (:country) OR ('') IN (:country)) AND"
-			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))"
-			+ " UNION "
-			+ "	select distinct(CON.*) from connect_t CON  "
+			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))", nativeQuery = true)
+	List<String> findCustomerConnectIds(@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("iou") List<String> iou,
+			@Param("displayGeography") String displayGeography,
+			@Param("country") List<String> country,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	/**
+	 * This Method is used to get partner connect ids for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param geography
+	 * @param country
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = " select distinct(CON.connect_id) from connect_t CON  "
 			+ "	JOIN partner_master_t PAT ON  PAT.partner_id=CON.partner_id "
 			+ "	JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "
 			+ "	left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ "	left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where "
+			+ "	left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where  CON.connect_category='PARTNER' and "
 			+ " CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
-			+ " (GMT.geography IN (:geography) OR ('') IN (:geography)) AND"
+			+ " (GMT.display_geography IN (:displayGeography) OR ('') IN (:displayGeography)) AND"
 			+ " (CON.country IN (:country) OR ('') IN (:country)) AND"
 			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))", nativeQuery = true)
-	List<ConnectT> findByConnectReport(@Param("startDate") Timestamp startDate,
+	List<String> findPartnerConnectIds(@Param("startDate") Timestamp startDate,
 			@Param("endDate") Timestamp endDate,
-			@Param("iou") List<String> iou,
-			@Param("geography") List<String> geography,
+			@Param("displayGeography") String displayGeography,
 			@Param("country") List<String> country,
 			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = " select count(connect_count), display_geography  from "
-			+ "(select distinct(CON.connect_id) as connect_count,display_geography from connect_t CON "
-			+ "JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou "
-			+ "JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id  left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ "where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
-			+ "AND (ICMT.display_iou in (:iou) OR ('') IN (:iou)) "
-			+ "AND (GMT.geography in (:geography) OR ('') IN (:geography)) "
-			+ "AND (CON.country IN (:country) OR ('') IN (:country)) "
-			+ "AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ "UNION "
-			+ "select distinct(CON.connect_id) as connect_count, display_geography  from connect_t CON "
-			+ "JOIN partner_master_t PAT ON  PAT.partner_id=CON.partner_id "
-			+ "JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "
-			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ "left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ "where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
-			+ "AND (GMT.geography in (:geography) OR ('') IN (:geography)) "
-			+ "AND (CON.country IN (:country) OR ('') IN (:country)) "
-			+ "AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ "as geo group by display_geography ", nativeQuery = true)
-	List<Object[]> findByGeographyConnectSummaryReport(
-			@Param("startDate") Timestamp startDate,
-			@Param("endDate") Timestamp endDate,
-			@Param("iou") List<String> iou,
-			@Param("geography") List<String> geography,
-			@Param("country") List<String> country,
-			@Param("serviceLines") List<String> serviceLines);
 
-	@Query(value = " select count(connect_count), display_sub_sp  from "
-			+ "(select distinct(CON.connect_id) as connect_count,display_sub_sp from connect_t CON "
-			+ "JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou "
-			+ "JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id  left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ "where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
-			+ "AND (ICMT.display_iou in (:iou) OR ('') IN (:iou)) "
-			+ "AND (GMT.geography in (:geography) OR ('') IN (:geography)) "
-			+ "AND (CON.country IN (:country) OR ('') IN (:country)) "
-			+ "AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ "UNION "
-			+ "select distinct(CON.connect_id) as connect_count, display_sub_sp from connect_t CON "
-			+ "JOIN partner_master_t PAT ON  PAT.partner_id=CON.partner_id "
-			+ "JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "
-			+ "left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ "left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ "where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
-			+ "AND (GMT.geography in (:geography) OR ('') IN (:geography)) "
-			+ "AND (CON.country IN (:country) OR ('') IN (:country)) "
-			+ "AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ "as sub group by display_sub_sp ", nativeQuery = true)
-	List<Object[]> findBySubSpConnectSummaryReport(
-			@Param("startDate") Timestamp startDate,
-			@Param("endDate") Timestamp endDate,
-			@Param("iou") List<String> iou,
-			@Param("geography") List<String> geography,
-			@Param("country") List<String> country,
-			@Param("serviceLines") List<String> serviceLines);
-
-	@Query(value = "select count(distinct(CON.connect_id)),display_iou from connect_t CON "
-			+ "   JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
-			+ "   JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
-			+ "   JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-			+ "   left outer JOIN connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id"
-			+ "   left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp "
-			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
-			+ " (ICMT.display_iou IN (:iou) OR ('') IN (:iou)) AND"
-			+ " (GMT.geography IN (:geography) OR ('') IN (:geography)) AND"
-			+ " (CON.country IN (:country) OR ('') IN (:country)) AND"
-			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ "group by display_iou", nativeQuery = true)
-	List<Object[]> findByIouConnectSummaryReport(
-			@Param("startDate") Timestamp startDate,
-			@Param("endDate") Timestamp endDate,
-			@Param("iou") List<String> iou,
-			@Param("geography") List<String> geography,
-			@Param("country") List<String> country,
-			@Param("serviceLines") List<String> serviceLines);
 
 	/**
 	 * This query select the connect_id from connect_T and
@@ -223,130 +173,316 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	List<ConnectT> findByConnectIdInOrderByLocationAsc(List<String> connects);
 
-	@Query(value = "select distinct (CON.*) from connect_t CON "
-			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id"
-			+ " JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
-			+ " JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
-			+ " JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-//			+ " JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
-			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id"
-			+ " left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp where "
-			+ " CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
-			+ " (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList)) AND"
-			+ " (GMT.geography IN (:geoList) OR ('') IN (:geoList)) AND"
-			+ " (CON.country IN (:countryList) OR ('') IN (:countryList)) AND"
-			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) AND "
-			+ " ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds))"
-			+ " UNION "
-			+ "	select distinct(CON.*) from connect_t CON  "
-			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id"
-			+ "	JOIN partner_master_t PAT ON  PAT.partner_id=CON.partner_id "
-			+ "	JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography  "
-//			+ "	JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "
-			+ "	left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ "	left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp where "
-			+ " CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
-			+ " (GMT.geography IN (:geoList) OR ('') IN (:geoList)) AND"
-			+ " (CON.country IN (:countryList) OR ('') IN (:countryList)) AND"
-			+ " (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) AND"
-			+ " ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) ", nativeQuery = true)
-	List<ConnectT> findByConnectReport(@Param("startDate") Timestamp startDate,
+	
+	/**
+	 * This Method is used to find the connects related to customer
+	 * @param startDate
+	 * @param endDate
+	 * @param userId
+	 * @param iouList
+	 * @param geoList
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select distinct (CON.connect_id) from connect_t CON "
+			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
+			+ " JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+			+ " JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND CON.connect_category=('CUSTOMER') AND (CON.country IN (:countryList) OR ('') IN (:countryList))"
+			+ " AND ((CON.primary_owner in (:userIds) OR CSOL.secondary_owner in (:userIds)) OR ('') in (:userIds)) ", nativeQuery = true)
+	List<String> findByCustomerConnects(@Param("startDate") Timestamp startDate,
 			@Param("endDate") Timestamp endDate,
 			@Param("userIds") List<String> userIds,
 			@Param("iouList") List<String> iouList,
-			@Param("geoList") List<String> geoList,
+			@Param("displayGeography") String displayGeography,
 			@Param("countryList") List<String> countryList,
 			@Param("serviceLines") List<String> serviceLines);
-
-	@Query(value = "select count(distinct(CON.connect_id)), SSM.display_sub_sp from connect_t CON "
+	
+	
+	/**
+	 * This Method is used to find the connects related to partner
+	 * @param startDate
+	 * @param endDate
+	 * @param userId
+	 * @param iouList
+	 * @param geoList
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select distinct(CON.connect_id) from connect_t CON "
 			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
-			+ " JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
-			+ " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou "
-			+ " JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-//			+ " JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "
-			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
-			+ " left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp "
-			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) and "
-			+ " (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList)) "
-			+ " AND (GMT.geography IN (:geoList) OR ('') IN (:geoList)) "
-			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
-			+ " AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
-			+ " group by SSM.display_sub_sp "
-			+ " UNION "
-			+ " select count(distinct(CON.connect_id)), SSM.display_sub_sp from connect_t CON left outer "
-			+ " join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
 			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
-			+ " JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography "
-//			+ " JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "
-			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ " left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) and "
-			+ " (GMT.geography IN (:geoList) OR ('') IN (:geoList)) "
+			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id  "
+			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)))"
+			+ " where (CON.start_datetime_of_connect between (:startDate) AND (:endDate))"
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
-			+ " AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
-			+ " group by SSM.display_sub_sp ", nativeQuery = true)
-	List<Object[]> findBySubSpConnectSummaryReport(
+			+ " AND ((CON.primary_owner in (:userIds) OR CSOL.secondary_owner in (:userIds)) OR ('') in (:userIds)) ", nativeQuery = true)
+	List<String> findByPartnerConnects(@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("userIds") List<String> userId,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	/**
+	 * This Method is used to find count of customer connects for the given input parameters in subSp wise
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), COALESCE(display_sub_sp, 'SubSp Not Defined') from connect_t CON "
+			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+			+ " JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) AND ((CON.primary_owner in (:userIds) "
+			+ "  OR CSOL.secondary_owner in (:userIds)) OR ('') in (:userIds)) group by SSM.display_sub_sp ", nativeQuery = true)
+	List<Object[]> findBySubSpCustomerConnectSummaryDetails(
 			@Param("startDate") Timestamp startDate,
 			@Param("endDate") Timestamp endDate,
 			@Param("userIds") List<String> userIds,
 			@Param("iouList") List<String> iouList,
-			@Param("geoList") List<String> geoList,
+			@Param("displayGeography") String displayGeography,
 			@Param("countryList") List<String> countryList,
 			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This Method is used to find count of customer connects for the given input parameters in subSp wise
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), COALESCE(display_sub_sp, 'SubSp Not Defined') from connect_t CON "
+			+ " JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+			+ " JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp ", nativeQuery = true)
+	List<Object[]> findSubSpCustomerConnectsSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("iouList") List<String> iouList,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This Method is used to find count of Partner connects for the given input parameters in subSp wise
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), COALESCE(SSM.display_sub_sp, 'SubSp Not Defined') from connect_t CON "
+			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
+			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
+			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
+			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
+			+ " group by SSM.display_sub_sp  ", nativeQuery = true)
+	List<Object[]> findBySubSpPartnerConnectSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("userIds") List<String> userIds,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This Method is used to find count of Partner connects for the given input parameters in subSp wise
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), COALESCE(SSM.display_sub_sp, 'SubSp Not Defined') from connect_t CON "
+			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
+			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp  ", nativeQuery = true)
+	List<Object[]> findSubSpPartnerConnectsSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
 
+	/**
+	 * This method is used to get customer connect summary details by geography wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param geoList
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
 	@Query(value = "select count(distinct(CON.connect_id)), gmt.display_geography from connect_t CON "
 			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
 			+ " JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
-			+ " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou "
-			+ " JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-//			+ " JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "
+			+ " JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
-			+ " left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp "
-			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) and "
-			+ " (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList)) "
-			+ " AND (GMT.geography IN (:geoList) OR ('') IN (:geoList)) "
-			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
-			+ " AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
-			+ " group by gmt.display_geography "
-			+ " UNION "
-			+ " select count(distinct(CON.connect_id)), gmt.display_geography from connect_t CON left outer "
-			+ " join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
-			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
-			+ " JOIN geography_mapping_t GMT ON PAT.geography=GMT.geography "
-//			+ " JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography "
-			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
-			+ " left outer JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "
-			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) and "
-			+ " (GMT.geography IN (:geoList) OR ('') IN (:geoList)) "
-			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
-			+ " AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) "
-			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
-			+ " group by gmt.display_geography ", nativeQuery = true)
-	List<Object[]> findByGeographyConnectSummaryReport(
+			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) AND ((CON.primary_owner IN (:userIds)"
+			+ " OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) group by gmt.display_geography ", nativeQuery = true)
+	List<Object[]> findByGeographyCustomerConnectSummaryDetails(
 			@Param("startDate") Timestamp startDate,
 			@Param("endDate") Timestamp endDate,
 			@Param("userIds") List<String> userIds,
 			@Param("iouList") List<String> iouList,
-			@Param("geoList") List<String> geoList,
+			@Param("displayGeography") String displayGeography,
 			@Param("countryList") List<String> countryList,
 			@Param("serviceLines") List<String> serviceLines);
-
+	
+	
+	/**
+	 * This method is used to get customer connect summary details by geography wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param geoList
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), gmt.display_geography from connect_t CON "
+			+ " JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
+			+ " JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by gmt.display_geography ", nativeQuery = true)
+	List<Object[]> findGeographyCustomerConnectsSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("iouList") List<String> iouList,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This method is used to get partner connect summary details by geography wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), gmt.display_geography from connect_t CON "
+			+ " left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id "
+			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
+			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography =(:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate)"
+			+ "  AND (CON.country IN (:countryList) OR ('') IN (:countryList))"
+			+ "  AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
+			+ " group by gmt.display_geography", nativeQuery = true)
+	List<Object[]> findByGeographyPartnerConnectSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("userIds") List<String> userIds,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This method is used to get partner connect summary details by geography wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)), gmt.display_geography from connect_t CON "
+			+ " JOIN partner_master_t PAT ON PAT.partner_id=CON.partner_id "
+			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography =(:displayGeography) OR ('') = (:displayGeography))) "
+			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
+			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate)"
+			+ "  AND (CON.country IN (:countryList) OR ('') IN (:countryList))"
+			+ " group by gmt.display_geography", nativeQuery = true)
+	List<Object[]> findGeographyPartnerConnectsSummaryDetails(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
+	/**
+	 * This method is used to get customer connect summary details by Iou wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
 	@Query(value = "select count(distinct(CON.connect_id)),display_iou from connect_t CON "
-			+ "	 left outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id"
+			+ "	 LEFT outer join connect_secondary_owner_link_t CSOL ON CON.connect_id=CSOL.connect_id"
 			+ "  JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
-			+ "  JOIN iou_customer_mapping_t ICMT ON  CMT.iou=ICMT.iou  "
-			+ "  JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-//			+ "  JOIN geography_country_mapping_t GCM ON GMT.geography=GCM.geography"
-			+ "  left outer JOIN connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id"
-			+ "  left outer JOIN sub_sp_mapping_t SSM on CSL.sub_sp=SSM.sub_sp "
-			+ "  where CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
-			+ "  (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList)) AND"
-			+ "  (GMT.geography IN (:geoList) OR ('') IN (:geoList)) AND"
+			+ "  JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ "  JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ "  LEFT outer JOIN connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ "  LEFT outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ "  where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
 			+ "  (CON.country IN (:countryList) OR ('') IN (:countryList)) AND"
-			+ "  (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines)) AND "
 			+ " ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds))"
 			+ " group by display_iou", nativeQuery = true)
 	List<Object[]> findByIouConnectSummaryReport(
@@ -354,9 +490,39 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("endDate") Timestamp endDate,
 			@Param("userIds") List<String> userIds,
 			@Param("iouList") List<String> iouList,
-			@Param("geoList") List<String> geoList,
+			@Param("displayGeography") String displayGeography,
 			@Param("countryList") List<String> countryList,
 			@Param("serviceLines") List<String> serviceLines);
+	
+	
+	/**
+	 * This method is used to get customer connect summary details by Iou wise for the given input parameters
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param userIds
+	 * @param iouList
+	 * @param displayGeography
+	 * @param countryList
+	 * @param serviceLines
+	 * @return
+	 */
+	@Query(value = "select count(distinct(CON.connect_id)),display_iou from connect_t CON "
+			+ "  JOIN customer_master_t CMT ON  CMT.customer_id=CON.customer_id"
+			+ "  JOIN iou_customer_mapping_t ICMT ON (CMT.iou=ICMT.iou AND (ICMT.display_iou IN (:iouList) OR ('') IN (:iouList))) "
+			+ "  JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
+			+ "  LEFT outer JOIN connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
+			+ "  LEFT outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
+			+ "  where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) AND "
+			+ "  (CON.country IN (:countryList) OR ('') IN (:countryList)) group by display_iou", nativeQuery = true)
+	List<Object[]> findIouConnectsSummaryReport(
+			@Param("startDate") Timestamp startDate,
+			@Param("endDate") Timestamp endDate,
+			@Param("iouList") List<String> iouList,
+			@Param("displayGeography") String displayGeography,
+			@Param("countryList") List<String> countryList,
+			@Param("serviceLines") List<String> serviceLines);
+	
 
 	@Query(value = "select * from connect_t con where connect_id in (:connectIdList) order by con.connect_id ", nativeQuery = true)
 	List<ConnectT> getConnectsByIds(
@@ -475,5 +641,20 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	
 	@Query(value = CONNECT_REMINDER, nativeQuery = true)
 	List<Object[]> getConnectReminders();
-	
+
+	/**
+	 * This Method is used to get the customer connectids or partner connectids for the given date range
+	 * 
+	 * @param fromDate
+	 * @param toDate
+	 * @param string
+	 * @return
+	 */
+	@Query(value = "select distinct connect_id from connect_t CONN where "
+			+ " start_datetime_of_connect between (:fromDate) and (:toDate) and CONN.connect_category=(:connectCategory)", nativeQuery = true)
+	List<String> findByConnectCategory(
+			@Param("fromDate") Timestamp fromDate,
+			@Param("toDate") Timestamp toDate,
+			@Param("connectCategory") String connectCategory);
+
 }

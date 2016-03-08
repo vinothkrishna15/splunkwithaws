@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -14,16 +14,10 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectOfferingLinkT;
-import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
 import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
-import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
@@ -31,6 +25,7 @@ import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.TaskRepository;
@@ -74,53 +69,122 @@ public class ConnectDetailedReportService {
 
 	@Autowired
 	NotesTRepository notesTRepository;
+	
+	@Autowired
+	GeographyRepository geographyRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ConnectDetailedReportService.class);
 
-	public void getConnectDetailedReport(List<ConnectT> connectList,
-			List<String> fields, SXSSFWorkbook workbook) throws Exception {
-		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Detailed Report");
+	public void getConnectDetailedReport(List<String> connectIdList, List<String> fields, SXSSFWorkbook workbook, String connectCategory) throws Exception {
+		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet(ReportConstants.DETAILEDREPORT);
+		
 		SXSSFRow row = null;
 		int currentRow = 0;
 		row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
+		
 		if (fields.size() == 0 && fields.isEmpty()) {
-			createHeaderForMandatoryFields(row, spreadSheet);
-			currentRow = connectReportWithMandatoryFields(connectList,
-					spreadSheet, currentRow, row);
+			createHeaderForMandatoryFields(row, spreadSheet,connectCategory);
+			currentRow = connectReportWithMandatoryFields(connectIdList, spreadSheet, currentRow, row,connectCategory);
 			currentRow++;
 		} else {
-			createHeaderOptionalFields(connectList, row, fields, workbook, spreadSheet, currentRow);
-			currentRow = connectReportWithOptionalFields(connectList, workbook,
-					spreadSheet, currentRow, fields, row);
+			createHeaderOptionalFields(row, fields, workbook, spreadSheet, currentRow,connectCategory);
+			currentRow = connectReportWithOptionalFields(connectIdList, workbook, spreadSheet, currentRow, fields, row,connectCategory);
 			currentRow++;
 		}
 	}
 
-	public void createHeaderForMandatoryFields(SXSSFRow row, SXSSFSheet spreadSheet) {
+	public void createHeaderForMandatoryFields(SXSSFRow row, SXSSFSheet spreadSheet, String connectCategory) {
 		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER);
-		row.createCell(0).setCellValue(ReportConstants.CONNECTID);
-		row.getCell(0).setCellStyle(headerSyle);
-		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
-		row.getCell(1).setCellStyle(headerSyle);
-		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
-		row.getCell(2).setCellStyle(headerSyle);
-		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
-		row.getCell(3).setCellStyle(headerSyle);
-		row.createCell(4).setCellValue(ReportConstants.CONNECTNAME);
-		row.getCell(4).setCellStyle(headerSyle);
-		row.createCell(5).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
-		row.getCell(5).setCellStyle(headerSyle);
+		int colNo=0;
+		row.createCell(colNo).setCellValue(ReportConstants.CONNECTID);
+		row.getCell(colNo).setCellStyle(headerSyle);
+		colNo++;
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYGEO);
+		row.getCell(colNo).setCellStyle(headerSyle);
+		colNo++;
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYSERVICELINE);
+		row.getCell(colNo).setCellStyle(headerSyle);
+		colNo++;
+		if(!connectCategory.equals(ReportConstants.PARTNER)){
+			row.createCell(colNo).setCellValue(ReportConstants.DISPLAYIOU);
+			row.getCell(colNo).setCellStyle(headerSyle);
+			colNo++;
+			row.createCell(colNo).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
+			row.getCell(colNo).setCellStyle(headerSyle);
+			colNo++;
+		}
+		row.createCell(colNo).setCellValue(ReportConstants.CONNECTNAME);
+		row.getCell(colNo).setCellStyle(headerSyle);
+		colNo++;
+		
 	}
 
-	public void createHeaderOptionalFields(List<ConnectT> connectList,
-			SXSSFRow row, List<String> fields,
-			SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow) {
+	/**
+	 * This Method is used to set connect mandatory fields to sheet
+	 * @param spreadSheet
+	 * @param row
+	 * @param connect
+	 */
+	public void getConnectReportMandatoryFields(SXSSFSheet spreadSheet, SXSSFRow row, ConnectT connect, String connectCategory) {
+		//		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
+		int colNo=0;
+		row.createCell(colNo).setCellValue(connect.getConnectId());
+		colNo++;
+		if(!connectCategory.equals(ReportConstants.PARTNER)) {
+			if(connect.getCustomerMasterT()!=null){
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
+				colNo++;
+				List<String> displaySubSpList = new ArrayList<String>();
+				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+				}
+				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				colNo++;
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
+				colNo++;
+				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
+				colNo++;
+			} else {
+				row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
+				colNo++;
+				List<String> displaySubSpList = new ArrayList<String>();
+				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+				}
+				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				colNo++;
+				row.createCell(colNo).setCellValue(Constants.SPACE);
+				colNo++;
+				row.createCell(colNo).setCellValue(Constants.SPACE);
+				colNo++;
+			}
+			row.createCell(colNo).setCellValue(connect.getConnectName());
+		} else{
+			row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
+			colNo++;
+			List<String> displaySubSpList = new ArrayList<String>();
+			for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
+				displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
+			}
+			row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+			colNo++;
+			row.createCell(colNo).setCellValue(connect.getConnectName());
+		}
+	}
+
+	
+	
+	public void createHeaderOptionalFields(SXSSFRow row, List<String> fields,
+			SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,String connectCategory) {
 		// This method creates header for mandatory fields
-		createHeaderForMandatoryFields(row, spreadSheet);
-		int columnNo = 6;
+		createHeaderForMandatoryFields(row, spreadSheet,connectCategory);
+		int columnNo = 4;
+		if(!connectCategory.equals(ReportConstants.PARTNER)){
+			columnNo = 6;
+		}
 		CellStyle headerStyle = ExcelUtils.createRowStyle(workbook,	ReportConstants.REPORTHEADER);
-		List<String> orderedFields = Arrays.asList("iou","geography","country","subSp","offering","tcsAccountContact","custContactName",
+		List<String> orderedFields = Arrays.asList("iou","geography","country","subSp","offering","tcsAccountContact","tcsAccountRole","custContactName","custContactRole",
 				"startDateOfConnect","endDateOfConnect","primaryOwner", "secondaryOwner","connectNotes","linkOpportunity","connectCategory",
 				"customerOrPartnerName","createdDate","createdBy", "modifiedDate","modifiedBy");
 		for (String field : orderedFields) {
@@ -159,58 +223,34 @@ public class ConnectDetailedReportService {
 		}
 	}
 
-	public int connectReportWithMandatoryFields(List<ConnectT> connectList,SXSSFSheet spreadSheet, int currentRow, SXSSFRow row) {
-		for (ConnectT connect : connectList) {
+	public int connectReportWithMandatoryFields(List<String> connectIdList,SXSSFSheet spreadSheet, int currentRow, SXSSFRow row, String connectCategory) {
+		for (String connectId : connectIdList) {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow + 1);
-			getConnectReportMandatoryFields(spreadSheet, row, connect);
+			ConnectT connect = connectRepository.findByConnectId(connectId);
+			getConnectReportMandatoryFields(spreadSheet, row, connect,connectCategory);
 			currentRow++;
 		}
 		return currentRow;
 	}
 
-	/**
-	 * This Method is used to set connect mandatory fields to sheet
-	 * @param spreadSheet
-	 * @param row
-	 * @param connect
-	 */
-	public void getConnectReportMandatoryFields(SXSSFSheet spreadSheet, SXSSFRow row, ConnectT connect) {
-		//		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
-		row.createCell(0).setCellValue(connect.getConnectId());
-		row.createCell(4).setCellValue(connect.getConnectName());
-		List<String> displaySubSpList = new ArrayList<String>();
-
-		for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
-			displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
-		}
-		row.createCell(2).setCellValue(displaySubSpList.toString().replace("[", "").replace("]", ""));
-
-		if(connect.getCustomerMasterT()!=null){
-			row.createCell(1).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
-			row.createCell(3).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
-			row.createCell(5).setCellValue(connect.getCustomerMasterT().getGroupCustomerName());
-
-		}else{
-			row.createCell(1).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
-			//			row.createCell(3).setCellValue(Constants.SPACE);
-			//			row.createCell(5).setCellValue(Constants.SPACE);
-		}
-	}
-
+	
 	/**
 	 * This Method is used to set connect object list to excel
+	 * 
 	 * @param connectList
 	 * @param workbook
 	 * @param spreadSheet
 	 * @param currentRow
 	 * @param fields
 	 * @param row
+	 * @param connectCategory 
 	 * @return
 	 * @throws DestinationException
 	 */
-	public int connectReportWithOptionalFields(List<ConnectT> connectList, SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,
-			List<String> fields, SXSSFRow row) throws DestinationException {
+	public int connectReportWithOptionalFields(List<String> connectIdList, SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,
+			List<String> fields, SXSSFRow row, String connectCategory) throws DestinationException {
 		//		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
+		logger.info("Inside connectReportWithOptionalFields() method");
 		currentRow = currentRow + 1;
 		boolean iouFlag = fields.contains(ReportConstants.IOU);
 		boolean geoFlag = fields.contains(ReportConstants.GEOGRAPHY);
@@ -224,7 +264,9 @@ public class ConnectDetailedReportService {
 		boolean secondaryOwnerFlag = fields.contains(ReportConstants.SECONDARYOWNER);
 		boolean custPartNameFlag = fields.contains(ReportConstants.CUSTOMERORPARTNERNAME);
 		boolean tcsContactNameFlag = fields.contains(ReportConstants.TCSACCOUNTCONTACT);
+		boolean tcsContactRoleFlag = fields.contains(ReportConstants.TCSACCOUNTROLE);
 		boolean custContactNameFlag = fields.contains(ReportConstants.CUSTOMERCONTACTNAME);
+		boolean custContactRoleFlag = fields.contains(ReportConstants.CUSTOMERCONTACTROLE);
 		boolean linkOppFlag = fields.contains(ReportConstants.LINKOPPORTUNITY);
 		boolean notesFlag = fields.contains(ReportConstants.CONNECTNOTES);
 		boolean taskFlag = fields.contains(ReportConstants.TASK);
@@ -234,15 +276,22 @@ public class ConnectDetailedReportService {
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
 
-
-		for (ConnectT connect : connectList) {
+		for (String connectId : connectIdList) {
+			ConnectT connect = connectRepository.findByConnectId(connectId);
 			List<TaskT> taskList = taskRepository.findByConnectId(connect.getConnectId());
+			List<Object[]> tcsAccountContactList=contactRepository.findTcsAccountContactNamesByConnectId(connect.getConnectId());
+			List<Object[]> cusContactList=contactRepository.findCustomerContactNamesByConnectId(connect.getConnectId());
+
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 
 			//set Connect Mandatory Details 
-			getConnectReportMandatoryFields(spreadSheet, row, connect);
+			getConnectReportMandatoryFields(spreadSheet, row, connect,connectCategory);
 
-			int colValue = 6;
+			int colValue = 4;
+			if(!connectCategory.equals(ReportConstants.PARTNER)){
+				colValue = 6;
+			}
+			
 			if(iouFlag) {
 				SXSSFCell iouCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				if(connect.getCustomerMasterT()!=null){
@@ -250,7 +299,7 @@ public class ConnectDetailedReportService {
 				}
 				colValue++;
 			}
-
+			
 			if(geoFlag) {
 				SXSSFCell geographyCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				if(connect.getCustomerMasterT()!=null){
@@ -269,28 +318,71 @@ public class ConnectDetailedReportService {
 			if(subSpFlag) {
 				List<String> connectSubSpList =connectSubSpLinkRepository.findSubSpByConnectId(connect.getConnectId());
 				SXSSFCell subSpCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				subSpCell.setCellValue(connectSubSpList.toString().replace("[", "").replace("]", ""));
+				subSpCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(connectSubSpList));
 				colValue++;
 			}
 
 			if(offeringFlag) {
 				List<String> connectOffering=connectOfferingLinkRepository.findOfferingByConnectId(connect.getConnectId());
 				SXSSFCell offeringCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				offeringCell.setCellValue(connectOffering.toString().replace("[", "").replace("]", ""));
+				offeringCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(connectOffering));
 				colValue++;
 			}
 
 			if(tcsContactNameFlag) {
-				List<String> tcsContactNames=contactRepository.findTcsAccountContactNamesByConnectId(connect.getConnectId());
+				List<String> tcsContactNamesList=new ArrayList<String>();
+				List<String> tcsContactNames=new ArrayList<String>();
 				SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				tcsAccountContactCell.setCellValue(tcsContactNames.toString().replace("[", "").replace("]", ""));
+				for(Object[] tcsAccountContact:tcsAccountContactList){
+					tcsContactNames.add((String) tcsAccountContact[0]);
+				}
+				for(int i=1;i<=tcsAccountContactList.size();i++){
+					tcsContactNamesList.add(i+"-"+tcsContactNames.get(i-1));
+				}
+				tcsAccountContactCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
+				colValue++;
+			}
+			
+			if(tcsContactRoleFlag) {
+				List<String> tcsContactNamesList=new ArrayList<String>();
+				List<String> tcsContactRoles=new ArrayList<String>();
+				SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				for(Object[] tcsAccountContact:tcsAccountContactList){
+					tcsContactRoles.add((String) tcsAccountContact[1]);
+				}
+				for(int i=1;i<=tcsAccountContactList.size();i++){
+					tcsContactNamesList.add(i+"-"+tcsContactRoles.get(i-1));
+				}
+				tcsAccountContactCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
 				colValue++;
 			}
 
+
 			if(custContactNameFlag) {
-				List<String> cusContactNames=contactRepository.findCustomerContactNamesByConnectId(connect.getConnectId());
+				List<String> cusContactNamesList=new ArrayList<String>();
+				List<String> cusContactNames=new ArrayList<String>();
 				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				customerContactNameCell.setCellValue(cusContactNames.toString().replace("[", "").replace("]", ""));
+				for(Object[] cusContact:cusContactList){
+					cusContactNames.add((String) cusContact[0]);
+				}
+				for(int i=1;i<=cusContactList.size();i++){
+					cusContactNamesList.add(i+"-"+cusContactNames.get(i-1));
+				}
+				customerContactNameCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				colValue++;
+			}
+			
+			if(custContactRoleFlag) {
+				List<String> cusContactNamesList=new ArrayList<String>();
+				List<String> cusContactRole=new ArrayList<String>();
+				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
+				for(Object[] cusContact:cusContactList){
+					cusContactRole.add((String) cusContact[1]);
+				}
+				for(int i=1;i<=cusContactList.size();i++){
+					cusContactNamesList.add(i+"-"+cusContactRole.get(i-1));
+				}
+				customerContactNameCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
 				colValue++;
 			}
 
@@ -316,21 +408,21 @@ public class ConnectDetailedReportService {
 			if(secondaryOwnerFlag) {
 				List<String> secondaryOwnersList=userRepository.getSecondaryOwnerNamesByConnectId(connect.getConnectId());
 				SXSSFCell secondaryOwnerCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				secondaryOwnerCell.setCellValue(secondaryOwnersList.toString().replace("[", "").replace("]", ""));
+				secondaryOwnerCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(secondaryOwnersList));
 				colValue++;
 			}
 
 			if(notesFlag) {
 				List<String> connectNotesList=notesTRepository.findConnectNotesByConnectId(connect.getConnectId());
 				SXSSFCell connectNotesCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				connectNotesCell.setCellValue(connectNotesList.toString().replace("[", "").replace("]", ""));
+				connectNotesCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(connectNotesList));
 				colValue++;
 			}
 
 			if(linkOppFlag) {
 				List<String> opportunityNames= opportunityRepository.findLinkOpportunityByConnectId(connect.getConnectId());
 				SXSSFCell opportunityCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				opportunityCell.setCellValue(opportunityNames.toString().replace("[", "").replace("]", ""));
+				opportunityCell.setCellValue(removeSquareBracesAndAppendListElementsAsString(opportunityNames));
 				colValue++;
 			}
 
@@ -408,16 +500,30 @@ public class ConnectDetailedReportService {
 					currentRow = currentRow + 0;
 				}
 			}
-
-			
 		}
 		return currentRow;
 	}
 
-	public int getTaskDetails(SXSSFSheet spreadSheet, SXSSFRow row,
-			List<TaskT> taskList, int columnNo, int i) {
-		//		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),
-		//				ReportConstants.DATAROW);
+	/**
+	 * This Method is used to remove the square braces for the list and append list elements as string separated by comma
+	 * 
+	 * @param itemList
+	 * @return
+	 */
+	private String removeSquareBracesAndAppendListElementsAsString(List<String> itemList) {
+		return itemList.toString().replace("[", "").replace("]", "");
+	}
+	
+	/**
+	 * This method is used to set connect task details to sheet
+	 * @param spreadSheet
+	 * @param row
+	 * @param taskList
+	 * @param columnNo
+	 * @param i
+	 * @return
+	 */
+	public int getTaskDetails(SXSSFSheet spreadSheet, SXSSFRow row, List<TaskT> taskList, int columnNo, int i) {
 		int columnOffset=1;
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskId());
 		columnOffset++;
@@ -433,14 +539,15 @@ public class ConnectDetailedReportService {
 		row.createCell(columnNo+columnOffset).setCellValue(taskList.get(i).getTaskStatus());
 		columnOffset++;
 		List<String> taskNotesUpdatedList=notesTRepository.findNotesUpdatedByNotesId(taskList.get(i).getTaskId());
-		row.createCell(columnNo+columnOffset).setCellValue(taskNotesUpdatedList.toString().replace("[", "").replace("]", ""));
+		row.createCell(columnNo+columnOffset).setCellValue(removeSquareBracesAndAppendListElementsAsString(taskNotesUpdatedList));
 		return columnNo;
 	}
 
 	/**
 	 * This Method Writes The Connect Report Title Page In WorkBook
+	 * 
 	 * @param workbook
-	 * @param geography
+	 * @param displayGeography
 	 * @param iou
 	 * @param serviceLines
 	 * @param userId
@@ -450,49 +557,74 @@ public class ConnectDetailedReportService {
 	 * @param quarter 
 	 * @param month 
 	 * @param country 
+	 * @param connectCategory 
 	 */
-	public void getConnectTitlePage(SXSSFWorkbook workbook,
-			List<String> geography, List<String> iou,
-			List<String> serviceLines, String userId, String tillDate, List<String> country, String month, String quarter, String year, String reportType) {
-
-		SXSSFSheet spreadsheet = (SXSSFSheet) workbook.createSheet("Title");
+	public void getConnectTitlePage(SXSSFWorkbook workbook, String displayGeography, List<String> iou,
+			List<String> serviceLines, UserT user, List<String> country, 
+			String month, String quarter, String year, String reportType, String connectCategory) {
+		logger.info("Inside getConnectTitlePage() method");
+		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet(ReportConstants.TITLE);
+		
 		List<String> privilegeValueList = new ArrayList<String>();
+		
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook,	ReportConstants.REPORTHEADER);
-		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.DATAROW);
-		CellStyle dataRow = ExcelUtils.createRowStyle(workbook,
-				ReportConstants.DATAROW);
+		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook,ReportConstants.DATAROW);
+		CellStyle dataRow = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
+		
 		SXSSFRow row = null;
-
-
-		row = (SXSSFRow) spreadsheet.createRow(4);
-		spreadsheet.addMergedRegion(new CellRangeAddress(4, 4, 4, 7));
-		row.createCell(4).setCellValue("Connect report as on " + tillDate);
-		row.getCell(4).setCellStyle(headinStyle);
-		row = (SXSSFRow) spreadsheet.createRow(6);
-		row.createCell(4).setCellValue("User Selection Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, ReportConstants.GEO, geography, 7, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Country", country, 8, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, Constants.IOU, iou, 9, dataRow);
-		ExcelUtils.writeDetailsForSearchType(spreadsheet, "Service Line", serviceLines, 10, dataRow);
-		row = (SXSSFRow) spreadsheet.createRow(11);
-		row.createCell(4).setCellValue("Period");
+		int currentRowNo = 4;
+		int currentColumnNo = 4;
+		
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo);
+		spreadSheet.addMergedRegion(new CellRangeAddress(currentRowNo, currentRowNo, currentColumnNo, currentColumnNo+3));
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.HEADING + DateUtils.getCurrentDate());
+		row.getCell(currentColumnNo).setCellStyle(headinStyle);
+		currentRowNo = currentRowNo+2;
+		
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.USERSELECTIONFILTER);
+		spreadSheet.autoSizeColumn(currentColumnNo);
+		row.getCell(currentColumnNo).setCellStyle(subHeadingStyle);
+		
+		currentRowNo++;
+		ExcelUtils.writeDetailsForSearchType(spreadSheet, ReportConstants.CONNECTCATEGORY, connectCategory, currentRowNo, currentColumnNo);
+		currentRowNo++;
+		ExcelUtils.writeDetailsForSearchType(spreadSheet, ReportConstants.GEO, displayGeography, currentRowNo, currentColumnNo);
+		currentRowNo++;
+		ExcelUtils.writeDetailsForSearchType(spreadSheet, ReportConstants.Country, country, currentRowNo, dataRow);
+		currentRowNo++;
+		ExcelUtils.writeDetailsForSearchType(spreadSheet, Constants.IOU, iou, currentRowNo, dataRow);
+		currentRowNo++;
+		ExcelUtils.writeDetailsForSearchType(spreadSheet, ReportConstants.SERVICELINES, serviceLines, currentRowNo, dataRow);
+		currentRowNo++;
+		
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo++);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.PERIOD);
 		String period=ExcelUtils.getPeriod(month, quarter, year);
-		row.createCell(5).setCellValue(period);
+		row.createCell(currentColumnNo+1).setCellValue(period);
 
-
-		String userAccessField = null;
 		List<UserAccessPrivilegesT> userPrivilegesList = 
-				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(userId, Constants.Y);
-		UserT user = userRepository.findByUserId(userId);
+				userAccessPrivilegesRepository.findByUserIdAndParentPrivilegeIdIsNullAndIsactive(user.getUserId(), Constants.Y);
 		String userGroup=user.getUserGroupMappingT().getUserGroup();
-		row = (SXSSFRow) spreadsheet.createRow(14);
-		row.createCell(4).setCellValue("User Access Filter's");
-		row.getCell(4).setCellStyle(subHeadingStyle);
+		
+		currentRowNo++;
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo++);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.USERACCESSFILTER);
+		
+		row.getCell(currentColumnNo).setCellStyle(subHeadingStyle);
 		switch (userGroup) {
+		
+		case ReportConstants.BDM:
+			ExcelUtils.writeUserFilterConditions(spreadSheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER, currentRowNo++,currentColumnNo);
+			currentRowNo=currentRowNo+4;
+			break;
+		
+		case ReportConstants.BDMSUPERVISOR:
+			ExcelUtils.writeUserFilterConditions(spreadSheet, user, ReportConstants.CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER, currentRowNo++,currentColumnNo);
+			currentRowNo=currentRowNo+4;
+			break;
+			
 		case ReportConstants.GEOHEAD:
-			userAccessField = "Geography";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -500,10 +632,11 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 15, dataRow);
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadSheet, ReportConstants.PRIVILEGEGEOGRAPHY, privilegeValueList, user, dataRow, ReportConstants.CONNECTSGEOORIOUHEADSCONDITION, currentRowNo++,currentColumnNo);
+			currentRowNo=currentRowNo+4;
 			break;
+		
 		case ReportConstants.IOUHEAD:
-			userAccessField = "IOU";
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -511,49 +644,25 @@ public class ConnectDetailedReportService {
 					privilegeValueList.add(privilageValue);
 				}
 			}
-			//			
-			writeDetailsForSearchType(spreadsheet, userAccessField, privilegeValueList, 15, dataRow);
-			break;
-		case ReportConstants.BDM:
-			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER);
-			break;
-		case ReportConstants.BDMSUPERVISOR:
-			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER);
+			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadSheet, ReportConstants.PRIVILEGEIOU, privilegeValueList, user, dataRow, ReportConstants.CONNECTSGEOORIOUHEADSCONDITION, currentRowNo++,currentColumnNo);
+			currentRowNo=currentRowNo+4;
 			break;
 		default :
-			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
+			ExcelUtils.writeUserFilterConditions(spreadSheet, user, ReportConstants.FULLACCESS, currentRowNo++,currentColumnNo);
+			currentRowNo=currentRowNo+4;
 		}
-		row = (SXSSFRow) spreadsheet.createRow(21);
-		//		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 7));
-		row.createCell(4).setCellValue("Display Preferences");
-		row.getCell(4).setCellStyle(subHeadingStyle);
-		row = (SXSSFRow) spreadsheet.createRow(22);
-		row.createCell(4).setCellValue("Report Type");
-		row.createCell(5).setCellValue(reportType);
-
-		spreadsheet.addMergedRegion(new CellRangeAddress(24, 24, 4, 7));
-		row = (SXSSFRow) spreadsheet.createRow(24);
-		row.createCell(4).setCellValue(ReportConstants.REPORTNOTE);
-
+		
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo++);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.DISPLAYPREFERENCE);
+		row.getCell(currentColumnNo).setCellStyle(subHeadingStyle);
+		
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo++);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.REPORTTYPE);
+		row.createCell(currentColumnNo+1).setCellValue(reportType);
+		currentRowNo++;
+		spreadSheet.addMergedRegion(new CellRangeAddress(currentRowNo, currentRowNo, currentColumnNo, currentColumnNo+3));
+		row = (SXSSFRow) spreadSheet.createRow(currentRowNo);
+		row.createCell(currentColumnNo).setCellValue(ReportConstants.REPORTNOTE);
 	}
 
-	private void writeDetailsForSearchType(SXSSFSheet spreadsheet,
-			String searchType, List<String> searchList, int rowValue,
-			CellStyle dataRowStyle) {
-		SXSSFRow row = null;
-		row = (SXSSFRow) spreadsheet.createRow(rowValue);
-		row.createCell(4).setCellValue(searchType);
-		//		spreadsheet.autoSizeColumn(4);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-		//		spreadsheet.autoSizeColumn(5);
-	}
-
-	private String getCompleteList(List<String> itemList) {
-		if (itemList.size() == 0) {
-			return "All";
-		} else {
-			return itemList.toString().replace("[", "").replace("]", "");
-		}
-	}
 }
