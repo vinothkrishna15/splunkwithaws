@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -28,13 +29,21 @@ public class WorkflowProcessTemplate implements Serializable {
 
 	@Column(name="entity_type_id")
 	private Integer entityTypeId;
+	
+	@Column(name="user_group")
+	private String userGroup;
+	
+	@Column(name="user_role")
+	private String userRole;
 
 	private Integer step;
-
-	//bi-directional many-to-one association to UserGroupMappingT
+	
+	@Column(name="user_id")
+	private String user_id;
+	
 	@ManyToOne
-	@JoinColumn(name="user_group")
-	private UserGroupMappingT userGroupMappingT;
+	@JoinColumn(name="user_id", insertable = false, updatable = false)
+	private UserT userT;
 
 	public WorkflowProcessTemplate() {
 	}
@@ -47,15 +56,17 @@ public class WorkflowProcessTemplate implements Serializable {
 		this.templateId = templateId;
 	}
 
+	
+
+	
+
 	public Integer getEntityTypeId() {
-		return this.entityTypeId;
+		return entityTypeId;
 	}
 
 	public void setEntityTypeId(Integer entityTypeId) {
 		this.entityTypeId = entityTypeId;
 	}
-
-	
 
 	public Integer getStep() {
 		return step;
@@ -65,12 +76,38 @@ public class WorkflowProcessTemplate implements Serializable {
 		this.step = step;
 	}
 
-	public UserGroupMappingT getUserGroupMappingT() {
-		return this.userGroupMappingT;
+	public String getUserGroup() {
+		return userGroup;
 	}
 
-	public void setUserGroupMappingT(UserGroupMappingT userGroupMappingT) {
-		this.userGroupMappingT = userGroupMappingT;
+	public void setUserGroup(String userGroup) {
+		this.userGroup = userGroup;
 	}
+
+	public String getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(String userRole) {
+		this.userRole = userRole;
+	}
+
+	public String getUser_id() {
+		return user_id;
+	}
+
+	public void setUser_id(String user_id) {
+		this.user_id = user_id;
+	}
+
+	public UserT getUserT() {
+		return userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
+	}
+	
+    
 
 }

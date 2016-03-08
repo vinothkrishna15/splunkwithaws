@@ -36,25 +36,27 @@ public class WorkflowStepT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
-	
+
 	@Column(name="user_id")
 	private String userId;
-	
+
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	@Column(name="modified_by")
 	private String modifiedBy;
+
+	@Column(name="user_group")
+	private String userGroup;
+
+	@Column(name="user_role")
+	private String userRole;
 
 	private Integer step;
 
 	@Column(name="step_status")
 	private String stepStatus;
 
-	//bi-directional many-to-one association to UserGroupMappingT
-	@ManyToOne
-	@JoinColumn(name="user_group")
-	private UserGroupMappingT userGroupMappingT;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -127,15 +129,7 @@ public class WorkflowStepT implements Serializable {
 		this.stepStatus = stepStatus;
 	}
 
-	public UserGroupMappingT getUserGroupMappingT() {
-		return this.userGroupMappingT;
-	}
 
-	public void setUserGroupMappingT(UserGroupMappingT userGroupMappingT) {
-		this.userGroupMappingT = userGroupMappingT;
-	}
-
-	
 
 	public UserT getUser() {
 		return user;
@@ -192,7 +186,21 @@ public class WorkflowStepT implements Serializable {
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
 	}
-	
-	
+
+	public String getUserGroup() {
+		return userGroup;
+	}
+
+	public void setUserGroup(String userGroup) {
+		this.userGroup = userGroup;
+	}
+
+	public String getUserRole() {
+		return userRole;
+	}
+
+	public void setUserRole(String userRole) {
+		this.userRole = userRole;
+	}
 
 }

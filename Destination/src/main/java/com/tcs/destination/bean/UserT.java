@@ -15,6 +15,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -335,6 +336,10 @@ public class UserT implements Serializable {
 		//bi-directional many-to-one association to WorkflowStepT
 		@OneToMany(mappedBy="modifiedByUser")
 		private List<WorkflowStepT> workflowStepTs3;
+		
+		//bi-directional many-to-one association to WorkflowProcessTemplate
+		@OneToMany(mappedBy="userT")
+		private List<WorkflowProcessTemplate> workflowProcessTemplates;
 
 	@Transient
 	private String newPassword;
@@ -1600,6 +1605,28 @@ public class UserT implements Serializable {
 
 	public void setWorkflowPartnerTs2(List<WorkflowPartnerT> workflowPartnerTs2) {
 		this.workflowPartnerTs2 = workflowPartnerTs2;
+	}
+	
+	public List<WorkflowProcessTemplate> getWorkflowProcessTemplates() {
+		return this.workflowProcessTemplates;
+	}
+
+	public void setWorkflowProcessTemplates(List<WorkflowProcessTemplate> workflowProcessTemplates) {
+		this.workflowProcessTemplates = workflowProcessTemplates;
+	}
+
+	public WorkflowProcessTemplate addWorkflowProcessTemplate(WorkflowProcessTemplate workflowProcessTemplate) {
+		getWorkflowProcessTemplates().add(workflowProcessTemplate);
+		workflowProcessTemplate.setUserT(this);
+
+		return workflowProcessTemplate;
+	}
+
+	public WorkflowProcessTemplate removeWorkflowProcessTemplate(WorkflowProcessTemplate workflowProcessTemplate) {
+		getWorkflowProcessTemplates().remove(workflowProcessTemplate);
+		workflowProcessTemplate.setUserT(null);
+
+		return workflowProcessTemplate;
 	}
 	
 	
