@@ -12,6 +12,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tcs.destination.utils.Constants;
@@ -54,6 +55,7 @@ public class IouCustomerMappingT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
+		
 
 	public IouCustomerMappingT() {
 	}

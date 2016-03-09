@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.IouBeaconMappingT;
 
 @Repository
-public interface IouBeaconMappingTRepository extends
-CrudRepository<IouBeaconMappingT, String>{
+public interface IouBeaconMappingTRepository extends CrudRepository<IouBeaconMappingT, String>{
 	
 }

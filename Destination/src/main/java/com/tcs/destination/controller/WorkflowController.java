@@ -120,19 +120,26 @@ public class WorkflowController {
 		}
 	}
 
+	/**
+	 * This method inserts the workflow customer including respective workflow
+	 * request and steps for normal users and inserts the customer and mapping
+	 * details for strategic group admin
+	 * 
+	 * @param workflowCustomerT
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/requestCustomer", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> insertRequestedCustomer(
 			@RequestBody WorkflowCustomerT workflowCustomerT)
-					throws DestinationException {
+			throws DestinationException {
 
 		logger.info("Inside WorkflowController: Start of inserting requested customer");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-
-			status.setStatus(Status.SUCCESS,
-					"Request for creation of customer Submitted");
-
+			if (workflowService.insertWorkflowCustomer(workflowCustomerT, status)) {
+			}
 			logger.info("End of inserting requested customer");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",

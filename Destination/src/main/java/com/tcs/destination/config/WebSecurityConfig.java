@@ -44,12 +44,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.sessionManagement().maximumSessions(maximumSessionForUser)
 				.sessionRegistry(sessionRegistry());
 		http.authorizeRequests()
-				.antMatchers(HttpMethod.POST, "/api/useraccess/request")
-				.permitAll()
-				.antMatchers(HttpMethod.POST, "/api/user/forgotpwd")
-				.permitAll().antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				.anyRequest().authenticated().and().requestCache()
-				.requestCache(new NullRequestCache()).and().httpBasic();
+				.antMatchers(HttpMethod.POST, "/api/useraccess/request").permitAll().and().httpBasic();
+				//.antMatchers(HttpMethod.POST, "/api/user/forgotpwd")
+			//	.permitAll().antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				//.anyRequest().authenticated().and().requestCache()
+				//.requestCache(new NullRequestCache()).and().httpBasic();
 
 	}
 

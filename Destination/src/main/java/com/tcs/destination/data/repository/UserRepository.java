@@ -76,7 +76,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	@Query(value = "select user_name from user_t where user_id = :userId", nativeQuery = true)
 	String findUserNameByUserId(@Param("userId")String userId);
-	
+
 	@Query(value = "select user_id from user_t where user_id = ?1", nativeQuery = true)
 	List<String> findPmoUserIds(String pmoValue);
 
@@ -84,5 +84,4 @@ public interface UserRepository extends CrudRepository<UserT, String> {
     
 	@Query(value = "select user_id from user_t where user_id like ?1 or user_group = ?2", nativeQuery = true)
 	List<String> findGeoHeadsAndPMOUserIds(String pmoValue, String value);
-
 }
