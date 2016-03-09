@@ -1,6 +1,7 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
+import org.springframework.data.repository.query.Param;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -27,6 +28,9 @@ public interface WorkflowStepTRepository extends CrudRepository<WorkflowStepT, I
 
 	@Query(value = "select * from workflow_step_t where request_id = ?1 and step = ?2 ;", nativeQuery = true)
 	public WorkflowStepT updateNextStep(int requestId, int stepId);
+	
+	@Query(value = "select * from workflow_step_t  where request_id =(:requestId) order by step asc", nativeQuery = true)
+    List<WorkflowStepT> findStepsByRequestId(@Param("requestId") Integer requestId);
 
 	// @Query(value = "select * from workflow_step_t where request_id = ?1 ;",
 	// nativeQuery = true )

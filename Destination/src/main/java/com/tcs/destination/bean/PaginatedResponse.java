@@ -19,6 +19,8 @@ public class PaginatedResponse implements Serializable {
 	private List<UserFavoritesT> userFavoritesTs;
 
 	private List<ConnectT> connectTs;
+	
+	private List<MyWorklistDTO> myWorklists;
 
 	private long totalCount;
 
@@ -69,4 +71,13 @@ public class PaginatedResponse implements Serializable {
 	public void setConnectTs(List<ConnectT> connectTs) {
 		this.connectTs = connectTs;
 	}
+
+	public List<MyWorklistDTO> getMyWorklists() {
+		return myWorklists;
+	}
+
+	public void setMyWorklists(List<MyWorklistDTO> myWorklists) {
+		this.myWorklists = myWorklists;
+	}
+	
 }

@@ -11,10 +11,10 @@ public class WorkflowCustomerDetailsDTO implements Serializable {
 	private static final long serialVersionUID = 1L;
 	//Stores requested customer details
 	private WorkflowCustomerT requestedCustomer;
-	//Total number of steps in workflow
-	 private int numberOfSteps;
-	 //Contains stepId and corresponding status of step and approver List.
-	 private List<StepDetailsDTO> listOfSteps;
+	 //Details of workflow steps
+	 private List<WorkflowStepT> workflowSteps;
+	 //Status of the request
+	 private String status;
 	 
 	public WorkflowCustomerT getRequestedCustomer() {
 		return requestedCustomer;
@@ -22,18 +22,16 @@ public class WorkflowCustomerDetailsDTO implements Serializable {
 	public void setRequestedCustomer(WorkflowCustomerT requestedCustomer) {
 		this.requestedCustomer = requestedCustomer;
 	}
-	public int getNumberOfSteps() {
-		return numberOfSteps;
+	public List<WorkflowStepT> getWorkflowSteps() {
+		return workflowSteps;
 	}
-	public void setNumberOfSteps(int numberOfSteps) {
-		this.numberOfSteps = numberOfSteps;
+	public void setWorkflowSteps(List<WorkflowStepT> workflowSteps) {
+		this.workflowSteps = workflowSteps;
 	}
-	public List<StepDetailsDTO> getListOfSteps() {
-		return listOfSteps;
+	public String getStatus() {
+		return status;
 	}
-	public void setListOfSteps(List<StepDetailsDTO> listOfSteps) {
-		this.listOfSteps = listOfSteps;
+	public void setStatus(String status) {
+		this.status = status;
 	}
-	 
-
 }

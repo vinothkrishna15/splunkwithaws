@@ -20,6 +20,8 @@ public interface WorkflowRequestTRepository extends
 
 	@Query(value = "select * from workflow_request_t where request_id =?1", nativeQuery = true)
 	public WorkflowRequestT findRequest(Integer requestId);
+	
+	public WorkflowRequestT findByRequestId(Integer id);
 
 	// @Query(value = "select * from workflow_request_t where request_id =?1" ,
 	// nativeQuery =true)

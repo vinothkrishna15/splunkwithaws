@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.MyWorklistDTO;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
@@ -166,21 +167,28 @@ public class WorkflowController {
 
 	}
 
-	@RequestMapping(value = "/customer/{id}", method = RequestMethod.GET)
+	/**
+	 * This method is used to retrieve requested new customer details based on request id
+	 * @param requestedCustomerId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public @ResponseBody String getRequestedCustomerById(
-			@PathVariable("id") String requestedCustomerId,
+			@PathVariable("id") int requestedCustomerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
-		logger.info("Inside WorkflowCustomerController : Start of retrieving requested customer by id");
-		WorkflowCustomerDetailsDTO workflowCustomerDetails;
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			String json = "{\"requestedCustomer\":{\"customerName\":\"ABC Corp\",\"groupCustomerName\":\"ABC Group\",\"geographyMappingT\":{\"geography\":\"Americas\"},\"iou\":\"BFS\"},\"numberOfSteps\":2,\"listOfSteps\":[{\"stepId\":\"1\",\"stepApprover\":\"PMO\",\"stepStatus\":\"APPROVED\"},{\"stepId\":\"2\",\"stepApprover\":\"STRATEGIC ADMIN\",\"stepStatus\":\"PENDING\"}]}";
-			workflowCustomerDetails = mapper.readValue(json,
-					WorkflowCustomerDetailsDTO.class);
+		logger.info("Inside WorkflowController : Start of retrieving requested customer details by id");
+		WorkflowCustomerDetailsDTO workflowCustomerDetails = null;
+		try {			
+			workflowCustomerDetails = workflowService
+					.findRequestedDetailsById(requestedCustomerId);
+			logger.info("Inside WorkflowCustomerController : End of retrieving requested customer details by id");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, workflowCustomerDetails);
+				view, workflowCustomerDetails);
 
 		} catch (DestinationException e) {
 			throw e;
@@ -190,27 +198,24 @@ public class WorkflowController {
 					"Backend error in retrieving customer details");
 		}
 	}
-
-	@RequestMapping(value = "/customer/myWorklist", method = RequestMethod.GET)
+	
+	
+	@RequestMapping(value = "/myWorklist", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getAllCustomerRequestsInWorklist(
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "fields", defaultValue = "") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "status", defaultValue = "ALL") String status)
 			throws DestinationException {
-		logger.info("Inside WorkflowCustomerController: Start of retrieving Worklist for a user");
+		logger.info("Inside WorkflowController: Start of retrieving Worklist for a user");
+		PaginatedResponse pageWorklist = new PaginatedResponse();
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-			String json = "[{\"workflowStep\":{\"userT2\":{\"userName\":\"Rajan J\"},\"stepStatus\":\"Approved\",\"createdDatetime\":\"1456134044000\"},\"entityType\":\"CUSTOMER\",\"entityName\":\"ABC Corp\"},{\"workflowStep\":{\"userT2\":{\"userName\":\"Ronak Shah\"},\"stepStatus\":\"Pending\",\"createdDatetime\":\"1456134044000\"},\"entityType\":\"CUSTOMER\",\"entityName\":\"Adobe\"}]";
-			MyWorklistDTO[] myWorklist = mapper.readValue(json,
-					MyWorklistDTO[].class);
-			List<MyWorklistDTO> myWorklists = new ArrayList<MyWorklistDTO>();
-			for (int i = 0; i < myWorklist.length; i++)
-				myWorklists.add(myWorklist[i]);
+			pageWorklist = workflowService.getMyWorklist(status,page,count);
+			logger.info("Inside WorkflowCustomerController: End of retrieving Worklist for a user");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
-							view, myWorklists), HttpStatus.OK);
+							view, pageWorklist), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -219,4 +224,5 @@ public class WorkflowController {
 					"Backend error while retrieving Worklist for a user");
 		}
 	}
+
 }
