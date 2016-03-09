@@ -30,7 +30,5 @@ public interface WorkflowProcessTemplateRepository extends
 
 	List<WorkflowProcessTemplate> findByEntityTypeIdAndStepGreaterThan(
 			Integer type, Integer step);
-    
-	
 
 }

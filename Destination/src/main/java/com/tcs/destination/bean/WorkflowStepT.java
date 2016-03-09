@@ -61,10 +61,6 @@ public class WorkflowStepT implements Serializable {
 
 	@Column(name="step_status")
 	private String stepStatus;
-	
-	//bi-directional many-to-one association to WorkflowStepUserT
-		@OneToMany(mappedBy="workflowStepT")
-		private List<WorkflowStepUserT> workflowStepUserTs;
 
 
 	//bi-directional many-to-one association to UserT
@@ -210,28 +206,6 @@ public class WorkflowStepT implements Serializable {
 
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
-	}
-	
-	public List<WorkflowStepUserT> getWorkflowStepUserTs() {
-		return this.workflowStepUserTs;
-	}
-
-	public void setWorkflowStepUserTs(List<WorkflowStepUserT> workflowStepUserTs) {
-		this.workflowStepUserTs = workflowStepUserTs;
-	}
-
-	public WorkflowStepUserT addWorkflowStepUserT(WorkflowStepUserT workflowStepUserT) {
-		getWorkflowStepUserTs().add(workflowStepUserT);
-		workflowStepUserT.setWorkflowStepT(this);
-
-		return workflowStepUserT;
-	}
-
-	public WorkflowStepUserT removeWorkflowStepUserT(WorkflowStepUserT workflowStepUserT) {
-		getWorkflowStepUserTs().remove(workflowStepUserT);
-		workflowStepUserT.setWorkflowStepT(null);
-
-		return workflowStepUserT;
 	}
 
 	public Integer getRequestId() {
