@@ -56,6 +56,9 @@ public class WorkflowStepT implements Serializable {
 
 	@Column(name="step_status")
 	private String stepStatus;
+	
+	@Column(name="request_id")
+	private Integer requestId;
 
 
 	//bi-directional many-to-one association to UserT
@@ -75,7 +78,7 @@ public class WorkflowStepT implements Serializable {
 
 	//bi-directional many-to-one association to WorkflowRequestT
 	@ManyToOne
-	@JoinColumn(name="request_id")
+	@JoinColumn(name="request_id", updatable = false, insertable = false)
 	private WorkflowRequestT workflowRequestT;
 
 	public WorkflowStepT() {
@@ -202,5 +205,17 @@ public class WorkflowStepT implements Serializable {
 	public void setUserRole(String userRole) {
 		this.userRole = userRole;
 	}
+
+	public Integer getRequestId() {
+		return requestId;
+	}
+
+	public void setRequestId(Integer requestId) {
+		this.requestId = requestId;
+	}
+
+
+	
+	
 
 }

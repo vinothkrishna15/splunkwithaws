@@ -68,11 +68,22 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowCustomerT;
+import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
+import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
+import com.tcs.destination.data.repository.WorkflowProcessTemplateTRepository;
+import com.tcs.destination.data.repository.WorkflowRequestTRepository;
+import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
+import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -97,6 +108,13 @@ public class DestinationMailUtils {
 	@Value("${reopenOpportunityProcessedTemplateLoc}")
 	private String reopenOpportunityProcessedTemplateLoc;
 
+	//workflow templates
+	@Value("${workflowPendingTemplateLoc}")
+	private String workflowPendingTemplateLoc;
+	
+	@Value("${workflowApproveOrRejectTemplateLoc}")
+	private String workflowApproveOrRejectTemplateLoc;
+	
 	@Value("${upload.template}")
 	private String uploadTemplateLoc;
 
@@ -135,6 +153,24 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private OpportunityService oppService;
+
+	@Autowired
+	WorkflowRequestTRepository workflowRequestRepository;
+
+	@Autowired
+	WorkflowStepTRepository workflowStepRepository;
+	
+	@Autowired
+	WorkflowCustomerTRepository workflowCustomerRepository;
+
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	WorkflowProcessTemplateRepository workflowProcessTemplateRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
@@ -211,7 +247,7 @@ public class DestinationMailUtils {
 
 			String template = null;
 			StringBuffer subject = new StringBuffer(environmentName)
-					.append(" Admin: ");
+			.append(" Admin: ");
 
 			String userName = null;
 			String entity = null;
@@ -231,7 +267,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 2: {
 				// Customer upload
@@ -240,7 +276,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 3: {
 				// Connect upload
@@ -249,7 +285,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 4: {
 				// Opportunity upload
@@ -258,7 +294,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 5: {
 				// Actual revenue upload
@@ -267,7 +303,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 6: {
 				// Customer contact upload
@@ -276,7 +312,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
 			}
-				break;
+			break;
 
 			case 7: {
 				// Partner upload
@@ -285,7 +321,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 8: {
 				// Partner contact upload
@@ -294,7 +330,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 			case 9: {
 				// Beacon upload
 				subject.append(BEACON_UPLOAD_SUBJECT);
@@ -302,7 +338,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 10: {
 				// User download
@@ -311,7 +347,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 11: {
 				// Customer download
@@ -320,7 +356,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 12: {
 				// Connect download
@@ -329,7 +365,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 13: {
 				// Opportunity download
@@ -338,7 +374,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 14: {
 				// Actual revenue download
@@ -347,7 +383,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 15: {
 				// Customer contact download
@@ -356,7 +392,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
 			}
-				break;
+			break;
 
 			case 16: {
 				// Partner download
@@ -365,7 +401,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 17: {
 				// Partner contact download
@@ -374,7 +410,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 18: {
 				// Beacon download
@@ -383,7 +419,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 19: {
 				// Opportunity download
@@ -392,7 +428,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			}
 
@@ -516,7 +552,7 @@ public class DestinationMailUtils {
 
 			String template = uploadNotifyTemplateLoc;
 			StringBuffer subject = new StringBuffer(environmentName)
-					.append(" Admin: ");
+			.append(" Admin: ");
 
 			String userName = user.getUserName();
 			;
@@ -532,7 +568,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 2: {
 				// Customer upload
@@ -541,7 +577,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 3: {
 				// Connect upload
@@ -550,7 +586,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 4: {
 				// Opportunity upload
@@ -559,7 +595,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 5: {
 				// Actual revenue upload
@@ -568,7 +604,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 6: {
 				// Customer contact upload
@@ -577,7 +613,7 @@ public class DestinationMailUtils {
 						.name().toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 7: {
 				// Partner upload
@@ -586,7 +622,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 8: {
 				// Partner contact upload
@@ -595,7 +631,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 			case 9: {
 				// Beacon upload
 				subject.append(BEACON_UPLOAD_NOTIFY_SUBJECT);
@@ -603,7 +639,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			}
 
@@ -768,7 +804,7 @@ public class DestinationMailUtils {
 	 */
 	private void sendUserAccessMail(DestinationMailMessage message,
 			UserAccessRequestT userAccessRequest, String dateStr)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside sendUserAccessMail method");
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
@@ -1012,7 +1048,7 @@ public class DestinationMailUtils {
 			DestinationMailMessage message,
 			OpportunityReopenRequestT oppReopenRequest, UserT user,
 			OpportunityT opp, String dateStr, CustomerMasterT customer)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside sendOpportunityReopenProcessedMail method");
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
@@ -1064,4 +1100,204 @@ public class DestinationMailUtils {
 
 	}
 
+	public void sendWorkflowPendingMail(String workflowCustomerPendingSubject,
+			Integer requestId, Date date) throws Exception {
+		List<String> recepientIds = new ArrayList<String>();
+		String userGroupOrUserRoleOrUserId = null;
+		String workflowEntity = null;
+		String workflowEntityName = null;
+		String[] recipientMailIdsArray = null;
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(date);
+		String subject = new StringBuffer(environmentName).append(" ")
+				.append(workflowCustomerPendingSubject).toString();
+		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+				.createMimeMessage();
+		MimeMessageHelper helper;
+		try {
+			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			WorkflowRequestT workflowRequestT = workflowRequestRepository
+					.findOne(requestId);
+			WorkflowStepT workflowStepPending = workflowStepRepository.findByRequestIdAndStepStatus(requestId,
+							WorkflowStatus.PENDING.getStatus());
+			WorkflowCustomerT workflowCustomerT = workflowCustomerRepository.findOne(workflowRequestT.getEntityId());
+			String userName = userRepository
+					.findUserNameByUserId(workflowCustomerT.getCreatedBy());
+			workflowEntity = Constants.WORKFLOW_CUSTOMER;
+			workflowEntityName = workflowCustomerT.getCustomerName();
+			if (workflowStepPending.getUserGroup() != null
+					|| workflowStepPending.getUserRole() != null
+					|| workflowStepPending.getUserId() != null) {
+				if (workflowStepPending.getUserGroup() != null) {
+					switch (workflowStepPending.getUserGroup()) {
+					case Constants.WORKFLOW_GEO_HEADS_PMO:
+
+						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+						recepientIds.addAll(userAccessPrivilegesRepository.findUserIdsForWorkflowUserGroupWithPMO(
+										workflowCustomerT.getGeography(),
+										UserGroup.GEO_HEADS.getValue(),
+										pmoValue));
+						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS_PMO;
+						break;
+					default:
+					}
+				}
+				if (workflowStepPending.getUserRole() != null) {
+					recepientIds.addAll(userRepository
+							.findUserIdByUserRole(workflowStepPending
+									.getUserRole()));
+					userGroupOrUserRoleOrUserId = workflowStepPending.getUserRole();
+
+				}
+				if (workflowStepPending.getUserId() != null) {
+					String[] workflowUserIds = workflowStepPending.getUserId()
+							.split(",");
+					List<String> workflowUserIdList = Arrays
+							.asList(workflowUserIds);
+					recepientIds.addAll(workflowUserIdList);
+				}
+			}
+			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+			Map<String, Object> workflowMap = new HashMap<String, Object>();
+			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
+			workflowMap.put("workflowEntity", workflowEntity);
+			workflowMap.put("workflowEntityName", workflowEntityName);
+			workflowMap.put("submittedDate", dateStr);
+			workflowMap.put("userName", userName);
+			helper.setTo(recipientMailIdsArray);
+			helper.setFrom(senderEmailId);
+
+			String text = VelocityEngineUtils.mergeTemplateIntoString(
+					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
+					workflowMap);
+
+			helper.setSubject(subject);
+			helper.setText(text, true);
+			logMailDetails(recipientMailIdsArray, null, null, subject, text);
+			mailSender.send(automatedMIMEMessage);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MailSendException e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		} catch (MailParseException e) {
+			logger.error("Error parsing mail message", e.getMessage());
+			throw e;
+		} catch (MailAuthenticationException e) {
+			logger.error("Error authnticatingh e-mail message", e.getMessage());
+			throw e;
+		} catch (MailPreparationException e) {
+			logger.error("Error preparing mail message", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		}
+
+	}
+
+	public void sendWorkflowApprovedOrRejectMail(
+			String workflowCustomerApprovedOrRejectSubject, Integer requestId, Date date) throws Exception {
+		List<String> recepientIds = new ArrayList<String>();
+		List<String> ccIds = new ArrayList<String>();
+		String[] recipientMailIdsArray = null;
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(date);
+		String subject = new StringBuffer(environmentName).append(" ")
+				.append(workflowCustomerApprovedOrRejectSubject).toString();
+		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+				.createMimeMessage();
+		MimeMessageHelper helper;
+		try {
+			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			WorkflowRequestT workflowRequestT = workflowRequestRepository
+					.findOne(requestId);
+			WorkflowCustomerT workflowCustomerT = workflowCustomerRepository.findOne(workflowRequestT.getEntityId());
+			String entityName = workflowCustomerT.getCustomerName();
+				WorkflowStepT workflowStepSubmitted = workflowStepRepository.findByRequestIdAndStepStatus(requestId,WorkflowStatus.SUBMITTED.getStatus());
+				if(workflowStepSubmitted!=null) {
+					recepientIds.add(workflowStepSubmitted.getUserId());
+					String userName = userRepository
+							.findUserNameByUserId(workflowStepSubmitted.getUserId());
+					WorkflowStepT workflowStepApprovedOrRejected = workflowStepRepository.findWorkflowStepApprovedorRejected(requestId);
+					String aprrovedOrRejectedId = workflowStepApprovedOrRejected.getUserId();
+					String approvedOrRejectedUserName = userRepository.findUserNameByUserId(aprrovedOrRejectedId);
+					
+					List<WorkflowStepT> workflowStepsBeforeApprovalOrRejection = workflowStepRepository.findWorkflowTemplateBeforeApprovalOrRejection(requestId);
+					if(workflowStepsBeforeApprovalOrRejection!=null) {
+						
+						workflowStepsBeforeApprovalOrRejection.remove(workflowStepSubmitted.getStep());
+					}
+					if(workflowStepsBeforeApprovalOrRejection!=null) {
+						for(WorkflowStepT workflowStep : workflowStepsBeforeApprovalOrRejection) {
+							if(workflowStep.getUserGroup()!=null || workflowStep.getUserRole()!=null || workflowStep.getUserId()!=null) {
+								if(workflowStep.getUserGroup()!=null) {
+									switch (workflowStep.getUserGroup()) {
+									case Constants.WORKFLOW_GEO_HEADS_PMO:
+
+										String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+										ccIds.addAll(userAccessPrivilegesRepository.findUserIdsForWorkflowUserGroupWithPMO(
+														workflowCustomerT.getGeography(),
+														UserGroup.GEO_HEADS.getValue(),
+														pmoValue));
+									default :
+										
+									}
+								} if(workflowStep.getUserRole()!=null) {
+									ccIds.addAll(userRepository.findUserIdByUserRole(workflowStep.getUserRole()));
+								} if(workflowStep.getUserId()!=null) {
+									String[] workflowUserIds = workflowStep.getUserId()
+											.split(",");
+									List<String> workflowUserIdList = Arrays
+											.asList(workflowUserIds);
+									ccIds.addAll(workflowUserIdList);
+								}
+							}
+						}
+					}  recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+					String[] ccMailIdsArray = getMailAddressArr(ccIds);
+					helper.setCc(ccMailIdsArray);
+					helper.setTo(recipientMailIdsArray);
+					helper.setFrom(senderEmailId);
+					helper.setSubject(subject);
+					Map<String, Object> workflowMap = new HashMap<String, Object>();
+					workflowMap.put("userName", userName);
+					workflowMap.put("entity", Constants.WORKFLOW_CUSTOMER);
+					workflowMap.put("entityName", entityName);
+					workflowMap.put("submittedDate", dateStr);
+					workflowMap.put("approvedOrRejectedUserName", approvedOrRejectedUserName);
+					if(workflowRequestT.getStatus().equals(WorkflowStatus.APPROVED.getStatus())) {
+						workflowMap.put("status", "approved");
+					} else {
+						workflowMap.put("status", "rejected");
+					}
+					String text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, workflowApproveOrRejectTemplateLoc, Constants.UTF8,
+							workflowMap);
+					helper.setText(text, true);
+				}
+				
+				
+			
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MailSendException e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		} catch (MailParseException e) {
+			logger.error("Error parsing mail message", e.getMessage());
+			throw e;
+		} catch (MailAuthenticationException e) {
+			logger.error("Error authnticatingh e-mail message", e.getMessage());
+			throw e;
+		} catch (MailPreparationException e) {
+			logger.error("Error preparing mail message", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error sending mail message", e.getMessage());
+			throw e;
+		}
+	}
 }

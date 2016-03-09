@@ -22,12 +22,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
@@ -56,11 +58,15 @@ public class CustomerUploadService {
 	@Autowired
 	CustomerIOUMappingRepository customerIouMappingTRepository;
 
+	@Autowired
+	IouBeaconMappingTRepository iouBeaconMappingTRepository;
+
 	private List<String> listOfCustomerId = null;
 	private Map<String, String> mapOfCustomerMasterT = null;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
+	Map<String, IouBeaconMappingT> mapOfBeaconIouMappingT = null;
 
 	private static final Logger logger = LoggerFactory.getLogger(CustomerUploadService.class);
 
@@ -86,6 +92,9 @@ public class CustomerUploadService {
 
 		// Get List of IOU from DB for validating the IOU which comes from the sheet	
 		mapOfIouMappingT = getIouMappingT();
+
+		//Get List of beacon IOU from iou_beacon_mapping_t
+		mapOfBeaconIouMappingT = getBeaconIouMappingT();
 
 		// To check if no validation errors are present in the workbook
 		if (validateSheetForCustomer(workbook)) { 
@@ -120,13 +129,13 @@ public class CustomerUploadService {
 						if (uploadStatus.isStatusFlag()) {
 							uploadStatus.setStatusFlag(false);
 						}
-                        UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-                        error.setRowNumber(rowCount + 1);
+						UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+						error.setRowNumber(rowCount + 1);
 						error.setMessage(e.getMessage());
-                        uploadStatus.getListOfErrors().add(error);
+						uploadStatus.getListOfErrors().add(error);
 					}
-                 }
-			  rowCount++;
+				}
+				rowCount++;
 			}
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
@@ -135,11 +144,24 @@ public class CustomerUploadService {
 		return uploadStatus;
 	}
 
+	public Map<String, IouBeaconMappingT> getBeaconIouMappingT() {
+		logger.debug("Start: Inside getBeaconIouMappingT() of CustomerUploadService");
+		List<IouBeaconMappingT> listOfBeaconIouMappingT = null;
+		listOfBeaconIouMappingT = (List<IouBeaconMappingT>) iouBeaconMappingTRepository.findAll();
+		Map<String, IouBeaconMappingT> iouBeaconMap = new HashMap<String, IouBeaconMappingT>();
+		for (IouBeaconMappingT iouBeaconMappingT : listOfBeaconIouMappingT) {
+			iouBeaconMap.put(iouBeaconMappingT.getBeaconIou(), iouBeaconMappingT);
+		}
+		logger.debug("End: Inside getBeaconIouMappingT() of CustomerUploadService");
+		return iouBeaconMap;
+	}
+
 	/**
+	 * change: visiblity of the method is changed to public
 	 * This method creates a geography Map
 	 * @return geographyMap
 	 */
-	private Map<String, GeographyMappingT> getGeographyMappingT() {
+	public Map<String, GeographyMappingT> getGeographyMappingT() {
 		logger.debug("Start: Inside getGeographyMappingT() of CustomerUploadService");
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
@@ -155,7 +177,7 @@ public class CustomerUploadService {
 	 * This method creates a IOU Map
 	 * @return iouMap
 	 */
-	private Map<String, IouCustomerMappingT> getIouMappingT() {
+	public Map<String, IouCustomerMappingT> getIouMappingT() {
 		logger.debug("Start: Inside getIouMappingT() of CustomerUploadService");
 		List<IouCustomerMappingT> listOfIouMappingT = null;
 		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository.findAll();
@@ -225,7 +247,7 @@ public class CustomerUploadService {
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				customerT.setCustomerName(listOfCellValues.get(2));
 			}
-			
+
 			// IOU 
 			if(listOfCellValues.get(3).length()>0){
 				if(mapOfIouMappingT.containsKey(listOfCellValues.get(3))){

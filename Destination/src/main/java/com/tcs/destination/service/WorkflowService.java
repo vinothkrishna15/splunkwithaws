@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -9,13 +10,16 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
+import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.RevenueCustomerMappingTPK;
@@ -31,8 +35,9 @@ import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.UserRole;
-import com.tcs.destination.enums.WorkflowStepStatus;
+import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
@@ -40,6 +45,15 @@ import com.tcs.destination.utils.StringUtils;
 public class WorkflowService {
 
 	private static final Logger logger = LoggerFactory.getLogger(WorkflowService.class);
+
+	@Value("${workflowCustomerPending}")
+	private String workflowCustomerPendingSubject;
+
+	@Value("${workflowCustomerApproved}")
+	private String workflowCustomerApprovedSubject;
+
+	@Value("${workflowCustomerRejected}")
+	private String workflowCustomerRejected;
 
 	@Autowired 
 	WorkflowStepTRepository workflowStepTRepository;
@@ -49,7 +63,7 @@ public class WorkflowService {
 
 	@Autowired
 	CustomerRepository customerRepository;
-	
+
 	@Autowired
 	WorkflowRequestTRepository workflowRequestTRepository;
 
@@ -58,15 +72,22 @@ public class WorkflowService {
 
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	RevenueCustomerMappingTRepository revenueRepository;
-	
+
 	@Autowired
 	BeaconCustomerMappingRepository beaconRepository;
 
+	@Autowired
+	DestinationMailUtils mailUtils;
+
+	@Autowired
+	ThreadPoolTaskExecutor mailTaskExecutor;
+
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
+	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 
 	/**
 	 * Requested entity approval
@@ -90,35 +111,37 @@ public class WorkflowService {
 			requestSteps = workflowStepTRepository.findStepForEditAndApprove(workflowCustomerT.getWorkflowCustomerId());
 			masterRequest = workflowRequestTRepository.findRequestedRecord(0,workflowCustomerT.getWorkflowCustomerId());
 			for (WorkflowStepT stepRecord : requestSteps){
-				if(stepRecord.getStepStatus().equals(WorkflowStepStatus.PENDING.getStatus())){
+				if(stepRecord.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())){
 					stepId = stepRecord.getStepId();
 					requestId = stepRecord.getWorkflowRequestT().getRequestId();
 					WorkflowCustomerT oldObject = new WorkflowCustomerT();
 					if(stepId != -1 && requestId != 0 && rowIteration == 0){
-						oldObject = workflowCustomerRepository.findWorkflowCustomer(workflowCustomerT.getWorkflowCustomerId());
+						oldObject = workflowCustomerRepository.findOne(workflowCustomerT.getWorkflowCustomerId());
 						if (!workflowCustomerT.equals(oldObject)){
 							workflowCustomerT.setModifiedBy(userId);
 							workflowCustomerRepository.save(workflowCustomerT);
 						}
 						stepRecord.setUserId(userId);
-						stepRecord.setStepStatus(WorkflowStepStatus.APPROVED.getStatus());
+						stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 						stepRecord.setModifiedBy(userId);
 						if(!StringUtils.isEmpty(workflowCustomerT.getNotes())){
-						stepRecord.setComments(workflowCustomerT.getNotes());
+							stepRecord.setComments(workflowCustomerT.getNotes());
 						}
 						// for updating the status in workflow_request_t 
 						masterRequest.setModifiedBy(userId);
-						masterRequest.setStatus(WorkflowStepStatus.APPROVED.getStatus());
+						masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),new Date());
 						step = stepRecord.getStep()+1;
 						rowIteration++;
 					}
 				}
 				if(stepRecord.getStep().equals(step) && (rowIteration == 1)){
-					stepRecord.setStepStatus(WorkflowStepStatus.PENDING.getStatus());
+					stepRecord.setStepStatus(WorkflowStatus.PENDING.getStatus());
 					// for updating the status in workflow_request_t 
 					masterRequest.setModifiedBy(userId);
-					masterRequest.setStatus(WorkflowStepStatus.PENDING.getStatus());
+					masterRequest.setStatus(WorkflowStatus.PENDING.getStatus());
 					stepRecord.setModifiedBy(userId);
+					sendEmailNotificationforPending(masterRequest.getRequestId(),new Date());
 					rowIteration++;
 				}
 			}
@@ -132,6 +155,58 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend error while approving the request");
 		}
 		return true;
+	}
+
+	private void sendEmailNotificationforApprovedOrRejectMail(final String approveOrRejectSubject,Integer requestId, Date date) throws Exception {
+		// TODO Auto-generated method stub
+		class WorkflowNotificationForApproveOrReject implements Runnable {
+			Integer requestId;
+			Date date;
+
+			WorkflowNotificationForApproveOrReject(Integer requestId, Date date) {
+				this.requestId = requestId;
+				this.date = date;
+			}
+			@Override
+			public void run() {
+				try {
+					mailUtils.sendWorkflowApprovedOrRejectMail(approveOrRejectSubject,requestId,date);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} 
+		WorkflowNotificationForApproveOrReject workflowNotificationForApproveOrReject = new WorkflowNotificationForApproveOrReject(requestId,date);
+		mailTaskExecutor.execute(workflowNotificationForApproveOrReject);
+		logger.debug("End:Inside sendEmailNotification of workflow pending");
+	}
+
+	private void sendEmailNotificationforPending(Integer requestId, Date date) throws Exception {
+		// TODO Auto-generated method stub
+		class WorkflowNotificationForPending implements Runnable {
+			Integer requestId;
+			Date date;
+
+			WorkflowNotificationForPending(Integer requestId, Date date) {
+				this.requestId = requestId;
+				this.date = date;
+			}
+			@Override
+			public void run() {
+				try {
+					mailUtils.sendWorkflowPendingMail(workflowCustomerPendingSubject,requestId,date);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+		} 
+		WorkflowNotificationForPending workflowNotificationForPending = new WorkflowNotificationForPending(requestId,date);
+		mailTaskExecutor.execute(workflowNotificationForPending);
+		logger.debug("End:Inside sendEmailNotification of workflow pending");
+
 	}
 
 	/*
@@ -163,7 +238,7 @@ public class WorkflowService {
 				revenueRepository.save(revenueCustomer);
 			}
 		}
-		if(!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()){
+		if(!workflowCustomerT.getBeaconCustomerMappingTs().isEmpty()){
 			for(BeaconCustomerMappingT bcmpt : workflowCustomerT.getBeaconCustomerMappingTs()){
 				BeaconCustomerMappingT beaconCustomer =new BeaconCustomerMappingT();
 				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
@@ -187,6 +262,7 @@ public class WorkflowService {
 		UserT user = userRepository.findByUserId(userId);
 		mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
 		mapOfIouCustomerMappingT = customerUploadService.getIouMappingT();
+		mapOfIouBeaconMappingT = customerUploadService.getBeaconIouMappingT();
 
 		validateWorkflowCustomerMasterDetails(requestedCustomerT);
 
@@ -198,7 +274,7 @@ public class WorkflowService {
 			List<RevenueCustomerMappingT> revenueCustomerMappingTs = new ArrayList<RevenueCustomerMappingT>();
 			List<BeaconCustomerMappingT> beaconCustomerMappingTs = new ArrayList<BeaconCustomerMappingT>();
 			revenueCustomerMappingTs = requestedCustomerT.getRevenueCustomerMappingTs();
-			
+
 			if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 				validateRevenueCustomerDetails(revenueCustomerMappingTs);
 			} else {
@@ -214,10 +290,10 @@ public class WorkflowService {
 		return isAdminValidated;
 	}
 
-/**
- * customer master integrity validations for requested customer
- * @param requestedCustomerT
- */
+	/**
+	 * customer master integrity validations for requested customer
+	 * @param requestedCustomerT
+	 */
 	private void validateWorkflowCustomerMasterDetails(WorkflowCustomerT requestedCustomerT) {
 
 		String customerName = requestedCustomerT.getCustomerName();
@@ -228,7 +304,7 @@ public class WorkflowService {
 		}
 		// to check duplicate of customer name
 		CustomerMasterT customerMaster = customerRepository.findByCustomerName(customerName);
-	//	WorkflowCustomerT workflowCustomer = workflowCustomerRepository.findByCustomerName(customerName);
+		//	WorkflowCustomerT workflowCustomer = workflowCustomerRepository.findByCustomerName(customerName);
 		if ((customerMaster!=null)){
 			logger.error("Customer name already exists");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Customer name already exists" + customerName);
@@ -260,7 +336,7 @@ public class WorkflowService {
 	 * @param beaconCustomerMappingTs
 	 */
 	private void validateBeaconCustomerDetails(List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
-		 List<BeaconCustomerMappingT> beaconCustomers = null;
+		List<BeaconCustomerMappingT> beaconCustomers = null;
 		for (BeaconCustomerMappingT bcmt : beaconCustomerMappingTs) {
 			if (StringUtils.isEmpty(bcmt.getBeaconCustomerName())) {
 				logger.error("Beacon Customer name should not be empty");
@@ -280,7 +356,7 @@ public class WorkflowService {
 						"Geography Should not be empty");
 			}
 			if (!StringUtils.isEmpty(bcmt.getBeaconIou())) {
-				if (!mapOfIouCustomerMappingT.containsKey(bcmt.getBeaconIou())) {
+				if (!mapOfIouBeaconMappingT.containsKey(bcmt.getBeaconIou())) {
 					logger.error("Invalid IOU");
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"Invalid IOU" + bcmt.getBeaconIou());
@@ -305,7 +381,7 @@ public class WorkflowService {
 	 * @param revenueCustomerMappingTs
 	 */
 	private void validateRevenueCustomerDetails(List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
-		 List<RevenueCustomerMappingT> financeCustomers = null;
+		List<RevenueCustomerMappingT> financeCustomers = null;
 		for (RevenueCustomerMappingT rcmt : revenueCustomerMappingTs) {
 			if (StringUtils.isEmpty(rcmt.getFinanceCustomerName())) {
 				logger.error("Finance Customer name should not be empty");
@@ -334,7 +410,7 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"IOU Should not be empty");
 			}
-			
+
 			financeCustomers = revenueRepository.checkRevenueMappingPK(rcmt.getFinanceCustomerName(),rcmt.getCustomerGeography(),rcmt.getFinanceIou());
 			if(!financeCustomers.isEmpty()){
 				logger.error("The combination of the finanaceCustomerName, geography and finanaceIOU already exists");
@@ -362,7 +438,7 @@ public class WorkflowService {
 				workflowStepToReject = workflowStepTRepository.findStep(stepId);
 				masterRequest = workflowRequestTRepository.findRequest(workflowStepT.getWorkflowRequestT().getRequestId());
 				if(workflowStepToReject != null && workflowStepToReject.getStepStatus()
-						.equalsIgnoreCase(WorkflowStepStatus.PENDING.getStatus())){
+						.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())){
 					workflowStepToReject.setUserId(userId);
 					workflowStepToReject.setStepStatus(workflowStepT.getStepStatus());
 					workflowStepToReject.setModifiedBy(userId);
@@ -377,6 +453,7 @@ public class WorkflowService {
 					masterRequest.setStatus(workflowStepT.getStepStatus());
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
+					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),new Date());
 				}
 				else{
 					throw new DestinationException(HttpStatus.NOT_FOUND,
