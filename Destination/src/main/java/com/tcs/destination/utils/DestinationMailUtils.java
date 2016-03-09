@@ -1147,7 +1147,7 @@ public class DestinationMailUtils {
 						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 						recepientIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowUserGroupWithPMO(
-										workflowCustomerT.getGeography(),
+										workflowCustomerT.getGeography(), Constants.Y,
 										UserGroup.GEO_HEADS.getValue(),
 										pmoValue));
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS_PMO;
@@ -1267,7 +1267,7 @@ public class DestinationMailUtils {
 									ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForWorkflowUserGroupWithPMO(
 													workflowCustomerT
-															.getGeography(),
+															.getGeography(), Constants.Y,
 													UserGroup.GEO_HEADS
 															.getValue(),
 													pmoValue));
