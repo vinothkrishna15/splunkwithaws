@@ -29,6 +29,12 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WorkflowService;
 import com.tcs.destination.utils.ResponseConstructors;
 
+/**
+ * This controller deals with the workflow related functionalities
+ * 
+ * @author
+ *
+ */
 @RestController
 @RequestMapping("/workflow")
 public class WorkflowController {
@@ -48,9 +54,9 @@ public class WorkflowController {
 	@Autowired
 	WorkflowService workflowService;
 
-
 	/**
-	 * work flow for rejection process 
+	 * work flow for rejection process
+	 * 
 	 * @param <T>
 	 * @param WorkflowStepT
 	 * @param workflowCustomerT
@@ -62,14 +68,16 @@ public class WorkflowController {
 	public @ResponseBody ResponseEntity<String> approveCustomers(
 			@RequestBody WorkflowCustomerT workflowCustomerT,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 
 		logger.info("Inside WorkflowController: Start of approve Customer");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if(workflowService.approveWorkflowEntity(workflowCustomerT)){
-				status.setStatus(Status.SUCCESS, "The requested entity is approved!!!");
+			if (workflowService.approveWorkflowEntity(workflowCustomerT)) {
+				status.setStatus(Status.SUCCESS,
+						"The requested entity is approved!!!");
 				logger.debug("Request approved Successfully");
 			}
 			logger.info("Inside WorkflowController: End of approve Customer");
@@ -86,7 +94,8 @@ public class WorkflowController {
 	}
 
 	/**
-	 * work flow for rejection process 
+	 * work flow for rejection process
+	 * 
 	 * @param WorkflowStepT
 	 * @param workflowCustomerT
 	 * @param fields
@@ -97,15 +106,17 @@ public class WorkflowController {
 	public @ResponseBody ResponseEntity<String> rejectCustomers(
 			@RequestBody WorkflowStepT workflowStepT,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException {
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
 
 		logger.info("Inside WorkflowController: Start of reject Customer");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if( workflowService.rejectWorkflowEntity(workflowStepT)){
+			if (workflowService.rejectWorkflowEntity(workflowStepT)) {
 				status.setStatus(Status.SUCCESS, workflowStepT.getStepStatus());
-				logger.debug("Request rejected Successfully" + workflowStepT.getStepStatus());
+				logger.debug("Request rejected Successfully"
+						+ workflowStepT.getStepStatus());
 			}
 			logger.info("Inside WorkflowController: End of reject Customer");
 			return new ResponseEntity<String>(
@@ -138,7 +149,8 @@ public class WorkflowController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (workflowService.insertWorkflowCustomer(workflowCustomerT, status)) {
+			if (workflowService.insertWorkflowCustomer(workflowCustomerT,
+					status)) {
 			}
 			logger.info("End of inserting requested customer");
 			return new ResponseEntity<String>(
@@ -159,13 +171,14 @@ public class WorkflowController {
 			@PathVariable("id") String requestedCustomerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-					throws DestinationException {
+			throws DestinationException {
 		logger.info("Inside WorkflowCustomerController : Start of retrieving requested customer by id");
 		WorkflowCustomerDetailsDTO workflowCustomerDetails;
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			String json = "{\"requestedCustomer\":{\"customerName\":\"ABC Corp\",\"groupCustomerName\":\"ABC Group\",\"geographyMappingT\":{\"geography\":\"Americas\"},\"iou\":\"BFS\"},\"numberOfSteps\":2,\"listOfSteps\":[{\"stepId\":\"1\",\"stepApprover\":\"PMO\",\"stepStatus\":\"APPROVED\"},{\"stepId\":\"2\",\"stepApprover\":\"STRATEGIC ADMIN\",\"stepStatus\":\"PENDING\"}]}";
-			workflowCustomerDetails = mapper.readValue(json, WorkflowCustomerDetailsDTO.class);
+			workflowCustomerDetails = mapper.readValue(json,
+					WorkflowCustomerDetailsDTO.class);
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, workflowCustomerDetails);
 
@@ -185,14 +198,15 @@ public class WorkflowController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "status", defaultValue = "ALL") String status)
-					throws DestinationException {
+			throws DestinationException {
 		logger.info("Inside WorkflowCustomerController: Start of retrieving Worklist for a user");
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			String json = "[{\"workflowStep\":{\"userT2\":{\"userName\":\"Rajan J\"},\"stepStatus\":\"Approved\",\"createdDatetime\":\"1456134044000\"},\"entityType\":\"CUSTOMER\",\"entityName\":\"ABC Corp\"},{\"workflowStep\":{\"userT2\":{\"userName\":\"Ronak Shah\"},\"stepStatus\":\"Pending\",\"createdDatetime\":\"1456134044000\"},\"entityType\":\"CUSTOMER\",\"entityName\":\"Adobe\"}]";
-			MyWorklistDTO[] myWorklist = mapper.readValue(json, MyWorklistDTO[].class);
-			List<MyWorklistDTO> myWorklists = new ArrayList<MyWorklistDTO>(); 
-			for(int i=0;i<myWorklist.length;i++)
+			MyWorklistDTO[] myWorklist = mapper.readValue(json,
+					MyWorklistDTO[].class);
+			List<MyWorklistDTO> myWorklists = new ArrayList<MyWorklistDTO>();
+			for (int i = 0; i < myWorklist.length; i++)
 				myWorklists.add(myWorklist[i]);
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
