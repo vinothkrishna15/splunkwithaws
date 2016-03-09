@@ -15,13 +15,13 @@ public interface WorkflowStepTRepository extends CrudRepository<WorkflowStepT, I
 	WorkflowStepT findByRequestIdAndStepStatus(Integer requestId, String status);
 
 	@Query(value = "select * from workflow_step_t where "
-			+ "step < (select max(step) from workflow_step_t where request_id = ?1) and request_id = ?1", nativeQuery = true)
-	List<WorkflowStepT> findWorkflowTemplateBeforeApprovalOrRejection(
-			Integer requestId);
+			+ "step = (select max(step) from workflow_step_t where request_id = ?1) and request_id = ?1", nativeQuery = true)
+	WorkflowStepT findWorkflowStepForFinalApproval(Integer requestId);
 
 	@Query(value = "select * from workflow_step_t where "
-			+ "step = (select max(step) from workflow_step_t where request_id = ?1) and request_id = ?1", nativeQuery = true)
-	WorkflowStepT findWorkflowStepApprovedorRejected(Integer requestId);
+			+ "step < (select max(step) from workflow_step_t where request_id = ?1) and request_id = ?1", nativeQuery = true)
+	List<WorkflowStepT> findWorkflowTemplateBelowMaximumStep(
+			Integer requestId);
 
 	@Query(value = "select * from workflow_step_t where step_id = ?1 ;", nativeQuery = true)
 	public WorkflowStepT findStep(int stepId);
@@ -39,6 +39,8 @@ public interface WorkflowStepTRepository extends CrudRepository<WorkflowStepT, I
 	// for approve and edit
 	@Query(value = "select * from workflow_step_t where request_id = (select request_id from workflow_request_t where entity_id = ?1) ;", nativeQuery = true)
 	public List<WorkflowStepT> findStepForEditAndApprove(int requestId);
+	
+	
 	
 	
 }

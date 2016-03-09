@@ -205,7 +205,7 @@ public class WorkflowService {
 						// for updating the status in workflow_request_t
 						masterRequest.setModifiedBy(userId);
 						masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
-						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),new Date());
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime());
 						step = stepRecord.getStep()+1;
 						rowIteration++;
 					}
@@ -570,7 +570,7 @@ public class WorkflowService {
 					masterRequest.setStatus(workflowStepT.getStepStatus());
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
-					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),new Date());
+					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime());
 						}
 						else{
 							throw new DestinationException(HttpStatus.NOT_FOUND,
