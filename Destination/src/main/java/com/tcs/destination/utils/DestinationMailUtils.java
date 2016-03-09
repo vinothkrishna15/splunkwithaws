@@ -78,6 +78,7 @@ import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateTRepository;
+import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.EntityType;
@@ -1135,6 +1136,7 @@ public class DestinationMailUtils {
 						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 						recepientIds.addAll(userAccessPrivilegesRepository.findUserIdsForWorkflowUserGroupWithPMO(
 										workflowCustomerT.getGeography(),
+								workflowCustomerT.getGeography(), Constants.Y,
 										UserGroup.GEO_HEADS.getValue(),
 										pmoValue));
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS_PMO;
@@ -1239,6 +1241,7 @@ public class DestinationMailUtils {
 										String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 										ccIds.addAll(userAccessPrivilegesRepository.findUserIdsForWorkflowUserGroupWithPMO(
 														workflowCustomerT.getGeography(),
+												workflowCustomerT.getGeography(), Constants.Y,
 														UserGroup.GEO_HEADS.getValue(),
 														pmoValue));
 									default :

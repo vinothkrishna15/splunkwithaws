@@ -132,7 +132,7 @@ public class WorkflowService {
 			for (WorkflowStepT stepRecord : requestSteps){
 				if(stepRecord.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())){
 					stepId = stepRecord.getStepId();
-					requestId = stepRecord.getWorkflowRequestT().getRequestId();
+					requestId = stepRecord.getRequestId();
 					WorkflowCustomerT oldObject = new WorkflowCustomerT();
 					if(stepId != -1 && requestId != 0 && rowIteration == 0){
 						oldObject = workflowCustomerRepository.findOne(workflowCustomerT.getWorkflowCustomerId());
@@ -293,10 +293,11 @@ public class WorkflowService {
 		mapOfIouCustomerMappingT = customerUploadService.getIouMappingT();
 		mapOfIouBeaconMappingT = customerUploadService.getBeaconIouMappingT();
 
-		validateWorkflowCustomerMasterDetails(requestedCustomerT, true);
+		if (user.getUserRole().equals(UserRole.STRATEGIC_GROUP_ADMIN.getValue())) {
 
-		if (user.getUserRole()
-				.equals(UserRole.STRATEGIC_GROUP_ADMIN.getValue())) {
+			// true incase of admin: to validate the iou field for not empty check
+			validateWorkflowCustomerMasterDetails(requestedCustomerT, true);
+
 			if (StringUtils.isEmpty(requestedCustomerT.getGroupCustomerName())) {
 				logger.error("Group Customer name is mandatory");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -319,6 +320,10 @@ public class WorkflowService {
 				validateBeaconCustomerDetails(beaconCustomerMappingTs);
 			}
 			isAdminValidated = true;
+		}
+		else{
+			// true incase of admin: to validate the iou field for not empty check
+			validateWorkflowCustomerMasterDetails(requestedCustomerT, false);
 		}
 		return isAdminValidated;
 	}
