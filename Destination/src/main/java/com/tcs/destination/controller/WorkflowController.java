@@ -22,6 +22,7 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
@@ -152,8 +153,8 @@ public class WorkflowController {
 		try {
 			if (workflowService.insertWorkflowCustomer(workflowCustomerT,
 					status)) {
+				logger.info("End of inserting requested customer");
 			}
-			logger.info("End of inserting requested customer");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -224,5 +225,32 @@ public class WorkflowController {
 					"Backend error while retrieving Worklist for a user");
 		}
 	}
+	
+//	@RequestMapping(value = "/requestPartner", method = RequestMethod.POST)
+//	public @ResponseBody ResponseEntity<String> addPartnerRequest(
+//			@RequestBody WorkflowPartnerT workflowPartnerT)
+//			throws DestinationException {
+//
+//		logger.info("Inside WorkflowController: Start of inserting requested partner");
+//		Status status = new Status();
+//		status.setStatus(Status.FAILED, "");
+//		try {
+//			if (workflowPartnerT != null) {
+//				if (workflowService.addPartner(workflowPartnerT, status)) {
+//					logger.info("Inside WorkflowController: End of inserting requested partner");
+//				}
+//			}
+//			return new ResponseEntity<String>(
+//					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+//							status), HttpStatus.OK);
+//		} catch (DestinationException e) {
+//			throw e;
+//		} catch (Exception e) {
+//			logger.error(e.getMessage());
+//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+//					"Backend error while Inserting Workflow Partner");
+//		}
+//
+//	}
 
 }

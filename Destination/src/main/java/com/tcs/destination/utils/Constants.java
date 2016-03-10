@@ -198,10 +198,12 @@ public class Constants {
 	public static final String NOTIFICATION_PRIMARY_OWNER = "(Primary)";
 	public static final String NOTIFICATION_SECONDARY_OWNER = "(Secondary)";
 	public static final String PMO_KEYWORD = "pmo";
-	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Heads,PMO"; 
+	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Heads,PMO";
+	public static final String WORKFLOW_GEO_HEADS = "GEO Heads";
 	public static final String WORKFLOW_IOU_HEADS = "IOU Heads";
 	public static final String WORKFLOW_STRATEGIC_ADMIN = "Strategic Group Admin";
 	public static final String WORKFLOW_CUSTOMER = "Customer";
+	public static final String WORKFLOW_PARTNER = "Partner";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";

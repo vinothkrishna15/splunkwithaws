@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconCustomerMappingTPK;
@@ -51,7 +52,6 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-
 
 import com.tcs.destination.bean.MyWorklistDTO;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -122,6 +122,12 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowStepTRepository workflowStepRepository;
+	
+//	@Autowired
+//	PartnerRepository partnerRepository;
+//	
+//	@Autowired
+//	WorkflowPartnerRepository workflowPartnerRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -601,6 +607,7 @@ public class WorkflowService {
 			 * @return
 			 * @throws Exception
 			 */
+		    @Transactional
 			public boolean insertWorkflowCustomer(WorkflowCustomerT workflowCustomer,
 					Status status) throws Exception {
 				// TODO Auto-generated method stub
@@ -682,9 +689,10 @@ public class WorkflowService {
 					if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
 							|| wfpt.getUserId() != null) {
 						if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-							if (wfpt.getUserGroup().contains(userGroup)
-									|| (isUserPMO(userId) && wfpt.getUserGroup()
-											.contains("PMO"))) {
+//							if (wfpt.getUserGroup().contains(userGroup)
+//									|| (isUserPMO(userId) && wfpt.getUserGroup()
+//											.contains("PMO"))) 
+							     if(wfpt.getUserGroup().contains(userGroup)) {
 								templateStep = wfpt.getStep();
 							}
 						}
@@ -825,6 +833,7 @@ public class WorkflowService {
 
 				mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
 				mapOfIouCustomerMappingT = customerUploadService.getIouMappingT();
+				mapOfIouBeaconMappingT = customerUploadService.getBeaconIouMappingT();
 
 				validateWorkflowCustomerMasterDetails(requestedCustomerT, false);
 
@@ -1394,5 +1403,94 @@ public class WorkflowService {
 				logger.debug("Inside getPendingCustomerRequests method : End");
 				return resultList;
 			}
+			
+//			@Transactional
+//			public boolean addPartner(WorkflowPartnerT workflowPartner, Status status) throws Exception {
+//		logger.info("Inside PartnerWorkflowService ::  addPartner() ");
+//		        String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+//		        mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
+//				validateRequestedPartner(workflowPartner);
+//				workflowPartner.setCreatedBy(userId);
+//				workflowPartner.setModifiedBy(userId);
+//				workflowPartner.setDocumentsAttached(Constants.NO);
+//				WorkflowPartnerT requestedPartner = workflowPartnerRepository.save(workflowPartner);
+//				logger.info("Workflow Partner saved , Id : "  +requestedPartner.getWorkflowPartnerId());
+//				if(requestedPartner != null) {
+//					Integer entityId = requestedPartner.getWorkflowPartnerId();
+//					Integer entityTypeId = EntityTypeId.PARTNER.getType();
+//					WorkflowRequestT workflowRequest = populateWorkflowRequest(
+//							entityId, entityTypeId, userId);
+//					if (workflowRequest != null) {
+//						if (workflowRequest.getStatus().equals(
+//								WorkflowStatus.PENDING.getStatus())) {
+//							status.setStatus(
+//									Status.SUCCESS,
+//									"Request for new customer "
+//											+ requestedPartner.getPartnerName()
+//											+ " is submitted for approval");
+//							// Sending email notification to whom with the request
+//							// is pending currently
+////							sendEmailNotificationforPending(
+////									workflowRequest.getRequestId(), new Date());
+//						} else {
+//							// Saving workflow Partner details to PartnerMasterT
+//							// for Admin
+//							savePartnerMaster(requestedPartner);
+//							status.setStatus(Status.SUCCESS, "Customer "
+//									+ requestedPartner.getPartnerName()
+//									+ " added successfully");
+//
+//						}
+//					}
+//				}
+//
+//				return true;
+//			}
+//			
+//			private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
+//				// TODO Auto-generated method stub
+//				PartnerMasterT partnerMaster = new PartnerMasterT();
+//				partnerMaster.setCreatedModifiedBy(requestedPartner.getCreatedBy());
+//				partnerMaster.setCorporateHqAddress(requestedPartner.getCorporateHqAddress());
+//				partnerMaster.setDocumentsAttached(requestedPartner.getDocumentsAttached());
+//				partnerMaster.setFacebook(requestedPartner.getFacebook());
+//				partnerMaster.setGeography(requestedPartner.getGeography());
+//				partnerMaster.setLogo(requestedPartner.getLogo());
+//				partnerMaster.setPartnerName(requestedPartner.getPartnerName());
+//				partnerMaster.setWebsite(requestedPartner.getWebsite());
+//				partnerRepository.save(partnerMaster);
+//				
+//			}
+//
+//			private void validateRequestedPartner(WorkflowPartnerT reqPartner) throws Exception{
+//				
+//				// Validate Partner Name
+//				
+//				String partnerName = reqPartner.getPartnerName();
+//				if(StringUtils.isEmpty(partnerName)) {
+//					logger.error("Partner Name should not be empty");
+//					throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name Should not be empty");
+//					
+//				} else {
+//					if(!StringUtils.isEmpty(partnerRepository.findPartnerName(partnerName))) {
+//						logger.error("Partner Name already exists");
+//						throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name " +partnerName+" already exists");
+//					}
+//				}
+//			
+//				// foreign key constraint for geography
+//						if (!StringUtils.isEmpty(reqPartner.getGeography())) {
+//							if (!mapOfGeographyMappingT.containsKey(reqPartner
+//									.getGeography())) {
+//								logger.error("Invalid Geography");
+//								throw new DestinationException(HttpStatus.NOT_FOUND,
+//										"Invalid Geography" + reqPartner.getGeography());
+//							}
+//						} else {
+//							logger.error("Geography Should not be empty");
+//							throw new DestinationException(HttpStatus.BAD_REQUEST,
+//									"Geography Should not be empty");
+//						}
+//			  }
 
 		}

@@ -1164,15 +1164,14 @@ public class DestinationMailUtils {
 					|| workflowStepPending.getUserId() != null) {
 				if (workflowStepPending.getUserGroup() != null) {
 					switch (workflowStepPending.getUserGroup()) {
-					case Constants.WORKFLOW_GEO_HEADS_PMO:
+					case Constants.WORKFLOW_GEO_HEADS:
 
-						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+//						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 						recepientIds.addAll(userAccessPrivilegesRepository
-								.findUserIdsForWorkflowUserGroupWithPMO(
+								.findUserIdsForWorkflowUserGroup(
 										workflowCustomerT.getGeography(), Constants.Y,
-										UserGroup.GEO_HEADS.getValue(),
-										pmoValue));
-						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS_PMO;
+										UserGroup.GEO_HEADS.getValue()));
+						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 						break;
 					default:
 					}
@@ -1282,17 +1281,16 @@ public class DestinationMailUtils {
 								|| workflowStep.getUserId() != null) {
 							if (workflowStep.getUserGroup() != null) {
 								switch (workflowStep.getUserGroup()) {
-								case Constants.WORKFLOW_GEO_HEADS_PMO:
+								case Constants.WORKFLOW_GEO_HEADS:
 
-									String pmoValue = "%"
-											+ Constants.PMO_KEYWORD + "%";
+//									String pmoValue = "%"
+//											+ Constants.PMO_KEYWORD + "%";
 									ccIds.addAll(userAccessPrivilegesRepository
-											.findUserIdsForWorkflowUserGroupWithPMO(
+											.findUserIdsForWorkflowUserGroup(
 													workflowCustomerT
 															.getGeography(), Constants.Y,
 													UserGroup.GEO_HEADS
-															.getValue(),
-													pmoValue));
+															.getValue()));
 								default:
 
 								}
