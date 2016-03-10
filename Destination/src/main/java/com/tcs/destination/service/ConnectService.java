@@ -1059,11 +1059,14 @@ public class ConnectService {
 		Pageable pageable = new PageRequest(page, count);
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorId);
+		if (!StringUtils.isEmpty(supervisorId)) {
 
-		if ((users != null) && (users.size() > 0)) {
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorId);
+
+			// Adding supervisor Id
+			users.add(supervisorId);
 
 			dashBoardConnectsResponse = new DashBoardConnectsResponse();
 
@@ -1080,8 +1083,8 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-				.setPaginatedConnectResponse(connectResponse);
-				
+						.setPaginatedConnectResponse(connectResponse);
+
 				prepareConnect(connects);
 
 				// Get weekly count of connects
@@ -1091,7 +1094,7 @@ public class ConnectService {
 						+ ONE_DAY_IN_MILLIS - 1);
 				List<ConnectT> weekConnects = connectRepository
 						.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
-				
+
 				dashBoardConnectsResponse.setWeekCount(weekConnects.size());
 
 				// Get monthly count of connects
@@ -1102,12 +1105,11 @@ public class ConnectService {
 				List<ConnectT> monthConnects = connectRepository
 						.getTeamConnects(users, monthStartDateTs,
 								monthEndDateTs);
-				dashBoardConnectsResponse
-				.setMonthCount(monthConnects.size());
+				dashBoardConnectsResponse.setMonthCount(monthConnects.size());
 
-				validateDashboardConnectResponse(dashBoardConnectsResponse, fromDateTs, toDateTs,
-						connects, weekStartDateTs, weekEndDateTs,
-						monthStartDateTs, monthEndDateTs);
+				validateDashboardConnectResponse(dashBoardConnectsResponse,
+						fromDateTs, toDateTs, connects, weekStartDateTs,
+						weekEndDateTs, monthStartDateTs, monthEndDateTs);
 
 			}
 
@@ -1154,7 +1156,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-				.setPaginatedConnectResponse(connectResponse);
+						.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1167,13 +1169,10 @@ public class ConnectService {
 						"invalid Role");
 
 			}
-
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id " + supervisorId);
+					"Supervisor Id is empty");
 		}
 
 		removeCyclicConnectsInCustomerMappingT(dashBoardConnectsResponse);
