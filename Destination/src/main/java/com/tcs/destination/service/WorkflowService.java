@@ -557,9 +557,9 @@ public class WorkflowService {
 			try {
 				if (stepId != -1) {
 					workflowStepToReject = workflowStepTRepository.findStep(stepId);
-					masterRequest = workflowRequestTRepository.findRequest(workflowStepT.getWorkflowRequestT().getRequestId());
 					if(workflowStepToReject != null && workflowStepToReject.getStepStatus()
 							.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())){
+						masterRequest = workflowRequestTRepository.findOne(workflowStepToReject.getRequestId());
 							workflowStepToReject.setUserId(userId);
 					workflowStepToReject.setStepStatus(workflowStepT
 							.getStepStatus());
