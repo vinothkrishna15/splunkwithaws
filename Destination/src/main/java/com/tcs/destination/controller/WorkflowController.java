@@ -1,9 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.MyWorklistDTO;
+
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
@@ -226,31 +223,39 @@ public class WorkflowController {
 		}
 	}
 	
-//	@RequestMapping(value = "/requestPartner", method = RequestMethod.POST)
-//	public @ResponseBody ResponseEntity<String> addPartnerRequest(
-//			@RequestBody WorkflowPartnerT workflowPartnerT)
-//			throws DestinationException {
-//
-//		logger.info("Inside WorkflowController: Start of inserting requested partner");
-//		Status status = new Status();
-//		status.setStatus(Status.FAILED, "");
-//		try {
-//			if (workflowPartnerT != null) {
-//				if (workflowService.addPartner(workflowPartnerT, status)) {
-//					logger.info("Inside WorkflowController: End of inserting requested partner");
-//				}
-//			}
-//			return new ResponseEntity<String>(
-//					ResponseConstructors.filterJsonForFieldAndViews("all", "",
-//							status), HttpStatus.OK);
-//		} catch (DestinationException e) {
-//			throw e;
-//		} catch (Exception e) {
-//			logger.error(e.getMessage());
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					"Backend error while Inserting Workflow Partner");
-//		}
-//
-//	}
+	/**
+	 * This method inserts the workflow partner including respective workflow
+	 * request and steps for normal users and inserts the customer and mapping
+	 * details for strategic group admin
+	 * @param workflowPartnerT
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/requestPartner", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addPartnerRequest(
+			@RequestBody WorkflowPartnerT workflowPartnerT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of inserting requested partner");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowPartnerT != null) {
+				if (workflowService.addPartner(workflowPartnerT, status)) {
+					logger.info("Inside WorkflowController: End of inserting requested partner");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while Inserting Workflow Partner");
+		}
+
+	}
 
 }

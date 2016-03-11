@@ -205,6 +205,8 @@ public class Constants {
 	public static final String WORKFLOW_CUSTOMER = "Customer";
 	public static final String WORKFLOW_PARTNER = "Partner";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
+	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
+	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 }

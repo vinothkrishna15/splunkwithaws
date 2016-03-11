@@ -21,19 +21,23 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.RevenueCustomerMappingTPK;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerT;
+import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowProcessTemplate;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
+import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
@@ -72,14 +76,13 @@ public class WorkflowService {
 	private static final Logger logger = LoggerFactory
 			.getLogger(WorkflowService.class);
 
-	@Value("${workflowCustomerPending}")
-	private String workflowCustomerPendingSubject;
 
 	@Value("${workflowCustomerApproved}")
 	private String workflowCustomerApprovedSubject;
 
 	@Value("${workflowCustomerRejected}")
 	private String workflowCustomerRejectedSubject;
+	
 
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -123,11 +126,11 @@ public class WorkflowService {
 	@Autowired
 	WorkflowStepTRepository workflowStepRepository;
 	
-//	@Autowired
-//	PartnerRepository partnerRepository;
-//	
-//	@Autowired
-//	WorkflowPartnerRepository workflowPartnerRepository;
+	@Autowired
+	PartnerRepository partnerRepository;
+	
+	@Autowired
+	WorkflowPartnerRepository workflowPartnerRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -211,7 +214,7 @@ public class WorkflowService {
 						// for updating the status in workflow_request_t
 						masterRequest.setModifiedBy(userId);
 						masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
-						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime());
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
 						step = stepRecord.getStep()+1;
 						rowIteration++;
 					}
@@ -224,7 +227,7 @@ public class WorkflowService {
 					masterRequest.setModifiedBy(userId);
 					masterRequest.setStatus(WorkflowStatus.PENDING.getStatus());
 					stepRecord.setModifiedBy(userId);
-					sendEmailNotificationforPending(masterRequest.getRequestId(),new Date());
+					sendEmailNotificationforPending(masterRequest.getRequestId(),new Date(),EntityTypeId.CUSTOMER.getType());
 					rowIteration++;
 				}
 			}
@@ -240,45 +243,49 @@ public class WorkflowService {
 		return true;
 	}
 
-	private void sendEmailNotificationforApprovedOrRejectMail(final String approveOrRejectSubject,Integer requestId, Date date) throws Exception {
+	private void sendEmailNotificationforApprovedOrRejectMail(final String approveOrRejectSubject,Integer requestId, Date date, Integer entityTypeId) throws Exception {
 		// TODO Auto-generated method stub
 		class WorkflowNotificationForApproveOrReject implements Runnable {
 			Integer requestId;
 			Date date;
+			Integer entityTypeId;
 
-			WorkflowNotificationForApproveOrReject(Integer requestId, Date date) {
+			WorkflowNotificationForApproveOrReject(Integer requestId, Date date,Integer entityTypeId) {
 				this.requestId = requestId;
 				this.date = date;
+				this.entityTypeId = entityTypeId;
 			}
 			@Override
 			public void run() {
 				try {
-					mailUtils.sendWorkflowApprovedOrRejectMail(approveOrRejectSubject,requestId,date);
+					mailUtils.sendWorkflowApprovedOrRejectMail(approveOrRejectSubject,requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Error sending email " + e.getMessage());
 				}
 			}
 		} 
-		WorkflowNotificationForApproveOrReject workflowNotificationForApproveOrReject = new WorkflowNotificationForApproveOrReject(requestId,date);
+		WorkflowNotificationForApproveOrReject workflowNotificationForApproveOrReject = new WorkflowNotificationForApproveOrReject(requestId,date,entityTypeId);
 		mailTaskExecutor.execute(workflowNotificationForApproveOrReject);
 		logger.debug("End:Inside sendEmailNotification of workflow pending");
 	}
 
-	private void sendEmailNotificationforPending(Integer requestId, Date date) throws Exception {
+	private void sendEmailNotificationforPending(Integer requestId, Date date, Integer entityTypeId) throws Exception {
 		// TODO Auto-generated method stub
 		class WorkflowNotificationForPending implements Runnable {
 			Integer requestId;
 			Date date;
+			Integer entityTypeId;
 
-			WorkflowNotificationForPending(Integer requestId, Date date) {
+			WorkflowNotificationForPending(Integer requestId, Date date, Integer entityTypeId) {
 				this.requestId = requestId;
 				this.date = date;
+				this.entityTypeId = entityTypeId;
 			}
 			@Override
 			public void run() {
 				try {
-					mailUtils.sendWorkflowPendingMail(workflowCustomerPendingSubject,requestId,date);
+					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -286,7 +293,7 @@ public class WorkflowService {
 			}
 
 		} 
-		WorkflowNotificationForPending workflowNotificationForPending = new WorkflowNotificationForPending(requestId,date);
+		WorkflowNotificationForPending workflowNotificationForPending = new WorkflowNotificationForPending(requestId,date,entityTypeId);
 		mailTaskExecutor.execute(workflowNotificationForPending);
 		logger.debug("End:Inside sendEmailNotification of workflow pending");
 
@@ -576,7 +583,7 @@ public class WorkflowService {
 					masterRequest.setStatus(workflowStepT.getStepStatus());
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
-					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime());
+					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
 						}
 						else{
 							throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -641,7 +648,7 @@ public class WorkflowService {
 								// Sending email notification to whom with the request
 								// is pending currently
 								sendEmailNotificationforPending(
-										workflowRequest.getRequestId(), new Date());
+										workflowRequest.getRequestId(), new Date(), entityTypeId);
 							} else {
 								// Saving workflow customer details to CustomerMasterT
 								// for Admin
@@ -710,7 +717,7 @@ public class WorkflowService {
 
 				}
 				if (templateStep == 0) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
+					throw new DestinationException(HttpStatus.FORBIDDEN,
 							"User does not have access to this service");
 				}
 				WorkflowProcessTemplate workflowProcessTemplate = new WorkflowProcessTemplate();
@@ -1404,93 +1411,106 @@ public class WorkflowService {
 				return resultList;
 			}
 			
-//			@Transactional
-//			public boolean addPartner(WorkflowPartnerT workflowPartner, Status status) throws Exception {
-//		logger.info("Inside PartnerWorkflowService ::  addPartner() ");
-//		        String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-//		        mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
-//				validateRequestedPartner(workflowPartner);
-//				workflowPartner.setCreatedBy(userId);
-//				workflowPartner.setModifiedBy(userId);
-//				workflowPartner.setDocumentsAttached(Constants.NO);
-//				WorkflowPartnerT requestedPartner = workflowPartnerRepository.save(workflowPartner);
-//				logger.info("Workflow Partner saved , Id : "  +requestedPartner.getWorkflowPartnerId());
-//				if(requestedPartner != null) {
-//					Integer entityId = requestedPartner.getWorkflowPartnerId();
-//					Integer entityTypeId = EntityTypeId.PARTNER.getType();
-//					WorkflowRequestT workflowRequest = populateWorkflowRequest(
-//							entityId, entityTypeId, userId);
-//					if (workflowRequest != null) {
-//						if (workflowRequest.getStatus().equals(
-//								WorkflowStatus.PENDING.getStatus())) {
-//							status.setStatus(
-//									Status.SUCCESS,
-//									"Request for new customer "
-//											+ requestedPartner.getPartnerName()
-//											+ " is submitted for approval");
-//							// Sending email notification to whom with the request
-//							// is pending currently
-////							sendEmailNotificationforPending(
-////									workflowRequest.getRequestId(), new Date());
-//						} else {
-//							// Saving workflow Partner details to PartnerMasterT
-//							// for Admin
-//							savePartnerMaster(requestedPartner);
-//							status.setStatus(Status.SUCCESS, "Customer "
-//									+ requestedPartner.getPartnerName()
-//									+ " added successfully");
-//
-//						}
-//					}
-//				}
-//
-//				return true;
-//			}
-//			
-//			private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
-//				// TODO Auto-generated method stub
-//				PartnerMasterT partnerMaster = new PartnerMasterT();
-//				partnerMaster.setCreatedModifiedBy(requestedPartner.getCreatedBy());
-//				partnerMaster.setCorporateHqAddress(requestedPartner.getCorporateHqAddress());
-//				partnerMaster.setDocumentsAttached(requestedPartner.getDocumentsAttached());
-//				partnerMaster.setFacebook(requestedPartner.getFacebook());
-//				partnerMaster.setGeography(requestedPartner.getGeography());
-//				partnerMaster.setLogo(requestedPartner.getLogo());
-//				partnerMaster.setPartnerName(requestedPartner.getPartnerName());
-//				partnerMaster.setWebsite(requestedPartner.getWebsite());
-//				partnerRepository.save(partnerMaster);
-//				
-//			}
-//
-//			private void validateRequestedPartner(WorkflowPartnerT reqPartner) throws Exception{
-//				
-//				// Validate Partner Name
-//				
-//				String partnerName = reqPartner.getPartnerName();
-//				if(StringUtils.isEmpty(partnerName)) {
-//					logger.error("Partner Name should not be empty");
-//					throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name Should not be empty");
-//					
-//				} else {
-//					if(!StringUtils.isEmpty(partnerRepository.findPartnerName(partnerName))) {
-//						logger.error("Partner Name already exists");
-//						throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name " +partnerName+" already exists");
-//					}
-//				}
-//			
-//				// foreign key constraint for geography
-//						if (!StringUtils.isEmpty(reqPartner.getGeography())) {
-//							if (!mapOfGeographyMappingT.containsKey(reqPartner
-//									.getGeography())) {
-//								logger.error("Invalid Geography");
-//								throw new DestinationException(HttpStatus.NOT_FOUND,
-//										"Invalid Geography" + reqPartner.getGeography());
-//							}
-//						} else {
-//							logger.error("Geography Should not be empty");
-//							throw new DestinationException(HttpStatus.BAD_REQUEST,
-//									"Geography Should not be empty");
-//						}
-//			  }
+			/**
+			 * This method inserts the workflow partner including respective workflow
+			 * request and steps for normal users and inserts the partner master details
+			 * for system admin
+			 * @param workflowPartner
+			 * @param status
+			 * @return
+			 * @throws Exception
+			 */
+			@Transactional
+			public boolean addPartner(WorkflowPartnerT workflowPartner, Status status) throws Exception {
+		logger.info("Inside PartnerWorkflowService ::  addPartner() ");
+		        String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		        mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
+				validateRequestedPartner(workflowPartner);
+				workflowPartner.setCreatedBy(userId);
+				workflowPartner.setModifiedBy(userId);
+				workflowPartner.setDocumentsAttached(Constants.NO);
+				WorkflowPartnerT requestedPartner = workflowPartnerRepository.save(workflowPartner);
+				logger.info("Workflow Partner saved , Id : "  +requestedPartner.getWorkflowPartnerId());
+				if(requestedPartner != null) {
+					Integer entityId = requestedPartner.getWorkflowPartnerId();
+					Integer entityTypeId = EntityTypeId.PARTNER.getType();
+					WorkflowRequestT workflowRequest = populateWorkflowRequest(
+							entityId, entityTypeId, userId);
+					if (workflowRequest != null) {
+						if (workflowRequest.getStatus().equals(
+								WorkflowStatus.PENDING.getStatus())) {
+							status.setStatus(
+									Status.SUCCESS,
+									"Request for new customer "
+											+ requestedPartner.getPartnerName()
+											+ " is submitted for approval");
+							// Sending email notification to whom with the request
+							// is pending currently
+							sendEmailNotificationforPending(
+									workflowRequest.getRequestId(), new Date(), entityTypeId);
+						} else {
+							// Saving workflow Partner details to PartnerMasterT
+							// for Admin
+							savePartnerMaster(requestedPartner);
+							status.setStatus(Status.SUCCESS, "Customer "
+									+ requestedPartner.getPartnerName()
+									+ " added successfully");
+
+						}
+					}
+				}
+
+				return true;
+			}
+			
+			/**
+			 * This method is used to save the workflow partner details to PartnerMasterT
+			 * @param requestedPartner
+			 */
+			private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
+				// TODO Auto-generated method stub
+				PartnerMasterT partnerMaster = new PartnerMasterT();
+				partnerMaster.setCreatedModifiedBy(requestedPartner.getCreatedBy());
+				partnerMaster.setCorporateHqAddress(requestedPartner.getCorporateHqAddress());
+				partnerMaster.setDocumentsAttached(requestedPartner.getDocumentsAttached());
+				partnerMaster.setFacebook(requestedPartner.getFacebook());
+				partnerMaster.setGeography(requestedPartner.getGeography());
+				partnerMaster.setLogo(requestedPartner.getLogo());
+				partnerMaster.setPartnerName(requestedPartner.getPartnerName());
+				partnerMaster.setWebsite(requestedPartner.getWebsite());
+				partnerRepository.save(partnerMaster);
+				
+			}
+
+			private void validateRequestedPartner(WorkflowPartnerT reqPartner) throws Exception{
+				
+				// Validate Partner Name
+				
+				String partnerName = reqPartner.getPartnerName();
+				if(StringUtils.isEmpty(partnerName)) {
+					logger.error("Partner Name should not be empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name Should not be empty");
+					
+				} else {
+					if(!StringUtils.isEmpty(partnerRepository.findPartnerName(partnerName))) {
+						logger.error("Partner Name already exists");
+						throw new DestinationException(HttpStatus.BAD_REQUEST, "Partner name " +partnerName+" already exists");
+					}
+				}
+			
+				// foreign key constraint for geography
+						if (!StringUtils.isEmpty(reqPartner.getGeography())) {
+							if (!mapOfGeographyMappingT.containsKey(reqPartner
+									.getGeography())) {
+								logger.error("Invalid Geography");
+								throw new DestinationException(HttpStatus.NOT_FOUND,
+										"Invalid Geography" + reqPartner.getGeography());
+							}
+						} else {
+							logger.error("Geography Should not be empty");
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+									"Geography Should not be empty");
+						}
+			  }
 
 		}
