@@ -168,4 +168,44 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 			+ " as can_update from bid_details_t group by opportunity_id )"
 			+ " as SUB_LIST on OPP.opportunity_id=SUB_LIST.opportunity_id where SUB_LIST.can_update='t'"
 			+ " and OPP.sales_stage_code in (2,4))";
-}
+
+	//Start of Query for Workflow Customer an Workflow Partner
+	public static final String QUERY_FOR_CUSTOMER_REQUESTS_PREFIX = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WST.request_id = WRT.request_id";
+
+	public static final String MY_CUSTOMER_REQUESTS_SUFFIX1 = " and WCT.created_by = (:userId)";
+
+	public static final String MY_REQUESTS_SUFFIX2 = " WHERE ((WRT.status='PENDING' AND WST.STEP_STATUS='PENDING') OR (WRT.status='REJECTED' AND WST.STEP_STATUS='REJECTED') OR";
+
+	public static final String MY_REQUESTS_PENDING_REJECTED_SUFFIX = " WHERE WRT.status=WST.STEP_STATUS and WRT.status=(:stepStatus)";
+
+	public static final String MY_REQUESTS_APPROVED_SUFFIX = " ((WRT.status='APPROVED' AND WST.STEP_STATUS='APPROVED') AND WST.STEP=(select max(step) from workflow_step_t where request_id=WRT.request_id))";
+
+	public static final String MY_REQUESTS_SUFFIX3 = ")";
+
+	public static final String MY_REQUESTS_WHERE = " WHERE";
+
+	public static final String QUERY_FOR_PARTNER_REQUESTS_PREFIX = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id";
+
+	public static final String MY_PARTNER_REQUESTS_SUFFIX = " and WPT.created_by = (:userId)";
+	
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX1 = " and WST.step_status = (:stepStatus) and WST.user_id = (:userId)";
+
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX2 = " AND WCT.created_by <> (:userId)";
+	
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX3 = " AND WPT.created_by <> (:userId)";
+	
+	public static final String PARTNER_PENDING_WITH_GROUP_QUERY = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
+
+	public static final String PARTNER_PENDING_WITH_USER_QUERY = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
+
+	public static final String CUSTOMER_PENDING_WITH_IOU_GROUP_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join (select * from user_access_privileges_t where (user_id = (:userId) and isactive='Y' and privilege_type = 'IOU')) as UAP on WCT.iou = UAP.privilege_value join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0  join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
+
+	public static final String CUSTOMER_PENDING_WITH_USER_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id = (:userId)";
+
+	public static final String CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join (select * from user_access_privileges_t where (user_id=(:userId) and isactive='Y' and privilege_type = 'GEOGRAPHY')) as UAP on WCT.geography = UAP.privilege_value join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
+
+	public static final String CUSTOMER_PENDING_WITH_SI_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
+
+	//End of Query for Workflow Customer an Workflow Partner
+
+	}
