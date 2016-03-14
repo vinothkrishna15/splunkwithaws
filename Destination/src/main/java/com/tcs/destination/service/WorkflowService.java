@@ -27,6 +27,7 @@ import com.tcs.destination.bean.RevenueCustomerMappingTPK;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerT;
+import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowProcessTemplate;
 import com.tcs.destination.bean.WorkflowRequestT;
@@ -49,6 +50,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
+import com.tcs.destination.utils.QueryConstants.*;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -139,29 +141,35 @@ public class WorkflowService {
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 	
+
+	//Start of Query for Workflow Customer an Workflow Partner
 	public static final String QUERY_FOR_CUSTOMER_REQUESTS_PREFIX = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WST.request_id = WRT.request_id";
 
 	public static final String MY_CUSTOMER_REQUESTS_SUFFIX1 = " and WCT.created_by = (:userId)";
 
-	public static final String MY_CUSTOMER_REQUESTS_SUFFIX2 = " WHERE ((WRT.status='PENDING' AND WST.STEP_STATUS='PENDING') OR (WRT.status='REJECTED' AND WST.STEP_STATUS='REJECTED') OR";
+	public static final String MY_REQUESTS_SUFFIX2 = " WHERE ((WRT.status='PENDING' AND WST.STEP_STATUS='PENDING') OR (WRT.status='REJECTED' AND WST.STEP_STATUS='REJECTED') OR";
 
-	public static final String MY_CUSTOMER_REQUESTS_PENDING_REJECTED_SUFFIX = " WHERE WRT.status=WST.STEP_STATUS and WRT.status=(:stepStatus)";
+	public static final String MY_REQUESTS_PENDING_REJECTED_SUFFIX = " WHERE WRT.status=WST.STEP_STATUS and WRT.status=(:stepStatus)";
 
-	public static final String MY_CUSTOMER_REQUESTS_APPROVED_SUFFIX = " ((WRT.status='APPROVED' AND WST.STEP_STATUS='APPROVED') AND WST.STEP=(select max(step) from workflow_step_t where request_id=WRT.request_id))";
+	public static final String MY_REQUESTS_APPROVED_SUFFIX = " ((WRT.status='APPROVED' AND WST.STEP_STATUS='APPROVED') AND WST.STEP=(select max(step) from workflow_step_t where request_id=WRT.request_id))";
 
-	public static final String MY_CUSTOMER_REQUESTS_SUFFIX3 = ")";
+	public static final String MY_REQUESTS_SUFFIX3 = ")";
 
-	public static final String MY_CUSTOMER_REQUESTS_WHERE = " WHERE";
+	public static final String MY_REQUESTS_WHERE = " WHERE";
 
 	public static final String QUERY_FOR_PARTNER_REQUESTS_PREFIX = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id";
 
-	public static final String MY_PARTNER_REQUESTS_SUFFIX = " and WPT.created_by = (:userId) WHERE ((WRT.status='PENDING' AND WST.STEP_STATUS='PENDING') OR (WRT.status='REJECTED' AND WST.STEP_STATUS='REJECTED') OR ((WRT.status='APPROVED' AND WST.STEP_STATUS='APPROVED') AND WST.STEP=(select max(step) from workflow_step_t where request_id=WRT.request_id)))";
+	public static final String MY_PARTNER_REQUESTS_SUFFIX = " and WPT.created_by = (:userId)";
+	
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX1 = " and WST.step_status = (:stepStatus) and WST.user_id = (:userId)";
 
-	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX = " and WST.step_status = (:stepStatus) and WST.user_id = (:userId) AND WCT.created_by <> (:userId)";
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX2 = " AND WCT.created_by <> (:userId)";
+	
+	public static final String APPROVED_REJECTED_REQUESTS_SUFFIX3 = " AND WPT.created_by <> (:userId)";
+	
+	public static final String PARTNER_PENDING_WITH_GROUP_QUERY = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
-	public static final String PARTNER_PENDING_WITH_GROUP_QUERY = "select WCT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role= (:userRole) or WST.user_group= (:userGroup))";
-
-	public static final String PARTNER_PENDING_WITH_USER_QUERY = "select WCT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
+	public static final String PARTNER_PENDING_WITH_USER_QUERY = "select WPT.partner_name,WRT.status,WST.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
 
 	public static final String CUSTOMER_PENDING_WITH_IOU_GROUP_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join (select * from user_access_privileges_t where (user_id = (:userId) and isactive='Y' and privilege_type = 'IOU')) as UAP on WCT.iou = UAP.privilege_value join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0  join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
@@ -171,7 +179,10 @@ public class WorkflowService {
 
 	public static final String CUSTOMER_PENDING_WITH_SI_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
+	//End of Query for Workflow Customer an Workflow Partner
 
+	
+	
 	/**
 	 * Requested entity approval
 	 * 
@@ -892,10 +903,12 @@ public class WorkflowService {
 			 * @return
 			 * @throws Exception
 			 */
-			public WorkflowCustomerDetailsDTO findRequestedDetailsById(
+			public WorkflowCustomerDetailsDTO findRequestedCustomerDetailsById(
 					Integer requestedCustomerId) throws DestinationException {
-				logger.debug("Inside findRequestedDetailsById() service: Start");
+				logger.debug("Inside findRequestedCustomerDetailsById() service: Start");
 				try {
+					String userId =  DestinationUtils.getCurrentUserDetails().getUserId();
+					UserT user = userRepository.findByUserId(userId);
 					WorkflowCustomerDetailsDTO workflowCustomerDetailsDTO = new WorkflowCustomerDetailsDTO();
 					if (requestedCustomerId != null) {
 						// Request details are retrieved based on Id
@@ -923,23 +936,27 @@ public class WorkflowService {
 
 									// Get the workflow steps associated with the new
 									// customer request
-									List<WorkflowStepT> workflowSteps = workflowStepRepository
-											.findStepsByRequestId(requestedCustomerId);
+									List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
 									if (workflowSteps != null) {
 										workflowCustomerDetailsDTO
 												.setWorkflowSteps(workflowSteps);
+										// Check if user is authorized to access the
+										// request details
+										boolean authorizedUserFlag = getAuthorizedUserFlag(workflowSteps, userId);						
 									} else {
 										logger.info("No step details found for workflow customer id: "
 												+ workflowCustomerId);
-										throw new DestinationException(HttpStatus.NOT_FOUND,
-												"Request id is not a customer request");
+										throw new DestinationException(
+												HttpStatus.INTERNAL_SERVER_ERROR,
+												"Backend error in retrieving customer details");
 									}
 								} else {
 									logger.info("workflow customer id: "
 											+ workflowCustomerId
 											+ " is not a valid workflow customer id");
-									throw new DestinationException(HttpStatus.NOT_FOUND,
-											"Request id is not a customer request");
+									throw new DestinationException(
+											HttpStatus.INTERNAL_SERVER_ERROR,
+											"Backend error in retrieving customer details");
 								}
 							} else {
 								logger.info("Request id: " + requestedCustomerId
@@ -957,8 +974,94 @@ public class WorkflowService {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"Request id is not valid or empty");
 					}
-					logger.debug("Inside findRequestedDetailsById() service: End");
+					logger.debug("Inside findRequestedCustomerDetailsById() service: End");
 					return workflowCustomerDetailsDTO;
+				} catch (DestinationException e) {
+					throw e;
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+					throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+							"Backend error while retrieving request customer details");
+				}
+			}
+			/**
+			 * This method is used to retrieve workflow partner details based on Id.
+			 * @param requestedPartnerId
+			 * @return
+			 */
+			public WorkflowPartnerDetailsDTO findRequestedPartnerDetailsById(
+					Integer requestedPartnerId) {
+				logger.debug("Inside findRequestedPartnerDetailsById() service: Start");
+				try {
+					String userId =  DestinationUtils.getCurrentUserDetails().getUserId();
+					WorkflowPartnerDetailsDTO workflowPartnerDetailsDTO = new WorkflowPartnerDetailsDTO();
+					if (requestedPartnerId != null) {
+						// Request details are retrieved based on Id
+						WorkflowRequestT workflowRequest = workflowRequestRepository
+								.findByRequestId(requestedPartnerId);
+						if (workflowRequest != null) {
+
+							// Check if the particular request is a new partner request
+							if (workflowRequest.getEntityTypeId() == EntityTypeId.PARTNER
+									.getType()) {
+
+								// Get the status of the new partner request
+								workflowPartnerDetailsDTO.setStatus(workflowRequest
+										.getStatus());
+								
+								// Get the workflow partner Id from request table
+								Integer workflowPartnerId = workflowRequest
+										.getEntityId();
+								// Get the new partner details for the request
+								WorkflowPartnerT workflowPartner = workflowPartnerRepository
+										.findOne(workflowPartnerId);
+
+								if (workflowPartner != null) {
+									workflowPartnerDetailsDTO.setRequestedPartner(workflowPartner);
+											
+
+									// Get the workflow steps associated with the new
+									// partner request
+									List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
+									if (workflowSteps != null) {
+										workflowPartnerDetailsDTO
+												.setWorkflowSteps(workflowSteps);
+										// Check if user is authorized to access the
+										// request details
+										boolean authorizedUserFlag = getAuthorizedUserFlag(workflowSteps, userId);
+									} else {
+										logger.info("No step details found for workflow partner id: "
+												+ workflowPartnerId);
+										throw new DestinationException(
+												HttpStatus.INTERNAL_SERVER_ERROR,
+												"Backend error in retrieving partner details");
+									}
+								} else {
+									logger.info("workflow partner id: "
+											+ workflowPartnerId
+											+ " is not a valid workflow partner id");
+									throw new DestinationException(
+											HttpStatus.INTERNAL_SERVER_ERROR,
+											"Backend error in retrieving partner details");
+								}
+							} else {
+								logger.info("Request id: " + requestedPartnerId
+										+ " is not a valid PARTNER request id");
+								throw new DestinationException(HttpStatus.NOT_FOUND,
+										"Request id is not a partner request");
+							}
+						} else {
+							logger.info("No request found for the given request id");
+							throw new DestinationException(HttpStatus.NOT_FOUND,
+									"No request found for the given request id");
+						}
+					} else {
+						logger.info("Request Id cannot be null");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Request id is not valid or empty");
+					}
+					logger.debug("Inside findRequestedPartnerDetailsById() service: End");
+					return workflowPartnerDetailsDTO;
 				} catch (DestinationException e) {
 					throw e;
 				} catch (Exception e) {
@@ -984,113 +1087,115 @@ public class WorkflowService {
 					PaginatedResponse worklistResponse = new PaginatedResponse();
 					// Contains list of all requests including customer, partner etc
 					List<MyWorklistDTO> myWorklist = null;
+					// Contains all the lists of customer requests
+					List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+					// Contains all the lists of partner requests
+					List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
+					
+					// Retrieve requests placed by user			
+					List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
+							status, userId);
+					// Get all the new partner requests created by user
+					List<Object[]> myPartnerRequests = getMyRequestsForPartner(status,
+							userId);
+
 					if (status.equalsIgnoreCase("ALL")) {
 						myWorklist = new ArrayList<MyWorklistDTO>();
-
-						// Retrieve requests placed by user
-						List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
-								status, userId);
 
 						// Get all requests Approved by user
 						List<Object[]> approvedCustomerRequests = getRequestsApprovedOrRejectedByUser(
 								WorkflowStatus.APPROVED.getStatus(), userId,
 								EntityType.CUSTOMER.toString());
+						List<Object[]> approvedPartnerRequests = getRequestsApprovedOrRejectedByUser(
+								WorkflowStatus.APPROVED.getStatus(), userId, EntityType.PARTNER.toString());
+
 
 						// Get all requests Rejected by user
 						List<Object[]> rejectedCustomerRequests = getRequestsApprovedOrRejectedByUser(
 								WorkflowStatus.REJECTED.getStatus(), userId,
 								EntityType.CUSTOMER.toString());
+						List<Object[]> rejectedPartnerRequests = getRequestsApprovedOrRejectedByUser(
+								WorkflowStatus.REJECTED.getStatus(), userId, EntityType.PARTNER.toString());
+
 
 						// Get all requests pending for approval/rejection by user
 						List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
+						List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
 
-						// Contains all the lists of customer requests
-						List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+						// Add all the lists of customer requests
 						listOfCustomerRequests.add(myCustomerRequests);
 						listOfCustomerRequests.add(approvedCustomerRequests);
 						listOfCustomerRequests.add(rejectedCustomerRequests);
 						listOfCustomerRequests.add(pendingCustomerRequests);
-
-						// Populate the response object
-						populateResponseList(listOfCustomerRequests,
-								EntityType.CUSTOMER.toString(), myWorklist);
-
-						// Sort the list based on modified date time
-						Collections.sort(myWorklist);
+						
+						// Add all the lists of partner requests
+						listOfPartnerRequests.add(myPartnerRequests);
+						listOfPartnerRequests.add(approvedPartnerRequests);
+						listOfPartnerRequests.add(rejectedPartnerRequests);
+						listOfPartnerRequests.add(pendingPartnerRequests);
 
 					}
 					if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
 						myWorklist = new ArrayList<MyWorklistDTO>();
 
-						// Retrieve requests placed by user which is approved
-						List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
-								WorkflowStatus.APPROVED.getStatus(), userId);
-
 						// Get all requests Approved by user
 						List<Object[]> approvedCustomerRequests = getRequestsApprovedOrRejectedByUser(
 								WorkflowStatus.APPROVED.getStatus(), userId,
 								EntityType.CUSTOMER.toString());
+						List<Object[]> approvedPartnerRequests = getRequestsApprovedOrRejectedByUser(
+								WorkflowStatus.APPROVED.getStatus(), userId, EntityType.PARTNER.toString());
 
-						// Contains all the lists of customer requests
-						List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+						// Add all the lists of customer requests
 						listOfCustomerRequests.add(myCustomerRequests);
 						listOfCustomerRequests.add(approvedCustomerRequests);
-
-						// Populate the response object
-						populateResponseList(listOfCustomerRequests,
-								EntityType.CUSTOMER.toString(), myWorklist);
-
-						// Sort the list based on modified date time
-						Collections.sort(myWorklist);
+						
+						// Add all the lists of partner requests
+						listOfPartnerRequests.add(myPartnerRequests);
+						listOfPartnerRequests.add(approvedPartnerRequests);
 					}
 					if (status.equalsIgnoreCase(WorkflowStatus.REJECTED.getStatus())) {
 						myWorklist = new ArrayList<MyWorklistDTO>();
-
-						// Retrieve requests placed by user which is rejected
-						List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
-								WorkflowStatus.REJECTED.getStatus(), userId);
 
 						// Get all requests Rejected by user
 						List<Object[]> rejectedCustomerRequests = getRequestsApprovedOrRejectedByUser(
 								WorkflowStatus.REJECTED.getStatus(), userId,
 								EntityType.CUSTOMER.toString());
+						List<Object[]> rejectedPartnerRequests = getRequestsApprovedOrRejectedByUser(
+								WorkflowStatus.REJECTED.getStatus(), userId, EntityType.PARTNER.toString());
 
-						// Contains all the lists of customer requests
-						List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+						// Add all the lists of customer requests
 						listOfCustomerRequests.add(myCustomerRequests);
 						listOfCustomerRequests.add(rejectedCustomerRequests);
-
-						// Populate the response object
-						populateResponseList(listOfCustomerRequests,
-								EntityType.CUSTOMER.toString(), myWorklist);
-
-						// Sort the list based on modified date time
-						Collections.sort(myWorklist);
+						
+						// Add all the lists of partner requests
+						listOfPartnerRequests.add(myPartnerRequests);
+						listOfPartnerRequests.add(rejectedPartnerRequests);
 
 					}
 					if (status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
 						myWorklist = new ArrayList<MyWorklistDTO>();
 
-						// Retrieve requests placed by user which is PENDING
-						List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
-								WorkflowStatus.PENDING.getStatus(), userId);
-
 						// Get all requests pending for user's approval/rejection
 						List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
+						List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
 
-						// Contains all the lists of customer requests
-						List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+						// Add all the lists of customer requests
 						listOfCustomerRequests.add(myCustomerRequests);
 						listOfCustomerRequests.add(pendingCustomerRequests);
-
-						// Populate the response object
-						populateResponseList(listOfCustomerRequests,
-								EntityType.CUSTOMER.toString(), myWorklist);
-
-						// Sort the list based on modified date time
-						Collections.sort(myWorklist);
-
+						
+						// Add all the lists of partner requests
+						listOfPartnerRequests.add(myPartnerRequests);
+						listOfPartnerRequests.add(pendingPartnerRequests);
 					}
+
+					// Populate the response object
+					populateResponseList(listOfCustomerRequests,
+							EntityType.CUSTOMER.toString(), myWorklist);
+					populateResponseList(listOfPartnerRequests,
+							EntityType.PARTNER.toString(), myWorklist);
+
+					// Sort the list based on modified date time
+					Collections.sort(myWorklist);
 					if(myWorklist==null)
 					{
 						logger.debug("No items in worklist for the user" + userId);
@@ -1251,9 +1356,9 @@ public class WorkflowService {
 					StringBuffer queryBuffer = new StringBuffer(
 							QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
 					queryBuffer.append(MY_CUSTOMER_REQUESTS_SUFFIX1);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_SUFFIX2);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_APPROVED_SUFFIX);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_SUFFIX3);
+					queryBuffer.append(MY_REQUESTS_SUFFIX2);
+					queryBuffer.append(MY_REQUESTS_APPROVED_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_SUFFIX3);
 
 					query = entityManager.createNativeQuery(queryBuffer.toString());
 				} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
@@ -1262,7 +1367,7 @@ public class WorkflowService {
 					StringBuffer queryBuffer = new StringBuffer(
 							QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
 					queryBuffer.append(MY_CUSTOMER_REQUESTS_SUFFIX1);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_PENDING_REJECTED_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_PENDING_REJECTED_SUFFIX);
 
 					query = entityManager.createNativeQuery(queryBuffer.toString());
 					query.setParameter("stepStatus", status);
@@ -1270,8 +1375,8 @@ public class WorkflowService {
 					StringBuffer queryBuffer = new StringBuffer(
 							QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
 					queryBuffer.append(MY_CUSTOMER_REQUESTS_SUFFIX1);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_WHERE);
-					queryBuffer.append(MY_CUSTOMER_REQUESTS_APPROVED_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_WHERE);
+					queryBuffer.append(MY_REQUESTS_APPROVED_SUFFIX);
 
 					query = entityManager.createNativeQuery(queryBuffer.toString());
 				}
@@ -1281,6 +1386,54 @@ public class WorkflowService {
 				}
 				logger.debug("Inside getMyRequestsForCustomer method : End");
 				return resultList;
+			}
+			/**
+			 * This method retrieves new partner requests created by user, based on the status of request
+			 * @param status
+			 * @param userId
+			 * @return
+			 */
+			private List<Object[]> getMyRequestsForPartner(String status, String userId) {
+				logger.debug("Inside getMyRequestsForPartner method : Start");
+				// Query to get new customer requests created by user
+				List<Object[]> resultList = null;
+				Query query = null;
+				if (status.equals("ALL")) {
+					// Query to get new customer requests created by user
+					StringBuffer queryBuffer = new StringBuffer(
+							QUERY_FOR_PARTNER_REQUESTS_PREFIX);
+					queryBuffer.append(MY_PARTNER_REQUESTS_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_SUFFIX2);
+					queryBuffer.append(MY_REQUESTS_APPROVED_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_SUFFIX3);
+
+					query = entityManager.createNativeQuery(queryBuffer.toString());
+				}else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
+						|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
+					// Query to get new customer requests created by user
+					StringBuffer queryBuffer = new StringBuffer(
+							QUERY_FOR_PARTNER_REQUESTS_PREFIX);
+					queryBuffer.append(MY_PARTNER_REQUESTS_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_PENDING_REJECTED_SUFFIX);
+
+					query = entityManager.createNativeQuery(queryBuffer.toString());
+					query.setParameter("stepStatus", status);
+				} else if (status.equals(WorkflowStatus.APPROVED.getStatus())) {
+					StringBuffer queryBuffer = new StringBuffer(
+							QUERY_FOR_PARTNER_REQUESTS_PREFIX);
+					queryBuffer.append(MY_PARTNER_REQUESTS_SUFFIX);
+					queryBuffer.append(MY_REQUESTS_WHERE);
+					queryBuffer.append(MY_REQUESTS_APPROVED_SUFFIX);
+
+					query = entityManager.createNativeQuery(queryBuffer.toString());
+				}
+				if (query != null) {
+					query.setParameter("userId", userId);
+					resultList = query.getResultList();
+				}
+				logger.debug("Inside getMyRequestsForPartner method : End");
+				return resultList;
+
 			}
 
 			/**
@@ -1301,7 +1454,8 @@ public class WorkflowService {
 					// Query to get customer requests APPROVED/REJECTED by user
 					StringBuffer queryBuffer = new StringBuffer(
 							QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX);
+					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX1);
+					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX2);
 					Query query = entityManager.createNativeQuery(queryBuffer
 							.toString());
 					query.setParameter("stepStatus", status);
@@ -1313,7 +1467,8 @@ public class WorkflowService {
 					// Query to get partner requests APPROVED/REJECTED by user
 					StringBuffer queryBuffer = new StringBuffer(
 							QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX);
+					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX1);
+					queryBuffer.append(APPROVED_REJECTED_REQUESTS_SUFFIX3);
 					Query query = entityManager.createNativeQuery(queryBuffer
 							.toString());
 					query.setParameter("stepStatus", status);
@@ -1341,29 +1496,24 @@ public class WorkflowService {
 				String userRoleLike = "%" + userRole + "%";
 				String userGroupLike = "%" + userGroup + "%";
 				List<Object[]> resultForGroupPending = null;
+				Query query = null;
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case IOU_HEADS: {
 					// Query to get customer requests pending based on IOU
 					StringBuffer queryBuffer = new StringBuffer(
 							CUSTOMER_PENDING_WITH_IOU_GROUP_QUERY);
-					Query query = entityManager.createNativeQuery(queryBuffer
+					query = entityManager.createNativeQuery(queryBuffer
 							.toString());
 					query.setParameter("userId", userId);
-					query.setParameter("userRole", userRoleLike);
-					query.setParameter("userGroup", userGroupLike);
-					resultForGroupPending = query.getResultList();
 					break;
 				}
 				case GEO_HEADS: {
 					// Query to get customer requests pending based on Geography
 					StringBuffer queryBuffer = new StringBuffer(
 							CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
-					Query query = entityManager.createNativeQuery(queryBuffer
+					query = entityManager.createNativeQuery(queryBuffer
 							.toString());
 					query.setParameter("userId", userId);
-					query.setParameter("userRole", userRoleLike);
-					query.setParameter("userGroup", userGroupLike);
-					resultForGroupPending = query.getResultList();
 					break;
 				}
 				case STRATEGIC_INITIATIVES: {
@@ -1371,31 +1521,28 @@ public class WorkflowService {
 					// privilege applies to SI
 					StringBuffer queryBuffer = new StringBuffer(
 							CUSTOMER_PENDING_WITH_SI_QUERY);
-					Query query = entityManager.createNativeQuery(queryBuffer
+					query = entityManager.createNativeQuery(queryBuffer
 							.toString());
-					query.setParameter("userRole", userRoleLike);
-					query.setParameter("userGroup", userGroupLike);
-					resultForGroupPending = query.getResultList();
 					break;
 				}
-				}
+				}				
 				if (userId.contains("pmo")) {
 					StringBuffer queryBuffer = new StringBuffer(
 							CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
-					Query query = entityManager.createNativeQuery(queryBuffer
+					query = entityManager.createNativeQuery(queryBuffer
 							.toString());
-					query.setParameter("userId", userId);
-					query.setParameter("userRole", userRoleLike);
-					query.setParameter("userGroup", "%PMO%");
-					resultForGroupPending = query.getResultList();
+					query.setParameter("userId", userId);					
 				}
+				query.setParameter("userRole", userRoleLike);
+				query.setParameter("userGroup", userGroupLike);
+				resultForGroupPending = query.getResultList();
 
 				resultList = resultForGroupPending;
 				// Query to get pending customer requests for specific user's
 				// approval/rejection
 				StringBuffer queryBuffer = new StringBuffer(
 						CUSTOMER_PENDING_WITH_USER_QUERY);
-				Query query = entityManager.createNativeQuery(queryBuffer.toString());
+				query = entityManager.createNativeQuery(queryBuffer.toString());
 				query.setParameter("userId", userId);
 				if (resultList != null) {
 					if (resultList.isEmpty()) {
@@ -1455,7 +1602,6 @@ public class WorkflowService {
 							status.setStatus(Status.SUCCESS, "Customer "
 									+ requestedPartner.getPartnerName()
 									+ " added successfully");
-
 						}
 					}
 				}
@@ -1512,5 +1658,77 @@ public class WorkflowService {
 									"Geography Should not be empty");
 						}
 			  }
-
+/**
+ * To find if the user is authorized to access the request
+ * @param workflowSteps
+ * @param authorizedUserFlag
+ * @param userId
+ * @return
+ * @throws DestinationException
+ */
+private boolean getAuthorizedUserFlag(List<WorkflowStepT> workflowSteps, String userId)throws DestinationException{
+	boolean authorizedUserFlag = false;
+	UserT user = userRepository.findByUserId(userId);
+	String userRole = user.getUserRole();
+	String userGroup = user.getUserGroup();
+	for (WorkflowStepT workflowStep : workflowSteps) {
+		if ((workflowStep.getUserId()!=null)&&(workflowStep.getUserId().equals(userId))){
+			authorizedUserFlag = true;
 		}
+		else if(workflowStep.getStepStatus().equals(WorkflowStatus.PENDING
+				.getStatus())){
+			if((workflowStep.getUserGroup()!=null)&&(workflowStep.getUserGroup().contains(userGroup))){
+				authorizedUserFlag = true;
+			}
+			else if((workflowStep.getUserRole()!=null)&&(workflowStep.getUserRole().contains(userRole))){
+				authorizedUserFlag = true;
+			}										
+		}
+		}
+		if (authorizedUserFlag == false) {
+			throw new DestinationException(
+					HttpStatus.FORBIDDEN,
+					"User not authorized to access this request");
+		}	
+		return authorizedUserFlag;
+
+}
+/**
+ * This method is used to retrieve partner requests pending with user
+ * @param userId
+ * @return
+ */
+private List<Object[]> getPendingPartnerRequests(String userId) {
+
+	List<Object[]> resultList = null;
+	UserT user = userRepository.findByUserId(userId);
+	String userRole = user.getUserRole();
+	String userGroup = user.getUserGroup();
+	userRole = "%" + userRole + "%";
+	userGroup = "%" + userGroup + "%";
+	// Query to get pending partner requests for specific user's
+	// approval/rejection
+	StringBuffer queryBufferForPending = new StringBuffer(
+			PARTNER_PENDING_WITH_USER_QUERY);
+	Query queryForPending = entityManager
+			.createNativeQuery(queryBufferForPending.toString());
+	queryForPending.setParameter("userId", userId);
+	resultList = queryForPending.getResultList();
+	// Query to get pending with group of users, based on user's role and
+	// user group
+	StringBuffer queryBuffer = new StringBuffer(
+			PARTNER_PENDING_WITH_GROUP_QUERY);
+	Query query = entityManager.createNativeQuery(queryBuffer.toString());
+	query.setParameter("userRole", userRole);
+	query.setParameter("userGroup", userGroup);
+	if (resultList == null) {
+		resultList = query.getResultList();
+	} else {
+		List<Object[]> resultForGroupPending = query.getResultList();
+		resultList.addAll(resultForGroupPending);
+	}
+
+	return resultList;
+}
+
+}
