@@ -50,7 +50,6 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.utils.QueryConstants.*;
 
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -1533,9 +1532,11 @@ public class WorkflowService {
 							.toString());
 					query.setParameter("userId", userId);					
 				}
+				if(query!=null){
 				query.setParameter("userRole", userRoleLike);
 				query.setParameter("userGroup", userGroupLike);
 				resultForGroupPending = query.getResultList();
+				}
 
 				resultList = resultForGroupPending;
 				// Query to get pending customer requests for specific user's
