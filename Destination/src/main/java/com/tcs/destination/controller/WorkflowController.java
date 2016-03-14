@@ -66,7 +66,7 @@ public class WorkflowController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/approve", method = RequestMethod.POST)
+	@RequestMapping(value = "/approve/customer", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> approveCustomers(
 			@RequestBody WorkflowCustomerT workflowCustomerT,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -79,7 +79,7 @@ public class WorkflowController {
 		try {
 			if (workflowService.approveWorkflowEntity(workflowCustomerT)) {
 				status.setStatus(Status.SUCCESS,
-						"The requested entity is approved!!!");
+						"The requested Customer entity:" + workflowCustomerT.getCustomerName() + " is approved!!!");
 				logger.debug("Request approved Successfully");
 			}
 			logger.info("Inside WorkflowController: End of approve Customer");
@@ -95,6 +95,35 @@ public class WorkflowController {
 		}
 	}
 
+	@RequestMapping(value = "/approve/partner", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approvePartners(
+			@RequestBody WorkflowPartnerT workflowPartnerT,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of approve Customer");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowService.approvePartnerWorkflowEntity(workflowPartnerT)) {
+				status.setStatus(Status.SUCCESS,
+						"The requested Partner entity:" + workflowPartnerT.getPartnerName() + " is approved!!!");
+				logger.debug("Request approved Successfully");
+			}
+			logger.info("Inside WorkflowController: End of approve Customer");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating customer");
+		}
+	}
+	
 	/**
 	 * work flow for rejection process
 	 * 

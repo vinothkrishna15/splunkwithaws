@@ -205,6 +205,10 @@ public class Constants {
 	public static final String WORKFLOW_CUSTOMER = "Customer";
 	public static final String WORKFLOW_PARTNER = "Partner";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
+	public static final int CONSTANT_ZERO = 0;
+	public static final int CONSTANT_ONE = 1;
+	public static final int CONSTANT_TWO = 2;
+	
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 }
