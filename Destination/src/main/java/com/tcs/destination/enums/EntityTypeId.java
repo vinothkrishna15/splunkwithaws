@@ -12,5 +12,14 @@ public enum EntityTypeId {
 	public Integer getType() {
 		return type;
 	}
+	
+	public static String getName(Integer type){
+		for (EntityTypeId c : EntityTypeId.values()) {
+			if (c.getType().equals(type)) {
+				return c.name();
+			}
+		}
+		return null;
+	}
 
 }

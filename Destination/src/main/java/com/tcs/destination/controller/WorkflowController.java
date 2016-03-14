@@ -1,9 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.MyWorklistDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
+import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
@@ -205,7 +202,7 @@ public class WorkflowController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/customer/{id}", method = RequestMethod.GET)
 	public @ResponseBody String getRequestedCustomerById(
 			@PathVariable("id") int requestedCustomerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -215,7 +212,7 @@ public class WorkflowController {
 		WorkflowCustomerDetailsDTO workflowCustomerDetails = null;
 		try {			
 			workflowCustomerDetails = workflowService
-					.findRequestedDetailsById(requestedCustomerId);
+					.findRequestedCustomerDetailsById(requestedCustomerId);
 			logger.info("Inside WorkflowCustomerController : End of retrieving requested customer details by id");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 				view, workflowCustomerDetails);
@@ -229,7 +226,49 @@ public class WorkflowController {
 		}
 	}
 	
+	/**
+	 * This method is used to retrieve requested new customer details based on request id
+	 * @param requestedCustomerId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/partner/{id}", method = RequestMethod.GET)
+	public @ResponseBody String getRequestedParnerById(
+			@PathVariable("id") int requestedPartnerId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside WorkflowController : Start of retrieving requested partner details by id");
+		WorkflowPartnerDetailsDTO workflowPartnerDetails = null;
+		try {			
+			workflowPartnerDetails = workflowService
+					.findRequestedPartnerDetailsById(requestedPartnerId);
+			logger.info("Inside WorkflowCustomerController : End of retrieving requested partner details by id");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+				view, workflowPartnerDetails);
+
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving partner details");
+		}
+	}
+
 	
+	/**
+	 * This service is used to retrive the details of worklist of the logged in user
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @param status
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/myWorklist", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getAllCustomerRequestsInWorklist(
 			@RequestParam(value = "page", defaultValue = "0") int page,
@@ -255,31 +294,39 @@ public class WorkflowController {
 		}
 	}
 	
-//	@RequestMapping(value = "/requestPartner", method = RequestMethod.POST)
-//	public @ResponseBody ResponseEntity<String> addPartnerRequest(
-//			@RequestBody WorkflowPartnerT workflowPartnerT)
-//			throws DestinationException {
-//
-//		logger.info("Inside WorkflowController: Start of inserting requested partner");
-//		Status status = new Status();
-//		status.setStatus(Status.FAILED, "");
-//		try {
-//			if (workflowPartnerT != null) {
-//				if (workflowService.addPartner(workflowPartnerT, status)) {
-//					logger.info("Inside WorkflowController: End of inserting requested partner");
-//				}
-//			}
-//			return new ResponseEntity<String>(
-//					ResponseConstructors.filterJsonForFieldAndViews("all", "",
-//							status), HttpStatus.OK);
-//		} catch (DestinationException e) {
-//			throw e;
-//		} catch (Exception e) {
-//			logger.error(e.getMessage());
-//			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-//					"Backend error while Inserting Workflow Partner");
-//		}
-//
-//	}
+	/**
+	 * This method inserts the workflow partner including respective workflow
+	 * request and steps for normal users and inserts the customer and mapping
+	 * details for strategic group admin
+	 * @param workflowPartnerT
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/requestPartner", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addPartnerRequest(
+			@RequestBody WorkflowPartnerT workflowPartnerT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of inserting requested partner");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowPartnerT != null) {
+				if (workflowService.addPartner(workflowPartnerT, status)) {
+					logger.info("Inside WorkflowController: End of inserting requested partner");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while Inserting Workflow Partner");
+		}
+
+	}
 
 }

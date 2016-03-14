@@ -23,6 +23,7 @@ public interface PartnerRepository extends
 	 * @return partner details.
 	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
+	
 
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
 			String partnername, Pageable page);

@@ -57,10 +57,12 @@ public class WorkflowPartnerT implements Serializable {
 	private String modifiedBy;
 
 	private String website;
+	
+	private String geography;
 
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
-	@JoinColumn(name="geography")
+	@JoinColumn(name="geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
 
 	//bi-directional many-to-one association to UserT
@@ -194,6 +196,14 @@ public class WorkflowPartnerT implements Serializable {
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+
+	public String getGeography() {
+		return geography;
+	}
+
+	public void setGeography(String geography) {
+		this.geography = geography;
 	}
 
 	
