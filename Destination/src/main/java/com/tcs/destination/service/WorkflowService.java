@@ -82,8 +82,14 @@ public class WorkflowService {
 	@Value("${workflowCustomerApproved}")
 	private String workflowCustomerApprovedSubject;
 
+	@Value("${workflowPartnerApproved}")
+	private String workflowPartnerApprovedSubject;
+
 	@Value("${workflowCustomerRejected}")
 	private String workflowCustomerRejectedSubject;
+
+	@Value("${workflowPartnerRejected}")
+	private String workflowPartnerRejectedSubject;
 
 	@Autowired
 	DestinationMailUtils mailUtils;
@@ -152,6 +158,7 @@ public class WorkflowService {
 		int requestId = 0;
 		int rowIteration = 0;
 		int step = 0;
+		String oldCustomerName = null;
 		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
@@ -160,9 +167,6 @@ public class WorkflowService {
 		try{
 
 			if (validateWorkflowRequest(workflowCustomerT)) {
-				if(user.getUserRole().equals(UserRole.STRATEGIC_GROUP_ADMIN.getValue())){
-					saveToMasterTables(workflowCustomerT);
-				}
 				requestSteps = workflowStepTRepository.findStepForEditAndApprove(Constants.CONSTANT_ZERO,workflowCustomerT.getWorkflowCustomerId());
 				masterRequest = workflowRequestTRepository.findRequestedRecord(Constants.CONSTANT_ZERO,workflowCustomerT.getWorkflowCustomerId());
 				for (WorkflowStepT stepRecord : requestSteps){
@@ -172,10 +176,23 @@ public class WorkflowService {
 						WorkflowCustomerT oldObject = new WorkflowCustomerT();
 						if(stepId != -1 && requestId != 0 && rowIteration == 0){
 							oldObject = workflowCustomerRepository.findOne(workflowCustomerT.getWorkflowCustomerId());
+							oldCustomerName = oldObject.getCustomerName();
 							if (isCustomerRequestModified(oldObject,workflowCustomerT)){
 								workflowCustomerT.setModifiedBy(userId);
 								workflowCustomerRepository.save(oldObject);
 							}
+							//
+							if( user.getUserRole().equals(UserRole.STRATEGIC_GROUP_ADMIN.getValue())){
+								CustomerMasterT oldCustomerMaster = customerRepository.findByCustomerName(oldCustomerName);
+								if(oldCustomerMaster!=null) {
+									saveToMasterTables(oldCustomerMaster,workflowCustomerT);
+								}
+								else{
+									CustomerMasterT newCustomerMaster = new CustomerMasterT();
+									saveToMasterTables(newCustomerMaster,workflowCustomerT);
+								}
+							}
+							//
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 							stepRecord.setModifiedBy(userId);
@@ -214,7 +231,7 @@ public class WorkflowService {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * to check whether a customer object is modified
 	 * @param oldObject
@@ -223,38 +240,70 @@ public class WorkflowService {
 	 */
 	private boolean isCustomerRequestModified(WorkflowCustomerT oldObject,WorkflowCustomerT workflowCustomerT) {
 
-		boolean isModifiedFlag = false;
-
+		boolean isCustomerModifiedFlag = false;
+		String corporateHqAdress = "";
+		String website = "";
+		String facebook = "";
+		String notes = "";
+		//customer name
 		if (!workflowCustomerT.getCustomerName().equals(oldObject.getCustomerName())) {
 			oldObject.setCustomerName(workflowCustomerT.getCustomerName());
-			isModifiedFlag =true;
+			isCustomerModifiedFlag =true;
 		}
-		if (!workflowCustomerT.getCorporateHqAddress().equals(oldObject.getCorporateHqAddress())) {
+		//corpoarate address
+		if(!StringUtils.isEmpty(oldObject.getCorporateHqAddress())){
+			corporateHqAdress = oldObject.getCorporateHqAddress();
+		}
+		if (!workflowCustomerT.getCorporateHqAddress().equals(corporateHqAdress)) {
 			oldObject.setCorporateHqAddress(workflowCustomerT.getCorporateHqAddress());
-			isModifiedFlag =true;
-		}
-		if (!workflowCustomerT.getFacebook().equals(oldObject.getFacebook())) {
-			oldObject.setFacebook(workflowCustomerT.getFacebook());
-			isModifiedFlag =true;
-		}
-		if (!workflowCustomerT.getWebsite().equals(oldObject.getWebsite())) {
-			oldObject.setWebsite(workflowCustomerT.getWebsite());
-			isModifiedFlag =true;
-		}
-		if (!workflowCustomerT.getGeography().equals(oldObject.getGeography())) {
-			oldObject.setGeography(workflowCustomerT.getGeography());
-			isModifiedFlag =true;
+			isCustomerModifiedFlag = true;
 		}
 
+		//facebook
+		if(!StringUtils.isEmpty(oldObject.getFacebook())){
+			facebook = oldObject.getFacebook();
+		}
+		if (!workflowCustomerT.getFacebook().equals(facebook)) {
+			oldObject.setFacebook(workflowCustomerT.getFacebook());
+			isCustomerModifiedFlag = true;
+		}
+		//website
+		if(!StringUtils.isEmpty(oldObject.getWebsite())){
+			website = oldObject.getWebsite();
+		}
+		if (!workflowCustomerT.getWebsite().equals(website)) {
+			oldObject.setWebsite(workflowCustomerT.getWebsite());
+			isCustomerModifiedFlag = true;
+		}
+		//geography
+		if (!workflowCustomerT.getGeography().equals(oldObject.getGeography())) {
+			oldObject.setGeography(workflowCustomerT.getGeography());
+			isCustomerModifiedFlag = true;
+		}
+		//notes for edit
+		if(!StringUtils.isEmpty(oldObject.getNotes())){
+			notes = oldObject.getNotes();
+		}
+		if(!workflowCustomerT.getNotes().equals(notes) && (!StringUtils.isEmpty(workflowCustomerT.getNotes()))){
+			oldObject.setNotes(workflowCustomerT.getNotes());
+			isCustomerModifiedFlag = true;
+		}
+		//geography
+		if (!workflowCustomerT.getGeography().equals(oldObject.getGeography())) {
+			oldObject.setGeography(workflowCustomerT.getGeography());
+			isCustomerModifiedFlag =true;
+		}
+		//group customer name 
 		if (!workflowCustomerT.getGroupCustomerName().equals(oldObject.getGroupCustomerName())) {
 			oldObject.setGroupCustomerName(workflowCustomerT.getGroupCustomerName());
-			isModifiedFlag =true;
+			isCustomerModifiedFlag =true;
 		}
+		//iou
 		if (!workflowCustomerT.getIou().equals(oldObject.getIou())) {
 			oldObject.setIou(workflowCustomerT.getIou());
-			isModifiedFlag =true;
+			isCustomerModifiedFlag =true;
 		}
-		return isModifiedFlag;
+		return isCustomerModifiedFlag;
 	}
 
 
@@ -325,23 +374,43 @@ public class WorkflowService {
 	/*
 	 * on admin approval new entity was created in the master table
 	 */
-	private void saveToMasterTables(WorkflowCustomerT workflowCustomerT) {
+	private void saveToMasterTables(CustomerMasterT oldCustomerMaster, WorkflowCustomerT workflowCustomerT) {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		CustomerMasterT customerMaster = new CustomerMasterT();
-		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
-		customerMaster.setGroupCustomerName(workflowCustomerT
-				.getGroupCustomerName());
-		customerMaster.setCorporateHqAddress(workflowCustomerT
-				.getCorporateHqAddress());
-		customerMaster.setWebsite(workflowCustomerT.getWebsite());
-		customerMaster.setFacebook(workflowCustomerT.getFacebook());
-		customerMaster.setIou(workflowCustomerT.getIou());
-		customerMaster.setGeography(workflowCustomerT.getGeography());
-		customerMaster.setLogo(workflowCustomerT.getLogo());
-		customerMaster.setDocumentsAttached(workflowCustomerT
+		String corporateHqAdress = "";
+		String facebook = "";
+		String  website = "";
+		oldCustomerMaster.setCustomerName(workflowCustomerT.getCustomerName());
+		oldCustomerMaster.setGroupCustomerName(workflowCustomerT.getGroupCustomerName());
+
+		//corpoarate address
+		if(!StringUtils.isEmpty(oldCustomerMaster.getCorporateHqAddress())){
+			corporateHqAdress = oldCustomerMaster.getCorporateHqAddress();
+		}
+		if (!workflowCustomerT.getCorporateHqAddress().equals(corporateHqAdress)) {
+			oldCustomerMaster.setCorporateHqAddress(workflowCustomerT.getCorporateHqAddress());
+		}
+
+		//facebook
+		if(!StringUtils.isEmpty(oldCustomerMaster.getFacebook())){
+			facebook = oldCustomerMaster.getFacebook();
+		}
+		if (!workflowCustomerT.getFacebook().equals(facebook)) {
+			oldCustomerMaster.setFacebook(workflowCustomerT.getFacebook());
+		}
+		//website
+		if(!StringUtils.isEmpty(oldCustomerMaster.getWebsite())){
+			website = oldCustomerMaster.getWebsite();
+		}
+		if (!workflowCustomerT.getWebsite().equals(website)) {
+			oldCustomerMaster.setWebsite(workflowCustomerT.getWebsite());
+		}
+		oldCustomerMaster.setIou(workflowCustomerT.getIou());
+		oldCustomerMaster.setGeography(workflowCustomerT.getGeography());
+		oldCustomerMaster.setLogo(workflowCustomerT.getLogo());
+		oldCustomerMaster.setDocumentsAttached(workflowCustomerT
 				.getDocumentsAttached());
-		customerMaster.setCreatedModifiedBy(userId);
-		customerRepository.save(customerMaster);
+		oldCustomerMaster.setCreatedModifiedBy(userId);
+		customerRepository.save(oldCustomerMaster);
 		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
 			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
 					.getRevenueCustomerMappingTs()) {
@@ -349,7 +418,7 @@ public class WorkflowService {
 				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
 				revenueTPK.setFinanceCustomerName(rcmpt
 						.getFinanceCustomerName());
-				revenueCustomer.setCustomerName(customerMaster
+				revenueCustomer.setCustomerName(oldCustomerMaster
 						.getCustomerName());
 				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
 				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
@@ -364,7 +433,7 @@ public class WorkflowService {
 				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
 				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
 				beaconCustomer
-				.setCustomerName(customerMaster.getCustomerName());
+				.setCustomerName(oldCustomerMaster.getCustomerName());
 				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
 				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
 				beaconCustomer.setId(beaconTPK);
@@ -416,6 +485,7 @@ public class WorkflowService {
 		else{
 			// true incase of admin: to validate the iou field for not empty check
 			validateWorkflowCustomerMasterDetails(requestedCustomerT, false);
+			isAdminValidated = true;
 		}
 		return isAdminValidated;
 	}
@@ -606,7 +676,12 @@ public class WorkflowService {
 					masterRequest.setStatus(workflowStepT.getStepStatus());
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
-					sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
+					if(masterRequest.getEntityTypeId().equals(EntityTypeId.CUSTOMER.getType())){
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
+					}
+					if(masterRequest.getEntityTypeId().equals(EntityTypeId.PARTNER.getType())){
+						sendEmailNotificationforApprovedOrRejectMail(workflowPartnerRejectedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.PARTNER.getType());
+					}
 				}
 				else{
 					throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -675,7 +750,8 @@ public class WorkflowService {
 					} else {
 						// Saving workflow customer details to CustomerMasterT
 						// for Admin
-						saveToMasterTables(requestedCustomer);
+						CustomerMasterT customerMasterObj = new CustomerMasterT();
+						saveToMasterTables(customerMasterObj , requestedCustomer);
 						status.setStatus(Status.SUCCESS, "Customer "
 								+ workflowCustomer.getCustomerName()
 								+ " added successfully");
@@ -1776,16 +1852,16 @@ public class WorkflowService {
 								workflowPartnerRepository.save(oldObject);
 							}
 							if( user.getUserRole().equals(UserRole.SYSTEM_ADMIN.getValue())){
-							List<PartnerMasterT> oldPartnerMasterList = partnerRepository.findByPartnerName(oldPartnerName);
-							if(oldPartnerMasterList.size()>0) {
-								for(PartnerMasterT oldPartnerMaster : oldPartnerMasterList){
-									saveToPartnerMasterTables(oldPartnerMaster,workflowPartnerT);
+								List<PartnerMasterT> oldPartnerMasterList = partnerRepository.findByPartnerName(oldPartnerName);
+								if(oldPartnerMasterList.size()>0) {
+									for(PartnerMasterT oldPartnerMaster : oldPartnerMasterList){
+										saveToPartnerMasterTables(oldPartnerMaster,workflowPartnerT);
+									}
 								}
-							}
-							else{
-								PartnerMasterT newPartnerMaster = new PartnerMasterT();
-								saveToPartnerMasterTables(newPartnerMaster,workflowPartnerT);
-							}
+								else{
+									PartnerMasterT newPartnerMaster = new PartnerMasterT();
+									saveToPartnerMasterTables(newPartnerMaster,workflowPartnerT);
+								}
 							}
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
@@ -1796,7 +1872,7 @@ public class WorkflowService {
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
-							//sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime());
+							sendEmailNotificationforApprovedOrRejectMail(workflowPartnerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 							step = stepRecord.getStep()+1;
 							rowIteration++;
 						}
