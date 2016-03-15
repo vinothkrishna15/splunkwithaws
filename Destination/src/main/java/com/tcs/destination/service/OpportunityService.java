@@ -89,6 +89,8 @@ import com.tcs.destination.utils.StringUtils;
 @Service
 public class OpportunityService {
 
+	private static final int ONE_DAY_IN_MILLIS = 86400000;
+	
 	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
 			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
 			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
@@ -1218,15 +1220,27 @@ public class OpportunityService {
 
 		List<OpportunitiesBySupervisorIdDTO> listOfopportunitiesDTO = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+		if (!StringUtils.isEmpty(supervisorUserId)) {
 
-		if ((users != null) && (users.size() > 0)) {
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+
+			//Get FromDate and ToDate based on Current Financial Year
+			String finYear = DateUtils.getCurrentFinancialYear();
+			Date fromDate = DateUtils.getDateFromFinancialYear(finYear,true);
+			Date toDate = DateUtils.getDateFromFinancialYear(finYear,false);
+			
+			Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+			Timestamp toDateTs = new Timestamp(toDate.getTime()
+					+ ONE_DAY_IN_MILLIS - 1);
+			
+			// Adding the user himself
+			users.add(supervisorUserId);
 
 			// Get all opportunities for the users under supervisor
 			List<Object[]> opportunities = opportunityRepository
-					.findDealValueOfOpportunitiesBySupervisorId(users);
+					.findDealValueOfOpportunitiesBySupervisorId(users,fromDateTs,toDateTs);
 
 			if ((opportunities != null) && (opportunities.size() > 0)) {
 
@@ -1265,13 +1279,11 @@ public class OpportunityService {
 						"No opportunity found for supervisor id : "
 								+ supervisorUserId);
 			}
+
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorUserId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id "
-							+ supervisorUserId);
+					"Supervisor Id is empty");
 		}
 
 		return listOfopportunitiesDTO;
@@ -1301,11 +1313,14 @@ public class OpportunityService {
 		List<OpportunityT> opportunitiesSubList = null;
 		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+		if (!StringUtils.isEmpty(supervisorUserId)) {
 
-		if ((users != null) && (users.size() > 0)) {
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+
+			// Adding the user himself
+			users.add(supervisorUserId);
 
 			// Retrieve opportunities from users
 			if (!isCurrentFinancialYear) {
@@ -1377,8 +1392,8 @@ public class OpportunityService {
 								.getUserName());
 						teamDetails.setSalesStageCode(opportunity
 								.getSalesStageCode());
-						teamDetails.setModifiedDate(DateUtils.ACTUAL_FORMAT.format(opportunity
-								.getModifiedDatetime()));
+						teamDetails.setModifiedDate(DateUtils.ACTUAL_FORMAT
+								.format(opportunity.getModifiedDatetime()));
 
 						listOfOpportunityDetails.add(teamDetails);
 					}
@@ -1402,12 +1417,9 @@ public class OpportunityService {
 			}
 
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorUserId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id "
-							+ supervisorUserId);
+					"Supervisor Id is empty");
 		}
 
 		return teamOpportunityDetails;

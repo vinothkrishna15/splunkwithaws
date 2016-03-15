@@ -562,46 +562,56 @@ public class TaskService {
 	public List<TaskT> findTeamTasks(String supervisorId, String status)
 			throws Exception {
 		logger.debug("Begin: Inside findTeamTasks() of TaskService");
-		// Get all sub-ordinates user id's
-		List<String> userIds = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-		if (userIds == null || userIds.isEmpty()) {
-			logger.error(
-					"NOT_FOUND: No subordinates found for Supervisor user: {}",
-					supervisorId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinates found for supervisor user: "
-							+ supervisorId);
-		}
+		List<TaskT> taskList = null;
 
-		List<TaskT> taskList = new ArrayList<TaskT>();
-		if (!status.isEmpty()) {
-			if (!status.equalsIgnoreCase("all")) {
-				// Validate Task Status
-				if (!TaskStatus.contains(status)) {
-					logger.error("BAD_REQUEST: Invalid Task Status: {}", status);
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Invalid Task Status: " + status);
+		if (!StringUtils.isEmpty(supervisorId)) {
+
+			// Get all sub-ordinates user id's
+
+			List<String> userIds = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorId);
+
+			// Adding supervisor Id
+			userIds.add(supervisorId);
+
+			taskList = new ArrayList<TaskT>();
+
+			if (!status.isEmpty()) {
+				if (!status.equalsIgnoreCase("all")) {
+					// Validate Task Status
+					if (!TaskStatus.contains(status)) {
+						logger.error("BAD_REQUEST: Invalid Task Status: {}",
+								status);
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Invalid Task Status: " + status);
+					}
+					taskList = taskRepository
+							.findTeamTasksBySupervisorIdAndStatus(userIds,
+									status);
+				} else {
+					// Get all tasks with OPEN & HOLD status
+					taskList = taskRepository
+							.findTeamTasksBySupervisorIdAndStatusNot(userIds,
+									STATUS_CLOSED);
 				}
-				taskList = taskRepository.findTeamTasksBySupervisorIdAndStatus(
-						userIds, status);
-			} else {
-				// Get all tasks with OPEN & HOLD status
-				taskList = taskRepository
-						.findTeamTasksBySupervisorIdAndStatusNot(userIds,
-								STATUS_CLOSED);
 			}
+
+			if ((taskList == null) || taskList.isEmpty()) {
+				logger.error(
+						"NOT_FOUND: No team tasks found for the Supervisor: {}",
+						supervisorId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No team tasks found for the Supervisor user: "
+								+ supervisorId);
+			}
+
+		} else {
+			logger.error("NOT_FOUND: Supervisor Id is empty");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Supervisor Id is empty");
 		}
 
-		if ((taskList == null) || taskList.isEmpty()) {
-			logger.error(
-					"NOT_FOUND: No team tasks found for the Supervisor: {}",
-					supervisorId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No team tasks found for the Supervisor user: "
-							+ supervisorId);
-		}
 		logger.debug("End: Inside findTeamTasks() of TaskService");
 		return taskList;
 	}
