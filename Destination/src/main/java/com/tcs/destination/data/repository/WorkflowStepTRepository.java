@@ -37,7 +37,7 @@ public interface WorkflowStepTRepository extends CrudRepository<WorkflowStepT, I
 	// public List<WorkflowStepT> findStepsForRequest(int requestId);
 
 	// for approve and edit
-	@Query(value = "select * from workflow_step_t where request_id = (select request_id from workflow_request_t where entity_type_id = ?1 and entity_id = ?2) ;", nativeQuery = true)
+	@Query(value = "select * from workflow_step_t where request_id = (select request_id from workflow_request_t where entity_type_id = ?1 and entity_id = ?2) ORDER BY step ASC;", nativeQuery = true)
 	public List<WorkflowStepT> findStepForEditAndApprove(int entityTypeId, int requestId);
 	
 	
