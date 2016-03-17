@@ -15,17 +15,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowStepT;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WorkflowService;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -52,6 +55,9 @@ public class WorkflowController {
 
 	@Autowired
 	WorkflowService workflowService;
+	
+	@Autowired
+	UserRepository userRepository;
 
 	/**
 	 * work flow for rejection process
@@ -138,13 +144,14 @@ public class WorkflowController {
 			throws DestinationException {
 
 		logger.info("Inside WorkflowController: Start of reject Customer");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT userT = userRepository.findByUserId(userId);
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (workflowService.rejectWorkflowEntity(workflowStepT)) {
 				status.setStatus(Status.SUCCESS, workflowStepT.getStepStatus());
-				logger.debug("Request rejected Successfully"
-						+ workflowStepT.getStepStatus());
+				logger.debug("Request " + workflowStepT.getRequestId() + " is REJECTED by " + userT.getUserName() + "!!!");
 			}
 			logger.info("Inside WorkflowController: End of reject Customer");
 			return new ResponseEntity<String>(
