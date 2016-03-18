@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.MiscTypeValueT;
 import com.tcs.destination.bean.PrivilegeGroup;
+import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.MiscTypeValueRepository;
@@ -35,6 +36,8 @@ public class UserAccessPrivilegeQueryBuilder {
 
 	@Autowired
 	UserService userService;
+	
+	HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
 
 	/**
 	 * This method initializes the buffers for each of the condition required
@@ -73,6 +76,59 @@ public class UserAccessPrivilegeQueryBuilder {
 			logger.info("User does not have any specific access privileges defined");
 			return null;
 		}
+	}
+	
+	/**
+	 * This method initializes the buffers for each of the condition required
+	 * (SubSp, Iou, Geography, Customer) in the PrivilegeGroup.
+	 * 
+	 * @param userId
+	 *            , queryPrefix
+	 * @return String
+	 * @throws Exception
+	 */
+	public QueryBufferDTO getUserAccessPrivilegeWhereCondition(String userId,
+			HashMap<String, String> queryPrefix) throws Exception {
+		logger.debug("Inside getUserAccessPrivilegeWhereConditionClause() method");
+		parameterMap.clear();
+	
+		QueryBufferDTO queryBuffer=new QueryBufferDTO();
+		
+		// Get user access privileges
+		List<UserAccessPrivilegesT> userPrivilegesList = userService
+				.getAllPrivilegesByUserId(userId);
+
+		// Create a Privilege group for each Parent Privileges
+		// and initialize group conditions for each parent
+		List<PrivilegeGroup> privilegeGroups = new ArrayList<PrivilegeGroup>();
+
+		if (userPrivilegesList != null && !userPrivilegesList.isEmpty()) {
+			for (UserAccessPrivilegesT parentPrivilege : userPrivilegesList) {
+				PrivilegeGroup privilegeGroup = new PrivilegeGroup();
+				initGroupConditions(privilegeGroup, queryPrefix);
+				populateCondGroup(parentPrivilege, privilegeGroup);
+				replaceLastCommaWithParenthesisInQueryCondition(privilegeGroup);
+				privilegeGroups.add(privilegeGroup);
+			}
+			String where = getWhereClauseString(privilegeGroups);
+			if (!where.equalsIgnoreCase("(())"))
+			{
+				queryBuffer.setQuery(where);
+			    queryBuffer.setParameterMap(parameterMap);
+			    
+				return queryBuffer;
+			}
+			 else
+			 {
+				return null;
+			 }
+			
+			
+		} else {
+			logger.info("User does not have any specific access privileges defined");
+			return null;
+		}
+	
 	}
 
 	/**
@@ -211,6 +267,165 @@ public class UserAccessPrivilegeQueryBuilder {
 					"Invalid Privilege Type: " + privilegeType);
 		}
 	}
+	
+	
+	/**
+	 * This method populates the required condition group object for a parent &
+	 * its child privilege groups
+	 * 
+	 * @param privilege
+	 *            , privilegeGroup
+	 * @throws Exception
+	 */
+	private void populateCondGroup(UserAccessPrivilegesT privilege,
+			PrivilegeGroup privilegeGroup) throws Exception {
+		logger.debug("Inside populateConditionGroup() method");
+		String privilegeType = privilege.getPrivilegeType();
+		String privilegeValue = privilege.getPrivilegeValue();
+		StringBuffer geoBuffer = privilegeGroup.getGeographyBuffer();
+		StringBuffer subspBuffer = privilegeGroup.getSubspBuffer();
+		StringBuffer iouBuffer = privilegeGroup.getIouBuffer();
+		StringBuffer custBuffer = privilegeGroup.getCustomerBuffer();
+
+		logger.info("Privilege Type: {}", privilegeType);
+		logger.info("Privilege Value: {}", privilegeValue);
+
+		// Forming condition for privilege
+		if (PrivilegeType.contains(privilegeType)) {
+			switch (PrivilegeType.valueOf(privilegeType)) {
+			case GEOGRAPHY:
+				if (geoBuffer != null && geoBuffer.length() > 0) {
+					geoBuffer.append(Constants.SINGLE_QUOTE + privilegeValue
+							+ Constants.SINGLE_QUOTE + Constants.COMMA);
+					privilegeGroup.setGeographyBuffer(geoBuffer);
+				}
+				break;
+			case SUBSP:
+				if (subspBuffer != null && subspBuffer.length() > 0) {
+					subspBuffer.append(Constants.SINGLE_QUOTE + privilegeValue
+							+ Constants.SINGLE_QUOTE + Constants.COMMA);
+					privilegeGroup.setSubspBuffer(subspBuffer);
+				}
+				break;
+			case IOU:
+				if (iouBuffer != null && iouBuffer.length() > 0) {
+					iouBuffer.append(Constants.SINGLE_QUOTE + privilegeValue
+							+ Constants.SINGLE_QUOTE + Constants.COMMA);
+					privilegeGroup.setIouBuffer(iouBuffer);
+				}
+				break;
+			case CUSTOMER:
+				if (custBuffer != null && custBuffer.length() > 0) {
+					manageCustomer(privilegeGroup, privilegeValue, custBuffer);
+				}
+				break;
+			case GROUP_CUSTOMER: {
+				// Get the master customer list using group customer name
+				List<CustomerMasterT> customerList = customerRepo
+						.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(privilegeValue, Constants.UNKNOWN_CUSTOMER);
+				if (customerList == null && customerList.isEmpty()) {
+					logger.error(
+							"Customers not found for the group customer name: {}",
+							privilegeValue);
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR,
+							"Customers not found for the group customer name: "
+									+ privilegeValue);
+				} else {
+					if (custBuffer != null && custBuffer.length() > 0) {
+						for (CustomerMasterT customer : customerList) {
+							custBuffer.append(Constants.SINGLE_QUOTE
+									+ customer.getCustomerName()
+									+ Constants.SINGLE_QUOTE + Constants.COMMA);
+						}
+					}
+					privilegeGroup.setCustomerBuffer(custBuffer);
+				}
+				break;
+			}
+			default: {
+				logger.error("Invalid Privilege Type: {}", privilegeType);
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"Invalid Privilege Type: " + privilegeType);
+			}
+			}
+
+			// Forming conditions for child privileges if any
+			//List<UserAccessPrivilegesT> childPrivileges = privilege.getUserAccessPrivilegesTs();
+			List<UserAccessPrivilegesT> childPrivileges = 
+					userService.getAllChildPrivilegesByUserIdAndParentPrivilegeId(privilege.getUserId(), privilege.getPrivilegeId());
+
+			if (childPrivileges != null && !childPrivileges.isEmpty()) {
+				logger.debug("Child Privileges Size: {}",
+						childPrivileges.size());
+				for (UserAccessPrivilegesT childPrivilege : childPrivileges) {
+					populateConditionGroup(childPrivilege, privilegeGroup);
+				}
+			} else {
+				return;
+			}
+		} else {
+			logger.error("Invalid Privilege Type: {}", privilegeType);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Invalid Privilege Type: " + privilegeType);
+		}
+	}
+	
+	/**
+	 * This method populates the customer condition (global customer, if
+	 * required)
+	 * 
+	 * @param privilegeGroup
+	 *            , privilegeValue, customerBuffer
+	 * @throws Exception
+	 */
+	private void manageCustomer(PrivilegeGroup privilegeGroup,
+			String privilegeValue, StringBuffer customerBuffer)
+			throws Exception {
+		logger.debug("Inside handleCustomer() method");
+		
+		if (!privilegeValue.equals(Constants.GLOBAL)) {
+			// Master customers
+			if(parameterMap.size()==0)
+			{
+				parameterMap.put(1, privilegeValue);
+			}
+			else
+			{
+			parameterMap.put(parameterMap.size(), privilegeValue);
+			}
+		    privilegeValue="?"+parameterMap.size();
+			customerBuffer.append( privilegeValue + Constants.COMMA);
+			privilegeGroup.setCustomerBuffer(customerBuffer);
+		} else {
+			// GLOBAL_CUSTOMERS - Get the list from Misc_Type_Value_T
+			List<MiscTypeValueT> miscList = miscTypeRepo
+					.findByType(Constants.GLOBAL);
+			for (MiscTypeValueT miscItem : miscList) {
+				List<CustomerMasterT> custList = customerRepo
+						.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(miscItem
+								.getValue(), Constants.UNKNOWN_CUSTOMER);
+				// Value is Group customer name
+				if (custList != null && !custList.isEmpty()) {
+					for (CustomerMasterT customer : custList) {
+						String customerName = customer.getCustomerName();
+						parameterMap.put(parameterMap.size(), customerName);
+						customerName="?"+parameterMap.size();
+						customerBuffer.append(customerName + Constants.COMMA);
+					   }
+				} else {
+					// Value is Master customer name
+					String customerName = miscItem.getValue() ;
+					parameterMap.put(parameterMap.size(), customerName);
+					customerName="?"+parameterMap.size();
+					customerBuffer.append(customerName + Constants.COMMA);
+					}
+			}
+			privilegeGroup.setCustomerBuffer(customerBuffer);
+		}
+    }
+
 
 	/**
 	 * This method populates the customer condition (global customer, if

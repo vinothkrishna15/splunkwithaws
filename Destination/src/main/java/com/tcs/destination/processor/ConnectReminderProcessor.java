@@ -107,12 +107,15 @@ public class ConnectReminderProcessor implements ItemProcessor<Object[], UserNot
 					.getPrimaryOwner());
 			List<String> secOwners = connectRepository
 					.getSecondaryOwnerByConnectId(entityId);
-			List<String> secOwnerNames = userRepository
-					.findUserNamesByUserIds(secOwners);
-			if (CollectionUtils.isNotEmpty(secOwnerNames)) {
-				secondaryOwners = StringUtils
-						.collectionToCommaDelimitedString(secOwnerNames);
+			if(CollectionUtils.isNotEmpty(secOwners)) {
+				List<String> secOwnerNames = userRepository
+						.findUserNamesByUserIds(secOwners);
+				if (CollectionUtils.isNotEmpty(secOwnerNames)) {
+					secondaryOwners = StringUtils
+							.collectionToCommaDelimitedString(secOwnerNames);
+				}
 			}
+			
 		} else {
 			logger.error("Connect not found for the Id: {}", entityId);
 		}
