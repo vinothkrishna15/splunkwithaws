@@ -750,8 +750,9 @@ public class WorkflowService {
 					} else {
 						// Saving workflow customer details to CustomerMasterT
 						// for Admin
-						CustomerMasterT customerMasterObj = new CustomerMasterT();
-						saveToMasterTables(customerMasterObj , requestedCustomer);
+//						CustomerMasterT customerMasterObj = new CustomerMasterT();
+//						saveToMasterTables(customerMasterObj , requestedCustomer);
+						saveToCustomerMasterTables(requestedCustomer);
 						status.setStatus(Status.SUCCESS, "Customer "
 								+ workflowCustomer.getCustomerName()
 								+ " added successfully");
@@ -2022,6 +2023,59 @@ public class WorkflowService {
 					"documents should not be empty");
 		}
 		return validated;
+	}
+	
+	/*
+	 * on admin approval new entity was created in the master table
+	 */
+	private void saveToCustomerMasterTables(WorkflowCustomerT workflowCustomerT) {
+		logger.info("Inside saveToCustomerMasterTables");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		CustomerMasterT customerMaster = new CustomerMasterT();
+		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
+		customerMaster.setGroupCustomerName(workflowCustomerT
+				.getGroupCustomerName());
+		customerMaster.setCorporateHqAddress(workflowCustomerT
+				.getCorporateHqAddress());
+		customerMaster.setWebsite(workflowCustomerT.getWebsite());
+		customerMaster.setFacebook(workflowCustomerT.getFacebook());
+		customerMaster.setIou(workflowCustomerT.getIou());
+		customerMaster.setGeography(workflowCustomerT.getGeography());
+		customerMaster.setLogo(workflowCustomerT.getLogo());
+		customerMaster.setDocumentsAttached(workflowCustomerT
+				.getDocumentsAttached());
+		customerMaster.setCreatedModifiedBy(userId);
+		customerRepository.save(customerMaster);
+		logger.info("Customer saved" + customerMaster.getCustomerId());
+		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
+			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
+					.getRevenueCustomerMappingTs()) {
+				RevenueCustomerMappingT revenueCustomer = new RevenueCustomerMappingT();
+				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
+				revenueTPK.setFinanceCustomerName(rcmpt
+						.getFinanceCustomerName());
+				revenueCustomer.setCustomerName(customerMaster
+						.getCustomerName());
+				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
+				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
+				revenueCustomer.setId(revenueTPK);
+				revenueRepository.save(revenueCustomer);
+			}
+		}
+		if (!workflowCustomerT.getBeaconCustomerMappingTs().isEmpty()) {
+			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
+					.getBeaconCustomerMappingTs()) {
+				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
+				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				beaconCustomer
+						.setCustomerName(customerMaster.getCustomerName());
+				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
+				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
+				beaconCustomer.setId(beaconTPK);
+				beaconRepository.save(beaconCustomer);
+			}
+		}
 	}
 
 
