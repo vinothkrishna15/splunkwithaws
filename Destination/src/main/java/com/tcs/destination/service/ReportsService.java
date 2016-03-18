@@ -1871,13 +1871,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			connectDetailedReportQuery.setParameter("displayGeography", displayGeography);
 		}
 		if(!iouList.contains("") && iouList!=null){
-			connectDetailedReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+			connectDetailedReportQuery.setParameter("iouList", iouList);
 		}
 		if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			connectDetailedReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+			connectDetailedReportQuery.setParameter("serviceLinesList", serviceLinesList);
 		}
 		if(!countryList.contains("") && countryList!=null){
-			connectDetailedReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+			connectDetailedReportQuery.setParameter("countryList", countryList);
 		}
 		
 		List<String> connectDetailsList = connectDetailedReportQuery.getResultList();
@@ -1912,10 +1912,10 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			connectDetailedReportQuery.setParameter("displayGeography", displayGeography);
 		}
 		if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			connectDetailedReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+			connectDetailedReportQuery.setParameter("serviceLinesList", serviceLinesList);
 		}
 		if(!countryList.contains("") && countryList!=null){
-			connectDetailedReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+			connectDetailedReportQuery.setParameter("countryList", countryList);
 		}
 		
 		List<String> connectDetailsList = connectDetailedReportQuery.getResultList();
@@ -2566,13 +2566,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			connectSubSpSummaryReportQuery.setParameter("displayGeography", displayGeography);
 		}
 		if(!iouList.contains("") && iouList!=null){
-			connectSubSpSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+			connectSubSpSummaryReportQuery.setParameter("iouList", iouList);
 		}
 		if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			connectSubSpSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+			connectSubSpSummaryReportQuery.setParameter("serviceLinesList", serviceLinesList);
 		}
 		if(!countryList.contains("") && countryList!=null){
-			connectSubSpSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+			connectSubSpSummaryReportQuery.setParameter("countryList", countryList);
 		}
 		connectSubSpSummaryReportQuery.setParameter("userIds",userIds);
 		
@@ -2605,13 +2605,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			connectGeoSummaryReportQuery.setParameter("displayGeography", displayGeography);
 		}
 		if(!iouList.contains("") && iouList!=null){
-			connectGeoSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+			connectGeoSummaryReportQuery.setParameter("iouList", iouList);
 		}
 		if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			connectGeoSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+			connectGeoSummaryReportQuery.setParameter("serviceLinesList", serviceLinesList);
 		}
 		if(!countryList.contains("") && countryList!=null){
-			connectGeoSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+			connectGeoSummaryReportQuery.setParameter("countryList", countryList);
 		}
 		connectGeoSummaryReportQuery.setParameter("userIds",userIds);
 		
@@ -2644,13 +2644,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			connectIouSummaryReportQuery.setParameter("displayGeography", displayGeography);
 		}
 		if(!iouList.contains("") && iouList!=null){
-			connectIouSummaryReportQuery.setParameter("iouList", getStringListWithSingleQuotes(iouList));
+			connectIouSummaryReportQuery.setParameter("iouList", iouList);
 		}
 		if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			connectIouSummaryReportQuery.setParameter("serviceLinesList", getStringListWithSingleQuotes(serviceLinesList));
+			connectIouSummaryReportQuery.setParameter("serviceLinesList", serviceLinesList);
 		}
 		if(!countryList.contains("") && countryList!=null){
-			connectIouSummaryReportQuery.setParameter("countryList", getStringListWithSingleQuotes(countryList));
+			connectIouSummaryReportQuery.setParameter("countryList", countryList);
 		}
 		connectIouSummaryReportQuery.setParameter("userIds",userIds);
 		
@@ -2837,13 +2837,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					
 					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					
-					if(connectCategory.equals("CUSTOMER") || connectCategory.equals("All")){
+					if(isCustomer(connectCategory)){
 						subSpCustomerConnectCountList = getCustomerConnectSubSpSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
 						geographyCustomerConnectCountList = getCustomerConnectGeoSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
 						iouConnectCountList = getConnectIouSummaryDetails(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
 					}
 					
-					if(connectCategory.equals("PARTNER") || connectCategory.equals("All")) {
+					if(isPartner(connectCategory)) {
 						subSpPartnerConnectCountList = connectRepository.findSubSpPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
 								new Timestamp(toDate.getTime()), displayGeography, countryList, serviceLinesList);
 						geographyPartnerConnectCountList = connectRepository.findGeographyPartnerConnectsSummaryDetails(new Timestamp(fromDate.getTime()),
