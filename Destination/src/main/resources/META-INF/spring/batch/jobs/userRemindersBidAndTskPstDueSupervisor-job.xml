@@ -14,21 +14,33 @@
 			<batch:tasklet>
 				<batch:chunk reader="bidDetailTgtPostSReader" processor="bidDetailTgtPostSProcessor"
 					writer="notificationWriter" commit-interval="${reminder.commit.interval}"
-					skip-policy="alwaysSkip" />
+					skip-policy="alwaysSkip" >
+					<batch:listeners>
+					<batch:listener ref= "reminderNotifyWriteListener"/>
+				</batch:listeners>
+				</batch:chunk>
 			</batch:tasklet>
 		</batch:step>
 		<batch:step id="OutcomeDateSPost" next="TaskDateSPost">
 			<batch:tasklet>
 				<batch:chunk reader="bidDetailOutcomePostSReader"
 					processor="bidDetailOutcomePostSProcessor" writer="notificationWriter"
-					commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" />
+					commit-interval="${reminder.commit.interval}" skip-policy="alwaysSkip" >
+					<batch:listeners>
+					<batch:listener ref= "reminderNotifyWriteListener"/>
+				</batch:listeners>
+				</batch:chunk>
 			</batch:tasklet>
 		</batch:step>
 		<batch:step id="TaskDateSPost">
 			<batch:tasklet>
 				<batch:chunk reader="taskPostSReader" processor="taskPostSProcessor"
 					writer="notificationWriter" commit-interval="${reminder.commit.interval}"
-					skip-policy="alwaysSkip" />
+					skip-policy="alwaysSkip" >
+					<batch:listeners>
+					<batch:listener ref= "reminderNotifyWriteListener"/>
+				</batch:listeners>
+				</batch:chunk>
 			</batch:tasklet>
 		</batch:step>
 		<batch:listeners>

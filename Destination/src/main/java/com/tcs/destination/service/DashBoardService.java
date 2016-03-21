@@ -43,6 +43,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.StringUtils;
 
 import static com.tcs.destination.utils.LeadershipQueryConstants.*;
 
@@ -169,14 +170,16 @@ public class DashBoardService {
 		logger.debug("Start: Inside getTeamChartValues() service");
 
 		boolean hasValues = false;
-
 		PerformaceChartBean performanceBean = null;
+		
+		if (!StringUtils.isEmpty(supervisorId)) {
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorId);
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-		if ((users != null) && (users.size() > 0)) {
+			// Adding supervisor ID
+			users.add(supervisorId);
 
 			performanceBean = new PerformaceChartBean();
 
@@ -246,11 +249,9 @@ public class DashBoardService {
 								+ supervisorId);
 			}
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id " + supervisorId);
+					"Supervisor Id is empty");
 		}
 		logger.debug("End: Inside  getTeamChartValues() of DashBoardService");
 		return performanceBean;

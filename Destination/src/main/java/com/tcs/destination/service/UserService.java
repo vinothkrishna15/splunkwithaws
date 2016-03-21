@@ -305,7 +305,7 @@ public class UserService {
 		UserT user = userRepository.findOne(userId);
 		if (user != null) {
 			String retrievedMailId = user.getUserEmailId();
-			if (retrievedMailId.equals(userEmailId)) {
+			if (retrievedMailId.equalsIgnoreCase(userEmailId)) {
 				mailUtils.sendPasswordAutomatedEmail(forgotPasswordSubject,
 						user, new Date());
 			} else {

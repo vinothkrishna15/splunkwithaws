@@ -330,7 +330,10 @@ public class BDMService {
 		bdmSupervisorDashboardDTO.setTotalOpportunityWinsAchieved(totalOppOwnerWinValue);
 		
 		//total proposal achieved
-		totalProposalsSupportedValue = (opportunityRepository.getTotalProposalSupportedByUserIds(userIds, fromDate, toDate)).intValue();
+		BigInteger totalProposalsSupportedBigint = opportunityRepository.getTotalProposalSupportedByUserIds(userIds, fromDate, toDate);
+		if(totalProposalsSupportedBigint!=null){
+			totalProposalsSupportedValue = totalProposalsSupportedBigint.intValue();
+		}
 		bdmSupervisorDashboardDTO.setTotalProposalSupportedAchieved(totalProposalsSupportedValue);
 		
 		//total connects Supported
@@ -338,7 +341,7 @@ public class BDMService {
 		Timestamp toDateTs = new Timestamp(toDate.getTime()	+ ONE_DAY_IN_MILLIS - 1);
 		BigInteger totalConnects = connectRepository.getTotalConnectsSupported(userIds, fromDateTs, toDateTs);
 		if(totalConnects!=null){
-		totalConnectsSupportedValue = (totalConnects).intValue();
+		  totalConnectsSupportedValue = (totalConnects).intValue();
 		}
 		bdmSupervisorDashboardDTO.setTotalConnectSupportedAchieved(totalConnectsSupportedValue);
 		bdmSupervisorDashboardDTO.setBdmSupervisorDashboard(dashBoardBDMResponseList);
@@ -858,7 +861,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setWinsTarget(oppWinsTarget);
 		} else {
 			BigDecimal oppRefWins = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G4", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setWinsTarget(oppRefWins);
+			if(oppRefWins!=null) {
+				bdmPerfromanceGeoIouDashboardResponse.setWinsTarget(oppRefWins);
+			}
 		}
 		
 		BigDecimal pipelineTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G5", financialYear);
@@ -867,7 +872,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setPipelineFunnelTarget(pipelineTarget);
 		} else {
 			BigDecimal pipelineRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G5", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setPipelineFunnelTarget(pipelineRefTarget);
+			if(pipelineRefTarget!=null){	
+				bdmPerfromanceGeoIouDashboardResponse.setPipelineFunnelTarget(pipelineRefTarget);
+			}
 		}
 		
 		BigDecimal dealsAboveTwentyMillionTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G6", financialYear);
@@ -876,7 +883,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTwentyMillionTarget(dealsAboveTwentyMillionTarget.intValue());
 		} else {
 			BigDecimal dealsAboveTwentyMillionRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G6", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTwentyMillionTarget(dealsAboveTwentyMillionRefTarget.intValue());
+			if(dealsAboveTwentyMillionRefTarget!=null){
+				bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTwentyMillionTarget(dealsAboveTwentyMillionRefTarget.intValue());
+			}
 		}
 		
 		BigDecimal dealsAboveTenMillionTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G7", financialYear);
@@ -885,7 +894,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTenMillionTarget(dealsAboveTenMillionTarget.intValue());
 		} else {
 			BigDecimal dealsAboveTenMillionRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G7", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTenMillionTarget(dealsAboveTenMillionRefTarget.intValue());
+			if(dealsAboveTenMillionRefTarget!=null){
+				bdmPerfromanceGeoIouDashboardResponse.setDealsAboveTenMillionTarget(dealsAboveTenMillionRefTarget.intValue());
+			}
 		}
 		
 		BigDecimal digitalReimaginationDealsTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G8", financialYear);
@@ -894,7 +905,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setDigitalReimaginationDealsTarget(digitalReimaginationDealsTarget.intValue());
 		} else {
 			BigDecimal digitalReimaginationDealsRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G8", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setDigitalReimaginationDealsTarget(digitalReimaginationDealsRefTarget.intValue());
+			if(digitalReimaginationDealsRefTarget!=null) {
+				bdmPerfromanceGeoIouDashboardResponse.setDigitalReimaginationDealsTarget(digitalReimaginationDealsRefTarget.intValue());
+			}
 		}
 		
 		BigDecimal overAllWinsRatioTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G9", financialYear);
@@ -903,7 +916,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setOverAllWinRatioTarget(overAllWinsRatioTarget.doubleValue());
 		} else {
 			BigDecimal overAllWinsRatioRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G9", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setOverAllWinRatioTarget(overAllWinsRatioRefTarget.doubleValue());
+			if(overAllWinsRatioRefTarget!=null) {
+				bdmPerfromanceGeoIouDashboardResponse.setOverAllWinRatioTarget(overAllWinsRatioRefTarget.doubleValue());
+			}
 		}
 		
 		BigDecimal subSpPenetrationAboveThreeTarget = bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G10", financialYear);
@@ -912,7 +927,9 @@ public class BDMService {
 			bdmPerfromanceGeoIouDashboardResponse.setAccountsWithSpPenetrationAboveThreeTarget(subSpPenetrationAboveThreeTarget.doubleValue());
 		} else {
 			BigDecimal subSpPenetrationAboveThreeRefTarget = bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G10", financialYear);
-			bdmPerfromanceGeoIouDashboardResponse.setAccountsWithSpPenetrationAboveThreeTarget(subSpPenetrationAboveThreeRefTarget.doubleValue());
+			if(subSpPenetrationAboveThreeRefTarget!=null){
+				bdmPerfromanceGeoIouDashboardResponse.setAccountsWithSpPenetrationAboveThreeTarget(subSpPenetrationAboveThreeRefTarget.doubleValue());
+			}
 		}
 		
 		Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
@@ -962,7 +979,9 @@ public class BDMService {
 			dashBoardBDMResponse.setWinsTarget(oppWinsTarget);
 		} else {
 			BigDecimal oppRefWins =bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G1", financialYear);
-			dashBoardBDMResponse.setWinsTarget(oppRefWins);
+			if(oppRefWins!=null){
+				dashBoardBDMResponse.setWinsTarget(oppRefWins);
+			}
 		}
 		
 		BigDecimal proposalsTarget=bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G2", financialYear);
@@ -970,7 +989,9 @@ public class BDMService {
 			dashBoardBDMResponse.setProposalSupportedTarget(proposalsTarget.intValue());
 		} else {
 			BigDecimal proposalsRefTarget =bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G2", financialYear);
-			dashBoardBDMResponse.setProposalSupportedTarget(proposalsRefTarget.intValue());
+			if(proposalsRefTarget!=null) {
+				dashBoardBDMResponse.setProposalSupportedTarget(proposalsRefTarget.intValue());
+			}
 		}
 		
 		BigDecimal connectsTarget=bdmTargetRepository.findBDMOrSupervisorTargetGoalsByUserIdAndYear(userId, "G3", financialYear);
@@ -978,7 +999,9 @@ public class BDMService {
 			dashBoardBDMResponse.setConnectSupportedTarget(connectsTarget.intValue());
 		} else {
 			BigDecimal connectsRefTarget =bdmTargetRepository.findBDMOrSupervisorRefTargetGoalsByYear("G3", financialYear);
-			dashBoardBDMResponse.setConnectSupportedTarget(connectsRefTarget.intValue());
+			if(connectsRefTarget!=null){
+				dashBoardBDMResponse.setConnectSupportedTarget(connectsRefTarget.intValue());
+			}
 		}
 	}
 	

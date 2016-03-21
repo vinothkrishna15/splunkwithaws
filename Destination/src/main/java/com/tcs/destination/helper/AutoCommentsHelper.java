@@ -44,6 +44,7 @@ public class AutoCommentsHelper implements Runnable {
 	private static final String TOKEN_FROM = "from";
 	private static final String TOKEN_TO = "to";
 	private static final String PATTERN = "\\<(.+?)\\>";
+	private static String[] dateOnlyFields = {"targetBidSubmissionDate","actualBidSubmissionDate","expectedDateOfOutcome","bidRequestReceiveDate","opportunityRequestReceiveDate"};
 
 	private Object oldObject;
 	private String entityId;
@@ -471,10 +472,18 @@ public class AutoCommentsHelper implements Runnable {
 			if (fromValue != null) {
 				if (toValue != null && !fromValue.equals(toValue)) {
 					if(fromValue instanceof Date) {
-						fromValue = DateUtils.getFormattedTime(fromValue);
+						if(!isFieldHasDateOnly(field.getName())){
+						    fromValue = DateUtils.getFormattedTime(fromValue);
+						} else {
+							fromValue = DateUtils.getFormattedDate(fromValue);
+						}
 					}
 					if(toValue instanceof Date) {
-						toValue = DateUtils.getFormattedTime(toValue);
+						if(!isFieldHasDateOnly(field.getName())){
+							toValue = DateUtils.getFormattedTime(toValue);
+						} else {
+							toValue = DateUtils.getFormattedDate(toValue);
+						}
 					}
 					msgTemplate = replaceTokens(
 							field.getUpdateMessageTemplate(),
@@ -495,6 +504,16 @@ public class AutoCommentsHelper implements Runnable {
 				addCollaborationComments(msgTemplate);
 			}
 		}
+	}
+	
+	//This method returns true if the given string matches anyone in the date only Fields(without time)
+	private boolean isFieldHasDateOnly(String fieldName){
+		for(String dateField : dateOnlyFields){
+            if(dateField.equals(fieldName)){
+            	return true;
+            }
+		}
+		return false;
 	}
 
 	// This method is used to add auto comments for collections objects

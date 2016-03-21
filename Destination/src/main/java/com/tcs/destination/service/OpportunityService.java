@@ -44,6 +44,7 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
@@ -89,6 +90,8 @@ import com.tcs.destination.utils.StringUtils;
 @Service
 public class OpportunityService {
 
+	private static final int ONE_DAY_IN_MILLIS = 86400000;
+	
 	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
 			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
 			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
@@ -204,6 +207,8 @@ public class OpportunityService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
+	
+	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
 	public PaginatedResponse findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
@@ -990,7 +995,7 @@ public class OpportunityService {
 			opportunityIds.add(opportunityT.getOpportunityId());
 		}
 		try {
-			List<String> previledgedOpportuniyies = getPreviledgedOpportunityId(opportunityIds);
+			List<String> previledgedOpportuniyies = getPriviledgedOpportunityId(opportunityIds);
 
 			if (opportunityTs != null) {
 				for (OpportunityT opportunityT : opportunityTs) {
@@ -1047,7 +1052,7 @@ public class OpportunityService {
 		} else {
 			List<String> opportunityIdList = new ArrayList<String>();
 			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = getPreviledgedOpportunityId(opportunityIdList);
+			previledgedOppIdList = getPriviledgedOpportunityId(opportunityIdList);
 			if (previledgedOppIdList == null
 					|| previledgedOppIdList.size() == 0) {
 				preventSensitiveInfo(opportunityT);
@@ -1073,28 +1078,52 @@ public class OpportunityService {
 
 	}
 
-	private List<String> getPreviledgedOpportunityId(List<String> opportunityIds)
-			throws Exception {
-		logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
-		String queryString = getOpportunityPreviledgeString(DestinationUtils
-				.getCurrentUserDetails().getUserId(), opportunityIds);
-		logger.info("Query string: {}", queryString);
-		Query opportunityQuery = entityManager.createNativeQuery(queryString);
-		return opportunityQuery.getResultList();
-	}
 
-	private List<String> getPreviledgedOpportunityId(String opportunityId)
+	
+	private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
+			throws Exception { logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
+		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
+			queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils.getCurrentUserDetails().getUserId(), opportunityIds);
+		    logger.info("Query string: {}", queryBufferDTO.getQuery());
+			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery());
+			parameterMap=queryBufferDTO.getParameterMap();
+			if(parameterMap!=null)
+			{
+				for(int i=1;i<=parameterMap.size();i++)
+				{
+					opportunityQuery.setParameter(i, parameterMap.get(i));
+					
+				}
+			}
+			
+			return opportunityQuery.getResultList();
+}
+
+
+	
+	private List<String> getPriviledgedOpportunityId(String opportunityId)
 			throws Exception {
-		logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
-		List<String> opportunityIds = new ArrayList<String>();
-		opportunityIds.add(opportunityId);
-		String queryString = getOpportunityPreviledgeString(DestinationUtils
-				.getCurrentUserDetails().getUserId(), opportunityIds);
-		logger.info("Query string: {}", queryString);
-		Query opportunityQuery = entityManager.createNativeQuery(queryString,
-				OpportunityT.class);
-		return opportunityQuery.getResultList();
-	}
+		    logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
+		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
+			List<String> opportunityIds = new ArrayList<String>();
+			opportunityIds.add(opportunityId);
+			queryBufferDTO  = getOpportunityPriviledgeString(DestinationUtils
+					.getCurrentUserDetails().getUserId(), opportunityIds);
+			logger.info("Query string: {}", queryBufferDTO.getQuery());
+			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery(),
+					OpportunityT.class);
+			parameterMap=queryBufferDTO.getParameterMap();
+			if(parameterMap!=null)
+			{
+			 for(int i=1;i<=parameterMap.size();i++)
+			 {
+				opportunityQuery.setParameter(i, parameterMap.get(i));
+				
+			 }
+			}
+			return opportunityQuery.getResultList();
+}
+
 
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
 		logger.debug("Inside removeCyclicForLinkedConnects() method");
@@ -1218,15 +1247,27 @@ public class OpportunityService {
 
 		List<OpportunitiesBySupervisorIdDTO> listOfopportunitiesDTO = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+		if (!StringUtils.isEmpty(supervisorUserId)) {
 
-		if ((users != null) && (users.size() > 0)) {
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+
+			//Get FromDate and ToDate based on Current Financial Year
+			String finYear = DateUtils.getCurrentFinancialYear();
+			Date fromDate = DateUtils.getDateFromFinancialYear(finYear,true);
+			Date toDate = DateUtils.getDateFromFinancialYear(finYear,false);
+			
+			Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+			Timestamp toDateTs = new Timestamp(toDate.getTime()
+					+ ONE_DAY_IN_MILLIS - 1);
+			
+			// Adding the user himself
+			users.add(supervisorUserId);
 
 			// Get all opportunities for the users under supervisor
 			List<Object[]> opportunities = opportunityRepository
-					.findDealValueOfOpportunitiesBySupervisorId(users);
+					.findDealValueOfOpportunitiesBySupervisorId(users,fromDateTs,toDateTs);
 
 			if ((opportunities != null) && (opportunities.size() > 0)) {
 
@@ -1265,13 +1306,11 @@ public class OpportunityService {
 						"No opportunity found for supervisor id : "
 								+ supervisorUserId);
 			}
+
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorUserId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id "
-							+ supervisorUserId);
+					"Supervisor Id is empty");
 		}
 
 		return listOfopportunitiesDTO;
@@ -1301,11 +1340,14 @@ public class OpportunityService {
 		List<OpportunityT> opportunitiesSubList = null;
 		TeamOpportunityDetailsDTO teamOpportunityDetails = null;
 
-		// Get all users under a supervisor
-		List<String> users = userRepository
-				.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+		if (!StringUtils.isEmpty(supervisorUserId)) {
 
-		if ((users != null) && (users.size() > 0)) {
+			// Get all users under a supervisor
+			List<String> users = userRepository
+					.getAllSubordinatesIdBySupervisorId(supervisorUserId);
+
+			// Adding the user himself
+			users.add(supervisorUserId);
 
 			// Retrieve opportunities from users
 			if (!isCurrentFinancialYear) {
@@ -1377,8 +1419,8 @@ public class OpportunityService {
 								.getUserName());
 						teamDetails.setSalesStageCode(opportunity
 								.getSalesStageCode());
-						teamDetails.setModifiedDate(DateUtils.ACTUAL_FORMAT.format(opportunity
-								.getModifiedDatetime()));
+						teamDetails.setModifiedDate(DateUtils.ACTUAL_FORMAT
+								.format(opportunity.getModifiedDatetime()));
 
 						listOfOpportunityDetails.add(teamDetails);
 					}
@@ -1402,12 +1444,9 @@ public class OpportunityService {
 			}
 
 		} else {
-			logger.error(
-					"NOT_FOUND: No subordinate found for supervisor id : {}",
-					supervisorUserId);
+			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No subordinate found for supervisor id "
-							+ supervisorUserId);
+					"Supervisor Id is empty");
 		}
 
 		return teamOpportunityDetails;
@@ -1639,39 +1678,52 @@ public class OpportunityService {
 				sortBy, order));
 		return pageSpecification;
 	}
-
-	private String getOpportunityPreviledgeString(String userId,
+    
+	private QueryBufferDTO getOpportunityPriviledgeString(String userId,
 			List<String> opportunityIds) throws Exception {
-		logger.debug("Inside getOpportunityPreviledgeString() method");
-		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
-		// Get user access privilege groups
+		    logger.debug("Inside getOpportunityPriviledgeString() method");
+			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
+			String whereClause=null;
+			// Get user access privilege groups
 
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
-		// Get WHERE clause string
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-		if (opportunityIds.size() > 0) {
-			String oppIdList = "(";
-			{
-				for (String opportunityId : opportunityIds)
-					oppIdList += "'" + opportunityId + "',";
+			 HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+					.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
+							OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
+							OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
+							OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
+		
+			// Get WHERE clause string
+			queryBufferDTO = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereCondition(userId,
+							queryPrefixMap);
+			
+               if (opportunityIds.size() > 0) {
+				String oppIdList = "(";
+				{
+					for (String opportunityId : opportunityIds)
+						oppIdList += "'" + opportunityId + "',";
+				}
+				oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
+				oppIdList += ")";
+
+				queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
 			}
-			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
-			oppIdList += ")";
+               if(queryBufferDTO!=null)
+               {
+			    if (queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty()) 
+			    {
+				 queryBuffer.append(Constants.AND_CLAUSE + queryBufferDTO.getQuery());
+				}
+			    queryBufferDTO.setQuery(queryBuffer.toString());
+               }
+               else
+			   {
+				queryBufferDTO=new QueryBufferDTO();
+				queryBufferDTO.setQuery(queryBuffer.toString());
+				queryBufferDTO.setParameterMap(null);
+			   }
+			   return queryBufferDTO;
+}
 
-			queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
-		}
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-		}
-
-		return queryBuffer.toString();
-	}
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
 			String name, String keyword) {

@@ -107,13 +107,16 @@ public class SupervisorReminderProcessor implements ItemProcessor<Object[], User
 			if (CollectionUtils.isNotEmpty(owners)) {
 				primaryOwnerId = opportunity.getOpportunityOwner();
 				primaryOwner = userRepository.findUserNameByUserId(primaryOwnerId);
-				owners.remove(primaryOwner);
-				List<String> secOwners = userRepository
-						.findUserNamesByUserIds(owners);
-				if (CollectionUtils.isNotEmpty(secOwners)) {
-					secondaryOwners = StringUtils
-							.collectionToCommaDelimitedString(secOwners);
+				owners.remove(primaryOwnerId);
+				if(CollectionUtils.isNotEmpty(owners)) {
+					List<String> secOwners = userRepository
+							.findUserNamesByUserIds(owners);
+					if (CollectionUtils.isNotEmpty(secOwners)) {
+						secondaryOwners = StringUtils
+								.collectionToCommaDelimitedString(secOwners);
+					}
 				}
+				
 			}
 		}
 		

@@ -62,17 +62,20 @@ public class NotificationProcessHelper {
 				.findByEventId(eventId);
 		String ownership = "";
 		String[] secondaryOwner = null;
-		if (subordinateName.equalsIgnoreCase(primaryOwner.trim())) {
-			ownership = NOTIFICATION_PRIMARY_OWNER;
-		} else if (secondaryOwners != null) {
-			secondaryOwner = secondaryOwners.split(",");
-			for (String secOwner : secondaryOwner) {
-				if (secOwner.equalsIgnoreCase(subordinateName.trim())) {
-					ownership = NOTIFICATION_SECONDARY_OWNER;
-					break;
+		if(StringUtils.isNotEmpty(subordinateName)) {
+			if (subordinateName.equals(primaryOwner.trim())) {
+				ownership = NOTIFICATION_PRIMARY_OWNER;
+			} else if (StringUtils.isNotEmpty(secondaryOwners)) {
+				secondaryOwner = secondaryOwners.split(",");
+				for (String secOwner : secondaryOwner) {
+					if (secOwner.equals(subordinateName.trim())) {
+						ownership = NOTIFICATION_SECONDARY_OWNER;
+						break;
+					}
 				}
 			}
 		}
+		
 
 		if (!notificationTemplateList.isEmpty()) {
 
