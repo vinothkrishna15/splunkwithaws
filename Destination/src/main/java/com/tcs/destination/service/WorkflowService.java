@@ -186,10 +186,12 @@ public class WorkflowService {
 								CustomerMasterT oldCustomerMaster = customerRepository.findByCustomerName(oldCustomerName);
 								if(oldCustomerMaster!=null) {
 									saveToMasterTables(oldCustomerMaster,workflowCustomerT);
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 								else{
 									CustomerMasterT newCustomerMaster = new CustomerMasterT();
 									saveToMasterTables(newCustomerMaster,workflowCustomerT);
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 							}
 							//
@@ -202,7 +204,6 @@ public class WorkflowService {
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
-							sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 							step = stepRecord.getStep()+1;
 							rowIteration++;
 						}
@@ -254,6 +255,11 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getCorporateHqAddress())){
 			corporateHqAdress = oldObject.getCorporateHqAddress();
 		}
+		//if(!StringUtils.isEmpty(workflowCustomerT.getCorporateHqAddress())){
+			//logger.error("corpoarate address is mandatory");
+			//throw new DestinationException(HttpStatus.BAD_REQUEST,
+				//	"corpoarate address is mandatory");			
+		//}
 		if (!workflowCustomerT.getCorporateHqAddress().equals(corporateHqAdress)) {
 			oldObject.setCorporateHqAddress(workflowCustomerT.getCorporateHqAddress());
 			isCustomerModifiedFlag = true;
@@ -263,6 +269,11 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getFacebook())){
 			facebook = oldObject.getFacebook();
 		}
+		/*else{
+			logger.error("facebook is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"facebook is mandatory");			
+		}*/
 		if (!workflowCustomerT.getFacebook().equals(facebook)) {
 			oldObject.setFacebook(workflowCustomerT.getFacebook());
 			isCustomerModifiedFlag = true;
@@ -271,6 +282,11 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getWebsite())){
 			website = oldObject.getWebsite();
 		}
+		/*	else{
+			logger.error("website is mandatory");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"website is mandatory");			
+		}*/
 		if (!workflowCustomerT.getWebsite().equals(website)) {
 			oldObject.setWebsite(workflowCustomerT.getWebsite());
 			isCustomerModifiedFlag = true;
@@ -287,11 +303,6 @@ public class WorkflowService {
 		if(!workflowCustomerT.getNotes().equals(notes) && (!StringUtils.isEmpty(workflowCustomerT.getNotes()))){
 			oldObject.setNotes(workflowCustomerT.getNotes());
 			isCustomerModifiedFlag = true;
-		}
-		//geography
-		if (!workflowCustomerT.getGeography().equals(oldObject.getGeography())) {
-			oldObject.setGeography(workflowCustomerT.getGeography());
-			isCustomerModifiedFlag =true;
 		}
 		//group customer name 
 		if (!workflowCustomerT.getGroupCustomerName().equals(oldObject.getGroupCustomerName())) {
@@ -669,7 +680,7 @@ public class WorkflowService {
 						workflowStepToReject.setComments(workflowStepT
 								.getComments());
 					} else {
-						throw new DestinationException(HttpStatus.NOT_FOUND,
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"comments is mandatory: give reason for rejection");
 					}
 					masterRequest.setModifiedBy(userId);

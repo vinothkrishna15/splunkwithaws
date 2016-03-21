@@ -150,7 +150,7 @@ public class WorkflowController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (workflowService.rejectWorkflowEntity(workflowStepT)) {
-				status.setStatus(Status.SUCCESS, workflowStepT.getStepStatus());
+				status.setStatus(Status.SUCCESS, "Request " + workflowStepT.getRequestId() + " is REJECTED by " + userT.getUserName() + "!!!");
 				logger.debug("Request " + workflowStepT.getRequestId() + " is REJECTED by " + userT.getUserName() + "!!!");
 			}
 			logger.info("Inside WorkflowController: End of reject Customer");
