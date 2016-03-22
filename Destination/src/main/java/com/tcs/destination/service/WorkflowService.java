@@ -482,9 +482,9 @@ public class WorkflowService {
 			if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 				validateRevenueCustomerDetails(revenueCustomerMappingTs);
 			} else {
-				logger.error("revenue customer details are mandatory for admin");
+				logger.error("Revenue customer details are mandatory for admin");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"revenue customer details are mandatory");
+						"Revenue customer details are mandatory");
 			}
 			beaconCustomerMappingTs = requestedCustomerT
 					.getBeaconCustomerMappingTs();
@@ -681,7 +681,7 @@ public class WorkflowService {
 								.getComments());
 					} else {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"comments is mandatory: give reason for rejection");
+								"Comments is mandatory: give reason for rejection");
 					}
 					masterRequest.setModifiedBy(userId);
 					masterRequest.setStatus(workflowStepT.getStepStatus());
@@ -983,9 +983,9 @@ public class WorkflowService {
 			if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 				validateRevenueCustomerDetails(revenueCustomerMappingTs);
 			} else {
-				logger.error("revenue customer details are mandatory");
+				logger.error("Revenue customer details are mandatory");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"revenue customer details are mandatory");
+						"Revenue customer details are mandatory");
 			}
 			beaconCustomerMappingTs = requestedCustomerT
 					.getBeaconCustomerMappingTs();
@@ -2031,7 +2031,7 @@ public class WorkflowService {
 			logger.error("documents should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"documents should not be empty");
+					"Documents should not be empty");
 		}
 		return validated;
 	}
