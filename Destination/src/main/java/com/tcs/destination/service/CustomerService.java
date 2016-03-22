@@ -178,6 +178,8 @@ public class CustomerService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
+			case PRACTICE_HEAD:
+			case PRACTICE_OWNER:	
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
