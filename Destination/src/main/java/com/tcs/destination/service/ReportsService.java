@@ -504,11 +504,13 @@ public class ReportsService {
 		} else {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
+				// Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:
+				case REPORTING_TEAM:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
 							"User is not authorised to access this service");
@@ -1157,11 +1159,13 @@ public class ReportsService {
 		} else {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
 			if (UserGroup.contains(userGroup)) {
-				// Validate user group, BDM's & BDM supervisor's are not
-				// authorized for this service
+				// Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
+				case PRACTICE_OWNER:
+				case PRACTICE_HEAD:
+				case REPORTING_TEAM:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
 							"User is not authorised to access this service");
@@ -2202,11 +2206,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				
 				case BDM:
+				case PRACTICE_OWNER:
 					userIds.add(userId);
 					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					break;
 
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
@@ -2464,6 +2470,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				
 				case BDM:
+				case PRACTICE_OWNER:
 					userIds.add(userId);
 					
 					getConnectSummaryDetailsByUserIds(userIds, fromDate, toDate, subSpCustomerConnectCountList, subSpPartnerConnectCountList,geographyCustomerConnectCountList
@@ -2471,6 +2478,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					break;
 				
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					
@@ -2814,6 +2822,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
+				case PRACTICE_OWNER:
 					userIds.add(userId);
 					
 					connectIdList = getConnectDetailsByUserIds(fromDate,toDate,userIds,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
@@ -2822,6 +2831,7 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 							, geographyPartnerConnectCountList, iouConnectCountList, iouList, displayGeography, countryList, serviceLinesList,connectCategory);
 					break;
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					
@@ -2876,8 +2886,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 				if(!connectCategory.equals("All")){
 					category=category+connectCategory+Constants.SPACE;
 				}
-				logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+"connects are available for user selection and privilege combination");
+				logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+" connects are available for user selection and privilege combination");
+				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+" connects are available for user selection and privilege combination");
 			}
 			InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 		
@@ -2888,8 +2898,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
 		}
 	}
-
-	
 
 	/**
 	 * This Method is used to get bid detailed report
@@ -2940,6 +2948,8 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
+			case PRACTICE_OWNER:
+			case PRACTICE_HEAD:
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.UNAUTHORIZED,	"User is not authorised to access this service");
 			default:
@@ -3324,11 +3334,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					throw new DestinationException(HttpStatus.NOT_FOUND,"User Id Not Found");
 				}
 				String userGroup = user.getUserGroupMappingT().getUserGroup();
-				switch (userGroup) {
-				case ReportConstants.BDM:
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM:
+				case PRACTICE_OWNER:
 					userIds.add(userId);
 					break;
-				case ReportConstants.BDMSUPERVISOR:
+				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 					List<String> subOrdinatesList =userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.addAll(subOrdinatesList);
 					if(!userIds.contains(userId)){
@@ -3339,11 +3351,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 
 				for (int i = 0; i <salesStageList.size();) {
 					if (salesStageList.get(i) < 9) {
-						switch (userGroup) {
-						case ReportConstants.BDM:
+						switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+						case BDM:
+						case PRACTICE_OWNER:
 							opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
-						case ReportConstants.BDMSUPERVISOR:
+						case BDM_SUPERVISOR:
+						case PRACTICE_HEAD:
 							opportunityList = opportunityRepository.findSummaryGeographyByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						default:
@@ -3362,11 +3376,13 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 											opportunityList, salesStageList.get(i),false));
 						}
 						if (isDistinctIou) {
-							switch (userGroup) {
-							case ReportConstants.BDM:
+							switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+							case BDM:
+							case PRACTICE_OWNER:
 								opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 								break;
-							case ReportConstants.BDMSUPERVISOR:
+							case BDM_SUPERVISOR:
+							case PRACTICE_HEAD:
 								opportunityList = opportunityRepository.findSummaryIouByRole(salesStageList.get(i), userIds, geoList, countryList, iouList, serviceLinesList);
 								break;
 							default:
@@ -3426,7 +3442,6 @@ StringBuffer queryBuffer = new StringBuffer(OVER_ALL_CUSTOMER_REVENUE_QUERY_PREF
 					throw new DestinationException(HttpStatus.NOT_FOUND," Report could not be downloaded, as no opportunities are available for user selection and privilege combination");
 				}
 			}
-
 			
 			public void addItemToListGeo(List<String> itemList, List<String> targetList){
 				if(itemList.contains("All") || itemList.isEmpty()){
