@@ -95,5 +95,11 @@ public class FieldsMap {
 		bdmReportFieldMap.put("factorsForWinLoss", "Factors for Win/Loss");
 		bdmReportFieldMap.put("descriptionForWinLoss", "Description for Win/Loss");
 		bdmReportFieldMap.put("dealRemarksNotes", "Deal Remarks Notes");
+		bdmReportFieldMap.put("subSp", "SUB SP");
+		bdmReportFieldMap.put("dealClosureDate", "Deal Closure Date");
+		bdmReportFieldMap.put("createdBy", "Created By");
+		bdmReportFieldMap.put("createdDate", "Created Date");
+		bdmReportFieldMap.put("modifiedBy", "Modified By");
+		bdmReportFieldMap.put("modifiedDate", "Modified Date");
 	}
 }

@@ -142,6 +142,7 @@ public class BDMReportsService {
 	 */
 	public InputStreamResource getBdmsReport(String financialYear, String from, String to, List<String> geography, List<String> country, List<String> currency,
 			List<String> serviceline, List<String> iou, List<Integer> salesStage, List<String> opportunityOwners, String userId, List<String> fields) throws Exception {
+		logger.info("Inside getBdmsReport method");
 		SXSSFWorkbook workbook = new SXSSFWorkbook(50);
 		getBDMReportTitlePage(workbook, financialYear, from, to, geography, country, currency, serviceline, salesStage, opportunityOwners, userId, "both", iou);
 		getBdmSummaryReportExcel(financialYear, from, to, geography, currency, serviceline, salesStage, opportunityOwners, userId, workbook, country, iou);
@@ -174,6 +175,7 @@ public class BDMReportsService {
 	public void getBDMReportTitlePage(SXSSFWorkbook workbook, String financialYear, String from, String to,
 			List<String> geography, List<String> country, List<String> currency, List<String> serviceline,
 			List<Integer> salesStage, List<String> opportunityOwners, String userId, String reportType, List<String> iou) {
+		logger.info("Inside getBDMReportTitlePage method");
 		List<String> privilegeValueList = new ArrayList<String>();
 		CellStyle headinStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADINGSTYLE);
 		CellStyle subHeadingStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.ROWS);
@@ -223,8 +225,8 @@ public class BDMReportsService {
 		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		switch (userGroup) {
-		case ReportConstants.GEOHEAD:
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
 			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -235,7 +237,7 @@ public class BDMReportsService {
 			}
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, "NA");
 			break;
-		case ReportConstants.IOUHEAD:
+		case IOU_HEADS:
 			userAccessField = Constants.IOU;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -246,7 +248,8 @@ public class BDMReportsService {
 			}
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, "NA");
 			break;
-		case ReportConstants.BDMSUPERVISOR:
+		case BDM_SUPERVISOR:
+		case PRACTICE_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, "NA");
 			break;
 		default :
@@ -314,9 +317,9 @@ public class BDMReportsService {
 				List<String> serviceLinesList = new ArrayList<String>();
 				List<String> iouList = new ArrayList<String>();
 				addItemToListGeo(geography,geoList);
-				addItemToList(country,countryList);
-				addItemToList(serviceLines,serviceLinesList);
-				addItemToList(iou, iouList);
+				ExcelUtils.addItemToList(country,countryList);
+				ExcelUtils.addItemToList(serviceLines,serviceLinesList);
+				ExcelUtils.addItemToList(iou, iouList);
 				
 			    if (UserGroup.contains(userGroup)) {
 			    	
@@ -325,13 +328,15 @@ public class BDMReportsService {
 			    // Validate user group, BDM's & BDM supervisor's are not authorized for this service
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
+				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
 				    throw new DestinationException(HttpStatus.UNAUTHORIZED, " User is not authorised to access this service ");
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 					 if(userIds.isEmpty()){
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
-						    }
+					 }
 					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					break;
@@ -347,8 +352,8 @@ public class BDMReportsService {
 						getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
 					break;
 				default :
-					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor");
-					List<String> bdmUser = Arrays.asList("BDM");
+					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor","Practice Head");
+					List<String> bdmUser = Arrays.asList("BDM","Practice Owner");
 					
 					List<String> bdmsList = new ArrayList<String>();
 					List<String> geoIouUserList = new ArrayList<String>();
@@ -408,9 +413,11 @@ public class BDMReportsService {
 			    	
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
+				case PRACTICE_OWNER:
 					subOrdinatesList.add(bdm);
 					break;
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
 				case GEO_HEADS:
 				case IOU_HEADS:
 					List<String> userIds = null;
@@ -518,27 +525,23 @@ public class BDMReportsService {
 		 */
 		private void setOpportunitySummaryToExcel(int currentRow, SXSSFSheet spreadSheet,
 				List<BDMDealValueDTO> bdmDealValueDTOList) {
+			logger.info("Inside setOpportunitySummaryToExcel method");
 			SXSSFRow row = null;
-			try{
 			for(BDMDealValueDTO bdmDealValueDTO:bdmDealValueDTOList){
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 				row.createCell(0).setCellValue(bdmDealValueDTO.getUserName());
-				row.createCell(1).setCellValue(bdmDealValueDTO.getWinsOpportunityCount());
-				row.createCell(2).setCellValue(bdmDealValueDTO.getWinsDigitalDealValue().doubleValue());
-				row.createCell(3).setCellValue(bdmDealValueDTO.getLossOpportunityCount());
-				row.createCell(4).setCellValue(bdmDealValueDTO.getLossDigitalDealValue().doubleValue());
-				row.createCell(5).setCellValue(bdmDealValueDTO.getOtherLossOpportunityCount());
-				row.createCell(6).setCellValue(bdmDealValueDTO.getOtherLossDigitalDealValue().doubleValue());
-				row.createCell(7).setCellValue(bdmDealValueDTO.getPipelineOpportunityCount());
-				row.createCell(8).setCellValue(bdmDealValueDTO.getPipelineDigitalDealValue().doubleValue());
-				row.createCell(9).setCellValue(bdmDealValueDTO.getProspectsOpportunityCount());
-				row.createCell(10).setCellValue(bdmDealValueDTO.getProspectsDigitalDealValue().doubleValue());
+				row.createCell(1).setCellValue(bdmDealValueDTO.getUserGroup());
+				row.createCell(2).setCellValue(bdmDealValueDTO.getWinsOpportunityCount());
+				row.createCell(3).setCellValue(bdmDealValueDTO.getWinsDigitalDealValue().doubleValue());
+				row.createCell(4).setCellValue(bdmDealValueDTO.getLossOpportunityCount());
+				row.createCell(5).setCellValue(bdmDealValueDTO.getLossDigitalDealValue().doubleValue());
+				row.createCell(6).setCellValue(bdmDealValueDTO.getOtherLossOpportunityCount());
+				row.createCell(7).setCellValue(bdmDealValueDTO.getOtherLossDigitalDealValue().doubleValue());
+				row.createCell(8).setCellValue(bdmDealValueDTO.getPipelineOpportunityCount());
+				row.createCell(9).setCellValue(bdmDealValueDTO.getPipelineDigitalDealValue().doubleValue());
+				row.createCell(10).setCellValue(bdmDealValueDTO.getProspectsOpportunityCount());
+				row.createCell(11).setCellValue(bdmDealValueDTO.getProspectsDigitalDealValue().doubleValue());
 			}
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-			
-			
 		}
         
 		/**
@@ -550,62 +553,64 @@ public class BDMReportsService {
 		private void setOpportunitySummaryHeaderToExcel(int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle) {
 			SXSSFRow row = null;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-			row.createCell(1).setCellValue("WINS (Stage 09)");
-			row.getCell(1).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 1, 2));
-			row.createCell(3).setCellValue("LOSSES (Stage 10)");
-			row.getCell(3).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
-			row.createCell(5).setCellValue("OTHER LOSS");
-			row.getCell(5).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 5, 6));
-			row.createCell(7).setCellValue("PIPELINE");
-			row.getCell(7).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 7, 8));
-			row.createCell(9).setCellValue("PROSPECTS");
-			row.getCell(9).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 9, 10));
+			row.createCell(2).setCellValue("WINS (Stage 09)");
+			row.getCell(2).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 3));
+			row.createCell(4).setCellValue("LOSSES (Stage 10)");
+			row.getCell(4).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 4, 5));
+			row.createCell(6).setCellValue("OTHER LOSS");
+			row.getCell(6).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
+			row.createCell(8).setCellValue("PIPELINE");
+			row.getCell(8).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 8, 9));
+			row.createCell(10).setCellValue("PROSPECTS");
+			row.getCell(10).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 10, 11));
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(1).setCellValue("09-Closed & Won");
-			row.getCell(1).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 1, 2));
-			row.createCell(3).setCellValue("10-Closed & Lost");
-			row.getCell(3).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
-			row.createCell(5).setCellValue("Stage 11-13");
-			row.getCell(5).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 5, 6));
-			row.createCell(7).setCellValue("Stage 04-08");
-			row.getCell(7).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 7, 8));
-			row.createCell(9).setCellValue("Stage 00-03");
-			row.getCell(9).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 9, 10));
+			row.createCell(2).setCellValue("09-Closed & Won");
+			row.getCell(2).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 2, 3));
+			row.createCell(4).setCellValue("10-Closed & Lost");
+			row.getCell(4).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 4, 5));
+			row.createCell(6).setCellValue("Stage 11-13");
+			row.getCell(6).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 6, 7));
+			row.createCell(8).setCellValue("Stage 04-08");
+			row.getCell(8).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 8, 9));
+			row.createCell(10).setCellValue("Stage 00-03");
+			row.getCell(10).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 10, 11));
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 			row.createCell(0).setCellValue("BDM");
 			row.getCell(0).setCellStyle(cellStyle);
-			row.createCell(1).setCellValue("No Of Wins");
+			row.createCell(1).setCellValue("USER GROUP");
 			row.getCell(1).setCellStyle(cellStyle);
-			row.createCell(2).setCellValue("Deal Value(USD)");
+			row.createCell(2).setCellValue("No Of Wins");
 			row.getCell(2).setCellStyle(cellStyle);
-			row.createCell(3).setCellValue("No Of Losses");
+			row.createCell(3).setCellValue("Deal Value(USD)");
 			row.getCell(3).setCellStyle(cellStyle);
-			row.createCell(4).setCellValue("Deal Value(USD)");
+			row.createCell(4).setCellValue("No Of Losses");
 			row.getCell(4).setCellStyle(cellStyle);
-			row.createCell(5).setCellValue("No Of Losses");
+			row.createCell(5).setCellValue("Deal Value(USD)");
 			row.getCell(5).setCellStyle(cellStyle);
-			row.createCell(6).setCellValue("Deal Value(USD)");
+			row.createCell(6).setCellValue("No Of Losses");
 			row.getCell(6).setCellStyle(cellStyle);
-			row.createCell(7).setCellValue("No Of Pipelines");
+			row.createCell(7).setCellValue("Deal Value(USD)");
 			row.getCell(7).setCellStyle(cellStyle);
-			row.createCell(8).setCellValue("Deal Value(USD)");
+			row.createCell(8).setCellValue("No Of Pipelines");
 			row.getCell(8).setCellStyle(cellStyle);
-			row.createCell(9).setCellValue("No Of Prospects");
+			row.createCell(9).setCellValue("Deal Value(USD)");
 			row.getCell(9).setCellStyle(cellStyle);
-			row.createCell(10).setCellValue("Deal Value(USD)");
+			row.createCell(10).setCellValue("No Of Prospects");
 			row.getCell(10).setCellStyle(cellStyle);
+			row.createCell(11).setCellValue("Deal Value(USD)");
+			row.getCell(11).setCellStyle(cellStyle);
 		}
 
 		/**
@@ -652,6 +657,8 @@ public class BDMReportsService {
 			
 			//setting bean
 			bdmDealValueDTO.setUserName(userT.getUserName());
+			
+			bdmDealValueDTO.setUserGroup(userT.getUserGroup());
 			
 			bdmDealValueDTO.setWinsOpportunityCount(((BigInteger) oppCountDealValueWins[0][0]).intValue());
 			if(oppCountDealValueWins[0][1]!=null){
@@ -874,7 +881,6 @@ public class BDMReportsService {
 			boolean isDashboardByYear = true;
 			bdmSupervisorDashboardDetails = bdmService.getBDMSupervisorDashboardByUser(userIds, year, isDashboardByYear);
 			setBDMSupervisorPerformanceToExcel(bdmSupervisorDashboardDetails, workbook);	
-					
 		}
 
 
@@ -885,15 +891,13 @@ public class BDMReportsService {
 		 */
 		private void setBDMSupervisorPerformanceToExcel(BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails,
 				SXSSFWorkbook workbook) {
-			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("BDM Supervisors Summary");
+			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Team Summary");
 			int currentRow = 0;
 			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
-			
 			setBDMSupervisorHeaderToExcel(currentRow, spreadSheet, cellStyle);
 			currentRow++;
 			currentRow++;
 			setBDMSupervisorDetails(currentRow, spreadSheet, bdmSupervisorDashboardDetails);
-			
 		}
 
 		/**
@@ -904,7 +908,6 @@ public class BDMReportsService {
 		 */
 		private void setBDMSupervisorDetails(int currentRow, SXSSFSheet spreadSheet,
 				BDMSupervisorDashboardDTO bdmSupervisorDashboardDetails) {
-			try{
 			SXSSFRow row = null;
 			for(DashBoardBDMResponse dashBoardBDMResponse:bdmSupervisorDashboardDetails.getBdmSupervisorDashboard()){
 				dashBoardBDMResponse.getBdmDashboard().get(0).getSalesOwnerOppWinsAchieved();
@@ -915,64 +918,62 @@ public class BDMReportsService {
 				String userName = dashBoardBDMResponse.getUserT().getUserName();
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 				row.createCell(0).setCellValue(userName);
-				row.createCell(1).setCellValue("Opportunity Win value (USD)");
+				row.createCell(1).setCellValue(dashBoardBDMResponse.getUserT().getUserGroup());
+				row.createCell(2).setCellValue("Opportunity Win value (USD)");
 				double oppWinsTarget = dashBoardBDMResponse.getWinsTarget().doubleValue();
 				double oppWinsGap = 0;
 				double primaryOwnerOppWins = 0;
 				double salesOwnerOppWins = 0;
 				
-				row.createCell(2).setCellValue(oppWinsTarget);
+				row.createCell(3).setCellValue(oppWinsTarget);
 				if(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved()!=null){
 					primaryOwnerOppWins = dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved().doubleValue();
 				}
-				row.createCell(3).setCellValue(primaryOwnerOppWins);
+				row.createCell(4).setCellValue(primaryOwnerOppWins);
 				if(dashBoardBDMResponse.getBdmDashboard().get(0).getSalesOwnerOppWinsAchieved()!=null){
 					salesOwnerOppWins = dashBoardBDMResponse.getBdmDashboard().get(0).getSalesOwnerOppWinsAchieved().doubleValue();
 				}
-				row.createCell(4).setCellValue(salesOwnerOppWins);
+				row.createCell(5).setCellValue(salesOwnerOppWins);
 				if(oppWinsTarget!=0.0){
 				BigDecimal totalOppWinsAchieved = new BigDecimal(0);
 				if(dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved()!=null){
 				totalOppWinsAchieved = dashBoardBDMResponse.getBdmDashboard().get(0).getTotalOppWinsAchieved();
 				}
 				oppWinsGap = (totalOppWinsAchieved.doubleValue() - oppWinsTarget);
-				row.createCell(5).setCellValue(oppWinsGap);
+				row.createCell(6).setCellValue(oppWinsGap);
 				}
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-				row.createCell(1).setCellValue("Proposals Supported");
+				row.createCell(2).setCellValue("Proposals Supported");
 				int proposalSupportedTarget = dashBoardBDMResponse.getProposalSupportedTarget();
 				int proposalSupportedGap = 0;
 				
-				row.createCell(2).setCellValue(proposalSupportedTarget);
-				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryProposalSupportAchieved());
-				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getSalesProposalSupportAchieved());
+				row.createCell(3).setCellValue(proposalSupportedTarget);
+				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryProposalSupportAchieved());
+				row.createCell(5).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getSalesProposalSupportAchieved());
 				if(proposalSupportedTarget!=0){
 					proposalSupportedGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalProposalSupportAchieved() - proposalSupportedTarget);
-					row.createCell(5).setCellValue(proposalSupportedGap);
+					row.createCell(6).setCellValue(proposalSupportedGap);
 				}
 				currentRow++;
 				
 				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-				row.createCell(1).setCellValue("Connects Supported");
+				row.createCell(2).setCellValue("Connects Supported");
 				int connectSupportedTarget = dashBoardBDMResponse.getConnectSupportedTarget();
 				int connectSupportedGap = 0;
 				
-				row.createCell(2).setCellValue(connectSupportedTarget);
-				row.createCell(3).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectPrimary());
-				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectSecondary());
+				row.createCell(3).setCellValue(connectSupportedTarget);
+				row.createCell(4).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectPrimary());
+				row.createCell(5).setCellValue(dashBoardBDMResponse.getBdmDashboard().get(0).getConnectSecondary());
 				if(connectSupportedTarget!=0){
 					connectSupportedGap = (dashBoardBDMResponse.getBdmDashboard().get(0).getTotalConnects() - connectSupportedTarget);
-					row.createCell(5).setCellValue(connectSupportedGap);
+					row.createCell(6).setCellValue(connectSupportedGap);
 					}
 				currentRow++;
 			}
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full year 2015-16 (no filter, user selection conditions are applied)");
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
+			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full year" +DateUtils.getCurrentFinancialYear()+" (no filter, user selection conditions are applied)");
 		}
 
 		/**
@@ -983,38 +984,36 @@ public class BDMReportsService {
 		 */
 		private void setBDMSupervisorHeaderToExcel(int currentRow, SXSSFSheet spreadSheet, CellStyle cellStyle) {
 			SXSSFRow row = null;
+			int firstRowColNo=0;
+			int secRowColNo=4;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-			row.createCell(0).setCellValue("BDM");
-			row.getCell(0).setCellStyle(cellStyle);
-			row.createCell(1).setCellValue("Targets Defined");
-			row.getCell(1).setCellStyle(cellStyle);
-			row.createCell(2).setCellValue("Sales Goals");
-			row.getCell(2).setCellStyle(cellStyle);
-			row.createCell(3).setCellValue("Achieved");
-			row.getCell(3).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
-			row.createCell(5).setCellValue("Gap/Surplus");
-			row.getCell(5).setCellStyle(cellStyle);
+			row.createCell(firstRowColNo).setCellValue("BDM");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			firstRowColNo++;
+			row.createCell(firstRowColNo).setCellValue("User Group");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			firstRowColNo++;
+			row.createCell(firstRowColNo).setCellValue("Targets Defined");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			firstRowColNo++;
+			row.createCell(firstRowColNo).setCellValue("Sales Goals");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			firstRowColNo++;
+			row.createCell(firstRowColNo).setCellValue("Achieved");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			spreadSheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, firstRowColNo, firstRowColNo+1));
+			firstRowColNo++;
+			row.createCell(firstRowColNo).setCellValue("Gap/Surplus");
+			row.getCell(firstRowColNo).setCellStyle(cellStyle);
+			
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(3).setCellValue("Primary/Bid");
-			row.getCell(3).setCellStyle(cellStyle);
-			row.createCell(4).setCellValue("Secondary");
-			row.getCell(4).setCellStyle(cellStyle);
+			row.createCell(secRowColNo).setCellValue("Primary/Bid");
+			row.getCell(secRowColNo).setCellStyle(cellStyle);
+			secRowColNo++;
+			row.createCell(secRowColNo).setCellValue("Secondary");
+			row.getCell(secRowColNo).setCellStyle(cellStyle);
 			}
         
-		/**
-		 * This Method used to add ("") to targetList if itemList contains "All"
-		 * @param itemList
-		 * @param targetList
-		 */
-		public void addItemToList(List<String> itemList, List<String> targetList){
-			if(itemList.contains("All") || itemList.isEmpty()){
-				targetList.add("");
-			} else {
-				targetList.addAll(itemList);
-			}
-		}
-		
 		/**
 		 * This Method used to add ("") to targetList if itemList contains "All" else adds geographies for the given display geography
 		 * @param itemList

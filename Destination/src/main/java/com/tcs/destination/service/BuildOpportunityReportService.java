@@ -59,6 +59,7 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SalesStageMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
@@ -160,13 +161,15 @@ public class BuildOpportunityReportService {
 		addItemToList(iou,iouList);
 		addItemToList(country,countryList);
 		addItemToList(serviceLines,serviceLinesList);
-		switch (userGroup) {
-		case ReportConstants.BDM:
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case BDM:
+		case PRACTICE_OWNER:
 			userIds.add(userId);
 			opportunityIds = opportunityRepository.findOpportunitiesByRoleWith(fromDate, toDate, salesStage, userIds, 
 					geoList, countryList, iouList, serviceLinesList);
 			break;
-		case ReportConstants.BDMSUPERVISOR:
+		case BDM_SUPERVISOR:
+		case PRACTICE_HEAD:
 			List<String> subOrdinatesList = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 			userIds.addAll(subOrdinatesList);
 			if(!userIds.contains(userId)){
@@ -773,7 +776,7 @@ public class BuildOpportunityReportService {
 			// 4 columns added as per prod tracker 
 			if (createdDateFlag) {
 				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
-				java.util.Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
 				String dateOfCreation = DateUtils.convertDateToString(createdDate);
 				row.createCell(colValue).setCellValue(dateOfCreation);
 				colValue++;
@@ -784,7 +787,7 @@ public class BuildOpportunityReportService {
 			}
 			if (modifiedDateFlag) {
 				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
-				java.util.Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
 				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
 				row.createCell(colValue).setCellValue(dateOfModification);
 				colValue++;
@@ -1105,11 +1108,13 @@ public class BuildOpportunityReportService {
 			List<Object[]> opportunityList = new ArrayList<Object[]>();
 			ReportSummaryOpportunity reportSummaryOpportunity = new ReportSummaryOpportunity();
 			List<OpportunitySummaryValue> pipelineOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
-			switch (userGroup) {
-			case ReportConstants.BDM:
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case PRACTICE_OWNER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
-			case ReportConstants.BDMSUPERVISOR:
+			case BDM_SUPERVISOR:
+			case PRACTICE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStagePipeline, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
@@ -1162,11 +1167,13 @@ public class BuildOpportunityReportService {
 			List<Object[]> opportunityList = new ArrayList<Object[]>();
 			ReportSummaryOpportunity reportSummaryOpportunity = new ReportSummaryOpportunity();
 			List<OpportunitySummaryValue> anticipatingOpportunitySummaryValueList = new ArrayList<OpportunitySummaryValue>();
-			switch (userGroup) {
-			case ReportConstants.BDM:
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM:
+			case PRACTICE_OWNER:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
-			case ReportConstants.BDMSUPERVISOR:
+			case BDM_SUPERVISOR:
+			case PRACTICE_HEAD:
 				opportunityList = opportunityRepository.findPipelineSummaryServiceLineByRole(salesStageAnticipating, userIds, geoList, countryList, iouList, serviceLinesList);
 				break;
 			default:
@@ -2994,11 +3001,13 @@ public class BuildOpportunityReportService {
 					List<Object[]> serviceLineOpportunityList = new ArrayList<Object[]>();
 					fromDate = fromDateMap.get(subCategory);
 					toDate = toDateMap.get(subCategory);
-					switch (userGroup) {
-					case ReportConstants.BDM:
+					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+					case BDM:
+					case PRACTICE_OWNER:
 						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 						break;
-					case ReportConstants.BDMSUPERVISOR:
+					case BDM_SUPERVISOR:
+					case PRACTICE_HEAD:
 						serviceLineOpportunityList = opportunityRepository.findOpportunitiesWithServiceLineByRole(fromDate, toDate, salesStageCode, userIds,  geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
@@ -3025,11 +3034,13 @@ public class BuildOpportunityReportService {
 					List<Object[]> geographyOpportunityList = new ArrayList<Object[]>();
 					fromDate = fromDateMap.get(subCategory);
 					toDate = toDateMap.get(subCategory);
-					switch (userGroup) {
-					case ReportConstants.BDM:
+					switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+					case BDM:
+					case PRACTICE_OWNER:
 						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
-					case ReportConstants.BDMSUPERVISOR:
+					case BDM_SUPERVISOR:
+					case PRACTICE_HEAD:
 						geographyOpportunityList = opportunityRepository.findOpportunitiesWithGeographyByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 						break;
 					default:
@@ -3057,11 +3068,13 @@ public class BuildOpportunityReportService {
 						List<Object[]> iouOpportunityList = new ArrayList<Object[]>();
 						fromDate = fromDateMap.get(subCategory);
 						toDate = toDateMap.get(subCategory);
-						switch (userGroup) {
-						case ReportConstants.BDM:
+						switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+						case BDM:
+						case PRACTICE_OWNER:
 							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
-						case ReportConstants.BDMSUPERVISOR:
+						case BDM_SUPERVISOR:
+						case PRACTICE_HEAD:
 							iouOpportunityList = opportunityRepository.findOpportunitiesWithIouByRole(fromDate, toDate, salesStageCode, userIds, geoList, countryList, iouList, serviceLinesList);
 							break;
 						default:
@@ -3131,8 +3144,8 @@ public class BuildOpportunityReportService {
 		row = (SXSSFRow) spreadsheet.createRow(14);
 		row.createCell(4).setCellValue("User Access Filter's");
 		row.getCell(4).setCellStyle(subHeadingStyle);
-		switch (userGroup) {
-		case ReportConstants.GEOHEAD:
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
 			userAccessField = Constants.GEOGRAPHY;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -3143,7 +3156,7 @@ public class BuildOpportunityReportService {
 			}
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.OPPBASEDONPRIVILAGE);
 			break;
-		case ReportConstants.IOUHEAD:
+		case IOU_HEADS:
 			userAccessField = Constants.IOU;
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
@@ -3154,17 +3167,18 @@ public class BuildOpportunityReportService {
 			}
 			ExcelUtils.writeDetailsForSearchTypeUserAccessFilter(spreadsheet, userAccessField, privilegeValueList, user, dataRow, ReportConstants.OPPBASEDONPRIVILAGE);
 			break;
-		case ReportConstants.BDM:
+		case BDM:
+		case PRACTICE_OWNER:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMPRIMARYORSALESOWNER);
 			break;
-		case ReportConstants.BDMSUPERVISOR:
+		case BDM_SUPERVISOR:
+		case PRACTICE_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.OPPWHEREBDMSUPERVISORPRIMARYORSALESOWNER);
 			break;
 		default :
 			ExcelUtils.writeUserFilterConditions(spreadsheet, user, ReportConstants.FULLACCESS);
 		}
 		
-		////s
 		row = (SXSSFRow) spreadsheet.createRow(21);
 //		spreadsheet.addMergedRegion(new CellRangeAddress(21, 21, 4, 5));
 		row.createCell(4).setCellValue("Display Preferences");

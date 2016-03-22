@@ -32,6 +32,7 @@ import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
@@ -135,10 +136,7 @@ public class ConnectDetailedReportService {
 			if(connect.getCustomerMasterT()!=null){
 				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
 				colNo++;
-				List<String> displaySubSpList = new ArrayList<String>();
-				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
-					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
-				}
+				List<String> displaySubSpList = connectSubSpLinkRepository.findDisplaySubSpByConnectId(connect.getConnectId());
 				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 				colNo++;
 				row.createCell(colNo).setCellValue(connect.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
@@ -148,10 +146,7 @@ public class ConnectDetailedReportService {
 			} else {
 				row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
 				colNo++;
-				List<String> displaySubSpList = new ArrayList<String>();
-				for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
-					displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
-				}
+				List<String> displaySubSpList = connectSubSpLinkRepository.findDisplaySubSpByConnectId(connect.getConnectId());
 				row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 				colNo++;
 				row.createCell(colNo).setCellValue(Constants.SPACE);
@@ -163,10 +158,7 @@ public class ConnectDetailedReportService {
 		} else{
 			row.createCell(colNo).setCellValue(connect.getPartnerMasterT().getGeographyMappingT().getDisplayGeography());
 			colNo++;
-			List<String> displaySubSpList = new ArrayList<String>();
-			for (ConnectSubSpLinkT connectSubSpLinkT : connect.getConnectSubSpLinkTs()) {
-				displaySubSpList.add(connectSubSpLinkT.getSubSpMappingT().getSubSp());
-			}
+			List<String> displaySubSpList = connectSubSpLinkRepository.findDisplaySubSpByConnectId(connect.getConnectId());
 			row.createCell(colNo).setCellValue(removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 			colNo++;
 			row.createCell(colNo).setCellValue(connect.getConnectName());
@@ -174,7 +166,16 @@ public class ConnectDetailedReportService {
 	}
 
 	
-	
+	/**
+	 * This Method is used create the connect report header both mandatory and optional fields
+	 * 
+	 * @param row
+	 * @param fields
+	 * @param workbook
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connectCategory
+	 */
 	public void createHeaderOptionalFields(SXSSFRow row, List<String> fields,
 			SXSSFWorkbook workbook, SXSSFSheet spreadSheet, int currentRow,String connectCategory) {
 		// This method creates header for mandatory fields
@@ -612,19 +613,20 @@ public class ConnectDetailedReportService {
 		row.createCell(currentColumnNo).setCellValue(ReportConstants.USERACCESSFILTER);
 		
 		row.getCell(currentColumnNo).setCellStyle(subHeadingStyle);
-		switch (userGroup) {
-		
-		case ReportConstants.BDM:
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case BDM:
+		case PRACTICE_OWNER:
 			ExcelUtils.writeUserFilterConditions(spreadSheet, user, ReportConstants.CONNECTSWHEREPRIMARYORSECONDARYOWNER, currentRowNo++,currentColumnNo);
 			currentRowNo=currentRowNo+4;
 			break;
 		
-		case ReportConstants.BDMSUPERVISOR:
+		case BDM_SUPERVISOR:
+		case PRACTICE_HEAD:
 			ExcelUtils.writeUserFilterConditions(spreadSheet, user, ReportConstants.CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER, currentRowNo++,currentColumnNo);
 			currentRowNo=currentRowNo+4;
 			break;
 			
-		case ReportConstants.GEOHEAD:
+		case GEO_HEADS:
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
@@ -636,7 +638,7 @@ public class ConnectDetailedReportService {
 			currentRowNo=currentRowNo+4;
 			break;
 		
-		case ReportConstants.IOUHEAD:
+		case IOU_HEADS:
 			for(UserAccessPrivilegesT accessPrivilegesT:userPrivilegesList){
 				String previlageType=accessPrivilegesT.getPrivilegeType();
 				String privilageValue=accessPrivilegesT.getPrivilegeValue();
