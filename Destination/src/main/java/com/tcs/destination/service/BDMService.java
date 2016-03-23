@@ -152,7 +152,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -197,7 +197,7 @@ public class BDMService {
 				bdmSupervisorDashboardDetails = getBDMSupervisorDashboardByUser(userIds, financialYear, isDashboardByYear);
 			} else {
 				logger.error("NOT_FOUND: User is not BDM Supervisor: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Practice Head: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -235,6 +235,7 @@ public class BDMService {
 			case BDM_SUPERVISOR:
 			case PRACTICE_HEAD:
 			case PRACTICE_OWNER:	
+			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED,  "User is not authorised to access this service");
 			case GEO_HEADS:
