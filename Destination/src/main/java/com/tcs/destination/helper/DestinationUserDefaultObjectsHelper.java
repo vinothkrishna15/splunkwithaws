@@ -42,7 +42,10 @@ public class DestinationUserDefaultObjectsHelper {
 		List<UserNotificationSettingsT> userNotificationLeaderShipList = new ArrayList<UserNotificationSettingsT>();
 		switch (UserGroup.valueOf(UserGroup.getName(user.getUserGroup()))) {
 		case BDM: 
-		case BDM_SUPERVISOR: {
+		case BDM_SUPERVISOR: 
+		case PRACTICE_OWNER:
+		case PRACTICE_HEAD:
+		{
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,1,Constants.N));
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,2,Constants.N));
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,3,Constants.N));
@@ -56,6 +59,13 @@ public class DestinationUserDefaultObjectsHelper {
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,1,Constants.Y));
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,2,Constants.Y));
 			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,3,Constants.Y));
+		    break;
+		}
+		case REPORTING_TEAM:
+		{
+			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,1,Constants.N));
+			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,2,Constants.N));
+			userNotificationLeaderShipList.add(getNotification(user.getUserId(),16,3,Constants.N));
 		    break;
 		}
 		}
@@ -90,6 +100,8 @@ public class DestinationUserDefaultObjectsHelper {
 		}
 		case BDM_SUPERVISOR: 
 		case GEO_HEADS: 
+		case PRACTICE_OWNER:
+		case PRACTICE_HEAD:
 		case IOU_HEADS:
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:	
@@ -113,6 +125,31 @@ public class DestinationUserDefaultObjectsHelper {
 		userNotificationSupervisorList.add(getNotification(user.getUserId(),15,1,Constants.Y));
 		userNotificationSupervisorList.add(getNotification(user.getUserId(),15,2,Constants.Y));
 		userNotificationSupervisorList.add(getNotification(user.getUserId(),15,3,Constants.Y));
+		break;
+		}
+		case REPORTING_TEAM:
+		{
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),11,1,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),11,2,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),11,3,Constants.N));
+			
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),12,1,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),12,2,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),12,3,Constants.N));
+			
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),13,1,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),13,2,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),13,3,Constants.N));
+			
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),14,1,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),14,2,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),14,3,Constants.N));
+			
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),15,1,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),15,2,Constants.N));
+			userNotificationSupervisorList.add(getNotification(user.getUserId(),15,3,Constants.N));
+			break;
+		
 		}
 		}
 		return userNotificationSupervisorList;
@@ -122,17 +159,20 @@ public class DestinationUserDefaultObjectsHelper {
 			UserT user) {
 		List<UserNotificationSettingsT> userNotificationCollaborationList = new ArrayList<UserNotificationSettingsT>();
 		
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),8,1,Constants.Y));
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),8,2,Constants.Y));
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),8,3,Constants.N));
-		
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),9,1,Constants.Y));
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),9,2,Constants.Y));
-		userNotificationCollaborationList.add(getNotification(user.getUserId(),9,3,Constants.N));
+
 		
 		switch (UserGroup.valueOf(UserGroup.getName(user.getUserGroup()))) {
 		case BDM: 
-		case BDM_SUPERVISOR: {
+		case BDM_SUPERVISOR:
+		case PRACTICE_OWNER:
+		case PRACTICE_HEAD:
+		{
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,1,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,2,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,3,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,1,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,2,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,3,Constants.N));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,1,Constants.N));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,2,Constants.N));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,3,Constants.N));
@@ -143,23 +183,47 @@ public class DestinationUserDefaultObjectsHelper {
 		case STRATEGIC_INITIATIVES:
 		case BID_OFFICE:	
 		{
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,1,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,2,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,3,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,1,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,2,Constants.Y));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,3,Constants.N));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,1,Constants.Y));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,2,Constants.Y));
 			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,3,Constants.N));
 		    break;
 		}
+		case REPORTING_TEAM:
+		{
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,1,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,2,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),8,3,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,1,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,2,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),9,3,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,1,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,2,Constants.N));
+			userNotificationCollaborationList.add(getNotification(user.getUserId(),10,3,Constants.N));
+			break;
 		}
-		
-		
-		
-		
+		}
 		return userNotificationCollaborationList;
 	}
 
 	private static List<UserNotificationSettingsT> getUserReminderList(
 			UserT user) {
 		List<UserNotificationSettingsT> userNotificationReminderList = new ArrayList<UserNotificationSettingsT>();
-		
+		switch (UserGroup.valueOf(UserGroup.getName(user.getUserGroup()))) {
+		case BDM: 
+		case BDM_SUPERVISOR:
+		case PRACTICE_OWNER:
+		case PRACTICE_HEAD:
+		case GEO_HEADS: 
+		case IOU_HEADS:
+		case STRATEGIC_INITIATIVES:
+		case BID_OFFICE:
+		{
 		userNotificationReminderList.add(getNotification(user.getUserId(),5,1,Constants.Y));
 		userNotificationReminderList.add(getNotification(user.getUserId(),5,2,Constants.Y));
 		userNotificationReminderList.add(getNotification(user.getUserId(),5,3,Constants.Y));
@@ -171,13 +235,40 @@ public class DestinationUserDefaultObjectsHelper {
 		userNotificationReminderList.add(getNotification(user.getUserId(),7,1,Constants.Y));
 		userNotificationReminderList.add(getNotification(user.getUserId(),7,2,Constants.Y));
 		userNotificationReminderList.add(getNotification(user.getUserId(),7,3,Constants.Y));
-		
+		break;
+		}
+		case REPORTING_TEAM:
+		{
+			userNotificationReminderList.add(getNotification(user.getUserId(),5,1,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),5,2,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),5,3,Constants.N));
+			
+			userNotificationReminderList.add(getNotification(user.getUserId(),6,1,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),6,2,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),6,3,Constants.N));
+			
+			userNotificationReminderList.add(getNotification(user.getUserId(),7,1,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),7,2,Constants.N));
+			userNotificationReminderList.add(getNotification(user.getUserId(),7,3,Constants.N));
+			break;
+		}
+		}
 		return userNotificationReminderList;
 	}
 
 	private static List<UserNotificationSettingsT> getUserNotificationGeneralSettingsList(UserT user) {
 		List<UserNotificationSettingsT> userNotificationGeneralSettingsList = new ArrayList<UserNotificationSettingsT>();
 		
+		switch (UserGroup.valueOf(UserGroup.getName(user.getUserGroup()))) {
+		case BDM: 
+		case BDM_SUPERVISOR:
+		case PRACTICE_OWNER:
+		case PRACTICE_HEAD:
+		case GEO_HEADS: 
+		case IOU_HEADS:
+		case STRATEGIC_INITIATIVES:
+		case BID_OFFICE:
+		{
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,1,Constants.Y));
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,2,Constants.Y));
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,3,Constants.N));
@@ -193,7 +284,28 @@ public class DestinationUserDefaultObjectsHelper {
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,1,Constants.Y));
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,2,Constants.Y));
 		userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,3,Constants.N));
-		
+		break;
+		}
+		case REPORTING_TEAM:
+		{
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,1,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,2,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),1,3,Constants.N));
+			
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),2,1,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),2,2,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),2,3,Constants.N));
+			
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),3,1,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),3,2,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),3,3,Constants.N));
+			
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,1,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,2,Constants.N));
+			userNotificationGeneralSettingsList.add(getNotification(user.getUserId(),4,3,Constants.N));
+			break;
+		}
+		}
 		return userNotificationGeneralSettingsList;
 
 	}
