@@ -1553,12 +1553,7 @@ public class WorkflowService {
 		if (entity.equals(EntityType.CUSTOMER.toString())) {
 
 			// Query to get customer requests APPROVED/REJECTED by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX2);
-			Query query = entityManager.createNativeQuery(queryBuffer
-					.toString());
+			Query query = entityManager.createNativeQuery(QueryConstants.QUERY_FINAL_APPROVED);
 			query.setParameter("stepStatus", status);
 			query.setParameter("userId", userId);
 			resultList = query.getResultList();
