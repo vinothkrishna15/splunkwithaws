@@ -1031,6 +1031,8 @@ public class WorkflowService {
 								.findOne(workflowCustomerId);
 
 						if (workflowCustomer != null) {
+							workflowCustomer.setRevenueCustomerMappingTs(revenueRepository.getRevenueCustomerMappingForWorkflowCustomer(requestedCustomerId));
+							workflowCustomer.setBeaconCustomerMappingTs(beaconRepository.getBeaconMappingForWorkflowCustomer(requestedCustomerId));
 							workflowCustomerDetailsDTO
 							.setRequestedCustomer(workflowCustomer);
 
@@ -1118,8 +1120,7 @@ public class WorkflowService {
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO.setRequestedPartner(workflowPartner);
-
-
+							
 							// Get the workflow steps associated with the new
 							// partner request
 							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
