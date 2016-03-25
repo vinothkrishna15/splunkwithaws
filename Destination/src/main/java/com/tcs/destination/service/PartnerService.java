@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,22 +17,31 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.CommonHelper;
+import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.StringUtils;
 
 /**
- * This service deals with partner requests  and 
- * provide functionalities like adding, deleting, updating, validating and saving a partner.
- * It validates the partner requests and it also performs find and search operations.
+ * This service deals with partner requests and provide functionalities like
+ * adding, deleting, updating, validating and saving a partner. It validates the
+ * partner requests and it also performs find and search operations.
  */
 @Service
 public class PartnerService {
@@ -59,6 +69,17 @@ public class PartnerService {
 
 	@Autowired
 	BeaconConverterService beaconConverterService;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	GeographyRepository geographyRepository;
+
+	@Autowired
+	private CommonHelper commonHelper;
+
+	private Map<String, GeographyMappingT> geographyMapping = null;
 
 	/**
 	 * This service saves partner details into partner_master_t
@@ -325,5 +346,96 @@ public class PartnerService {
 		}
 		logger.debug("End:Inside search method of PartnerService");
 		return paginatedResponse;
+	}
+
+	public boolean updatePartner(PartnerMasterT partnerMaster)
+			throws DestinationException {
+		boolean updateStatus = false;
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		if (UserRole.contains(userRole)) {
+			switch (UserRole.valueOf(UserRole.getName(userRole))) {
+			case SYSTEM_ADMIN:
+			case STRATEGIC_GROUP_ADMIN:
+				String partnerId = partnerMaster.getPartnerId();
+				if (partnerId == null) {
+					logger.error("BAD_REQUEST: partner Id is required for update");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"partner Id is required for update");
+				}
+				if (!partnerRepository.exists(partnerId)) {
+					logger.error(
+							"NOT_FOUND: Partner Details not found for update: {}",
+							partnerId);
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"Partner Details not found for update: "
+									+ partnerId);
+				}
+				PartnerMasterT partner = partnerRepository.findOne(partnerId);
+
+				// Partner Name
+				String partnerName = partnerMaster.getPartnerName();
+				if (!StringUtils.isEmpty(partnerName)) {
+					if(partnerRepository.findPartnerName(partnerName)==null) {
+					partner.setPartnerName(partnerName);
+					} else {
+						logger.error("Partner Name already exists");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Partner Name already exists");
+					}
+				} else {
+					logger.error("Partner Name should not be empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Partner Name should not be empty");
+				}
+				// Geography
+				String geography = partnerMaster.getGeography();
+				if (!StringUtils.isEmpty(geography)) {
+					geographyMapping = commonHelper.getGeographyMappingT();
+					if (geographyMapping.containsKey(partnerMaster
+							.getGeography())) {
+						partner.setGeography(geography);
+						partner.setGeographyMappingT(geographyRepository
+								.findByGeography(geography));
+
+					} else {
+						logger.error("Invalid geography");
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"Geography :" + partnerMaster.getGeography()
+										+ "is not found");
+					}
+				} else {
+					logger.error("geography should not be empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Geography should not be empty");
+				}
+				// Website
+				String website = partnerMaster.getWebsite();
+				if (!StringUtils.isEmpty(website)) {
+					partner.setWebsite(website);
+				}
+				// Corporate HQ Address
+				String address = partnerMaster.getCorporateHqAddress();
+				if (!StringUtils.isEmpty(address)) {
+					partner.setCorporateHqAddress(address);
+				}
+				// Facebook
+				String facebook = partnerMaster.getFacebook();
+				if (!StringUtils.isEmpty(facebook)) {
+					partner.setFacebook(facebook);
+				}
+				partner.setCreatedModifiedBy(userId);
+				partnerRepository.save(partner);
+				updateStatus = true;
+				break;
+			default:
+				logger.error("User is not authorized to access this service");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+						"User is not authorised to access this service");
+
+			}
+		}
+		return updateStatus;
 	}
 }

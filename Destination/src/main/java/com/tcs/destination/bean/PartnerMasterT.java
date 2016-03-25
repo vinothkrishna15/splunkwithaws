@@ -56,7 +56,6 @@ public class PartnerMasterT implements Serializable {
 
 	private byte[] logo;
 
-	@Column(insertable = false, updatable = false)
 	private String geography;
 
 	@Column(name = "partner_name")
@@ -92,7 +91,7 @@ public class PartnerMasterT implements Serializable {
 
 	// bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
-	@JoinColumn(name = "geography")
+	@JoinColumn(name = "geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
 
 	// bi-directional many-to-one association to UserT

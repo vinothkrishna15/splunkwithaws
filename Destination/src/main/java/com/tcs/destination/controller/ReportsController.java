@@ -311,8 +311,7 @@ public class ReportsController {
 	}
 
 	/**
-	 * This Controller retrieves the Connect detailed report in excel format
-	 * based on input parameters
+	 * This Controller retrieves the Connect detailed report in excel format based on input parameters
 	 * 
 	 * @param month
 	 * @param quarter
@@ -332,9 +331,10 @@ public class ReportsController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "year", defaultValue = "") String year,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
-			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
+			@RequestParam(value = "connectCategory", defaultValue = "All") String connectCategory,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
 		logger.info("Inside ReportsController / Start of Connect detailed report download");
@@ -343,35 +343,39 @@ public class ReportsController {
 					.getUserId();
 			try {
 				++connectConcurrentRequestCounter;
-				InputStreamResource connectDetailedReportExcel = reportsService
-						.getConnectDetailedReport(month, quarter, year, iou,
-								geography, country, serviceline, userId, fields);
+				
+				InputStreamResource connectDetailedReportExcel = reportsService.getConnectDetailedReport(month, quarter, year, iou,
+								geography, country, serviceline, userId, fields, connectCategory);
+				
 				HttpHeaders respHeaders = new HttpHeaders();
-				respHeaders
-						.setContentType(MediaType
-								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
+				respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
 				String todaysDate = DateUtils.getCurrentDate();
+				
 				String environmentName=PropertyUtil.getProperty("environment.name");
-				String repName =environmentName+"_connectDetailedReport_" + todaysDate
-						+ ".xlsx";
+				
+				if(!connectCategory.equals("All")){
+					environmentName = environmentName+"_"+connectCategory;
+				}
+				
+				String repName =environmentName+"_connectDetailedReport_" + todaysDate+ ".xlsx";
+				
 				respHeaders.add("reportName", repName);
-				respHeaders
-						.setContentDispositionFormData("attachment", repName);
+				
+				respHeaders.setContentDispositionFormData("attachment", repName);
+				
 				logger.info("Inside ReportsController / End of Connect detailed report download");
-				return new ResponseEntity<InputStreamResource>(
-						connectDetailedReportExcel, respHeaders, HttpStatus.OK);
+				return new ResponseEntity<InputStreamResource>(connectDetailedReportExcel, respHeaders, HttpStatus.OK);
 			} catch (DestinationException e) {
 				throw e;
 			} catch (Exception e) {
 				logger.error(e.getMessage());
-				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in downloading the connect detailed report");
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend error in downloading the connect detailed report");
 			} finally {
 				--connectConcurrentRequestCounter;
 			}
 		} else {
-
 			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");
 
@@ -379,8 +383,7 @@ public class ReportsController {
 	}
 
 	/**
-	 * This Controller retrieves the Connect Summary report in excel format
-	 * based on input parameters
+	 * This Controller retrieves the Connect Summary report in excel format based on input parameters
 	 * 
 	 * @param month
 	 * @param quarter
@@ -400,9 +403,10 @@ public class ReportsController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "year", defaultValue = "") String year,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
-			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
+			@RequestParam(value = "connectCategory", defaultValue = "All") String connectCategory,
 			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
 			throws DestinationException {
 		logger.info("Inside ReportsController / Start of Connect summary report download");
@@ -411,32 +415,42 @@ public class ReportsController {
 					.getUserId();
 			try {
 				++connectConcurrentRequestCounter;
-				InputStreamResource connectSummaryReportExcel = reportsService
-						.connectSummaryReport(month, quarter, year, iou,
-								geography, country, serviceline, userId, fields);
+				
+				InputStreamResource connectSummaryReportExcel = reportsService.connectSummaryReport(month, quarter, year, iou,
+								geography, country, serviceline, userId, fields, connectCategory);
+				
 				HttpHeaders respHeaders = new HttpHeaders();
+				
 				String todaysDate = DateUtils.getCurrentDate();
+				
 				String environmentName=PropertyUtil.getProperty("environment.name");
+				
+				if(!connectCategory.equals("All")){
+					environmentName = environmentName+"_"+connectCategory;
+				}
+				
 				String repName = environmentName+"_connectSummaryReport_" + todaysDate + ".xlsx";
+				
 				respHeaders.add("reportName", repName);
-				respHeaders
-						.setContentDispositionFormData("attachment", repName);
-				respHeaders
-						.setContentType(MediaType
-								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
+				respHeaders.setContentDispositionFormData("attachment", repName);
+				
+				respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
 				logger.info("Inside ReportsController / End of Connect summary report download");
-				return new ResponseEntity<InputStreamResource>(
-						connectSummaryReportExcel, respHeaders, HttpStatus.OK);
+				return new ResponseEntity<InputStreamResource>(connectSummaryReportExcel, respHeaders, HttpStatus.OK);
+
 			} catch (DestinationException e) {
 				throw e;
+			
 			} catch (Exception e) {
 				logger.error(e.getMessage());
-				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in downloading the connect summary report");
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"Backend error in downloading the connect summary report");
+			
 			} finally {
 				--connectConcurrentRequestCounter;
 			}
+		
 		} else {
 			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");
@@ -465,43 +479,56 @@ public class ReportsController {
 			@RequestParam(value = "quarter", defaultValue = "") String quarter,
 			@RequestParam(value = "year", defaultValue = "") String year,
 			@RequestParam(value = "iou", defaultValue = "All") List<String> iou,
-			@RequestParam(value = "geography", defaultValue = "All") List<String> geography,
+			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "country", defaultValue = "All") List<String> country,
 			@RequestParam(value = "serviceline", defaultValue = "All") List<String> serviceline,
-			@RequestParam(value = "fields", defaultValue = "") List<String> fields)
-			throws DestinationException {
+			@RequestParam(value = "connectCategory", defaultValue = "All") String connectCategory,
+			@RequestParam(value = "fields", defaultValue = "") List<String> fields) throws DestinationException {
+	
 		logger.info("Inside ReportsController / Start of Connect both summary and detailed report download");
+		
 		if (connectConcurrentRequestCounter <= connectConcurrentRequestLimit) {
-			String userId = DestinationUtils.getCurrentUserDetails()
-					.getUserId();
+			
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			
 			try {
 				++connectConcurrentRequestCounter;
-				InputStreamResource connectReportExcel = reportsService
-						.getConnectReports(month, quarter, year, iou,
-								geography, country, serviceline, userId, fields);
+				
+				InputStreamResource connectReportExcel = reportsService.getConnectDetailedAndSummaryReports(month, quarter, year, iou,
+								geography, country, serviceline, userId, fields,connectCategory);
+				
 				HttpHeaders respHeaders = new HttpHeaders();
-				respHeaders
-						.setContentType(MediaType
-								.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
+				respHeaders.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+				
 				String todaysDate = DateUtils.getCurrentDate();
+		
 				String environmentName=PropertyUtil.getProperty("environment.name");
+				
+				if(!connectCategory.equals("All")){
+					environmentName = environmentName+"_"+connectCategory;
+				}
+				
 				String repName =environmentName+"_connectReport_" + todaysDate + ".xlsx";
+				
 				respHeaders.add("reportName", repName);
-				respHeaders
-						.setContentDispositionFormData("attachment", repName);
+				
+				respHeaders.setContentDispositionFormData("attachment", repName);
+				
 				logger.info("Inside ReportsController / End of Connect both summary and detailed report download");
-				return new ResponseEntity<InputStreamResource>(
-						connectReportExcel, respHeaders, HttpStatus.OK);
+				return new ResponseEntity<InputStreamResource>(connectReportExcel, respHeaders, HttpStatus.OK);
+			
 			} catch (DestinationException e) {
 				throw e;
+			
 			} catch (Exception e) {
+			
 				logger.error(e.getMessage());
-				throw new DestinationException(
-						HttpStatus.INTERNAL_SERVER_ERROR,
-						"Backend error in downloading the connect both summary and detailed report");
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error in downloading the connect both summary and detailed report");
 			} finally {
 				--connectConcurrentRequestCounter;
 			}
+
 		} else {
 			throw new DestinationException(HttpStatus.SERVICE_UNAVAILABLE,
 					"Connect report  is experiencing high loads, please try again after sometime");

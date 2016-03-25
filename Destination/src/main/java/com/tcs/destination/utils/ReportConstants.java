@@ -1,9 +1,8 @@
 package com.tcs.destination.utils;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-
-import com.tcs.destination.enums.UserGroup;
 
 
 public class ReportConstants {
@@ -24,8 +23,13 @@ public class ReportConstants {
 	public static final String PRIMARYOWNER = "primaryOwner";
 	public static final String SECONDARYOWNER = "secondaryOwner";
 	public static final String CUSTOMERORPARTNERNAME = "customerOrPartnerName";
+	
 	public static final String TCSACCOUNTCONTACT = "tcsAccountContact";
+	public static final String TCSACCOUNTROLE = "tcsAccountRole";
+	
 	public static final String CUSTOMERCONTACTNAME = "custContactName";
+	public static final String CUSTOMERCONTACTROLE = "custContactRole";
+
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";
 	public static final String REQUESTRECEIVEDDATE = "requestReceivedDate";
@@ -174,6 +178,26 @@ public class ReportConstants {
 	public static final String CONNECTSWHEREPRIMARYORSECONDARYOWNER = "Connects where BDM is tagged as Primary Or Secondary Owner is downloaded";
 	public static final String CONNECTSWHEREBDMSUPERVISORPRIMARYORSECONDARYOWNER = "Connects where BDM Supervisor is tagged as Primary Or Secondary Owner is downloaded";
 	public static final String BIDBASEDONPRIVILAGE = "Bids based on privilege defined";
-	public static final String TARVSACTBASEDONPRIVILAGE = "Target Vs Actuals based on privilege defined";	
+	public static final String TARVSACTBASEDONPRIVILAGE = "Target Vs Actuals based on privilege defined";
+	
+	public static final String COUNTOFCUSTOMERCONNECTS = "Count Of Customer Connects";
+	public static final String COUNTOFPARTNERCONNECTS = "Count Of Partner Connects";
+	public static final String CONNECTSGEOORIOUHEADSCONDITION = "Connects under his/her span of control(determined by privilege) and tagged to his & team";
+	public static final String HEADING = "Connect report as on ";
+	public static final String USERSELECTIONFILTER = "User Selection Filter's";
+	public static final String CONNECTCATEGORY = "Connect Category(CUSTOMER/PARTNER) :";
+	public static final String Country = "Country";
+	public static final String SERVICELINES = "Service Line";
+	public static final String PERIOD = "Period";
+	public static final String USERACCESSFILTER = "User Access Filter's";
+	public static final String PRIVILEGEGEOGRAPHY = "Privilege (Geography) :";
+	public static final String PRIVILEGEIOU = "Privilege (Iou) :";
+	public static final String DISPLAYPREFERENCE = "Display Preferences";
+	public static final String REPORTTYPE = "Report Type";
+	public static final String DETAILEDREPORT = "Detailed Report";
+	public static final String CUSTOMER = "CUSTOMER";
+	public static final String PARTNER = "PARTNER";
+	public static final String All = "All";
+	public static final String DETAILED = "Detailed";
 
 }

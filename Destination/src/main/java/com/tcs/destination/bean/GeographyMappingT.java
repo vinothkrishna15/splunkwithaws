@@ -12,6 +12,9 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+
+
+
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -64,6 +67,16 @@ public class GeographyMappingT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "geographyMappingT")
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
+	
+
+		//bi-directional many-to-one association to RequestedCustomerT
+		@OneToMany(mappedBy="geographyMappingT")
+		private List<WorkflowCustomerT> workflowCustomerTs;
+
+		//bi-directional many-to-one association to RequestedPartnerT
+		@OneToMany(mappedBy="geographyMappingT")
+		private List<WorkflowPartnerT> workflowPartnerTs;
+
 
 	public GeographyMappingT() {
 	}
@@ -206,6 +219,51 @@ public class GeographyMappingT implements Serializable {
 		geographyCountryMappingT.setGeographyMappingT(null);
 
 		return geographyCountryMappingT;
+	}
+	
+
+	public List<WorkflowCustomerT> getWorkflowCustomerTs() {
+		return this.workflowCustomerTs;
+	}
+
+	public void setWorkflowCustomerTs(List<WorkflowCustomerT> workflowCustomerTs) {
+		this.workflowCustomerTs = workflowCustomerTs;
+	}
+
+	public WorkflowCustomerT addWorkflowCustomerT(WorkflowCustomerT workflowCustomerT) {
+		getWorkflowCustomerTs().add(workflowCustomerT);
+		workflowCustomerT.setGeographyMappingT(this);
+
+		return workflowCustomerT;
+	}
+
+	public WorkflowCustomerT removeWorkflowCustomerT(WorkflowCustomerT workflowCustomerT) {
+		getWorkflowCustomerTs().remove(workflowCustomerT);
+		workflowCustomerT.setGeographyMappingT(null);
+
+		return workflowCustomerT;
+	}
+
+	public List<WorkflowPartnerT> getWorkflowPartnerTs() {
+		return this.workflowPartnerTs;
+	}
+
+	public void setWorkflowPartnerTs(List<WorkflowPartnerT> workflowPartnerTs) {
+		this.workflowPartnerTs = workflowPartnerTs;
+	}
+
+	public WorkflowPartnerT addWorkflowPartnerT(WorkflowPartnerT workflowPartnerT) {
+		getWorkflowPartnerTs().add(workflowPartnerT);
+		workflowPartnerT.setGeographyMappingT(this);
+
+		return workflowPartnerT;
+	}
+
+	public WorkflowPartnerT removeWorkflowPartnerT(WorkflowPartnerT workflowPartnerT) {
+		getWorkflowPartnerTs().remove(workflowPartnerT);
+		workflowPartnerT.setGeographyMappingT(null);
+
+		return workflowPartnerT;
 	}
 	
 }

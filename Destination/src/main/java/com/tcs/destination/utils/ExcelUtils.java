@@ -4,11 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,18 +20,12 @@ import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFBorderFormatting;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFColor;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.base.Joiner;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion.Static;
-import com.sun.xml.xsom.impl.scd.Iterators.Map;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.UserT;
 
 public class ExcelUtils {
@@ -42,8 +33,7 @@ public class ExcelUtils {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationUtils.class);
 	
-	public static CellStyle createRowStyle(Workbook workbook,
-			String headerType) {
+	public static CellStyle createRowStyle(Workbook workbook, String headerType) {
 
 		CellStyle cellStyle = workbook.createCellStyle();
 		Font font = workbook.createFont();
@@ -54,13 +44,9 @@ public class ExcelUtils {
 			font.setFontName("Arial");
 			font.setFontHeightInPoints((short) 12);
 			cellStyle.setFont(font);
-			cellStyle.setBorderBottom(XSSFBorderFormatting.BORDER_THIN);
-			cellStyle.setBorderTop(XSSFBorderFormatting.BORDER_THIN);
-			cellStyle.setBorderLeft(XSSFBorderFormatting.BORDER_THIN);
-			cellStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
-			cellStyle.setFillPattern(XSSFCellStyle.LEAST_DOTS);
-			cellStyle.setFillBackgroundColor((short) 24);
+			cellStyle.setFillPattern(XSSFCellStyle.FINE_DOTS);
+//			cellStyle.setFillBackgroundColor((short) 24);
 			break;
 		case ReportConstants.SUBHEADER:
 			font.setColor(IndexedColors.BLACK.getIndex());
@@ -72,8 +58,8 @@ public class ExcelUtils {
 			cellStyle.setBorderLeft(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
-			cellStyle.setFillPattern(XSSFCellStyle.LEAST_DOTS);
-			cellStyle.setFillBackgroundColor((short) 24);
+			cellStyle.setFillPattern(XSSFCellStyle.DIAMONDS);
+//			cellStyle.setFillBackgroundColor((short) 24);
 			break;
 		case ReportConstants.REPORTHEADER1:
 			font.setColor((short) 1);
@@ -160,7 +146,7 @@ public class ExcelUtils {
 			cellStyle.setBorderRight(XSSFBorderFormatting.BORDER_THIN);
 //			cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
 			cellStyle.setFillPattern(XSSFCellStyle.LEAST_DOTS);
-			cellStyle.setFillBackgroundColor((short) 24);
+//			cellStyle.setFillBackgroundColor((short) 24);
 			break;
 			
 		case ReportConstants.SUBHEADINGSTYLE:
@@ -270,6 +256,13 @@ public class ExcelUtils {
 
 	}
 	
+	/**
+	 * This Method is used to get start date and end date for the given financial year (FY'20XX-XX)
+	 * 
+	 * @param year
+	 * @param isStartingYear
+	 * @return
+	 */
 	public static int getStartingAndEndingYear(String[] year , Boolean isStartingYear) {
 		int alteredYear = 0;
 		if (isStartingYear) {
@@ -317,6 +310,13 @@ public class ExcelUtils {
 
 	}
 	
+	/**
+	 * This method is used to create the new row or get the row if exist
+	 * 
+	 * @param spreadsheet
+	 * @param rowNo
+	 * @return
+	 */
 	public static SXSSFRow getRow(SXSSFSheet spreadsheet, int rowNo) {
 		SXSSFRow row = null;
 		if (spreadsheet.getRow(rowNo) == null) {
@@ -373,18 +373,6 @@ public class ExcelUtils {
 		    
 	}
 
-	public static void writeUserFilterConditions(XSSFSheet spreadsheet, UserT user, String conditions) {
-		XSSFRow row;
-		row = spreadsheet.createRow(13);
-		row.createCell(4).setCellValue("User");
-		row.createCell(5).setCellValue(user.getUserName());
-		row = spreadsheet.createRow(14);
-		row.createCell(4).setCellValue("Condition(S)");
-		row.createCell(5).setCellValue(conditions);
-		spreadsheet.autoSizeColumn(4);
-		spreadsheet.autoSizeColumn(5);
-	}
-
 	public static void writeUserFilterConditions(SXSSFSheet spreadsheet, UserT user, String conditions) {
 		SXSSFRow row;
 		row = (SXSSFRow) spreadsheet.createRow(15);
@@ -396,22 +384,57 @@ public class ExcelUtils {
 		row = (SXSSFRow) spreadsheet.createRow(17);
 		row.createCell(4).setCellValue("Condition(S)");
 		row.createCell(5).setCellValue(conditions);
-		spreadsheet.autoSizeColumn(4);
-		spreadsheet.autoSizeColumn(5);
-	}
-
-	public static void writeDetailsForSearchTypeUserAccessFilter(
-			XSSFSheet spreadsheet, String userAccessField,
-			List<String> privilegeValueList, UserT user, CellStyle dataRow,
-			String previlegeBased) {
-		XSSFRow row = null;
-		writeUserFilterConditions(spreadsheet, user, previlegeBased);
-		row = spreadsheet.createRow(15);
-		row.createCell(4).setCellValue(userAccessField);
-		String completeList = getCompleteList(privilegeValueList);
-		row.createCell(5).setCellValue(completeList);
 	}
 	
+	/**
+	 * This Method is used to set the user name, group and report condition to the sheet
+	 * 
+	 * @param spreadsheet
+	 * @param user
+	 * @param conditions
+	 * @param currentRowNo
+	 */
+	public static void writeUserFilterConditions(SXSSFSheet spreadsheet, UserT user, String conditions, int currentRowNo, int currentColNo) {
+		SXSSFRow row;
+		row = (SXSSFRow) spreadsheet.createRow(currentRowNo++);
+		row.createCell(currentColNo).setCellValue("User");
+		row.createCell(currentColNo+1).setCellValue(user.getUserName());
+		row = (SXSSFRow) spreadsheet.createRow(currentRowNo++);
+		row.createCell(currentColNo).setCellValue("Group");
+		row.createCell(currentColNo+1).setCellValue(user.getUserGroup());
+		row = (SXSSFRow) spreadsheet.createRow(currentRowNo++);
+		row.createCell(currentColNo).setCellValue("Condition(S)");
+		row.createCell(currentColNo+1).setCellValue(conditions);
+	}
+
+	/**
+	 * This Method is used to set user access filter details to sheet
+	 * @param spreadsheet
+	 * @param userAccessField
+	 * @param privilegeValueList
+	 * @param user
+	 * @param dataRow
+	 * @param previlegeBased
+	 * @param currentRowNo
+	 * @param currentColNo
+	 */
+	public static void writeDetailsForSearchTypeUserAccessFilter(SXSSFSheet spreadsheet, String userAccessField,
+			List<String> privilegeValueList, UserT user, CellStyle dataRow,	String previlegeBased, int currentRowNo, int currentColNo) {
+		SXSSFRow row = null;
+		writeUserFilterConditions(spreadsheet, user, previlegeBased, currentRowNo++,currentColNo);
+		currentRowNo=currentRowNo+2;
+		row = (SXSSFRow) spreadsheet.createRow(currentRowNo++);
+		row.createCell(currentColNo).setCellValue(userAccessField);
+		String completeList = getCompleteList(privilegeValueList);
+		row.createCell(currentColNo+1).setCellValue(completeList);
+	}
+	
+	/**
+	 * This method is used to convert List of string elements into single string format separated by comma
+	 * 
+	 * @param itemList
+	 * @return
+	 */
 	public static String getCompleteList(List<String> itemList) {
 		if (itemList.size() == 0) {
 			return "All";
@@ -420,34 +443,42 @@ public class ExcelUtils {
 		}
 	}
 
-	public static void writeDetailsForSearchType(XSSFSheet spreadsheet,
-			String searchType, List<String> searchList, int rowValue, CellStyle dataRow) {
-		XSSFRow row = null;
-		row = spreadsheet.createRow(rowValue);
-		row.createCell(4).setCellValue(searchType);
-		spreadsheet.autoSizeColumn(4);
-		String completeList = getCompleteList(searchList);
-		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
+	/**
+	 * This Method is used to set label name and corresponding value to the sheet
+	 * 
+	 * @param spreadsheet
+	 * @param labelName
+	 * @param labelValue
+	 * @param rowNo
+	 * @param colNo
+	 */
+	public static void writeDetailsForSearchType(SXSSFSheet spreadsheet,
+			String labelName, String labelValue, int rowNo, int colNo) {
+		SXSSFRow row = null;
+		if(labelValue.equals("")){
+			labelValue="All";
+		}
+		row = (SXSSFRow) spreadsheet.createRow(rowNo);
+		row.createCell(colNo).setCellValue(labelName);
+		row.createCell(colNo+1).setCellValue(labelValue);
 		
 	}
+	
+	
 	
 	public static void writeDetailsForSearchType(SXSSFSheet spreadsheet,
 			String searchType, List<String> searchList, int rowValue, CellStyle dataRow) {
 		SXSSFRow row = null;
 		row = (SXSSFRow) spreadsheet.createRow(rowValue);
 		row.createCell(4).setCellValue(searchType);
-		spreadsheet.autoSizeColumn(4);
 		String completeList = getCompleteList(searchList);
 		row.createCell(5).setCellValue(completeList);
-		spreadsheet.autoSizeColumn(5);
 		
 	}
+	
 
-	public static void writeDetailsForSearchTypeUserAccessFilter(
-			SXSSFSheet spreadsheet, String userAccessField,
-			List<String> privilegeValueList, UserT user, CellStyle dataRow,
-			String previlegeBased) {
+	public static void writeDetailsForSearchTypeUserAccessFilter(SXSSFSheet spreadsheet, String userAccessField,
+			List<String> privilegeValueList, UserT user, CellStyle dataRow,	String previlegeBased) {
 		SXSSFRow row = null;
 		writeUserFilterConditions(spreadsheet, user, previlegeBased);
 		row = (SXSSFRow) spreadsheet.createRow(18);
@@ -470,60 +501,6 @@ public class ExcelUtils {
 		return period;
 	}
 	
-//	public static String getSalesStageCode(List<Integer> salesStageList){
-//		String code=null;
-//		List<String> salesSatgeCodes = new ArrayList<String>();
-//		for(Integer salesStage:salesStageList){
-//			switch(salesStage){
-//			case 0:
-//				salesSatgeCodes.add("00 - Suspecting");
-//				break;
-//			case 1:
-//				salesSatgeCodes.add("01 - Prospecting");
-//				break;
-//			case 2:
-//				salesSatgeCodes.add("02 - EOI / RFI In Response");
-//				break;
-//			case 3:
-//				salesSatgeCodes.add("03 - EOI / RFI Submitted");
-//				break;
-//			case 4:
-//				salesSatgeCodes.add("04 - RFP in Progress");
-//				break;
-//			case 5:
-//				salesSatgeCodes.add("05 - RFP Submitted");
-//				break;
-//			case 6:
-//				salesSatgeCodes.add("06 - Shortlisted");
-//				break;
-//			case 7:
-//				salesSatgeCodes.add("07 - Selected");
-//				break;
-//			case 8:
-//				salesSatgeCodes.add("08 - Contract Negotiation");
-//				break;
-//			case 9:
-//				salesSatgeCodes.add("09 - Closed & Won");
-//				break;
-//			case 10:
-//				salesSatgeCodes.add("10 - Closed & Lost");
-//				break;
-//			case 11:
-//				salesSatgeCodes.add("11 - Closed & Scrapped");
-//				break;
-//			case 12:
-//				salesSatgeCodes.add("12 - Closed & Shelved");
-//				break;
-//			case 13:
-//				salesSatgeCodes.add("13 - Closed & Disqualified");
-//				break;
-//			}
-//			code = salesSatgeCodes.toString().replace("[", "").replace("]", "");
-//		}
-//		return code;
-//		
-//	}
-
 	public static String getPeriod(String fromMonth, String toMonth) {
 		String period=null;
 		List<String> periodList=new ArrayList<String>();
@@ -558,6 +535,7 @@ public class ExcelUtils {
 	
 	/**
 	 * This Method used to append the single quotes to List elements
+	 * 
 	 * @param formattedList
 	 * @return
 	 */

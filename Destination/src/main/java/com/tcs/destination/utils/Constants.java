@@ -59,6 +59,8 @@ public class Constants {
 	public static final String EMPTY_PARANTHESIS = "()";
 	public static final String GEOGRAPHY = "GEOGRAPHY";
 	public static final String IOU = "IOU";
+	public static final String CUSTOMER = "CUSTOMER";
+	public static final String PARTNER ="PARTNER";
 	
 	public static final String APPLICATION_PROPERTIES_FILENAME = "application";
 	public static final String OPPORTUNITY_TEMPLATE_LOCATION_PROPERTY_NAME = "opportunitySheetTemplate";
@@ -195,6 +197,20 @@ public class Constants {
 	public static final String NOTIFICATION_CUSTOMER = "CUSTOMER";
 	public static final String NOTIFICATION_PRIMARY_OWNER = "(Primary)";
 	public static final String NOTIFICATION_SECONDARY_OWNER = "(Secondary)";
+	public static final String PMO_KEYWORD = "pmo";
+	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Heads,PMO";
+	public static final String WORKFLOW_GEO_HEADS = "GEO Heads";
+	public static final String WORKFLOW_IOU_HEADS = "IOU Heads";
+	public static final String WORKFLOW_STRATEGIC_ADMIN = "Strategic Group Admin";
+	public static final String WORKFLOW_CUSTOMER = "Customer";
+	public static final String WORKFLOW_PARTNER = "Partner";
+	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
+	public static final int CONSTANT_ZERO = 0;
+	public static final int CONSTANT_ONE = 1;
+	public static final int CONSTANT_TWO = 2;
+	
+	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
+	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 }
