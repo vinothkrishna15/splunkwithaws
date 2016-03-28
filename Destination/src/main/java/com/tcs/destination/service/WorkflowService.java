@@ -482,9 +482,9 @@ public class WorkflowService {
 			if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 				validateRevenueCustomerDetails(revenueCustomerMappingTs);
 			} else {
-				logger.error("revenue customer details are mandatory for admin");
+				logger.error("Revenue customer details are mandatory for admin");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"revenue customer details are mandatory");
+						"Revenue customer details are mandatory");
 			}
 			beaconCustomerMappingTs = requestedCustomerT
 					.getBeaconCustomerMappingTs();
@@ -681,7 +681,7 @@ public class WorkflowService {
 								.getComments());
 					} else {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"comments is mandatory: give reason for rejection");
+								"Comments is mandatory: give reason for rejection");
 					}
 					masterRequest.setModifiedBy(userId);
 					masterRequest.setStatus(workflowStepT.getStepStatus());
@@ -801,7 +801,7 @@ public class WorkflowService {
 		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
 		// Getting workflow templates for a particular entity
 		workflowTemplates = workflowProcessTemplateRepository
-				.findByEntityTypeId(entityTypeId);
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
 			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
@@ -983,9 +983,9 @@ public class WorkflowService {
 			if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 				validateRevenueCustomerDetails(revenueCustomerMappingTs);
 			} else {
-				logger.error("revenue customer details are mandatory");
+				logger.error("Revenue customer details are mandatory");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
-						"revenue customer details are mandatory");
+						"Revenue customer details are mandatory");
 			}
 			beaconCustomerMappingTs = requestedCustomerT
 					.getBeaconCustomerMappingTs();
@@ -1031,6 +1031,8 @@ public class WorkflowService {
 								.findOne(workflowCustomerId);
 
 						if (workflowCustomer != null) {
+							workflowCustomer.setRevenueCustomerMappingTs(revenueRepository.getRevenueCustomerMappingForWorkflowCustomer(requestedCustomerId));
+							workflowCustomer.setBeaconCustomerMappingTs(beaconRepository.getBeaconMappingForWorkflowCustomer(requestedCustomerId));
 							workflowCustomerDetailsDTO
 							.setRequestedCustomer(workflowCustomer);
 
@@ -1118,8 +1120,7 @@ public class WorkflowService {
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO.setRequestedPartner(workflowPartner);
-
-
+							
 							// Get the workflow steps associated with the new
 							// partner request
 							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
@@ -1552,12 +1553,7 @@ public class WorkflowService {
 		if (entity.equals(EntityType.CUSTOMER.toString())) {
 
 			// Query to get customer requests APPROVED/REJECTED by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX2);
-			Query query = entityManager.createNativeQuery(queryBuffer
-					.toString());
+			Query query = entityManager.createNativeQuery(QueryConstants.QUERY_FINAL_APPROVED);
 			query.setParameter("stepStatus", status);
 			query.setParameter("userId", userId);
 			resultList = query.getResultList();
@@ -2031,7 +2027,7 @@ public class WorkflowService {
 			logger.error("documents should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"documents should not be empty");
+					"Documents should not be empty");
 		}
 		return validated;
 	}

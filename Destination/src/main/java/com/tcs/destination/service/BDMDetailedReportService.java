@@ -220,7 +220,7 @@ public class BDMDetailedReportService {
 				}
 			} else{
 				fromDate = DateUtils.getDateFromMonth(from, true);
-				toDate = DateUtils.getDateFromMonth(from, false);
+				toDate = DateUtils.getDateFromMonth(to, false);
 			}
 			
 		    if (UserGroup.contains(userGroup)) {
