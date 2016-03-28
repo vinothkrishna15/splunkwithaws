@@ -22,7 +22,7 @@ public interface WorkflowProcessTemplateRepository extends
 	WorkflowProcessTemplate findByEntityTypeIdAndUserRoleAndUserGroup(
 			Integer entityTypeId, String userRole, String userGroup);
 
-	List<WorkflowProcessTemplate> findByEntityTypeId(Integer entityTypeId);
+	List<WorkflowProcessTemplate> findByEntityTypeIdOrderByStepAsc(Integer entityTypeId);
 
 	void findByStep(int i);
 

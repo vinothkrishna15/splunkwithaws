@@ -801,7 +801,7 @@ public class WorkflowService {
 		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
 		// Getting workflow templates for a particular entity
 		workflowTemplates = workflowProcessTemplateRepository
-				.findByEntityTypeId(entityTypeId);
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
 			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
