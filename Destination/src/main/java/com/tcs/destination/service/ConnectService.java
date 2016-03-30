@@ -544,11 +544,12 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-		
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-	    UserT user = userRepository.findByUserId(userId);
-	    String userGroup = user.getUserGroup();
-	    if (UserGroup.contains(userGroup)) {
+		if(isInsert)
+		{
+		  String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+	      UserT user = userRepository.findByUserId(userId);
+	      String userGroup = user.getUserGroup();
+	      if (UserGroup.contains(userGroup)) {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case PRACTICE_HEAD:
 			case PRACTICE_OWNER:
@@ -571,7 +572,7 @@ public class ConnectService {
 				break;
 			}
 	    }
-
+	 }
 		validateAndUpdateCityMapping(connect);
 	}
 
