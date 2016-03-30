@@ -235,8 +235,8 @@ public class WorkflowController {
 	}
 	
 	/**
-	 * This method is used to retrieve requested new customer details based on request id
-	 * @param requestedCustomerId
+	 * This method is used to retrieve requested new partner details based on request id
+	 * @param requestedPartnerId
 	 * @param fields
 	 * @param view
 	 * @return

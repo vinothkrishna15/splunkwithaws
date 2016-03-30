@@ -172,7 +172,9 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 	//Start of Query for Workflow Customer an Workflow Partner
 	public static final String QUERY_FOR_CUSTOMER_REQUESTS_PREFIX = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WST.request_id = WRT.request_id";
     
-	public static final String QUERY_FINAL_APPROVED = "select WCT.customer_name,WRT.status,WST1.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status = (:stepStatus) and WST.user_id = (:userId) AND WCT.created_by <> (:userId) join workflow_step_t WST1 on WST1.request_id = WST.request_id and  WST1.step = (select max(step) from workflow_step_t where request_id = WST1.request_id )";
+	public static final String QUERY_CUSTOMER_FINAL_APPROVED = "select WCT.customer_name,WRT.status,WST1.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status = (:stepStatus) and WST.user_id = (:userId) AND WCT.created_by <> (:userId) join workflow_step_t WST1 on WST1.request_id = WST.request_id and  WST1.step = (select max(step) from workflow_step_t where request_id = WST1.request_id )";
+	
+	public static final String QUERY_PARTNER_FINAL_APPROVED = "select WPT.partner_name,WRT.status,WST1.* from workflow_partner_t WPT join workflow_request_t WRT on WPT.workflow_partner_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status = (:stepStatus) and WST.user_id = (:userId) AND WPT.created_by <> (:userId) join workflow_step_t WST1 on WST1.request_id = WST.request_id and WST1.step = (select max(step) from workflow_step_t where request_id = WST1.request_id )";
 	
 	public static final String MY_CUSTOMER_REQUESTS_SUFFIX1 = " and WCT.created_by = (:userId)";
 
@@ -207,6 +209,9 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 	public static final String CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join (select * from user_access_privileges_t where (user_id=(:userId) and isactive='Y' and privilege_type = 'GEOGRAPHY')) as UAP on WCT.geography = UAP.privilege_value join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
 	public static final String CUSTOMER_PENDING_WITH_SI_QUERY = "select WCT.customer_name,WRT.status,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
+
+
+	
 
 	//End of Query for Workflow Customer an Workflow Partner
 
