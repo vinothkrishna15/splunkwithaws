@@ -150,8 +150,8 @@ public class WorkflowController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (workflowService.rejectWorkflowEntity(workflowStepT)) {
-				status.setStatus(Status.SUCCESS, "Request " + workflowStepT.getRequestId() + " is REJECTED by " + userT.getUserName() + "!!!");
-				logger.debug("Request " + workflowStepT.getRequestId() + " is REJECTED by " + userT.getUserName() + "!!!");
+				status.setStatus(Status.SUCCESS, "Request is REJECTED by " + userT.getUserName() + "!!!");
+				logger.debug("Request is REJECTED by " + userT.getUserName() + "!!!");
 			}
 			logger.info("Inside WorkflowController: End of reject Customer");
 			return new ResponseEntity<String>(
@@ -234,8 +234,8 @@ public class WorkflowController {
 	}
 	
 	/**
-	 * This method is used to retrieve requested new customer details based on request id
-	 * @param requestedCustomerId
+	 * This method is used to retrieve requested new partner details based on request id
+	 * @param requestedPartnerId
 	 * @param fields
 	 * @param view
 	 * @return

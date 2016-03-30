@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.tcs.destination.bean.UserT;
 
 @Repository
@@ -84,4 +85,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
     
 	@Query(value = "select user_id from user_t where user_id like ?1 or user_group = ?2", nativeQuery = true)
 	List<String> findGeoHeadsAndPMOUserIds(String pmoValue, String value);
+    
+	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds)", nativeQuery = true)
+	List<String> findUserGroupByUserIds(@Param("userIds") List<String> userIds);
 }

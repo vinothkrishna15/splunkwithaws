@@ -286,6 +286,8 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:	
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
 							"User is not authorised to access this service");
@@ -587,6 +589,8 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
 							"User is not authorised to access this service");
@@ -907,6 +911,8 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
 							"User is not authorised to access this service");

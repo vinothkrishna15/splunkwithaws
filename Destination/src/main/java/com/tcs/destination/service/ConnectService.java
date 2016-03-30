@@ -40,6 +40,7 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -76,6 +77,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
+import com.tcs.destination.enums.UserGroup;
 
 @Service("connectService")
 public class ConnectService {
@@ -347,12 +349,12 @@ public class ConnectService {
 
 	@Transactional
 	public boolean createConnect(ConnectT connect, boolean isBulkDataLoad)
-			throws Exception {
-		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
-				.getUserId());
-		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
-				.getUserId());
-		logger.debug("Inside insertConnect() service");
+			throws Exception 
+	{
+		  connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+	      connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 		// Validate request
 		validateRequest(connect, true);
 		// Take a copy to keep child objects
@@ -361,7 +363,7 @@ public class ConnectService {
 		// Set null for all child objects
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
-
+       
 		if (connectRepository.save(connect) != null) {
 			requestConnect.setConnectId(connect.getConnectId());
 			logger.debug("Parent Object Saved, ConnectId: {}",
@@ -491,8 +493,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Connect Category is required");
 		}
-
-		String customerId = connect.getCustomerId();
+        String customerId = connect.getCustomerId();
 		String partnerId = connect.getPartnerId();
 		boolean isValid = false;
 		if (EntityType.contains(connectCategory)) {
@@ -543,7 +544,35 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-
+		if(isInsert)
+		{
+		  String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+	      UserT user = userRepository.findByUserId(userId);
+	      String userGroup = user.getUserGroup();
+	      if (UserGroup.contains(userGroup)) {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case PRACTICE_HEAD:
+			case PRACTICE_OWNER:
+				List<String> owners = new ArrayList<String>();
+				owners.add(connect.getPrimaryOwner());
+				if (connect.getConnectSecondaryOwnerLinkTs() != null) {
+					for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+							.getConnectSecondaryOwnerLinkTs()) {
+						owners.add(connectSecondaryOwnerLinkT.getSecondaryOwner());
+					}
+				}
+				if (owners != null) {
+					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
+					} 
+				}
+				break;
+			default:
+				break;
+			}
+	    }
+	 }
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -1059,14 +1088,11 @@ public class ConnectService {
 		Pageable pageable = new PageRequest(page, count);
 		DashBoardConnectsResponse dashBoardConnectsResponse = null;
 
-		if (!StringUtils.isEmpty(supervisorId)) {
+		// Get all users under a supervisor
+		List<String> users = userRepository
+				.getAllSubordinatesIdBySupervisorId(supervisorId);
 
-			// Get all users under a supervisor
-			List<String> users = userRepository
-					.getAllSubordinatesIdBySupervisorId(supervisorId);
-
-			// Adding supervisor Id
-			users.add(supervisorId);
+		if ((users != null) && (users.size() > 0)) {
 
 			dashBoardConnectsResponse = new DashBoardConnectsResponse();
 
@@ -1083,8 +1109,8 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
-
+				.setPaginatedConnectResponse(connectResponse);
+				
 				prepareConnect(connects);
 
 				// Get weekly count of connects
@@ -1094,7 +1120,7 @@ public class ConnectService {
 						+ ONE_DAY_IN_MILLIS - 1);
 				List<ConnectT> weekConnects = connectRepository
 						.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
-
+				
 				dashBoardConnectsResponse.setWeekCount(weekConnects.size());
 
 				// Get monthly count of connects
@@ -1105,11 +1131,12 @@ public class ConnectService {
 				List<ConnectT> monthConnects = connectRepository
 						.getTeamConnects(users, monthStartDateTs,
 								monthEndDateTs);
-				dashBoardConnectsResponse.setMonthCount(monthConnects.size());
+				dashBoardConnectsResponse
+				.setMonthCount(monthConnects.size());
 
-				validateDashboardConnectResponse(dashBoardConnectsResponse,
-						fromDateTs, toDateTs, connects, weekStartDateTs,
-						weekEndDateTs, monthStartDateTs, monthEndDateTs);
+				validateDashboardConnectResponse(dashBoardConnectsResponse, fromDateTs, toDateTs,
+						connects, weekStartDateTs, weekEndDateTs,
+						monthStartDateTs, monthEndDateTs);
 
 			}
 
@@ -1156,7 +1183,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
+				.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1169,10 +1196,13 @@ public class ConnectService {
 						"invalid Role");
 
 			}
+
 		} else {
-			logger.error("NOT_FOUND: Supervisor Id is empty");
+			logger.error(
+					"NOT_FOUND: No subordinate found for supervisor id : {}",
+					supervisorId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Supervisor Id is empty");
+					"No subordinate found for supervisor id " + supervisorId);
 		}
 
 		removeCyclicConnectsInCustomerMappingT(dashBoardConnectsResponse);
@@ -1534,6 +1564,20 @@ public class ConnectService {
 			connectCustomerContactLinkTRepository.save(connectCustContacts);
 		}
 
+	}
+	
+	private boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
+		// TODO Auto-generated method stub
+		boolean isBDMOrBDMSupervisor = false;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
+		for (String userGroup : userGroups) {
+			if (userGroup.equals(UserGroup.BDM.getValue())
+					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
+				isBDMOrBDMSupervisor = true;
+				break;
+			}
+		}
+		return isBDMOrBDMSupervisor;
 	}
 
 	public void deleteConnect(List<ConnectT> deleteList) {

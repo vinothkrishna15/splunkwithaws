@@ -10,6 +10,8 @@ public class BDMDealValueDTO {
 
 	private String userName;
 	
+	private String userGroup;
+	
 	private int winsOpportunityCount;
 	
 	private BigDecimal winsDigitalDealValue;
@@ -38,7 +40,15 @@ public class BDMDealValueDTO {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
+	
+	public String getUserGroup() {
+		return userGroup;
+	}
 
+	public void setUserGroup(String userGroup) {
+		this.userGroup = userGroup;
+	}
+	
 	public int getWinsOpportunityCount() {
 		return winsOpportunityCount;
 	}

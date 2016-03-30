@@ -75,6 +75,7 @@ import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
@@ -508,7 +509,52 @@ public class OpportunityService {
 			opportunity.setOpportunityId(null);
 			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			createdOpportunity = saveOpportunity(opportunity, false);
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
+			UserT user = userRepository.findByUserId(userId);
+			String userGroup = user.getUserGroup();
+			//While practice team creating the opportunity, one of the Owners should be BDM or BDM Supervisor
+			if (UserGroup.contains(userGroup)) {
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:
+
+					List<String> owners = new ArrayList<String>();
+					owners.add(opportunity.getOpportunityOwner());
+					if (opportunity.getOpportunitySalesSupportLinkTs() != null) {
+						for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+								.getOpportunitySalesSupportLinkTs()) {
+							owners.add(opportunitySalesSupportLinkT
+									.getSalesSupportOwner());
+						}
+					}
+					if (opportunity.getBidDetailsTs() != null) {
+						for (BidDetailsT bidDetails : opportunity
+								.getBidDetailsTs()) {
+							if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
+								for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetails
+										.getBidOfficeGroupOwnerLinkTs()) {
+									owners.add(bidOfficeGroupOwnerLinkT
+											.getBidOfficeGroupOwner());
+								}
+							}
+						}
+					}
+					if (owners != null) {
+						if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
+						} else {
+							createdOpportunity = saveOpportunity(opportunity,
+									false);
+						}
+					}
+					break;
+				default:
+					createdOpportunity = saveOpportunity(opportunity, false);
+				}
+			}
 			if (!isBulkDataLoad) {
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
@@ -2035,6 +2081,26 @@ public class OpportunityService {
 		opportunityT.setOpportunitySubSpLinkTs(null);
 		opportunityT.setOpportunityTcsAccountContactLinkTs(null);
 		opportunityT.setOpportunityWinLossFactorsTs(null);
+	}
+	
+	/**
+	 * This method is used to check whether the owners of opportunity or connect are BDM or BDM Supervisor
+	 * @param owners
+	 * @return
+	 */
+	public boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
+		// TODO Auto-generated method stub
+		logger.info("Inside isOwnersAreBDMorBDMSupervisor");
+		boolean isBDMOrBDMSupervisor = false;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
+		for (String userGroup : userGroups) {
+			if (userGroup.equals(UserGroup.BDM.getValue())
+					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
+				isBDMOrBDMSupervisor = true;
+				break;
+			}
+		}
+		return isBDMOrBDMSupervisor;
 	}
 
 	

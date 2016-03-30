@@ -141,7 +141,7 @@ public class BDMService {
 			}
 			Date fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
 			Date toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
-			if (userGroup.equals("BDM")) {
+			if (userGroup.equals("BDM") || userGroup.equals("Practice Owner")) {
 				if (isDashboardByYear) {
 					if(financialYear.equals(DateUtils.getCurrentFinancialYear())){
 						isCurrentFinancialYear=true;
@@ -152,7 +152,7 @@ public class BDMService {
 				}
 			} else {
 				logger.error("NOT_FOUND: User is not BDM: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM/Practice Owner: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -182,7 +182,7 @@ public class BDMService {
 		UserT user = userService.findByUserId(userId);
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (userGroup.equals("BDM Supervisor")) {
+			if (userGroup.equals("BDM Supervisor") || userGroup.equals("Practice Head")) {
 				userIds = new ArrayList<String>();
 				bdmSupervisorDashboardDetails = new BDMSupervisorDashboardDTO();
 				
@@ -197,7 +197,7 @@ public class BDMService {
 				bdmSupervisorDashboardDetails = getBDMSupervisorDashboardByUser(userIds, financialYear, isDashboardByYear);
 			} else {
 				logger.error("NOT_FOUND: User is not BDM Supervisor: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor: " + userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Practice Head: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);
@@ -233,10 +233,13 @@ public class BDMService {
 			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 			case BDM:
 			case BDM_SUPERVISOR:
+			case PRACTICE_HEAD:
+			case PRACTICE_OWNER:	
+			case REPORTING_TEAM:
 				logger.error("User is not authorized to access this service");
 			    throw new DestinationException(HttpStatus.UNAUTHORIZED,  "User is not authorised to access this service");
 			case GEO_HEADS:
-			case IOU_HEADS:
+			case IOU_HEADS:	
 				if(financialYear.equals("")){
 					financialYear=DateUtils.getCurrentFinancialYear();
 					}

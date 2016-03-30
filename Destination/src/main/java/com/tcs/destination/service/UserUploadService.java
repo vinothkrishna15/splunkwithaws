@@ -191,7 +191,11 @@ public class UserUploadService {
 				UserGroup.BDM_SUPERVISOR.getValue(),
 				UserGroup.GEO_HEADS.getValue(), UserGroup.IOU_HEADS.getValue(),
 				UserGroup.BID_OFFICE.getValue(),
-				UserGroup.STRATEGIC_INITIATIVES.getValue() };
+				UserGroup.STRATEGIC_INITIATIVES.getValue(),
+				UserGroup.PRACTICE_HEAD.getValue(),
+				UserGroup.PRACTICE_OWNER.getValue(),
+				UserGroup.REPORTING_TEAM.getValue()
+};
 
 		for (String group : groupArr) {
 			goalsMap.put(group, getGoalsForGroup(group));
@@ -278,8 +282,10 @@ public class UserUploadService {
 		logger.info("Start: Inside  saveUser() of UserUploadService");
 		Row userRow = userMasterIterator.next();
 		List<CellModel> CellModelList = new ArrayList<CellModel>();
-		String action = userRow.getCell(0).getStringCellValue();
-		if (action.equalsIgnoreCase(Constants.ACTION_ADD)) {
+		if(userRow.getCell(0)!=null)
+		{
+		 String action = userRow.getCell(0).getStringCellValue();
+		 if (action.equalsIgnoreCase(Constants.ACTION_ADD)) {
 			CellModel userIdCellModel = validateEmptyStrAndLength(userRow,
 					FieldValidator.UserT_userId, true, "userId");
 			CellModelList.add(userIdCellModel);
@@ -368,6 +374,7 @@ public class UserUploadService {
 					sheetErrors.add(errorDTO);
 				}
 			}
+		}
 		}
 		logger.info("End: Inside  saveUser() of UserUploadService");
 	}
@@ -463,10 +470,8 @@ public class UserUploadService {
 		}
 
 		if (!specificGoalsSet.isEmpty()) {
-			if (!(userGroup.equalsIgnoreCase(UserGroup.BID_OFFICE.getValue()))
-					&& !(userGroup
-							.equalsIgnoreCase(UserGroup.STRATEGIC_INITIATIVES
-									.getValue()))) {
+			boolean checkUserGroup=isGoalsApplicable(userGroup);// to verify whether UserGroup doesn't fall under the category BID_OFFICE or STRATEGIC_INITIATIVE or REPORTING_TEAM
+			if (checkUserGroup) {
 				for (String goalId : specificGoalsSet) {
 					GoalMappingT defaultgoal = specificGoalsForCurrentUser
 							.get(goalId);
@@ -492,6 +497,23 @@ public class UserUploadService {
 			logger.info("Saving Goal : " + userGoal.getGoalId());
 		}
 		logger.info("End: Inside  populateAndSaveGoals() of UserUploadService");
+	}
+	
+	private boolean isGoalsApplicable(String userGroup)
+	{
+		if (!(userGroup.equalsIgnoreCase(UserGroup.BID_OFFICE.getValue()))
+				&& !(userGroup
+						.equalsIgnoreCase(UserGroup.STRATEGIC_INITIATIVES
+								.getValue())&&!(userGroup.equalsIgnoreCase(UserGroup.REPORTING_TEAM.getValue())))) {
+			return true;
+			
+		}
+		else
+		{
+			return false;
+		}
+		
+		
 	}
 
 	/**
@@ -729,10 +751,13 @@ public class UserUploadService {
 			Row row = iterator.next();
 			Cell cell = row.getCell(FieldValidator.FIELD_INDEX_MAP.get(idCol));
 			String excelStr = validateAndRectifyValue(getIndividualCellValue(cell));
-			String action = row.getCell(0).getStringCellValue();
+			if(row.getCell(0)!=null)
+			{
+  			String action = row.getCell(0).getStringCellValue();
 			if (excelStr.equalsIgnoreCase(user.getUserId())
 					&& action.equalsIgnoreCase(Constants.ACTION_ADD)) {
 				userRows.add(row);
+			}
 			}
 			processedCount++;
 		}
