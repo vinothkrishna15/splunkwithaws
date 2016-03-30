@@ -1549,14 +1549,27 @@ public class WorkflowService {
 	private List<Object[]> getRequestsApprovedOrRejectedByUser(String status,
 			String userId, String entity) {
 		logger.debug("Inside getRequestsApprovedOrRejectedByUser method : Start");
+		Query query = null;
 		List<Object[]> resultList = null;
 		if (entity.equals(EntityType.CUSTOMER.toString())) {
+			if(status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())){
+				// Query to get customer requests APPROVED by user
+				query = entityManager.createNativeQuery(QueryConstants.QUERY_FINAL_APPROVED);
+				
+			}else
+			{
+				// Query to get customer requests REJECTED by user
+				StringBuffer queryBuffer = new StringBuffer(
+						QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
+				queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
+				queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX2);
+				query = entityManager.createNativeQuery(queryBuffer
+						.toString());
 
-			// Query to get customer requests APPROVED/REJECTED by user
-			Query query = entityManager.createNativeQuery(QueryConstants.QUERY_FINAL_APPROVED);
+			}
 			query.setParameter("stepStatus", status);
 			query.setParameter("userId", userId);
-			resultList = query.getResultList();
+			resultList = query.getResultList();		
 
 		} else if (entity.equals(EntityType.PARTNER.toString())) {
 
@@ -1565,7 +1578,7 @@ public class WorkflowService {
 					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
 			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
 			queryBuffer.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX3);
-			Query query = entityManager.createNativeQuery(queryBuffer
+			query = entityManager.createNativeQuery(queryBuffer
 					.toString());
 			query.setParameter("stepStatus", status);
 			query.setParameter("userId", userId);
