@@ -144,6 +144,7 @@ public class UserNotificationSettingsService {
 			int index = Integer.MAX_VALUE;
 			switch (UserGroup.valueOf(UserGroup.getName(userT.getUserGroup()))) {
 			case BDM:
+			case PRACTICE_OWNER:	
 				index = 3;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
@@ -151,6 +152,7 @@ public class UserNotificationSettingsService {
 						notificationSettingsGroupMappingTs, index);
 				break;
 			case BDM_SUPERVISOR:
+			case PRACTICE_HEAD:	
 				index = 4;
 				removeNotificationSettingsFromIndex(
 						notificationSettingsGroupMappingTs, index);
