@@ -348,8 +348,16 @@ public class PartnerService {
 		return paginatedResponse;
 	}
 
+	/**
+	 * This method is used to edit the partner details and save the same.
+	 * 
+	 * @param partnerMaster
+	 * @return
+	 * @throws DestinationException
+	 */
 	public boolean updatePartner(PartnerMasterT partnerMaster)
 			throws DestinationException {
+		logger.info("Inside updatePartner method");
 		boolean updateStatus = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		UserT user = userRepository.findByUserId(userId);
@@ -377,8 +385,8 @@ public class PartnerService {
 				// Partner Name
 				String partnerName = partnerMaster.getPartnerName();
 				if (!StringUtils.isEmpty(partnerName)) {
-					if(partnerRepository.findPartnerName(partnerName)==null) {
-					partner.setPartnerName(partnerName);
+					if (partnerRepository.findPartnerName(partnerName) == null) {
+						partner.setPartnerName(partnerName);
 					} else {
 						logger.error("Partner Name already exists");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -396,8 +404,6 @@ public class PartnerService {
 					if (geographyMapping.containsKey(partnerMaster
 							.getGeography())) {
 						partner.setGeography(geography);
-						partner.setGeographyMappingT(geographyRepository
-								.findByGeography(geography));
 
 					} else {
 						logger.error("Invalid geography");
@@ -427,11 +433,12 @@ public class PartnerService {
 				}
 				partner.setCreatedModifiedBy(userId);
 				partnerRepository.save(partner);
+				logger.info(partner.getPartnerId() + " Partner details updated");
 				updateStatus = true;
 				break;
 			default:
 				logger.error("User is not authorized to access this service");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED,
+				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorised to access this service");
 
 			}
