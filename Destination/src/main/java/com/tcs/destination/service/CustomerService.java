@@ -625,7 +625,7 @@ public class CustomerService {
 		List<BeaconCustomerMappingT> beaconCustomers = null;
 		if (beaconCustomerToInsert != null) {
 			beaconT = new BeaconCustomerMappingT();
-			beaconTPK = new BeaconCustomerMappingTPK();
+			//beaconTPK = new BeaconCustomerMappingTPK();
 
 			// to find the uniqueness of the primary key (here composite key)
 			beaconCustomers = beaconRepository.findbeaconDuplicates(
@@ -633,22 +633,24 @@ public class CustomerService {
 					beaconCustomerToInsert.getBeaconIou(),
 					beaconCustomerToInsert.getCustomerGeography());
 			if (beaconCustomers.isEmpty()) {
-				beaconT.setCustomerName(beaconCustomerToInsert
-						.getCustomerName());
-				beaconTPK.setBeaconCustomerName(beaconCustomerToInsert
+			   // CustomerMasterT customerMasterT=beaconCustomers.get(0).getCustomerMasterT();
+				beaconT.setCustomerId(beaconCustomerToInsert.getCustomerId());
+				beaconT.setBeaconCustomerName(beaconCustomerToInsert
 						.getBeaconCustomerName());
-				beaconTPK.setBeaconIou(beaconCustomerToInsert.getBeaconIou());
-				beaconTPK.setCustomerGeography(beaconCustomerToInsert
+				beaconT.setBeaconIou(beaconCustomerToInsert.getBeaconIou());
+				beaconT.setCustomerGeography(beaconCustomerToInsert
 						.getCustomerGeography());
 			} else {
 				logger.error("EXISTS: Beacon Already Exist!");
 				throw new DestinationException(HttpStatus.CONFLICT,
 						"Beacon Already Exist!");
 			}
-			beaconT.setId(beaconTPK);
+			if(beaconT!=null)
+			{
 			beaconT = beaconRepository.save(beaconT);
+			}
 			logger.info("Beacon Saved .... " + "beacon primary key"
-					+ beaconT.getId());
+					+ beaconT.getBeaconCustomerMapId());
 		}
 		return beaconT;
 	}

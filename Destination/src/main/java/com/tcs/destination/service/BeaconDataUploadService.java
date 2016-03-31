@@ -145,9 +145,13 @@ public class BeaconDataUploadService {
 	private BeaconDataT constructBeaconDataT(List<String> listOfCellValues,String userId) throws Exception {
 		BeaconDataT beaconDataT = null;
 		logger.debug("Begin:inside constructBeaconDataT() of BeaconDataUploadService");
+		
 		if ((listOfCellValues.size() > 0)) {
+			
+		  
+			
 			beaconDataT = new BeaconDataT();
-
+			
 			// BEACON_GROUP_CLIENT - does not have NOT_NULL constraint
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				beaconDataT.setBeaconGroupClient(listOfCellValues.get(2));
@@ -171,46 +175,44 @@ public class BeaconDataUploadService {
 			}
 			
 			List<BeaconCustomerMappingT> beaconCustomers = null;
-			// to find whether beacon_iou, beacon_customer_name and beacon_geography(composite key) has foreign key existence in beacon_customer_mapping_t
+			
 			beaconCustomers = beaconRepository.findbeaconDuplicates(listOfCellValues.get(1),listOfCellValues.get(0),listOfCellValues.get(3));
 			if ((!beaconCustomers.isEmpty()) && (beaconCustomers.size() == 1)) 
 			{
-				
 				// GEOGRAPHY TO BEACON_GEOGRAPHY 
-				if(listOfCellValues.get(0).length()>0){
-					beaconDataT.setBeaconGeography(listOfCellValues.get(0));
-				}
-				else {
+				if(StringUtils.isEmpty(listOfCellValues.get(0))){
+				
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Geography NOT Found");
 				}
 				// BEACON_CUSTOMER_NAME 
-				if(listOfCellValues.get(1).length()>0){
-					beaconDataT.setBeaconCustomerName(listOfCellValues.get(1));
-				}
-				else {
+				if(StringUtils.isEmpty(listOfCellValues.get(1))){
+					 
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon CustomerName NOT Found");
 				}
 				// BEACON_CUSTOMER_IOU
 				// to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
-				if(!StringUtils.isEmpty(listOfCellValues.get(3))){
-					if(mapOfBeaconIouMappingT.containsKey(listOfCellValues.get(3))){
-						beaconDataT.setBeaconIou(listOfCellValues.get(3));
-					}
-				}
-				else {
+				if(StringUtils.isEmpty(listOfCellValues.get(3))){
+				
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Customer IOU NOT Found");
 				}
+				
+				// BEACON_CUSTOMER_MAP_ID
+				BeaconCustomerMappingT beaconCustomerMappingT=beaconCustomers.get(0);
+				Long beaconCustomerMapId=beaconCustomerMappingT.getBeaconCustomerMapId();
+				beaconDataT.setBeaconCustomerMapId(beaconCustomerMapId);
+				 
+				  
 			}
 			
 			// TARGET
-						if(!StringUtils.isEmpty(listOfCellValues.get(9))){
-							BigDecimal target=new BigDecimal(listOfCellValues.get(9));
-							beaconDataT.setTarget(target);
-							
-						}
-						else {
+		    if(!StringUtils.isEmpty(listOfCellValues.get(9)))
+		    {
+			  BigDecimal target=new BigDecimal(listOfCellValues.get(9));
+			  beaconDataT.setTarget(target);
+			 }
+			else {
 							throw new DestinationException(HttpStatus.NOT_FOUND, "TARGET NOT Found");
-						}
+			}
 		} 
 		logger.debug("End:inside constructBeaconDataT() of BeaconDataUploadService");
 		return beaconDataT;

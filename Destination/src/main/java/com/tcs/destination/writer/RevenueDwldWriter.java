@@ -115,7 +115,8 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
 				
-				CustomerMasterT customerObj = mapOfCustomerMasterT.get(finance.getCustomerName());
+				CustomerMasterT customerObj = mapOfCustomerMasterT.get(finance.getCustomerMasterT().getCustomerName());
+				//CustomerMasterT customerObj = mapOfCustomerMasterT.get(finance.getCustomerName());
 				
 				Cell cellGroupCustomerName = row.createCell(1);
 				cellGroupCustomerName.setCellValue(customerObj.getGroupCustomerName().trim());

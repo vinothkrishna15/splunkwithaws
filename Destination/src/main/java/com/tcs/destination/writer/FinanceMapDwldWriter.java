@@ -126,16 +126,19 @@ StepExecutionListener{
 				// Create new Cell and set cell value
 
 				Cell cellDisplaySubSp = row.createCell(0);
-				cellDisplaySubSp.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerName().trim());
+				cellDisplaySubSp.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerMasterT().getCustomerName().trim());
+
+				
 
 				Cell cellFinanceCustomerName = row.createCell(1);
-				cellFinanceCustomerName.setCellValue(revenue.getFinanceCustomerName().trim());
+				cellFinanceCustomerName.setCellValue(revenue.getRevenueCustomerMappingT().getFinanceCustomerName().trim());
+				
 
 				Cell cellFinanceIou = row.createCell(2);
-				cellFinanceIou.setCellValue(revenue.getFinanceIou().trim());
+				cellFinanceIou.setCellValue(revenue.getRevenueCustomerMappingT().getFinanceIou().trim());
 
 				Cell cellFinanceGeography = row.createCell(3);
-				cellFinanceGeography.setCellValue(revenue.getFinanceGeography().trim());
+				cellFinanceGeography.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerGeography().trim());
 
 				// Increment row counter
 				rowCount++;

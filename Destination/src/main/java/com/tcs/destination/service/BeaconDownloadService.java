@@ -102,18 +102,17 @@ public class BeaconDownloadService
 		List<BeaconDataT> beaconDataList=(List<BeaconDataT>)beaconDataTRepository.findAll();
 		for(BeaconDataT beaconData:beaconDataList)
 		{
-
-			Row row = beaconDataSheet.createRow(currentRow);
-
+            Row row = beaconDataSheet.createRow(currentRow);
+            BeaconCustomerMappingT  beaconCustomerMappingT=beaconRepository.findByBeaconCustomerMapId(beaconData.getBeaconCustomerMapId());
 			// Get Cell and set cell value
 
 			// Geography
 			Cell cellGeography = row.createCell(0);
-			cellGeography.setCellValue(beaconData.getBeaconGeography());
+			cellGeography.setCellValue(beaconCustomerMappingT.getCustomerGeography());
 
 			// End Client
 			Cell cellEndClient = row.createCell(1);
-			cellEndClient.setCellValue(beaconData.getBeaconCustomerName());
+			cellEndClient.setCellValue(beaconCustomerMappingT.getBeaconCustomerName());
 
 			// Group Client
 			Cell cellGroupClient = row.createCell(2);
@@ -121,7 +120,7 @@ public class BeaconDownloadService
 
 			// IOU
 			Cell cellIsu = row.createCell(3);
-			cellIsu.setCellValue(beaconData.getBeaconIou());
+			cellIsu.setCellValue(beaconCustomerMappingT.getBeaconIou());
 
 			// SP
 			Cell cellSp = row.createCell(4);
@@ -173,12 +172,13 @@ public class BeaconDownloadService
 		{
 
 			Row row = beaconMappingDataSheet.createRow(currentRow);
-
+			
+            
 			// Get Cell and set cell value
 
 			// Master Customer Name
 			Cell cellCustomerName = row.createCell(0);
-			cellCustomerName.setCellValue(beaconMappingData.getCustomerName());
+			cellCustomerName.setCellValue(beaconMappingData.getCustomerMasterT().getCustomerName());
 
 			// Beacon Customer Name
 			Cell cellBeaconCustomerName = row.createCell(1);

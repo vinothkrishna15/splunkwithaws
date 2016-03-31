@@ -202,7 +202,9 @@ public class RevenueUploadService {
 			// CUSTOMER_NAME
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				if(mapOfCustomerNamesT.containsKey(listOfCellValues.get(2))){
-					revenueT.setCustomerName(listOfCellValues.get(2));
+					CustomerMasterT customerMasterT=customerRepository.findByCustomerName(listOfCellValues.get(2));
+					revenueT.setCustomerId(customerMasterT.getCustomerId());
+					//revenueT.setCustomerName(listOfCellValues.get(2));
 				}
 				else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "customer name is not present in customer table");
