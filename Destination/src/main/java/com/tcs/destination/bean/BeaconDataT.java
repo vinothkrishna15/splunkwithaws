@@ -50,6 +50,17 @@ public class BeaconDataT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="beacon_customer_map_id")
 	private BeaconCustomerMappingT beaconCustomerMappingT;
+	
+	 @Column(name="beacon_customer_map_id")
+	 private Long beaconCustomerMapId;
+
+	public Long getBeaconCustomerMapId() {
+		return beaconCustomerMapId;
+	}
+
+	public void setBeaconCustomerMapId(Long beaconCustomerMapId) {
+		this.beaconCustomerMapId = beaconCustomerMapId;
+	}
 
 	public BeaconDataT() {
 	}
