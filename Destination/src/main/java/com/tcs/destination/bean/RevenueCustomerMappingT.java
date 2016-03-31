@@ -6,6 +6,9 @@ import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -27,22 +30,22 @@ import com.tcs.destination.utils.Constants;
 public class RevenueCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	
+	@Id
+	@Column(name="revenue_customer_map_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long revenueCustomerMapId;
+	
 	// @Id
 	// @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "finance_customer_name", insertable = false, updatable = false)
+	@Column(name = "finance_customer_name")
 	private String financeCustomerName;
 
-	@Column(name = "customer_geography", insertable = false, updatable = false)
+	@Column(name = "customer_geography")
 	private String customerGeography;
 	
-	@Column(name = "customer_name")
-	private String customerName;
-	
-	@Column(name = "finance_iou", insertable = false, updatable = false)
+	@Column(name = "finance_iou")
 	private String financeIou;
-
-	@EmbeddedId
-	private RevenueCustomerMappingTPK id;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
 	@JsonIgnore
@@ -56,8 +59,11 @@ public class RevenueCustomerMappingT implements Serializable {
 	
 	// bi-directional many-to-one association to CustomerMasterT
 	@ManyToOne
-	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name", insertable = false, updatable = false)
+	@JoinColumn(name = "customer_id", insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
+	
+	@Column(name = "customer_id")
+	private String customerId;
 
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
@@ -70,6 +76,14 @@ public class RevenueCustomerMappingT implements Serializable {
 	private IouCustomerMappingT iouCustomerMappingT;
 
 	public RevenueCustomerMappingT() {
+	}
+	
+	public Long getRevenueCustomerMapId() {
+		return this.revenueCustomerMapId;
+	}
+
+	public void setRevenueCustomerMapId(Long revenueCustomerMapId) {
+		this.revenueCustomerMapId = revenueCustomerMapId;
 	}
 
 	public String getFinanceCustomerName() {
@@ -86,14 +100,6 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setCustomerGeography(String customerGeography) {
 		this.customerGeography = customerGeography;
-	}
-
-	public RevenueCustomerMappingTPK getId() {
-		return this.id;
-	}
-
-	public void setId(RevenueCustomerMappingTPK id) {
-		this.id = id;
 	}
 
 	public List<ActualRevenuesDataT> getActualRevenuesDataTs() {
@@ -175,12 +181,12 @@ public class RevenueCustomerMappingT implements Serializable {
 		this.financeIou = financeIou;
 	}
 
-	public String getCustomerName() {
-		return customerName;
+	public String getCustomerId() {
+		return customerId;
 	}
 
-	public void setCustomerName(String customerName) {
-		this.customerName = customerName;
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
 	}
 
 }

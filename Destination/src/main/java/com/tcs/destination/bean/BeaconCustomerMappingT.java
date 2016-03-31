@@ -6,6 +6,9 @@ import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -27,26 +30,28 @@ import com.tcs.destination.utils.Constants;
 public class BeaconCustomerMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@EmbeddedId
-	private BeaconCustomerMappingTPK id;
+	@Id
+	@Column(name="beacon_customer_map_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long beaconCustomerMapId;
 
 	//bi-directional many-to-one association to CustomerMasterT
 	@JsonIgnore
 	@ManyToOne
-	@JoinColumn(name = "customer_name", referencedColumnName = "customer_name", 
+	@JoinColumn(name = "customer_id", 
 		insertable = false, updatable = false)
 	private CustomerMasterT customerMasterT;
-
-	@Column(name = "customer_name")
-	private String customerName;
 	
-	@Column(name = "beacon_customer_name", insertable = false, updatable = false)
+	@Column(name = "customer_id")
+	private String customerId;
+	
+	@Column(name = "beacon_customer_name")
 	private String beaconCustomerName;
 	
-	@Column(name = "customer_geography", insertable = false, updatable = false)
+	@Column(name = "customer_geography")
 	private String customerGeography;
 	
-	@Column(name = "beacon_iou", insertable = false, updatable = false)
+	@Column(name = "beacon_iou")
 	private String beaconIou;
 	
 	//bi-directional many-to-one association to GeographyMappingT
@@ -64,15 +69,15 @@ public class BeaconCustomerMappingT implements Serializable {
 	@JoinColumn(name="beacon_iou", insertable = false, updatable = false)
 	private IouBeaconMappingT iouBeaconMappingT;
 
+	public Long getBeaconCustomerMapId() {
+		return beaconCustomerMapId;
+	}
+
+	public void setBeaconCustomerMapId(Long beaconCustomerMapId) {
+		this.beaconCustomerMapId = beaconCustomerMapId;
+	}
+
 	public BeaconCustomerMappingT() {
-	}
-
-	public BeaconCustomerMappingTPK getId() {
-		return this.id;
-	}
-
-	public void setId(BeaconCustomerMappingTPK id) {
-		this.id = id;
 	}
 
 	public CustomerMasterT getCustomerMasterT() {
@@ -121,14 +126,6 @@ public class BeaconCustomerMappingT implements Serializable {
 		this.iouBeaconMappingT = iouBeaconMappingT;
 	}
 
-	public String getCustomerName() {
-		return customerName;
-	}
-
-	public void setCustomerName(String customerName) {
-		this.customerName = customerName;
-	}
-
 	public String getBeaconIou() {
 		return beaconIou;
 	}
@@ -151,6 +148,14 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	public void setBeaconCustomerName(String beaconCustomerName) {
 		this.beaconCustomerName = beaconCustomerName;
+	}
+
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
 	}
 
 }
