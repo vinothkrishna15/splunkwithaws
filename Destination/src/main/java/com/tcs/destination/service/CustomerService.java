@@ -228,12 +228,15 @@ public class CustomerService {
 	private List<CustomerMasterT> getTopRevenuesBasedOnUserPrivileges(
 			String userId, String financialYear, int count) throws Exception {
 		logger.debug("Inside getTopRevenuesBasedOnUserPrivileges() method");
+		List<String> months = DateUtils.getMonthsFromYear(financialYear);
+
 		// Form the native top revenue query string
 		String queryString = getRevenueQueryString(userId, count, financialYear);
 		logger.info("Query string: {}", queryString);
+		
 		// Execute the native revenue query string
-		Query topRevenueQuery = entityManager.createNativeQuery(queryString,
-				CustomerMasterT.class);
+		Query topRevenueQuery = entityManager.createNativeQuery(queryString, CustomerMasterT.class);
+		topRevenueQuery.setParameter("months",months);
 		List<CustomerMasterT> resultList = topRevenueQuery.getResultList();
 		if (resultList == null || resultList.isEmpty()) {
 			logger.error("NOT_FOUND: Top revenue customers not found");
@@ -259,8 +262,7 @@ public class CustomerService {
 		logger.debug("Inside getRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(
 				TOP_REVENUE_PROJECTED_PREFIX);
-		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(
-				userId, financialYear, count));
+		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(userId, count));
 		queryBuffer.append(TOP_REVENUE_PROJECTED_SUFFIX);
 		return queryBuffer.toString();
 	}
