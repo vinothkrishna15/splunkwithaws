@@ -36,20 +36,12 @@ public class IouCustomerMappingT implements Serializable {
 	@Column(name = "display_iou")
 	private String displayIou;
 
-	//bi-directional many-to-one association to ActualRevenuesDataT
-	@JsonIgnore
-	@OneToMany(mappedBy="iouCustomerMappingT")
-	private List<ActualRevenuesDataT> actualRevenuesDataTs;
 
 	//bi-directional many-to-one association to CustomerMasterT
 	@JsonIgnore
 	@OneToMany(mappedBy="iouCustomerMappingT")
 	private List<CustomerMasterT> customerMasterTs;
 
-	//bi-directional many-to-one association to ProjectedRevenuesDataT
-	@JsonIgnore
-	@OneToMany(mappedBy="iouCustomerMappingT")
-	private List<ProjectedRevenuesDataT> projectedRevenuesDataTs;
 
 	//bi-directional many-to-one association to RevenueCustomerMappingT
 	@JsonIgnore
@@ -76,27 +68,7 @@ public class IouCustomerMappingT implements Serializable {
 		this.displayIou = displayIou;
 	}
 
-	public List<ActualRevenuesDataT> getActualRevenuesDataTs() {
-		return this.actualRevenuesDataTs;
-	}
 
-	public void setActualRevenuesDataTs(List<ActualRevenuesDataT> actualRevenuesDataTs) {
-		this.actualRevenuesDataTs = actualRevenuesDataTs;
-	}
-
-	public ActualRevenuesDataT addActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
-		getActualRevenuesDataTs().add(actualRevenuesDataT);
-		actualRevenuesDataT.setIouCustomerMappingT(this);
-
-		return actualRevenuesDataT;
-	}
-
-	public ActualRevenuesDataT removeActualRevenuesDataT(ActualRevenuesDataT actualRevenuesDataT) {
-		getActualRevenuesDataTs().remove(actualRevenuesDataT);
-		actualRevenuesDataT.setIouCustomerMappingT(null);
-
-		return actualRevenuesDataT;
-	}
 
 	public List<CustomerMasterT> getCustomerMasterTs() {
 		return this.customerMasterTs;
@@ -118,28 +90,6 @@ public class IouCustomerMappingT implements Serializable {
 		customerMasterT.setIouCustomerMappingT(null);
 
 		return customerMasterT;
-	}
-
-	public List<ProjectedRevenuesDataT> getProjectedRevenuesDataTs() {
-		return this.projectedRevenuesDataTs;
-	}
-
-	public void setProjectedRevenuesDataTs(List<ProjectedRevenuesDataT> projectedRevenuesDataTs) {
-		this.projectedRevenuesDataTs = projectedRevenuesDataTs;
-	}
-
-	public ProjectedRevenuesDataT addProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
-		getProjectedRevenuesDataTs().add(projectedRevenuesDataT);
-		projectedRevenuesDataT.setIouCustomerMappingT(this);
-
-		return projectedRevenuesDataT;
-	}
-
-	public ProjectedRevenuesDataT removeProjectedRevenuesDataT(ProjectedRevenuesDataT projectedRevenuesDataT) {
-		getProjectedRevenuesDataTs().remove(projectedRevenuesDataT);
-		projectedRevenuesDataT.setIouCustomerMappingT(null);
-
-		return projectedRevenuesDataT;
 	}
 
 	public List<RevenueCustomerMappingT> getRevenueCustomerMappingTs() {

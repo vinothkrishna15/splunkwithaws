@@ -38,15 +38,6 @@ public class ActualRevenuesDataT implements Serializable {
 
 	@Column(name = "client_country")
 	private String clientCountry;
-	
-	@Column(name = "finance_customer_name")
-	private String financeCustomerName;
-
-	@Column(name = "finance_geography")
-	private String financeGeography;
-
-	@Column(name = "finance_iou")
-	private String financeIou;
 
 	@Column(name = "financial_year")
 	private String financialYear;
@@ -57,22 +48,15 @@ public class ActualRevenuesDataT implements Serializable {
 
 	private BigDecimal revenue;
 
-	// bi-directional many-to-one association to IouCustomerMappingT
-	@ManyToOne
-	@JoinColumn(name = "finance_iou", insertable = false, updatable = false)
-	private IouCustomerMappingT iouCustomerMappingT;
+	@Column(name = "revenue_customer_map_id")
+	private Long revenueCustomerMapId;
 
 	@Column(name = "sub_sp")
 	private String subSp;
 
 	// bi-directional many-to-one association to RevenueCustomerMappingT
 	@ManyToOne
-	@JoinColumns(value = {
-			@JoinColumn(name = "finance_customer_name", referencedColumnName = "finance_customer_name", insertable = false, updatable = false),
-			@JoinColumn(name = "finance_geography", referencedColumnName = "customer_geography", insertable = false, updatable = false), 
-			@JoinColumn(name = "finance_iou", referencedColumnName = "finance_iou", insertable = false, updatable = false)
-			})
-
+	@JoinColumn(name="revenue_customer_map_id", insertable = false, updatable = false)
 	private RevenueCustomerMappingT revenueCustomerMappingT;
 
 	// bi-directional many-to-one association to SubSpMappingT
@@ -83,6 +67,14 @@ public class ActualRevenuesDataT implements Serializable {
 	public ActualRevenuesDataT() {
 	}
 
+	public Long getRevenueCustomerMapId() {
+		return revenueCustomerMapId;
+	}
+
+	public void setRevenueCustomerMapId(Long revenueCustomerMapId) {
+		this.revenueCustomerMapId = revenueCustomerMapId;
+	}
+	
 	public String getActualRevenuesDataId() {
 		return this.actualRevenuesDataId;
 	}
@@ -97,22 +89,6 @@ public class ActualRevenuesDataT implements Serializable {
 
 	public void setClientCountry(String clientCountry) {
 		this.clientCountry = clientCountry;
-	}
-
-	public String getFinanceGeography() {
-		return this.financeGeography;
-	}
-
-	public void setFinanceGeography(String financeGeography) {
-		this.financeGeography = financeGeography;
-	}
-
-	public String getFinanceIou() {
-		return this.financeIou;
-	}
-
-	public void setFinanceIou(String financeIou) {
-		this.financeIou = financeIou;
 	}
 
 	public String getFinancialYear() {
@@ -147,14 +123,6 @@ public class ActualRevenuesDataT implements Serializable {
 		this.revenue = revenue;
 	}
 
-	public IouCustomerMappingT getIouCustomerMappingT() {
-		return this.iouCustomerMappingT;
-	}
-
-	public void setIouCustomerMappingT(IouCustomerMappingT iouCustomerMappingT) {
-		this.iouCustomerMappingT = iouCustomerMappingT;
-	}
-
 	public String getSubSp() {
 		return this.subSp;
 	}
@@ -178,14 +146,6 @@ public class ActualRevenuesDataT implements Serializable {
 
 	public void setSubSpMappingT(SubSpMappingT subSpMappingT) {
 		this.subSpMappingT = subSpMappingT;
-	}
-
-	public String getFinanceCustomerName() {
-		return financeCustomerName;
-	}
-
-	public void setFinanceCustomerName(String financeCustomerName) {
-		this.financeCustomerName = financeCustomerName;
 	}
 
 }

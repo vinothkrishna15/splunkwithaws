@@ -400,9 +400,18 @@ public class ReportsService {
 	private static final String BID_OFFICE_GROUP_OWNEER_COND_B_PREFIX = " (BIDGO.bid_office_group_owner in (";
 	
 	private static final String TARVSACT_GEO_COND_PREFIX = "GMT.geography in  (";
+
 	private static final String TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX = "group by CUST.customer_name,PRDT.quarter";
 	private static final String TARVSACT_ACTUAL_GROUP_BY_COND_PREFIX = "group by CUST.customer_name,ARDT.quarter";
 	private static final String TARVSACT_TARGET_GROUP_BY_COND_PREFIX = "group by CUST.customer_name,BDT.quarter";
+
+//	private static final String TARVSACT_PROJECTED_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,PRDT.quarter";
+//	private static final String TARVSACT_ACTUAL_GROUP_BY_COND_PREFIX = "group by RCMT.customer_name,ARDT.quarter";
+//	private static final String TARVSACT_TARGET_GROUP_BY_COND_PREFIX = "group by BCMT.customer_name,BDT.quarter";
+	private static final String TARVSACT_MONTHS_PROJECTED_COND_PREFIX = "PRDT.month in (";
+	private static final String TARVSACT_REVENUE_MONTHS_COND_PREFIX = "ARDT.month in (";
+	private static final String TARVSACT_ACTUAL_QUARTER_COND_PREFIX = "BDT.quarter in (";
+
 	private static final String TARVSACT_ACTUAL_AS_RVNU_COND_PREFIX = "))) as RVNU";
 	private static final String TOP30_GROUP_BY_COND_PREFIX = "30) as top_Revenue";
 	private static final String TARVSACT_GROUP_BY_ORDER_BY_REV_COND_PREFIX = "group by CUST.customer_name order by revenue_sum desc";

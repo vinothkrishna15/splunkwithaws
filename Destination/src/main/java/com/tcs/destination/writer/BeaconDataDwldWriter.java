@@ -124,11 +124,12 @@ public class BeaconDataDwldWriter implements ItemWriter<BeaconDataT>,
 
 				// Geography
 				Cell cellGeography = row.createCell(0);
-				cellGeography.setCellValue(beaconData.getBeaconGeography());
+		        cellGeography.setCellValue(beaconData.getBeaconCustomerMappingT().getCustomerGeography());
 
 				// End Client
-				Cell cellEndClient = row.createCell(1);
-				cellEndClient.setCellValue(beaconData.getBeaconCustomerName());
+				Cell cellEndClient = row.createCell(1); 
+				cellEndClient.setCellValue(beaconData.getBeaconCustomerMappingT().getBeaconCustomerName());
+				
 
 				// Group Client
 				Cell cellGroupClient = row.createCell(2);
@@ -136,8 +137,8 @@ public class BeaconDataDwldWriter implements ItemWriter<BeaconDataT>,
 
 				// IOU
 				Cell cellIsu = row.createCell(3);
-				cellIsu.setCellValue(beaconData.getBeaconIou());
-
+				cellIsu.setCellValue(beaconData.getBeaconCustomerMappingT().getBeaconIou());
+				
 				// SP
 				Cell cellSp = row.createCell(4);
 				cellSp.setCellValue("Digital Initiatives");

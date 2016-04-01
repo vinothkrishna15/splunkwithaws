@@ -390,6 +390,7 @@ public class WorkflowService {
 		String corporateHqAdress = "";
 		String facebook = "";
 		String  website = "";
+		CustomerMasterT savedCustomer = null;
 		oldCustomerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		oldCustomerMaster.setGroupCustomerName(workflowCustomerT.getGroupCustomerName());
 
@@ -421,19 +422,17 @@ public class WorkflowService {
 		oldCustomerMaster.setDocumentsAttached(workflowCustomerT
 				.getDocumentsAttached());
 		oldCustomerMaster.setCreatedModifiedBy(userId);
-		customerRepository.save(oldCustomerMaster);
+		savedCustomer = customerRepository.save(oldCustomerMaster);
 		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
 			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
 					.getRevenueCustomerMappingTs()) {
 				RevenueCustomerMappingT revenueCustomer = new RevenueCustomerMappingT();
-				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
-				revenueTPK.setFinanceCustomerName(rcmpt
+				//RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
+				revenueCustomer.setFinanceCustomerName(rcmpt
 						.getFinanceCustomerName());
-				revenueCustomer.setCustomerName(oldCustomerMaster
-						.getCustomerName());
-				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
-				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
-				revenueCustomer.setId(revenueTPK);
+				revenueCustomer.setFinanceIou(rcmpt.getFinanceIou());
+				revenueCustomer.setCustomerGeography(rcmpt.getCustomerGeography());
+				revenueCustomer.setCustomerId(savedCustomer.getCustomerId());
 				revenueRepository.save(revenueCustomer);
 			}
 		}
@@ -441,13 +440,11 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
-				beaconCustomer
-				.setCustomerName(oldCustomerMaster.getCustomerName());
-				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
-				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
-				beaconCustomer.setId(beaconTPK);
+				//BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
+				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
+				beaconCustomer.setCustomerId(savedCustomer.getCustomerId());
 				beaconRepository.save(beaconCustomer);
 			}
 		}
@@ -2063,6 +2060,7 @@ public class WorkflowService {
 		logger.info("Inside saveToCustomerMasterTables");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customerMaster = new CustomerMasterT();
+		  CustomerMasterT customerMastersaved = new CustomerMasterT();
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		customerMaster.setGroupCustomerName(workflowCustomerT
 				.getGroupCustomerName());
@@ -2076,20 +2074,18 @@ public class WorkflowService {
 		customerMaster.setDocumentsAttached(workflowCustomerT
 				.getDocumentsAttached());
 		customerMaster.setCreatedModifiedBy(userId);
-		customerRepository.save(customerMaster);
+		customerMastersaved = customerRepository.save(customerMaster);
 		logger.info("Customer saved" + customerMaster.getCustomerId());
 		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
 			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
 					.getRevenueCustomerMappingTs()) {
 				RevenueCustomerMappingT revenueCustomer = new RevenueCustomerMappingT();
-				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
-				revenueTPK.setFinanceCustomerName(rcmpt
+				//RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
+				revenueCustomer.setFinanceCustomerName(rcmpt
 						.getFinanceCustomerName());
-				revenueCustomer.setCustomerName(customerMaster
-						.getCustomerName());
-				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
-				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
-				revenueCustomer.setId(revenueTPK);
+				revenueCustomer.setFinanceIou(rcmpt.getFinanceIou());
+				revenueCustomer.setCustomerGeography(rcmpt.getCustomerGeography());
+				revenueCustomer.setCustomerId(customerMastersaved.getCustomerId());
 				revenueRepository.save(revenueCustomer);
 			}
 		}
@@ -2097,13 +2093,11 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
-				beaconCustomer
-						.setCustomerName(customerMaster.getCustomerName());
-				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
-				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
-				beaconCustomer.setId(beaconTPK);
+			//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
+				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
+				beaconCustomer.setCustomerId(customerMastersaved.getCustomerId());
 				beaconRepository.save(beaconCustomer);
 			}
 		}

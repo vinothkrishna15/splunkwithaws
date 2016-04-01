@@ -61,15 +61,15 @@ public class BDMService {
 			+ " JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id " 
 			+ " JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou where ";
 	
-	private static final String SUP_SP_ABOVE_THREE_QUERY_PART = "select count(countOfSubSp) from (select ARDT.finance_customer_name, count(distinct(ARDT.sub_sp)) as countOfSubSp " 
-			+ " from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name " 
-			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) " 
-			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou " 
+	private static final String SUP_SP_ABOVE_THREE_QUERY_PART = "select count(countOfSubSp) from (select RCMT.finance_customer_name, count(distinct(ARDT.sub_sp)) as countOfSubSp " 
+			+ " from actual_revenues_data_t ARDT JOIN revenue_customer_mapping_t RCMT on (RCMT.revenue_customer_map_id = ARDT.revenue_customer_map_id) " 
+			+ " JOIN iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " JOIN customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
 			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp where ";
 	
-	private static final String MONTHS = " upper(ARDT.month) in (";
+	private static final String MONTHS = "ARDT.month in (";
 	
-	private static final String GROUP_BY_FINANCE_CUSTOMER = " group by ARDT.finance_customer_name order by ARDT.finance_customer_name "; 
+	private static final String GROUP_BY_FINANCE_CUSTOMER = " group by RCMT.finance_customer_name order by RCMT.finance_customer_name "; 
 	
 	private static final String COUNT_GREATER_THAN_THREE = " ) as subSpPenetration where countOfSubSp>3";
 
@@ -91,6 +91,8 @@ public class BDMService {
 	private static final String DEAL_CLOSURE_DATE_BETWEEN = " and deal_closure_date between '";
 	
 	private static final String  CUSTOMER_NAME = "RCMT.customer_name in (";
+	
+	private static final String  CUSTOMER_MAS_NAME = "CMT.customer_name in (";
 	
 	@Autowired
 	OpportunityRepository opportunityRepository;
@@ -836,7 +838,7 @@ public class BDMService {
 		queryBuffer.append(MONTHS+formattedMonthsList +Constants.RIGHT_PARANTHESIS);
 		
 		// Get user access privilege groups
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, CUSTOMER_NAME);
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, CUSTOMER_MAS_NAME);
 		// Get WHERE clause string
 		
 		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);

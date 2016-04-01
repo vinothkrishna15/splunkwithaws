@@ -63,6 +63,9 @@ public class RevenueUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validateRevenueAdd(String[] data,
 			String userId, ActualRevenuesDataT actualRevenueT) {
+		
+		
+		
 		// Get List of IOU from DB for validating the IOU which comes from the
 		// sheet
 		mapOfIouCustomerMappingT = mapOfIouCustomerMappingT != null ? mapOfIouCustomerMappingT
@@ -76,9 +79,6 @@ public class RevenueUploadHelper {
 
 		//String quarter = data[6];
 		String month = data[4].trim();
-		
-		
-		
 		String financeCustomerName = data[11];
 		String customerGeography = data[9];
 		String financeIou = data[12];
@@ -147,6 +147,7 @@ public class RevenueUploadHelper {
 		}
 
 		List<RevenueCustomerMappingT> revenueCustomerData = null;
+		
 
 		// to find whether finance_geography, finance_iou, finance_customer_name
 		// and (composite key) has foreign key existence in
@@ -158,43 +159,43 @@ public class RevenueUploadHelper {
 				+ Integer.toString(revenueCustomerData.size()));
 		if ((!revenueCustomerData.isEmpty())
 				&& (revenueCustomerData.size() == 1)) {
+			
+			RevenueCustomerMappingT revenueCustomerMappingT=revenueCustomerData.get(0);
+			Long revenueCustomerMapId=revenueCustomerMappingT.getRevenueCustomerMapId();
 
-			// FINANACE GEOGRAPHY
-			if (!StringUtils.isEmpty(customerGeography)) {
-				actualRevenueT.setFinanceGeography(customerGeography);
-			} else {
+			            // CUSTOMER GEOGRAPHY
+						if(StringUtils.isEmpty(customerGeography)) {
+							error.setRowNumber(Integer.parseInt(data[0]) + 1);
+							error.setMessage("Customer Geography is Empty");
+			                //revenueT.setFinanceGeography(customerGeography);
+						}
 
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("geography Is Mandatory; ");
+						// END CUSTOMER NAME
+						if (StringUtils.isEmpty(financeCustomerName)) {
+							error.setRowNumber(Integer.parseInt(data[0]) + 1);
+							error.setMessage("Customer Name is Empty");
+							//revenueCustomerMappingT.setFinanceCustomerName(financeCustomerName);
+							//revenueT.setFinanceCustomerName(financeCustomerName);
+						}
 
-			}
+						// IOU
+						if (StringUtils.isEmpty(financeIou)) {
+						//	if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
+								error.setRowNumber(Integer.parseInt(data[0]) + 1);
+								error.setMessage("Finance Iou is Empty");
+								//revenueCustomerMappingT.setFinanceIou(financeIou);
+								//revenueT.setFinanceIou(financeIou);
+						//	} 
+						}
+						
+						if(revenueCustomerMapId!=null)
+						{
+							actualRevenueT.setRevenueCustomerMapId(revenueCustomerMapId);
+						}
 
-			// END CUSTOMER NAME
-			if (!StringUtils.isEmpty(financeCustomerName)) {
-				actualRevenueT.setFinanceCustomerName(financeCustomerName);
-			} else {
-
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("end customer name Is Mandatory; ");
-
-			}
-
-			// IOU
-			if (!StringUtils.isEmpty(financeIou)) {
-				if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
-					actualRevenueT.setFinanceIou(financeIou);
-				} else {
-
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Iou not found in database");
-				}
-			} else {
-
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Iou Is Mandatory; ");
-
-			}
-		} else {
+			} 
+			
+		else {
 
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("either of these values i.e finance_geography,finance_iou,finance_customer_name is empty");
@@ -274,27 +275,38 @@ public class RevenueUploadHelper {
 		logger.debug("size " + revenueCustomerData.size());
 		if ((!revenueCustomerData.isEmpty())
 				&& (revenueCustomerData.size() == 1)) {
+			
+			RevenueCustomerMappingT revenueCustomerMappingT=revenueCustomerData.get(0);
+			Long revenueCustomerMapId=revenueCustomerMappingT.getRevenueCustomerMapId();
 
-			// FINANACE GEOGRAPHY
-			if (!StringUtils.isEmpty(customerGeography)) {
-				actualRevenueT.setFinanceGeography(customerGeography);
-			}
+			            // CUSTOMER GEOGRAPHY
+						if(StringUtils.isEmpty(customerGeography)) {
+							error.setRowNumber(Integer.parseInt(data[0]) + 1);
+							error.setMessage("Customer Geography is Empty");
+			                //revenueT.setFinanceGeography(customerGeography);
+						}
 
-			// END CUSTOMER NAME
-			if (!StringUtils.isEmpty(financeCustomerName)) {
-				actualRevenueT.setFinanceCustomerName(financeCustomerName);
-			}
+						// END CUSTOMER NAME
+						if (StringUtils.isEmpty(financeCustomerName)) {
+							error.setRowNumber(Integer.parseInt(data[0]) + 1);
+							error.setMessage("Customer Name is Empty");
+							//revenueCustomerMappingT.setFinanceCustomerName(financeCustomerName);
+							//revenueT.setFinanceCustomerName(financeCustomerName);
+						}
 
-			// IOU
-			if (!StringUtils.isEmpty(financeIou)) {
-				if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
-					actualRevenueT.setFinanceIou(financeIou);
-				} else {
-
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Iou not found in database");
-				}
-			}
+						// IOU
+						if (StringUtils.isEmpty(financeIou)) {
+						//	if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
+								error.setRowNumber(Integer.parseInt(data[0]) + 1);
+								error.setMessage("Finance Iou is Empty");
+								//revenueCustomerMappingT.setFinanceIou(financeIou);
+								//revenueT.setFinanceIou(financeIou);
+						//	} 
+						}
+						if(revenueCustomerMapId!=null)
+						{
+							actualRevenueT.setRevenueCustomerMapId(revenueCustomerMapId);
+						}
 
 		} else {
 
@@ -387,26 +399,37 @@ public class RevenueUploadHelper {
 
 		if ((!revenueCustomerData.isEmpty())
 				&& (revenueCustomerData.size() == 1)) {
-
-			// FINANACE GEOGRAPHY
-			if (!StringUtils.isEmpty(customerGeography)) {
-				revenueT.setFinanceGeography(customerGeography);
+			
+			RevenueCustomerMappingT revenueCustomerMappingT=revenueCustomerData.get(0);
+			Long revenueCustomerMapId=revenueCustomerMappingT.getRevenueCustomerMapId();
+			
+			// CUSTOMER GEOGRAPHY
+			if(StringUtils.isEmpty(customerGeography)) {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Customer Geography is Empty");
+                //revenueT.setFinanceGeography(customerGeography);
 			}
 
 			// END CUSTOMER NAME
-			if (!StringUtils.isEmpty(financeCustomerName)) {
-				revenueT.setFinanceCustomerName(financeCustomerName);
+			if (StringUtils.isEmpty(financeCustomerName)) {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Customer Name is Empty");
+				//revenueCustomerMappingT.setFinanceCustomerName(financeCustomerName);
+				//revenueT.setFinanceCustomerName(financeCustomerName);
 			}
 
 			// IOU
-			if (!StringUtils.isEmpty(financeIou)) {
-				if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
-					revenueT.setFinanceIou(financeIou);
-				} else {
-
+			if (StringUtils.isEmpty(financeIou)) {
+			//	if (mapOfIouCustomerMappingT.containsKey(financeIou)) {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Iou not found in database");
-				}
+					error.setMessage("Finance Iou is Empty");
+					//revenueCustomerMappingT.setFinanceIou(financeIou);
+					//revenueT.setFinanceIou(financeIou);
+			//	} 
+			}
+			if(revenueCustomerMapId!=null)
+			{
+				revenueT.setRevenueCustomerMapId(revenueCustomerMapId);
 			}
 
 		} else {

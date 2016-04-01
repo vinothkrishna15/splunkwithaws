@@ -95,6 +95,7 @@ public class PerformanceReportService {
 
 	private static final String TARGET_SUB_SP_COND_PREFIX = "('') in (";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUE_QUERY_PREFIX = "select ARDT.quarter, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue)"
 			+ " else '0.0' end as actual_revenue from actual_revenues_data_t ARDT"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography"
@@ -103,7 +104,17 @@ public class PerformanceReportService {
 			+ " join revenue_customer_mapping_t RCMT on (ARDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou)"
 			+ " where ";
+	*/
+	private static final String ACTUAL_REVENUE_QUERY_PREFIX = "select ARDT.quarter, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue)"
+			+ " else '0.0' end as actual_revenue from actual_revenues_data_t ARDT"
+			+ " join revenue_customer_mapping_t RCMT on ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography"
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou"
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp"
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
+			+ " where ";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUE_QUERY_COND_SUFFIX = "(ARDT.finance_geography = (:geography) or (:geography) = '') "
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
@@ -111,9 +122,18 @@ public class PerformanceReportService {
 			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
 			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')";
-
+  */
+	private static final String ACTUAL_REVENUE_QUERY_COND_SUFFIX = "(RCMT.customer_geography = (:geography) or (:geography) = '') "
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')";
+	
 	private static final String ACTUAL_REVENUE_QUERY_GROUP_BY_ORDER_BY = " group by ARDT.quarter order by ARDT.quarter asc ";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUE_BY_QUARTER_QUERY_PREFIX = "select upper(ARDT.month), case when sum(ARDT.revenue) is not null then sum(ARDT.revenue)"
 			+ " else '0.0' end as actual_revenue from actual_revenues_data_t ARDT"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography"
@@ -121,17 +141,35 @@ public class PerformanceReportService {
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join revenue_customer_mapping_t RCMT on (ARDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou) "
-			+ " where ";
+			+ " where ";*/
 
+	private static final String ACTUAL_REVENUE_BY_QUARTER_QUERY_PREFIX = "select ARDT.month, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue)"
+			+ " else '0.0' end as actual_revenue from actual_revenues_data_t ARDT"
+			+ " join revenue_customer_mapping_t RCMT on (ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id) "
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography"
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
+			+ " where ";
+	
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUE_QUERY_BY_QUARTER_COND_SUFFIX = "(GMT.geography = (:geography) or (:geography) = '') "
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
 			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
-			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')";
+			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')";*/
 
+	private static final String ACTUAL_REVENUE_QUERY_BY_QUARTER_COND_SUFFIX = "(GMT.geography = (:geography) or (:geography) = '') "
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " and ARDT.financial_year = (:financialYear) and (ARDT.quarter = (:quarter) or (:quarter) = '')";
+	
 	private static final String ACTUAL_REVENUE_BY_QUARTER_QUERY_GROUP_BY_ORDER_BY = " group by ARDT.month order by ARDT.month asc ";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUE_QUERY_PREFIX = "select PRDT.quarter, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue)"
 			+ " else '0.0' end as projected_revenue from projected_revenues_data_t PRDT"
 			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography"
@@ -140,40 +178,92 @@ public class PerformanceReportService {
 			+ " join revenue_customer_mapping_t RCMT on (PRDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and PRDT.finance_geography=RCMT.customer_geography)"
 			+ " and RCMT.finance_iou =PRDT.finance_iou" + " where ";
+	*/
+	private static final String PROJECTED_REVENUE_QUERY_PREFIX = "select PRDT.quarter, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue)"
+			+ " else '0.0' end as projected_revenue from projected_revenues_data_t PRDT"
+			+ " join revenue_customer_mapping_t RCMT on (PRDT.revenue_customer_map_id = RCMT.revenue_customer_map_id)"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography"
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou"
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp"
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
+			+ " where ";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUE_QUERY_COND_SUFFIX = " (PRDT.finance_geography = (:geography) or (:geography) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
 			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))"
 			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')";
+	*/
+	
+	private static final String PROJECTED_REVENUE_QUERY_COND_SUFFIX = " (RCMT.customer_geography = (:geography) or (:geography) = '')"
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '')";
 
 	private static final String PROJECTED_REVENUE_QUERY_GROUP_BY_ORDER_BY = " group by PRDT.quarter order by PRDT.quarter asc";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUE_BY_QUARTER_QUERY_PREFIX = "select upper(PRDT.month), case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0.0' end as projected_revenue from projected_revenues_data_t PRDT "
 			+ "join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ "join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp  "
 			+ "join revenue_customer_mapping_t RCMT on "
 			+ "(PRDT.finance_customer_name = RCMT.finance_customer_name and PRDT.finance_geography=RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou) "
+			+ " where ";*/
+	
+	private static final String PROJECTED_REVENUE_BY_QUARTER_QUERY_PREFIX = "select PRDT.month, case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0.0' end as projected_revenue from projected_revenues_data_t PRDT "
+			+ "join revenue_customer_mapping_t RCMT on "
+			+ "(PRDT.revenue_customer_map_id = RCMT.revenue_customer_map_id) "
+			+ "join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography "
+			+ "join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ "join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp  "
+			+ "join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
 			+ " where ";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUE_BY_QUARTER_QUERY_COND_SUFFIX = " (GMT.geography=(:geography) or (:geography)='')"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='') "
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
 			+ " and (RCMT.customer_name  in (:customerName) or ('') in (:customerName))"
+			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') ";*/
+	
+	private static final String PROJECTED_REVENUE_BY_QUARTER_QUERY_COND_SUFFIX = " (GMT.geography=(:geography) or (:geography)='')"
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography)='') "
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (SSMT.display_sub_sp = (:serviceLine) or (:serviceLine) = '')"
+			+ " and (CMT.customer_name  in (:customerName) or ('') in (:customerName))"
 			+ " and PRDT.financial_year = (:financialYear) and (PRDT.quarter = (:quarter) or (:quarter) = '') ";
 
 	private static final String PROJECTED_REVENUE_BY_QUARTER_QUERY_GROUP_BY_ORDER_BY = " group by PRDT.month order by PRDT.month asc ";
 
+	/* *EDIT CUSTOMER
 	private static final String TARGET_REVENUE_QUERY_PREFIX = "select BDT.quarter, case when sum(BDT.target) is not null then sum(BDT.target) else '0.0' end as target from beacon_data_t BDT "
 			+ "join iou_customer_mapping_t ICMT on BDT.beacon_iou = ICMT.iou "
 			+ "join beacon_customer_mapping_t BCMT on (BDT.beacon_customer_name = BCMT.beacon_customer_name and BDT.beacon_geography = BCMT.customer_geography and BDT.beacon_iou = BCMT.beacon_iou) "
 			+ "join geography_mapping_t GMT on BDT.beacon_geography = GMT.geography  "
+			+ "where ";*/
+	
+	private static final String TARGET_REVENUE_QUERY_PREFIX = "select BDT.quarter, case when sum(BDT.target) is not null then sum(BDT.target) else '0.0' end as target from beacon_data_t BDT "
+			+ "join beacon_customer_mapping_t BCMT on (BDT.beacon_customer_map_id = BCMT.beacon_customer_map_id) "
+			+ "join iou_customer_mapping_t ICMT on BCMT.beacon_iou = ICMT.iou "
+			+ "join geography_mapping_t GMT on BCMT.customer_geography = GMT.geography  "
+			+ "join customer_master_t CMT on CMT.customer_id = BCMT.customer_id "
 			+ "where ";
+	
+	/* *EDIT CUSTOMER
 	private static final String TARGET_REVENUE_QUERY_COND_SUFFIX = " (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (BCMT.customer_name in (:customerName) or ('') in (:customerName))"
+			+ " and (BCMT.customer_geography = (:geography) or (:geography)= '')"
+			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
+			+ " and BDT.financial_year = (:financialYear) and (BDT.quarter = (:quarter) or (:quarter) = '')";*/
+	
+	private static final String TARGET_REVENUE_QUERY_COND_SUFFIX = " (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))"
 			+ " and (BCMT.customer_geography = (:geography) or (:geography)= '')"
 			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
 			+ " and BDT.financial_year = (:financialYear) and (BDT.quarter = (:quarter) or (:quarter) = '')";
@@ -218,12 +308,23 @@ public class PerformanceReportService {
 	private static final String ACTUAL_REVENUES_BY_IOU_QUERY_PREFIX = "select distinct ICMT.display_iou as displayIOU, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from iou_customer_mapping_t ICMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_IOU_INNER_QUERY_PREFIX = " (select ICMT.display_iou as displayIOU, sum(ARDT.revenue) as actualRevenue"
-			+ " from iou_customer_mapping_t ICMT join actual_revenues_data_t ARDT on ICMT.iou = ARDT.finance_iou"
+			+ " from iou_customer_mapping_t ICMT "
+			+ " join actual_revenues_data_t ARDT on ICMT.iou = ARDT.finance_iou"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography"
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp"
 			+ " join revenue_customer_mapping_t RCMT on (ARDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou)"
+			+ " where ";*/
+	
+	private static final String ACTUAL_REVENUES_BY_IOU_INNER_QUERY_PREFIX = " (select ICMT.display_iou as displayIOU, sum(ARDT.revenue) as actualRevenue"
+			+ " from iou_customer_mapping_t ICMT "
+			+ " join revenue_customer_mapping_t RCMT on (ICMT.iou = RCMT.finance_iou)"
+			+ " join actual_revenues_data_t ARDT on RCMT.revenue_customer_map_id=ARDT.revenue_customer_map_id"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography"
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp"
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
 			+ " where ";
 
 	private static final String ACTUAL_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) ='')"
@@ -239,12 +340,22 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_IOU = "select distinct ICMT.display_iou as displayIOU, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from iou_customer_mapping_t ICMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_PREFIX = " (select ICMT.display_iou as displayIOU, sum(PRDT.revenue) as actualRevenue"
 			+ " from iou_customer_mapping_t ICMT join projected_revenues_data_t PRDT on ICMT.iou = PRDT.finance_iou"
 			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "		
 			+ " join revenue_customer_mapping_t RCMT on (PRDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and PRDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou)"
+			+ " where ";*/
+	
+	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_PREFIX = " (select ICMT.display_iou as displayIOU, sum(PRDT.revenue) as actualRevenue"
+			+ " from iou_customer_mapping_t ICMT "
+			+ " join revenue_customer_mapping_t RCMT on (ICMT.iou = RCMT.finance_iou)"
+			+ " join projected_revenues_data_t PRDT on PRDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography "
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "		
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
 			+ " where ";
 
 	private static final String PROJECTED_REVENUES_BY_IOU_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
@@ -278,20 +389,37 @@ public class PerformanceReportService {
 	private static final String ACTUAL_REVENUES_BY_SUBSP_QUERY_PREFIX = "select distinct SSMT.display_sub_sp as displaySubSp, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from sub_sp_mapping_t SSMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX = " (select SSMT.display_sub_sp as displaySubSp, sum(ARDT.revenue) as actualRevenue"
 			+ " from sub_sp_mapping_t SSMT join actual_revenues_data_t ARDT on SSMT.actual_sub_sp = ARDT.sub_sp"
 			+ " join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou"
+			+ " where";*/
+	
+	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX = " (select SSMT.display_sub_sp as displaySubSp, sum(ARDT.revenue) as actualRevenue"
+			+ " from sub_sp_mapping_t SSMT join actual_revenues_data_t ARDT on SSMT.actual_sub_sp = ARDT.sub_sp"
+			+ " join revenue_customer_mapping_t RCMT on ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
 			+ " where";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')"
 			+ " and (GMT.geography=(:geography) or (:geography)='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
-			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))";
+			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))";*/
+	
+	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
+			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and (GMT.display_geography = (:displayGeography) or (:displayGeography) = '')"
+			+ " and (GMT.geography=(:geography) or (:geography)='')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))";
 
 	private static final String ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_GROUP_BY_ORDER_BY = " group by SSMT.display_sub_sp order by actualRevenue desc)";
 
@@ -300,20 +428,38 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_SUBSP_QUERY_PREFIX = "select distinct SSMT.display_sub_sp as displaySubSp, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from sub_sp_mapping_t SSMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX = " (select SSMT.display_sub_sp as displaySubSp, sum(PRDT.revenue) as actualRevenue"
 			+ " from sub_sp_mapping_t SSMT join projected_revenues_data_t PRDT on SSMT.actual_sub_sp = PRDT.sub_sp"
 			+ " join geography_mapping_t GMT on PRDT.finance_geography = GMT.geography "
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
+			+ " where";*/
+	
+	private static final String PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX = " (select SSMT.display_sub_sp as displaySubSp, sum(PRDT.revenue) as actualRevenue"
+			+ " from sub_sp_mapping_t SSMT join projected_revenues_data_t PRDT on SSMT.actual_sub_sp = PRDT.sub_sp"
+			+ " join revenue_customer_mapping_t RCMT on PRDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join geography_mapping_t GMT on RCMT.customer_geography = GMT.geography "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
 			+ " where";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " and (PRDT.finance_geography = (:geography) or (:geography) = '')"
 			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography) ='')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
-			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))";
+			+ " and (RCMT.customer_name in (:customerName) or ('') in (:customerName))";*/
+	
+	
+	private static final String PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
+			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and (RCMT.customer_geography = (:geography) or (:geography) = '')"
+			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography) ='')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customerName) or ('') in (:customerName))";
 
 	private static final String PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_GROUP_BY_ORDER_BY = " group by SSMT.display_sub_sp order by actualRevenue desc)";
 
@@ -339,19 +485,36 @@ public class PerformanceReportService {
 	private static final String ACTUAL_REVENUES_BY_GEO_QUERY_PREFIX = "select distinct GMT.display_geography as displayGeography, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from geography_mapping_t GMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_PREFIX = " (select GMT.display_geography as displayGeography, sum(ARDT.revenue) as actualRevenue"
 			+ " from geography_mapping_t GMT join actual_revenues_data_t ARDT on GMT.geography = ARDT.finance_geography"
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name"
 			+ " and ARDT.finance_geography = RCMT.customer_geography "
-			+ " and RCMT.finance_iou =ARDT.finance_iou" + " where";
+			+ " and RCMT.finance_iou =ARDT.finance_iou" + " where";*/
+	
+	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_PREFIX = " (select GMT.display_geography as displayGeography, sum(ARDT.revenue) as actualRevenue"
+			+ " from geography_mapping_t GMT "
+			+ " join revenue_customer_mapping_t RCMT on GMT.geography = RCMT.customer_geography"
+			+ " join actual_revenues_data_t ARDT on ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
+			+ " where";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
-			+ " and (RCMT.customer_name  in (:customer) or ('') in (:customer))";
+			+ " and (RCMT.customer_name  in (:customer) or ('') in (:customer))";*/
+	
+	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_COND_SUFFIX = " (ARDT.financial_year = (:financialYear) or (:financialYear) = '')"
+			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name  in (:customer) or ('') in (:customer))";
 
 	private static final String ACTUAL_REVENUES_BY_GEO_INNER_QUERY_GROUP_BY_ORDER_BY = " group by GMT.display_geography"
 			+ " order by actualRevenue desc) ";
@@ -361,19 +524,36 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_GEO_QUERY_PREFIX = "select distinct GMT.display_geography as displayGeography, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from geography_mapping_t GMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_GEO_INNER_QUERY_PREFIX = " (select GMT.display_geography as displayGeography, sum(PRDT.revenue) as actualRevenue"
 			+ " from geography_mapping_t GMT join projected_revenues_data_t PRDT on GMT.geography = PRDT.finance_geography"
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
+			+ " where";*/
+	
+	private static final String PROJECTED_REVENUES_BY_GEO_INNER_QUERY_PREFIX = " (select GMT.display_geography as displayGeography, sum(PRDT.revenue) as actualRevenue"
+			+ " from geography_mapping_t GMT"
+			+ " join revenue_customer_mapping_t RCMT on GMT.geography = RCMT.customer_geography"
+			+ " join projected_revenues_data_t PRDT on RCMT.revenue_customer_map_id=PRDT.revenue_customer_map_id"
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id "
 			+ " where";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_GEO_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
 			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')"
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
-			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))";
+			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))";*/
+	
+	private static final String PROJECTED_REVENUES_BY_GEO_INNER_QUERY_COND_SUFFIX = " (PRDT.financial_year = (:financialYear) or (:financialYear) = '')"
+			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')"
+			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))";
 
 	private static final String PROJECTED_REVENUES_BY_GEO_INNER_QUERY_GROUP_BY_ORDER_BY = " group by GMT.display_geography"
 			+ " order by actualRevenue desc)";
@@ -418,18 +598,35 @@ public class PerformanceReportService {
 	private static final String ACTUAL_REVENUES_BY_SUB_GEO_QUERY_PREFIX = "select GMT.geography, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from geography_mapping_t GMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX = " (select GMT.geography as displayGeography, sum(ARDT.revenue) as actualRevenue"
 			+ " from geography_mapping_t GMT left outer join actual_revenues_data_t ARDT on GMT.geography = ARDT.finance_geography"
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou "
+			+ " where";*/
+	
+	private static final String ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX = " (select GMT.geography as displayGeography, sum(ARDT.revenue) as actualRevenue"
+			+ " from geography_mapping_t GMT "
+			+ " join revenue_customer_mapping_t RCMT on GMT.geography = RCMT.customer_geography"
+			+ " left outer join actual_revenues_data_t ARDT on RCMT.revenue_customer_map_id = ARDT.revenue_customer_map_id"
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
 			+ " where";
-
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_COND_SUFFIX = " (GMT.display_geography = (:geography) or (:geography) = '')"
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and (ARDT.financial_year = (:financialYear) or (:financialYear) = '') "
+			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')";*/
+	
+	private static final String ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_COND_SUFFIX = " (GMT.display_geography = (:geography) or (:geography) = '')"
+			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and (ARDT.financial_year = (:financialYear) or (:financialYear) = '') "
 			+ " and (ARDT.quarter = (:quarter) or (:quarter) = '')";
 
@@ -442,18 +639,36 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_SUB_GEO_QUERY_PREFIX = "select GMT.geography, case when Result.actualRevenue is not null then Result.actualRevenue else '0.0' end as revenue"
 			+ " from geography_mapping_t GMT left outer join";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX = " (select GMT.geography as displayGeography, sum(PRDT.revenue) as actualRevenue"
 			+ " from geography_mapping_t GMT left outer join projected_revenues_data_t PRDT on GMT.geography = PRDT.finance_geography"
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and RCMT.finance_iou =PRDT.finance_iou and PRDT.finance_geography=RCMT.customer_geography"
+			+ " where";*/
+			
+	private static final String PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX = " (select GMT.geography as displayGeography, sum(PRDT.revenue) as actualRevenue"
+			+ " from geography_mapping_t GMT"
+			+ " join revenue_customer_mapping_t RCMT on GMT.geography = RCMT.customer_geography"
+			+ " left outer join projected_revenues_data_t PRDT on RCMT.revenue_customer_map_id = PRDT.revenue_customer_map_id"
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
 			+ " where";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_COND_SUFFIX = " (PRDT.finance_geography = (:geography) or (:geography) = '')"
 			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and (PRDT.financial_year = (:financialYear) or (:financialYear)='') "
+			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')";*/
+	
+	private static final String PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_COND_SUFFIX = " (GMT.display_geography = (:geography) or (:geography) = '')"
+			+ " and (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and (PRDT.financial_year = (:financialYear) or (:financialYear)='') "
 			+ " and (PRDT.quarter = (:quarter) or (:quarter) = '')";
 
@@ -463,15 +678,31 @@ public class PerformanceReportService {
 	private static final String PROJECTED_REVENUES_BY_SUB_GEO_ORDER_BY = "Result on GMT.geography = Result.displayGeography"
 			+ " where GMT.display_geography = (:geography) order by revenue desc";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_COUNTRY_QUERY_PREFIX = "select ARDT.client_country,sum(ARDT.revenue) from actual_revenues_data_t  ARDT "
 			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
 			+ " join revenue_customer_mapping_t RCMT on ARDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and ARDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =ARDT.finance_iou"
 			+ " join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
+			+ " where ";*/
+	
+	private static final String ACTUAL_REVENUES_BY_COUNTRY_QUERY_PREFIX = "select ARDT.client_country,sum(ARDT.revenue) from actual_revenues_data_t  ARDT "
+			+ " join sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
+			+ " join revenue_customer_mapping_t RCMT on ARDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
 			+ " where ";
 
+	/* *EDIT CUSTOMER
 	private static final String ACTUAL_REVENUES_BY_COUNTRY_COND_SUFFIX = " (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (ARDT.financial_year=(:financialYear) or (:financialYear)= '') "
+			+ " and (ARDT.quarter=(:quarter) or (:quarter)= '') "
+			+ " AND (RCMT.customer_geography=(:geography) or (:geography)='') ";*/
+	
+	private static final String ACTUAL_REVENUES_BY_COUNTRY_COND_SUFFIX = " (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (ARDT.financial_year=(:financialYear) or (:financialYear)= '') "
 			+ " and (ARDT.quarter=(:quarter) or (:quarter)= '') "
@@ -479,19 +710,36 @@ public class PerformanceReportService {
 
 	private static final String ACTUAL_REVENUES_BY_COUNTRY_GROUP_BY = " group by ARDT.client_country";
 
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_COUNTRY_QUERY_PREFIX = "select PRDT.client_country,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
 			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp  "
 			+ " join revenue_customer_mapping_t RCMT on PRDT.finance_customer_name = RCMT.finance_customer_name "
 			+ " and PRDT.finance_geography = RCMT.customer_geography and RCMT.finance_iou =PRDT.finance_iou "
 			+ " join iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou  "
-			+ " where";
+			+ " where";*/
 
+	private static final String PROJECTED_REVENUES_BY_COUNTRY_QUERY_PREFIX = "select PRDT.client_country,sum(PRDT.revenue) from projected_revenues_data_t PRDT "
+			+ " join sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp  "
+			+ " join revenue_customer_mapping_t RCMT on PRDT.revenue_customer_map_id = RCMT.revenue_customer_map_id"
+			+ " join iou_customer_mapping_t ICMT on RCMT.finance_iou = ICMT.iou  "
+			+ " join customer_master_t CMT on CMT.customer_id = RCMT.customer_id"
+			+ " where";
+	
+	/* *EDIT CUSTOMER
 	private static final String PROJECTED_REVENUES_BY_COUNTRY_COND_SUFFIX = " (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
 			+ " and (RCMT.customer_name in (:customer) or ('') in (:customer))"
 			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
 			+ " and (PRDT.financial_year = (:financialYear) or (:financialYear)='') "
 			+ " and (PRDT.quarter=(:quarter) or (:quarter)= '') "
+			+ " and (RCMT.customer_geography=(:geography) or (:geography)='') ";*/
+	
+	private static final String PROJECTED_REVENUES_BY_COUNTRY_COND_SUFFIX = " (SSMT.display_sub_sp = (:subSp) or (:subSp) = '')"
+			+ " and (CMT.customer_name in (:customer) or ('') in (:customer))"
+			+ " and (ICMT.display_iou = (:iou) or (:iou) = '')"
+			+ " and (PRDT.financial_year = (:financialYear) or (:financialYear)='') "
+			+ " and (PRDT.quarter=(:quarter) or (:quarter)= '') "
 			+ " and (RCMT.customer_geography=(:geography) or (:geography)='') ";
+
 
 	private static final String PROJECTED_REVENUES_BY_COUNTRY_GROUP_BY = " group by PRDT.client_country";
 
@@ -541,7 +789,7 @@ public class PerformanceReportService {
 	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String IOU_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String REVENUE_CUSTOMER_COND_PREFIX = "RCMT.customer_name in (";
-
+	private static final String CUSTOMER_COND_PREFIX = "CMT.customer_name in (";
 	private static final String BEACON_CUSTOMER_COND_PREFIX = "BCMT.customer_name in (";
 
 	public List<TargetVsActualResponse> getTargetVsActualRevenueSummary(
@@ -760,7 +1008,7 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(TARGET_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, TARGET_SUB_SP_COND_PREFIX,
-						IOU_COND_PREFIX, BEACON_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -806,7 +1054,7 @@ public class PerformanceReportService {
 				PROJECTED_REVENUE_BY_QUARTER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -851,8 +1099,8 @@ public class PerformanceReportService {
 				PROJECTED_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
-
+						//IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
 						queryPrefixMap);
@@ -896,7 +1144,7 @@ public class PerformanceReportService {
 				ACTUAL_REVENUE_BY_QUARTER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -977,8 +1225,8 @@ public class PerformanceReportService {
 		StringBuffer queryBuffer = new StringBuffer(ACTUAL_REVENUE_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
-
+						//IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
 						queryPrefixMap);
@@ -1188,7 +1436,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_IOU_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1232,7 +1480,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_IOU_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1370,7 +1618,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1416,7 +1664,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_SUBSP_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1519,7 +1767,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1564,7 +1812,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1677,7 +1925,7 @@ public class PerformanceReportService {
 				PROJECTED_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1719,7 +1967,7 @@ public class PerformanceReportService {
 				ACTUAL_REVENUES_BY_COUNTRY_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1763,7 +2011,7 @@ public class PerformanceReportService {
 		queryBuffer.append(PROJECTED_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,
@@ -1810,7 +2058,7 @@ public class PerformanceReportService {
 		queryBuffer.append(ACTUAL_REVENUES_BY_SUB_GEO_INNER_QUERY_PREFIX);
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 				.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX,
-						IOU_COND_PREFIX, REVENUE_CUSTOMER_COND_PREFIX);
+						IOU_COND_PREFIX, CUSTOMER_COND_PREFIX);
 
 		String whereClause = userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereConditionClause(userId,

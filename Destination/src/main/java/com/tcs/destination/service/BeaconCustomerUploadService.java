@@ -187,10 +187,11 @@ public class BeaconCustomerUploadService {
 		if ((listOfCellValues.size() > 0)) {
 			beaconT = new BeaconCustomerMappingT();
 
-			// BEACON_CUSTOMER_NAME
+			// CUSTOMER_ID
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				if(mapOfCustomerNamesT.containsKey(listOfCellValues.get(2))){
-					beaconT.setCustomerName(listOfCellValues.get(2));
+					CustomerMasterT customerMasterT=customerRepository.findByCustomerName(listOfCellValues.get(2));
+				    beaconT.setCustomerId(customerMasterT.getCustomerId());
 				}
 				else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer Name NOT Found in master table");

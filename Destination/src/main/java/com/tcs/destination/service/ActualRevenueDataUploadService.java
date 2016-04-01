@@ -201,9 +201,9 @@ public class ActualRevenueDataUploadService {
 	 * @return ActualRevenuesDataT
 	 * @throws Exception
 	 */
-	private ActualRevenuesDataT constructActualRevenuesDataT(
-			List<String> listOfCellValues, String userId) throws Exception {
+	private ActualRevenuesDataT constructActualRevenuesDataT(List<String> listOfCellValues, String userId) throws Exception {
 		ActualRevenuesDataT actualRevenueT = null;
+		RevenueCustomerMappingT revenueCustomerMappingT=new RevenueCustomerMappingT();
 		if ((listOfCellValues.size() > 0)) {
 			actualRevenueT = new ActualRevenuesDataT();
 			// QUARTER
@@ -277,33 +277,36 @@ public class ActualRevenueDataUploadService {
 
 			if ((!revenueCustomerData.isEmpty())
 					&& (revenueCustomerData.size() == 1)) {
-				// FINANACE EOGRAPHY
-				if (!StringUtils.isEmpty(listOfCellValues.get(8))) {
-					actualRevenueT.setFinanceGeography(listOfCellValues.get(8));
-				} else {
+				
+				RevenueCustomerMappingT revenueCustomerT=revenueCustomerData.get(0);
+				Long revenueCustomerMapId=revenueCustomerT.getRevenueCustomerMapId();
+				
+				// FINANCE GEOGRAPHY
+				if (StringUtils.isEmpty(listOfCellValues.get(8))) {
+					
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"CLIENT GEOGRAPHY NOT Found");
 				}
 
 				// END CUSTOMER NAME
 				if (!StringUtils.isEmpty(listOfCellValues.get(10))) {
-					actualRevenueT.setFinanceCustomerName(listOfCellValues
-							.get(10));
-				} else {
+			
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"END CUSTOMER NAME NOT Found");
 				}
 
 				// IOU
 				if (!StringUtils.isEmpty(listOfCellValues.get(11))) {
-					if (mapOfIouCustomerMappingT.containsKey(listOfCellValues
-							.get(11))) {
-						actualRevenueT.setFinanceIou(listOfCellValues.get(11));
-					}
-				} else {
+				
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"IOU NOT Found");
 				}
+				if(revenueCustomerMapId!=null)
+				{
+					actualRevenueT.setRevenueCustomerMapId(revenueCustomerMapId);
+				}
+				
+				
 			} else {
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"the combination of  END CUSTOMER NAME,CLIENT GEOGRAPHY and IOU is NOT Found");

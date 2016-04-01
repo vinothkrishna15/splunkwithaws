@@ -9,7 +9,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -37,18 +36,8 @@ public class BeaconDataT implements Serializable {
 	@Column(name="beacon_data_id")
 	private String beaconDataId;
 
-	@Column(name="beacon_geography")
-	private String beaconGeography;
-
 	@Column(name="beacon_group_client")
 	private String beaconGroupClient;
-
-	@Column(name="beacon_iou")
-	private String beaconIou;
-	
-
-	@Column(name="beacon_customer_name")
-	private String beaconCustomerName;
 
 	@Column(name="financial_year")
 	private String financialYear;
@@ -59,17 +48,19 @@ public class BeaconDataT implements Serializable {
 
 	//bi-directional many-to-one association to BeaconCustomerMappingT
 	@ManyToOne
-	@JoinColumns({
-		@JoinColumn(name="beacon_customer_name", referencedColumnName="beacon_customer_name", insertable = false, updatable = false),
-		@JoinColumn(name="beacon_geography", referencedColumnName="customer_geography", insertable = false, updatable = false),
-		@JoinColumn(name="beacon_iou", referencedColumnName="beacon_iou", insertable = false, updatable = false)
-		})
+	@JoinColumn(name="beacon_customer_map_id", insertable = false, updatable = false)
 	private BeaconCustomerMappingT beaconCustomerMappingT;
+	
+	 @Column(name="beacon_customer_map_id")
+	 private Long beaconCustomerMapId;
 
-	//bi-directional many-to-one association to IouBeaconMappingT
-	@ManyToOne
-	@JoinColumn(name="beacon_iou", insertable = false, updatable = false)
-	private IouBeaconMappingT iouBeaconMappingT;
+	public Long getBeaconCustomerMapId() {
+		return beaconCustomerMapId;
+	}
+
+	public void setBeaconCustomerMapId(Long beaconCustomerMapId) {
+		this.beaconCustomerMapId = beaconCustomerMapId;
+	}
 
 	public BeaconDataT() {
 	}
@@ -80,14 +71,6 @@ public class BeaconDataT implements Serializable {
 
 	public void setBeaconDataId(String beaconDataId) {
 		this.beaconDataId = beaconDataId;
-	}
-
-	public String getBeaconGeography() {
-		return this.beaconGeography;
-	}
-
-	public void setBeaconGeography(String beaconGeography) {
-		this.beaconGeography = beaconGeography;
 	}
 
 	public String getBeaconGroupClient() {
@@ -128,30 +111,6 @@ public class BeaconDataT implements Serializable {
 
 	public void setBeaconCustomerMappingT(BeaconCustomerMappingT beaconCustomerMappingT) {
 		this.beaconCustomerMappingT = beaconCustomerMappingT;
-	}
-
-	public IouBeaconMappingT getIouBeaconMappingT() {
-		return this.iouBeaconMappingT;
-	}
-
-	public void setIouBeaconMappingT(IouBeaconMappingT iouBeaconMappingT) {
-		this.iouBeaconMappingT = iouBeaconMappingT;
-	}
-
-	public String getBeaconIou() {
-		return beaconIou;
-	}
-
-	public void setBeaconIou(String beaconIou) {
-		this.beaconIou = beaconIou;
-	}
-
-	public String getBeaconCustomerName() {
-		return beaconCustomerName;
-	}
-
-	public void setBeaconCustomerName(String beaconCustomerName) {
-		this.beaconCustomerName = beaconCustomerName;
 	}
 
 }

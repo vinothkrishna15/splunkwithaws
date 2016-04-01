@@ -200,19 +200,22 @@ public class ActualRevenueDwldWriter implements
 						.getClientCountry().toString());
 
 				Cell cellFinanceGeography = row.createCell(8);
+				//cellFinanceGeography.setCellValue(actualRevenue.getFinanceGeography().toString());
 				cellFinanceGeography.setCellValue(actualRevenue
-						.getFinanceGeography().toString());
-
+						.getRevenueCustomerMappingT().getCustomerGeography().toString());
+						
 				Cell cellSubsp = row.createCell(9);
 				cellSubsp.setCellValue(actualRevenue.getSubSp().toString());
 
 				Cell cellFinanceCustomerName = row.createCell(10);
+			   //cellFinanceCustomerName.setCellValue(actualRevenue.getFinanceCustomerName().toString());
 				cellFinanceCustomerName.setCellValue(actualRevenue
-						.getFinanceCustomerName().toString());
+						.getRevenueCustomerMappingT().getFinanceCustomerName().toString());
+						
 
 				Cell cellFinanceIou = row.createCell(11);
-				cellFinanceIou.setCellValue(actualRevenue.getFinanceIou()
-						.toString());
+				cellFinanceIou.setCellValue(actualRevenue
+						.getRevenueCustomerMappingT().getFinanceIou().toString());
 
 				// Increment row counter
 				rowCount++;
