@@ -38,7 +38,7 @@ public class ActualRevenuesDataT implements Serializable {
 
 	@Column(name = "client_country")
 	private String clientCountry;
-	
+
 	@Column(name = "financial_year")
 	private String financialYear;
 
@@ -48,12 +48,15 @@ public class ActualRevenuesDataT implements Serializable {
 
 	private BigDecimal revenue;
 
+	@Column(name = "revenue_customer_map_id")
+	private Long revenueCustomerMapId;
+
 	@Column(name = "sub_sp")
 	private String subSp;
 
 	// bi-directional many-to-one association to RevenueCustomerMappingT
 	@ManyToOne
-	@JoinColumn(name="revenue_customer_map_id")
+	@JoinColumn(name="revenue_customer_map_id", insertable = false, updatable = false)
 	private RevenueCustomerMappingT revenueCustomerMappingT;
 
 	// bi-directional many-to-one association to SubSpMappingT
@@ -64,6 +67,14 @@ public class ActualRevenuesDataT implements Serializable {
 	public ActualRevenuesDataT() {
 	}
 
+	public Long getRevenueCustomerMapId() {
+		return revenueCustomerMapId;
+	}
+
+	public void setRevenueCustomerMapId(Long revenueCustomerMapId) {
+		this.revenueCustomerMapId = revenueCustomerMapId;
+	}
+	
 	public String getActualRevenuesDataId() {
 		return this.actualRevenuesDataId;
 	}

@@ -48,7 +48,7 @@ public class BeaconDataT implements Serializable {
 
 	//bi-directional many-to-one association to BeaconCustomerMappingT
 	@ManyToOne
-	@JoinColumn(name="beacon_customer_map_id")
+	@JoinColumn(name="beacon_customer_map_id", insertable = false, updatable = false)
 	private BeaconCustomerMappingT beaconCustomerMappingT;
 	
 	 @Column(name="beacon_customer_map_id")

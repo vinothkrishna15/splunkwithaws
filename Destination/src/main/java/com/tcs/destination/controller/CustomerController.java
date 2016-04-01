@@ -496,7 +496,7 @@ public class CustomerController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (customerService.updateCustomer(customerMaster)) {
-				status.setStatus(Status.SUCCESS, customerMaster.getCustomerId());
+				status.setStatus(Status.SUCCESS, "Customer was edited successfully!!!");
 			}
 			logger.info("Inside CustomerController: End of Edit Customer");
 			return new ResponseEntity<String>(
