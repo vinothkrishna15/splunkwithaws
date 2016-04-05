@@ -5,6 +5,9 @@ import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
 import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
 import java.sql.Timestamp;
+import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
+import com.tcs.destination.bean.WorkflowCompetitorT;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -147,7 +150,7 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
-
+	
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
@@ -1128,8 +1131,7 @@ public class WorkflowService {
 										.setWorkflowSteps(workflowSteps);
 								// Check if user is authorized to access the
 								// request details
-								boolean authorizedUserFlag = getAuthorizedUserFlag(
-										workflowSteps, userId);
+							checkAuthorizedUser(workflowSteps, userId);						
 							} else {
 								logger.info("No step details found for workflow customer id: "
 										+ workflowCustomerId);
@@ -1219,8 +1221,7 @@ public class WorkflowService {
 										.setWorkflowSteps(workflowSteps);
 								// Check if user is authorized to access the
 								// request details
-								boolean authorizedUserFlag = getAuthorizedUserFlag(
-										workflowSteps, userId);
+								checkAuthorizedUser(workflowSteps, userId);
 							} else {
 								logger.info("No step details found for workflow partner id: "
 										+ workflowPartnerId);
@@ -1259,10 +1260,96 @@ public class WorkflowService {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while retrieving request customer details");
+					"Backend error while retrieving request partner details");
 		}
 	}
+	
+	/**
+	 * This method is used to retrieve workflow competitor details based on Id.
+	 * @param requestedCompetitorId
+	 * @return
+	 */
+	public WorkflowCompetitorDetailsDTO findRequestedCompetitorDetailsById(
+			Integer requestedCompetitorId) {
+		logger.debug("Inside findRequestedCompetitorDetailsById() service: Start");
+		try {
+			String userId =  DestinationUtils.getCurrentUserDetails().getUserId();
+			WorkflowCompetitorDetailsDTO workflowCompetitorDetailsDTO = new WorkflowCompetitorDetailsDTO();
+			if (requestedCompetitorId != null) {
+				// Request details are retrieved based on Id
+				WorkflowRequestT workflowRequest = workflowRequestRepository
+						.findByRequestId(requestedCompetitorId);
+				if (workflowRequest != null) {
 
+					// Check if the particular request is a new competitor request
+					if (workflowRequest.getEntityTypeId() == EntityTypeId.COMPETITOR
+							.getType()) {
+
+						// Get the status of the new competitor request
+						workflowCompetitorDetailsDTO.setStatus(workflowRequest
+								.getStatus());
+
+						// Get the workflow competitor Id from request table
+						String workflowCompetitorId = workflowRequest
+								.getEntityId();
+						// Get the new competitor details for the request
+						WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+								.findOne(workflowCompetitorId);
+
+						if (workflowCompetitor != null) {
+							workflowCompetitorDetailsDTO.setRequestedCompetitor(workflowCompetitor);
+							
+							// Get the workflow steps associated with the new
+							// competitor request
+							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
+							if (workflowSteps != null) {
+								workflowCompetitorDetailsDTO
+								.setWorkflowSteps(workflowSteps);
+								// Check if user is authorized to access the
+								// request details
+								checkAuthorizedUser(workflowSteps, userId);
+							} else {
+								logger.info("No step details found for workflow Competitor id: "
+										+ workflowCompetitorId);
+								throw new DestinationException(
+										HttpStatus.INTERNAL_SERVER_ERROR,
+										"Backend error in retrieving Competitor details");
+							}
+						} else {
+							logger.info("Workflow Competitor id: "
+									+ workflowCompetitorId
+									+ " is not a valid workflow Competitor id");
+							throw new DestinationException(
+									HttpStatus.INTERNAL_SERVER_ERROR,
+									"Backend error in retrieving Competitor details");
+						}
+					} else {
+						logger.info("Request id: " + requestedCompetitorId
+								+ " is not a valid Competitor request id");
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"Request id is not a Competitor request");
+					}
+				} else {
+					logger.info("No request found for the given request id");
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"No request found for the given request id");
+				}
+			} else {
+				logger.info("Request Id cannot be null");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Request id is not valid or empty");
+			}
+			logger.debug("Inside findRequestedCompetitorDetailsById() service: End");
+			return workflowCompetitorDetailsDTO;
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving request competitor details");
+		}
+	}
+	
 	/**
 	 * This service is used to retrieve the worklist of the logged in user
 	 * 
@@ -1291,8 +1378,7 @@ public class WorkflowService {
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
 			// Get all requests
-			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(
-					status, userId);
+			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(status, userId);
 
 			if (status.equalsIgnoreCase("ALL")) {
 
@@ -1723,11 +1809,11 @@ public class WorkflowService {
 	 */
 	private List<Object[]> getMyRequestsForPartner(String status, String userId) {
 		logger.debug("Inside getMyRequestsForPartner method : Start");
-		// Query to get new customer requests created by user
+		// Query to get new partner requests created by user
 		List<Object[]> resultList = null;
 		Query query = null;
 		if (status.equals("ALL")) {
-			// Query to get new customer requests created by user
+			// Query to get new partner requests created by user
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
 			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
@@ -1738,7 +1824,7 @@ public class WorkflowService {
 			query = entityManager.createNativeQuery(queryBuffer.toString());
 		} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
 				|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
-			// Query to get new customer requests created by user
+			// Query to get new partner requests created by user
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
 			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
@@ -1764,6 +1850,7 @@ public class WorkflowService {
 		return resultList;
 
 	}
+	
 
 	/**
 	 * This method is used to retrieve requests which are
@@ -2020,8 +2107,7 @@ public class WorkflowService {
 	 * @return
 	 * @throws DestinationException
 	 */
-	private boolean getAuthorizedUserFlag(List<WorkflowStepT> workflowSteps,
-			String userId) throws DestinationException {
+	private void checkAuthorizedUser(List<WorkflowStepT> workflowSteps, String userId)throws DestinationException{
 		boolean authorizedUserFlag = false;
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
@@ -2045,8 +2131,6 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
 					"User not authorized to access this request");
 		}
-		return authorizedUserFlag;
-
 	}
 
 	/**
