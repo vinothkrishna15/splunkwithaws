@@ -34,6 +34,7 @@ import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
@@ -44,6 +45,7 @@ import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepositor
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
@@ -147,6 +149,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
+
+	@Autowired
+	WorkflowCompetitorTRepository workflowCompetitorRepository; 
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
@@ -511,18 +516,18 @@ public class DestinationMailUtils {
 				.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
-				//			case COMPETITOR:
-				//				workflowEntity = Constants.WORKFLOW_COMPETITOR;
-				//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-				//						.findOne(entityId);
-				//				workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
-				//				userName = userRepository.findUserNameByUserId(workflowCompetitor
-				//						.getCreatedBy());
-				//				subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
-				//						.append(" ").append(Constants.FROM).append(" ")
-				//						.append(userName);
-				//				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
-				//				break;
+			case COMPETITOR:
+				workflowEntity = Constants.WORKFLOW_COMPETITOR;
+				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+						.findOne(entityId);
+				workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
+				userName = userRepository.findUserNameByUserId(workflowCompetitor
+						.getCreatedBy());
+				subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
+				.append(" ").append(Constants.FROM).append(" ")
+				.append(userName);
+				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
+				break;
 			case OPPORTUNITY:
 				workflowEntity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 				OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -685,17 +690,17 @@ public class DestinationMailUtils {
 				operation = Constants.WORKFLOW_OPERATION_CREATE;
 				recepientIds.add(workflowPartnerT.getCreatedBy());
 				break;
-				//				case COMPETITOR:
-				//					entity = Constants.WORKFLOW_COMPETITOR;
-				//					WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-				//							.findOne(entityId);
-				//					entityName = workflowCompetitor.getWorkflowCompetitorName();
-				//					userName = userRepository
-				//							.findUserNameByUserId(workflowCompetitor
-				//									.getCreatedBy());
-				//					operation = Constants.WORKFLOW_OPERATION_CREATE;
-				//					recepientIds.add(workflowCompetitor.getCreatedBy());
-				//					break;
+			case COMPETITOR:
+				entity = Constants.WORKFLOW_COMPETITOR;
+				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+						.findOne(entityId);
+				entityName = workflowCompetitor.getWorkflowCompetitorName();
+				userName = userRepository
+						.findUserNameByUserId(workflowCompetitor
+								.getCreatedBy());
+				operation = Constants.WORKFLOW_OPERATION_CREATE;
+				recepientIds.add(workflowCompetitor.getCreatedBy());
+				break;
 			case OPPORTUNITY:
 				entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 				OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -704,7 +709,6 @@ public class DestinationMailUtils {
 				userName = userRepository.findUserNameByUserId(workflowRequestT.getCreatedBy());
 				operation = Constants.WORKFLOW_OPERATION_REOPEN;
 				recepientIds.add(workflowRequestT.getCreatedBy());
-				break;
 			default:
 				break;
 			}

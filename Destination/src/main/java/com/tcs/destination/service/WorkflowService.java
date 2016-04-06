@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
+import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
@@ -53,6 +54,7 @@ import com.tcs.destination.bean.WorkflowProcessTemplate;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
+import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
@@ -159,6 +161,9 @@ public class WorkflowService {
 
 	@Autowired
 	OpportunityRepository workflowOpportunityRepository;
+	
+	@Autowired
+	CompetitorRepository competitorRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -2462,6 +2467,65 @@ public class WorkflowService {
 				beaconRepository.save(beaconCustomer);
 			}
 		}
+	}
+	
+	@Transactional
+	public boolean insertWorkflowCompetitor(
+			WorkflowCompetitorT workflowCompetitorT, Status status) throws Exception {
+		logger.info("Inside insertWorkflowCompetitor method");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		validateWorkflowCompetitor(workflowCompetitorT);
+		workflowCompetitorT.setCreatedBy(userId);
+		workflowCompetitorT.setModifiedBy(userId);
+		WorkflowCompetitorT requestedCompetitor = workflowCompetitorRepository.save(workflowCompetitorT);
+		logger.info("Workflow Competitor saved" +requestedCompetitor.getWorkflowCompetitorId());
+		if(requestedCompetitor != null) {
+			String entityId = requestedCompetitor.getWorkflowCompetitorId();
+			String comments = requestedCompetitor.getWorkflowCompetitorNotes();
+			Integer entityTypeId = EntityTypeId.COMPETITOR.getType();
+			WorkflowRequestT workflowRequest = populateWorkflowRequest(
+					entityId, entityTypeId, userId, comments);
+			if(workflowRequest!=null) {
+				if(workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+					status.setStatus(Status.SUCCESS, "Request for new competitor " +requestedCompetitor.getWorkflowCompetitorName()+ " is submitted for approval");
+					sendEmailNotificationforPending(workflowRequest.getRequestId(), new Date(), entityTypeId);
+				} else {
+					saveToCompetitorTable(requestedCompetitor);
+					status.setStatus(Status.SUCCESS, "Competitor "
+							+ requestedCompetitor.getWorkflowCompetitorName()
+							+ " added successfully");
+				}
+			}
+		}
+		return true;
+	}
+
+	private void saveToCompetitorTable(WorkflowCompetitorT requestedCompetitor) {
+		// TODO Auto-generated method stub
+		logger.info("Inside saveToCompetitorTable method");
+		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
+		competitorMappingT.setCompetitorName(requestedCompetitor.getWorkflowCompetitorName());
+		competitorMappingT.setWebsite(requestedCompetitor.getWorkflowCompetitorWebsite());
+		competitorMappingT.setActive(true);
+		competitorRepository.save(competitorMappingT);
+		logger.info("Competitor saved " +competitorMappingT.getCompetitorName());
+		
+	}
+
+	private void validateWorkflowCompetitor(
+			WorkflowCompetitorT workflowCompetitorT) {
+		// TODO Auto-generated method stub
+		if(!StringUtils.isEmpty(workflowCompetitorT.getWorkflowCompetitorName())) {
+			if(competitorRepository.findOne(workflowCompetitorT.getWorkflowCompetitorName())!=null) {
+				logger.error("Competitor name already exists");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Competitor name already exists");
+			}
+		}
+		else {
+			logger.error("Competitor name is mandatory");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Competitor name is mandatory");
+		}
+		
 	}
 
 	/**

@@ -18,6 +18,7 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
@@ -392,6 +393,32 @@ public class WorkflowController {
 				if (workflowService.requestOpportunityReopen(opportunityReopenRequestT, status)) {
 					logger.info("Inside WorkflowController: End of requesting opportunity reopen");
 				}
+			}
+				return new ResponseEntity<String>(
+						ResponseConstructors.filterJsonForFieldAndViews("all", "",
+								status), HttpStatus.OK);
+			} catch (DestinationException e) {
+				throw e;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						"Backend error while requesting opportunity reopen");
+			}
+		}
+	
+				
+				
+	@RequestMapping(value = "/requestCompetitor", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addCompetitorRequest(
+			@RequestBody WorkflowCompetitorT workflowCompetitorT)
+					throws DestinationException {
+		logger.info("Inside WorkflowController: Start of inserting requested competitor");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowService.insertWorkflowCompetitor(workflowCompetitorT,
+					status)) {
+				logger.info("Inside WorkflowController: End of inserting requested competitor");
 			}
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
