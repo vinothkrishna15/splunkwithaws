@@ -1780,12 +1780,49 @@ public class ReportsService {
 	/*
 	 * This method returns query for top customers based on revenue including actuals as well as projected
 	 */
-	public String getTopRevenueCustomersForDashboard(String userId,String financialYear,int count) throws Exception {
-		List<String> months = DateUtils.getMonthsFromYear(financialYear);
-		return getActualProjectedTopRevenuesQueryString(months,userId, count, 
-				RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX,null,null);
+	public String getTopRevenueCustomersForDashboard(String userId,int count) throws Exception {
+		return getActualProjectedTopRevenuesQueryString(userId, count, 
+				RCMT_GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, TOP_REVENUE_CUSTOMER_COND_PREFIX);
 	}
 
+	private String getActualProjectedTopRevenuesQueryString(
+			String userId, int count, String geoPrefix, String subSpPrefix, String iouPrefix, String custPrefix)
+			throws Exception {
+		logger.debug("Inside getTotalActualProjectedRevenueQueryString() method");
+		StringBuffer queryBuffer = new StringBuffer(TOP_CUSTOMER_REVENUE_QUERY_PREFIX);
+		
+		// Get user access privilege groups
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(geoPrefix, subSpPrefix, iouPrefix, custPrefix);
+	
+		// Get WHERE clause string
+		queryBuffer.append(TARGETVSACTUAL_MONTHS_ACTUAL_COND_PREFIX);
+		
+		String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
+		
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		
+		queryBuffer.append(GROUPBY_CUST_ORDER_ACTUAL_REVENUE_COND_PREFIX);
+		
+		queryBuffer.append(TOP_CUSTOMER_REVENUE_UNION_QUERY_PREFIX);
+		
+		// Get WHERE clause string
+		queryBuffer.append(TARGETVSACTUAL_MONTHS_PROJECTED_COND_PREFIX);
+		
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		
+		queryBuffer.append(CUST_GROUP_CUST_ORDER_PROJECTED_REVENUE_LIMIT_COND_PREFIX);
+		queryBuffer.append(count);
+		return queryBuffer.toString();
+	}
+
+	
+	
+	
+	
 	/**
 	 * This method is used to form top customers revenue query
 	 * 

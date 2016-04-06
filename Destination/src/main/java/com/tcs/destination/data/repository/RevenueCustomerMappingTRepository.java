@@ -14,7 +14,7 @@ public interface RevenueCustomerMappingTRepository extends CrudRepository<Revenu
 	@Query(value="select * from revenue_customer_mapping_t where (finance_customer_name = ?1 and customer_geography = ?2 and finance_iou = ?3)", nativeQuery = true)
 	List<RevenueCustomerMappingT> checkRevenueMappingPK(String financeCustomerName, String customerGeography, String financeIou);
 	
-	@Query(value="select * from revenue_customer_mapping_t where customer_name in(select customer_name from workflow_customer_t where workflow_customer_id in (select entity_id from workflow_request_t where request_id = ?1 and status ='APPROVED' and entity_type_id =0 ))", nativeQuery = true)
+	@Query(value="select * from revenue_customer_mapping_t where customer_id in(select customer_id from customer_master_t where customer_name in(select customer_name from workflow_customer_t where workflow_customer_id in (select entity_id from workflow_request_t where request_id = ?1 and status ='APPROVED' and entity_type_id =0 )))", nativeQuery = true)
 	List<RevenueCustomerMappingT> getRevenueCustomerMappingForWorkflowCustomer(Integer requestId);
 	
 	@Query(value="select revenue_customer_map_id from revenue_customer_mapping_t where (finance_customer_name = ?1 and customer_geography = ?2 and finance_iou = ?3)", nativeQuery = true)
