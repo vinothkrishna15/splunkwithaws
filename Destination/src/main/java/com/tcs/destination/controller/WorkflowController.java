@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunityReopenRequestT;
+import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
@@ -266,6 +267,40 @@ public class WorkflowController {
 					"Backend error in retrieving partner details");
 		}
 	}
+	
+	/**
+	 * This method is used to retrieve requested new competitor details based on request id
+	 * @param requestedCompetitorId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/competitor/{id}", method = RequestMethod.GET)
+	public @ResponseBody String getRequestedCompetitorById(
+			@PathVariable("id") int requestedCompetitorId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside WorkflowController : Start of retrieving requested competitor details by id");
+		WorkflowCompetitorDetailsDTO workflowCompetitorDetails = null;
+		try {			
+			workflowCompetitorDetails = workflowService
+					.findRequestedCompetitorDetailsById(requestedCompetitorId);
+			logger.info("Inside WorkflowCustomerController : End of retrieving requested competitor details by id");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+				view, workflowCompetitorDetails);
+
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving competitor details");
+		}
+	}
+
+
 
 	
 	/**
