@@ -72,7 +72,7 @@ public class CustomerService {
 
 	@Autowired
 	CustomerRepository customerRepository;
-	
+
 	@Autowired
 	GeographyRepository geographyRepository;
 
@@ -81,15 +81,15 @@ public class CustomerService {
 
 	@Autowired
 	OpportunityService opportunityService;
-	
-	 @Autowired
+
+	@Autowired
 	RevenueCustomerMappingTRepository revenueRepository;
-	 
-	 @Autowired
-	 BeaconCustomerMappingRepository beaconCustomerMappingRepository;
-	 
-	 @Autowired
-	 	        CustomerUploadService customerUploadService;
+
+	@Autowired
+	BeaconCustomerMappingRepository beaconCustomerMappingRepository;
+
+	@Autowired
+	CustomerUploadService customerUploadService;
 
 	@Autowired
 	ContactService contactService;
@@ -114,10 +114,10 @@ public class CustomerService {
 
 	@Autowired
 	PerformanceReportService performanceReportService;
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
+
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
@@ -185,7 +185,7 @@ public class CustomerService {
 		logger.debug("Inside findTopRevenue() service");
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		UserT user = userRepository.findOne(userId);
-		
+
 		String userGroup = user.getUserGroupMappingT().getUserGroup();
 		if (UserGroup.contains(userGroup)) {
 			// Validate user group, BDM's & BDM supervisor's are not
@@ -376,7 +376,7 @@ public class CustomerService {
 				for (ContactCustomerLinkT contactCustomerLinkT : customerMasterT
 						.getContactCustomerLinkTs()) {
 					contactCustomerLinkT.getContactT()
-							.setContactCustomerLinkTs(null);
+					.setContactCustomerLinkTs(null);
 				}
 			}
 		}
@@ -394,7 +394,7 @@ public class CustomerService {
 	 */
 	private String getCustomerPrevilegeQueryString(String userId,
 			List<String> customerNameList, boolean considerGeoIou)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(CUSTOMER_NAME_QUERY_PREFIX);
 
@@ -431,7 +431,7 @@ public class CustomerService {
 			customerNameQueryList += ")";
 
 			queryBuffer
-					.append(" CMT.customer_name in " + customerNameQueryList);
+			.append(" CMT.customer_name in " + customerNameQueryList);
 		}
 
 		if ((whereClause != null && !whereClause.isEmpty())
@@ -449,7 +449,7 @@ public class CustomerService {
 
 	public ArrayList<String> getPreviledgedCustomerName(String userId,
 			ArrayList<String> customerNameList, boolean considerGeoIou)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside getPreviledgedCustomerName() method");
 		String queryString = getCustomerPrevilegeQueryString(userId,
 				customerNameList, considerGeoIou);
@@ -636,7 +636,7 @@ public class CustomerService {
 	public BeaconCustomerMappingT addBeaconCustomer(
 			BeaconCustomerMappingT beaconCustomerToInsert) throws Exception {
 		BeaconCustomerMappingT beaconT = null;
-	//	BeaconCustomerMappingTPK beaconTPK = null;
+		//	BeaconCustomerMappingTPK beaconTPK = null;
 		List<BeaconCustomerMappingT> beaconCustomers = null;
 		if (beaconCustomerToInsert != null) {
 			beaconT = new BeaconCustomerMappingT();
@@ -648,7 +648,7 @@ public class CustomerService {
 					beaconCustomerToInsert.getBeaconIou(),
 					beaconCustomerToInsert.getCustomerGeography());
 			if (beaconCustomers.isEmpty()) {
-			   // CustomerMasterT customerMasterT=beaconCustomers.get(0).getCustomerMasterT();
+				// CustomerMasterT customerMasterT=beaconCustomers.get(0).getCustomerMasterT();
 				beaconT.setCustomerId(beaconCustomerToInsert.getCustomerId());
 				beaconT.setBeaconCustomerName(beaconCustomerToInsert
 						.getBeaconCustomerName());
@@ -662,7 +662,7 @@ public class CustomerService {
 			}
 			if(beaconT!=null)
 			{
-			beaconT = beaconRepository.save(beaconT);
+				beaconT = beaconRepository.save(beaconT);
 			}
 			logger.info("Beacon Saved .... ");
 		}
@@ -681,7 +681,7 @@ public class CustomerService {
 				.advancedSearch(
 						"%" + groupCustomerNameWith.toUpperCase() + "%", "%"
 								+ nameWith.toUpperCase() + "%", geography,
-						displayIOU);
+								displayIOU);
 
 		if (customerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -707,12 +707,11 @@ public class CustomerService {
 		}
 		return paginatedResponse;
 	}
-	
+
 	@Transactional
 	public boolean updateCustomer(CustomerMasterT customerMaster) throws Exception {
 
 		boolean isValid = false;
-		String customerId = customerMaster.getCustomerId();		
 		CustomerMasterT  customerEdited = null;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
@@ -727,7 +726,6 @@ public class CustomerService {
 			case SYSTEM_ADMIN: 
 			case STRATEGIC_GROUP_ADMIN: 
 				customerEdited = validateCustomerDetails(customerMaster);
-				// updated customer object is saved to the database
 				CustomerMasterT savedCustomer = editCustomer(customerEdited);
 				if (savedCustomer != null) {
 					isValid = true;
@@ -743,8 +741,160 @@ public class CustomerService {
 		return isValid;
 	}
 
-	
-	private CustomerMasterT validateCustomerDetails(CustomerMasterT requestedCustomerT) {
+
+	private boolean isBeaconModied(List<BeaconCustomerMappingT> oldBeaconObj,
+			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+		boolean isBeaconCustomerModifiedFlag = false;
+		for(BeaconCustomerMappingT bcmtOld : oldBeaconObj){
+			for(BeaconCustomerMappingT bcmtNew : beaconCustomerMappingTs){
+				if((bcmtNew.getBeaconCustomerMapId() != null) && (bcmtNew.getBeaconCustomerMapId().equals(bcmtOld.getBeaconCustomerMapId()))){
+					isBeaconCustomerModifiedFlag = false;
+					if (!bcmtNew.getBeaconCustomerName().equals(bcmtOld.getBeaconCustomerName())) {
+						bcmtOld.setBeaconCustomerName(bcmtNew.getBeaconCustomerName());
+						isBeaconCustomerModifiedFlag =true;
+					}
+					if (!bcmtNew.getBeaconIou().equals(bcmtOld.getBeaconIou())) {
+						bcmtOld.setBeaconIou(bcmtNew.getBeaconIou());
+						isBeaconCustomerModifiedFlag =true;
+					}
+					if (!bcmtNew.getCustomerGeography().equals(bcmtOld.getCustomerGeography())) {
+						bcmtOld.setCustomerGeography(bcmtNew.getCustomerGeography());
+						isBeaconCustomerModifiedFlag =true;
+					}
+					if(isBeaconCustomerModifiedFlag == false && bcmtNew.equals(bcmtOld)){
+						logger.error("BAD_REQUEST: This Beacon details already exists..");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"This Beacon details already exists..");
+					}
+					if(isBeaconCustomerModifiedFlag == true){
+					beaconRepository.save(bcmtOld);
+					}
+				}
+			}
+		}
+		// for adding a new beacon data
+		BeaconCustomerMappingT bcmtNewEntry = new BeaconCustomerMappingT();
+		for(BeaconCustomerMappingT rcmtNew : beaconCustomerMappingTs){
+			if(rcmtNew.getBeaconCustomerMapId() == null){
+				bcmtNewEntry.setBeaconCustomerName(rcmtNew.getBeaconCustomerName());
+				bcmtNewEntry.setBeaconIou(rcmtNew.getBeaconIou());
+				bcmtNewEntry.setCustomerGeography(rcmtNew.getCustomerGeography());
+				bcmtNewEntry.setCustomerId(rcmtNew.getCustomerId());
+				oldBeaconObj.add(bcmtNewEntry);
+				isBeaconCustomerModifiedFlag =true;
+				beaconRepository.save(bcmtNewEntry);
+			}
+		}
+		return isBeaconCustomerModifiedFlag;
+	}
+
+	private boolean isRevenueModified(List<RevenueCustomerMappingT> oldRevenueObj,
+			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		boolean isRevenueCustomerModifiedFlag = false;
+		for(RevenueCustomerMappingT rcmtOld : oldRevenueObj){
+			for(RevenueCustomerMappingT rcmtNew : revenueCustomerMappingTs){
+				if((rcmtNew.getRevenueCustomerMapId() != null) && (rcmtNew.getRevenueCustomerMapId().equals(rcmtOld.getRevenueCustomerMapId()))){
+					isRevenueCustomerModifiedFlag = false;
+					if (!rcmtNew.getFinanceCustomerName().equals(rcmtOld.getFinanceCustomerName())) {
+						rcmtOld.setFinanceCustomerName(rcmtNew.getFinanceCustomerName());
+						isRevenueCustomerModifiedFlag =true;
+					}
+					if (!rcmtNew.getFinanceIou().equals(rcmtOld.getFinanceIou())) {
+						rcmtOld.setFinanceIou(rcmtNew.getFinanceIou());
+						isRevenueCustomerModifiedFlag =true;
+					}
+					if (!rcmtNew.getCustomerGeography().equals(rcmtOld.getCustomerGeography())) {
+						rcmtOld.setCustomerGeography(rcmtNew.getCustomerGeography());
+						isRevenueCustomerModifiedFlag =true;
+					}
+					if(isRevenueCustomerModifiedFlag == false && rcmtNew.equals(rcmtOld)){
+						logger.error("BAD_REQUEST: This Revenue details already exists..");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"This Revenue details already exists..");
+					}
+					if(isRevenueCustomerModifiedFlag == true ){
+						revenueRepository.save(rcmtOld);
+					}
+				}
+			}
+		}
+		// for adding a new revenue data
+		RevenueCustomerMappingT rcmtNewEntry = new RevenueCustomerMappingT();
+		for(RevenueCustomerMappingT rcmtNew : revenueCustomerMappingTs){
+			if(rcmtNew.getRevenueCustomerMapId() == null){
+				rcmtNewEntry.setFinanceCustomerName(rcmtNew.getFinanceCustomerName());
+				rcmtNewEntry.setFinanceIou(rcmtNew.getFinanceIou());
+				rcmtNewEntry.setCustomerGeography(rcmtNew.getCustomerGeography());
+				rcmtNewEntry.setCustomerId(rcmtNew.getCustomerId());
+				oldRevenueObj.add(rcmtNewEntry);
+				isRevenueCustomerModifiedFlag =true;
+				revenueRepository.save(rcmtNewEntry);
+			}
+		}
+		return isRevenueCustomerModifiedFlag;
+	}
+
+	/**
+	 * to check if the customer master fields are edited before save
+	 * @param oldCustomerObj
+	 * @param customerMaster
+	 * @return
+	 */
+	private boolean isCustomerMasterModified(CustomerMasterT oldCustomerObj,
+			CustomerMasterT customerMaster) {
+		boolean isCustomerModifiedFlag = false;
+		String corporateHqAdress = "";
+		String website = "";
+		String facebook = "";
+		//customer name
+		if (!customerMaster.getCustomerName().equals(oldCustomerObj.getCustomerName())) {
+			oldCustomerObj.setCustomerName(customerMaster.getCustomerName());
+			isCustomerModifiedFlag =true;
+		}
+		//corpoarate address
+		if(!StringUtils.isEmpty(oldCustomerObj.getCorporateHqAddress())){
+			corporateHqAdress = oldCustomerObj.getCorporateHqAddress();
+		}
+		if (!customerMaster.getCorporateHqAddress().equals(corporateHqAdress)) {
+			oldCustomerObj.setCorporateHqAddress(customerMaster.getCorporateHqAddress());
+			isCustomerModifiedFlag = true;
+		}
+
+		//facebook
+		if(!StringUtils.isEmpty(oldCustomerObj.getFacebook())){
+			facebook = oldCustomerObj.getFacebook();
+		}
+		if (!customerMaster.getFacebook().equals(facebook)) {
+			oldCustomerObj.setFacebook(customerMaster.getFacebook());
+			isCustomerModifiedFlag = true;
+		}
+		//website
+		if(!StringUtils.isEmpty(oldCustomerObj.getWebsite())){
+			website = oldCustomerObj.getWebsite();
+		}
+		if (!customerMaster.getWebsite().equals(website)) {
+			oldCustomerObj.setWebsite(customerMaster.getWebsite());
+			isCustomerModifiedFlag = true;
+		}
+		//geography
+		if (!customerMaster.getGeography().equals(oldCustomerObj.getGeography())) {
+			oldCustomerObj.setGeography(customerMaster.getGeography());
+			isCustomerModifiedFlag = true;
+		}
+		//group customer name 
+		if (!customerMaster.getGroupCustomerName().equals(oldCustomerObj.getGroupCustomerName())) {
+			oldCustomerObj.setGroupCustomerName(customerMaster.getGroupCustomerName());
+			isCustomerModifiedFlag =true;
+		}
+		//iou
+		if (!customerMaster.getIou().equals(oldCustomerObj.getIou())) {
+			oldCustomerObj.setIou(customerMaster.getIou());
+			isCustomerModifiedFlag =true;
+		}
+		return isCustomerModifiedFlag;
+	}
+
+	private CustomerMasterT validateCustomerDetails(CustomerMasterT requestedCustomerT) throws Exception {
 
 		CustomerMasterT customerToBeSaved = null;
 		logger.debug("Inside updateCustomer() of CustomerService");
@@ -753,28 +903,23 @@ public class CustomerService {
 		mapOfIouCustomerMappingT = customerUploadService.getIouMappingT();
 		mapOfIouBeaconMappingT = customerUploadService.getBeaconIouMappingT();
 		String customerId = requestedCustomerT.getCustomerId();
-
+		CustomerMasterT copiedObject = (CustomerMasterT) DestinationUtils.copy(requestedCustomerT);
 		// true in case of admin: to validate the iou field for not empty check
 		customerToBeSaved = validateCustomerMasterDetails(requestedCustomerT);
 
 		List<RevenueCustomerMappingT> revenueCustomerMappingTs = new ArrayList<RevenueCustomerMappingT>();
 		List<BeaconCustomerMappingT> beaconCustomerMappingTs = new ArrayList<BeaconCustomerMappingT>();
-		revenueCustomerMappingTs = requestedCustomerT.getRevenueCustomerMappingTs();
+		revenueCustomerMappingTs = copiedObject.getRevenueCustomerMappingTs();
 
 		if (CollectionUtils.isNotEmpty(revenueCustomerMappingTs)) {
 			revenueCustomerMappingTs = validateRevenueCustomerDetails(revenueCustomerMappingTs, customerId);
-			
-		} else {
-			logger.error("Revenue customer details are mandatory for admin");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Revenue customer details are mandatory");
-		}
+		} 
 		customerToBeSaved.setRevenueCustomerMappingTs(revenueCustomerMappingTs);
-		beaconCustomerMappingTs = requestedCustomerT
+		beaconCustomerMappingTs = copiedObject
 				.getBeaconCustomerMappingTs();
 		if (CollectionUtils.isNotEmpty(beaconCustomerMappingTs)) {
 			beaconCustomerMappingTs = validateBeaconCustomerDetails(beaconCustomerMappingTs,customerId);
-			
+
 		}
 		customerToBeSaved.setBeaconCustomerMappingTs(beaconCustomerMappingTs);
 		return customerToBeSaved;
@@ -783,10 +928,11 @@ public class CustomerService {
 	/*
 	 * to validate the customer master details
 	 */
-	private CustomerMasterT validateCustomerMasterDetails(CustomerMasterT customerMaster) {
+	private CustomerMasterT validateCustomerMasterDetails(CustomerMasterT customerMaster) throws Exception {
 		// TODO Auto-generated method stub
 
 		CustomerMasterT customerToBeSaved = new CustomerMasterT();
+		CustomerMasterT customerCopy = new CustomerMasterT();
 
 		if (customerMaster.getCustomerId()== null) {
 			logger.error("BAD_REQUEST: customerId is required for update");
@@ -797,16 +943,17 @@ public class CustomerService {
 		// Check if the customer exists
 		if (customerRepository.exists(customerMaster.getCustomerId())) {
 			customerToBeSaved = customerRepository.findOne(customerMaster.getCustomerId());
+			customerCopy = (CustomerMasterT) DestinationUtils.copy(customerToBeSaved);
 		}
 		else{
 			logger.error("NOT_FOUND: Customer not found for update: {}",customerMaster.getCustomerId());
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Customer not found for update: " + customerMaster.getCustomerId());
 		}
-		customerToBeSaved.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		customerCopy.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 
 		// MASTER_CUSTOMER_NAME	
 		if(!StringUtils.isEmpty(customerMaster.getCustomerName())){
-			customerToBeSaved.setCustomerName(customerMaster.getCustomerName());
+			customerCopy.setCustomerName(customerMaster.getCustomerName());
 		}
 		else{
 			logger.error("NOT_VALID: Customer Name is empty for update: {}",customerMaster.getCustomerName());
@@ -816,19 +963,19 @@ public class CustomerService {
 		// IOU 
 		if(customerMaster.getIou().length()>0){
 			if(mapOfIouCustomerMappingT.containsKey(customerMaster.getIou())){
-				customerToBeSaved.setIou(customerMaster.getIou());
+				customerCopy.setIou(customerMaster.getIou());
 			} else {
 				logger.error("NOT_VALID: IOU is not valid for update: {}",customerMaster.getIou());
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid IOU");
 			}
 		}
 
-		customerToBeSaved.setDocumentsAttached("NO");
+		customerCopy.setDocumentsAttached("NO");
 
 		// MASTER_GEOGRAPHY
 		if(customerMaster.getGeography().length()>0){
 			if(mapOfGeographyMappingT.containsKey(customerMaster.getGeography())){
-				customerToBeSaved.setGeography(customerMaster.getGeography());
+				customerCopy.setGeography(customerMaster.getGeography());
 			} else {
 				logger.error("NOT_VALID: Geography is not valid for update: {}",customerMaster.getGeography());
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid geography");
@@ -837,13 +984,16 @@ public class CustomerService {
 
 		// GROUP_CUSTOMER_NAME	
 		if(!StringUtils.isEmpty(customerMaster.getGroupCustomerName())){
-			customerToBeSaved.setGroupCustomerName(customerMaster.getGroupCustomerName());
+			customerCopy.setGroupCustomerName(customerMaster.getGroupCustomerName());
 		}
 		else{
 			logger.error("NOT_VALID: group Customer Name is empty for update: {}",customerMaster.getGroupCustomerName());
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Group Customer name is Empty" + customerMaster.getGroupCustomerName());
 		}
-		return customerToBeSaved;
+		customerCopy.setCorporateHqAddress(customerMaster.getCorporateHqAddress());
+		customerCopy.setFacebook(customerMaster.getFacebook());
+		customerCopy.setWebsite(customerMaster.getWebsite());
+		return customerCopy;
 	}
 
 	/**
@@ -852,7 +1002,6 @@ public class CustomerService {
 	 * @param beaconCustomerMappingTs
 	 */
 	private List<BeaconCustomerMappingT> validateBeaconCustomerDetails(List<BeaconCustomerMappingT> beaconCustomerMappingTs, String customerId) {
-		List<BeaconCustomerMappingT> beaconCustomers = null;
 		for (BeaconCustomerMappingT bcmt : beaconCustomerMappingTs) {
 			if (StringUtils.isEmpty(bcmt.getBeaconCustomerName())) {
 				logger.error("Beacon Customer name should not be empty");
@@ -882,20 +1031,8 @@ public class CustomerService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"IOU Should not be empty");
 			}
-			beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(
-					bcmt.getBeaconCustomerName(), bcmt.getCustomerGeography(),
-					bcmt.getBeaconIou());
-			if (!beaconCustomers.isEmpty()) {
-				logger.error("The combination of the Beacon Customer Name, geography and beacon IOU already exists");
-				throw new DestinationException(
-						HttpStatus.BAD_REQUEST,
-						"The combination of the Beacon Customer Name, geography and beacon IOU already exists");
-			}
-			Long beaconCustomerMapId = revenueRepository.findrevenueCustomerMapId(bcmt.getBeaconCustomerName(), bcmt.getCustomerGeography(),
-					bcmt.getBeaconIou());
-			bcmt.setBeaconCustomerMapId(beaconCustomerMapId);
 		}
-		return beaconCustomers;
+		return beaconCustomerMappingTs;
 	}
 
 	/**
@@ -904,8 +1041,6 @@ public class CustomerService {
 	 * @param revenueCustomerMappingTs
 	 */
 	private List<RevenueCustomerMappingT> validateRevenueCustomerDetails(List<RevenueCustomerMappingT> revenueCustomerMappingTs, String customerId) {
-		boolean reveneueEdited = false;
-		List<RevenueCustomerMappingT> financeCustomers = null;
 		for (RevenueCustomerMappingT rcmt : revenueCustomerMappingTs) {
 			if (StringUtils.isEmpty(rcmt.getFinanceCustomerName())) {
 				logger.error("Finance Customer name should not be empty");
@@ -936,31 +1071,8 @@ public class CustomerService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"IOU Should not be empty");
 			}
-
-			financeCustomers = revenueRepository.checkRevenueMappingPK(rcmt.getFinanceCustomerName(),rcmt.getCustomerGeography(),rcmt.getFinanceIou());
-			if(!financeCustomers.isEmpty()){
-				logger.error("The combination of the finanace Customer Name, geography and finanace IOU already exists");
-				throw new DestinationException(
-						HttpStatus.BAD_REQUEST,
-						"The combination of the finanace Customer Name, geography and finanace IOU already exists");
-			}
-			if(isRevenueCustomerModified(revenueCustomerMappingTs, financeCustomers)){
-
-			}
-			Long revenueCustomerMapId = revenueRepository.findrevenueCustomerMapId(rcmt.getFinanceCustomerName(), rcmt.getCustomerGeography(),
-					rcmt.getFinanceIou());
-			rcmt.setRevenueCustomerMapId(revenueCustomerMapId);
 		}
 		return revenueCustomerMappingTs;
-	}
-
-	private boolean isRevenueCustomerModified(
-			List<RevenueCustomerMappingT> revenueCustomerMappingTs,
-			List<RevenueCustomerMappingT> financeCustomers) {
-		//if(revenueCustomerMappingTs){
-
-		//}
-		return false;
 	}
 
 	/**
@@ -996,39 +1108,20 @@ public class CustomerService {
 	}
 
 	// Customer object is updated into the repository
-		@Transactional
-		private CustomerMasterT editCustomer(CustomerMasterT customerMaster) throws Exception {
-			//CustomerMasterT customerSaved = null;
-			CustomerMasterT customerCopySaved = new CustomerMasterT();
-			//List<RevenueCustomerMappingT> revenueList = null;
-			//List<BeaconCustomerMappingT> beaconList = null;
-			List<BeaconCustomerMappingT> beaconList = null;
-			List<RevenueCustomerMappingT> revenueList =null;
-			customerCopySaved = (CustomerMasterT) DestinationUtils.copy(customerMaster);
-			if(customerCopySaved.getRevenueCustomerMappingTs()!=null && customerCopySaved.getRevenueCustomerMappingTs().size()>0){
-				revenueList = customerCopySaved.getRevenueCustomerMappingTs();
-			}
-			if(customerCopySaved.getBeaconCustomerMappingTs()!=null && customerCopySaved.getBeaconCustomerMappingTs().size()>0){
-			beaconList = customerCopySaved.getBeaconCustomerMappingTs();
-			}
-			CustomerMasterT customerSaved = customerRepository.save(customerMaster);
-			if(revenueList!=null && revenueList.size() > 0){
-				for(RevenueCustomerMappingT rcmt : revenueList){
-					rcmt.setCustomerId(customerSaved.getCustomerId());
-				}
-				customerCopySaved.setRevenueCustomerMappingTs(revenueList);
-				
-			}
-			if(beaconList!=null && beaconList.size() > 0){
-				for(BeaconCustomerMappingT bcmt : beaconList){
-					bcmt.setCustomerId(customerSaved.getCustomerId());
-				}
-				customerCopySaved.setBeaconCustomerMappingTs(beaconList);
-				
-			}
-			revenueRepository.save(customerCopySaved.getRevenueCustomerMappingTs());
-			beaconRepository.save(customerCopySaved.getBeaconCustomerMappingTs());
-			customerCopySaved.setCustomerId(customerSaved.getCustomerId());
-			return customerCopySaved;
+	@Transactional
+	private CustomerMasterT editCustomer(CustomerMasterT customerMaster) throws Exception {
+
+		String customerId = customerMaster.getCustomerId();
+		CustomerMasterT customerSaved = null;
+		CustomerMasterT oldCustomerObj = customerRepository.findOne(customerId);
+		List<RevenueCustomerMappingT> oldRevenueObj =  revenueRepository.findByCustomerId(customerId);
+		List<BeaconCustomerMappingT> oldBeaconObj = beaconCustomerMappingRepository.findByCustomerId(customerId);
+		// updated customer object is saved to the database
+		if(isCustomerMasterModified(oldCustomerObj, customerMaster)){
+			customerSaved = customerRepository.save(oldCustomerObj);
 		}
+		isRevenueModified(oldRevenueObj, customerMaster.getRevenueCustomerMappingTs());
+		isBeaconModied(oldBeaconObj, customerMaster.getBeaconCustomerMappingTs());
+		return oldCustomerObj;
+	}
 }

@@ -22,4 +22,7 @@ public interface RevenueCustomerMappingTRepository extends CrudRepository<Revenu
 	
 	@Query(value="select * from revenue_customer_mapping_t where revenue_customer_map_id = ?1", nativeQuery = true)
 	RevenueCustomerMappingT findByRevenueCustomerMapId(Long revenueCustomerMapId);
+	
+	@Query(value="select * from revenue_customer_mapping_t where customer_id = ?1", nativeQuery = true)
+	List<RevenueCustomerMappingT> findByCustomerId(String customerId);
 }
