@@ -385,12 +385,17 @@ public class PartnerService {
 				// Partner Name
 				String partnerName = partnerMaster.getPartnerName();
 				if (!StringUtils.isEmpty(partnerName)) {
-					if (partnerRepository.findPartnerName(partnerName) == null) {
-						partner.setPartnerName(partnerName);
+					
+					List<PartnerMasterT> findPartnerName = partnerRepository.findByPartnerName(partnerName);
+					if(findPartnerName!=null && !findPartnerName.isEmpty()){
+						PartnerMasterT partnerExistingByName = findPartnerName.get(0);
+						if(!partnerExistingByName.getPartnerId().equals(partner.getPartnerId())){
+							logger.error("Partner Name already exists");
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+									"Partner Name already exists");
+						}
 					} else {
-						logger.error("Partner Name already exists");
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Partner Name already exists");
+						partner.setPartnerName(partnerName);
 					}
 				} else {
 					logger.error("Partner Name should not be empty");
