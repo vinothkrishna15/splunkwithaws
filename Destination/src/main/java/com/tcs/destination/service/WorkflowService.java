@@ -198,8 +198,8 @@ public class WorkflowService {
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 							stepRecord.setModifiedBy(userId);
-							if (!StringUtils.isEmpty(workflowCustomerT.getNotes())) {
-								stepRecord.setComments(workflowCustomerT.getNotes());
+							if (!StringUtils.isEmpty(workflowCustomerT.getComments())) {
+								stepRecord.setComments(workflowCustomerT.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
@@ -255,11 +255,6 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getCorporateHqAddress())){
 			corporateHqAdress = oldObject.getCorporateHqAddress();
 		}
-		//if(!StringUtils.isEmpty(workflowCustomerT.getCorporateHqAddress())){
-			//logger.error("corpoarate address is mandatory");
-			//throw new DestinationException(HttpStatus.BAD_REQUEST,
-				//	"corpoarate address is mandatory");			
-		//}
 		if (!workflowCustomerT.getCorporateHqAddress().equals(corporateHqAdress)) {
 			oldObject.setCorporateHqAddress(workflowCustomerT.getCorporateHqAddress());
 			isCustomerModifiedFlag = true;
@@ -269,11 +264,6 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getFacebook())){
 			facebook = oldObject.getFacebook();
 		}
-		/*else{
-			logger.error("facebook is mandatory");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"facebook is mandatory");			
-		}*/
 		if (!workflowCustomerT.getFacebook().equals(facebook)) {
 			oldObject.setFacebook(workflowCustomerT.getFacebook());
 			isCustomerModifiedFlag = true;
@@ -282,11 +272,6 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getWebsite())){
 			website = oldObject.getWebsite();
 		}
-		/*	else{
-			logger.error("website is mandatory");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"website is mandatory");			
-		}*/
 		if (!workflowCustomerT.getWebsite().equals(website)) {
 			oldObject.setWebsite(workflowCustomerT.getWebsite());
 			isCustomerModifiedFlag = true;
@@ -296,7 +281,7 @@ public class WorkflowService {
 			oldObject.setGeography(workflowCustomerT.getGeography());
 			isCustomerModifiedFlag = true;
 		}
-		//notes for edit
+		//notes for admin create
 		if(!StringUtils.isEmpty(oldObject.getNotes())){
 			notes = oldObject.getNotes();
 		}
@@ -758,8 +743,8 @@ public class WorkflowService {
 					} else {
 						// Saving workflow customer details to CustomerMasterT
 						// for Admin
-//						CustomerMasterT customerMasterObj = new CustomerMasterT();
-//						saveToMasterTables(customerMasterObj , requestedCustomer);
+						//						CustomerMasterT customerMasterObj = new CustomerMasterT();
+						//						saveToMasterTables(customerMasterObj , requestedCustomer);
 						saveToCustomerMasterTables(requestedCustomer);
 						status.setStatus(Status.SUCCESS, "Customer "
 								+ workflowCustomer.getCustomerName()
@@ -1117,7 +1102,7 @@ public class WorkflowService {
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO.setRequestedPartner(workflowPartner);
-							
+
 							// Get the workflow steps associated with the new
 							// partner request
 							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
@@ -1170,7 +1155,7 @@ public class WorkflowService {
 	}
 
 
-	
+
 	/**
 	 * This service is used to retrieve the worklist of the logged in user
 	 * 
@@ -1558,7 +1543,7 @@ public class WorkflowService {
 			if(status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())){
 				// Query to get customer requests APPROVED by user
 				query = entityManager.createNativeQuery(QueryConstants.QUERY_CUSTOMER_FINAL_APPROVED);
-				
+
 			}else
 			{
 				// Query to get customer requests REJECTED by user
@@ -1895,8 +1880,8 @@ public class WorkflowService {
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 							stepRecord.setModifiedBy(userId);
-							if (!StringUtils.isEmpty(workflowPartnerT.getNotes())) {
-								stepRecord.setComments(workflowPartnerT.getNotes());
+							if (!StringUtils.isEmpty(workflowPartnerT.getComments())) {
+								stepRecord.setComments(workflowPartnerT.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
@@ -1973,7 +1958,7 @@ public class WorkflowService {
 			oldObject.setGeography(workflowPartnerT.getGeography());
 			isPartnerModifiedFlag = true;
 		}
-		//notes for edit
+		//notes for admin create
 		if(!StringUtils.isEmpty(oldObject.getNotes())){
 			notes = oldObject.getNotes();
 		}
@@ -2052,7 +2037,7 @@ public class WorkflowService {
 		}
 		return validated;
 	}
-	
+
 	/*
 	 * on admin approval new entity was created in the master table
 	 */
@@ -2060,7 +2045,7 @@ public class WorkflowService {
 		logger.info("Inside saveToCustomerMasterTables");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customerMaster = new CustomerMasterT();
-		  CustomerMasterT customerMastersaved = new CustomerMasterT();
+		CustomerMasterT customerMastersaved = new CustomerMasterT();
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		customerMaster.setGroupCustomerName(workflowCustomerT
 				.getGroupCustomerName());
@@ -2093,7 +2078,7 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-			//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
 				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
 				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
 				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
