@@ -746,6 +746,7 @@ public class CustomerService {
 
 	private boolean isBeaconModied(List<BeaconCustomerMappingT> oldBeaconObj,
 			List<BeaconCustomerMappingT> beaconCustomerMappingTs) {
+		List<BeaconCustomerMappingT> beaconCustomers = null;
 		boolean isBeaconCustomerModifiedFlag = false;
 		for(BeaconCustomerMappingT bcmtOld : oldBeaconObj){
 			for(BeaconCustomerMappingT bcmtNew : beaconCustomerMappingTs){
@@ -767,6 +768,13 @@ public class CustomerService {
 						logger.error("BAD_REQUEST: This Beacon details already exists..");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"This Beacon details already exists..");
+					}
+					beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(bcmtNew.getBeaconCustomerName(),bcmtNew.getCustomerGeography(),bcmtNew.getBeaconIou());
+					if(!beaconCustomers.isEmpty() && isBeaconCustomerModifiedFlag == true){
+						logger.error("This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
+						throw new DestinationException(
+								HttpStatus.BAD_REQUEST,
+								"This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
 					}
 					if(isBeaconCustomerModifiedFlag == true){
 					beaconRepository.save(bcmtOld);
@@ -792,6 +800,7 @@ public class CustomerService {
 
 	private boolean isRevenueModified(List<RevenueCustomerMappingT> oldRevenueObj,
 			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
+		List<RevenueCustomerMappingT> financeCustomers = null;
 		boolean isRevenueCustomerModifiedFlag = false;
 		for(RevenueCustomerMappingT rcmtOld : oldRevenueObj){
 			for(RevenueCustomerMappingT rcmtNew : revenueCustomerMappingTs){
@@ -809,11 +818,15 @@ public class CustomerService {
 						rcmtOld.setCustomerGeography(rcmtNew.getCustomerGeography());
 						isRevenueCustomerModifiedFlag =true;
 					}
-					if(isRevenueCustomerModifiedFlag == false && rcmtNew.equals(rcmtOld)){
-						logger.error("BAD_REQUEST: This Revenue details already exists..");
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"This Revenue details already exists..");
+					
+					financeCustomers = revenueRepository.checkRevenueMappingPK(rcmtNew.getFinanceCustomerName(),rcmtNew.getCustomerGeography(),rcmtNew.getFinanceIou());
+					if(!financeCustomers.isEmpty() && isRevenueCustomerModifiedFlag == true){
+						logger.error("This Revenue details already exists.."+rcmtNew.getFinanceCustomerName() +" " +rcmtNew.getCustomerGeography() + " " + rcmtNew.getFinanceIou());
+						throw new DestinationException(
+								HttpStatus.BAD_REQUEST,
+								"This Revenue details already exists.."+rcmtNew.getFinanceCustomerName() +" " +rcmtNew.getCustomerGeography() + " " + rcmtNew.getFinanceIou());
 					}
+					
 					if(isRevenueCustomerModifiedFlag == true ){
 						revenueRepository.save(rcmtOld);
 					}
