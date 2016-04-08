@@ -281,7 +281,18 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private boolean isUserFavourite;
 	
+	@Transient
+	private boolean enableEditAccess;
 	
+	
+
+	public boolean isEnableEditAccess() {
+		return enableEditAccess;
+	}
+
+	public void setEnableEditAccess(boolean enableEditAccess) {
+		this.enableEditAccess = enableEditAccess;
+	}
 
 	public boolean isUserFavourite() {
 		return isUserFavourite;

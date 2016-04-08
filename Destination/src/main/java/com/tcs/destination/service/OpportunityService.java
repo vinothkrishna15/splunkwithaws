@@ -55,6 +55,8 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -69,12 +71,14 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -92,7 +96,7 @@ import com.tcs.destination.utils.StringUtils;
 public class OpportunityService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
-	
+
 	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
 			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
 			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
@@ -104,7 +108,7 @@ public class OpportunityService {
 	private static final String OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX = "SSMT.display_sub_sp in (";
 	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
 	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
-	
+
 	private String bidId = null;
 
 	@Autowired
@@ -178,6 +182,15 @@ public class OpportunityService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 
+	@Autowired
+	CustomerRepository customerRepository;
+
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
+
+	@Autowired
+	ConnectRepository connectRepository;
+
 	// Required beans for Auto comments - end
 
 	// Required beans for Notifications - start
@@ -208,8 +221,12 @@ public class OpportunityService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
-	
-	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
+
+	QueryBufferDTO queryBufferDTO = new QueryBufferDTO(); // DTO object used to
+															// pass query string
+															// and parameters
+															// for applying
+															// access priviledge
 
 	public PaginatedResponse findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
@@ -226,12 +243,12 @@ public class OpportunityService {
 		Page<OpportunityT> opportunities = null;
 		if (customerId.isEmpty()) {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLikeOrderByModifiedDatetimeDesc("%" + nameWith + "%",
-							pageable);
+					.findByOpportunityNameIgnoreCaseLikeOrderByModifiedDatetimeDesc(
+							"%" + nameWith + "%", pageable);
 		} else {
 			opportunities = opportunityRepository
-					.findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc("%"
-							+ nameWith + "%", customerId, pageable);
+					.findByOpportunityNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(
+							"%" + nameWith + "%", customerId, pageable);
 		}
 		List<OpportunityT> opportunityTs = opportunities.getContent();
 
@@ -279,7 +296,7 @@ public class OpportunityService {
 		}
 
 		prepareOpportunity(opportunities);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunities,
 				toCurrency);
 
@@ -323,7 +340,7 @@ public class OpportunityService {
 		opportunities = validateAndReturnOpportunitesData(opportunities, true);
 
 		prepareOpportunity(opportunities);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunities,
 				toCurrency);
 
@@ -365,7 +382,7 @@ public class OpportunityService {
 			}
 
 			prepareOpportunity(opportunities);
-			
+
 			beaconConverterService.convertOpportunityCurrency(opportunities,
 					toCurrency);
 
@@ -441,9 +458,9 @@ public class OpportunityService {
 					.findByEntityTypeAndEntityId(
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
-			
+
 			prepareOpportunity(opportunity, null);
-			
+
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
 
@@ -502,18 +519,22 @@ public class OpportunityService {
 	// Method called from controller
 	@Transactional
 	public void createOpportunity(OpportunityT opportunity,
-			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {
+			boolean isBulkDataLoad, String bidRequestType,
+			String actualSubmissionDate) throws Exception {
 		logger.debug("Inside createOpportunity() service");
 		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
-			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
+			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+					.getUserId());
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
 			UserT user = userRepository.findByUserId(userId);
 			String userGroup = user.getUserGroup();
-			//While practice team creating the opportunity, one of the Owners should be BDM or BDM Supervisor
+			// While practice team creating the opportunity, one of the Owners
+			// should be BDM or BDM Supervisor
 			if (UserGroup.contains(userGroup)) {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case PRACTICE_HEAD:
@@ -562,15 +583,16 @@ public class OpportunityService {
 				processNotifications(opportunity.getOpportunityId(), null);
 			} else {
 				// This statement is to update the opportunity timeline history
-				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
+				saveOpportunityTimelineHistoryForUpload(createdOpportunity,
+						bidRequestType, actualSubmissionDate);
 			}
 		}
 	}
 
 	/**
-	 * This method is used to update Opportunity Timeline History.
-	 * Sales Stage Codes from 6-13 are only updated here with 
-	 * Sales Stage Codes based on the Bid Request Type
+	 * This method is used to update Opportunity Timeline History. Sales Stage
+	 * Codes from 6-13 are only updated here with Sales Stage Codes based on the
+	 * Bid Request Type
 	 * 
 	 * @param createdOpportunity
 	 * @param bidRequestType
@@ -578,36 +600,41 @@ public class OpportunityService {
 	 * @throws Exception
 	 */
 	private void saveOpportunityTimelineHistoryForUpload(
-			OpportunityT createdOpportunity, String bidRequestType, String actualSubmissionDate) throws Exception{
+			OpportunityT createdOpportunity, String bidRequestType,
+			String actualSubmissionDate) throws Exception {
 		try {
-			
-		switch(createdOpportunity.getSalesStageCode()){
+
+			switch (createdOpportunity.getSalesStageCode()) {
 			case 6:
 			case 7:
 			case 8:
 			case 9:
-			case 10:{
+			case 10: {
 				saveOppTimelineHistoryInUpload(createdOpportunity, 5);
 				break;
 			}
 			case 11:
 			case 12:
-			case 13:{
-				if(!StringUtils.isEmpty(bidRequestType)) {
-					if(bidRequestType.equalsIgnoreCase("RFI")||
-							bidRequestType.equalsIgnoreCase("RFQ")||
-								bidRequestType.equalsIgnoreCase("Approach Note")){
-						if(StringUtils.isEmpty(actualSubmissionDate)){
-							saveOppTimelineHistoryInUpload(createdOpportunity, 2);
-						} else if(!StringUtils.isEmpty(actualSubmissionDate)) {
-							saveOppTimelineHistoryInUpload(createdOpportunity, 3);
+			case 13: {
+				if (!StringUtils.isEmpty(bidRequestType)) {
+					if (bidRequestType.equalsIgnoreCase("RFI")
+							|| bidRequestType.equalsIgnoreCase("RFQ")
+							|| bidRequestType.equalsIgnoreCase("Approach Note")) {
+						if (StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity,
+									2);
+						} else if (!StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity,
+									3);
 						}
-					} else if(bidRequestType.equalsIgnoreCase("RFP")||
-							bidRequestType.equalsIgnoreCase("Proactive")){
-						if(StringUtils.isEmpty(actualSubmissionDate)){
-							saveOppTimelineHistoryInUpload(createdOpportunity, 4);
-						} else if(!StringUtils.isEmpty(actualSubmissionDate)) {
-							saveOppTimelineHistoryInUpload(createdOpportunity, 5);
+					} else if (bidRequestType.equalsIgnoreCase("RFP")
+							|| bidRequestType.equalsIgnoreCase("Proactive")) {
+						if (StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity,
+									4);
+						} else if (!StringUtils.isEmpty(actualSubmissionDate)) {
+							saveOppTimelineHistoryInUpload(createdOpportunity,
+									5);
 						}
 					}
 				}
@@ -615,24 +642,27 @@ public class OpportunityService {
 			}
 			default:
 				break;
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Record Saved! Error while updating Opportunity Timeline History");
+		} finally {
+			bidId = null;
 		}
-		}catch(Exception e){
-			throw new DestinationException(HttpStatus.BAD_REQUEST,"Record Saved! Error while updating Opportunity Timeline History");
-		} finally{
-			bidId=null;
-		}
-		
+
 	}
-	
-	private void saveOppTimelineHistoryInUpload(OpportunityT createdOpportunity, int salesStageCode){
+
+	private void saveOppTimelineHistoryInUpload(
+			OpportunityT createdOpportunity, int salesStageCode) {
 		OpportunityTimelineHistoryT history = new OpportunityTimelineHistoryT();
-		
+
 		history.setOpportunityId(createdOpportunity.getOpportunityId());
 		history.setSalesStageCode(salesStageCode);
-		if(!StringUtils.isEmpty(bidId)) {
+		if (!StringUtils.isEmpty(bidId)) {
 			history.setBidId(bidId);
 		}
-		history.setUserUpdated(DestinationUtils.getCurrentUserDetails().getUserId());
+		history.setUserUpdated(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
 		opportunityTimelineHistoryTRepository.save(history);
 	}
 
@@ -651,8 +681,8 @@ public class OpportunityService {
 			throws Exception {
 		logger.debug("Inside saveChildObject() method");
 
-		//Getting the userId from the session
-				String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		// Getting the userId from the session
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
@@ -738,7 +768,7 @@ public class OpportunityService {
 				notesT.setUserUpdated(userId);
 			}
 		}
-		
+
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
@@ -770,7 +800,7 @@ public class OpportunityService {
 					bidOfficeGroupOwnerLinkTRepository
 							.save(bidOfficeOwnerLinkTs);
 				}
-				
+
 				// As Bid details are already saved,
 				opportunity.setBidDetailsTs(null);
 				if (opportunity.getOpportunityId() != null) {
@@ -868,7 +898,7 @@ public class OpportunityService {
 	// Method called from controller
 	@Transactional
 	public void updateOpportunity(OpportunityT opportunity) throws Exception {
-		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		opportunity.setCreatedBy(userId);
 		opportunity.setModifiedBy(userId);
 		logger.debug("Inside updateOpportunity() service");
@@ -884,6 +914,17 @@ public class OpportunityService {
 			logger.error("Opportunity not found for update: {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportunity not found for update: " + opportunityId);
+		}
+		UserT user = userRepository.findByUserId(userId);
+		String userGroup = user.getUserGroup();
+		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			OpportunityT opportunityBeforeEdit = opportunityRepository
+					.findOne(opportunityId);
+			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
+					userGroup, userId)) {
+				throw new DestinationException(HttpStatus.FORBIDDEN,
+						"User is not authorized to edit this opportunity");
+			}
 		}
 
 		// Load db object before update with lazy collections populated for auto
@@ -931,26 +972,33 @@ public class OpportunityService {
 
 		if (opportunity.getDeleteConnectOpportunityLinkIdTs() != null
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
-			for(ConnectOpportunityLinkIdT connectOpportunityLinkIdT: opportunity
-					.getDeleteConnectOpportunityLinkIdTs()){
-			connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT.getConnectOpportunityLinkId());
+			for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunity
+					.getDeleteConnectOpportunityLinkIdTs()) {
+				connectOpportunityLinkTRepository
+						.delete(connectOpportunityLinkIdT
+								.getConnectOpportunityLinkId());
 			}
 			opportunity.setDeleteConnectOpportunityLinkIdTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityPartnerLinkTs() != null
 				&& opportunity.getDeleteOpportunityPartnerLinkTs().size() > 0) {
-			for(OpportunityPartnerLinkT opportunityPartnerLinkT: opportunity.getDeleteOpportunityPartnerLinkTs()){
-			opportunityPartnerLinkTRepository.delete(opportunityPartnerLinkT
-					.getOpportunityPartnerLinkId());
-		}
+			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunity
+					.getDeleteOpportunityPartnerLinkTs()) {
+				opportunityPartnerLinkTRepository
+						.delete(opportunityPartnerLinkT
+								.getOpportunityPartnerLinkId());
+			}
 			opportunity.setOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
 				&& opportunity.getDeleteOpportunityCompetitorLinkTs().size() > 0) {
-			for(OpportunityCompetitorLinkT opportunityCompetitorLinkT: opportunity.getDeleteOpportunityCompetitorLinkTs()){
-			opportunityCompetitorLinkTRepository.delete(opportunityCompetitorLinkT.getOpportunityCompetitorLinkId());
+			for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+					.getDeleteOpportunityCompetitorLinkTs()) {
+				opportunityCompetitorLinkTRepository
+						.delete(opportunityCompetitorLinkT
+								.getOpportunityCompetitorLinkId());
 			}
 			opportunity.setDeleteOpportunityCompetitorLinkTs(null);
 		}
@@ -958,51 +1006,69 @@ public class OpportunityService {
 		if (opportunity.getDeleteOpportunityCustomerContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityCustomerContactLinkTs()
 						.size() > 0) {
-			for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity.getDeleteOpportunityCustomerContactLinkTs())
-			{
-			opportunityCustomerContactLinkTRepository.delete(opportunityCustomerContactLinkT.getOpportunityCustomerContactLinkId());
+			for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity
+					.getDeleteOpportunityCustomerContactLinkTs()) {
+				opportunityCustomerContactLinkTRepository
+						.delete(opportunityCustomerContactLinkT
+								.getOpportunityCustomerContactLinkId());
 			}
 		}
 
 		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
 				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
-			for(OpportunityOfferingLinkT opportunityOfferingLinkT:opportunity.getDeleteOpportunityOfferingLinkTs()){
-			opportunityOfferingLinkTRepository.delete(opportunityOfferingLinkT.getOpportunityOfferingLinkId());
-		}
+			for (OpportunityOfferingLinkT opportunityOfferingLinkT : opportunity
+					.getDeleteOpportunityOfferingLinkTs()) {
+				opportunityOfferingLinkTRepository
+						.delete(opportunityOfferingLinkT
+								.getOpportunityOfferingLinkId());
 			}
+		}
 
 		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
-			for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT:opportunity.getDeleteOpportunitySalesSupportLinkTs()){
-				
-			opportunitySalesSupportLinkTRepository.delete(opportunitySalesSupportLinkT.getOpportunitySalesSupportLinkId());
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getDeleteOpportunitySalesSupportLinkTs()) {
+
+				opportunitySalesSupportLinkTRepository
+						.delete(opportunitySalesSupportLinkT
+								.getOpportunitySalesSupportLinkId());
 			}
 		}
 
 		if (opportunity.getDeleteOpportunitySubSpLinkTs() != null
 				&& opportunity.getDeleteOpportunitySubSpLinkTs().size() > 0) {
-			for(OpportunitySubSpLinkT opportunitySubSpLinkT:opportunity.getDeleteOpportunitySubSpLinkTs()){
-				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT.getOpportunitySubSpLinkId());
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getDeleteOpportunitySubSpLinkTs()) {
+				opportunitySubSpLinkTRepository.delete(opportunitySubSpLinkT
+						.getOpportunitySubSpLinkId());
 			}
 		}
 
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs()
 						.size() > 0) {
-			for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT:opportunity.getDeleteOpportunityTcsAccountContactLinkTs())
-			opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT.getOpportunityTcsAccountContactLinkId());
+			for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : opportunity
+					.getDeleteOpportunityTcsAccountContactLinkTs())
+				opportunityTcsAccountContactLinkTRepository
+						.delete(opportunityTcsAccountContactLinkT
+								.getOpportunityTcsAccountContactLinkId());
 		}
 
 		if (opportunity.getDeleteOpportunityWinLossFactorsTs() != null
 				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
-			for(OpportunityWinLossFactorsT opportunityWinLossFactorsT: opportunity.getDeleteOpportunityWinLossFactorsTs())
-			opportunityWinLossFactorsTRepository.delete(opportunityWinLossFactorsT.getOpportunityWinLossFactorsId());
+			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+					.getDeleteOpportunityWinLossFactorsTs())
+				opportunityWinLossFactorsTRepository
+						.delete(opportunityWinLossFactorsT
+								.getOpportunityWinLossFactorsId());
 		}
 
 		if (opportunity.getDeleteSearchKeywordsTs() != null
 				&& opportunity.getDeleteSearchKeywordsTs().size() > 0) {
-			for(SearchKeywordsT searchKeywordsT:opportunity.getDeleteSearchKeywordsTs())
-			searchKeywordsRepository.delete(searchKeywordsT.getSearchKeywordsId());
+			for (SearchKeywordsT searchKeywordsT : opportunity
+					.getDeleteSearchKeywordsTs())
+				searchKeywordsRepository.delete(searchKeywordsT
+						.getSearchKeywordsId());
 		}
 	}
 
@@ -1023,10 +1089,9 @@ public class OpportunityService {
 							+ " and Target Bid Submission date: " + fromDate
 							+ ", " + toDate);
 		}
-		
 
 		prepareOpportunity(opportunityList);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunityList,
 				toCurrency);
 
@@ -1061,10 +1126,17 @@ public class OpportunityService {
 		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
-			// Apply user access privileges if not primary / sales support owner
-			if (!isUserOwner(userId, opportunityT)) {
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
+			if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+				opportunityT.setEnableEditAccess(true);
+			} else {
+				opportunityT
+						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
+								opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
 			}
+
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -1080,8 +1152,8 @@ public class OpportunityService {
 		// TODO Auto-generated method stub
 		boolean flag = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		for(UserFavoritesT userFavorite : opportunityT.getUserFavoritesTs()) {
-			if(userFavorite.getUserId().equalsIgnoreCase(userId)){
+		for (UserFavoritesT userFavorite : opportunityT.getUserFavoritesTs()) {
+			if (userFavorite.getUserId().equalsIgnoreCase(userId)) {
 				flag = true;
 			}
 		}
@@ -1092,15 +1164,16 @@ public class OpportunityService {
 			List<String> previledgedOppIdList) throws Exception {
 		// previledgedOppIdList is null only while it is a single opportunity.
 		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
+			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())
+					&& (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
 			}
 		} else {
 			List<String> opportunityIdList = new ArrayList<String>();
 			opportunityIdList.add(opportunityT.getOpportunityId());
 			previledgedOppIdList = getPriviledgedOpportunityId(opportunityIdList);
-			if (previledgedOppIdList == null
-					|| previledgedOppIdList.size() == 0) {
+			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
+					&& (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
 			}
 		}
@@ -1124,52 +1197,46 @@ public class OpportunityService {
 
 	}
 
-
-	
 	private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
-			throws Exception { logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils.getCurrentUserDetails().getUserId(), opportunityIds);
-		    logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery());
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-				for(int i=1;i<=parameterMap.size();i++)
-				{
-					opportunityQuery.setParameter(i, parameterMap.get(i));
-					
-				}
+			throws Exception {
+		logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
+		HashMap<Integer, String> parameterMap = new HashMap<Integer, String>();
+		queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryBufferDTO.getQuery());
+		Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO
+				.getQuery());
+		parameterMap = queryBufferDTO.getParameterMap();
+		if (parameterMap != null) {
+			for (int i = 1; i <= parameterMap.size(); i++) {
+				opportunityQuery.setParameter(i, parameterMap.get(i));
+
 			}
-			
-			return opportunityQuery.getResultList();
-}
+		}
 
+		return opportunityQuery.getResultList();
+	}
 
-	
 	private List<String> getPriviledgedOpportunityId(String opportunityId)
 			throws Exception {
-		    logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			List<String> opportunityIds = new ArrayList<String>();
-			opportunityIds.add(opportunityId);
-			queryBufferDTO  = getOpportunityPriviledgeString(DestinationUtils
-					.getCurrentUserDetails().getUserId(), opportunityIds);
-			logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery(),
-					OpportunityT.class);
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-			 for(int i=1;i<=parameterMap.size();i++)
-			 {
+		logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
+		HashMap<Integer, String> parameterMap = new HashMap<Integer, String>();
+		List<String> opportunityIds = new ArrayList<String>();
+		opportunityIds.add(opportunityId);
+		queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryBufferDTO.getQuery());
+		Query opportunityQuery = entityManager.createNativeQuery(
+				queryBufferDTO.getQuery(), OpportunityT.class);
+		parameterMap = queryBufferDTO.getParameterMap();
+		if (parameterMap != null) {
+			for (int i = 1; i <= parameterMap.size(); i++) {
 				opportunityQuery.setParameter(i, parameterMap.get(i));
-				
-			 }
-			}
-			return opportunityQuery.getResultList();
-}
 
+			}
+		}
+		return opportunityQuery.getResultList();
+	}
 
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
 		logger.debug("Inside removeCyclicForLinkedConnects() method");
@@ -1299,21 +1366,22 @@ public class OpportunityService {
 			List<String> users = userRepository
 					.getAllSubordinatesIdBySupervisorId(supervisorUserId);
 
-			//Get FromDate and ToDate based on Current Financial Year
+			// Get FromDate and ToDate based on Current Financial Year
 			String finYear = DateUtils.getCurrentFinancialYear();
-			Date fromDate = DateUtils.getDateFromFinancialYear(finYear,true);
-			Date toDate = DateUtils.getDateFromFinancialYear(finYear,false);
-			
+			Date fromDate = DateUtils.getDateFromFinancialYear(finYear, true);
+			Date toDate = DateUtils.getDateFromFinancialYear(finYear, false);
+
 			Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 			Timestamp toDateTs = new Timestamp(toDate.getTime()
 					+ ONE_DAY_IN_MILLIS - 1);
-			
+
 			// Adding the user himself
 			users.add(supervisorUserId);
 
 			// Get all opportunities for the users under supervisor
 			List<Object[]> opportunities = opportunityRepository
-					.findDealValueOfOpportunitiesBySupervisorId(users,fromDateTs,toDateTs);
+					.findDealValueOfOpportunitiesBySupervisorId(users,
+							fromDateTs, toDateTs);
 
 			if ((opportunities != null) && (opportunities.size() > 0)) {
 
@@ -1526,15 +1594,15 @@ public class OpportunityService {
 		String defaultDealRange = "NO";
 		if (minDigitalDealValue == 0 && maxDigitalDealValue == Double.MAX_VALUE)
 			defaultDealRange = "YES";
-		boolean isPrimary=false;
-		boolean isSalesSupport=false;
-		boolean isBidOffice=false;
+		boolean isPrimary = false;
+		boolean isSalesSupport = false;
+		boolean isBidOffice = false;
 		List<OpportunityT> opportunity = new ArrayList<OpportunityT>();
-		if(OpportunityRole.contains(role)) {
+		if (OpportunityRole.contains(role)) {
 			switch (OpportunityRole.valueOf(role)) {
 			case PRIMARY_OWNER:
 				logger.debug("Primary Owner Found");
-				isPrimary=true;
+				isPrimary = true;
 				break;
 			case SALES_SUPPORT:
 				logger.debug("Sales Support Found");
@@ -1546,7 +1614,7 @@ public class OpportunityService {
 				break;
 			case ALL:
 				logger.debug("ALL Found");
-				isPrimary=true;
+				isPrimary = true;
 				isSalesSupport = true;
 				isBidOffice = true;
 				break;
@@ -1558,11 +1626,11 @@ public class OpportunityService {
 							maxDigitalDealValue, dealCurrency, digitalFlag,
 							displayIou, country, partnerId, competitorName,
 							searchKeywordString, bidRequestType, offering,
-							displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice);
+							displaySubSp, opportunityNameString, userId,
+							isPrimary, isSalesSupport, isBidOffice);
 
 		} else {
-			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}",
-					role);
+			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}", role);
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Invalid Oppurtunity Role: " + role);
 		}
@@ -1686,7 +1754,7 @@ public class OpportunityService {
 		if (opportunityTs == null || opportunityTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities found");
-		 prepareOpportunity(opportunityTs);
+		prepareOpportunity(opportunityTs);
 		return opportunityResponse;
 	}
 
@@ -1724,52 +1792,49 @@ public class OpportunityService {
 				sortBy, order));
 		return pageSpecification;
 	}
-    
+
 	private QueryBufferDTO getOpportunityPriviledgeString(String userId,
 			List<String> opportunityIds) throws Exception {
-		    logger.debug("Inside getOpportunityPriviledgeString() method");
-			StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
-			String whereClause=null;
-			// Get user access privilege groups
+		logger.debug("Inside getOpportunityPriviledgeString() method");
+		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
+		String whereClause = null;
+		// Get user access privilege groups
 
-			 HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-					.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
-							OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
-							OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
-							OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
-		
-			// Get WHERE clause string
-			queryBufferDTO = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereCondition(userId,
-							queryPrefixMap);
-			
-               if (opportunityIds.size() > 0) {
-				String oppIdList = "(";
-				{
-					for (String opportunityId : opportunityIds)
-						oppIdList += "'" + opportunityId + "',";
-				}
-				oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
-				oppIdList += ")";
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
 
-				queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
+		// Get WHERE clause string
+		queryBufferDTO = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereCondition(userId, queryPrefixMap);
+
+		if (opportunityIds.size() > 0) {
+			String oppIdList = "(";
+			{
+				for (String opportunityId : opportunityIds)
+					oppIdList += "'" + opportunityId + "',";
 			}
-               if(queryBufferDTO!=null)
-               {
-			    if (queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty()) 
-			    {
-				 queryBuffer.append(Constants.AND_CLAUSE + queryBufferDTO.getQuery());
-				}
-			    queryBufferDTO.setQuery(queryBuffer.toString());
-               }
-               else
-			   {
-				queryBufferDTO=new QueryBufferDTO();
-				queryBufferDTO.setQuery(queryBuffer.toString());
-				queryBufferDTO.setParameterMap(null);
-			   }
-			   return queryBufferDTO;
-}
+			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
+			oppIdList += ")";
 
+			queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
+		}
+		if (queryBufferDTO != null) {
+			if (queryBufferDTO.getQuery() != null
+					&& !queryBufferDTO.getQuery().isEmpty()) {
+				queryBuffer.append(Constants.AND_CLAUSE
+						+ queryBufferDTO.getQuery());
+			}
+			queryBufferDTO.setQuery(queryBuffer.toString());
+		} else {
+			queryBufferDTO = new QueryBufferDTO();
+			queryBufferDTO.setQuery(queryBuffer.toString());
+			queryBufferDTO.setParameterMap(null);
+		}
+		return queryBufferDTO;
+	}
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
 			String name, String keyword) {
@@ -1797,29 +1862,36 @@ public class OpportunityService {
 	}
 
 	/**
-	 * This Method used to get list of opportunities for the specified opportunity ids
+	 * This Method used to get list of opportunities for the specified
+	 * opportunity ids
+	 * 
 	 * @param opportunityIds
 	 * @return
 	 */
-	public List<OpportunityT> findByOpportunityIds(List<String> opportunityIds, List<String> toCurrency) {
+	public List<OpportunityT> findByOpportunityIds(List<String> opportunityIds,
+			List<String> toCurrency) {
 		logger.debug("Inside findByOpportunityIds() method");
 		List<OpportunityT> opportunityList = null;
 		if ((opportunityIds != null) && (!opportunityIds.isEmpty())) {
-		opportunityList = opportunityRepository.findByOpportunityIds(opportunityIds);
+			opportunityList = opportunityRepository
+					.findByOpportunityIds(opportunityIds);
 		}
-		if(opportunityList==null || opportunityList.isEmpty() ){
+		if (opportunityList == null || opportunityList.isEmpty()) {
 			logger.error("Opportunities not found");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunities not found");
 		}
 		prepareOpportunity(opportunityList);
-		
-		beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
+
+		beaconConverterService.convertOpportunityCurrency(opportunityList,
+				toCurrency);
 
 		return opportunityList;
 	}
-    
+
 	/**
 	 * this method saves the opportunity list.
+	 * 
 	 * @param insertList
 	 */
 	public void save(List<OpportunityT> insertList) {
@@ -1845,34 +1917,40 @@ public class OpportunityService {
 		int i = 0;
 		for (OpportunityT opportunityT : insertList) {
 			mapOppOffering.put(i, opportunityT.getOpportunityOfferingLinkTs());
-			mapOpportunityPartnerLink.put(i, opportunityT.getOpportunityPartnerLinkTs());
-			mapSalesSupport.put(i, opportunityT.getOpportunitySalesSupportLinkTs());
+			mapOpportunityPartnerLink.put(i,
+					opportunityT.getOpportunityPartnerLinkTs());
+			mapSalesSupport.put(i,
+					opportunityT.getOpportunitySalesSupportLinkTs());
 			mapSubSp.put(i, opportunityT.getOpportunitySubSpLinkTs());
 			mapCustomerContact.put(i,
 					opportunityT.getOpportunityCustomerContactLinkTs());
-			mapTcsContact.put(i, opportunityT.getOpportunityTcsAccountContactLinkTs());
-			mapOppCompetitor.put(i, opportunityT.getOpportunityCompetitorLinkTs());
+			mapTcsContact.put(i,
+					opportunityT.getOpportunityTcsAccountContactLinkTs());
+			mapOppCompetitor.put(i,
+					opportunityT.getOpportunityCompetitorLinkTs());
 			mapOppNotes.put(i, opportunityT.getNotesTs());
 			setNullForReferencedObjects(opportunityT);
 
 			i++;
 		}
 
-		Iterable<OpportunityT> savedList = opportunityRepository.save(insertList);
+		Iterable<OpportunityT> savedList = opportunityRepository
+				.save(insertList);
 		Iterator<OpportunityT> saveIterator = savedList.iterator();
-		System.out.println("Opportunities"+insertList);
+		System.out.println("Opportunities" + insertList);
 		i = 0;
 		while (saveIterator.hasNext()) {
 			OpportunityT opportunity = saveIterator.next();
 			List<OpportunityOfferingLinkT> offeringList = mapOppOffering.get(i);
 			if (CollectionUtils.isNotEmpty(offeringList)) {
-				populateOpportunityOfferingLinks(opportunity.getOpportunityId(),
-						offeringList);
+				populateOpportunityOfferingLinks(
+						opportunity.getOpportunityId(), offeringList);
 			}
 			List<OpportunityPartnerLinkT> oppourtunityPartnerList = mapOpportunityPartnerLink
 					.get(i);
 			if (CollectionUtils.isNotEmpty(oppourtunityPartnerList)) {
-				populateOpportunityPartnerLink(opportunity.getOpportunityId(), oppourtunityPartnerList);
+				populateOpportunityPartnerLink(opportunity.getOpportunityId(),
+						oppourtunityPartnerList);
 			}
 			List<OpportunitySalesSupportLinkT> salesSupportList = mapSalesSupport
 					.get(i);
@@ -1882,7 +1960,8 @@ public class OpportunityService {
 			}
 			List<OpportunitySubSpLinkT> subSpList = mapSubSp.get(i);
 			if (CollectionUtils.isNotEmpty(subSpList)) {
-				populateOpportunitySubSpLink(opportunity.getOpportunityId(), subSpList);
+				populateOpportunitySubSpLink(opportunity.getOpportunityId(),
+						subSpList);
 			}
 			List<OpportunityCustomerContactLinkT> custContactList = mapCustomerContact
 					.get(i);
@@ -1893,20 +1972,18 @@ public class OpportunityService {
 			List<OpportunityTcsAccountContactLinkT> tcsContactList = mapTcsContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(tcsContactList)) {
-				populateOpportunityTcsAccountContactLink(opportunity.getOpportunityId(),
-						tcsContactList);
+				populateOpportunityTcsAccountContactLink(
+						opportunity.getOpportunityId(), tcsContactList);
 			}
 			List<OpportunityCompetitorLinkT> competitorList = mapOppCompetitor
 					.get(i);
 			if (CollectionUtils.isNotEmpty(competitorList)) {
-				populateOpportunityCompetitorLink(opportunity.getOpportunityId(),
-						competitorList);
+				populateOpportunityCompetitorLink(
+						opportunity.getOpportunityId(), competitorList);
 			}
-			List<NotesT> notes = mapOppNotes
-					.get(i);
+			List<NotesT> notes = mapOppNotes.get(i);
 			if (CollectionUtils.isNotEmpty(notes)) {
-				populateOpportunityNotes(opportunity.getOpportunityId(),
-						notes);
+				populateOpportunityNotes(opportunity.getOpportunityId(), notes);
 			}
 
 			i++;
@@ -1923,7 +2000,8 @@ public class OpportunityService {
 		}
 
 		List<OpportunityPartnerLinkT> oppPartnerList = new ArrayList<OpportunityPartnerLinkT>();
-		for (List<OpportunityPartnerLinkT> list : mapOpportunityPartnerLink.values()) {
+		for (List<OpportunityPartnerLinkT> list : mapOpportunityPartnerLink
+				.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
 				oppPartnerList.addAll(list);
 			}
@@ -1954,7 +2032,8 @@ public class OpportunityService {
 		}
 
 		List<OpportunityCustomerContactLinkT> oppCustContact = new ArrayList<OpportunityCustomerContactLinkT>();
-		for (List<OpportunityCustomerContactLinkT> list : mapCustomerContact.values()) {
+		for (List<OpportunityCustomerContactLinkT> list : mapCustomerContact
+				.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
 				oppCustContact.addAll(list);
 			}
@@ -1964,7 +2043,8 @@ public class OpportunityService {
 		}
 
 		List<OpportunityTcsAccountContactLinkT> oppTcsAccContact = new ArrayList<OpportunityTcsAccountContactLinkT>();
-		for (List<OpportunityTcsAccountContactLinkT> list : mapTcsContact.values()) {
+		for (List<OpportunityTcsAccountContactLinkT> list : mapTcsContact
+				.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
 				oppTcsAccContact.addAll(list);
 			}
@@ -1972,7 +2052,7 @@ public class OpportunityService {
 		if (CollectionUtils.isNotEmpty(oppTcsAccContact)) {
 			opportunityTcsAccountContactLinkTRepository.save(oppTcsAccContact);
 		}
-		
+
 		List<OpportunityCompetitorLinkT> oppCompetitor = new ArrayList<OpportunityCompetitorLinkT>();
 		for (List<OpportunityCompetitorLinkT> list : mapOppCompetitor.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
@@ -1982,7 +2062,7 @@ public class OpportunityService {
 		if (CollectionUtils.isNotEmpty(oppCompetitor)) {
 			opportunityCompetitorLinkTRepository.save(oppCompetitor);
 		}
-		
+
 		List<NotesT> oppNotes = new ArrayList<NotesT>();
 		for (List<NotesT> list : mapOppNotes.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
@@ -1993,79 +2073,70 @@ public class OpportunityService {
 			notesTRepository.save(oppNotes);
 		}
 
-
 	}
 
 	private void populateOpportunityNotes(String opportunityId,
 			List<NotesT> notes) {
-		for(NotesT notesT : notes)
-		{
+		for (NotesT notesT : notes) {
 			notesT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityCompetitorLink(String opportunityId,
 			List<OpportunityCompetitorLinkT> competitorList) {
-		for(OpportunityCompetitorLinkT opportunityCompetitorLinkT : competitorList)
-		{
+		for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : competitorList) {
 			opportunityCompetitorLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityTcsAccountContactLink(String opportunityId,
 			List<OpportunityTcsAccountContactLinkT> tcsContactList) {
-		for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : tcsContactList)
-		{
+		for (OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT : tcsContactList) {
 			opportunityTcsAccountContactLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOppCustomerContactLinks(String opportunityId,
 			List<OpportunityCustomerContactLinkT> custContactList) {
-		for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : custContactList)
-		{
+		for (OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : custContactList) {
 			opportunityCustomerContactLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunitySubSpLink(String opportunityId,
 			List<OpportunitySubSpLinkT> subSpList) {
-		for(OpportunitySubSpLinkT opportunitySubSpLinkT : subSpList)
-		{
+		for (OpportunitySubSpLinkT opportunitySubSpLinkT : subSpList) {
 			opportunitySubSpLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOppSalesSupportLink(String opportunityId,
 			List<OpportunitySalesSupportLinkT> salesSupportList) {
-		for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : salesSupportList)
-		{
+		for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : salesSupportList) {
 			opportunitySalesSupportLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityPartnerLink(String opportunityId,
 			List<OpportunityPartnerLinkT> oppourtunityPartnerList) {
-		for(OpportunityPartnerLinkT opportunityPartnerLinkT : oppourtunityPartnerList)
-		{
+		for (OpportunityPartnerLinkT opportunityPartnerLinkT : oppourtunityPartnerList) {
 			opportunityPartnerLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityOfferingLinks(String opportunityId,
 			List<OpportunityOfferingLinkT> offeringList) {
-		for(OpportunityOfferingLinkT opportunityOfferingLinkT : offeringList)
-		{
+		for (OpportunityOfferingLinkT opportunityOfferingLinkT : offeringList) {
 			opportunityOfferingLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void setNullForReferencedObjects(OpportunityT opportunityT) {
@@ -2082,9 +2153,11 @@ public class OpportunityService {
 		opportunityT.setOpportunityTcsAccountContactLinkTs(null);
 		opportunityT.setOpportunityWinLossFactorsTs(null);
 	}
-	
+
 	/**
-	 * This method is used to check whether the owners of opportunity or connect are BDM or BDM Supervisor
+	 * This method is used to check whether the owners of opportunity or connect
+	 * are BDM or BDM Supervisor
+	 * 
 	 * @param owners
 	 * @return
 	 */
@@ -2103,6 +2176,120 @@ public class OpportunityService {
 		return isBDMOrBDMSupervisor;
 	}
 
-	
-}
+	/**
+	 * This method is used to check whether any of the subordinate is being one
+	 * of the owners of connect or opportunity
+	 * 
+	 * @param userId
+	 * @param opportunityId
+	 * @param connectId
+	 * @return
+	 */
+	public boolean isSubordinateAsOwner(String userId, String opportunityId,
+			String connectId) {
+		boolean isSubordinateAsOwner = false;
+		List<String> owners = new ArrayList<String>();
+		List<String> subordinates = userRepository
+				.getAllSubordinatesIdBySupervisorId(userId);
+		if (CollectionUtils.isNotEmpty(subordinates)) {
+			if (!StringUtils.isEmpty(opportunityId)) {
+				owners = opportunityRepository.getAllOwners(opportunityId);
+			}
+			if (!StringUtils.isEmpty(connectId)) {
+				owners = connectRepository.findOwnersOfConnect(connectId);
+			}
+			if (owners != null) {
+				for (String owner : owners) {
+					if (subordinates.contains(owner)) {
+						isSubordinateAsOwner = true;
+						break;
+					}
+				}
+			}
+		}
+		return isSubordinateAsOwner;
+	}
 
+	/**
+	 * This method is used to check wheteher the logged in user has edit access
+	 * for an opportunity
+	 * 
+	 * @param opportunity
+	 * @param userGroup
+	 * @param userId
+	 * @return
+	 */
+	private boolean isEditAccessRequiredForOpportunity(
+			OpportunityT opportunity, String userGroup, String userId) {
+		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		boolean isEditAccessRequired;
+		if (isUserOwner(userId, opportunity)) {
+			isEditAccessRequired = true;
+
+		} else if (userGroup.equals(UserGroup.BDM.getValue())
+				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+			isEditAccessRequired = false;
+		} else {
+			if (isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
+					null)) {
+				isEditAccessRequired = true;
+			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+				isEditAccessRequired = false;
+			} else {
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, opportunity.getCustomerId());
+			}
+		}
+
+		return isEditAccessRequired;
+	}
+
+	/**
+	 * This method is used to check whether Geo heads PMO and Iou Heads have the
+	 * edit access for an opportunity
+	 * 
+	 * @param userGroup
+	 * @param userId
+	 * @param customerId
+	 * @return
+	 */
+	public boolean checkEditAccessForGeoAndIou(String userGroup, String userId,
+			String customerId) {
+		logger.info("Inside checkEditAccessForGeoAndIou method");
+		boolean isEditAccessRequired = false;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
+		case PMO:
+			String geography = customerRepository
+					.findGeographyByCustomerId(customerId);
+
+			List<String> geographyList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.GEOGRAPHY.getValue());
+			if (CollectionUtils.isNotEmpty(geographyList)) {
+				if (geographyList.contains(geography)) {
+					isEditAccessRequired = true;
+				}
+			}
+			break;
+		case IOU_HEADS:
+			String iou = customerRepository.findIouByCustomerId(customerId);
+			List<String> iouList = userAccessPrivilegesRepository
+					.getIouPrivilegeValue(userId, PrivilegeType.IOU.getValue());
+			if (CollectionUtils.isNotEmpty(iouList)) {
+				if (iouList.contains(iou)) {
+					isEditAccessRequired = true;
+
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		return isEditAccessRequired;
+
+	}
+
+}

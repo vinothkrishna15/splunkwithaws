@@ -104,4 +104,13 @@ public interface CustomerRepository extends
 	
 	@Query(value = "select customer_id,customer_name from customer_master_t", nativeQuery=true)
     List<Object[]> findAllCustomerIdName();
+    
+    @Query(value = "select customer_name from customer_master_t where customer_name = (:customerName)", nativeQuery = true)
+    String findCustomerName(@Param("customerName") String customerName);
+    
+    @Query(value = "select geography from customer_master_t where customer_id = ?1", nativeQuery = true)
+	String findGeographyByCustomerId(String customerId);
+    
+    @Query(value = "select iou from customer_master_t where customer_id = ?1", nativeQuery = true)
+	String findIouByCustomerId(String customerId);
 }

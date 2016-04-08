@@ -43,6 +43,13 @@ public interface UserAccessPrivilegesRepository extends
 		+ "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_group = ?3", nativeQuery = true)
  	List<String> findUserIdsForWorkflowUserGroup(String geography,
 			String isactive, String userGroup);
-
+ 	
+ 	@Query(value ="select privilege_value from user_access_privileges_t where user_id = ?1 and privilege_type = ?2", nativeQuery = true)
+    List<String> getPrivilegeValueForUser(String userId,String privilegeType);
+ 	
+ 	@Query(value = "select icmt.iou from iou_customer_mapping_t icmt join user_access_privileges_t uat on"
+ 			+ " uat.privilege_value = icmt.display_iou where uat.user_id = ?1"
+ 			+ " and uat.privilege_type = ?2", nativeQuery = true)
+ 	List<String> getIouPrivilegeValue(String userId,String privilegeType);
 
 }
