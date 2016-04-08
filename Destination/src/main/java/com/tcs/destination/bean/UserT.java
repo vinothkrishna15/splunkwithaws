@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -14,7 +15,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -79,6 +79,22 @@ public class UserT implements Serializable {
 	
 	@OneToMany(mappedBy="userT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
+	
+	//bi-directional many-to-one association to UserModuleAccessT
+	@OneToMany(mappedBy="userT", cascade = CascadeType.ALL)
+	private List<UserModuleAccessT> userModuleAccessTs;
+
+	@Transient
+	private UserModuleAccess userModuleAccess;
+	
+
+	public UserModuleAccess getUserModuleAccess() {
+		return userModuleAccess;
+	}
+
+	public void setUserModuleAccess(UserModuleAccess userModuleAccess) {
+		this.userModuleAccess = userModuleAccess;
+	}
 
 	// bi-directional many-to-one association to BdmTargetT
 	@JsonIgnore
@@ -277,8 +293,8 @@ public class UserT implements Serializable {
 	private List<UserNotificationsT> userNotificationsTs2;
 
 	// bi-directional many-to-one association to UserGroupMappingT
-	@JsonIgnore
-	@ManyToOne
+//	@JsonIgnore
+	@ManyToOne(optional=false)
 	@JoinColumn(name = "user_group", insertable = false, updatable = false)
 	private UserGroupMappingT userGroupMappingT;
 	
@@ -1629,5 +1645,26 @@ public class UserT implements Serializable {
 		return workflowProcessTemplate;
 	}
 	
-	
+	public List<UserModuleAccessT> getUserModuleAccessTs() {
+		return this.userModuleAccessTs;
+	}
+
+	public void setUserModuleAccessTs(List<UserModuleAccessT> userModuleAccessTs) {
+		this.userModuleAccessTs = userModuleAccessTs;
+	}
+
+	public UserModuleAccessT addUserModuleAccessT(UserModuleAccessT userModuleAccessT) {
+		getUserModuleAccessTs().add(userModuleAccessT);
+		userModuleAccessT.setUserT(this);
+
+		return userModuleAccessT;
+	}
+
+	public UserModuleAccessT removeUserModuleAccessT(UserModuleAccessT userModuleAccessT) {
+		getUserModuleAccessTs().remove(userModuleAccessT);
+		userModuleAccessT.setUserT(null);
+
+		return userModuleAccessT;
+	}
+
 }

@@ -12,7 +12,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +35,10 @@ public class UserGroupMappingT implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="user_group")
 	private String userGroup;
+	
+	//bi-directional many-to-one association to UserGroupModuleT
+	@OneToMany(mappedBy="userGroupMappingT")
+	private List<UserGroupModuleT> userGroupModuleTs;
 	
 	//bi-directional many-to-one association to GoalGroupMappingT
 	@OneToMany(mappedBy="userGroupMappingT")
@@ -101,4 +104,26 @@ public class UserGroupMappingT implements Serializable {
 		return userT;
 	}
 
+	public List<UserGroupModuleT> getUserGroupModuleTs() {
+		return this.userGroupModuleTs;
+	}
+
+	public void setUserGroupModuleTs(List<UserGroupModuleT> userGroupModuleTs) {
+		this.userGroupModuleTs = userGroupModuleTs;
+	}
+
+	public UserGroupModuleT addUserGroupModuleT(UserGroupModuleT userGroupModuleT) {
+		getUserGroupModuleTs().add(userGroupModuleT);
+		userGroupModuleT.setUserGroupMappingT(this);
+
+		return userGroupModuleT;
+	}
+
+	public UserGroupModuleT removeUserGroupModuleT(UserGroupModuleT userGroupModuleT) {
+		getUserGroupModuleTs().remove(userGroupModuleT);
+		userGroupModuleT.setUserGroupMappingT(null);
+
+		return userGroupModuleT;
+	}
+	
 }
