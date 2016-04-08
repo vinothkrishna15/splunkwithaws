@@ -245,6 +245,7 @@ public class BDMDetailedReportService {
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
+			case PMO:
 				if(users.isEmpty()){
 			    	logger.error("Given BDM is not his Subordinate");
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");

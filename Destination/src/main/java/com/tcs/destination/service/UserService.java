@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,9 @@ import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.bean.UserGoalsT;
+import com.tcs.destination.bean.UserModule;
+import com.tcs.destination.bean.UserModuleAccess;
+import com.tcs.destination.bean.UserModuleAccessT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
@@ -34,7 +40,6 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
-//import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
@@ -254,8 +259,31 @@ public class UserService {
 	public UserT findByUserId(String userId) throws Exception {
 		logger.debug("Begin:Inside findByUserId() service");
 		UserT dbUser = userRepository.findOne(userId);
+		populateUser(dbUser);
 		logger.debug("End:Inside findByUserId() service");
 		return dbUser;
+	}
+
+	/**
+	 * This method is used to populate user module access
+	 * 
+	 * @param dbUser
+	 */
+	private void populateUser(UserT dbUser) {
+		logger.debug("Begin:Inside populateUser() service");
+		List<UserModuleAccessT> userModuleAccessTList = dbUser.getUserModuleAccessTs();
+		UserModuleAccess userModuleAccess = new UserModuleAccess();
+		for(UserModuleAccessT userModuleAccessT : userModuleAccessTList){
+			String moduleName = userModuleAccessT.getModuleSubModuleT().getModuleT().getModuleName();
+			String subModuleName = userModuleAccessT.getModuleSubModuleT().getSubModuleName();
+			UserModule userModule = userModuleAccess.getModule(moduleName) != null ? userModuleAccess.getModule(moduleName) : new UserModule(moduleName);
+			Set<String> submodules = CollectionUtils.isEmpty(userModule.getSubModuleName()) ?  new HashSet<String>() : userModule.getSubModuleName();
+			submodules.add(subModuleName);
+			userModule.setSubModuleName(submodules);
+			userModuleAccess.addModule(userModule);
+		 }
+		 dbUser.setUserModuleAccess(userModuleAccess);
+		 logger.debug("End:Inside populateUser() service");
 	}
 
 	/**

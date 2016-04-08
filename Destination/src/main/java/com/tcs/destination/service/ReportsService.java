@@ -2356,6 +2356,7 @@ public class ReportsService {
 				
 				case GEO_HEADS:
 				case IOU_HEADS:
+				case PMO:
 					connectIdList = getGeoHeadOrIouHeadConnectDetails(fromDate,toDate,userId,iouList,displayGeography,countryList,serviceLinesList,connectCategory);
 					break;
 				
@@ -2624,6 +2625,7 @@ public class ReportsService {
 				
 				case GEO_HEADS:
 				case IOU_HEADS:
+				case PMO:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 				
@@ -2978,6 +2980,7 @@ public class ReportsService {
 					break;
 				case GEO_HEADS:
 				case IOU_HEADS:
+				case PMO:
 					userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 					userIds.add(userId);
 					
