@@ -1,9 +1,15 @@
 package com.tcs.destination.service;
 
+import com.google.common.collect.Lists;
+//i1297mport com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
+import com.tcs.destination.bean.WorkflowCompetitorT;
+
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -26,6 +32,7 @@ import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.RevenueCustomerMappingTPK;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
 import com.tcs.destination.bean.WorkflowPartnerT;
@@ -34,9 +41,11 @@ import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
@@ -65,6 +74,10 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.QueryConstants;
+
+import static com.tcs.destination.enums.EntityTypeId.COMPETITOR;
+import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
+import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
 
 /**
@@ -139,7 +152,13 @@ public class WorkflowService {
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
 
-	@PersistenceContext
+	@Autowired
+	WorkflowCompetitorTRepository workflowCompetitorRepository;
+
+	@Autowired
+	OpportunityRepository workflowOpportunityRepository;
+
+	@PersistenceContext 
 	private EntityManager entityManager;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
@@ -722,7 +741,7 @@ public class WorkflowService {
 			logger.info("workflow Customer saved, Id :"
 					+ requestedCustomer.getWorkflowCustomerId());
 			if (requestedCustomer != null) {
-				Integer entityId = requestedCustomer.getWorkflowCustomerId();
+				String entityId = requestedCustomer.getWorkflowCustomerId();
 				Integer entityTypeId = EntityTypeId.CUSTOMER.getType();
 				WorkflowRequestT workflowRequest = populateWorkflowRequest(
 						entityId, entityTypeId, userId);
@@ -741,8 +760,8 @@ public class WorkflowService {
 					} else {
 						// Saving workflow customer details to CustomerMasterT
 						// for Admin
-//						CustomerMasterT customerMasterObj = new CustomerMasterT();
-//						saveToMasterTables(customerMasterObj , requestedCustomer);
+						//						CustomerMasterT customerMasterObj = new CustomerMasterT();
+						//						saveToMasterTables(customerMasterObj , requestedCustomer);
 						saveToCustomerMasterTables(requestedCustomer);
 						status.setStatus(Status.SUCCESS, "Customer "
 								+ workflowCustomer.getCustomerName()
@@ -765,7 +784,7 @@ public class WorkflowService {
 	 * @param userId
 	 * @return
 	 */
-	private WorkflowRequestT populateWorkflowRequest(Integer entityId,
+	private WorkflowRequestT populateWorkflowRequest(String entityId,
 			Integer entityTypeId, String userId) throws Exception {
 		logger.info("Inside Start of populateWorkflowRequest method");
 		List<WorkflowStepT> workflowSteps = null;
@@ -1004,7 +1023,7 @@ public class WorkflowService {
 						workflowCustomerDetailsDTO.setStatus(workflowRequest
 								.getStatus());
 						// Get the workflow customer Id from request table
-						Integer workflowCustomerId = workflowRequest
+						String workflowCustomerId = workflowRequest
 								.getEntityId();
 						// Get the new customer details for the request
 						WorkflowCustomerT workflowCustomer = workflowCustomerRepository
@@ -1092,7 +1111,7 @@ public class WorkflowService {
 								.getStatus());
 
 						// Get the workflow partner Id from request table
-						Integer workflowPartnerId = workflowRequest
+						String workflowPartnerId = workflowRequest
 								.getEntityId();
 						// Get the new partner details for the request
 						WorkflowPartnerT workflowPartner = workflowPartnerRepository
@@ -1100,7 +1119,7 @@ public class WorkflowService {
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO.setRequestedPartner(workflowPartner);
-							
+
 							// Get the workflow steps associated with the new
 							// partner request
 							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
@@ -1153,7 +1172,7 @@ public class WorkflowService {
 	}
 
 
-	
+
 	/**
 	 * This service is used to retrieve the worklist of the logged in user
 	 * 
@@ -1162,98 +1181,47 @@ public class WorkflowService {
 	 * @param count
 	 * @return
 	 */
-	public PaginatedResponse getMyWorklist(String status, int page, int count) throws DestinationException{
+	public PaginatedResponse getMyWorklist(String status, int page, int count)
+			throws DestinationException {
 		try {
 			logger.debug("Start of getMyWorklist service");
 			// userId of the logged in user is retrieved
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			PaginatedResponse worklistResponse = new PaginatedResponse();
 			// Contains list of all requests including customer, partner etc
-			List<MyWorklistDTO> myWorklist = null;
+			List<MyWorklistDTO> myWorklist = new ArrayList<MyWorklistDTO>();
 			// Contains all the lists of customer requests
 			List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
+			// Contains all the lists of partner requests
+			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+			// Contains all the lists of partner requests
+			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
-			// Retrieve requests placed by user			
-			List<Object[]> myCustomerRequests = getMyRequestsForCustomer(
-					status, userId);
-			// Get all the new partner requests created by user
-			List<Object[]> myPartnerRequests = getMyRequestsForPartner(status,
-					userId);
+			// Get all requests
+			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(status, userId);
 
-			if (status.equalsIgnoreCase("ALL")) {
-				myWorklist = new ArrayList<MyWorklistDTO>();
-
-				// Get all requests Approved by user
-				List<Object[]> approvedCustomerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.APPROVED.getStatus(), userId,
-						EntityType.CUSTOMER.toString());
-				List<Object[]> approvedPartnerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.APPROVED.getStatus(), userId, EntityType.PARTNER.toString());
-
-
-				// Get all requests Rejected by user
-				List<Object[]> rejectedCustomerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.REJECTED.getStatus(), userId,
-						EntityType.CUSTOMER.toString());
-				List<Object[]> rejectedPartnerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.REJECTED.getStatus(), userId, EntityType.PARTNER.toString());
-
+			if (status.equalsIgnoreCase("ALL")) {				
 
 				// Get all requests pending for approval/rejection by user
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
+				//	List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
-				listOfCustomerRequests.add(myCustomerRequests);
-				listOfCustomerRequests.add(approvedCustomerRequests);
-				listOfCustomerRequests.add(rejectedCustomerRequests);
 				listOfCustomerRequests.add(pendingCustomerRequests);
 
 				// Add all the lists of partner requests
-				listOfPartnerRequests.add(myPartnerRequests);
-				listOfPartnerRequests.add(approvedPartnerRequests);
-				listOfPartnerRequests.add(rejectedPartnerRequests);
 				listOfPartnerRequests.add(pendingPartnerRequests);
 
-			}
-			if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
-				myWorklist = new ArrayList<MyWorklistDTO>();
+				// Add all the lists of competitor requests
+				//	listOfCompetitorRequests.add(pendingCompetitorRequests);
 
-				// Get all requests Approved by user
-				List<Object[]> approvedCustomerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.APPROVED.getStatus(), userId,
-						EntityType.CUSTOMER.toString());
-				List<Object[]> approvedPartnerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.APPROVED.getStatus(), userId, EntityType.PARTNER.toString());
-
-				// Add all the lists of customer requests
-				listOfCustomerRequests.add(myCustomerRequests);
-				listOfCustomerRequests.add(approvedCustomerRequests);
-
-				// Add all the lists of partner requests
-				listOfPartnerRequests.add(myPartnerRequests);
-				listOfPartnerRequests.add(approvedPartnerRequests);
-			}
-			if (status.equalsIgnoreCase(WorkflowStatus.REJECTED.getStatus())) {
-				myWorklist = new ArrayList<MyWorklistDTO>();
-
-				// Get all requests Rejected by user
-				List<Object[]> rejectedCustomerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.REJECTED.getStatus(), userId,
-						EntityType.CUSTOMER.toString());
-				List<Object[]> rejectedPartnerRequests = getRequestsApprovedOrRejectedByUser(
-						WorkflowStatus.REJECTED.getStatus(), userId, EntityType.PARTNER.toString());
-
-				// Add all the lists of customer requests
-				listOfCustomerRequests.add(myCustomerRequests);
-				listOfCustomerRequests.add(rejectedCustomerRequests);
-
-				// Add all the lists of partner requests
-				listOfPartnerRequests.add(myPartnerRequests);
-				listOfPartnerRequests.add(rejectedPartnerRequests);
-
+				// Add all the lists of opportunity re-open requests
+				listOfOpportunityReopenRequests.add(pendingOpportunityReopenRequests);
 			}
 			if (status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
 				myWorklist = new ArrayList<MyWorklistDTO>();
@@ -1261,14 +1229,20 @@ public class WorkflowService {
 				// Get all requests pending for user's approval/rejection
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
+				//	List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
-				listOfCustomerRequests.add(myCustomerRequests);
 				listOfCustomerRequests.add(pendingCustomerRequests);
 
 				// Add all the lists of partner requests
-				listOfPartnerRequests.add(myPartnerRequests);
 				listOfPartnerRequests.add(pendingPartnerRequests);
+
+				// Add all the lists of competitor requests
+				//	listOfCompetitorRequests.add(pendingCompetitorRequests);
+
+				// Add all the lists of opportunity re-open requests
+				listOfOpportunityReopenRequests.add(pendingOpportunityReopenRequests);
 			}
 
 			// Populate the response object
@@ -1276,22 +1250,30 @@ public class WorkflowService {
 					EntityType.CUSTOMER.toString(), myWorklist);
 			populateResponseList(listOfPartnerRequests,
 					EntityType.PARTNER.toString(), myWorklist);
+			//	populateResponseList(listOfCompetitorRequests,
+			//		EntityType.COMPETITOR.toString(), myWorklist);
+			populateResponseList(listOfOpportunityReopenRequests,
+					EntityType.OPPORTUNITY.toString(), myWorklist);
+
+			//Add competitor list
+			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
 			// Sort the list based on modified date time
 			Collections.sort(myWorklist);
-			if(myWorklist==null)
-			{
+			if (myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND,"No requests found with stage - "+status);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No requests found with stage - " + status);
 			}
-			if(myWorklist!=null&&myWorklist.isEmpty()){
+			if (myWorklist != null && myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND,"No requests found with stage - "+status);
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No requests found with stage - " + status);
 			}
 			worklistResponse.setTotalCount(myWorklist.size());
 			myWorklist = paginateMyWorklist(page, count, myWorklist);
 			worklistResponse.setMyWorklists(myWorklist);
-			logger.debug("End of getMyWorklist service");			
+			logger.debug("End of getMyWorklist service");
 			return worklistResponse;
 		}catch (DestinationException e) {
 			throw e;
@@ -1301,6 +1283,147 @@ public class WorkflowService {
 					"Backend error while retrieving worklist details");
 		}
 	}
+
+	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
+		// TODO Auto-generated method stub
+		List<Object[]> resultList = null;
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		String userGroup = user.getUserGroup();
+		userRole = "%" + userRole + "%";
+		userGroup = "%" + userGroup + "%";
+		// Query to get pending partner requests for specific user's
+		// approval/rejection
+		if (userId.contains("pmo")) {
+			StringBuffer queryBuffer = new StringBuffer(
+					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GEO_GROUP_QUERY);
+			Query query = entityManager.createNativeQuery(queryBuffer
+					.toString());
+			query.setParameter("userId", userId);					
+		}
+		// Query to get pending with group of users, based on user's role and
+		// user group
+		StringBuffer queryBuffer = new StringBuffer(
+				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
+		Query query = entityManager.createNativeQuery(queryBuffer.toString());
+		query.setParameter("userRole", userRole);
+		query.setParameter("userGroup", userGroup);
+		if (resultList == null) {
+			resultList = query.getResultList();
+		} else {
+			List<Object[]> resultForGroupPending = query.getResultList();
+			resultList.addAll(resultForGroupPending);
+		}
+
+		return resultList;
+	}
+
+	private List<Object[]> getPendingCompetitorRequests(String userId) {
+		// TODO Auto-generated method stub
+		List<Object[]> resultList = null;
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		String userGroup = user.getUserGroup();
+		userRole = "%" + userRole + "%";
+		userGroup = "%" + userGroup + "%";
+
+		// Query to get pending with group of users, based on user's role and
+		// user group
+		StringBuffer queryBuffer = new StringBuffer(
+				QueryConstants.PARTNER_PENDING_WITH_GROUP_QUERY);
+		Query query = entityManager.createNativeQuery(queryBuffer.toString());
+		query.setParameter("userRole", userRole);
+		query.setParameter("userGroup", userGroup);
+		if (resultList == null) {
+			resultList = query.getResultList();
+		} else {
+			List<Object[]> resultForGroupPending = query.getResultList();
+			resultList.addAll(resultForGroupPending);
+		}
+
+		return resultList;
+	}
+
+	/**
+	 * @param status
+	 * @param userId
+	 * @return
+	 */
+	private Set<MyWorklistDTO> getSubmittedAndApprovedRequests(String status,
+			String userId) {
+		logger.info("Starting getSubmittedAndApprovedRequests");
+
+		Set<WorkflowRequestT> workFlowRequest = new HashSet<WorkflowRequestT>();
+		List<WorkflowRequestT> workFlowSubmittedRequest = null;
+		List<WorkflowRequestT> workFlowActionedRequest = null;
+
+		if (status.equalsIgnoreCase("ALL")) {
+			workFlowActionedRequest = workflowRequestTRepository
+					.getModifiedBy(userId);
+			workFlowSubmittedRequest = workflowRequestTRepository.findByCreatedBy(userId);
+
+		} else {
+			workFlowActionedRequest = workflowRequestTRepository
+					.getModifiedByAndStatus(userId, status);
+			workFlowSubmittedRequest = workflowRequestTRepository.findByCreatedByAndStatus(userId, status);
+		}
+
+		if(CollectionUtils.isNotEmpty(workFlowSubmittedRequest)) {
+			workFlowRequest.addAll(workFlowSubmittedRequest);
+		}
+		if(CollectionUtils.isNotEmpty(workFlowActionedRequest)) {
+			workFlowRequest.addAll(workFlowActionedRequest);
+		}
+		logger.info("Ending getSubmittedAndApprovedRequests");
+		return populateSubmittedAndApprovedRequests(workFlowRequest);
+	}
+
+	/**
+	 * @param workFlowRequestCompetitor
+	 * @return List<MyWorklistDTO>
+	 */
+	private Set<MyWorklistDTO> populateSubmittedAndApprovedRequests(
+			Set<WorkflowRequestT> workFlowRequestCompetitor) {
+
+		logger.debug("Starting populateCompetitorList");
+
+		Set<MyWorklistDTO> myWorklistDTOs = new HashSet<MyWorklistDTO>();
+		if (CollectionUtils.isNotEmpty(workFlowRequestCompetitor)) {
+			for (WorkflowRequestT requestT: workFlowRequestCompetitor) {
+				MyWorklistDTO myWorklistDTO = new MyWorklistDTO();
+
+				switch (EntityTypeId.valueOf(EntityTypeId.getName(requestT.getEntityTypeId()))) {
+				case CUSTOMER :
+					myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
+					myWorklistDTO.setEntityName(workflowCustomerRepository.findOne(requestT.getEntityId()).getCustomerName());
+					break;
+				case PARTNER :
+					myWorklistDTO.setEntityType(PARTNER.getDisplayName());
+					myWorklistDTO.setEntityName(workflowPartnerRepository.findOne(requestT.getEntityId()).getPartnerName());
+					break;
+				case COMPETITOR: 
+					myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
+					myWorklistDTO.setEntityName(workflowCompetitorRepository.findOne(requestT.getEntityId()).getWorkflowCompetitorName());
+					break;
+				case OPPORTUNITY: 
+					myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY.getDisplayName());
+					myWorklistDTO.setEntityName(workflowOpportunityRepository.findOne(requestT.getEntityId()).getOpportunityName());
+					break;
+				}
+				myWorklistDTO.setRequestId(requestT.getRequestId());
+
+				WorkflowStepT stepT = workflowStepRepository.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(requestT.getRequestId(), WorkflowStatus.NOT_APPLICABLE.getStatus());
+				myWorklistDTO.setWorkflowStep(stepT);
+				myWorklistDTO.setModifiedDatetime(stepT.getModifiedDatetime());
+				myWorklistDTOs.add(myWorklistDTO);
+			}
+		}
+
+		logger.debug("Ending populateCompetitorList");
+
+		return myWorklistDTOs;
+	}
+
 
 	/**
 	 * This method performs pagination for the getMyWorklist service
@@ -1353,6 +1476,14 @@ public class WorkflowService {
 							.toString())){
 						// All Partner requests
 						worklist.setEntityType("New Partner");
+					}else if(entityType.equalsIgnoreCase(EntityType.COMPETITOR
+							.toString())){
+						// All Partner requests
+						worklist.setEntityType("New Competitor");
+					}else if(entityType.equalsIgnoreCase(EntityType.OPPORTUNITY
+							.toString())){
+						// All Partner requests
+						worklist.setEntityType("New Opportunity Reopen");
 					}
 
 					WorkflowStepT workflowStep = new WorkflowStepT();
@@ -1541,7 +1672,7 @@ public class WorkflowService {
 			if(status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())){
 				// Query to get customer requests APPROVED by user
 				query = entityManager.createNativeQuery(QueryConstants.QUERY_CUSTOMER_FINAL_APPROVED);
-				
+
 			}else
 			{
 				// Query to get customer requests REJECTED by user
@@ -1681,7 +1812,7 @@ public class WorkflowService {
 		WorkflowPartnerT requestedPartner = workflowPartnerRepository.save(workflowPartner);
 		logger.info("Workflow Partner saved , Id : "  +requestedPartner.getWorkflowPartnerId());
 		if(requestedPartner != null) {
-			Integer entityId = requestedPartner.getWorkflowPartnerId();
+			String entityId = requestedPartner.getWorkflowPartnerId();
 			Integer entityTypeId = EntityTypeId.PARTNER.getType();
 			WorkflowRequestT workflowRequest = populateWorkflowRequest(
 					entityId, entityTypeId, userId);
@@ -2036,7 +2167,7 @@ public class WorkflowService {
 		}
 		return validated;
 	}
-	
+
 	/*
 	 * on admin approval new entity was created in the master table
 	 */
@@ -2044,7 +2175,7 @@ public class WorkflowService {
 		logger.info("Inside saveToCustomerMasterTables");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customerMaster = new CustomerMasterT();
-		  CustomerMasterT customerMastersaved = new CustomerMasterT();
+		CustomerMasterT customerMastersaved = new CustomerMasterT();
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		customerMaster.setGroupCustomerName(workflowCustomerT
 				.getGroupCustomerName());
@@ -2077,7 +2208,7 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-			//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
 				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
 				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
 				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
