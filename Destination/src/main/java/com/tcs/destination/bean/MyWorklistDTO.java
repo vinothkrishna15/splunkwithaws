@@ -3,12 +3,22 @@ package com.tcs.destination.bean;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-public class MyWorklistDTO implements Serializable,Comparable<MyWorklistDTO> {
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+public class MyWorklistDTO implements Serializable, Comparable<MyWorklistDTO> {
+
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private WorkflowStepT workflowStep;
 	private String entityType;
 	private String entityName;
 	private Timestamp modifiedDatetime;
+	@JsonIgnore
+	private Integer requestId;
 	
 	public Timestamp getModifiedDatetime() {
 		return modifiedDatetime;
@@ -34,6 +44,33 @@ public class MyWorklistDTO implements Serializable,Comparable<MyWorklistDTO> {
 	public void setEntityName(String entityName) {
 		this.entityName = entityName;
 	}
+	
+	
+	public Integer getRequestId() {
+		return requestId;
+	}
+	public void setRequestId(Integer requestId) {
+		this.requestId = requestId;
+	}
+	@Override
+    public int hashCode() {
+        return requestId.hashCode();
+    }
+
+	@Override
+	public boolean equals(Object object) {
+		boolean result = false;
+		if (object == null || object.getClass() != getClass()) {
+			result = false;
+		} else {
+			MyWorklistDTO myWorklistDTO = (MyWorklistDTO) object;
+			if (this.requestId == myWorklistDTO.getRequestId()) {
+				result = true;
+			}
+		}
+		return result;
+	}
+    
 	@Override
 	public int compareTo(MyWorklistDTO compareObject) {
 		
