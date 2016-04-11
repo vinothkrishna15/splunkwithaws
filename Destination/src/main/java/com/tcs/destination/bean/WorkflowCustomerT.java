@@ -60,6 +60,7 @@ public class WorkflowCustomerT implements Serializable {
 
 	private String notes;
 	
+	@Transient
 	private String comments;
 
 	private String website;

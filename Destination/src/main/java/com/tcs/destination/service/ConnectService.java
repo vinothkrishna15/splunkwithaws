@@ -1611,20 +1611,6 @@ public class ConnectService {
 
 	}
 
-	private boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
-		// TODO Auto-generated method stub
-		boolean isBDMOrBDMSupervisor = false;
-		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
-		for (String userGroup : userGroups) {
-			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
-				isBDMOrBDMSupervisor = true;
-				break;
-			}
-		}
-		return isBDMOrBDMSupervisor;
-	}
-
 	public void deleteConnect(List<ConnectT> deleteList) {
 
 		List<ConnectCustomerContactLinkT> connectCustomerContactLinkT = new ArrayList<ConnectCustomerContactLinkT>();

@@ -47,6 +47,7 @@ public class WorkflowPartnerT implements Serializable {
 
 	private String notes;
 	
+	@Transient
 	private String comments;
 
 	@Column(name="partner_name")
