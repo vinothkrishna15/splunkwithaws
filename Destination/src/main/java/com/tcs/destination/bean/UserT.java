@@ -39,7 +39,7 @@ public class UserT implements Serializable {
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
 	}
-	
+
 	@Id
 	@Column(name = "user_id")
 	private String userId;
@@ -76,17 +76,17 @@ public class UserT implements Serializable {
 
 	@Transient
 	private List<String> previledgedCustomerNameList;
-	
+
 	@OneToMany(mappedBy="userT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
-	
+
 	//bi-directional many-to-one association to UserModuleAccessT
 	@OneToMany(mappedBy="userT", cascade = CascadeType.ALL)
 	private List<UserModuleAccessT> userModuleAccessTs;
 
 	@Transient
 	private UserModuleAccess userModuleAccess;
-	
+
 
 	public UserModuleAccess getUserModuleAccess() {
 		return userModuleAccess;
@@ -190,7 +190,7 @@ public class UserT implements Serializable {
 	@JsonIgnore
 	@OneToMany(mappedBy = "userT")
 	private List<FrequentlySearchedCustomerPartnerT> frequentlySearchedCustomerPartnerTs;
-	
+
 	//bi-directional many-to-one association to GoalGroupMappingT
 	@OneToMany(mappedBy="userT")
 	private List<GoalGroupMappingT> goalGroupMappingTs;
@@ -266,7 +266,7 @@ public class UserT implements Serializable {
 	// bi-directional one-to-one association to UserGeneralSettingsT
 	@OneToOne(mappedBy = "userT")
 	private UserGeneralSettingsT userGeneralSettingsT;
-	
+
 	//bi-directional many-to-one association to UserGoalsT
 	@OneToMany(mappedBy="userT1")
 	private List<UserGoalsT> userGoalsTs1;
@@ -293,11 +293,11 @@ public class UserT implements Serializable {
 	private List<UserNotificationsT> userNotificationsTs2;
 
 	// bi-directional many-to-one association to UserGroupMappingT
-//	@JsonIgnore
+	//	@JsonIgnore
 	@ManyToOne(optional=false)
 	@JoinColumn(name = "user_group", insertable = false, updatable = false)
 	private UserGroupMappingT userGroupMappingT;
-	
+
 	@Column(name="user_group")
 	private String userGroup;
 
@@ -314,48 +314,56 @@ public class UserT implements Serializable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "userT2")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs2;
-	
 
-		//bi-directional many-to-one association to RequestedCustomerT
-		@OneToMany(mappedBy="createdByUser")
-		private List<WorkflowCustomerT> workflowCustomerTs1;
 
-		//bi-directional many-to-one association to RequestedCustomerT
-		@OneToMany(mappedBy="modifiedByUser")
-		private List<WorkflowCustomerT> workflowCustomerTs2;
+	//bi-directional many-to-one association to RequestedCustomerT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowCustomerT> workflowCustomerTs1;
 
-		//bi-directional many-to-one association to RequestedPartnerT
-		@OneToMany(mappedBy="createdByUser")
-		private List<WorkflowPartnerT> workflowPartnerTs1;
+	//bi-directional many-to-one association to RequestedCustomerT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowCustomerT> workflowCustomerTs2;
 
-		//bi-directional many-to-one association to RequestedPartnerT
-		@OneToMany(mappedBy="modifiedByUser")
-		private List<WorkflowPartnerT> workflowPartnerTs2;
+	//bi-directional many-to-one association to RequestedPartnerT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowPartnerT> workflowPartnerTs1;
 
-		
-		//bi-directional many-to-one association to WorkflowRequestT
-		@OneToMany(mappedBy="createdByUser")
-		private List<WorkflowRequestT> workflowRequestTs1;
+	//bi-directional many-to-one association to RequestedPartnerT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowPartnerT> workflowPartnerTs2;
 
-		//bi-directional many-to-one association to WorkflowRequestT
-		@OneToMany(mappedBy="modifiedByUser")
-		private List<WorkflowRequestT> workflowRequestTs2;
 
-		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="user")
-		private List<WorkflowStepT> workflowStepTs1;
+	//bi-directional many-to-one association to WorkflowRequestT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowRequestT> workflowRequestTs1;
 
-		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="createdByUser")
-		private List<WorkflowStepT> workflowStepTs2;
+	//bi-directional many-to-one association to WorkflowRequestT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowRequestT> workflowRequestTs2;
 
-		//bi-directional many-to-one association to WorkflowStepT
-		@OneToMany(mappedBy="modifiedByUser")
-		private List<WorkflowStepT> workflowStepTs3;
-		
-		//bi-directional many-to-one association to WorkflowProcessTemplate
-		@OneToMany(mappedBy="userT")
-		private List<WorkflowProcessTemplate> workflowProcessTemplates;
+	//bi-directional many-to-one association to WorkflowStepT
+	@OneToMany(mappedBy="user")
+	private List<WorkflowStepT> workflowStepTs1;
+
+	//bi-directional many-to-one association to WorkflowStepT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowStepT> workflowStepTs2;
+
+	//bi-directional many-to-one association to WorkflowStepT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowStepT> workflowStepTs3;
+
+	//bi-directional many-to-one association to WorkflowProcessTemplate
+	@OneToMany(mappedBy="userT")
+	private List<WorkflowProcessTemplate> workflowProcessTemplates;
+
+	//bi-directional many-to-one association to WorkflowCompetitorT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowCompetitorT> workflowCompetitorTs1;
+
+	//bi-directional many-to-one association to WorkflowCompetitorT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowCompetitorT> workflowCompetitorTs2;
 
 	@Transient
 	private String newPassword;
@@ -1363,7 +1371,7 @@ public class UserT implements Serializable {
 			List<UserAccessPrivilegesT> userAccessPrivilegesTs) {
 		this.userAccessPrivilegesTs = userAccessPrivilegesTs;
 	}
-	
+
 	public UserAccessPrivilegesT addUserAccessPrivilegesT(UserAccessPrivilegesT userAccessPrivilegesT) {
 		getUserAccessPrivilegesTs().add(userAccessPrivilegesT);
 		userAccessPrivilegesT.setUserT(this);
@@ -1417,7 +1425,7 @@ public class UserT implements Serializable {
 		this.userGoalsTs2 = userGoalsTs2;
 	}
 
-	
+
 
 	public WorkflowCustomerT addWorkflowCustomerTs1(WorkflowCustomerT workflowCustomerTs1) {
 		getWorkflowCustomerTs1().add(workflowCustomerTs1);
@@ -1433,7 +1441,7 @@ public class UserT implements Serializable {
 		return workflowCustomerTs1;
 	}
 
-	
+
 
 	public WorkflowCustomerT addWorkflowCustomerTs2(WorkflowCustomerT workflowCustomerTs2) {
 		getWorkflowCustomerTs2().add(workflowCustomerTs2);
@@ -1449,7 +1457,7 @@ public class UserT implements Serializable {
 		return workflowCustomerTs2;
 	}
 
-	
+
 
 	public WorkflowPartnerT addWorkflowPartnerTs1(WorkflowPartnerT workflowPartnerTs1) {
 		getWorkflowPartnerTs1().add(workflowPartnerTs1);
@@ -1465,7 +1473,7 @@ public class UserT implements Serializable {
 		return workflowPartnerTs1;
 	}
 
-	
+
 
 	public WorkflowPartnerT addWorkflowPartnerTs2(WorkflowPartnerT workflowPartnerTs2) {
 		getWorkflowPartnerTs2().add(workflowPartnerTs2);
@@ -1480,7 +1488,7 @@ public class UserT implements Serializable {
 
 		return workflowPartnerTs2;
 	}
-	
+
 	public List<WorkflowRequestT> getWorkflowRequestTs1() {
 		return this.workflowRequestTs1;
 	}
@@ -1622,7 +1630,7 @@ public class UserT implements Serializable {
 	public void setWorkflowPartnerTs2(List<WorkflowPartnerT> workflowPartnerTs2) {
 		this.workflowPartnerTs2 = workflowPartnerTs2;
 	}
-	
+
 	public List<WorkflowProcessTemplate> getWorkflowProcessTemplates() {
 		return this.workflowProcessTemplates;
 	}
@@ -1644,7 +1652,7 @@ public class UserT implements Serializable {
 
 		return workflowProcessTemplate;
 	}
-	
+
 	public List<UserModuleAccessT> getUserModuleAccessTs() {
 		return this.userModuleAccessTs;
 	}
@@ -1666,5 +1674,48 @@ public class UserT implements Serializable {
 
 		return userModuleAccessT;
 	}
+	
+	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
+		return this.workflowCompetitorTs1;
+	}
 
+	public void setWorkflowCompetitorTs1(List<WorkflowCompetitorT> workflowCompetitorTs1) {
+		this.workflowCompetitorTs1 = workflowCompetitorTs1;
+	}
+
+	public WorkflowCompetitorT addWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
+		getWorkflowCompetitorTs1().add(workflowCompetitorTs1);
+		workflowCompetitorTs1.setCreatedByUser(this);
+
+		return workflowCompetitorTs1;
+	}
+
+	public WorkflowCompetitorT removeWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
+		getWorkflowCompetitorTs1().remove(workflowCompetitorTs1);
+		workflowCompetitorTs1.setCreatedByUser(null);
+
+		return workflowCompetitorTs1;
+	}
+
+	public List<WorkflowCompetitorT> getWorkflowCompetitorTs2() {
+		return this.workflowCompetitorTs2;
+	}
+
+	public void setWorkflowCompetitorTs2(List<WorkflowCompetitorT> workflowCompetitorTs2) {
+		this.workflowCompetitorTs2 = workflowCompetitorTs2;
+	}
+
+	public WorkflowCompetitorT addWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
+		getWorkflowCompetitorTs2().add(workflowCompetitorTs2);
+		workflowCompetitorTs2.setModifiedByUser(this);
+
+		return workflowCompetitorTs2;
+	}
+
+	public WorkflowCompetitorT removeWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
+		getWorkflowCompetitorTs2().remove(workflowCompetitorTs2);
+		workflowCompetitorTs2.setModifiedByUser(null);
+
+		return workflowCompetitorTs2;
+	}
 }

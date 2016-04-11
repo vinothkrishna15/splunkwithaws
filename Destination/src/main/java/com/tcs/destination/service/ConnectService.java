@@ -48,6 +48,7 @@ import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.CommentsTRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -58,8 +59,10 @@ import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.TaskRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
@@ -68,6 +71,8 @@ import com.tcs.destination.data.repository.UserTaggedFollowedRepository;
 import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
+import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
@@ -77,7 +82,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
-import com.tcs.destination.enums.UserGroup;
 
 @Service("connectService")
 public class ConnectService {
@@ -93,6 +97,9 @@ public class ConnectService {
 
 	@Autowired
 	ConnectRepository connectRepository;
+
+	@Autowired
+	CustomerRepository customerRepository;
 
 	@Autowired
 	ConnectSecondaryOwnerRepository connectSecondaryOwnerRepository;
@@ -127,6 +134,9 @@ public class ConnectService {
 	@Autowired
 	CommentsTRepository commentsTRepository;
 
+	@Autowired
+	OpportunityService opportunityService;
+
 	// Required beans for Auto comments - start
 	@Autowired
 	ThreadPoolTaskExecutor autoCommentsTaskExecutor;
@@ -140,6 +150,9 @@ public class ConnectService {
 	@Autowired
 	CollaborationCommentsRepository collaborationCommentsRepository;
 	// Required beans for Auto comments - end
+
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	@Autowired
 	NotificationsEventFieldsTRepository notificationEventFieldsTRepository;
@@ -156,6 +169,9 @@ public class ConnectService {
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	PartnerRepository partnerRepository;
 
 	@Autowired
 	ConnectOpportunityLinkTRepository connectOpportunityLinkTRepository;
@@ -295,9 +311,9 @@ public class ConnectService {
 								toTimestamp, customerId, partnerId);
 				connectResponse.setTotalCount(connects.size());
 				connects = paginateConnects(page, count, connects);
-				
+
 				connectResponse.setConnectTs(connects);
-				
+
 			} else if (owner.equalsIgnoreCase(OwnerType.SECONDARY.toString())) {
 				logger.debug("Owner is SECONDARY");
 				connects = connectSecondaryOwnerRepository
@@ -306,9 +322,9 @@ public class ConnectService {
 								toTimestamp, customerId, partnerId);
 				connectResponse.setTotalCount(connects.size());
 				connects = paginateConnects(page, count, connects);
-				
+
 				connectResponse.setConnectTs(connects);
-				
+
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner is ALL");
 				connects = connectRepository
@@ -317,9 +333,9 @@ public class ConnectService {
 								toTimestamp, customerId, partnerId);
 				connectResponse.setTotalCount(connects.size());
 				connects = paginateConnects(page, count, connects);
-				
+
 				connectResponse.setConnectTs(connects);
-				
+
 			}
 			prepareConnect(connects);
 			return connectResponse;
@@ -351,10 +367,11 @@ public class ConnectService {
 	public boolean createConnect(ConnectT connect, boolean isBulkDataLoad)
 			throws Exception 
 	{
-		  connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
-					.getUserId());
-	      connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
-					.getUserId());
+		logger.debug("Inside insertConnect() service");
+		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
+		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
+				.getUserId());
 		// Validate request
 		validateRequest(connect, true);
 		// Take a copy to keep child objects
@@ -363,7 +380,7 @@ public class ConnectService {
 		// Set null for all child objects
 		setNullForReferencedObjects(connect);
 		logger.debug("Reference Objects set null");
-       
+
 		if (connectRepository.save(connect) != null) {
 			requestConnect.setConnectId(connect.getConnectId());
 			logger.debug("Parent Object Saved, ConnectId: {}",
@@ -463,22 +480,22 @@ public class ConnectService {
 			notificationsHelper.setOldObject(oldObject);
 		}
 		notificationsHelper
-				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
 		notificationsHelper
-				.setUserNotificationsTRepository(userNotificationsTRepository);
+		.setUserNotificationsTRepository(userNotificationsTRepository);
 		notificationsHelper
-				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
 		notificationsHelper
-				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setCrudRepository(connectRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
 		notificationsHelper
-				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
 		notificationsHelper
-				.setSearchKeywordsRepository(searchKeywordsRepository);
+		.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -493,7 +510,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Connect Category is required");
 		}
-        String customerId = connect.getCustomerId();
+		String customerId = connect.getCustomerId();
 		String partnerId = connect.getPartnerId();
 		boolean isValid = false;
 		if (EntityType.contains(connectCategory)) {
@@ -546,33 +563,33 @@ public class ConnectService {
 		}
 		if(isInsert)
 		{
-		  String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-	      UserT user = userRepository.findByUserId(userId);
-	      String userGroup = user.getUserGroup();
-	      if (UserGroup.contains(userGroup)) {
-			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-			case PRACTICE_HEAD:
-			case PRACTICE_OWNER:
-				List<String> owners = new ArrayList<String>();
-				owners.add(connect.getPrimaryOwner());
-				if (connect.getConnectSecondaryOwnerLinkTs() != null) {
-					for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
-							.getConnectSecondaryOwnerLinkTs()) {
-						owners.add(connectSecondaryOwnerLinkT.getSecondaryOwner());
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			UserT user = userRepository.findByUserId(userId);
+			String userGroup = user.getUserGroup();
+			if (UserGroup.contains(userGroup)) {
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case PRACTICE_HEAD:
+				case PRACTICE_OWNER:
+					List<String> owners = new ArrayList<String>();
+					owners.add(connect.getPrimaryOwner());
+					if (connect.getConnectSecondaryOwnerLinkTs() != null) {
+						for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+								.getConnectSecondaryOwnerLinkTs()) {
+							owners.add(connectSecondaryOwnerLinkT.getSecondaryOwner());
+						}
 					}
+					if (owners != null) {
+						if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+									"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
+						} 
+					}
+					break;
+				default:
+					break;
 				}
-				if (owners != null) {
-					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
-					} 
-				}
-				break;
-			default:
-				break;
 			}
-	    }
-	 }
+		}
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -612,7 +629,7 @@ public class ConnectService {
 
 	private void populateConnectTcsAccountContactLinks(String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
@@ -729,6 +746,7 @@ public class ConnectService {
 	@Transactional
 	public boolean updateConnect(ConnectT connect) throws Exception {
 		logger.debug("Inside updateConnect() service");
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
 				.getUserId());
 		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
@@ -748,6 +766,17 @@ public class ConnectService {
 		}
 		// Load db object before update with lazy collections populated for auto
 		// comments
+		// for edit access
+		UserT user = userRepository.findByUserId(userId);
+		String userGroup = user.getUserGroup();
+		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
+			if (validateEditAccessForConnect(connectBeforeEdit,
+					userGroup, userId)) {
+				throw new DestinationException(HttpStatus.FORBIDDEN,
+						"User is not authorized to edit this Connect");
+			}
+		}
 		ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
 		// Copy the db object as the above object is managed by current
 		// hibernate session
@@ -996,6 +1025,22 @@ public class ConnectService {
 	private void prepareConnect(ConnectT connectT) {
 		logger.debug("Inside prepareConnect() method");
 		if (connectT != null) {
+			try {
+				String userId = DestinationUtils.getCurrentUserDetails()
+						.getUserId();
+				String userGroup = userRepository.findByUserId(userId)
+						.getUserGroup();
+				if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+					connectT.setEnableEditAccess(true);
+				}
+				else {
+					connectT.setEnableEditAccess(validateEditAccessForConnect(connectT, userGroup, userId));
+				}
+
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						e.getMessage());
+			}
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
 			removeCyclicForLinkedCustomerMasterTs(connectT);
@@ -1035,7 +1080,7 @@ public class ConnectService {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getOpportunityT()
-							.setConnectOpportunityLinkIdTs(null);
+					.setConnectOpportunityLinkIdTs(null);
 				}
 			}
 		}
@@ -1052,11 +1097,11 @@ public class ConnectService {
 			autoCommentsHelper.setOldObject(oldObject);
 		}
 		autoCommentsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper
-				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper
-				.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(connectRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
@@ -1110,7 +1155,7 @@ public class ConnectService {
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
 				.setPaginatedConnectResponse(connectResponse);
-				
+
 				prepareConnect(connects);
 
 				// Get weekly count of connects
@@ -1120,7 +1165,7 @@ public class ConnectService {
 						+ ONE_DAY_IN_MILLIS - 1);
 				List<ConnectT> weekConnects = connectRepository
 						.getTeamConnects(users, weekStartDateTs, weekEndDateTs);
-				
+
 				dashBoardConnectsResponse.setWeekCount(weekConnects.size());
 
 				// Get monthly count of connects
@@ -1161,7 +1206,7 @@ public class ConnectService {
 				prepareConnect(connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
+				.setPaginatedConnectResponse(connectResponse);
 			}
 
 			// If ROLE is SECONDARY
@@ -1222,9 +1267,9 @@ public class ConnectService {
 			logger.error(
 					"NOT_FOUND: No Connects found for for days between {} and {}, "
 							+ "days of week between {} and {}, days of month between {} and {}",
-					 fromDateTs, toDateTs,
-					weekStartDateTs, weekEndDateTs, monthStartDateTs,
-					monthEndDateTs);
+							fromDateTs, toDateTs,
+							weekStartDateTs, weekEndDateTs, monthStartDateTs,
+							monthEndDateTs);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Connects found for days between "
 							+ fromDateTs + " and " + toDateTs
@@ -1295,8 +1340,8 @@ public class ConnectService {
 					List<String> connectIdsForStatusOpenClosed = null;
 					if (status.equalsIgnoreCase(ConnectStatusType.OPEN
 							.toString())) { // If Status is open, check for
-											// connects which has no notes in
-											// notes_t table
+						// connects which has no notes in
+						// notes_t table
 						connectIdsForStatusOpenClosed = connectRepository
 								.getAllConnectsForDashbaordStatusOpen(
 										connectIds, startTimestamp,
@@ -1309,8 +1354,8 @@ public class ConnectService {
 
 					} else if (status.equalsIgnoreCase(ConnectStatusType.CLOSED
 							.toString())) { // If Status is closed, check for
-											// connects which has notes in
-											// notes_t table
+						// connects which has notes in
+						// notes_t table
 						connectIdsForStatusOpenClosed = notesRepository
 								.getAllConnectsForDashbaordStatusClosed(connectIds);
 						pageConnects = retrieveConnectsByConnetIdOrderByStartDateTime(
@@ -1320,7 +1365,7 @@ public class ConnectService {
 						listOfConnects = pageConnects.getContent();
 					} else if (status.equalsIgnoreCase(ConnectStatusType.ALL
 							.toString())) { // If status is ALL, get connects
-											// from connect_t
+						// from connect_t
 						pageConnects = connectRepository
 								.findByConnectIdInOrderByStartDatetimeOfConnectAsc(
 										connectIds, pageable);
@@ -1565,7 +1610,7 @@ public class ConnectService {
 		}
 
 	}
-	
+
 	private boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
 		// TODO Auto-generated method stub
 		boolean isBDMOrBDMSupervisor = false;
@@ -1646,4 +1691,148 @@ public class ConnectService {
 		return connectList;
 	}
 
+	// edit access for connect
+	private boolean validateEditAccessForConnect(ConnectT connect,
+			String userGroup, String userId) {
+		// TODO Auto-generated method stub
+		String customerId = null;
+		String partnerId = null;
+		logger.info("Inside validateEditAccessForConnect method");
+		boolean isEditAccessRequired = false;
+		if (isUserOwner(userId, connect)) {
+			isEditAccessRequired = true;
+		} else if (userGroup.equals(UserGroup.BDM.getValue())
+				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+			isEditAccessRequired = false;
+		} else {
+			if (opportunityService.isSubordinateAsOwner(userId, connect.getConnectId(),
+					null)) {
+				isEditAccessRequired = true;
+			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+				isEditAccessRequired = false;
+			} else {
+				if(!StringUtils.isEmpty(connect.getCustomerId())){
+					isEditAccessRequired = opportunityService.checkEditAccessForGeoAndIou(userGroup,
+							userId, connect.getCustomerId());
+				}
+				if(!StringUtils.isEmpty(connect.getPartnerId())){
+					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(userId, userGroup,
+							partnerId);
+				}
+			}
+		}
+		return isEditAccessRequired;
+	}
+
+
+	private boolean isUserOwner(String userId, ConnectT connect) {
+		if (connect.getPrimaryOwner().equals(userId))
+			return true;
+		else {
+			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect.getConnectSecondaryOwnerLinkTs()){
+				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(userId))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isEditAccessNotAuthorisedForPartner(String userId, String userGroup,
+			String partnerId) {
+		boolean isEditAccessRequired = false;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
+		case PMO:
+			String geography = partnerRepository.findGeographyByPartnerId(partnerId);
+
+			List<String> geographyList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.GEOGRAPHY.getValue());
+			if (CollectionUtils.isNotEmpty(geographyList)) {
+				if (geographyList.contains(geography)) {
+					isEditAccessRequired = true;
+				}
+			}
+			break;
+		case IOU_HEADS:
+			isEditAccessRequired = false;
+			break;
+		default:
+			break;
+		}
+		return isEditAccessRequired;
+	}
+
+	public boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
+		// TODO Auto-generated method stub
+		boolean isBDMOrBDMSupervisor = false;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
+		for (String userGroup : userGroups) {
+			if (userGroup.equals(UserGroup.BDM.getValue())
+					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
+				isBDMOrBDMSupervisor = true;
+				break;
+			}
+		}
+		return isBDMOrBDMSupervisor;
+	}
+
+	private boolean isEditAccessRequiredForOpportunity(
+			ConnectT connectT, String userGroup, String userId) {
+		boolean isEditAccessRequired = false;
+		if (isUserOwner(userId, connectT)) {
+			isEditAccessRequired = true;
+
+		} else if (!userGroup.equals(UserGroup.BDM)
+				|| !userGroup.equals(UserGroup.PRACTICE_OWNER)) {
+			if (opportunityService.isSubordinateAsOwner(userId, connectT.getConnectId(),
+					null)) {
+				isEditAccessRequired = true;
+			} else if (!userGroup.equals(UserGroup.BDM_SUPERVISOR)
+					|| !userGroup.equals(UserGroup.PRACTICE_HEAD)) {
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, connectT.getCustomerId());
+			}
+		}
+		return isEditAccessRequired;
+
+		// TODO Auto-generated method stub
+	}
+
+	private boolean checkEditAccessForGeoAndIou(String userGroup,
+			String userId, String customerId) {
+		boolean isEditAccessRequired = false;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
+		case PMO:
+			String geography = customerRepository
+			.findGeographyByCustomerId(customerId);
+
+			List<String> geographyList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.GEOGRAPHY.getValue());
+			if (CollectionUtils.isNotEmpty(geographyList)) {
+				if (geographyList.contains(geography)) {
+					isEditAccessRequired = true;
+				}
+			}
+			break;
+		case IOU_HEADS:
+			String iou = customerRepository.findIouByCustomerId(customerId);
+			List<String> iouList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.IOU.getValue());
+			if (CollectionUtils.isNotEmpty(iouList)) {
+				if (iouList.contains(iou)) {
+					isEditAccessRequired = true;
+
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		return isEditAccessRequired;
+	}
 }
