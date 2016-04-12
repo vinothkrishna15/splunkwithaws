@@ -357,13 +357,13 @@ public class UserT implements Serializable {
 	@OneToMany(mappedBy="userT")
 	private List<WorkflowProcessTemplate> workflowProcessTemplates;
 
-	//bi-directional many-to-one association to WorkflowCompetitorT
-	@OneToMany(mappedBy="createdByUser")
-	private List<WorkflowCompetitorT> workflowCompetitorTs1;
-
-	//bi-directional many-to-one association to WorkflowCompetitorT
-	@OneToMany(mappedBy="modifiedByUser")
-	private List<WorkflowCompetitorT> workflowCompetitorTs2;
+//	//bi-directional many-to-one association to WorkflowCompetitorT
+//	@OneToMany(mappedBy="createdByUser")
+//	private List<WorkflowCompetitorT> workflowCompetitorTs1;
+//
+//	//bi-directional many-to-one association to WorkflowCompetitorT
+//	@OneToMany(mappedBy="modifiedByUser")
+//	private List<WorkflowCompetitorT> workflowCompetitorTs2;
 
 	@Transient
 	private String newPassword;
@@ -1675,47 +1675,47 @@ public class UserT implements Serializable {
 		return userModuleAccessT;
 	}
 	
-	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
-		return this.workflowCompetitorTs1;
-	}
-
-	public void setWorkflowCompetitorTs1(List<WorkflowCompetitorT> workflowCompetitorTs1) {
-		this.workflowCompetitorTs1 = workflowCompetitorTs1;
-	}
-
-	public WorkflowCompetitorT addWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
-		getWorkflowCompetitorTs1().add(workflowCompetitorTs1);
-		workflowCompetitorTs1.setCreatedByUser(this);
-
-		return workflowCompetitorTs1;
-	}
-
-	public WorkflowCompetitorT removeWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
-		getWorkflowCompetitorTs1().remove(workflowCompetitorTs1);
-		workflowCompetitorTs1.setCreatedByUser(null);
-
-		return workflowCompetitorTs1;
-	}
-
-	public List<WorkflowCompetitorT> getWorkflowCompetitorTs2() {
-		return this.workflowCompetitorTs2;
-	}
-
-	public void setWorkflowCompetitorTs2(List<WorkflowCompetitorT> workflowCompetitorTs2) {
-		this.workflowCompetitorTs2 = workflowCompetitorTs2;
-	}
-
-	public WorkflowCompetitorT addWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
-		getWorkflowCompetitorTs2().add(workflowCompetitorTs2);
-		workflowCompetitorTs2.setModifiedByUser(this);
-
-		return workflowCompetitorTs2;
-	}
-
-	public WorkflowCompetitorT removeWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
-		getWorkflowCompetitorTs2().remove(workflowCompetitorTs2);
-		workflowCompetitorTs2.setModifiedByUser(null);
-
-		return workflowCompetitorTs2;
-	}
+//	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
+//		return this.workflowCompetitorTs1;
+//	}
+//
+//	public void setWorkflowCompetitorTs1(List<WorkflowCompetitorT> workflowCompetitorTs1) {
+//		this.workflowCompetitorTs1 = workflowCompetitorTs1;
+//	}
+//
+//	public WorkflowCompetitorT addWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
+//		getWorkflowCompetitorTs1().add(workflowCompetitorTs1);
+//		workflowCompetitorTs1.setCreatedByUser(this);
+//
+//		return workflowCompetitorTs1;
+//	}
+//
+//	public WorkflowCompetitorT removeWorkflowCompetitorTs1(WorkflowCompetitorT workflowCompetitorTs1) {
+//		getWorkflowCompetitorTs1().remove(workflowCompetitorTs1);
+//		workflowCompetitorTs1.setCreatedByUser(null);
+//
+//		return workflowCompetitorTs1;
+//	}
+//
+//	public List<WorkflowCompetitorT> getWorkflowCompetitorTs2() {
+//		return this.workflowCompetitorTs2;
+//	}
+//
+//	public void setWorkflowCompetitorTs2(List<WorkflowCompetitorT> workflowCompetitorTs2) {
+//		this.workflowCompetitorTs2 = workflowCompetitorTs2;
+//	}
+//
+//	public WorkflowCompetitorT addWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
+//		getWorkflowCompetitorTs2().add(workflowCompetitorTs2);
+//		workflowCompetitorTs2.setModifiedByUser(this);
+//
+//		return workflowCompetitorTs2;
+//	}
+//
+//	public WorkflowCompetitorT removeWorkflowCompetitorTs2(WorkflowCompetitorT workflowCompetitorTs2) {
+//		getWorkflowCompetitorTs2().remove(workflowCompetitorTs2);
+//		workflowCompetitorTs2.setModifiedByUser(null);
+//
+//		return workflowCompetitorTs2;
+//	}
 }
