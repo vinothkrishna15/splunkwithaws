@@ -33,13 +33,14 @@ import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.utils.Constants;
 
 /**
  * This FinanceMapDwldWriter class contains the functionality to populate the data sheet for the finance mapping
  * 
  */
-public class FinanceMapDwldWriter implements ItemWriter<ActualRevenuesDataT>, 
+public class FinanceMapDwldWriter implements ItemWriter<RevenueCustomerMappingT>, 
 StepExecutionListener{
 	
 	private static final Logger logger = LoggerFactory
@@ -91,8 +92,7 @@ StepExecutionListener{
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends ActualRevenuesDataT> items)
-			throws Exception {
+	public void write(List<? extends RevenueCustomerMappingT> items) throws Exception {
 		logger.info("Inside write method:");
 
 		if (rowCount == 1) {
@@ -119,26 +119,26 @@ StepExecutionListener{
 		}
 		if(items!=null)
 		{
-			for (ActualRevenuesDataT revenue : items) {
+			for (RevenueCustomerMappingT revenue : items) {
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
 
 				// Create new Cell and set cell value
 
 				Cell cellDisplaySubSp = row.createCell(0);
-				cellDisplaySubSp.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerMasterT().getCustomerName().trim());
+				cellDisplaySubSp.setCellValue(revenue.getCustomerMasterT().getCustomerName().trim());
 
 				
 
 				Cell cellFinanceCustomerName = row.createCell(1);
-				cellFinanceCustomerName.setCellValue(revenue.getRevenueCustomerMappingT().getFinanceCustomerName().trim());
+				cellFinanceCustomerName.setCellValue(revenue.getFinanceCustomerName().trim());
 				
 
 				Cell cellFinanceIou = row.createCell(2);
-				cellFinanceIou.setCellValue(revenue.getRevenueCustomerMappingT().getFinanceIou().trim());
+				cellFinanceIou.setCellValue(revenue.getFinanceIou().trim());
 
 				Cell cellFinanceGeography = row.createCell(3);
-				cellFinanceGeography.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerGeography().trim());
+				cellFinanceGeography.setCellValue(revenue.getCustomerGeography().trim());
 
 				// Increment row counter
 				rowCount++;

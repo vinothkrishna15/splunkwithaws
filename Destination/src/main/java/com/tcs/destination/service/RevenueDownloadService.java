@@ -100,28 +100,27 @@ public class RevenueDownloadService {
 	 */
 	private void populateFinanceMapRefSheet(Sheet financeMapSheet)  throws Exception{
 		logger.info("Begin: inside populateFinanceMapRefSheet() of RevenueDownloadService");
-		List<ActualRevenuesDataT> listOfActualRevenueData = (List<ActualRevenuesDataT>) actualRevenuesDataTRepository.findAll();
+		List<RevenueCustomerMappingT> listOfActualRevenueMap = (List<RevenueCustomerMappingT>) revenueCustomerMappingTRepository.findAll();
 
-		if(listOfActualRevenueData!=null) {
+		if(listOfActualRevenueMap!=null) {
 			int rowCount = 1; // Excluding the header, header starts with index 0
-			for (ActualRevenuesDataT revenue : listOfActualRevenueData) {
+			for (RevenueCustomerMappingT revenue : listOfActualRevenueMap) {
 				// Create row with rowCount
 				Row row = financeMapSheet.createRow(rowCount);
-				RevenueCustomerMappingT  revenueCustomerMappingT=revenueCustomerMappingTRepository.findByRevenueCustomerMapId(revenue.getRevenueCustomerMapId());
 
 				// Create new Cell and set cell value
 
 				Cell cellDisplaySubSp = row.createCell(0);
-				cellDisplaySubSp.setCellValue(revenueCustomerMappingT.getCustomerMasterT().getCustomerName().trim());
+				cellDisplaySubSp.setCellValue(revenue.getCustomerMasterT().getCustomerName().trim());
 
 				Cell cellFinanceCustomerName = row.createCell(1);
-				cellFinanceCustomerName.setCellValue(revenueCustomerMappingT.getFinanceCustomerName().trim());
+				cellFinanceCustomerName.setCellValue(revenue.getFinanceCustomerName().trim());
 
 				Cell cellFinanceIou = row.createCell(2);
-				cellFinanceIou.setCellValue(revenueCustomerMappingT.getFinanceIou().trim());
+				cellFinanceIou.setCellValue(revenue.getFinanceIou().trim());
 
 				Cell cellFinanceGeography = row.createCell(3);
-				cellFinanceGeography.setCellValue(revenueCustomerMappingT.getCustomerGeography().trim());
+				cellFinanceGeography.setCellValue(revenue.getCustomerGeography().trim());
 
 				// Increment row counter
 				rowCount++;
