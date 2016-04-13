@@ -212,6 +212,9 @@ public class ConnectT implements Serializable {
 	
 	@Transient
 	private List<SearchKeywordsT> deleteSearchKeywordsTs;
+	
+	@Transient	
+	private boolean enableEditAccess;	
 
 	public String getConnectId() {
 		return this.connectId;
@@ -838,5 +841,13 @@ public class ConnectT implements Serializable {
 	public void setDeleteSearchKeywordsTs(
 			List<SearchKeywordsT> deleteSearchKeywordsTs) {
 		this.deleteSearchKeywordsTs = deleteSearchKeywordsTs;
+	}
+	
+	public boolean isEnableEditAccess() {
+		return enableEditAccess;
+	}
+
+	public void setEnableEditAccess(boolean enableEditAccess) {
+		this.enableEditAccess = enableEditAccess;
 	}
 }

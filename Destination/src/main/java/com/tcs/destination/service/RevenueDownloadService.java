@@ -19,11 +19,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
+import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
@@ -45,6 +48,9 @@ public class RevenueDownloadService {
 
 	@Autowired
 	SubSpRepository subSpRepository;
+	
+	@Autowired
+	RevenueCustomerMappingTRepository revenueCustomerMappingTRepository;
 
 	Map<String, CustomerMasterT> mapOfCustomerMasterT = null;
 	private static final Logger logger = LoggerFactory.getLogger(RevenueDownloadService.class);
@@ -94,18 +100,18 @@ public class RevenueDownloadService {
 	 */
 	private void populateFinanceMapRefSheet(Sheet financeMapSheet)  throws Exception{
 		logger.info("Begin: inside populateFinanceMapRefSheet() of RevenueDownloadService");
-		List<ActualRevenuesDataT> listOfActualRevenueData = (List<ActualRevenuesDataT>) actualRevenuesDataTRepository.findAll();
+		List<RevenueCustomerMappingT> listOfActualRevenueMap = (List<RevenueCustomerMappingT>) revenueCustomerMappingTRepository.findAll();
 
-		if(listOfActualRevenueData!=null) {
+		if(listOfActualRevenueMap!=null) {
 			int rowCount = 1; // Excluding the header, header starts with index 0
-			for (ActualRevenuesDataT revenue : listOfActualRevenueData) {
+			for (RevenueCustomerMappingT revenue : listOfActualRevenueMap) {
 				// Create row with rowCount
 				Row row = financeMapSheet.createRow(rowCount);
 
 				// Create new Cell and set cell value
 
 				Cell cellDisplaySubSp = row.createCell(0);
-				cellDisplaySubSp.setCellValue(revenue.getRevenueCustomerMappingT().getCustomerName().trim());
+				cellDisplaySubSp.setCellValue(revenue.getCustomerMasterT().getCustomerName().trim());
 
 				Cell cellFinanceCustomerName = row.createCell(1);
 				cellFinanceCustomerName.setCellValue(revenue.getFinanceCustomerName().trim());
@@ -114,7 +120,7 @@ public class RevenueDownloadService {
 				cellFinanceIou.setCellValue(revenue.getFinanceIou().trim());
 
 				Cell cellFinanceGeography = row.createCell(3);
-				cellFinanceGeography.setCellValue(revenue.getFinanceGeography().trim());
+				cellFinanceGeography.setCellValue(revenue.getCustomerGeography().trim());
 
 				// Increment row counter
 				rowCount++;
@@ -136,7 +142,7 @@ public class RevenueDownloadService {
 			for (ActualRevenuesDataT actualRevenue : listOfActualRevenue) {
 				// Create row with rowCount
 				Row row = actualRevenueDataSheet.createRow(rowCount);
-
+				RevenueCustomerMappingT  revenueCustomerMappingT=revenueCustomerMappingTRepository.findByRevenueCustomerMapId(actualRevenue.getRevenueCustomerMapId());
 				// Create new Cell and set cell value
 
 				Cell cellDisplaySubSp = row.createCell(3);
@@ -159,16 +165,16 @@ public class RevenueDownloadService {
 				cellClientCountryName.setCellValue(actualRevenue.getClientCountry().toString());
 
 				Cell cellFinanceGeography = row.createCell(8);
-				cellFinanceGeography.setCellValue(actualRevenue.getFinanceGeography().toString());
+				cellFinanceGeography.setCellValue(revenueCustomerMappingT.getCustomerGeography());
 
 				Cell cellSubsp = row.createCell(9);
 				cellSubsp.setCellValue(actualRevenue.getSubSp().toString());
 
 				Cell cellFinanceCustomerName = row.createCell(10);
-				cellFinanceCustomerName.setCellValue(actualRevenue.getFinanceCustomerName().toString());
+				cellFinanceCustomerName.setCellValue(revenueCustomerMappingT.getFinanceCustomerName().toString());
 
 				Cell cellFinanceIou = row.createCell(11);
-				cellFinanceIou.setCellValue(actualRevenue.getFinanceIou().toString());
+				cellFinanceIou.setCellValue(revenueCustomerMappingT.getFinanceIou().toString());
 
 				// Increment row counter
 				rowCount++;

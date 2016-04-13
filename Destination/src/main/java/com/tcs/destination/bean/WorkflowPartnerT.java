@@ -46,6 +46,9 @@ public class WorkflowPartnerT implements Serializable {
 	private Timestamp modifiedDatetime;
 
 	private String notes;
+	
+	@Transient
+	private String comments;
 
 	@Column(name="partner_name")
 	private String partnerName;
@@ -204,6 +207,14 @@ public class WorkflowPartnerT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 
 	

@@ -32,7 +32,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "and RCMT.customer_geography = ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou "
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (ARDT.finance_geography in (:geoList) or ('') in (:geoList)) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
-			+ "where upper(ARDT.month) in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' and ARDT.client_country in (:countryList) or ('') in (:countryList) group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
+			+ "where ARDT.month in (:monthList) and RCMT.customer_name not like 'UNKNOWN%' and ARDT.client_country in (:countryList) or ('') in (:countryList) group by RCMT.customer_name,ARDT.quarter", nativeQuery = true)
 	public List<Object[]> getActualRevenuesByQuarter(
 			@Param("iouList") List<String> iouList,
 			@Param("geoList") List<String> geoList,
@@ -44,7 +44,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
 			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(ARDT.month) in (:monthList) "
+			+ "where ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by actual_revenue desc) "
@@ -53,7 +53,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "and RCMT.customer_geography=PRDT.finance_geography) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(PRDT.month) in (:monthList) "
+			+ "where PRDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by projected_revenue desc))) "
@@ -69,7 +69,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
-			+ "where upper(ARDT.month) in (:monthList) "
+			+ "where ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by actual_revenue desc) "
@@ -77,7 +77,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "from projected_revenues_data_t PRDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(PRDT.month) in (:monthList) "
+			+ "where PRDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by projected_revenue desc)) "
@@ -93,7 +93,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ " and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou) "
 			+ "JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
-			+ "where RCMT.customer_name not like 'UNKNOWN%' and upper(ARDT.month) in (:monthList) "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by actual_revenue desc) "
@@ -101,7 +101,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "from projected_revenues_data_t PRDT "
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where RCMT.customer_name not like 'UNKNOWN%' and upper(PRDT.month) in (:monthList) "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and PRDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name order by projected_revenue desc)) "
@@ -116,7 +116,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = ARDT.finance_customer_name "
 			+ "and RCMT.customer_geography=ARDT.finance_geography and RCMT.finance_iou =ARDT.finance_iou)JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(ARDT.month) in (:monthList) "
+			+ "where ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList))) "
 			+ "UNION (select case when sum(PRDT.revenue) is not null then sum(PRDT.revenue) else '0' end as projected_revenue from projected_revenues_data_t PRDT "
@@ -124,7 +124,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "and RCMT.customer_geography=PRDT.finance_geography) "
 			+ "JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where upper(PRDT.month) in (:monthList) "
+			+ "where PRDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)))) as RVNU", nativeQuery = true)
 	public Object[] getTotalRevenue(@Param("iouList") List<String> iouList,
@@ -138,7 +138,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ " JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ " JOIN iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou "
 			+ " JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp  "
-			+ " where RCMT.customer_name not like 'UNKNOWN%' and upper(ARDT.month) in (:monthList) "
+			+ " where RCMT.customer_name not like 'UNKNOWN%' and ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ "group by RCMT.customer_name, GMT.display_geography order by actual_revenue desc) "
@@ -147,7 +147,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ " JOIN geography_mapping_t GMT on PRDT.finance_geography = GMT.geography"
 			+ " JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name and RCMT.customer_geography=PRDT.finance_geography) "
 			+ " JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ " where RCMT.customer_name not like 'UNKNOWN%' and upper(PRDT.month) in (:monthList) "
+			+ " where RCMT.customer_name not like 'UNKNOWN%' and PRDT.month in (:monthList) "
 			+ " and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ " and (ICMT.display_iou in (:iouList) or ('') in (:iouList)) "
 			+ " group by RCMT.customer_name, GMT.display_geography order by projected_revenue desc)) "
@@ -164,7 +164,7 @@ public interface ActualRevenuesDataTRepository extends
 			+ "JOIN geography_mapping_t GMT on ARDT.finance_geography = GMT.geography "
 			+ "JOIN iou_customer_mapping_t ICMT on "
 			+ "ARDT.finance_iou = ICMT.iou JOIN sub_sp_mapping_t SSMT on ARDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where RCMT.customer_name not like 'UNKNOWN%' and upper(ARDT.month) in (:monthList) "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and ARDT.month in (:monthList) "
 			+ "and (RCMT.customer_geography in (:geoList) or ('') in (:geoList))"
 			+ " and (ICMT.display_iou in (:iouList) or ('') in (:iouList))) "
 			+ "UNION (select RCMT.customer_name, RCMT.finance_customer_name, icmt.display_iou, gmt.display_geography "
@@ -172,14 +172,14 @@ public interface ActualRevenuesDataTRepository extends
 			+ "JOIN revenue_customer_mapping_t RCMT on (RCMT.finance_customer_name = PRDT.finance_customer_name "
 			+ "and RCMT.customer_geography=PRDT.finance_geography) JOIN iou_customer_mapping_t ICMT on PRDT.finance_iou = ICMT.iou "
 			+ "JOIN sub_sp_mapping_t SSMT on PRDT.sub_sp = SSMT.actual_sub_sp "
-			+ "where RCMT.customer_name not like 'UNKNOWN%' and upper(PRDT.month) in (:monthList) and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
+			+ "where RCMT.customer_name not like 'UNKNOWN%' and PRDT.month in (:monthList) and (RCMT.customer_geography in (:geoList) or ('') in (:geoList)) "
 			+ "and (ICMT.display_iou in (:iouList) or ('') in (:iouList)))) as RVNU ", nativeQuery = true)
 	public List<Object[]> getGroupCustGeoIou(
 			@Param("geoList") List<String> geoList,
 			@Param("iouList") List<String> iouList,
 			@Param("monthList") List<String> monthList);
 
-	@Query(value = "select upper(ARDT.month), case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
+	@Query(value = "select ARDT.month, case when sum(ARDT.revenue) is not null then sum(ARDT.revenue) else '0.0' end as actual_revenue from actual_revenues_data_t ARDT "
 			+ "join geography_mapping_t GMT on ARDT.finance_geography = GMT.geography and (GMT.geography = (:geography) or (:geography) = '') "
 			+ "and (GMT.display_geography = (:displayGeography) or (:displayGeography)='') "
 			+ "join iou_customer_mapping_t ICMT on ARDT.finance_iou = ICMT.iou and (ICMT.display_iou = (:iou) or (:iou) = '') "

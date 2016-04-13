@@ -74,6 +74,7 @@ public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionLi
 			}
 		}
 	    if (CollectionUtils.isNotEmpty(insertList)) {
+	    	logger.info("",insertList);
 	        beaconDataService.save(insertList);
 		}
 	  }
@@ -154,7 +155,7 @@ public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionLi
 			
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 			
-			if ( errorList != null) {
+			if (!CollectionUtils.isEmpty(errorList)) {
 				Workbook workbook = uploadErrorReport.writeErrorToWorkbook(errorList);
 				String errorPath = request.getFilePath() + "ERROR" +FILE_DIR_SEPERATOR;
 				String errorFileName = "beaconUpload_error.xlsx";
@@ -170,7 +171,6 @@ public class BeaconCustomWriter implements ItemWriter<String[]>, StepExecutionLi
 				
 			}
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
-			
 			dataProcessingRequestRepository.save(request);
 			jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);

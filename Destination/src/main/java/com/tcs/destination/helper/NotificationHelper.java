@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import javax.persistence.EntityManagerFactory;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.CrudRepository;
@@ -254,6 +255,7 @@ public class NotificationHelper implements Runnable {
 		int ownerSupervisorEventId = 0;
 		List<String> ownerIdList = null;
 		List<String> taggedUserList = null;
+		List<String> ownersSupervisorIds = null;
 		{
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs = getNotificationEventGroupMappingTs(8);
 
@@ -298,6 +300,8 @@ public class NotificationHelper implements Runnable {
 			// Don't send notifications to the user who
 			// Commented
 			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				ownersSupervisorIds = userRepository
+						.getSupervisorUserId(ownerIdList);
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 					ownerIdList.remove(opportunityT.getModifiedBy());
@@ -331,6 +335,8 @@ public class NotificationHelper implements Runnable {
 			// Don't send notifications to the user who
 			// Commented
 			if (ownerIdList != null && !ownerIdList.isEmpty()) {
+				ownersSupervisorIds = userRepository
+						.getSupervisorUserId(ownerIdList);
 				if (commentT.getUserT().getUserName()
 						.equalsIgnoreCase(Constants.SYSTEM_USER)) {
 					ownerIdList.remove(connectT.getModifiedBy());
@@ -356,6 +362,8 @@ public class NotificationHelper implements Runnable {
 			commentedEntityType = Constants.TASK;
 			commentedEntityId = commentT.getTaskId();
 			ownerIdList = taskRepository.findOwnersOfTask(commentT.getTaskId());
+			ownersSupervisorIds = userRepository
+					.getSupervisorUserId(ownerIdList);
 			taggedUserList = taggedFollowedRepository
 					.getTasksTaggedFollowedUsers(commentT.getTaskId());
 			if (!ownerIdList.contains(taskT.getCreatedBy()))
@@ -409,8 +417,7 @@ public class NotificationHelper implements Runnable {
 			// Notify Entity Owners supervisor about the Comment from USERS
 			if (!commentT.getUserT().getUserName()
 					.equalsIgnoreCase(Constants.SYSTEM_USER)) {
-				List<String> ownersSupervisorIds = userRepository
-						.getSupervisorUserId(ownerIdList);
+				
 				String msgTemplate = replaceTokens(
 						ownersSupervisorMessageTemplate,
 						populateTokens(commentT.getUserT().getUserName(),
@@ -1264,6 +1271,9 @@ public class NotificationHelper implements Runnable {
 		
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
+				List<BidOfficeGroupOwnerLinkT> bidOwnerList = bidDetailsT.getBidOfficeGroupOwnerLinkTs();
+				bidSize = bidOwnerList!=null&&!bidOwnerList.isEmpty()?bidOwnerList.size():0;
+
 				for (int i = 0; i < bidSize; i++) {
 
 					if (i < (bidSize - 1)) {
@@ -1271,10 +1281,10 @@ public class NotificationHelper implements Runnable {
 					} else {
 						userNames += " and ";
 					}
-					userNames += bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+					userNames += bidOwnerList
 							.get(i).getBidOfficeGroupOwnerUser().getUserName()
 							+ " (Bid)";
-					userIds.add(bidDetailsT.getBidOfficeGroupOwnerLinkTs()
+					userIds.add(bidOwnerList
 							.get(i).getBidOfficeGroupOwnerUser().getUserId());
 
 				}

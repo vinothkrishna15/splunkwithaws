@@ -178,7 +178,6 @@ public class WorkflowService {
 							oldObject = workflowCustomerRepository.findOne(workflowCustomerT.getWorkflowCustomerId());
 							oldCustomerName = oldObject.getCustomerName();
 							if (isCustomerRequestModified(oldObject,workflowCustomerT)){
-								workflowCustomerT.setModifiedBy(userId);
 								workflowCustomerRepository.save(oldObject);
 							}
 							//
@@ -198,8 +197,8 @@ public class WorkflowService {
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 							stepRecord.setModifiedBy(userId);
-							if (!StringUtils.isEmpty(workflowCustomerT.getNotes())) {
-								stepRecord.setComments(workflowCustomerT.getNotes());
+							if (!StringUtils.isEmpty(workflowCustomerT.getComments())) {
+								stepRecord.setComments(workflowCustomerT.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
@@ -246,6 +245,7 @@ public class WorkflowService {
 		String website = "";
 		String facebook = "";
 		String notes = "";
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		//customer name
 		if (!workflowCustomerT.getCustomerName().equals(oldObject.getCustomerName())) {
 			oldObject.setCustomerName(workflowCustomerT.getCustomerName());
@@ -255,25 +255,14 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getCorporateHqAddress())){
 			corporateHqAdress = oldObject.getCorporateHqAddress();
 		}
-		//if(!StringUtils.isEmpty(workflowCustomerT.getCorporateHqAddress())){
-			//logger.error("corpoarate address is mandatory");
-			//throw new DestinationException(HttpStatus.BAD_REQUEST,
-				//	"corpoarate address is mandatory");			
-		//}
 		if (!workflowCustomerT.getCorporateHqAddress().equals(corporateHqAdress)) {
 			oldObject.setCorporateHqAddress(workflowCustomerT.getCorporateHqAddress());
 			isCustomerModifiedFlag = true;
 		}
-
 		//facebook
 		if(!StringUtils.isEmpty(oldObject.getFacebook())){
 			facebook = oldObject.getFacebook();
 		}
-		/*else{
-			logger.error("facebook is mandatory");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"facebook is mandatory");			
-		}*/
 		if (!workflowCustomerT.getFacebook().equals(facebook)) {
 			oldObject.setFacebook(workflowCustomerT.getFacebook());
 			isCustomerModifiedFlag = true;
@@ -282,11 +271,6 @@ public class WorkflowService {
 		if(!StringUtils.isEmpty(oldObject.getWebsite())){
 			website = oldObject.getWebsite();
 		}
-		/*	else{
-			logger.error("website is mandatory");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"website is mandatory");			
-		}*/
 		if (!workflowCustomerT.getWebsite().equals(website)) {
 			oldObject.setWebsite(workflowCustomerT.getWebsite());
 			isCustomerModifiedFlag = true;
@@ -314,6 +298,7 @@ public class WorkflowService {
 			oldObject.setIou(workflowCustomerT.getIou());
 			isCustomerModifiedFlag =true;
 		}
+		oldObject.setModifiedBy(userId);
 		return isCustomerModifiedFlag;
 	}
 
@@ -390,6 +375,7 @@ public class WorkflowService {
 		String corporateHqAdress = "";
 		String facebook = "";
 		String  website = "";
+		CustomerMasterT savedCustomer = null;
 		oldCustomerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		oldCustomerMaster.setGroupCustomerName(workflowCustomerT.getGroupCustomerName());
 
@@ -421,19 +407,17 @@ public class WorkflowService {
 		oldCustomerMaster.setDocumentsAttached(workflowCustomerT
 				.getDocumentsAttached());
 		oldCustomerMaster.setCreatedModifiedBy(userId);
-		customerRepository.save(oldCustomerMaster);
+		savedCustomer = customerRepository.save(oldCustomerMaster);
 		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
 			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
 					.getRevenueCustomerMappingTs()) {
 				RevenueCustomerMappingT revenueCustomer = new RevenueCustomerMappingT();
-				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
-				revenueTPK.setFinanceCustomerName(rcmpt
+				//RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
+				revenueCustomer.setFinanceCustomerName(rcmpt
 						.getFinanceCustomerName());
-				revenueCustomer.setCustomerName(oldCustomerMaster
-						.getCustomerName());
-				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
-				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
-				revenueCustomer.setId(revenueTPK);
+				revenueCustomer.setFinanceIou(rcmpt.getFinanceIou());
+				revenueCustomer.setCustomerGeography(rcmpt.getCustomerGeography());
+				revenueCustomer.setCustomerId(savedCustomer.getCustomerId());
 				revenueRepository.save(revenueCustomer);
 			}
 		}
@@ -441,13 +425,11 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
-				beaconCustomer
-				.setCustomerName(oldCustomerMaster.getCustomerName());
-				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
-				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
-				beaconCustomer.setId(beaconTPK);
+				//BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
+				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
+				beaconCustomer.setCustomerId(savedCustomer.getCustomerId());
 				beaconRepository.save(beaconCustomer);
 			}
 		}
@@ -640,16 +622,14 @@ public class WorkflowService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"IOU Should not be empty");
 			}
-
 			financeCustomers = revenueRepository.checkRevenueMappingPK(rcmt.getFinanceCustomerName(),rcmt.getCustomerGeography(),rcmt.getFinanceIou());
 			if(!financeCustomers.isEmpty()){
-				logger.error("The combination of the finanace Customer Name, geography and finanace IOU already exists");
+				logger.error("This Revenue details already exists.."+rcmt.getFinanceCustomerName() +" " +rcmt.getCustomerGeography() + " " + rcmt.getFinanceIou());
 				throw new DestinationException(
 						HttpStatus.BAD_REQUEST,
-						"The combination of the finanace Customer Name, geography and finanace IOU already exists");
+						"This Revenue details already exists.."+rcmt.getFinanceCustomerName() +" " +rcmt.getCustomerGeography() + " " + rcmt.getFinanceIou());
 			}
 		}
-
 	}
 
 	/**
@@ -1880,7 +1860,6 @@ public class WorkflowService {
 							oldObject = workflowPartnerRepository.findOne(workflowPartnerT.getWorkflowPartnerId());
 							oldPartnerName = oldObject.getPartnerName();
 							if (isPartnerModified(oldObject,workflowPartnerT)){
-								workflowPartnerT.setModifiedBy(userId);
 								workflowPartnerRepository.save(oldObject);
 							}
 							if( user.getUserRole().equals(UserRole.SYSTEM_ADMIN.getValue())){
@@ -1898,8 +1877,8 @@ public class WorkflowService {
 							stepRecord.setUserId(userId);
 							stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
 							stepRecord.setModifiedBy(userId);
-							if (!StringUtils.isEmpty(workflowPartnerT.getNotes())) {
-								stepRecord.setComments(workflowPartnerT.getNotes());
+							if (!StringUtils.isEmpty(workflowPartnerT.getComments())) {
+								stepRecord.setComments(workflowPartnerT.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
@@ -1941,6 +1920,7 @@ public class WorkflowService {
 		String website = "";
 		String facebook = "";
 		String notes = "";
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		if (!workflowPartnerT.getPartnerName().equals(oldObject.getPartnerName())) {
 			oldObject.setPartnerName(workflowPartnerT.getPartnerName());
@@ -1984,6 +1964,7 @@ public class WorkflowService {
 			oldObject.setNotes(workflowPartnerT.getNotes());
 			isPartnerModifiedFlag = true;
 		}
+		oldObject.setModifiedBy(userId);
 		return isPartnerModifiedFlag;
 	}
 
@@ -2063,6 +2044,7 @@ public class WorkflowService {
 		logger.info("Inside saveToCustomerMasterTables");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customerMaster = new CustomerMasterT();
+		  CustomerMasterT customerMastersaved = new CustomerMasterT();
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		customerMaster.setGroupCustomerName(workflowCustomerT
 				.getGroupCustomerName());
@@ -2076,20 +2058,18 @@ public class WorkflowService {
 		customerMaster.setDocumentsAttached(workflowCustomerT
 				.getDocumentsAttached());
 		customerMaster.setCreatedModifiedBy(userId);
-		customerRepository.save(customerMaster);
+		customerMastersaved = customerRepository.save(customerMaster);
 		logger.info("Customer saved" + customerMaster.getCustomerId());
 		if (!workflowCustomerT.getRevenueCustomerMappingTs().isEmpty()) {
 			for (RevenueCustomerMappingT rcmpt : workflowCustomerT
 					.getRevenueCustomerMappingTs()) {
 				RevenueCustomerMappingT revenueCustomer = new RevenueCustomerMappingT();
-				RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
-				revenueTPK.setFinanceCustomerName(rcmpt
+				//RevenueCustomerMappingTPK revenueTPK = new RevenueCustomerMappingTPK();
+				revenueCustomer.setFinanceCustomerName(rcmpt
 						.getFinanceCustomerName());
-				revenueCustomer.setCustomerName(customerMaster
-						.getCustomerName());
-				revenueTPK.setFinanceIou(rcmpt.getFinanceIou());
-				revenueTPK.setCustomerGeography(rcmpt.getCustomerGeography());
-				revenueCustomer.setId(revenueTPK);
+				revenueCustomer.setFinanceIou(rcmpt.getFinanceIou());
+				revenueCustomer.setCustomerGeography(rcmpt.getCustomerGeography());
+				revenueCustomer.setCustomerId(customerMastersaved.getCustomerId());
 				revenueRepository.save(revenueCustomer);
 			}
 		}
@@ -2097,13 +2077,11 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
-				beaconCustomer
-						.setCustomerName(customerMaster.getCustomerName());
-				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
-				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
-				beaconCustomer.setId(beaconTPK);
+			//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
+				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
+				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
+				beaconCustomer.setCustomerId(customerMastersaved.getCustomerId());
 				beaconRepository.save(beaconCustomer);
 			}
 		}

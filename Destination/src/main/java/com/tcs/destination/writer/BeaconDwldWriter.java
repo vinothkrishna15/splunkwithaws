@@ -116,8 +116,9 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 			for (BeaconCustomerMappingT beacon : items) {
 				// Create row with rowCount
 				Row row = sheet.createRow(rowCount);
-
-				CustomerMasterT customerObj = mapOfCustomerMasterT.get(beacon.getCustomerName());
+     
+				CustomerMasterT customerObj = mapOfCustomerMasterT.get(beacon.getCustomerMasterT().getCustomerName());
+				
 				
 				Cell cellGroupCustomerName = row.createCell(1);
 				cellGroupCustomerName.setCellValue(customerObj.getGroupCustomerName().trim());

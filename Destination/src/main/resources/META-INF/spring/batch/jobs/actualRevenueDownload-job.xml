@@ -53,7 +53,7 @@
 		<property name="methodName" value="findAll"/>
 	</bean>
 	<bean id="financeMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
-		<property name="repository" ref="actualRevenuesDataTRepository"/>
+		<property name="repository" ref="revenueCustomerMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	<bean id="revenueIouCustomerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">

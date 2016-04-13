@@ -107,13 +107,13 @@ public class RevenueController {
 	 */
 	@RequestMapping(value = "/uploadActualRevenueData", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<InputStreamResource> uploadActualRevenueData(
-			@RequestParam("userId") String userId,
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside RevenueController / Start of upload actual revenue data");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
+		String userId= DestinationUtils.getCurrentUserDetails().getUserId();
 		try {
 			UploadStatusDTO status = actualRevenueDataUplaodService.upload(
 					file, userId);

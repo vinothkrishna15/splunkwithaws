@@ -59,6 +59,9 @@ public class WorkflowCustomerT implements Serializable {
 	private String modifiedBy;
 
 	private String notes;
+	
+	@Transient
+	private String comments;
 
 	private String website;
 	
@@ -254,5 +257,13 @@ public class WorkflowCustomerT implements Serializable {
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 }

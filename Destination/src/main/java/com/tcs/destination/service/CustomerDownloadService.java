@@ -190,7 +190,7 @@ public class CustomerDownloadService {
 				// Create row with rowCount
 				Row row = beaconMappingSheet.createRow(rowCount);
 
-				customerObj = mapOfCustomerMasterT.get(beacon.getCustomerName());
+				customerObj = mapOfCustomerMasterT.get(beacon.getCustomerMasterT());
 
 				Cell cellGroupCustomerName = row.createCell(1);
 				cellGroupCustomerName.setCellValue(customerObj.getGroupCustomerName().trim());
@@ -231,7 +231,8 @@ public class CustomerDownloadService {
 				// Create row with rowCount
 				Row row = financeMappingSheet.createRow(rowCount);
 
-				customerObj = mapOfCustomerMasterT.get(finance.getCustomerName());
+			
+				customerObj = mapOfCustomerMasterT.get(finance.getCustomerMasterT());
 
 				Cell cellGroupCustomerName = row.createCell(1);
 				cellGroupCustomerName.setCellValue(customerObj.getGroupCustomerName().trim());
