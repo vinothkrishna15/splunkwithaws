@@ -830,7 +830,7 @@ public class ReportsController {
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummary(
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
-			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
@@ -899,7 +899,7 @@ public class ReportsController {
 	 */
 	@RequestMapping(value = "/bdmPerformance/summary", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmPerformanceSummaryReport(
-			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
 			@RequestParam(value = "opportunityOwners", defaultValue = "") List<String> opportunityOwners,
@@ -975,7 +975,7 @@ public class ReportsController {
 	public @ResponseBody ResponseEntity<InputStreamResource> getBdmsPerformanceReport(
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
-			@RequestParam(value = "financialYear", defaultValue = "") String financialYear,
+			@RequestParam(value = "year", defaultValue = "") String financialYear,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "country", defaultValue = "") List<String> country,
 			@RequestParam(value = "currency", defaultValue = "INR") List<String> currency,
