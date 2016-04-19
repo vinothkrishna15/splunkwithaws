@@ -586,4 +586,45 @@ public class ContactService {
 			contactCustomerLinkT.setContactId(contactId);
 		}
 	}
+	
+
+	/**
+	 * method to validate the contact request to avoid duplicates
+	 * @param contact
+	 */
+	public boolean validateContactRequest(ContactT contact) {
+		// TODO Auto-generated method stub
+		List<ContactT> contactList = new ArrayList<ContactT>(); 
+		for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
+			String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
+			contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+		}
+		if(contactList.size()>0){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"This Contact details already exists for this customer !!!");
+		}
+		 return validateEmail(contact);
+	}
+
+	/**
+	 * Method to validate the internal and external email address
+	 * @param contact
+	 */
+	private boolean validateEmail(ContactT contact) {
+
+		String email = contact.getContactEmailId();
+		String tcsDomain = "tcs.com";
+		boolean emailValidated = true;
+		if(contact.getContactType().equalsIgnoreCase("INTERNAL") && (!email.contains(tcsDomain))){
+			emailValidated = false;
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "This is not a valid internal(tcs.com) email address");
+		}else if(contact.getContactType().equalsIgnoreCase("EXTERNAL") && (email.contains(tcsDomain))){
+			emailValidated = false;
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "This is not a valid external email address:");
+		}
+		return emailValidated;
+	}
+
+
+
 }
