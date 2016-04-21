@@ -190,7 +190,7 @@ public class ContactController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/create", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> addContact(
 			@RequestBody ContactT contact) throws DestinationException {
 		logger.info("Inside ContactController: Start of Adding a Contact");
@@ -223,7 +223,7 @@ public class ContactController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(method = RequestMethod.PUT)
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editContact(
 			@RequestBody ContactT contact) throws DestinationException {
 		logger.info("Inside ContactController: Start of Editing the Contact");

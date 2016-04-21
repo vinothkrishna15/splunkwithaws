@@ -55,6 +55,8 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -76,6 +78,7 @@ import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -212,6 +215,12 @@ public class OpportunityService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
+	
+	@Autowired
+	CustomerRepository customerRepository;
+	
+	@Autowired
+	ConnectRepository connectRepository;
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
@@ -2128,6 +2137,122 @@ public class OpportunityService {
 			}
 		}
 		return isBDMOrBDMSupervisor;
+	}
+	
+	/**
+	 * This method is used to check whether any of the subordinate is being one
+	 * of the owners of connect or opportunity
+	 * 
+	 * @param userId
+	 * @param opportunityId
+	 * @param connectId
+	 * @return
+	 */
+	public boolean isSubordinateAsOwner(String userId, String opportunityId,
+			String connectId) {
+		boolean isSubordinateAsOwner = false;
+		List<String> owners = new ArrayList<String>();
+		List<String> subordinates = userRepository
+				.getAllSubordinatesIdBySupervisorId(userId);
+		if (CollectionUtils.isNotEmpty(subordinates)) {
+			if (!StringUtils.isEmpty(opportunityId)) {
+				owners = opportunityRepository.getAllOwners(opportunityId);
+			}
+			if (!StringUtils.isEmpty(connectId)) {
+				owners = connectRepository.findOwnersOfConnect(connectId);
+			}
+			if (owners != null) {
+				for (String owner : owners) {
+					if (subordinates.contains(owner)) {
+						isSubordinateAsOwner = true;
+						break;
+					}
+				}
+			}
+		}
+		return isSubordinateAsOwner;
+	}
+
+	/**
+	 * This method is used to check wheteher the logged in user has edit access
+	 * for an opportunity
+	 * 
+	 * @param opportunity
+	 * @param userGroup
+	 * @param userId
+	 * @return
+	 */
+	private boolean isEditAccessRequiredForOpportunity(
+			OpportunityT opportunity, String userGroup, String userId) {
+		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		boolean isEditAccessRequired;
+		if (isUserOwner(userId, opportunity)) {
+			isEditAccessRequired = true;
+
+		} else if (userGroup.equals(UserGroup.BDM.getValue())
+				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+			isEditAccessRequired = false;
+		} else {
+			if (isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
+					null)) {
+				isEditAccessRequired = true;
+			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+				isEditAccessRequired = false;
+			} else {
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, opportunity.getCustomerId());
+			}
+		}
+
+		return isEditAccessRequired;
+	}
+
+	/**
+	 * This method is used to check whether Geo heads PMO and Iou Heads have the
+	 * edit access for an opportunity
+	 * 
+	 * @param userGroup
+	 * @param userId
+	 * @param customerId
+	 * @return
+	 */
+	public boolean checkEditAccessForGeoAndIou(String userGroup, String userId,
+			String customerId) {
+		logger.info("Inside checkEditAccessForGeoAndIou method");
+		boolean isEditAccessRequired = false;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
+		case PMO:
+			String geography = customerRepository
+					.findGeographyByCustomerId(customerId);
+
+			List<String> geographyList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.GEOGRAPHY.getValue());
+			if (CollectionUtils.isNotEmpty(geographyList)) {
+				if (geographyList.contains(geography)) {
+					isEditAccessRequired = true;
+				}
+			}
+			break;
+		case IOU_HEADS:
+			String iou = customerRepository.findIouByCustomerId(customerId);
+			List<String> iouList = userAccessPrivilegesRepository
+					.getIouPrivilegeValue(userId, PrivilegeType.IOU.getValue());
+			if (CollectionUtils.isNotEmpty(iouList)) {
+				if (iouList.contains(iou)) {
+					isEditAccessRequired = true;
+
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		return isEditAccessRequired;
+
 	}
 
 	
