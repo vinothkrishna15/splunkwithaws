@@ -1680,7 +1680,6 @@ public class ConnectService {
 	// edit access for connect
 	private boolean validateEditAccessForConnect(ConnectT connect,
 			String userGroup, String userId) {
-		// TODO Auto-generated method stub
 		String customerId = null;
 		String partnerId = null;
 		logger.info("Inside validateEditAccessForConnect method");
@@ -1704,7 +1703,7 @@ public class ConnectService {
 				}
 				if(!StringUtils.isEmpty(connect.getPartnerId())){
 					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(userId, userGroup,
-							partnerId);
+							connect.getPartnerId());
 				}
 			}
 		}
