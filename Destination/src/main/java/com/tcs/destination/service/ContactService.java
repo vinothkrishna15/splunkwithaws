@@ -18,11 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
@@ -33,6 +35,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
+import com.tcs.destination.utils.PaginationUtils;
 
 @Service
 public class ContactService {
@@ -625,6 +628,61 @@ public class ContactService {
 		return emailValidated;
 	}
 
-
+		/**
+		 * Find contacts by name starting with and name containing
+		 * 
+		 * @param contactName
+		 * @param category
+		 * @param type
+		 * @param page
+		 * @param count
+		 * @return
+		 * @throws Exception
+		 */
+		public PaginatedResponse findContactsByName(String contactName,
+				String category, String type, int page, int count) throws Exception{
+			logger.debug("Inside find Contacts With Name Service");
+	
+			PaginatedResponse paginatedResponse = null;
+			List<ContactT> contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
+			if (contactList == null || contactList.isEmpty()) {
+				logger.error("NOT_FOUND: Contact information not available");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Contacts found");
+			}
+			paginatedResponse = new PaginatedResponse();
+			paginatedResponse.setTotalCount(contactList.size());
+			
+			List<ContactT> pageContactList = paginateContacts(page, count, contactList);
+			prepareContactDetails(pageContactList);
+			paginatedResponse.setContactTs(pageContactList);
+			
+			return paginatedResponse;
+		}
+		
+		/**
+		 * This method enables pagination of the response for Contacts
+		 * 
+		 * @param page
+		 * @param count
+		 * @param contacts
+		 * @return
+		 */
+		private List<ContactT> paginateContacts(int page, int count,
+				List<ContactT> contacts) throws Exception {
+			if (PaginationUtils.isValidPagination(page, count,
+					contacts.size())) {
+				int fromIndex = PaginationUtils.getStartIndex(page, count,
+						contacts.size());
+				int toIndex = PaginationUtils.getEndIndex(page, count,
+						contacts.size()) + 1;
+				contacts = contacts.subList(fromIndex, toIndex);
+				logger.debug("ConnectT  after pagination size is "
+						+ contacts.size());
+			} else {
+				contacts=null;
+			}
+			return contacts;
+		}
 
 }

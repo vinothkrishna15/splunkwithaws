@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -134,8 +135,8 @@ public class ContactController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the contacts for namewith "
-							+ nameWith);
+					"Backend error in retrieving the contacts for contact "
+							+ nameWith+" "+startsWith);
 		}
 	}
 
@@ -322,6 +323,61 @@ public class ContactController {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while uploading the contacts");
+		}
+	}
+	
+	/**
+	 * Search for Contacts by name starting with and name containing
+	 * 
+	 * @param nameWith
+	 * @param startsWith
+	 * @param category
+	 * @param type
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findContacts(
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
+			@RequestParam(value = "category", defaultValue = "") String category,
+			@RequestParam(value = "type", defaultValue = "") String type,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside ContactController: Start of /contact/search service");
+		PaginatedResponse contactlist = null;
+		try {
+			if (page <= 0 && count <= 0) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Invalid pagination request");
+			}
+			if (!nameWith.isEmpty()) {
+				// If name contains the given String
+				contactlist = contactService.findContactsByName("%"+nameWith+"%", category, type, page, count);
+			} else if (!startsWith.isEmpty()) {
+				// If name starts with the given String
+				contactlist = contactService.findContactsByName(startsWith+"%", category, type, page, count);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Either nameWith / startsWith is required");
+			}
+			logger.info("Inside ContactController: End of /contact/search service");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, contactlist), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contacts for /contact/search "+ nameWith+" "+startsWith);
 		}
 	}
 
