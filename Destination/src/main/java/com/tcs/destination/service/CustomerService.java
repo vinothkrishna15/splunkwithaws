@@ -30,11 +30,13 @@ import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.TargetVsActualResponse;
+import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -117,6 +119,9 @@ public class CustomerService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -714,32 +719,80 @@ public class CustomerService {
 	public boolean updateCustomer(CustomerMasterT customerMaster) throws Exception {
 
 		boolean isValid = false;
+		boolean isBdmWithAccess=false;
 		CustomerMasterT  customerEdited = null;
+		CustomerMasterT savedCustomer=null;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-
+        
 		logger.debug("Inside updateCustomer() of CustomerService");
 		UserT userT = userRepository.findByUserId(userId);
 
 		String userRole = userT.getUserRole();
-
+        String userGroup=userT.getUserGroup();
 		if(UserRole.contains(userRole)){
 			switch (UserRole.valueOf(UserRole.getName(userRole))){
-
+			
 			case SYSTEM_ADMIN: 
-			case STRATEGIC_GROUP_ADMIN: 
+			case STRATEGIC_GROUP_ADMIN:
+				
 				customerEdited = validateCustomerDetails(customerMaster);
-				CustomerMasterT savedCustomer = editCustomer(customerEdited);
+				 savedCustomer = editCustomer(customerEdited,isBdmWithAccess);
 				if (savedCustomer != null) {
 					isValid = true;
 					logger.info("Customer has been updated successfully: " + savedCustomer.getCustomerName());
 					return isValid;
 				}
 				break;
+			
+			case USER:	
+				 if (UserGroup.contains(userGroup))
+				 {
+					 switch(UserGroup.valueOf(UserGroup.getName(userGroup)))
+					 {
+					   case BDM:
+						  
+						  List<UserAccessPrivilegesT> userAccessPrivilegeList=userAccessPrivilegesRepository.getPrivilegeTypeAndValueByUserId(userId);
+						  for(UserAccessPrivilegesT userAccessPrivilegesT:userAccessPrivilegeList)
+						  {
+							 String privilegeType=userAccessPrivilegesT.getPrivilegeType();
+							 String privilegeValue=userAccessPrivilegesT.getPrivilegeValue();
+							  if((privilegeType.equalsIgnoreCase("CUSTOMER"))&&(privilegeValue.equals(customerMaster.getCustomerName())))
+							  {
+								  isBdmWithAccess=true;
+								
+							  }
+							  
+						  }
+						 if(isBdmWithAccess)
+						 {
+						   customerEdited = validateCustomerDetails(customerMaster);  
+					       savedCustomer = editCustomer(customerEdited,isBdmWithAccess);
+					       if (savedCustomer != null) {
+								isValid = true;
+								logger.info("Customer has been updated successfully: " + savedCustomer.getCustomerName());
+								return isValid;
+							}
+						 }
+						 else
+						 {
+							 logger.error("NOT_AUTHORISED: user is not authorised to update the customer");
+							 throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer" );
+						 }
+							break;
+							
+							default:
+								break;
+						 
+					 }
+				 }
+				
 			default: 
 				logger.error("NOT_AUTHORISED: user is not authorised to update the customer");
 				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer" );
 			}
 		}
+		
+		
 		return isValid;
 	}
 
@@ -856,15 +909,26 @@ public class CustomerService {
 	 * @return
 	 */
 	private boolean isCustomerMasterModified(CustomerMasterT oldCustomerObj,
-			CustomerMasterT customerMaster) {
+			CustomerMasterT customerMaster,boolean isBdmFlag) {
 		boolean isCustomerModifiedFlag = false;
 		String corporateHqAdress = "";
 		String website = "";
 		String facebook = "";
+		byte[] logo=null;
 		//customer name
 		if (!customerMaster.getCustomerName().equals(oldCustomerObj.getCustomerName())) {
-			oldCustomerObj.setCustomerName(customerMaster.getCustomerName());
-			isCustomerModifiedFlag =true;
+			if(!isBdmFlag)
+			{
+			 oldCustomerObj.setCustomerName(customerMaster.getCustomerName());
+			 isCustomerModifiedFlag =true;
+			}
+			else
+			{
+				logger.error("NOT_AUTHORISED: user is not authorised to update the customer name");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the customer name" );
+			}
+			
+			
 		}
 		//corpoarate address
 		if(!StringUtils.isEmpty(oldCustomerObj.getCorporateHqAddress())){
@@ -874,6 +938,17 @@ public class CustomerService {
 			oldCustomerObj.setCorporateHqAddress(customerMaster.getCorporateHqAddress());
 			isCustomerModifiedFlag = true;
 		}
+		
+		//logo
+		if(oldCustomerObj.getLogo()!=null)
+		{
+			logo = oldCustomerObj.getLogo();
+			if (!customerMaster.getLogo().equals(logo)) {
+				oldCustomerObj.setLogo(customerMaster.getLogo());
+				isCustomerModifiedFlag = true;
+			}
+		}
+		
 
 		//facebook
 		if(!StringUtils.isEmpty(oldCustomerObj.getFacebook())){
@@ -893,8 +968,17 @@ public class CustomerService {
 		}
 		//geography
 		if (!customerMaster.getGeography().equals(oldCustomerObj.getGeography())) {
-			oldCustomerObj.setGeography(customerMaster.getGeography());
-			isCustomerModifiedFlag = true;
+			if(!isBdmFlag)
+			{
+			 oldCustomerObj.setGeography(customerMaster.getGeography());
+			 isCustomerModifiedFlag = true;
+			}
+			else
+			{
+				logger.error("NOT_AUTHORISED: user is not authorised to update the geography");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the geography" );
+			}
+			
 		}
 		//group customer name 
 		if (!customerMaster.getGroupCustomerName().equals(oldCustomerObj.getGroupCustomerName())) {
@@ -903,9 +987,20 @@ public class CustomerService {
 		}
 		//iou
 		if (!customerMaster.getIou().equals(oldCustomerObj.getIou())) {
-			oldCustomerObj.setIou(customerMaster.getIou());
-			isCustomerModifiedFlag =true;
+			if(!isBdmFlag)
+			{
+			 oldCustomerObj.setIou(customerMaster.getIou());
+			 isCustomerModifiedFlag =true;
+			}
+			else
+			{
+				logger.error("NOT_AUTHORISED: user is not authorised to update the iou");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the iou" );
+			}
+			
 		}
+		
+		
 		return isCustomerModifiedFlag;
 	}
 
@@ -966,6 +1061,7 @@ public class CustomerService {
 		}
 		customerCopy.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 
+		
 		// MASTER_CUSTOMER_NAME	
 		if(!StringUtils.isEmpty(customerMaster.getCustomerName())){
 			customerCopy.setCustomerName(customerMaster.getCustomerName());
@@ -1005,9 +1101,40 @@ public class CustomerService {
 			logger.error("NOT_VALID: group Customer Name is empty for update: {}",customerMaster.getGroupCustomerName());
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Group Customer name is Empty" + customerMaster.getGroupCustomerName());
 		}
+		
+		//LOGO
+	    if(customerMaster.getLogo()!=null)
+	    {
+			customerCopy.setLogo(customerMaster.getLogo());
+		}
+		/*else
+		{
+			customerCopy.setLogo(null);
+		}*/
+		if(customerMaster.getCorporateHqAddress()!=null)
+		{
 		customerCopy.setCorporateHqAddress(customerMaster.getCorporateHqAddress());
+		}
+		else
+		{
+			customerCopy.setCorporateHqAddress("");
+
+		}
+		if(customerMaster.getFacebook()!=null)
+		{
 		customerCopy.setFacebook(customerMaster.getFacebook());
+		}
+		else{
+			customerCopy.setFacebook("");
+		}
+		if(customerMaster.getWebsite()!=null)
+		{
 		customerCopy.setWebsite(customerMaster.getWebsite());
+		}
+		else
+		{
+			customerCopy.setWebsite("");
+		}
 		return customerCopy;
 	}
 
@@ -1124,7 +1251,8 @@ public class CustomerService {
 
 	// Customer object is updated into the repository
 	@Transactional
-	private CustomerMasterT editCustomer(CustomerMasterT customerMaster) throws Exception {
+	private CustomerMasterT editCustomer(CustomerMasterT customerMaster,boolean isBdmFlag) throws Exception 
+	{
 
 		String customerId = customerMaster.getCustomerId();
 		CustomerMasterT customerSaved = null;
@@ -1132,11 +1260,17 @@ public class CustomerService {
 		List<RevenueCustomerMappingT> oldRevenueObj =  revenueRepository.findByCustomerId(customerId);
 		List<BeaconCustomerMappingT> oldBeaconObj = beaconCustomerMappingRepository.findByCustomerId(customerId);
 		// updated customer object is saved to the database
-		if(isCustomerMasterModified(oldCustomerObj, customerMaster)){
+		if(isCustomerMasterModified(oldCustomerObj, customerMaster,isBdmFlag)){
 			customerSaved = customerRepository.save(oldCustomerObj);
 		}
+		if(customerMaster.getRevenueCustomerMappingTs()!=null)
+		{
 		isRevenueModified(oldRevenueObj, customerMaster.getRevenueCustomerMappingTs());
+		}
+		if(customerMaster.getBeaconCustomerMappingTs()!=null)
+		{
 		isBeaconModied(oldBeaconObj, customerMaster.getBeaconCustomerMappingTs());
+		}
 		return oldCustomerObj;
 	}
 }

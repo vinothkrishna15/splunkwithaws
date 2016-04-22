@@ -51,5 +51,9 @@ public interface UserAccessPrivilegesRepository extends
  			+ " uat.privilege_value = icmt.display_iou where uat.user_id = ?1"
  			+ " and uat.privilege_type = ?2", nativeQuery = true)
  	List<String> getIouPrivilegeValue(String userId,String privilegeType);
-
+ 	
+	@Query(value = "select user_id from user_access_privileges_t where privilege_value in ?1", nativeQuery = true)
+	List<String> findByGeography(List<String> geographies);
+	
+	List<UserAccessPrivilegesT> getPrivilegeTypeAndValueByUserId(String userId);
 }
