@@ -109,19 +109,21 @@ public class ContactController {
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of retrieving the contacts by name");
-		List<ContactT> contactlist = null;
+		PaginatedResponse paginatedContacts=null;
 		try {
 			// If NameWith service
 			if (!nameWith.isEmpty()) {
-				contactlist = contactService.findContactsWithNameContaining(
-						nameWith, customerId, partnerId, contactType, userId);
+				paginatedContacts = contactService.findContactsWithNameContaining(
+						nameWith, customerId, partnerId, contactType, userId,page,count);
 			} else if (!startsWith.isEmpty()) {
-				contactlist = contactService.findContactsWithNameStarting(
-						startsWith, userId);
+				paginatedContacts = contactService.findContactsWithNameStarting(
+						startsWith, userId,page,count);
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Either nameWith / startsWith is required");
@@ -129,14 +131,14 @@ public class ContactController {
 			logger.info("Inside ContactController: End of retrieving the contacts by name");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
-							view, contactlist), HttpStatus.OK);
+							view, paginatedContacts), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the contacts for contact "
-							+ nameWith+" "+startsWith);
+					"Backend error in retrieving the contacts for namewith "
+							+ nameWith);
 		}
 	}
 
@@ -156,16 +158,18 @@ public class ContactController {
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "contactType", defaultValue = "") String contactType,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of retrieving the contacts by contact type");
-		List<ContactT> contactlist = null;
+		PaginatedResponse paginatedContacts=null;
 		try {
 			if (!customerId.isEmpty() || !partnerId.isEmpty()) {
-				contactlist = contactService.findContactsByContactType(
-						customerId, partnerId, contactType, userId);
+				paginatedContacts = contactService.findContactsByContactType(
+						customerId, partnerId, contactType, userId,page,count);
 			} else {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Either CustomerId or PartnerId is required");
@@ -173,7 +177,7 @@ public class ContactController {
 			logger.info("Inside ContactController: End of retrieving the contacts by contact type");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields,
-							view, contactlist), HttpStatus.OK);
+							view, paginatedContacts), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
@@ -259,16 +263,19 @@ public class ContactController {
 	 */
 	@RequestMapping(value = "/role", method = RequestMethod.GET)
 	public @ResponseBody String findRole(
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside ContactController: Start of retrieving the Contact Role Mapping");
+		PaginatedResponse paginatedContacts=null;
 		try {
-			List<ContactRoleMappingT> contactRole = contactService
-					.findContactRoles();
+			paginatedContacts  = contactService
+					.findContactRoles(page,count);
 			logger.info("Inside ContactController: End of retrieving the Contact Role Mapping");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, contactRole);
+					view, paginatedContacts);
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {

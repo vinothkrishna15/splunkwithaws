@@ -14,6 +14,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,13 +117,20 @@ public class ContactService {
 	 * @param userId
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsWithNameContaining(String contactName,
+	public PaginatedResponse findContactsWithNameContaining(String contactName,
 			String customerId, String partnerId, String contactType,
-			String userId) throws Exception {
+			String userId,int page,
+			int count) throws Exception {
 		logger.debug("Inside findContactsWithNameContaining Service");
-
+        
+		PaginatedResponse contactResponse = new PaginatedResponse();
+		
+		
 		List<ContactT> contactList = contactRepository.findByContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
+		contactResponse.setTotalCount(contactList.size());
+		contactList = paginateContacts(page, count, contactList);
+		contactResponse.setContactTs(contactList);
 		// if (!userId
 		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 		// throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -132,7 +142,7 @@ public class ContactService {
 		}
 		removeCyclicForLinkedContactTs(contactList);
 		prepareContactDetails(contactList);
-		return contactList;
+		return contactResponse;
 	}
 
 	/**
@@ -144,13 +154,20 @@ public class ContactService {
 	 * @param userId
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsByContactType(String customerId,
-			String partnerId, String contactType, String userId)
+	public PaginatedResponse findContactsByContactType(String customerId,
+			String partnerId, String contactType, String userId,int page,
+			int count)
 			throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
+		
+		PaginatedResponse contactResponse = new PaginatedResponse();
+		
 
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
+		contactResponse.setTotalCount(contactList.size());
+		contactList = paginateContacts(page, count, contactList);
+		contactResponse.setContactTs(contactList);
 		// if (!userId
 		// .equals(DestinationUtils.getCurrentUserDetails().getUserId()))
 		// throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -162,7 +179,7 @@ public class ContactService {
 		}
 		removeCyclicForLinkedContactTs(contactList);
 		prepareContactDetails(contactList);
-		return contactList;
+		return contactResponse;
 	}
 
 	/**
@@ -173,12 +190,15 @@ public class ContactService {
 	 * @param userId
 	 * @return contacts.
 	 */
-	public List<ContactT> findContactsWithNameStarting(String startsWith,
-			String userId) throws Exception {
+	public PaginatedResponse findContactsWithNameStarting(String startsWith,
+			String userId,int page,int count) throws Exception {
 		logger.debug("Inside findContactsWithNameStarting Service");
-		List<ContactT> contactList = contactRepository
-				.findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith);
-
+		Pageable pageable = new PageRequest(page, count);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		Page<ContactT> contactPage = contactRepository
+				.findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith, pageable);
+		paginatedResponse.setTotalCount(contactPage.getTotalElements());
+		List<ContactT> contactList = contactPage.getContent();
 		if (contactList == null || contactList.isEmpty()) {
 			logger.error("NOT_FOUND: Contact information not available");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -186,7 +206,8 @@ public class ContactService {
 		}
 		removeCyclicForLinkedContactTs(contactList);
 		prepareContactDetails(contactList);
-		return contactList;
+		paginatedResponse.setContactTs(contactList);
+		return paginatedResponse;
 	}
 
 	@Transactional
@@ -304,15 +325,31 @@ public class ContactService {
 		return contactRepository.save(contact);
 	}
 
-	public List<ContactRoleMappingT> findContactRoles()
+	public PaginatedResponse findContactRoles(int page,
+			int count)
 			throws DestinationException {
+		PaginatedResponse contactResponse = new PaginatedResponse();
 		List<ContactRoleMappingT> contactRoleMappingTs = (List<ContactRoleMappingT>) contactRoleMappingTRepository
 				.findAll();
+		contactResponse.setTotalCount(contactRoleMappingTs.size());
+		if (PaginationUtils.isValidPagination(page, count,
+				contactRoleMappingTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					contactRoleMappingTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					contactRoleMappingTs.size()) + 1;
+			contactRoleMappingTs = contactRoleMappingTs.subList(fromIndex, toIndex);
+			logger.debug("ConnectT  after pagination size is "
+					+ contactRoleMappingTs.size());
+		} else {
+			contactRoleMappingTs=null;
+		}
+		contactResponse.setContactRoleMappingTs(contactRoleMappingTs);
 		if (contactRoleMappingTs != null && contactRoleMappingTs.size() == 0) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Contact Roles found");
 		}
-		return contactRoleMappingTs;
+		return contactResponse;
 	}
 
 	public void removeCyclicForLinkedContactTs(List<ContactT> contactTs) {
