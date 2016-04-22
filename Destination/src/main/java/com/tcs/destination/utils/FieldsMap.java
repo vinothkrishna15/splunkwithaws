@@ -46,7 +46,7 @@ public class FieldsMap {
 		fieldsMap.put("dealRemarksNotes", "Deal Remarks Notes");
 		fieldsMap.put("dealClosureDate", "Deal Closure date");
 		fieldsMap.put("factorsForWinLoss", "Factors for Win/Loss");
-		fieldsMap.put("descriptionForWinLoss", "Description for Win/Loss");
+		fieldsMap.put("dealClosureComments", "Deal closure comments");
 		fieldsMap.put("bidId", "Bid Id");
 		fieldsMap.put("bidRequestType", "BID Request Type");
 		fieldsMap.put("bidRequestReceiveDate", "BID Request Receive Date");
@@ -93,7 +93,7 @@ public class FieldsMap {
 		bdmReportFieldMap.put("targetBidSubmissionDate", "Target BID Submission Date");
 		bdmReportFieldMap.put("winProbability", "Win probability");
 		bdmReportFieldMap.put("factorsForWinLoss", "Factors for Win/Loss");
-		bdmReportFieldMap.put("descriptionForWinLoss", "Description for Win/Loss");
+		bdmReportFieldMap.put("dealClosureComments", "Deal closure comments");
 		bdmReportFieldMap.put("dealRemarksNotes", "Deal Remarks Notes");
 		bdmReportFieldMap.put("subSp", "SUB SP");
 		bdmReportFieldMap.put("dealClosureDate", "Deal Closure Date");

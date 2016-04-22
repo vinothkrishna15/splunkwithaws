@@ -845,8 +845,8 @@ public class OpportunityService {
 		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
 		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
-		baseOpportunityT.setDescriptionForWinLoss(opportunity
-				.getDescriptionForWinLoss());
+		baseOpportunityT.setDealClosureComments(opportunity
+				.getDealClosureComments());
 		baseOpportunityT.setDigitalDealValue(opportunity.getDigitalDealValue());
 		baseOpportunityT.setDocumentsAttached(opportunity
 				.getDocumentsAttached());
@@ -908,6 +908,11 @@ public class OpportunityService {
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
 
+		// deal closure comments is mandatory for sales stage codes (11/12/13) 
+		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
+			logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true);
 		if (afterOpp != null) {
