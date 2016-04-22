@@ -278,23 +278,32 @@ public class PartnerService {
 		logger.debug("Begin:Inside findByNameStarting method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
-		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-						startsWith, pageable);
-
-		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
-		List<PartnerMasterT> partners = partnersPage.getContent();
-		if (partners.isEmpty()) {
+		List<PartnerMasterT> partnerList = new ArrayList<PartnerMasterT>();
+		if (!startsWith.equals("@")) {
+			Page<PartnerMasterT> partnersPage = partnerRepository
+					.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
+							startsWith, pageable);
+			paginatedResponse.setTotalCount(partnersPage.getTotalElements());
+			partnerList.addAll(partnersPage.getContent());
+		} else {
+			for (int i = 0; i <= 9; i++) {
+				Page<PartnerMasterT> partnersPage = partnerRepository
+						.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(i + "",  pageable);
+				paginatedResponse.setTotalCount(partnersPage.getTotalElements());
+				partnerList.addAll(partnersPage.getContent());
+				}		
+			}
+		
+		if (partnerList.isEmpty()) {
 			logger.error("NOT_FOUND: No Partners found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
 		}
-		preparePartner(partners);
-		paginatedResponse.setPartnerMasterTs(partners);
+		preparePartner(partnerList);
+		paginatedResponse.setPartnerMasterTs(partnerList);
 		logger.debug("End:Inside findByNameStarting method of PartnerService");
 		return paginatedResponse;
 	}
-
 	private void preparePartner(List<PartnerMasterT> partners) {
 		for (PartnerMasterT partner : partners) {
 			preparePartner(partner);
