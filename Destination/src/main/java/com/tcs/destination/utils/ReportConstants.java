@@ -42,7 +42,7 @@ public class ReportConstants {
 	public static final String DEALREMARKSNOTES = "dealRemarksNotes";
 	public static final String DEALCLOSUREDATE = "dealClosureDate";
 	public static final String FACTORSFORWINLOSS = "factorsForWinLoss";
-	public static final String DESCRIPTIONFORWINLOSS = "descriptionForWinLoss";
+	public static final String DEALCLOSURECOMMENTS = "dealClosureComments";
 	public static final String OPPORTUNITYLINKID = "oppLinkId";
 	public static final String BIDID = "bidId";
 	public static final String BIDREQUESTTYPE = "bidRequestType";
