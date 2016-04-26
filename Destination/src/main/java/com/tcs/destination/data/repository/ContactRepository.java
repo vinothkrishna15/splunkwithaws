@@ -114,5 +114,18 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	@Query(value = "select * from contact_t  where UPPER(contact_name) like UPPER(?1) and "
 	+ "(contact_category = ?2 or ?2 = '') and (contact_type = ?3 or ?3 = '')" , nativeQuery = true)
 	List<ContactT> findByContactNameAndCategoryAndType(String contactName, String category, String type);
+	
+	/**
+	 * Retrieve Contacts based for Contact Name starting with Numerals
+	 * 
+	 * @param category
+	 * @param type
+	 * @return
+	 */
+	@Query(value = "select * from contact_t  where (contact_name like '0%' or contact_name like '1%' or  "
+			+ "contact_name like '2%' or contact_name like '3%' or contact_name like '4%' or contact_name like '5%' "
+			+ "or contact_name like '6%' or contact_name like '7%' or contact_name like '8%' or contact_name like '9%') "
+			+ "and (contact_category = ?1 or ?1 = '') and (contact_type = ?2 or ?2 = '')", nativeQuery = true)
+	List<ContactT> findContactsStartingWithNumbers(String category, String type);
 
 }
