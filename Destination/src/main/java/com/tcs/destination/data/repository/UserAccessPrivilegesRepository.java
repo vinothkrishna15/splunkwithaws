@@ -57,5 +57,8 @@ public interface UserAccessPrivilegesRepository extends
 
 	UserAccessPrivilegesT findByPrivilegeId(Integer privilegeId);
 
- 	
+	@Query(value = "select user_id from user_access_privileges_t where privilege_value in ?1", nativeQuery = true)
+	List<String> findByGeography(List<String> geographies);
+	
+	List<UserAccessPrivilegesT> getPrivilegeTypeAndValueByUserId(String userId);
 }

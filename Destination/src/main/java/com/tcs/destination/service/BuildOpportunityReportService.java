@@ -348,7 +348,7 @@ public class BuildOpportunityReportService {
 		}
 		List<String> orderedFields = Arrays.asList("projectDealValue","customerName", "country", "iou", "geography", "subSp", "offering", "tcsAccountContact", "custContactName"
 				, "opportunityDescription", "requestReceivedDate", "newLogo", "competitors", "partnershipsInvolved", "dealType", "salesSupportOwner",
-				"dealRemarksNotes", "descriptionForWinLoss", "dealClosureDate", "factorsForWinLoss", "oppLinkId", "bidId", "bidOfficeGroupOwner",  "bidRequestReceiveDate",
+				"dealRemarksNotes", "dealClosureComments", "dealClosureDate", "factorsForWinLoss", "oppLinkId", "bidId", "bidOfficeGroupOwner",  "bidRequestReceiveDate",
 				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy", "modifiedDate","modifiedBy");
 		
 		for (String field : orderedFields) {
@@ -435,7 +435,7 @@ public class BuildOpportunityReportService {
 		boolean dealTypeFlag = fields.contains(ReportConstants.DEALTYPE);
 		boolean salesSuppOwnerFlag = fields.contains(ReportConstants.SALESSUPPORTOWNER);
 		boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
-		boolean descForWLFlag = fields.contains(ReportConstants.DESCRIPTIONFORWINLOSS);
+		boolean descForWLFlag = fields.contains(ReportConstants.DEALCLOSURECOMMENTS);
 		boolean dealClDtFlag = fields.contains(ReportConstants.DEALCLOSUREDATE);
 		boolean factorForWLFlag = fields.contains(ReportConstants.FACTORSFORWINLOSS);
 		boolean oppLinkedIdFlag = fields.contains(ReportConstants.OPPORTUNITYLINKID);
@@ -610,8 +610,8 @@ public class BuildOpportunityReportService {
 				}
 			
 			if (descForWLFlag) {
-				if(opportunity.getDescriptionForWinLoss() != null){
-					row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
+				if(opportunity.getDealClosureComments() != null){
+					row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
 				}
 				colValue++;
 			}
