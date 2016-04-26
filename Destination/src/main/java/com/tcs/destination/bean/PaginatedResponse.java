@@ -86,14 +86,15 @@ public class PaginatedResponse implements Serializable {
 		this.myWorklists = myWorklists;
 	}
 
-<<<<<<< HEAD
+
 	public List<UserT> getUserTs() {
 		return userTs;
 	}
 
 	public void setUserTs(List<UserT> userTs) {
 		this.userTs = userTs;
-=======
+	}
+
 	public List<ContactT> getContactTs() {
 		return contactTs;
 	}
@@ -109,7 +110,7 @@ public class PaginatedResponse implements Serializable {
 	public void setContactRoleMappingTs(
 			List<ContactRoleMappingT> contactRoleMappingTs) {
 		this.contactRoleMappingTs = contactRoleMappingTs;
->>>>>>> cf0c0c56e204154c5e54984f2fa005b5c42581e3
+
 	}
 	
 }
