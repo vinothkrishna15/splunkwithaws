@@ -22,11 +22,13 @@ public interface CustomerRepository extends
 	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(
 			String customerName);
 
-	Page<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot,Pageable page);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+			String name, String nameNot,boolean active,Pageable page);
 
-	Page<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot,Pageable page);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+			String name, String nameNot,boolean active,Pageable page);
+	
+	
 
 	@Query(value = "select * from customer_Master_T c ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
 	List<CustomerMasterT> findRecent(int count);
@@ -40,8 +42,13 @@ public interface CustomerRepository extends
 	@Query(value = "SELECT B.Quarter,B.target FROM BEACON_DATA_T B,BEACON_CUSTOMER_MAPPING_T CM WHERE  B.beacon_customer_name =CM.beacon_customer_name AND B.FINANCIAL_YEAR=?2  AND CM.customer_name=?1", nativeQuery = true)
 	List<Object[]> findTarget(String customerName, String financialYear);
 
+	
+	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeAndActiveOrderByGroupCustomerNameAsc(
+			String groupCustName, String groupCustNameNot,boolean active);
+	
 	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
 			String groupCustName, String groupCustNameNot);
+
 
 	// @Query(value =
 	// "update customer_master_t set logo = ?1  where customer_id=?2",
