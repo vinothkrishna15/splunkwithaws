@@ -19,14 +19,14 @@ import com.tcs.destination.bean.ContactT;
 @Repository
 public interface ContactRepository extends CrudRepository<ContactT, String> {
 
-	@Query(value = "select distinct(CON.*) from contact_t CON,contact_customer_link_t CCLT where UPPER(CON.contact_name) like UPPER(?1) and ((CON.contact_id=CCLT.contact_id and CCLT.customer_id = ?2) or ?2='') and (CON.partner_id = ?3 or ?3='') and (CON.contact_type=?4 or ?4 ='') order by contact_name asc", nativeQuery = true)
-	List<ContactT> findByContactName(String contactName, String customerId, String partnerId, String contactType);
+	@Query(value = "select distinct(CON.*) from contact_t CON,contact_customer_link_t CCLT where CON.active='true' and UPPER(CON.contact_name) like UPPER(?1) and ((CON.contact_id=CCLT.contact_id and CCLT.customer_id = ?2) or ?2='') and (CON.partner_id = ?3 or ?3='') and (CON.contact_type=?4 or ?4 ='') order by contact_name asc", nativeQuery = true)
+	List<ContactT> findByActiveTrueAndContactName(String contactName, String customerId, String partnerId, String contactType);
 
-	Page<ContactT> findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(String startsWith,Pageable page);
+	Page<ContactT> findByActiveTrueAndContactNameIgnoreCaseStartingWithOrderByContactNameAsc(String startsWith,Pageable page);
 	
-	List<ContactT> findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(String startsWith);
+	List<ContactT> findByActiveTrueAndContactNameIgnoreCaseStartingWithOrderByContactNameAsc(String startsWith);
 
-    @Query(value = "select distinct(CON.*) from contact_t CON, contact_customer_link_t CCLT where ((CON.contact_id=CCLT.contact_id and CCLT.customer_id = ?1) or ?1='') and (CON.partner_id = ?2 or ?2='') and (CON.contact_type=?3 or ?3 ='') order by contact_type asc", nativeQuery = true)
+    @Query(value = "select distinct(CON.*) from contact_t CON, contact_customer_link_t CCLT where CON.active='true' and ((CON.contact_id=CCLT.contact_id and CCLT.customer_id = ?1) or ?1='') and (CON.partner_id = ?2 or ?2='') and (CON.contact_type=?3 or ?3 ='') order by contact_type asc", nativeQuery = true)
 	List<ContactT> findByContactType(String customerId, String partnerId, String contactType);
 	
 	@Query(value ="update contact_t set contact_photo = ?1  where contact_id=?2",

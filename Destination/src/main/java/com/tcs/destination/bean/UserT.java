@@ -71,6 +71,9 @@ public class UserT implements Serializable {
 	@Column(name = "user_role")
 	private String userRole;
 
+	@Column(name = "active")
+	private boolean active;
+	
 	@Transient
 	private Timestamp lastLogin;
 
@@ -1674,6 +1677,15 @@ public class UserT implements Serializable {
 
 		return userModuleAccessT;
 	}
+	
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
 	
 //	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
 //		return this.workflowCompetitorTs1;

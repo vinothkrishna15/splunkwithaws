@@ -11,7 +11,7 @@ import com.tcs.destination.bean.UserT;
 
 @Repository
 public interface UserRepository extends CrudRepository<UserT, String> {
-	List<UserT> findByUserNameIgnoreCaseLike(String nameWith);
+	List<UserT> findByActiveTrueAndUserNameIgnoreCaseLike(String nameWith);
 
 	UserT findByUserName(String userName);
 
