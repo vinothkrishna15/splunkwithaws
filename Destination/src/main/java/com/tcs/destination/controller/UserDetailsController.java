@@ -593,7 +593,7 @@ public class UserDetailsController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retrieving the customer details");
+					"Backend error in retrieving the user details");
 		}
 		return response;
 	}
