@@ -387,7 +387,7 @@ public interface OpportunityRepository extends
 			+ "and (OPP.digital_flag=(:digitalFlag) or (:digitalFlag)='' ) " 
 			+ "and (CMT.iou in (select iou from iou_customer_mapping_t where display_iou in (:displayIou) or ('') in (:displayIou))) "
 			+ "and (OPP.country in (:country) or ('') in (:country)) " 
-			+ "and ((OPP.deal_closure_date between (:fromDate) and (:toDate)) and (OPP.sales_stage_code >= 9)) "
+			+ "and ((OPP.deal_closure_date between (:fromDate) and (:toDate) and OPP.sales_stage_code >= 9)or (OPP.sales_stage_code < 9)) "
 			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_partner_link_t where partner_id in (:partnerId)) or ('') in (:partnerId)) "
 			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_competitor_link_t where competitor_name in (:competitorName)) or ('') in (:competitorName)) "
 			+ "and (((OPP.opportunity_id in (select entity_id from search_keywords_t where UPPER(search_keywords) similar to (:searchKeywords))) or (UPPER(OPP.opportunity_name) similar to (:opportunityName))) or ((:opportunityName) = (:searchKeywords) and (:opportunityName) = '')) "
