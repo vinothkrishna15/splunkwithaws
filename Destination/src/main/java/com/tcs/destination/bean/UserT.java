@@ -79,6 +79,9 @@ public class UserT implements Serializable {
 
 	@OneToMany(mappedBy="userT")
 	private List<UserAccessPrivilegesT> userAccessPrivilegesTs;
+	
+	@Transient
+	private List<UserAccessPrivilegesT> deleteUserAccessPrivilegesTs;
 
 	//bi-directional many-to-one association to UserModuleAccessT
 	@OneToMany(mappedBy="userT", cascade = CascadeType.ALL)
@@ -86,8 +89,7 @@ public class UserT implements Serializable {
 
 	@Transient
 	private UserModuleAccess userModuleAccess;
-
-
+	
 	public UserModuleAccess getUserModuleAccess() {
 		return userModuleAccess;
 	}
@@ -1674,6 +1676,16 @@ public class UserT implements Serializable {
 
 		return userModuleAccessT;
 	}
+	
+	public List<UserAccessPrivilegesT> getDeleteUserAccessPrivilegesTs() {
+		return deleteUserAccessPrivilegesTs;
+	}
+
+	public void setDeleteUserAccessPrivilegesTs(
+			List<UserAccessPrivilegesT> deleteUserAccessPrivilegesTs) {
+		this.deleteUserAccessPrivilegesTs = deleteUserAccessPrivilegesTs;
+	}
+
 	
 //	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
 //		return this.workflowCompetitorTs1;

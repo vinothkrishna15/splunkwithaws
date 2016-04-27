@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -105,8 +106,7 @@ public class UserDetailsController {
 			} else {
 				List<UserT> user = userService.findByUserName(nameWith);
 				logger.info("Ending UserDetailsController findone method");
-				return ResponseConstructors.filterJsonForFieldAndViews(fields,
-						view, user);
+				return ResponseConstructors.filterJsonForFieldAndViews(fields, view, user);
 			}
 
 		} catch (DestinationException e) {
@@ -558,4 +558,102 @@ public class UserDetailsController {
 		}
 	}
 
+	/**
+	 * This method is used to search user details
+	 * 
+	 * @param userId
+	 * @param userNameWith
+	 * @param supervisorId
+	 * @param supervisorNameWith
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search", method = RequestMethod.GET)
+	public @ResponseBody String userSearch(
+			@RequestParam(value = "userNameOrId", defaultValue = "") String userNameOrId,
+			@RequestParam(value = "supervisorNameOrId", defaultValue = "") String supervisorNameOrId,
+			@RequestParam(value = "userGroup", defaultValue = "") String userGroup,
+			@RequestParam(value = "baseLocation", defaultValue = "") String baseLocation,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside UserDetailsController: Start of userSearch");
+		String response = null;
+		PaginatedResponse paginatedResponse;
+		try {
+			paginatedResponse = userService.searchUserDetails(userNameOrId,supervisorNameOrId, userGroup, baseLocation, page,count);
+			logger.info("Ending UserDetailsController userSearch method");
+			response= ResponseConstructors.filterJsonForFieldAndViews(fields, view, paginatedResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the customer details");
+		}
+		return response;
+	}
+	
+	/**
+	 * This method is used to insert new user 
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/create",method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> insertUserDetails(
+			@RequestBody UserT user) throws DestinationException {
+		logger.info("Starting UserDetailsController /user/create POST");
+		Status status = new Status();
+		try {
+			if (userService.insertUserDetails(user)) {
+				status.setStatus(Status.SUCCESS, user.getUserId());
+			}
+			logger.info("Ending UserDetailsController /user/create POST");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "", 
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while inserting user");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while inserting user");
+		}
+	}
+	
+	/**
+	 * This method is used to update user details
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/update",method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> updateUserDetails(
+			@RequestBody UserT user) throws DestinationException {
+		logger.info("Starting UserDetailsController /user/update POST");
+		Status status = new Status();
+		try {
+			if (userService.updateUserDetails(user)) {
+				status.setStatus(Status.SUCCESS, user.getUserId());
+			}
+			logger.info("Ending UserDetailsController /user/update POST");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while updating user");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while updating user");
+		}
+	}
+	
 }

@@ -12,6 +12,14 @@ import com.tcs.destination.bean.UserT;
 @Repository
 public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> findByUserNameIgnoreCaseLike(String nameWith);
+	
+	@Query(value = "select * from user_t  where user_id like ?1 or upper(user_name) like ?1 order by user_name", nativeQuery = true)
+	List<UserT> findByUserNameOrUserId(String userNameOrId);
+	
+	@Query(value = "select * from user_t  where supervisor_user_id like ?1 or upper(supervisor_user_name) like ?1 order by user_name", nativeQuery = true)
+	List<UserT> findBySupervisorNameOrId(String userNameOrId);
+	
+	List<UserT> findByUserGroup(String userGroup);
 
 	UserT findByUserName(String userName);
 
@@ -88,4 +96,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
     
 	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds)", nativeQuery = true)
 	List<String> findUserGroupByUserIds(@Param("userIds") List<String> userIds);
+
+	List<UserT> findByBaseLocationIgnoreCaseContainingOrderByUserNameAsc(String baseLocation);
+
 }
