@@ -15,9 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
@@ -43,6 +46,7 @@ import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
+import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -83,6 +87,9 @@ public class UserService {
 
 	@Autowired
 	UserGoalsRepository userGoalsRepository;
+	
+	@Autowired
+	UserGeneralSettingsRepository userGenSettingsRepository;
 
 
 	@Autowired
@@ -677,4 +684,237 @@ public class UserService {
 		}
 	}
 
+	/**
+	 * This method is used to search user details for the given userId/userName or supervisorId/Name or userGroup or base location
+	 * 
+	 * @param userNameOrId
+	 * @param supervisorNameOrId
+	 * @param userGroup
+	 * @param baseLocation 
+	 * @param count 
+	 * @param page 
+	 * @return
+	 */
+	public PaginatedResponse searchUserDetails(String userNameOrId, String supervisorNameOrId, String userGroup, String baseLocation, int page, int count) {
+		logger.debug("Begin:Inside searchUserDetails UserService");
+		List<UserT> userTs = null;
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		if(!userNameOrId.equals("")){
+			userTs = userRepository.findByUserNameOrUserId("%" + userNameOrId.toUpperCase() + "%");
+		} else if(!supervisorNameOrId.equals("")){
+			userTs = userRepository.findBySupervisorNameOrId("%" + supervisorNameOrId.toUpperCase() + "%");
+		} else if(!userGroup.equals("")){
+			userTs = userRepository.findByUserGroup(userGroup);
+		} else if(!baseLocation.equals("")){
+			userTs = userRepository.findByBaseLocationIgnoreCaseContainingOrderByUserNameAsc(baseLocation);
+		} else {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please Enter Search Details");
+		}
+		if (userTs.isEmpty()) {
+			logger.error("NOT_FOUND: No matching user found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No matching user found");
+		}
+		paginatedResponse.setTotalCount(userTs.size());
+
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, userTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, userTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, userTs.size()) + 1;
+			userTs = userTs.subList(fromIndex, toIndex);
+			paginatedResponse.setUserTs(userTs);
+			logger.debug("users after pagination size is " + userTs.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No users available for the specified page");
+		}
+		return paginatedResponse;
+	}
+
+	/**
+	 * This method is used to insert new user details into database
+	 * 
+	 * @param user
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean insertUserDetails(UserT user) throws Exception {
+		logger.debug("Begin:inside insertUser() of UserService");
+		user.setTempPassword("tcs_dev");
+		// validate user
+		validateUser(user, true);
+		if (userRepository.save(user) != null) {
+			saveOrUpdateUserGeneralSettings(user);//save user general settings
+			saveUserPrivileges(user);//save user access privileges
+			saveUserGoals(user);//save user goals
+			saveDefaultNotificationSettings(user);//save default notification settings
+			logger.debug("End:inside insertUserDetails() of UserService: user Saved : " + user.getUserId());
+			return true;
+		} else {
+			logger.debug("End:inside insertUserDetails() of UserService: user not Saved");
+			return false;
+		}
+	}
+
+	/**
+	 * This method is used to save user goals to data base
+	 * 
+	 * @param user
+	 */
+	private void saveUserGoals(UserT user) {
+		//saving user targets
+		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
+			userGoalsRepository.save(userGoal);
+			logger.info("Saving Goal : " + userGoal.getGoalId());
+		}
+	}
+
+	/**
+	 * This Method is used to save the default user general settings and notifications
+	 *  
+	 * @param user
+	 */
+	private void saveDefaultNotificationSettings(UserT user) {
+		//saving user notification settings for the user
+		List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
+				.getUserNotificationSettingsList(user);
+		userNotificationSettingsRepository.save(userNotificationSettingsList);
+		logger.info("User Notification Settings : saved");
+	}
+
+	/**
+	 * This method is used to save or update user general settings 
+	 * 
+	 * @param user
+	 */
+	private void saveOrUpdateUserGeneralSettings(UserT user) {
+		//saving user general settings for the user
+		UserGeneralSettingsT userGenSettings = DestinationUserDefaultObjectsHelper
+				.getDefaultSettings(user.getUserId(),user.getUserGeneralSettingsT().getTimeZoneDesc());
+		userGenSettingsRepository.save(userGenSettings);
+		logger.info("User General Settings : saved");
+	}
+
+	/**
+	 * This method is used to save user privileges
+	 * 
+	 * @param user
+	 */
+	private void saveUserPrivileges(UserT user) {
+		//save parent privileges
+		for (UserAccessPrivilegesT parentAccessPrivilege : user.getUserAccessPrivilegesTs()) {
+			parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
+			parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
+			parentAccessPrivilege.setUserId(user.getUserId());
+			parentAccessPrivilege.setIsactive(Constants.Y);
+			parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
+			logger.info("Parent Privilege saved");
+			Integer parentAccessPrivilegeId = parentAccessPrivilege.getPrivilegeId();
+			//save child privilege
+			for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
+				childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
+				childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
+				childAccessPrivilege.setParentPrivilegeId(parentAccessPrivilegeId);
+				childAccessPrivilege.setUserId(user.getUserId());
+				childAccessPrivilege.setIsactive(Constants.Y);
+				childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
+				logger.info("Child Privilege saved");
+			}
+		}
+	}
+
+	/**
+	 * This method is used to update user details
+	 * 
+	 * @param user
+	 * @return
+	 * @throws Exception 
+	 */
+	@Transactional
+	public boolean updateUserDetails(UserT user) throws Exception {
+		logger.info("Begin:inside updateUserDetails() of UserService");
+		// validate user
+		validateUser(user, true);
+		try{
+		if (userRepository.save(user) != null) {
+			saveOrUpdateUserGeneralSettings(user);//update user general settings
+			updateUserPrivileges(user);//update user access privileges
+			updateUserGoals(user);//update user goals
+			logger.debug("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
+			return true;
+		} else {
+			logger.info("End:inside updateUserDetails() of UserService: user not Saved");
+			return false;
+		}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * This method is used to update user goals to data base
+	 * 
+	 * @param user
+	 */
+	private void updateUserGoals(UserT user) {
+		//updating user goals
+		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
+			userGoalsRepository.save(userGoal);
+			logger.info("Saving Goal : " + userGoal.getGoalId());
+		}
+	}
+
+	/**
+	 * This method is used to update user privileges
+	 * 
+	 * @param user
+	 */
+	private void updateUserPrivileges(UserT user) {
+		logger.info("Inside updateUserPrivileges method");
+		//To delete the user privileges
+		deleteUserPrivileges(user);
+
+		for (UserAccessPrivilegesT parentAccessPrivilege : user.getUserAccessPrivilegesTs()) {
+			parentAccessPrivilege.setPrivilegeId(parentAccessPrivilege.getPrivilegeId());
+			parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
+			parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
+			parentAccessPrivilege.setUserId(user.getUserId());
+			parentAccessPrivilege.setIsactive(Constants.Y);
+			
+			for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
+				childAccessPrivilege.setPrivilegeId(childAccessPrivilege.getPrivilegeId());
+				childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
+				childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
+				childAccessPrivilege.setParentPrivilegeId(childAccessPrivilege.getParentPrivilegeId());
+				childAccessPrivilege.setUserId(user.getUserId());
+				childAccessPrivilege.setIsactive(Constants.Y);
+				childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
+				logger.info("Child Privileges Updated");
+			}
+			parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
+			logger.info("Parent Privileges Updated");
+		}
+		logger.info("End of updateUserPrivileges method");
+	}
+
+	/**
+	 * This method is used to delete user privileges
+	 * 
+	 * @param user
+	 */
+	private void deleteUserPrivileges(UserT user) {
+		logger.info("Inside deleteUserPrivileges() method");
+		if (user.getDeleteUserAccessPrivilegesTs()!=null) {
+			for (UserAccessPrivilegesT userAccessPrivilegesT : user.getDeleteUserAccessPrivilegesTs()) {
+				if(userAccessPrivilegesT.getPrivilegeId()!=null){
+					UserAccessPrivilegesT accessPrivilegesT = userAccessPrivilegesRepository.findByPrivilegeId(userAccessPrivilegesT.getPrivilegeId());
+					if(!accessPrivilegesT.getUserAccessPrivilegesTs().isEmpty()){
+						userAccessPrivilegesRepository.delete(accessPrivilegesT.getUserAccessPrivilegesTs());
+						logger.info("Child Privileges Deleted");
+					}
+					userAccessPrivilegesRepository.delete(accessPrivilegesT);
+					logger.info("Parent Privileges Deleted");
+				}
+			}
+		}
+	}
 }
