@@ -110,7 +110,8 @@ public class UserService {
 	public List<UserT> findByUserName(String nameWith) throws Exception {
 		logger.debug("Begin:Inside findByUserName UserService");
 		List<UserT> users = (List<UserT>) userRepository
-				.findByUserNameIgnoreCaseLike("%" + nameWith + "%");
+				//inactive indicator - filter only active users - done
+				.findByActiveTrueAndUserNameIgnoreCaseLike("%" + nameWith + "%");
 
 		if (users.isEmpty()) {
 			logger.error("NOT_FOUND: No matching user found");

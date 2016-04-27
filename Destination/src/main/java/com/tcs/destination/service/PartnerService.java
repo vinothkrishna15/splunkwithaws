@@ -267,8 +267,8 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
-						nameWith, pageable);
+				.findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
+						nameWith, pageable, true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();
@@ -289,8 +289,8 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-						startsWith, pageable);
+				.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+						startsWith, pageable,true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();

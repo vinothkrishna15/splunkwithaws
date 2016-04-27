@@ -53,6 +53,9 @@ public class PartnerMasterT implements Serializable {
 	private String documentsAttached;
 
 	private String facebook;
+	
+	@Column(name = "active")
+	private boolean active;
 
 	private byte[] logo;
 
@@ -360,6 +363,14 @@ public class PartnerMasterT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 }

@@ -25,11 +25,11 @@ public interface PartnerRepository extends
 	List<PartnerMasterT> findByPartnerName(String partnername);
 	
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
-			String partnername, Pageable page);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
+			String partnername, Pageable page, boolean active);
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-			String startsWith, Pageable pageable);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+			String startsWith, Pageable pageable,boolean active);
 
 	@Query(value = "select * from partner_master_t p ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
 	List<PartnerMasterT> findRecent(int count);

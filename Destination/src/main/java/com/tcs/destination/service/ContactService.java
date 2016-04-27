@@ -126,7 +126,7 @@ public class ContactService {
 		PaginatedResponse contactResponse = new PaginatedResponse();
 		
 		
-		List<ContactT> contactList = contactRepository.findByContactName("%"
+		List<ContactT> contactList = contactRepository.findByActiveTrueAndContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
 		contactList = paginateContacts(page, count, contactList);
@@ -162,7 +162,6 @@ public class ContactService {
 		
 		PaginatedResponse contactResponse = new PaginatedResponse();
 		
-
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
@@ -196,7 +195,7 @@ public class ContactService {
 		Pageable pageable = new PageRequest(page, count);
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Page<ContactT> contactPage = contactRepository
-				.findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith, pageable);
+				.findByActiveTrueAndContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith, pageable);
 		paginatedResponse.setTotalCount(contactPage.getTotalElements());
 		List<ContactT> contactList = contactPage.getContent();
 		if (contactList == null || contactList.isEmpty()) {
