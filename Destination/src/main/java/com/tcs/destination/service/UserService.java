@@ -46,6 +46,7 @@ import com.tcs.destination.helper.DestinationUserDefaultObjectsHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
 
@@ -762,6 +763,8 @@ public class UserService {
 	private void saveUserGoals(UserT user) {
 		//saving user targets
 		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
+			userGoal.setUserId(user.getUserId());
+			userGoal.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			userGoalsRepository.save(userGoal);
 			logger.info("Saving Goal : " + userGoal.getGoalId());
 		}
@@ -858,6 +861,8 @@ public class UserService {
 	private void updateUserGoals(UserT user) {
 		//updating user goals
 		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
+			userGoal.setUserId(user.getUserId());
+			userGoal.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			userGoalsRepository.save(userGoal);
 			logger.info("Saving Goal : " + userGoal.getGoalId());
 		}
