@@ -26,10 +26,12 @@ import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.bean.UserGoalsT;
+import com.tcs.destination.bean.UserGroupMappingT;
 import com.tcs.destination.bean.UserModule;
 import com.tcs.destination.bean.UserModuleAccess;
 import com.tcs.destination.bean.UserModuleAccessT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
@@ -37,8 +39,11 @@ import com.tcs.destination.data.repository.LoginHistoryRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.data.repository.UserGoalsRepository;
+import com.tcs.destination.data.repository.UserGroupMappingRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserRoleMappingRepository;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -92,9 +97,14 @@ public class UserService {
 	@Autowired
 	UserGeneralSettingsRepository userGenSettingsRepository;
 
-
 	@Autowired
 	DestinationMailUtils mailUtils;
+	
+	@Autowired
+	UserGroupMappingRepository userGroupMappingRepository;
+	
+	@Autowired
+	UserRoleMappingRepository userRoleMappingRepository;
 
 	@Value("${forgotPassword}")
 	private String forgotPasswordSubject;
@@ -921,5 +931,33 @@ public class UserService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * This method is used to retrieve all user groups
+	 * 
+	 * @return
+	 */
+	public ArrayList<UserGroupMappingT> findUserGroups() {
+		logger.debug("Inside findAll() findUserGroups");
+		return (ArrayList<UserGroupMappingT>) userGroupMappingRepository.findAll();
+	}
+
+	/**
+	 * This method is used to retrieve all user roles
+	 * 
+	 * @return
+	 */
+	public ArrayList<UserRoleMappingT> findUserRoles() {
+		logger.debug("Inside findAll() findUserRoles");
+		return (ArrayList<UserRoleMappingT>) userRoleMappingRepository.findAll();
+	}
+
+	public String[] getPrivilegeType() {
+		String[] privilegeType = { PrivilegeType.GEOGRAPHY.getValue(),
+				PrivilegeType.IOU.getValue(),PrivilegeType.SUBSP.getValue(),
+				PrivilegeType.CUSTOMER.getValue(),PrivilegeType.GROUP_CUSTOMER.getValue()};
+
+		return privilegeType;
 	}
 }
