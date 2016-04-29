@@ -33,7 +33,7 @@ public class ReportConstants {
 	public static final String LINKOPPORTUNITY = "linkOpportunity";
 	public static final String OPPORTUNITYDESCRIPTION = "opportunityDescription";
 	public static final String REQUESTRECEIVEDDATE = "requestReceivedDate";
-	public static final String OPPORTUNITYOWNER = "opportunityName";
+	public static final String OPPORTUNITYOWNER = "Opportunity Owner";
 	public static final String NEWLOGO = "newLogo";
 	public static final String COMPETITORS = "competitors";
 	public static final String PARTNERSHIPSINVOLVED = "partnershipsInvolved";
@@ -142,7 +142,7 @@ public class ReportConstants {
 	public static final String HEADER = "header";
 	public static final String HEADER1 = "header1";
 	public static final String ROWS = "Row";
-	public static final String DIGITALDEALVALUEPROJECTCURRENCY = "projectDealValue";
+	public static final String DIGITALDEALVALUEPROJECTCURRENCY = "Digital Deal Value (in Project Currency)";
 	public static final String CUSTNAME = "customerName";
 	public static final String WINS = "Wins";
 	public static final String LOSSES = "Losses";
@@ -199,5 +199,10 @@ public class ReportConstants {
 	public static final String PARTNER = "PARTNER";
 	public static final String All = "All";
 	public static final String DETAILED = "Detailed";
+	public static final String CURRENCY = "Currency";
+	public static final String SERVICELINE = "serviceLine";
+	public static final String ROWLABELS = "Row Labels";
+	public static final String ANTICIPATING = "anticipating";
+	public static final String PROJECTDEALVALUE = "projectDealValue";
 
 }

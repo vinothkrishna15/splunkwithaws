@@ -370,7 +370,7 @@ public class BDMDetailedReportService {
 				List<String> fields, boolean isIncludingSupervisor) throws Exception {
 			logger.info("Inside setBDMReportAlongWithOptionalFieldsDetail method");
 			SXSSFRow row = null;
-			boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
+			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
@@ -648,7 +648,7 @@ public class BDMDetailedReportService {
 				List<Object[]> userIdAndOppList, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
 			logger.info("Insie setBDMSupervisorAlongWithOptionalFieldsDetail method");
 			SXSSFRow row = null;
-			boolean projectDVFlag = fields.contains(ReportConstants.DIGITALDEALVALUEPROJECTCURRENCY);
+			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
