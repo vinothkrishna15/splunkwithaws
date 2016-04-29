@@ -98,7 +98,8 @@ public interface CustomerRepository extends
 			@Param("geography") String geography);
 
 	@Query(value = "select * from customer_master_t where "
-			+ "(upper(customer_name) like (:customerName)) "
+			+ "(active='true' or active=(:active))"
+			+ "and (upper(customer_name) like (:customerName)) "
 			+ "and (upper(group_customer_name) like (:groupCustomerName)) "
 			+ "and (geography in (:geography) or ('') in (:geography)) "
 			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou in (:displayIOU) or ('') in (:displayIOU)))", nativeQuery = true)
@@ -106,7 +107,8 @@ public interface CustomerRepository extends
 			@Param("groupCustomerName") String groupCustomerNameWith,
 			@Param("customerName") String nameWith,
 			@Param("geography") List<String> geography,
-			@Param("displayIOU") List<String> displayIOU);
+			@Param("displayIOU") List<String> displayIOU,
+			@Param("active") boolean active);
 	
 	
 	@Query(value = "select customer_id,customer_name from customer_master_t", nativeQuery=true)

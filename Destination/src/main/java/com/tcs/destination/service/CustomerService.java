@@ -678,7 +678,7 @@ public class CustomerService {
 
 	public PaginatedResponse search(String groupCustomerNameWith,
 			String nameWith, List<String> geography, List<String> displayIOU,
-			int page, int count) throws DestinationException {
+			boolean inactive, int page, int count) throws DestinationException {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if (geography.isEmpty())
 			geography.add("");
@@ -688,7 +688,7 @@ public class CustomerService {
 				.advancedSearch(
 						"%" + groupCustomerNameWith.toUpperCase() + "%", "%"
 								+ nameWith.toUpperCase() + "%", geography,
-								displayIOU);
+								displayIOU, !inactive);
 
 		if (customerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,

@@ -326,7 +326,7 @@ public class PartnerService {
 
 	}
 
-	public PaginatedResponse search(String name, List<String> geography,
+	public PaginatedResponse search(String name, List<String> geography, boolean inactive,
 			int page, int count) throws DestinationException {
 		logger.debug("Begin:Inside search method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
@@ -334,7 +334,7 @@ public class PartnerService {
 			geography.add("");
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
 				.findByPartnerNameAndGeographyNonMandatory(
-						"%" + name.toUpperCase() + "%", geography);
+						"%" + name.toUpperCase() + "%", geography, !inactive);
 		if (partnerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available");

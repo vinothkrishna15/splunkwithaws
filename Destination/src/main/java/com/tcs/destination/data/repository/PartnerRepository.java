@@ -43,10 +43,12 @@ public interface PartnerRepository extends
 	@Query(value = "select partner_name, geography from partner_master_t", nativeQuery = true)
 	List<Object[]> getPartnerNameAndGeography();
 
-	@Query(value = "select * from partner_master_t where (upper(partner_name) like ?1) "
-			+ "and (geography in (?2) or ('') in (?2))", nativeQuery = true)
+	@Query(value = "select * from partner_master_t where "
+			+ "(upper(partner_name) like ?1) "
+			+ "and (geography in (?2) or ('') in (?2))"
+			+ "and (active='true' or active=(?3))", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNameAndGeographyNonMandatory(String name,
-			List<String> geography);
+			List<String> geography, boolean active);
 
 	@Query(value = "select partner_id from partner_master_t where partner_name=?1 and geography=?2", nativeQuery = true)
 	String findByPartnerNameAndGeography(String name, String geography);
