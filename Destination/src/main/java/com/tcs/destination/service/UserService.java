@@ -939,7 +939,7 @@ public class UserService {
 	 * @return
 	 */
 	public ArrayList<UserGroupMappingT> findUserGroups() {
-		logger.debug("Inside findAll() findUserGroups");
+		logger.info("Inside findUserGroups() method");
 		return (ArrayList<UserGroupMappingT>) userGroupMappingRepository.findAll();
 	}
 
@@ -949,15 +949,20 @@ public class UserService {
 	 * @return
 	 */
 	public ArrayList<UserRoleMappingT> findUserRoles() {
-		logger.debug("Inside findAll() findUserRoles");
+		logger.info("Inside findUserRoles() method");
 		return (ArrayList<UserRoleMappingT>) userRoleMappingRepository.findAll();
 	}
 
+	/**
+	 * This method is used to retrieve privilege types
+	 * 
+	 * @return
+	 */
 	public String[] getPrivilegeType() {
+		logger.info("Inside getPrivilegeType() method");
 		String[] privilegeType = { PrivilegeType.GEOGRAPHY.getValue(),
 				PrivilegeType.IOU.getValue(),PrivilegeType.SUBSP.getValue(),
 				PrivilegeType.CUSTOMER.getValue(),PrivilegeType.GROUP_CUSTOMER.getValue()};
-
 		return privilegeType;
 	}
 }
