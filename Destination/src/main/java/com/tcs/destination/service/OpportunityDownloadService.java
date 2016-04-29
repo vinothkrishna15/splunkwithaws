@@ -317,9 +317,9 @@ public class OpportunityDownloadService {
 	    }
 	    
 	    //COMMENTS FOR WIN LOSS
-	    if(opp.getDescriptionForWinLoss()!=null) {
+	    if(opp.getDealClosureComments()!=null) {
 		Cell cellCommentsWinLoss = row.createCell(40);
-		cellCommentsWinLoss.setCellValue(opp.getDescriptionForWinLoss());
+		cellCommentsWinLoss.setCellValue(opp.getDealClosureComments());
 	    }
 	    
 	    //CUSTOMER NAME

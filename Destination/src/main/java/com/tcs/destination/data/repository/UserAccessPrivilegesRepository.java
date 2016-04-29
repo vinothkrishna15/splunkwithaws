@@ -52,4 +52,13 @@ public interface UserAccessPrivilegesRepository extends
  			+ " and uat.privilege_type = ?2", nativeQuery = true)
  	List<String> getIouPrivilegeValue(String userId,String privilegeType);
 
+ 	@Query(value = "select privilege_id from user_access_privileges_t where parent_privilege_id =?1", nativeQuery = true)
+	List<Integer> findByParentPrivilegeIds(Integer parentPrivilegeId);
+
+	UserAccessPrivilegesT findByPrivilegeId(Integer privilegeId);
+
+	@Query(value = "select user_id from user_access_privileges_t where privilege_value in ?1", nativeQuery = true)
+	List<String> findByGeography(List<String> geographies);
+	
+	List<UserAccessPrivilegesT> getPrivilegeTypeAndValueByUserId(String userId);
 }

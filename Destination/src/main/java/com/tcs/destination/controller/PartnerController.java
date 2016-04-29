@@ -293,6 +293,7 @@ public class PartnerController {
 	public @ResponseBody String advancedSearch(
 			@RequestParam(value = "nameWith", defaultValue = "") String name,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "inactive", defaultValue = "false") boolean inactive,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -303,7 +304,7 @@ public class PartnerController {
 				+ name + "&geograph=" + geography + " GET");
 		try {
 			PaginatedResponse paginatedResponse = partnerService.search(name,
-					geography, page, count);
+					geography, inactive, page, count);
 			logger.info("Inside PartnerController: End of /partner/search?name="
 					+ name + "&geograph=" + geography + " GET");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,

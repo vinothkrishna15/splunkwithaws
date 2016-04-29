@@ -213,4 +213,11 @@ public class Constants {
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
+	public static final String TCS_UAT = "tcs_uat";
+	public static final String TCS_PROD = "tcs_prod";
+	public static final String TCS_SIT = "tcs_sit";
+	public static final String TCS_DEV = "tcs_dev";
+	public static final String UAT = "UAT";
+	public static final String SIT = "SIT";
+	public static final String PROD = "PROD";
 }
