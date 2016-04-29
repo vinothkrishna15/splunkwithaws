@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -535,47 +537,10 @@ public class OpportunityService {
 			String userGroup = user.getUserGroup();
 			// While practice team creating the opportunity, one of the Owners
 			// should be BDM or BDM Supervisor
-			if (UserGroup.contains(userGroup)) {
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case PRACTICE_HEAD:
-				case PRACTICE_OWNER:
 
-					List<String> owners = new ArrayList<String>();
-					owners.add(opportunity.getOpportunityOwner());
-					if (opportunity.getOpportunitySalesSupportLinkTs() != null) {
-						for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-								.getOpportunitySalesSupportLinkTs()) {
-							owners.add(opportunitySalesSupportLinkT
-									.getSalesSupportOwner());
-						}
-					}
-					if (opportunity.getBidDetailsTs() != null) {
-						for (BidDetailsT bidDetails : opportunity
-								.getBidDetailsTs()) {
-							if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
-								for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetails
-										.getBidOfficeGroupOwnerLinkTs()) {
-									owners.add(bidOfficeGroupOwnerLinkT
-											.getBidOfficeGroupOwner());
-								}
-							}
-						}
-					}
-					if (owners != null) {
-						if (!isOwnersAreBDMorBDMSupervisor(owners)) {
-							throw new DestinationException(
-									HttpStatus.BAD_REQUEST,
-									"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
-						} else {
-							createdOpportunity = saveOpportunity(opportunity,
-									false);
-						}
-					}
-					break;
-				default:
-					createdOpportunity = saveOpportunity(opportunity, false);
-				}
-			}
+			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
+					null);
+
 			if (!isBulkDataLoad) {
 				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
@@ -667,8 +632,93 @@ public class OpportunityService {
 	}
 
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
-			boolean isUpdate) throws Exception {
+			boolean isUpdate, String userGroup,
+			OpportunityT opportunityBeforeEdit) throws Exception {
 		logger.debug("Inside saveOpportunity() method");
+		if (userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())
+				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+			Set<String> owners = new HashSet<String>();
+			owners.add(opportunity.getOpportunityOwner());
+			if (opportunity.getOpportunitySalesSupportLinkTs() != null
+					&& !opportunity.getOpportunitySalesSupportLinkTs()
+							.isEmpty()) {
+				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+						.getOpportunitySalesSupportLinkTs()) {
+					owners.add(opportunitySalesSupportLinkT
+							.getSalesSupportOwner());
+				}
+			}
+
+			if (opportunity.getBidDetailsTs() != null
+					&& !opportunity.getBidDetailsTs().isEmpty()) {
+				for (BidDetailsT bidDetails : opportunity.getBidDetailsTs()) {
+					if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
+						for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT : bidDetails
+								.getBidOfficeGroupOwnerLinkTs()) {
+							owners.add(bidOfficeGroupOwnerLinkT
+									.getBidOfficeGroupOwner());
+						}
+					}
+				}
+			}
+
+			if (opportunity.getOpportunityId() != null) {
+				// if(opportunityBeforeEdit!=null){
+				// if(opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()
+				// != null &&
+				// !opportunityBeforeEdit.getOpportunitySalesSupportLinkTs().isEmpty())
+				// {
+				// for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT
+				// : opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()) {
+				// owners.add(opportunitySalesSupportLinkT
+				// .getSalesSupportOwner());
+				// }
+				// }
+				// if (opportunityBeforeEdit.getBidDetailsTs() != null &&
+				// !opportunityBeforeEdit.getBidDetailsTs().isEmpty()) {
+				// for (BidDetailsT bidDetails : opportunityBeforeEdit
+				// .getBidDetailsTs()) {
+				// if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
+				// for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT :
+				// bidDetails
+				// .getBidOfficeGroupOwnerLinkTs()) {
+				// owners.add(bidOfficeGroupOwnerLinkT
+				// .getBidOfficeGroupOwner());
+				// }
+				// }
+				// }
+				// }
+				// }
+				owners.addAll(opportunityRepository.getAllOwners(opportunity
+						.getOpportunityId()));
+			}
+			if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
+					&& opportunity.getDeleteOpportunitySalesSupportLinkTs()
+							.size() > 0) {
+				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+						.getDeleteOpportunitySalesSupportLinkTs()) {
+
+					// int index= owners.indexOf();
+                 if(!opportunity.getOpportunityOwner().equals(opportunitySalesSupportLinkTRepository
+							.findSalesSupportOwner(opportunitySalesSupportLinkT
+									.getOpportunitySalesSupportLinkId()))) {
+                	 owners.remove(opportunitySalesSupportLinkTRepository
+ 							.findSalesSupportOwner(opportunitySalesSupportLinkT
+ 									.getOpportunitySalesSupportLinkId()));
+                 }
+					
+				}
+			}
+
+			if (owners != null && !owners.isEmpty()) {
+				if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST,
+							"Please tag BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+				}
+			}
+
+		}
+
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
@@ -917,9 +967,10 @@ public class OpportunityService {
 		}
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
+		OpportunityT opportunityBeforeEdit = opportunityRepository
+				.findOne(opportunityId);
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			OpportunityT opportunityBeforeEdit = opportunityRepository
-					.findOne(opportunityId);
+
 			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
 					userGroup, userId)) {
 				throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -936,7 +987,8 @@ public class OpportunityService {
 				.copy(beforeOpp);
 
 		// Update database
-		OpportunityT afterOpp = saveOpportunity(opportunity, true);
+		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
+				opportunityBeforeEdit);
 		if (afterOpp != null) {
 			logger.info("Opportunity has been updated successfully: "
 					+ opportunityId);
@@ -2161,14 +2213,15 @@ public class OpportunityService {
 	 * @param owners
 	 * @return
 	 */
-	public boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
+	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
 		// TODO Auto-generated method stub
 		logger.info("Inside isOwnersAreBDMorBDMSupervisor");
 		boolean isBDMOrBDMSupervisor = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
 		for (String userGroup : userGroups) {
 			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
+					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
 				isBDMOrBDMSupervisor = true;
 				break;
 			}

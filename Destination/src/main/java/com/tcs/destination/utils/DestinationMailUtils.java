@@ -941,7 +941,8 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-			UserT recipient = userService.findByUserId(recipientId);
+//			UserT recipient = userService.findByUserId(recipientId);
+			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
 		}
@@ -1147,6 +1148,8 @@ public class DestinationMailUtils {
 		String geography = null;
 		String userName = null;
 		String[] recipientMailIdsArray = null;
+		String[] ccMailIdsArray = null;
+		List<String> ccIds = new ArrayList<String>();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		StringBuffer subject = new StringBuffer(environmentName);
@@ -1163,7 +1166,9 @@ public class DestinationMailUtils {
 			geography = workflowCustomerT.getGeography();
 			userName = userRepository
 					.findUserNameByUserId(workflowCustomerT.getCreatedBy());
-			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT);
+			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT)
+			.append(" ").append(Constants.FROM).append(" ")
+			.append(userName);
 			break;
 		case PARTNER :
 			workflowEntity = Constants.WORKFLOW_PARTNER;
@@ -1172,7 +1177,9 @@ public class DestinationMailUtils {
 			geography = workflowPartnerT.getGeography();
 			userName = userRepository
 					.findUserNameByUserId(workflowPartnerT.getCreatedBy());
-			subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT);
+			subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT)
+			.append(" ").append(Constants.FROM).append(" ")
+			.append(userName);
 			break;
 		default:
 			break;
@@ -1192,12 +1199,16 @@ public class DestinationMailUtils {
 					switch (workflowStepPending.getUserGroup()) {
 					case Constants.WORKFLOW_GEO_HEADS:
 
-//						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 						recepientIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowUserGroup(
 										geography, Constants.Y,
 										UserGroup.GEO_HEADS.getValue()));
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
+						ccIds.addAll(userAccessPrivilegesRepository
+								.findUserIdsForWorkflowPMO(geography,
+										Constants.Y, pmoValue));
+
 						break;
 					default:
 					}
@@ -1221,6 +1232,9 @@ public class DestinationMailUtils {
 				}
 			}
 			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+			if (CollectionUtils.isNotEmpty(ccIds)) {
+				ccMailIdsArray = getMailIdsFromUserIds(ccIds);
+			}
 			Map<String, Object> workflowMap = new HashMap<String, Object>();
 			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
 			workflowMap.put("workflowEntity", workflowEntity);
@@ -1228,6 +1242,9 @@ public class DestinationMailUtils {
 			workflowMap.put("submittedDate", dateStr);
 			workflowMap.put("userName", userName);
 			helper.setTo(recipientMailIdsArray);
+			if(ccMailIdsArray!=null) {
+				helper.setCc(ccMailIdsArray);
+				}
 			helper.setFrom(senderEmailId);
 
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
@@ -1237,7 +1254,7 @@ public class DestinationMailUtils {
 
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
-			logMailDetails(recipientMailIdsArray, null, null, subject.toString(), text);
+			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null, subject.toString(), text);
 			mailSender.send(automatedMIMEMessage);
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
@@ -1259,7 +1276,7 @@ public class DestinationMailUtils {
 			throw e;
 		}
 
-	}
+}
 
 	public void sendWorkflowApprovedOrRejectMail(
 			String workflowCustomerApprovedOrRejectSubject, Integer requestId,
@@ -1332,13 +1349,17 @@ public class DestinationMailUtils {
 								switch (workflowStep.getUserGroup()) {
 								case Constants.WORKFLOW_GEO_HEADS:
 
-//									String pmoValue = "%"
-//											+ Constants.PMO_KEYWORD + "%";
+									String pmoValue = "%"
+											+ Constants.PMO_KEYWORD + "%";
 									ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForWorkflowUserGroup(
 													geography, Constants.Y,
 													UserGroup.GEO_HEADS
 															.getValue()));
+									ccIds.addAll(userAccessPrivilegesRepository
+											.findUserIdsForWorkflowPMO(
+													geography, Constants.Y,
+													pmoValue));
 								default:
 
 								}
@@ -1371,7 +1392,7 @@ public class DestinationMailUtils {
 				helper.setSubject(subject);
 				Map<String, Object> workflowMap = new HashMap<String, Object>();
 				workflowMap.put("userName", userName);
-				workflowMap.put("entity", Constants.WORKFLOW_CUSTOMER);
+				workflowMap.put("entity", entity);
 				workflowMap.put("entityName", entityName);
 				workflowMap.put("submittedDate", dateStr);
 				
@@ -1430,7 +1451,7 @@ public class DestinationMailUtils {
 			logger.error("Error sending mail message", e.getMessage());
 			throw e;
 		}
-	}
+}
 	
 	 private String constructUserNamesSplitByComma(List<String> userNames) {
 			

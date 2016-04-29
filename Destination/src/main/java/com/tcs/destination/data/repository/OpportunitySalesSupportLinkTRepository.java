@@ -18,5 +18,8 @@ public interface OpportunitySalesSupportLinkTRepository extends
 	List<OpportunityT> findOpportunityTByUserId(@Param("userId") String userId);
 
 	List<OpportunitySalesSupportLinkT> findByOpportunityId(String opportunityId);
+
+	@Query(value="select sales_support_owner from opportunity_sales_support_link_t where opportunity_sales_support_link_id = ?1",nativeQuery = true)
+	String findSalesSupportOwner(String opportunitySalesSupportLinkId);
 	
 }
