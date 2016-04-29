@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.StringUtils;
+import com.tcs.destination.utils.PropertyUtil;
 
 /**
  * 
@@ -707,7 +709,7 @@ public class UserService {
 	 * @return
 	 */
 	public PaginatedResponse searchUserDetails(String userNameOrId, String supervisorNameOrId, String userGroup, String baseLocation, int page, int count) {
-		logger.debug("Begin:Inside searchUserDetails UserService");
+		logger.info("Begin:Inside searchUserDetails UserService");
 		List<UserT> userTs = null;
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if(!userNameOrId.equals("")){
@@ -748,36 +750,40 @@ public class UserService {
 	 * @throws Exception
 	 */
 	public boolean insertUserDetails(UserT user) throws Exception {
-		logger.debug("Begin:inside insertUser() of UserService");
-		user.setTempPassword("tcs_dev");
+		logger.info("Begin:inside insertUserDetails() method");
+		user.setTempPassword(getTempPassword());
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
 			saveOrUpdateUserGeneralSettings(user);//save user general settings
 			saveUserPrivileges(user);//save user access privileges
-			saveUserGoals(user);//save user goals
+			saveOrUpdateUserGoals(user);//save user goals
 			saveDefaultNotificationSettings(user);//save default notification settings
-			logger.debug("End:inside insertUserDetails() of UserService: user Saved : " + user.getUserId());
+			logger.info("End:inside insertUserDetails() of UserService: user Saved : " + user.getUserId());
 			return true;
 		} else {
-			logger.debug("End:inside insertUserDetails() of UserService: user not Saved");
+			logger.info("End:inside insertUserDetails() of UserService: user not Saved");
 			return false;
 		}
 	}
 
 	/**
-	 * This method is used to save user goals to data base
-	 * 
-	 * @param user
+	 * This method is used to get temporary password based on environment
+	 * @return
 	 */
-	private void saveUserGoals(UserT user) {
-		//saving user targets
-		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
-			userGoal.setUserId(user.getUserId());
-			userGoal.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			userGoalsRepository.save(userGoal);
-			logger.info("Saving Goal : " + userGoal.getGoalId());
+	private String getTempPassword() {
+		logger.info("Inside getTempPassword() method");
+		String tempPassword=null;
+		if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.UAT)){
+			tempPassword=Constants.TCS_UAT;
+		} else if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.PROD)){
+			tempPassword=Constants.TCS_PROD;
+		}else if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.SIT)){
+			tempPassword=Constants.TCS_SIT;
+		} else {
+			tempPassword=Constants.TCS_DEV;
 		}
+		return tempPassword;
 	}
 
 	/**
@@ -786,6 +792,7 @@ public class UserService {
 	 * @param user
 	 */
 	private void saveDefaultNotificationSettings(UserT user) {
+		logger.info("Inside saveDefaultNotificationSettings() method");
 		//saving user notification settings for the user
 		List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
 				.getUserNotificationSettingsList(user);
@@ -799,6 +806,7 @@ public class UserService {
 	 * @param user
 	 */
 	private void saveOrUpdateUserGeneralSettings(UserT user) {
+		logger.info("Inside saveOrUpdateUserGeneralSettings() method");
 		//saving user general settings for the user
 		UserGeneralSettingsT userGenSettings = DestinationUserDefaultObjectsHelper
 				.getDefaultSettings(user.getUserId(),user.getUserGeneralSettingsT().getTimeZoneDesc());
@@ -812,6 +820,7 @@ public class UserService {
 	 * @param user
 	 */
 	private void saveUserPrivileges(UserT user) {
+		logger.info("Inside saveUserPrivileges() method");
 		//save parent privileges
 		for (UserAccessPrivilegesT parentAccessPrivilege : user.getUserAccessPrivilegesTs()) {
 			parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
@@ -846,35 +855,32 @@ public class UserService {
 		logger.info("Begin:inside updateUserDetails() of UserService");
 		// validate user
 		validateUser(user, true);
-		try{
 		if (userRepository.save(user) != null) {
 			saveOrUpdateUserGeneralSettings(user);//update user general settings
 			updateUserPrivileges(user);//update user access privileges
-			updateUserGoals(user);//update user goals
-			logger.debug("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
+			saveOrUpdateUserGoals(user);//update user goals
+			logger.info("End:inside updateUserDetails() of UserService: user Saved : " + user.getUserId());
 			return true;
 		} else {
 			logger.info("End:inside updateUserDetails() of UserService: user not Saved");
 			return false;
 		}
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		return false;
 	}
 
+	
 	/**
-	 * This method is used to update user goals to data base
+	 * This method is used to save/update user goals to data base
 	 * 
 	 * @param user
 	 */
-	private void updateUserGoals(UserT user) {
-		//updating user goals
+	private void saveOrUpdateUserGoals(UserT user) {
+		logger.info("Inside saveOrUpdateUserGoals() methos");
+		//saving user targets
 		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
 			userGoal.setUserId(user.getUserId());
 			userGoal.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			userGoalsRepository.save(userGoal);
-			logger.info("Saving Goal : " + userGoal.getGoalId());
+			logger.info("user Goals saved/updated: " + userGoal.getGoalId());
 		}
 	}
 
@@ -884,7 +890,7 @@ public class UserService {
 	 * @param user
 	 */
 	private void updateUserPrivileges(UserT user) {
-		logger.info("Inside updateUserPrivileges method");
+		logger.info("Inside updateUserPrivileges() method");
 		//To delete the user privileges
 		deleteUserPrivileges(user);
 
