@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
@@ -332,6 +333,60 @@ public class WorkflowController {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while Inserting Workflow Partner");
+		}
+
+	}
+	
+	@RequestMapping(value = "/opportunityReopen", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> opportunityReopenRequest(
+			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of requesting opportunity reopen");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (opportunityReopenRequestT != null) {
+				if (workflowService.requestOpportunityReopen(opportunityReopenRequestT, status)) {
+					logger.info("Inside WorkflowController: End of requesting opportunity reopen");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while requesting opportunity reopen");
+		}
+
+	}
+	
+	@RequestMapping(value = "/approveOrReject/opportunityReopen", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approveOpportunityReopenRequest(
+			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of approving opportunity reopen");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (opportunityReopenRequestT != null) {
+				if (workflowService.approveOrRejectOpportunityReopen(opportunityReopenRequestT, status)) {
+					logger.info("Inside WorkflowController: End of approving opportunity reopen");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while approving opportunity reopen");
 		}
 
 	}

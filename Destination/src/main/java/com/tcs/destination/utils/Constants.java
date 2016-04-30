@@ -204,13 +204,22 @@ public class Constants {
 	public static final String WORKFLOW_STRATEGIC_ADMIN = "Strategic Group Admin";
 	public static final String WORKFLOW_CUSTOMER = "Customer";
 	public static final String WORKFLOW_PARTNER = "Partner";
+	public static final String WORKFLOW_OPPORTUNITY_REOPEN = "Opportunity";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
+	public static final String WORKFLOW_OPERATION_CREATION_TEMPLATE = "for creation of";
+	public static final String WORKFLOW_OPERATION_REOPEN_TEMPLATE = "to reopen the";
+	public static final String WORKFLOW_OPERATION_CREATE = "create";
+	public static final String WORKFLOW_OPERATION_REOPEN = "reopen";
+	public static final String WORKFLOW_REOPEN_PREFIX = "Please find the reason for reopen :";
+	public static final String WORKFLOW_PMO = "PMO";
+	public static final String FROM = "from";
 	public static final int CONSTANT_ZERO = 0;
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
 	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
+	public static final String WORKFLOW_OPPORTUNITY_REOPEN_PENDING_SUBJECT = "Pending Opportunity reopen request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 	public static final String TCS_UAT = "tcs_uat";

@@ -40,9 +40,11 @@ public interface WorkflowStepTRepository extends JpaRepository<WorkflowStepT, In
 
 	// for approve and edit
 	@Query(value = "select * from workflow_step_t where request_id = (select request_id from workflow_request_t where entity_type_id = ?1 and entity_id = ?2) ORDER BY step ASC;", nativeQuery = true)
-	public List<WorkflowStepT> findStepForEditAndApprove(int entityTypeId, int requestId);
+	public List<WorkflowStepT> findStepForEditAndApprove(int entityTypeId, String requestId);
 	
 	public WorkflowStepT findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(Integer requestId, String stepStatus);
+
+	WorkflowStepT findByRequestIdAndStep(Integer requestId, int step);
 	
 	
 	

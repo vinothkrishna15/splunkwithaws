@@ -2,7 +2,7 @@
 	<body>
 		<h3>Dear ${userName},</h3>
 		<p>
-			  Your request to create the ${entity} : ${entityName} submitted on ${submittedDate} has been ${status} by ${approvedOrRejectedUserName}.
+			  Your request to ${operation} the ${entity} : ${entityName} submitted on ${submittedDate} has been ${status} by ${approvedOrRejectedUserName}.
 			  ${comment}
 			  
 		</p>		

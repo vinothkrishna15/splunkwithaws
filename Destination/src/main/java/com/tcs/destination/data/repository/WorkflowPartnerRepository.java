@@ -7,6 +7,6 @@ import com.tcs.destination.bean.WorkflowPartnerT;
 
 @Repository
 public interface WorkflowPartnerRepository extends
-CrudRepository<WorkflowPartnerT, Integer> {
+CrudRepository<WorkflowPartnerT, String> {
 
 }

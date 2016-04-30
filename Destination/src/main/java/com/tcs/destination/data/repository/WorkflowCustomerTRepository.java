@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.WorkflowCustomerT;
 
 @Repository
-public interface WorkflowCustomerTRepository extends CrudRepository<WorkflowCustomerT, Integer>{
+public interface WorkflowCustomerTRepository extends CrudRepository<WorkflowCustomerT, String>{
 
 	@Query(value = "select customer_name from workflow_customer_t where customer_name = (:customerName)", nativeQuery = true)
 	String findCustomerName(@Param("customerName") String customerName);

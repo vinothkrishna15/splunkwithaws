@@ -17,7 +17,7 @@ public interface WorkflowRequestTRepository extends
 
 	@Query(value = "select * from workflow_request_t where entity_type_id =?1 and entity_id = ?2", nativeQuery = true)
 	public WorkflowRequestT findRequestedRecord(int i,
-			Integer workflowCustomerId);
+			String workflowCustomerId);
 
 	public WorkflowRequestT findByRequestId(Integer id);
 	
@@ -45,6 +45,9 @@ public interface WorkflowRequestTRepository extends
 	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE ws.userId = :userId ORDER BY ws.stepId")
 	public List<WorkflowRequestT> getModifiedBy(
 			@Param("userId") String userId);
+
+	public WorkflowRequestT findByEntityTypeIdAndEntityId(Integer entityTypeId,
+			String opportunityId);
 
 	// @Query(value = "select * from workflow_request_t where request_id =?1" ,
 	// nativeQuery =true)

@@ -1,7 +1,7 @@
 package com.tcs.destination.enums;
 
 public enum EntityTypeId {
-	CUSTOMER(0, "New Customer"), PARTNER(1, "New Partner"), COMPETITOR(2, "New Competitor");
+	CUSTOMER(0, "New Customer"), PARTNER(1, "New Partner"), COMPETITOR(2, "New Competitor"), OPPORTUNITY_REOPEN(3,"Opportunity Reopen");
 
 	private final Integer type;
 	private final String displayName;
