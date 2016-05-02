@@ -27,7 +27,7 @@ public class WorkflowCompetitorT implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="workflow_competitor_id")
-	private Integer workflowCompetitorId;
+	private String workflowCompetitorId;
 
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
@@ -63,11 +63,11 @@ public class WorkflowCompetitorT implements Serializable {
 	public WorkflowCompetitorT() {
 	}
 
-	public Integer getWorkflowCompetitorId() {
+	public String getWorkflowCompetitorId() {
 		return this.workflowCompetitorId;
 	}
 
-	public void setWorkflowCompetitorId(Integer workflowCompetitorId) {
+	public void setWorkflowCompetitorId(String workflowCompetitorId) {
 		this.workflowCompetitorId = workflowCompetitorId;
 	}
 

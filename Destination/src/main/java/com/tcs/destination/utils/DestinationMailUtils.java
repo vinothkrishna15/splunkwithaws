@@ -1163,6 +1163,7 @@ public class DestinationMailUtils {
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
+
 		List<String> ccIds = new ArrayList<String>();
 
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
@@ -1204,7 +1205,7 @@ public class DestinationMailUtils {
 //					.append(userName);
 //			operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 //			break;
-		case OPPORTUNITY_REOPEN:
+		case OPPORTUNITY:
 			workflowEntity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 			OpportunityT opportunity = opportunityRepository.findOne(entityId);
 			workflowEntityName = opportunity.getOpportunityName();
@@ -1404,7 +1405,7 @@ public class DestinationMailUtils {
 //					operation = Constants.WORKFLOW_OPERATION_CREATE;
 //					recepientIds.add(workflowCompetitor.getCreatedBy());
 //					break;
-				case OPPORTUNITY_REOPEN:
+				case OPPORTUNITY:
 					entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 					OpportunityT opportunity = opportunityRepository.findOne(entityId);
 					entityName = opportunity.getOpportunityName();
