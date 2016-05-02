@@ -353,10 +353,11 @@ public class WorkflowService {
 			@Override
 			public void run() {
 				try {
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
 					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Error sending email " + e.getMessage());
 				}
 			}
 
@@ -721,6 +722,8 @@ public class WorkflowService {
 					.save(workflowCustomer);
 			logger.info("workflow Customer saved, Id :"
 					+ requestedCustomer.getWorkflowCustomerId());
+			logger.debug("workflow Customer saved, Name :"
+					+ requestedCustomer.getCustomerName());
 			if (requestedCustomer != null) {
 				Integer entityId = requestedCustomer.getWorkflowCustomerId();
 				Integer entityTypeId = EntityTypeId.CUSTOMER.getType();
@@ -736,6 +739,7 @@ public class WorkflowService {
 										+ " is submitted for approval");
 						// Sending email notification to whom with the request
 						// is pending currently
+						logger.debug("Request Id "+workflowRequest.getRequestId());
 						sendEmailNotificationforPending(
 								workflowRequest.getRequestId(), new Date(), entityTypeId);
 					} else {

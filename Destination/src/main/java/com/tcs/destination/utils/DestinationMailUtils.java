@@ -1169,6 +1169,7 @@ public class DestinationMailUtils {
 			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT)
 			.append(" ").append(Constants.FROM).append(" ")
 			.append(userName);
+			logger.debug("Subject :"+subject);
 			break;
 		case PARTNER :
 			workflowEntity = Constants.WORKFLOW_PARTNER;
@@ -1204,10 +1205,12 @@ public class DestinationMailUtils {
 								.findUserIdsForWorkflowUserGroup(
 										geography, Constants.Y,
 										UserGroup.GEO_HEADS.getValue()));
+						logger.debug("recepient Ids for GEO Heads :" +recepientIds);
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 						ccIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowPMO(geography,
 										Constants.Y, pmoValue));
+						logger.debug("CCIds for PMO :"+ccIds);
 
 						break;
 					default:
@@ -1232,8 +1235,10 @@ public class DestinationMailUtils {
 				}
 			}
 			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+			logger.debug("recepients mail Ids" +recipientMailIdsArray);
 			if (CollectionUtils.isNotEmpty(ccIds)) {
 				ccMailIdsArray = getMailIdsFromUserIds(ccIds);
+				logger.debug("CCmail Ids" +ccMailIdsArray);
 			}
 			Map<String, Object> workflowMap = new HashMap<String, Object>();
 			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
@@ -1251,11 +1256,14 @@ public class DestinationMailUtils {
 					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
 					workflowMap);
 			logger.info("framed text for mail :" + text);
+			logger.debug("framed text for mail :" + text);
 
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
 			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null, subject.toString(), text);
+			logger.debug("before sending mail");
 			mailSender.send(automatedMIMEMessage);
+			logger.debug("Mail Sent for request" +workflowRequestT.getRequestId());
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

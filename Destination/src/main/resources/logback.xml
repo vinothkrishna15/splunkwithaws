@@ -26,12 +26,12 @@
     	</encoder>
   	</appender>
 
-	<logger name="com.tcs.destination" level="INFO" additivity="false">
+	<logger name="com.tcs.destination" level="DEBUG" additivity="false">
     	<appender-ref ref="StdOut" />
     	<appender-ref ref="FileLog" />
   	</logger>
 
-  	<root level="INFO">         
+  	<root level="DEBUG">         
 	    <appender-ref ref="StdOut" />
 	    <appender-ref ref="FileLog" />
 	</root> 
