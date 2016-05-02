@@ -797,12 +797,8 @@ public class WorkflowService {
 	 * @return
 	 */
 	private WorkflowRequestT populateWorkflowRequest(String entityId,
-<<<<<<< HEAD
-			Integer entityTypeId, String userId) throws Exception {
-=======
 			Integer entityTypeId, String userId, String comments)
 			throws Exception {
->>>>>>> 645752d46364a27a23f69bcd5811f5d41c388fe2
 		logger.info("Inside Start of populateWorkflowRequest method");
 		List<WorkflowStepT> workflowSteps = null;
 		UserT user = userRepository.findByUserId(userId);
@@ -2195,14 +2191,8 @@ public class WorkflowService {
 		logger.info("Inside saveToCustomerMasterTables");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customerMaster = new CustomerMasterT();
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 		CustomerMasterT customerMastersaved = new CustomerMasterT();
->>>>>>> 87ce738... code refactored
-=======
-		  CustomerMasterT customerMastersaved = new CustomerMasterT();
->>>>>>> 645752d46364a27a23f69bcd5811f5d41c388fe2
+
 		customerMaster.setCustomerName(workflowCustomerT.getCustomerName());
 		customerMaster.setGroupCustomerName(workflowCustomerT
 				.getGroupCustomerName());
@@ -2235,28 +2225,10 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-<<<<<<< HEAD
-<<<<<<< HEAD
-				BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconTPK.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
-				beaconCustomer
-						.setCustomerName(customerMaster.getCustomerName());
-				beaconTPK.setBeaconIou(bcmpt.getBeaconIou());
-				beaconTPK.setCustomerGeography(bcmpt.getCustomerGeography());
-				beaconCustomer.setId(beaconTPK);
-=======
-				//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-=======
-			//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
->>>>>>> 645752d46364a27a23f69bcd5811f5d41c388fe2
 				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
 				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
 				beaconCustomer.setCustomerGeography(bcmpt.getCustomerGeography());
 				beaconCustomer.setCustomerId(customerMastersaved.getCustomerId());
-<<<<<<< HEAD
->>>>>>> 87ce738... code refactored
-=======
->>>>>>> 645752d46364a27a23f69bcd5811f5d41c388fe2
 				beaconRepository.save(beaconCustomer);
 			}
 		}
