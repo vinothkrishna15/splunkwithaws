@@ -1141,6 +1141,7 @@ public class DestinationMailUtils {
 	 */
 	public void sendWorkflowPendingMail(Integer requestId, Date date, Integer entityTypeId) throws Exception {
 		logger.info("Inside sendWorkflowPendingMail method");
+		
 		List<String> recepientIds = new ArrayList<String>();
 		String userGroupOrUserRoleOrUserId = null;
 		String workflowEntity = null;
@@ -1153,10 +1154,15 @@ public class DestinationMailUtils {
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		StringBuffer subject = new StringBuffer(environmentName);
+		logger.debug("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
+		if(workflowRequestT==null) {
+			logger.error("request not fetched");
+		}
+		logger.debug("Request fetched");
 		Integer entityId = workflowRequestT.getEntityId();
-		
+		logger.debug("EntityId" +entityId );
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 		case CUSTOMER :
 			workflowEntity = Constants.WORKFLOW_CUSTOMER;
