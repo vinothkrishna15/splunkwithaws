@@ -13,10 +13,10 @@ import org.springframework.session.data.redis.RedisOperationsSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @Configuration
-//@EnableRedisHttpSession
+@EnableRedisHttpSession
 public class EmbeddedRedisConfiguration {
 
-	 /*	@Value("${spring.redis.host}")
+	 @Value("${spring.redis.host}")
 	private String redisHost;
 	
 	@Value("${spring.redis.port}")
@@ -41,6 +41,7 @@ public class EmbeddedRedisConfiguration {
 
         sessionRepository.setDefaultMaxInactiveInterval(maxInactiveIntervalInSeconds);
         
-        return sessionRepository;*/
+        return sessionRepository;
+    }
     
 }
