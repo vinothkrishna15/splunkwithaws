@@ -2242,7 +2242,7 @@ public class WorkflowService {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		String opportunityId = opportunityReopenRequestT.getOpportunityId();
-		Integer entityTypeId = EntityTypeId.OPPORTUNITY_REOPEN.getType();
+		Integer entityTypeId = EntityTypeId.OPPORTUNITY.getType();
 		OpportunityT opportunity = opportunityRepository.findOne(opportunityId);
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getReasonForReopen() != null) {
@@ -2333,7 +2333,7 @@ public class WorkflowService {
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
 		String opportunityId = opportunityReopenRequestT.getOpportunityId();
-		Integer entityTypeId = EntityTypeId.OPPORTUNITY_REOPEN.getType();
+		Integer entityTypeId = EntityTypeId.OPPORTUNITY.getType();
 		List<WorkflowStepT> workflowStep = new ArrayList<WorkflowStepT>();
 		OpportunityT opportunity = opportunityRepository.findOne(opportunityId);
 		if (opportunity != null) {
