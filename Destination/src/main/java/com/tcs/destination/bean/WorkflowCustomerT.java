@@ -28,7 +28,7 @@ public class WorkflowCustomerT implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="workflow_customer_id")
-	private Integer workflowCustomerId;
+	private String workflowCustomerId;
 
 	@Column(name="corporate_hq_address")
 	private String corporateHqAddress;
@@ -95,11 +95,11 @@ public class WorkflowCustomerT implements Serializable {
 	public WorkflowCustomerT() {
 	}
 
-	public Integer getWorkflowCustomerId() {
+	public String getWorkflowCustomerId() {
 		return this.workflowCustomerId;
 	}
 
-	public void setWorkflowCustomerId(Integer workflowCustomerId) {
+	public void setWorkflowCustomerId(String workflowCustomerId) {
 		this.workflowCustomerId = workflowCustomerId;
 	}
 

@@ -1152,7 +1152,7 @@ public class DestinationMailUtils {
 		StringBuffer subject = new StringBuffer(environmentName);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
-		Integer entityId = workflowRequestT.getEntityId();
+		String entityId = workflowRequestT.getEntityId();
 		
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 		case CUSTOMER :
@@ -1279,7 +1279,7 @@ public class DestinationMailUtils {
 				.append(workflowCustomerApprovedOrRejectSubject).toString();
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
-		Integer entityId = workflowRequestT.getEntityId();
+		String entityId = workflowRequestT.getEntityId();
 		MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 				.createMimeMessage();
 		MimeMessageHelper helper;
