@@ -375,7 +375,7 @@ public class OpportunityUploadService {
 				// COMMENTS FOR WIN LOSS
 				if (!StringUtils.isEmpty(listOfCellValues.get(40))) {
 				    validateCellByStringLength(listOfCellValues.get(40),OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS, 40, OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE);
-				    opp.setDescriptionForWinLoss(listOfCellValues
+				    opp.setDealClosureComments(listOfCellValues
 						.get(40));
 				}
 

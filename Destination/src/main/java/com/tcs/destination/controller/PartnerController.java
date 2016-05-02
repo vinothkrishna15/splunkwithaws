@@ -36,6 +36,7 @@ import com.tcs.destination.utils.ResponseConstructors;
 
 /**
  * This controller handles the partner module
+ * 
  * @author TCS
  *
  */
@@ -60,6 +61,7 @@ public class PartnerController {
 
 	/**
 	 * This method is used to retrieve the partner details by partner id
+	 * 
 	 * @param partnerid
 	 * @param currency
 	 * @param fields
@@ -93,9 +95,11 @@ public class PartnerController {
 					"Backend error while retrieving partner details");
 		}
 	}
-    
+
 	/**
-	 *  This method is used to retrieve the partner details by the given name with
+	 * This method is used to retrieve the partner details by the given name
+	 * with
+	 * 
 	 * @param page
 	 * @param count
 	 * @param nameWith
@@ -141,9 +145,11 @@ public class PartnerController {
 					"Backend error while retrieving partner details");
 		}
 	}
-    
+
 	/**
-	 * This method is used to upload the partner details from the excel to the database
+	 * This method is used to upload the partner details from the excel to the
+	 * database
+	 * 
 	 * @param file
 	 * @param fields
 	 * @param view
@@ -189,9 +195,10 @@ public class PartnerController {
 					"Backend error while uploading partner details");
 		}
 	}
-    
+
 	/**
 	 * This method is used to download the partner details in excel format
+	 * 
 	 * @param oppFlag
 	 * @return excelFile
 	 * @throws DestinationException
@@ -205,13 +212,17 @@ public class PartnerController {
 			InputStreamResource excelFile = partnerDownloadService
 					.getPartners(oppFlag);
 			HttpHeaders respHeaders = new HttpHeaders();
-			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-			String environmentName=PropertyUtil.getProperty("environment.name");
-            String repName = environmentName+"_PartnerMaster&ContactDownload_" + todaysDate_formatted+ ".xlsm";
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String repName = environmentName
+					+ "_PartnerMaster&ContactDownload_" + todaysDate_formatted
+					+ ".xlsm";
 			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment",repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
 			logger.info("Inside PartnerController: End of /partner/download GET");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
@@ -225,9 +236,11 @@ public class PartnerController {
 		}
 
 	}
-    
+
 	/**
-	 * This method is used to download the partner contact details in excel format
+	 * This method is used to download the partner contact details in excel
+	 * format
+	 * 
 	 * @param oppFlag
 	 * @return excelFile
 	 * @throws DestinationException
@@ -241,13 +254,16 @@ public class PartnerController {
 			InputStreamResource excelFile = partnerDownloadService
 					.getPartnerContacts(oppFlag);
 			HttpHeaders respHeaders = new HttpHeaders();
-			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
-			String environmentName=PropertyUtil.getProperty("environment.name");
-			String repName = environmentName+"_PartnerContactDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String repName = environmentName + "_PartnerContactDownload_"
+					+ todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment",repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
 			logger.info("Inside PartnerController: End of /partner/contactDownload GET");
 			return new ResponseEntity<InputStreamResource>(excelFile,
 					respHeaders, HttpStatus.OK);
@@ -260,9 +276,10 @@ public class PartnerController {
 					"Backend error while downloading partner contact details");
 		}
 	}
-    
+
 	/**
 	 * This method gives the functionality for partner advanced search
+	 * 
 	 * @param name
 	 * @param geography
 	 * @param page
@@ -276,6 +293,7 @@ public class PartnerController {
 	public @ResponseBody String advancedSearch(
 			@RequestParam(value = "nameWith", defaultValue = "") String name,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
+			@RequestParam(value = "inactive", defaultValue = "false") boolean inactive,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -286,7 +304,7 @@ public class PartnerController {
 				+ name + "&geograph=" + geography + " GET");
 		try {
 			PaginatedResponse paginatedResponse = partnerService.search(name,
-					geography, page, count);
+					geography, inactive, page, count);
 			logger.info("Inside PartnerController: End of /partner/search?name="
 					+ name + "&geograph=" + geography + " GET");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -300,16 +318,28 @@ public class PartnerController {
 					"Backend error while retrieving partner details");
 		}
 	}
-	
+
+	/**
+	 * This method is used to edit the partner master details and it is
+	 * accessible only by system admins and strategic group admin
+	 * 
+	 * @param partnerMaster
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/edit", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editPartner(
-			@RequestBody PartnerMasterT partnerMaster) throws DestinationException {
-		logger.info("Inside PartnerController: Start of Edit Partner");        
+			@RequestBody PartnerMasterT partnerMaster)
+			throws DestinationException {
+		logger.info("Inside PartnerController: Start of Edit Partner");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (partnerService.updatePartner(partnerMaster)) {
-				status.setStatus(Status.SUCCESS,"Partner Details updated successfully");
+				status.setStatus(
+						Status.SUCCESS,
+						"Partner Details updated successfully "
+								+ partnerMaster.getPartnerId());
 			}
 			logger.info("Inside PartnerController: End of Edit Partner");
 			return new ResponseEntity<String>(
@@ -322,6 +352,6 @@ public class PartnerController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while editing partner");
 		}
-		
+
 	}
 }

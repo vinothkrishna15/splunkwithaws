@@ -68,29 +68,47 @@ public class BeaconUploadHelper {
 			mapOfIouBeaconMappingT = mapOfIouBeaconMappingT != null ? mapOfIouBeaconMappingT
 					: commonHelper.getIouBeaconMappingT();
 			
-			List<BeaconCustomerMappingT> beaconCustomerMappingData=new ArrayList<BeaconCustomerMappingT>();
+			  List<BeaconCustomerMappingT> beaconCustomerMappingData=null;
+			 
 			
-			
-		        // BEACON GEOGRAPHY
+			  // to find whether beacon_customer_name, beacon_geography, beacon_iou
+			  // (composite key) has foreign key existence in
+			  // beacon_customer_mapping_t
+			 
+			  // BEACON CUSTOMER NAME
+		        String beaconCustomerName = data[2];
+		      // BEACON GEOGRAPHY
 				String beaconGeography = data[1];
-				if(!StringUtils.isEmpty(beaconGeography))
+			  // BEACON_CUSTOMER_IOU - to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
+				String beaconIou = data[4];
+				
+			  beaconCustomerMappingData=beaconRepository.findbeaconDuplicates(beaconCustomerName,beaconGeography, beaconIou);
+			  if(beaconCustomerMappingData.isEmpty())
+			  {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("The combination of Beacon Customer Name,Beacon Geography And Beacon Iou is not valid");
+			  } 
+			  if ((!beaconCustomerMappingData.isEmpty())
+						&& (beaconCustomerMappingData.size() == 1)) 
+			  {
+			     BeaconCustomerMappingT beaconCustomerMappingT=beaconCustomerMappingData.get(0);
+			     Long beaconCustomerMapId=beaconCustomerMappingT.getBeaconCustomerMapId();
+			     beaconDataT.setBeaconCustomerMapId(beaconCustomerMapId);
+			 
+			  }
+				if(StringUtils.isEmpty(beaconGeography))
 				{
-				    beaconDataT.setBeaconGeography(beaconGeography);
-				}
-				else
-				{
+				    //beaconDataT.setBeaconGeography(beaconGeography);
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Beacon Geography Is Mandatory");
 				}
 				
-				// BEACON CUSTOMER NAME
-				String beaconCustomerName = data[2];
-				if(!StringUtils.isEmpty(beaconCustomerName))
+				
+				if(StringUtils.isEmpty(beaconCustomerName))
 				{
-					
-					beaconDataT.setBeaconCustomerName(beaconCustomerName);
-				}
-				else{
+					//beaconCustomerMappingT.setBeaconCustomerName(beaconCustomerName);
+					//beaconDataT.setBeaconCustomerName(beaconCustomerName);
+				
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Beacon Customer Name Is Mandatory");
 				}
@@ -103,21 +121,19 @@ public class BeaconUploadHelper {
 				
 				
 				// BEACON_CUSTOMER_IOU - to find whether beacon_iou has foreign key existence in iou_beacon_mapping_t
-				String beaconIou = data[4];
-				if(!StringUtils.isEmpty(beaconIou)){
-					if (mapOfIouBeaconMappingT.containsKey(beaconIou)) {
-						beaconDataT.setBeaconIou(beaconIou);
-					} else {
-
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Iou not found in database");
-					}
+				
+				if(StringUtils.isEmpty(beaconIou)){
+					/*if (mapOfIouBeaconMappingT.containsKey(beaconIou)) {
+						//beaconCustomerMappingT.setBeaconIou(beaconIou);
+						//beaconDataT.setBeaconIou(beaconIou);
 					
-				}
-				else {
+                        error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Invalid IOU");
+					}*/
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Beacon IOU Is Mandatory");
-				}
+					}
+				
 				
 				//QUARTER
 				String quarter = data[8];
@@ -152,16 +168,6 @@ public class BeaconUploadHelper {
 					error.setMessage("Beacon Financial Year Is Mandatory");
 				}
 				
-				// to find whether beacon_customer_name, beacon_geography, beacon_iou
-				// (composite key) has foreign key existence in
-				// beacon_customer_mapping_t
-				beaconCustomerMappingData=beaconRepository.findbeaconDuplicates(beaconCustomerName,beaconGeography, beaconIou);
-				if(beaconCustomerMappingData.isEmpty())
-				{
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("The combination of Beacon Customer Name,Beacon Geography And Beacon Iou is not valid");
-				}
-				
-			return error;
+				return error;
 	}	
 }

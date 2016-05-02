@@ -49,6 +49,9 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "created_datetime", updatable = false)
 	private Timestamp createdDatetime;
 
+	// added this field as a part of user story #311
+	@Column(name = "deal_closure_comments")
+	private String dealClosureComments;
 	@ManyToOne
 	@JoinColumn(name = "created_by", insertable = false, updatable = false)
 	private UserT createdByUser;
@@ -73,8 +76,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "deal_closure_date")
 	private Date dealClosureDate;
 
-	@Column(name = "description_for_win_loss")
-	private String descriptionForWinLoss;
+	//@Column(name = "description_for_win_loss")
+	//private String descriptionForWinLoss;
 
 	@Column(name = "digital_deal_value")
 	private Integer digitalDealValue;
@@ -281,7 +284,18 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private boolean isUserFavourite;
 	
+	@Transient
+	private boolean enableEditAccess;
 	
+	
+
+	public boolean isEnableEditAccess() {
+		return enableEditAccess;
+	}
+
+	public void setEnableEditAccess(boolean enableEditAccess) {
+		this.enableEditAccess = enableEditAccess;
+	}
 
 	public boolean isUserFavourite() {
 		return isUserFavourite;
@@ -388,14 +402,14 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.digitalDealValue = digitalDealValue;
 	}
 
-	public String getDescriptionForWinLoss() {
+	/*public String getDescriptionForWinLoss() {
 		return this.descriptionForWinLoss;
 	}
 
 	public void setDescriptionForWinLoss(String descriptionForWinLoss) {
 		this.descriptionForWinLoss = descriptionForWinLoss;
 	}
-
+*/
 	public String getDocumentsAttached() {
 		return this.documentsAttached;
 	}
@@ -1166,6 +1180,14 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setOpportunityDealValues(
 			List<OpportunityDealValue> opportunityDealValues) {
 		this.opportunityDealValues = opportunityDealValues;
+	}
+
+	public String getDealClosureComments() {
+		return dealClosureComments;
+	}
+
+	public void setDealClosureComments(String dealClosureComments) {
+		this.dealClosureComments = dealClosureComments;
 	}
 
 }

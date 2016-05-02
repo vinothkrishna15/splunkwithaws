@@ -56,10 +56,10 @@ public class RevenueService {
 			
 			if (financeCustomers.isEmpty()) 
             {
-				revenueT.setCustomerName(revenueCustomerToInsert.getCustomerName());
-				revenueTPK.setFinanceCustomerName(revenueCustomerToInsert.getFinanceCustomerName());
-				revenueTPK.setCustomerGeography(revenueCustomerToInsert.getCustomerGeography());
-				revenueTPK.setFinanceIou(revenueCustomerToInsert.getFinanceIou());
+				revenueT.setCustomerId(revenueCustomerToInsert.getCustomerId());
+				revenueT.setFinanceCustomerName(revenueCustomerToInsert.getFinanceCustomerName());
+				revenueT.setCustomerGeography(revenueCustomerToInsert.getCustomerGeography());
+				revenueT.setFinanceIou(revenueCustomerToInsert.getFinanceIou());
             }
            
 			else
@@ -67,7 +67,7 @@ public class RevenueService {
                 logger.error("EXISTS: Finance Map Already Exist!");
                 throw new DestinationException(HttpStatus.CONFLICT,"Finance Map Already Exist!");
             }
-			revenueT.setId(revenueTPK);
+			//revenueT.setId(revenueTPK);
 			revenueT = revenueRepository.save(revenueT);
 		}
 		 logger.debug("End:Inside addFinance() of RevenueService");
@@ -92,11 +92,9 @@ public class RevenueService {
 			actualRevenueDataT.setFinancialYear(actualRevenueDataToInsert.getFinancialYear());
 			actualRevenueDataT.setRevenue(actualRevenueDataToInsert.getRevenue());
 			actualRevenueDataT.setClientCountry(actualRevenueDataToInsert.getClientCountry());
-			actualRevenueDataT.setFinanceGeography(actualRevenueDataToInsert.getFinanceGeography());
 			actualRevenueDataT.setSubSp(actualRevenueDataToInsert.getSubSp());
-			actualRevenueDataT.setFinanceIou(actualRevenueDataToInsert.getFinanceIou());
-			actualRevenueDataT.setFinanceCustomerName(actualRevenueDataToInsert.getFinanceCustomerName());
-			actualRevenueDataT = actualRevenuesDataTRepository.save(actualRevenueDataT);
+			actualRevenueDataT.setRevenueCustomerMapId(actualRevenueDataToInsert.getRevenueCustomerMapId());
+            actualRevenueDataT = actualRevenuesDataTRepository.save(actualRevenueDataT);
 		}
 		logger.debug("End:Inside addActualRevenue() of RevenueService");
 		return actualRevenueDataT;

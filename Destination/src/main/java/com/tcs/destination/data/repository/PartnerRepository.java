@@ -25,11 +25,11 @@ public interface PartnerRepository extends
 	List<PartnerMasterT> findByPartnerName(String partnername);
 	
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
-			String partnername, Pageable page);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
+			String partnername, Pageable page, boolean active);
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-			String startsWith, Pageable pageable);
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+			String startsWith, Pageable pageable,boolean active);
 
 	@Query(value = "select * from partner_master_t p ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
 	List<PartnerMasterT> findRecent(int count);
@@ -43,10 +43,12 @@ public interface PartnerRepository extends
 	@Query(value = "select partner_name, geography from partner_master_t", nativeQuery = true)
 	List<Object[]> getPartnerNameAndGeography();
 
-	@Query(value = "select * from partner_master_t where (upper(partner_name) like ?1) "
-			+ "and (geography in (?2) or ('') in (?2))", nativeQuery = true)
+	@Query(value = "select * from partner_master_t where "
+			+ "(upper(partner_name) like ?1) "
+			+ "and (geography in (?2) or ('') in (?2))"
+			+ "and (active='true' or active=(?3))", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNameAndGeographyNonMandatory(String name,
-			List<String> geography);
+			List<String> geography, boolean active);
 
 	@Query(value = "select partner_id from partner_master_t where partner_name=?1 and geography=?2", nativeQuery = true)
 	String findByPartnerNameAndGeography(String name, String geography);
@@ -76,4 +78,7 @@ public interface PartnerRepository extends
 	
 	@Query(value ="select partner_name from partner_master_t where partner_name = (:partnerName)",nativeQuery=true)
 	String findPartnerName(@Param("partnerName") String partnerName);
+	
+	@Query(value = "select geography from partner_master_t where partner_id = ?1", nativeQuery = true)			
+	String findGeographyByPartnerId(String partnerId);	
 }

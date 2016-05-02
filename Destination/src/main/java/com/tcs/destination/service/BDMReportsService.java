@@ -310,7 +310,6 @@ public class BDMReportsService {
 			List<String> userIds = new ArrayList<String>();
 			UserT user = userService.findByUserId(userId);
 			if (user != null) {
-			    
 				String userGroup = user.getUserGroupMappingT().getUserGroup();
 				List<String> geoList = new ArrayList<String>();
 				List<String> countryList = new ArrayList<String>();
@@ -337,24 +336,24 @@ public class BDMReportsService {
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 					 }
-					getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
+					getOpportunitySummaryDetails(userIds, financialYear,from, to, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
 					break;
 				case GEO_HEADS:
 				case IOU_HEADS:
+				case PMO:
 					 if(userIds.isEmpty()){
 				    	logger.error("Given BDM is not his Subordinate");
 				    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
-					    }
-					 	getOpportunitySummaryDetails(userIds, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
-						getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
-						List<String> geoHeadOrIouSpocsUserIds = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
-						getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
+					 }
+				 	getOpportunitySummaryDetails(userIds, financialYear,from, to, geoList, serviceLinesList, workbook, countryList, iouList);
+					getBDMSupervisorPerformanceExcelReport(userIds, financialYear, workbook);
+					List<String> geoHeadOrIouSpocsUserIds = userRepository.findUserIdByuserGroup(userGroupsGeoIouHeads);
+					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoHeadOrIouSpocsUserIds, userId, financialYear, workbook);
 					break;
 				default :
 					List<String> userGroupBDMAndBDMSupervisor = Arrays.asList("BDM", "BDM Supervisor","Practice Head");
 					List<String> bdmUser = Arrays.asList("BDM","Practice Owner");
-					
 					List<String> bdmsList = new ArrayList<String>();
 					List<String> geoIouUserList = new ArrayList<String>();
 					List<String> bdmSupervisorList = new ArrayList<String>();
@@ -369,14 +368,14 @@ public class BDMReportsService {
 						 geoIouUserList = getRequiredGeoOrIouHeadsList(opportunityOwners, geoHeadOrIouSpocsUserList);
 					}
 					List<String> bdmList = getSubOrdinatesList(bdmsList);
-					getOpportunitySummaryDetails(bdmList, financialYear, geoList, serviceLinesList, workbook, countryList, iouList);
+					getOpportunitySummaryDetails(bdmList, financialYear,from, to, geoList, serviceLinesList, workbook, countryList, iouList);
 					getBDMSupervisorPerformanceExcelReport(bdmSupervisorList, financialYear, workbook);
 					getGeoHeadOrIouHeadPerformanceExcelReportForSI(geoIouUserList, userId, financialYear, workbook);
 					break;
 				}
-		    }
+			    }
 			} else {
-			    logger.error("NOT_FOUND: User not found: {}", userId);
+				logger.error("NOT_FOUND: User not found: {}", userId);
 			    throw new DestinationException(HttpStatus.NOT_FOUND, "User not found: " + userId);
 			}
 		}
@@ -474,13 +473,15 @@ public class BDMReportsService {
 				currentRow = currentRow + 8;
 			}
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(0).setCellValue("Note: Target & achieved displayed is for full year 2015-16 (no filter, user selection conditions are applied)");
+			row.createCell(0).setCellValue("Note: Target & achieved displayed is for full financial year " +DateUtils.getCurrentFinancialYear() +" (no filter, user selection conditions are applied)");
 		}
         
 		/**
 		 * This method is used to retrieve the opportunity summary details
 		 * @param userIds
 		 * @param financialYear
+		 * @param to 
+		 * @param from 
 		 * @param geoList
 		 * @param serviceLinesList
 		 * @param workbook
@@ -488,12 +489,12 @@ public class BDMReportsService {
 		 * @param iouList
 		 * @throws Exception
 		 */
-		private void getOpportunitySummaryDetails(List<String> userIds, String financialYear, List<String> geoList,
+		private void getOpportunitySummaryDetails(List<String> userIds, String financialYear, String from, String to, List<String> geoList,
 				List<String> serviceLinesList, SXSSFWorkbook workbook, List<String> countryList, List<String> iouList) throws Exception {
 			List<BDMDealValueDTO> bdmDealValueDTOList = new ArrayList<BDMDealValueDTO>();
 			BDMDealValueDTO bdmDealValueDTO = null;
 			for(String userId:userIds){
-				bdmDealValueDTO = getOpportunityCountAndDigitalDealValueByUser(userId, financialYear, geoList,serviceLinesList, countryList, iouList);
+				bdmDealValueDTO = getOpportunityCountAndDigitalDealValueByUser(userId, financialYear, from, to, geoList,serviceLinesList, countryList, iouList);
 			if(bdmDealValueDTO != null){
 				bdmDealValueDTOList.add(bdmDealValueDTO);
 				}
@@ -617,6 +618,8 @@ public class BDMReportsService {
 		 * This method retrieves the opportunity Count and Digital deal value based on user id.
 		 * @param userId
 		 * @param financialYear
+		 * @param to 
+		 * @param from 
 		 * @param geoList
 		 * @param serviceLinesList
 		 * @param countryList
@@ -624,17 +627,25 @@ public class BDMReportsService {
 		 * @return BDMDealValueDTO
 		 * @throws Exception
 		 */
-		private BDMDealValueDTO getOpportunityCountAndDigitalDealValueByUser(String userId, String financialYear, List<String> geoList,
+		private BDMDealValueDTO getOpportunityCountAndDigitalDealValueByUser(String userId, String financialYear, String from, String to, List<String> geoList,
 				List<String> serviceLinesList, List<String> countryList, List<String> iouList) throws Exception {
 			BDMDealValueDTO bdmDealValueDTO = new BDMDealValueDTO();
 			Date fromDate = null;
 			Date toDate = null;
 			BigDecimal dealValue = new BigDecimal(0);
 			UserT userT = userRepository.findByUserId(userId);
-			if(financialYear.equals("")){
-				fromDate = DateUtils.getDateFromFinancialYear(DateUtils.getCurrentFinancialYear(), true);
-				toDate = DateUtils.getDateFromFinancialYear(DateUtils.getCurrentFinancialYear(), false);
+//			if(financialYear.equals("")){
+//				financialYear = DateUtils.getCurrentFinancialYear();
+//			}
+			if(!financialYear.equals("")){
+				fromDate = DateUtils.getDateFromFinancialYear(financialYear, true);
+				toDate = DateUtils.getDateFromFinancialYear(financialYear, false);
+			} else {
+				fromDate = DateUtils.getDateFromMonth(from, true);
+				toDate = DateUtils.getDateFromMonth(to, true);
 			}
+			
+			
 			List<Integer> winsSalesStage = new ArrayList<Integer>();
 			winsSalesStage.add(9);
 			Object[][] oppCountDealValueWins = opportunityRepository.getOpportunityCountAndDealValueByUser(userId, winsSalesStage, geoList, countryList, serviceLinesList, fromDate, toDate, iouList);
@@ -717,12 +728,14 @@ public class BDMReportsService {
 			int digitalReImaginationDealsGap = 0;
 			double winRatioGap = 0.0;
 			double serviceLineGap = 0.0;
-			bdmPerfromanceGeoIouDashboardResponse.getWinsTarget();
 				
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			row.createCell(0).setCellValue(bdmPerfromanceGeoIouDashboardResponse.getUserName());
 			row.createCell(1).setCellValue("WINS (USD)");
-			double winsTarget = bdmPerfromanceGeoIouDashboardResponse.getWinsTarget().doubleValue();
+			double winsTarget = 0.0; 
+			if(bdmPerfromanceGeoIouDashboardResponse.getWinsTarget()!=null){
+				winsTarget=bdmPerfromanceGeoIouDashboardResponse.getWinsTarget().doubleValue();
+			}
 			double winsAchieved =  bdmPerfromanceGeoIouDashboardResponse.getGeoOrIouHeadAchieved().get(0).getWinsAchieved().doubleValue();
 			if(winsTarget!= 0.0){
 			winsGap = (winsAchieved - winsTarget);
@@ -736,7 +749,11 @@ public class BDMReportsService {
 			
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			row.createCell(1).setCellValue("Pipeline funnel (5x Sales target)");
-			double pipelineTarget = bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelTarget().doubleValue();
+			double pipelineTarget = 0.0;
+			if(bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelTarget()!=null){
+				pipelineTarget=bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelTarget().doubleValue();
+			}
+					
 			double pipelineAchieved =  bdmPerfromanceGeoIouDashboardResponse.getPipelineFunnelAchieved().get(0).getAchieved().doubleValue();
 			if(pipelineTarget!= 0.0){
 			pipelineGap = (pipelineAchieved - pipelineTarget);
@@ -819,7 +836,7 @@ public class BDMReportsService {
 			currentRow++;
 			if(isGeoOrIouHead){
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full year 2015-16 (no filter, user selection conditions are applied)");
+			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full financial year" +DateUtils.getCurrentFinancialYear()+ " (no filter, user selection conditions are applied)");
 			}
 		}
 
@@ -860,6 +877,8 @@ public class BDMReportsService {
 			BDMPerfromanceGeoIouDashboardResponse bdmPerfromanceGeoIouDashboardResponse = new BDMPerfromanceGeoIouDashboardResponse();
 			if(year.equals("")){
 				financialYear = DateUtils.getCurrentFinancialYear();
+			} else {
+				financialYear=year;
 			}
 			bdmService.setTargetValuesForGeoHeadsOrIouSpocsDashboard(userId, financialYear, bdmPerfromanceGeoIouDashboardResponse, true);
 			bdmPerfromanceGeoIouDashboardResponse = bdmService.getGeoIouPerformanceDashboardBasedOnUserPrivileges(userId, financialYear, bdmPerfromanceGeoIouDashboardResponse);
@@ -920,10 +939,14 @@ public class BDMReportsService {
 				row.createCell(0).setCellValue(userName);
 				row.createCell(1).setCellValue(dashBoardBDMResponse.getUserT().getUserGroup());
 				row.createCell(2).setCellValue("Opportunity Win value (USD)");
-				double oppWinsTarget = dashBoardBDMResponse.getWinsTarget().doubleValue();
+				double oppWinsTarget = 0.0;
 				double oppWinsGap = 0;
 				double primaryOwnerOppWins = 0;
 				double salesOwnerOppWins = 0;
+				
+				if(dashBoardBDMResponse.getWinsTarget()!=null){	
+					oppWinsTarget = dashBoardBDMResponse.getWinsTarget().doubleValue();
+				}
 				
 				row.createCell(3).setCellValue(oppWinsTarget);
 				if(dashBoardBDMResponse.getBdmDashboard().get(0).getPrimaryOrBidOppWinsAchieved()!=null){
@@ -973,7 +996,7 @@ public class BDMReportsService {
 				currentRow++;
 			}
 			row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full year" +DateUtils.getCurrentFinancialYear()+" (no filter, user selection conditions are applied)");
+			row.createCell(0).setCellValue(" Note: Target & achieved displayed is for full year " + DateUtils.getCurrentFinancialYear()+ " (no filter, user selection conditions are applied)");
 		}
 
 		/**

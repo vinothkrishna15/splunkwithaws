@@ -43,6 +43,27 @@ public interface UserAccessPrivilegesRepository extends
 		+ "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_group = ?3", nativeQuery = true)
  	List<String> findUserIdsForWorkflowUserGroup(String geography,
 			String isactive, String userGroup);
+ 	
+ 	@Query(value ="select privilege_value from user_access_privileges_t where user_id = ?1 and privilege_type = ?2", nativeQuery = true)
+    List<String> getPrivilegeValueForUser(String userId,String privilegeType);
+ 	
+ 	@Query(value = "select icmt.iou from iou_customer_mapping_t icmt join user_access_privileges_t uat on"
+ 			+ " uat.privilege_value = icmt.display_iou where uat.user_id = ?1"
+ 			+ " and uat.privilege_type = ?2", nativeQuery = true)
+ 	List<String> getIouPrivilegeValue(String userId,String privilegeType);
 
+ 	@Query(value = "select privilege_id from user_access_privileges_t where parent_privilege_id =?1", nativeQuery = true)
+	List<Integer> findByParentPrivilegeIds(Integer parentPrivilegeId);
 
+	UserAccessPrivilegesT findByPrivilegeId(Integer privilegeId);
+
+	@Query(value = "select user_id from user_access_privileges_t where privilege_value in ?1", nativeQuery = true)
+	List<String> findByGeography(List<String> geographies);
+	
+	List<UserAccessPrivilegesT> getPrivilegeTypeAndValueByUserId(String userId);
+	
+	@Query(value="select distinct(uat.user_id) from user_access_privileges_t uat join user_t ut "
+ 			+ "on ut.user_id = uat.user_id "
+            + "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_id like ?3",nativeQuery = true)
+ 	List<String> findUserIdsForWorkflowPMO(String geography,String isactive, String pmoValue);
 }

@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.BeaconDataT;
 import com.tcs.destination.data.repository.BeaconDataTRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 
 @Service
 public class BeaconDataService {
+	
 	private static final Logger logger = LoggerFactory.getLogger(BeaconDataService.class);
 
 	@Autowired
@@ -32,18 +34,16 @@ public class BeaconDataService {
 		@Transactional
 		public BeaconDataT addBeaconData(BeaconDataT beaconDataToInsert) throws Exception{
 			BeaconDataT BeaconDataT = null;
+			//BeaconCustomerMappingT beaconCustomerMappingT=new BeaconCustomerMappingT();
 			if(beaconDataToInsert!=null){
 				
 				BeaconDataT = new BeaconDataT();
-				
+			  //  List<BeaconCustomerMappingT> beaconCustomerMappingData=beaconRepository.findbeaconDuplicates(beaconDataToInsert.getBeaconCustomerName(),beaconGeography, beaconIou);
 				BeaconDataT.setBeaconGroupClient(beaconDataToInsert.getBeaconGroupClient());
-				BeaconDataT.setBeaconIou(beaconDataToInsert.getBeaconIou());
 				BeaconDataT.setQuarter(beaconDataToInsert.getQuarter());
 				BeaconDataT.setFinancialYear(beaconDataToInsert.getFinancialYear());
 				BeaconDataT.setTarget(beaconDataToInsert.getTarget());
-				BeaconDataT.setBeaconGeography(beaconDataToInsert.getBeaconGeography());
-				BeaconDataT.setBeaconCustomerName(beaconDataToInsert.getBeaconCustomerName());
-					
+				BeaconDataT.setBeaconCustomerMapId(beaconDataToInsert.getBeaconCustomerMapId());
 				BeaconDataT = beaconDataTRepository.save(BeaconDataT);
 				logger.info("Beacon Saved .... "+ "beacon primary key" + BeaconDataT.getBeaconDataId());
 			}
@@ -55,17 +55,18 @@ public class BeaconDataService {
 		 * @param insertList
 		 * @throws Exception
 		 */
+	
 		public void save(List<BeaconDataT> insertList) throws Exception 
 		{
-			if( !insertList.isEmpty())
-			{
+			  try
+			  { 
 			   beaconDataTRepository.save(insertList);
-			}
-			else
-			{
-				logger.debug("No Beacon Data To Insert");
-			}
-			logger.debug("Beacon Saved...!");
+			   logger.info("Beacon Saved...!");
+			  }
+			  catch(Exception e)
+			  {
+				  logger.debug("Exception",e);
+			  }
 		}
 	}
 

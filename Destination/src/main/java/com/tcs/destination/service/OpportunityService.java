@@ -55,6 +55,8 @@ import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -69,12 +71,14 @@ import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepo
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -119,6 +123,9 @@ public class OpportunityService {
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	@Autowired
 	BeaconConverterService beaconConverterService;
@@ -209,6 +216,12 @@ public class OpportunityService {
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 	
+	@Autowired
+	CustomerRepository customerRepository;
+	
+	@Autowired
+	ConnectRepository connectRepository;
+	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
 	public PaginatedResponse findByOpportunityName(String nameWith,
@@ -257,6 +270,8 @@ public class OpportunityService {
 		paginatedResponse.setOpportunityTs(opportunityTs);
 		return paginatedResponse;
 	}
+	
+	
 
 	public List<OpportunityT> findRecentOpportunities(String customerId,
 			List<String> toCurrency) throws Exception {
@@ -509,8 +524,7 @@ public class OpportunityService {
 			opportunity.setOpportunityId(null);
 			opportunity.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			opportunity.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			String userId = DestinationUtils.getCurrentUserDetails()
-					.getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 			UserT user = userRepository.findByUserId(userId);
 			String userGroup = user.getUserGroup();
 			//While practice team creating the opportunity, one of the Owners should be BDM or BDM Supervisor
@@ -831,8 +845,8 @@ public class OpportunityService {
 		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
 		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
-		baseOpportunityT.setDescriptionForWinLoss(opportunity
-				.getDescriptionForWinLoss());
+		baseOpportunityT.setDealClosureComments(opportunity
+				.getDealClosureComments());
 		baseOpportunityT.setDigitalDealValue(opportunity.getDigitalDealValue());
 		baseOpportunityT.setDocumentsAttached(opportunity
 				.getDocumentsAttached());
@@ -894,6 +908,11 @@ public class OpportunityService {
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
 
+		// deal closure comments is mandatory for sales stage codes (11/12/13) 
+		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
+			logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true);
 		if (afterOpp != null) {
@@ -1127,7 +1146,9 @@ public class OpportunityService {
 
 	
 	private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
-			throws Exception { logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
+			throws Exception 
+	{       
+		    logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
 		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
 			queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils.getCurrentUserDetails().getUserId(), opportunityIds);
 		    logger.info("Query string: {}", queryBufferDTO.getQuery());
@@ -1141,9 +1162,8 @@ public class OpportunityService {
 					
 				}
 			}
-			
 			return opportunityQuery.getResultList();
-}
+   }
 
 
 	
@@ -1507,8 +1527,9 @@ public class OpportunityService {
 			List<String> searchKeywords, List<String> bidRequestType,
 			List<String> offering, List<String> displaySubSp,
 			List<String> opportunityName, List<String> userId,
-			List<String> toCurrency, int page, int count, String role)
-			throws DestinationException {
+			List<String> toCurrency, int page, int count, String role,Boolean isCurrentFinancialYr)
+			throws DestinationException 
+	{
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
 		String opportunityNameString = searchForContaining(opportunityName);
@@ -1551,14 +1572,34 @@ public class OpportunityService {
 				isBidOffice = true;
 				break;
 			}
+			if (isCurrentFinancialYr) {
+				
+				Date fromDate=DateUtils.getDateFromFinancialYear(
+						DateUtils.getCurrentFinancialYear(),true);
+				
+				Date toDate=DateUtils.getDateFromFinancialYear(
+						DateUtils.getCurrentFinancialYear(),false);
+			
 			opportunity = opportunityRepository
-					.findByOpportunitiesIgnoreCaseLike(customerIdList,
+					.findByOpportunitiesForCurrentFyIgnoreCaseLike(customerIdList,
 							salesStageCode, strategicInitiative, newLogo,
 							defaultDealRange, minDigitalDealValue,
 							maxDigitalDealValue, dealCurrency, digitalFlag,
 							displayIou, country, partnerId, competitorName,
 							searchKeywordString, bidRequestType, offering,
-							displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice);
+							displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice,fromDate,toDate);
+			}
+			else
+			{
+				opportunity = opportunityRepository
+						.findByOpportunitiesIgnoreCaseLike(customerIdList,
+								salesStageCode, strategicInitiative, newLogo,
+								defaultDealRange, minDigitalDealValue,
+								maxDigitalDealValue, dealCurrency, digitalFlag,
+								displayIou, country, partnerId, competitorName,
+								searchKeywordString, bidRequestType, offering,
+								displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice);
+			}
 
 		} else {
 			logger.error("BAD_REQUEST: Invalid Opportunity Role: {}",
@@ -1594,7 +1635,7 @@ public class OpportunityService {
 		return opportunityResponse;
 	}
 
-	private String searchForContaining(List<String> containingWords) {
+	public String searchForContaining(List<String> containingWords) {
 		String actualWords = "";
 		if (containingWords != null)
 			for (String containgWord : containingWords) {
@@ -1606,7 +1647,7 @@ public class OpportunityService {
 		return actualWords;
 	}
 
-	private List<String> fillIfEmpty(List<String> stringList) {
+	public List<String> fillIfEmpty(List<String> stringList) {
 		if (stringList == null)
 			stringList = new ArrayList<String>();
 		if (stringList.isEmpty())
@@ -2101,6 +2142,122 @@ public class OpportunityService {
 			}
 		}
 		return isBDMOrBDMSupervisor;
+	}
+	
+	/**
+	 * This method is used to check whether any of the subordinate is being one
+	 * of the owners of connect or opportunity
+	 * 
+	 * @param userId
+	 * @param opportunityId
+	 * @param connectId
+	 * @return
+	 */
+	public boolean isSubordinateAsOwner(String userId, String opportunityId,
+			String connectId) {
+		boolean isSubordinateAsOwner = false;
+		List<String> owners = new ArrayList<String>();
+		List<String> subordinates = userRepository
+				.getAllSubordinatesIdBySupervisorId(userId);
+		if (CollectionUtils.isNotEmpty(subordinates)) {
+			if (!StringUtils.isEmpty(opportunityId)) {
+				owners = opportunityRepository.getAllOwners(opportunityId);
+			}
+			if (!StringUtils.isEmpty(connectId)) {
+				owners = connectRepository.findOwnersOfConnect(connectId);
+			}
+			if (owners != null) {
+				for (String owner : owners) {
+					if (subordinates.contains(owner)) {
+						isSubordinateAsOwner = true;
+						break;
+					}
+				}
+			}
+		}
+		return isSubordinateAsOwner;
+	}
+
+	/**
+	 * This method is used to check wheteher the logged in user has edit access
+	 * for an opportunity
+	 * 
+	 * @param opportunity
+	 * @param userGroup
+	 * @param userId
+	 * @return
+	 */
+	private boolean isEditAccessRequiredForOpportunity(
+			OpportunityT opportunity, String userGroup, String userId) {
+		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		boolean isEditAccessRequired;
+		if (isUserOwner(userId, opportunity)) {
+			isEditAccessRequired = true;
+
+		} else if (userGroup.equals(UserGroup.BDM.getValue())
+				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
+			isEditAccessRequired = false;
+		} else {
+			if (isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
+					null)) {
+				isEditAccessRequired = true;
+			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+				isEditAccessRequired = false;
+			} else {
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, opportunity.getCustomerId());
+			}
+		}
+
+		return isEditAccessRequired;
+	}
+
+	/**
+	 * This method is used to check whether Geo heads PMO and Iou Heads have the
+	 * edit access for an opportunity
+	 * 
+	 * @param userGroup
+	 * @param userId
+	 * @param customerId
+	 * @return
+	 */
+	public boolean checkEditAccessForGeoAndIou(String userGroup, String userId,
+			String customerId) {
+		logger.info("Inside checkEditAccessForGeoAndIou method");
+		boolean isEditAccessRequired = false;
+		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+		case GEO_HEADS:
+		case PMO:
+			String geography = customerRepository
+					.findGeographyByCustomerId(customerId);
+
+			List<String> geographyList = userAccessPrivilegesRepository
+					.getPrivilegeValueForUser(userId,
+							PrivilegeType.GEOGRAPHY.getValue());
+			if (CollectionUtils.isNotEmpty(geographyList)) {
+				if (geographyList.contains(geography)) {
+					isEditAccessRequired = true;
+				}
+			}
+			break;
+		case IOU_HEADS:
+			String iou = customerRepository.findIouByCustomerId(customerId);
+			List<String> iouList = userAccessPrivilegesRepository
+					.getIouPrivilegeValue(userId, PrivilegeType.IOU.getValue());
+			if (CollectionUtils.isNotEmpty(iouList)) {
+				if (iouList.contains(iou)) {
+					isEditAccessRequired = true;
+
+				}
+			}
+			break;
+		default:
+			break;
+		}
+
+		return isEditAccessRequired;
+
 	}
 
 	

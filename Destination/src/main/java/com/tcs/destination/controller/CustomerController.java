@@ -459,6 +459,7 @@ public class CustomerController {
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
 			@RequestParam(value = "geography", defaultValue = "") List<String> geography,
 			@RequestParam(value = "displayIOU", defaultValue = "") List<String> displayIOU,
+			@RequestParam(value = "inactive", defaultValue = "false") boolean inactive,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -469,7 +470,7 @@ public class CustomerController {
 		PaginatedResponse paginatedResponse;
 		try {
 			paginatedResponse = customerService.search(groupCustomerNameWith,
-					nameWith, geography, displayIOU, page, count);
+					nameWith, geography, displayIOU, inactive, page, count);
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, paginatedResponse);
 			logger.info("Inside CustomerController: End of customer advanced search");
@@ -496,7 +497,7 @@ public class CustomerController {
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (customerService.updateCustomer(customerMaster)) {
-				status.setStatus(Status.SUCCESS, customerMaster.getCustomerId());
+				status.setStatus(Status.SUCCESS, "Customer was edited successfully!!!");
 			}
 			logger.info("Inside CustomerController: End of Edit Customer");
 			return new ResponseEntity<String>(

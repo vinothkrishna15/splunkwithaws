@@ -28,7 +28,7 @@ public class WorkflowCustomerT implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="workflow_customer_id")
-	private Integer workflowCustomerId;
+	private String workflowCustomerId;
 
 	@Column(name="corporate_hq_address")
 	private String corporateHqAddress;
@@ -59,6 +59,9 @@ public class WorkflowCustomerT implements Serializable {
 	private String modifiedBy;
 
 	private String notes;
+	
+	@Transient
+	private String comments;
 
 	private String website;
 	
@@ -92,11 +95,11 @@ public class WorkflowCustomerT implements Serializable {
 	public WorkflowCustomerT() {
 	}
 
-	public Integer getWorkflowCustomerId() {
+	public String getWorkflowCustomerId() {
 		return this.workflowCustomerId;
 	}
 
-	public void setWorkflowCustomerId(Integer workflowCustomerId) {
+	public void setWorkflowCustomerId(String workflowCustomerId) {
 		this.workflowCustomerId = workflowCustomerId;
 	}
 
@@ -254,5 +257,13 @@ public class WorkflowCustomerT implements Serializable {
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 }

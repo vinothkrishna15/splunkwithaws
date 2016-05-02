@@ -34,7 +34,7 @@ public class WorkflowRequestT implements Serializable {
 	private Timestamp createdDatetime;
 
 	@Column(name="entity_id")
-	private Integer entityId;
+	private String entityId;
 
 	@Column(name="entity_type_id")
 	private Integer entityTypeId;
@@ -83,11 +83,11 @@ public class WorkflowRequestT implements Serializable {
 		this.createdDatetime = createdDatetime;
 	}
 
-	public Integer getEntityId() {
+	public String getEntityId() {
 		return this.entityId;
 	}
 
-	public void setEntityId(Integer entityId) {
+	public void setEntityId(String entityId) {
 		this.entityId = entityId;
 	}
 

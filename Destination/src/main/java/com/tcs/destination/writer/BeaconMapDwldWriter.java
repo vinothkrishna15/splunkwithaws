@@ -176,7 +176,8 @@ public class BeaconMapDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 
 				// Master Customer Name
 				Cell cellCustomerName = row.createCell(0);
-				cellCustomerName.setCellValue(beaconMappingData.getCustomerName());
+				cellCustomerName.setCellValue(beaconMappingData.getCustomerMasterT().getCustomerName());
+				
 
 				// Beacon Customer Name
 				Cell cellBeaconCustomerName = row.createCell(1);

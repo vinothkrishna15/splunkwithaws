@@ -38,11 +38,6 @@ public class IouBeaconMappingT implements Serializable {
 	//bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy="iouBeaconMappingT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
-
-	//bi-directional many-to-one association to BeaconDataT
-	@JsonIgnore
-	@OneToMany(mappedBy="iouBeaconMappingT")
-	private List<BeaconDataT> beaconDataTs;
 	
 	public IouBeaconMappingT() {
 	}
@@ -83,28 +78,6 @@ public class IouBeaconMappingT implements Serializable {
 		beaconCustomerMappingT.setIouBeaconMappingT(null);
 
 		return beaconCustomerMappingT;
-	}
-
-	public List<BeaconDataT> getBeaconDataTs() {
-		return this.beaconDataTs;
-	}
-
-	public void setBeaconDataTs(List<BeaconDataT> beaconDataTs) {
-		this.beaconDataTs = beaconDataTs;
-	}
-
-	public BeaconDataT addBeaconDataT(BeaconDataT beaconDataT) {
-		getBeaconDataTs().add(beaconDataT);
-		beaconDataT.setIouBeaconMappingT(this);
-
-		return beaconDataT;
-	}
-
-	public BeaconDataT removeBeaconDataT(BeaconDataT beaconDataT) {
-		getBeaconDataTs().remove(beaconDataT);
-		beaconDataT.setIouBeaconMappingT(null);
-
-		return beaconDataT;
 	}
 
 }

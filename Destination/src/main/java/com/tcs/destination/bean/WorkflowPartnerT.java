@@ -27,7 +27,7 @@ public class WorkflowPartnerT implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="workflow_partner_id")
-	private Integer workflowPartnerId;
+	private String workflowPartnerId;
 
 	@Column(name="corporate_hq_address")
 	private String corporateHqAddress;
@@ -46,6 +46,9 @@ public class WorkflowPartnerT implements Serializable {
 	private Timestamp modifiedDatetime;
 
 	private String notes;
+	
+	@Transient
+	private String comments;
 
 	@Column(name="partner_name")
 	private String partnerName;
@@ -78,11 +81,11 @@ public class WorkflowPartnerT implements Serializable {
 	public WorkflowPartnerT() {
 	}
 
-	public Integer getWorkflowPartnerId() {
+	public String getWorkflowPartnerId() {
 		return this.workflowPartnerId;
 	}
 
-	public void setWorkflowPartnerId(Integer workflowPartnerId) {
+	public void setWorkflowPartnerId(String workflowPartnerId) {
 		this.workflowPartnerId = workflowPartnerId;
 	}
 
@@ -204,6 +207,14 @@ public class WorkflowPartnerT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 
 	

@@ -695,7 +695,7 @@ public class UserUploadService {
 							.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
 									privilegeValue, Constants.UNKNOWN_CUSTOMER);
 
-					if (customerList == null && customerList.isEmpty()) {
+					if (customerList == null || customerList.isEmpty()) {
 						logger.error(
 								"Customers not found for the group customer name: {}",
 								privilegeValue);
