@@ -291,27 +291,20 @@ public class PartnerService {
 		List<PartnerMasterT> partnerList = new ArrayList<PartnerMasterT>();
 		if (!startsWith.equals("@")) {
 			Page<PartnerMasterT> partnersPage = partnerRepository
-					.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-							startsWith, pageable);
+					.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+							startsWith, pageable,true);
 			paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 			partnerList.addAll(partnersPage.getContent());
 		} else {
 			for (int i = 0; i <= 9; i++) {
 				Page<PartnerMasterT> partnersPage = partnerRepository
-						.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(i + "",  pageable);
+						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(i + "",  pageable,true);
 				paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 				partnerList.addAll(partnersPage.getContent());
 				}		
 			}
 		
 		if (partnerList.isEmpty()) {
-		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
-						startsWith, pageable,true);
-
-		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
-		List<PartnerMasterT> partners = partnersPage.getContent();
-		if (partners.isEmpty()) {
 			logger.error("NOT_FOUND: No Partners found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partners found");
