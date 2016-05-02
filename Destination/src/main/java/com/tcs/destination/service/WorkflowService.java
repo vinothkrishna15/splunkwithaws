@@ -354,6 +354,7 @@ public class WorkflowService {
 			public void run() {
 				try {
 					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(10000);
 					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
