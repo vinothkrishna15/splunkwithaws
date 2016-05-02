@@ -267,8 +267,8 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseContainingOrderByPartnerNameAsc(
-						nameWith, pageable);
+				.findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
+						nameWith, pageable, true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();
@@ -289,8 +289,8 @@ public class PartnerService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
-				.findByPartnerNameIgnoreCaseStartingWithOrderByPartnerNameAsc(
-						startsWith, pageable);
+				.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+						startsWith, pageable,true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();
@@ -326,7 +326,7 @@ public class PartnerService {
 
 	}
 
-	public PaginatedResponse search(String name, List<String> geography,
+	public PaginatedResponse search(String name, List<String> geography, boolean inactive,
 			int page, int count) throws DestinationException {
 		logger.debug("Begin:Inside search method of PartnerService");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
@@ -334,7 +334,7 @@ public class PartnerService {
 			geography.add("");
 		List<PartnerMasterT> partnerMasterTs = partnerRepository
 				.findByPartnerNameAndGeographyNonMandatory(
-						"%" + name.toUpperCase() + "%", geography);
+						"%" + name.toUpperCase() + "%", geography, !inactive);
 		if (partnerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Partner available");

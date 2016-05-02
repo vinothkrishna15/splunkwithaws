@@ -126,7 +126,7 @@ public class ContactService {
 		PaginatedResponse contactResponse = new PaginatedResponse();
 		
 		
-		List<ContactT> contactList = contactRepository.findByContactName("%"
+		List<ContactT> contactList = contactRepository.findByActiveTrueAndContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
 		contactList = paginateContacts(page, count, contactList);
@@ -162,7 +162,6 @@ public class ContactService {
 		
 		PaginatedResponse contactResponse = new PaginatedResponse();
 		
-
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
@@ -196,7 +195,7 @@ public class ContactService {
 		Pageable pageable = new PageRequest(page, count);
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Page<ContactT> contactPage = contactRepository
-				.findByContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith, pageable);
+				.findByActiveTrueAndContactNameIgnoreCaseStartingWithOrderByContactNameAsc(startsWith, pageable);
 		paginatedResponse.setTotalCount(contactPage.getTotalElements());
 		List<ContactT> contactList = contactPage.getContent();
 		if (contactList == null || contactList.isEmpty()) {
@@ -679,9 +678,13 @@ public class ContactService {
 		public PaginatedResponse findContactsByName(String contactName,
 				String category, String type, int page, int count) throws Exception{
 			logger.debug("Inside find Contacts With Name Service");
-	
 			PaginatedResponse paginatedResponse = null;
-			List<ContactT> contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
+			List<ContactT> contactList = null;
+			if (contactName.equals("@%")) {
+				contactList = contactRepository.findContactsStartingWithNumbers(category.toUpperCase(), type.toUpperCase());
+			} else {
+				contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
+			}
 			if (contactList == null || contactList.isEmpty()) {
 				logger.error("NOT_FOUND: Contact information not available");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -720,6 +723,29 @@ public class ContactService {
 				contacts=null;
 			}
 			return contacts;
+		}
+
+		/**
+		 * Ajax Search for Contacts
+		 * 
+		 * @param string
+		 * @param category
+		 * @param type
+		 * @return
+		 */
+		public List<ContactT> findContactsAjaxSearch(String contactName, String category, String type) throws Exception{
+			
+			List<ContactT> contactList = null;
+			
+			contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
+			
+			if (contactList == null || contactList.isEmpty()) {
+				logger.error("NOT_FOUND: Contact information not available");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Contacts found");
+			}
+			
+			return contactList;
 		}
 
 }

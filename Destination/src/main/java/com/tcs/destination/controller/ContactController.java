@@ -387,5 +387,46 @@ public class ContactController {
 					"Backend error in retrieving the contacts for /contact/search "+ nameWith+" "+startsWith);
 		}
 	}
+	
+	/**
+	 * This service is used to search the contacts for ajax search functionality
+	 * 
+	 * @param nameWith
+	 * @param category
+	 * @param type
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/ajaxsearch", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> findContactsAjaxSearch(
+			@RequestParam(value = "nameWith", defaultValue = "") String nameWith,
+			@RequestParam(value = "category", defaultValue = "") String category,
+			@RequestParam(value = "type", defaultValue = "") String type,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside ContactController: Start of /contact/ajaxsearch service");
+		List<ContactT> contactlist = null;
+		try {
+			if (!nameWith.isEmpty()) {
+				contactlist = contactService.findContactsAjaxSearch("%"+nameWith+"%", category, type);
+			} else {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"nameWith is required");
+			}
+			logger.info("Inside ContactController: End of /contact/ajaxsearch service");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, contactlist), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the contacts for /contact/ajaxsearch "+ nameWith);
+		}
+	}
 
 }

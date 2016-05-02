@@ -298,8 +298,8 @@ public class CustomerService {
 		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Inside findByNameContaining() service");
 		Page<CustomerMasterT> customerPage = customerRepository
-				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-						nameWith, Constants.UNKNOWN_CUSTOMER, pageable);
+				.findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+						nameWith, Constants.UNKNOWN_CUSTOMER,true, pageable);
 		paginatedResponse.setTotalCount(customerPage.getTotalElements());
 		List<CustomerMasterT> custList = customerPage.getContent();
 		if (custList.isEmpty()) {
@@ -317,8 +317,8 @@ public class CustomerService {
 			throws Exception {
 		logger.debug("Inside findByGroupCustomerName() service");
 		List<CustomerMasterT> custList = customerRepository
-				.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
-						groupCustName, Constants.UNKNOWN_CUSTOMER);
+				.findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeAndActiveOrderByGroupCustomerNameAsc(
+						groupCustName, Constants.UNKNOWN_CUSTOMER,true);
 		if (custList.isEmpty()) {
 			logger.error(
 					"NOT_FOUND: Customer not found with given group customer name: {}",
@@ -340,16 +340,16 @@ public class CustomerService {
 		List<CustomerMasterT> custList = new ArrayList<CustomerMasterT>();
 		if (!startsWith.equals("@")) {
 			Page<CustomerMasterT> customerPage = customerRepository
-					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-							startsWith, Constants.UNKNOWN_CUSTOMER, pageable);
+					.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+							startsWith, Constants.UNKNOWN_CUSTOMER,true, pageable);
 			custList.addAll(customerPage.getContent());
 			paginatedResponse.setTotalCount(paginatedResponse.getTotalCount()
 					+ customerPage.getTotalElements());
 		} else
 			for (int i = 0; i <= 9; i++) {
 				Page<CustomerMasterT> customerPage = customerRepository
-						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-								i + "", Constants.UNKNOWN_CUSTOMER, pageable);
+						.findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+								i + "", Constants.UNKNOWN_CUSTOMER,true, pageable);
 				custList.addAll(customerPage.getContent());
 				paginatedResponse.setTotalCount(paginatedResponse
 						.getTotalCount() + customerPage.getTotalElements());
@@ -678,7 +678,7 @@ public class CustomerService {
 
 	public PaginatedResponse search(String groupCustomerNameWith,
 			String nameWith, List<String> geography, List<String> displayIOU,
-			int page, int count) throws DestinationException {
+			boolean inactive, int page, int count) throws DestinationException {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		if (geography.isEmpty())
 			geography.add("");
@@ -688,7 +688,7 @@ public class CustomerService {
 				.advancedSearch(
 						"%" + groupCustomerNameWith.toUpperCase() + "%", "%"
 								+ nameWith.toUpperCase() + "%", geography,
-								displayIOU);
+								displayIOU, !inactive);
 
 		if (customerMasterTs.isEmpty()) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
