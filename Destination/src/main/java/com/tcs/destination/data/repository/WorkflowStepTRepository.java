@@ -1,8 +1,9 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
-import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.tcs.destination.bean.WorkflowStepT;
 
 @Repository
-public interface WorkflowStepTRepository extends CrudRepository<WorkflowStepT, Integer>{
+public interface WorkflowStepTRepository extends JpaRepository<WorkflowStepT, Integer>{
 
 	WorkflowStepT findByRequestIdAndStepStatus(Integer requestId, String status);
 

@@ -719,7 +719,7 @@ public class WorkflowService {
 			workflowCustomer.setModifiedBy(userId);
 			workflowCustomer.setDocumentsAttached(Constants.NO);
 			WorkflowCustomerT requestedCustomer = workflowCustomerRepository
-					.save(workflowCustomer);
+					.saveAndFlush(workflowCustomer);
 			logger.info("workflow Customer saved, Id :"
 					+ requestedCustomer.getWorkflowCustomerId());
 			logger.debug("workflow Customer saved, Name :"
@@ -823,13 +823,13 @@ public class WorkflowService {
 		workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
 				workflowProcessTemplate, user, workflowRequest);
 		workflowRequest.setWorkflowStepTs(workflowSteps);
-		workflowRequestTRepository.save(workflowRequest);
+		workflowRequestTRepository.saveAndFlush(workflowRequest);
 		logger.info("Workflow request saved, Request Id :"
 				+ workflowRequest.getRequestId());
 		// Saving the workflow steps and the setting the request id in each step
 		for (WorkflowStepT wfs : workflowSteps) {
 			wfs.setRequestId(workflowRequest.getRequestId());
-			workflowStepTRepository.save(wfs);
+			workflowStepTRepository.saveAndFlush(wfs);
 		}
 		logger.info("Inside End of populateWorkflowRequest method");
 		return workflowRequest;
