@@ -37,8 +37,9 @@ public class UserAccessPrivilegeQueryBuilder {
 	@Autowired
 	UserService userService;
 	
-	HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-
+	HashMap<Integer,String> parameterMap=new HashMap<Integer,String>();
+	
+ 
 	/**
 	 * This method initializes the buffers for each of the condition required
 	 * (SubSp, Iou, Geography, Customer) in the PrivilegeGroup.
@@ -90,8 +91,8 @@ public class UserAccessPrivilegeQueryBuilder {
 	public QueryBufferDTO getUserAccessPrivilegeWhereCondition(String userId,
 			HashMap<String, String> queryPrefix) throws Exception {
 		logger.debug("Inside getUserAccessPrivilegeWhereConditionClause() method");
-		parameterMap.clear();
-	
+		int startcount=1;
+		
 		QueryBufferDTO queryBuffer=new QueryBufferDTO();
 		
 		// Get user access privileges
@@ -104,10 +105,12 @@ public class UserAccessPrivilegeQueryBuilder {
 
 		if (userPrivilegesList != null && !userPrivilegesList.isEmpty()) {
 			for (UserAccessPrivilegesT parentPrivilege : userPrivilegesList) {
+				
 				PrivilegeGroup privilegeGroup = new PrivilegeGroup();
 				initGroupConditions(privilegeGroup, queryPrefix);
-				populateCondGroup(parentPrivilege, privilegeGroup);
+				populateCondGroup(parentPrivilege, privilegeGroup,startcount);
 				replaceLastCommaWithParenthesisInQueryCondition(privilegeGroup);
+				startcount++;
 				privilegeGroups.add(privilegeGroup);
 			}
 			String where = getWhereClauseString(privilegeGroups);
@@ -115,13 +118,12 @@ public class UserAccessPrivilegeQueryBuilder {
 			{
 				queryBuffer.setQuery(where);
 			    queryBuffer.setParameterMap(parameterMap);
-			    
-				return queryBuffer;
+			    return queryBuffer;
 			}
-			 else
-			 {
+			else
+			{
 				return null;
-			 }
+			}
 			
 			
 		} else {
@@ -278,7 +280,7 @@ public class UserAccessPrivilegeQueryBuilder {
 	 * @throws Exception
 	 */
 	private void populateCondGroup(UserAccessPrivilegesT privilege,
-			PrivilegeGroup privilegeGroup) throws Exception {
+			PrivilegeGroup privilegeGroup,int count) throws Exception {
 		logger.debug("Inside populateConditionGroup() method");
 		String privilegeType = privilege.getPrivilegeType();
 		String privilegeValue = privilege.getPrivilegeValue();
@@ -316,7 +318,7 @@ public class UserAccessPrivilegeQueryBuilder {
 				break;
 			case CUSTOMER:
 				if (custBuffer != null && custBuffer.length() > 0) {
-					manageCustomer(privilegeGroup, privilegeValue, custBuffer);
+					manageCustomer(privilegeGroup, privilegeValue, custBuffer,count);
 				}
 				break;
 			case GROUP_CUSTOMER: {
@@ -381,21 +383,13 @@ public class UserAccessPrivilegeQueryBuilder {
 	 * @throws Exception
 	 */
 	private void manageCustomer(PrivilegeGroup privilegeGroup,
-			String privilegeValue, StringBuffer customerBuffer)
+			String privilegeValue, StringBuffer customerBuffer,int count)
 			throws Exception {
 		logger.debug("Inside handleCustomer() method");
-		
 		if (!privilegeValue.equals(Constants.GLOBAL)) {
-			// Master customers
-			if(parameterMap.size()==0)
-			{
-				parameterMap.put(1, privilegeValue);
-			}
-			else
-			{
-			parameterMap.put(parameterMap.size(), privilegeValue);
-			}
-		    privilegeValue="?"+parameterMap.size();
+			
+			parameterMap.put(count, privilegeValue);
+			 privilegeValue="?"+count;
 			customerBuffer.append( privilegeValue + Constants.COMMA);
 			privilegeGroup.setCustomerBuffer(customerBuffer);
 		} else {
@@ -410,15 +404,15 @@ public class UserAccessPrivilegeQueryBuilder {
 				if (custList != null && !custList.isEmpty()) {
 					for (CustomerMasterT customer : custList) {
 						String customerName = customer.getCustomerName();
-						parameterMap.put(parameterMap.size(), customerName);
-						customerName="?"+parameterMap.size();
+						parameterMap.put(count, customerName);
+						customerName="?"+count;
 						customerBuffer.append(customerName + Constants.COMMA);
 					   }
 				} else {
 					// Value is Master customer name
 					String customerName = miscItem.getValue() ;
-					parameterMap.put(parameterMap.size(), customerName);
-					customerName="?"+parameterMap.size();
+					parameterMap.put(count, customerName);
+					customerName="?"+count;
 					customerBuffer.append(customerName + Constants.COMMA);
 					}
 			}
@@ -439,6 +433,7 @@ public class UserAccessPrivilegeQueryBuilder {
 			String privilegeValue, StringBuffer customerBuffer)
 			throws Exception {
 		logger.debug("Inside handleCustomer() method");
+		
 		if (!privilegeValue.equals(Constants.GLOBAL)) {
 			// Master customers
 		    privilegeValue = privilegeValue.replace("'", "''");
