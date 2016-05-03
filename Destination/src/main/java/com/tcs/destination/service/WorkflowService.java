@@ -326,7 +326,7 @@ public class WorkflowService {
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(10000);
+					Thread.sleep(15000);
 					mailUtils.sendWorkflowApprovedOrRejectMail(approveOrRejectSubject,requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -355,7 +355,7 @@ public class WorkflowService {
 			public void run() {
 				try {
 					logger.debug("Inside run() method of WorkflowNotificationForPending");
-					Thread.sleep(10000);
+					Thread.sleep(15000);
 					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block

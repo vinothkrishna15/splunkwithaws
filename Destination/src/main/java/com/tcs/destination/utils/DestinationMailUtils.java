@@ -1154,7 +1154,7 @@ public class DestinationMailUtils {
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		StringBuffer subject = new StringBuffer(environmentName);
-		logger.debug("RequestId" +requestId);
+		logger.info("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		if(workflowRequestT==null) {
@@ -1175,7 +1175,7 @@ public class DestinationMailUtils {
 			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT)
 			.append(" ").append(Constants.FROM).append(" ")
 			.append(userName);
-			logger.debug("Subject :"+subject);
+			logger.info("Subject :"+subject);
 			break;
 		case PARTNER :
 			workflowEntity = Constants.WORKFLOW_PARTNER;
@@ -1187,6 +1187,7 @@ public class DestinationMailUtils {
 			subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT)
 			.append(" ").append(Constants.FROM).append(" ")
 			.append(userName);
+			logger.info("Subject :"+subject);
 			break;
 		default:
 			break;
@@ -1267,9 +1268,9 @@ public class DestinationMailUtils {
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
 			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null, subject.toString(), text);
-			logger.debug("before sending mail");
+			logger.info("before sending mail");
 			mailSender.send(automatedMIMEMessage);
-			logger.debug("Mail Sent for request" +workflowRequestT.getRequestId());
+			logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1443,7 +1444,9 @@ public class DestinationMailUtils {
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
 						subject, text);
+				logger.info("before sending mail");
 				mailSender.send(automatedMIMEMessage);
+				logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
 			}
 
 		} catch (MessagingException e) {
