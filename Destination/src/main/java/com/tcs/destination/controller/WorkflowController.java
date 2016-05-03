@@ -338,6 +338,12 @@ public class WorkflowController {
 
 	}
 	
+	/**
+	 * This method is used to request to reopen the opportunity which got shelved
+	 * @param opportunityReopenRequestT
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/opportunityReopen", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> opportunityReopenRequest(
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT)
@@ -365,6 +371,12 @@ public class WorkflowController {
 
 	}
 	
+	/**
+	 * This method is used to approve or reject the opportunity reopen request
+	 * @param opportunityReopenRequestT
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/approveOrReject/opportunityReopen", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> approveOpportunityReopenRequest(
 			@RequestBody OpportunityReopenRequestT opportunityReopenRequestT)

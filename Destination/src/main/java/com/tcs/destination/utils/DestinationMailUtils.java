@@ -960,7 +960,8 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-			UserT recipient = userService.findByUserId(recipientId);
+//			UserT recipient = userService.findByUserId(recipientId);
+			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
 		}
@@ -1299,13 +1300,16 @@ public class DestinationMailUtils {
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
 					workflowMap);
+			
 			logger.info("framed text for mail :" + text);
 
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
 			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
 					subject.toString(), text);
+			logger.info("Before sending mail");
 			mailSender.send(automatedMIMEMessage);
+			logger.info("Mail Sent : Request Id: "+workflowRequestT.getRequestId());
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1408,10 +1412,12 @@ public class DestinationMailUtils {
 				case OPPORTUNITY:
 					entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 					OpportunityT opportunity = opportunityRepository.findOne(entityId);
+					geography = opportunity.getCustomerMasterT().getGeography();
 					entityName = opportunity.getOpportunityName();
 					userName = userRepository.findUserNameByUserId(workflowRequestT.getCreatedBy());
 					operation = Constants.WORKFLOW_OPERATION_REOPEN;
 					recepientIds.add(workflowRequestT.getCreatedBy());
+					break;
 				default:
 					break;
 				}
@@ -1474,7 +1480,7 @@ public class DestinationMailUtils {
 				recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
 				String[] ccMailIdsArray = null;
 				if (CollectionUtils.isNotEmpty(ccIds)) {
-					ccMailIdsArray = getSetMailAddressArr(ccIds);
+					ccMailIdsArray = getSetMailIdsFromUserIds(ccIds);
 					helper.setCc(ccMailIdsArray);
 				}
 
@@ -1528,7 +1534,9 @@ public class DestinationMailUtils {
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
 						subject, text);
+				logger.info("Before sending mail");
 				mailSender.send(automatedMIMEMessage);
+				logger.info("Mail Sent : Request Id: "+workflowRequestT.getRequestId());
 			}
 
 		} catch (MessagingException e) {

@@ -49,6 +49,9 @@ public interface WorkflowRequestTRepository extends
 	public WorkflowRequestT findByEntityTypeIdAndEntityId(Integer entityTypeId,
 			String opportunityId);
 
+	public WorkflowRequestT findByEntityTypeIdAndEntityIdAndStatus(Integer entityTypeId,
+			String opportunityId, String status);
+
 	// @Query(value = "select * from workflow_request_t where request_id =?1" ,
 	// nativeQuery =true)
 	// public WorkflowRequestT findOne(Integer requestId);
