@@ -461,7 +461,7 @@ public class OpportunityService {
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
 
-			prepareOpportunity(opportunity, null);
+ 			prepareOpportunity(opportunity, null);
 
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
@@ -1158,7 +1158,7 @@ public class OpportunityService {
 			opportunityIds.add(opportunityT.getOpportunityId());
 		}
 		try {
-			List<String> previledgedOpportuniyies = getPriviledgedOpportunityId(opportunityIds);
+			List<String> previledgedOpportuniyies = getPreviledgedOpportunityId(opportunityIds);
 
 			if (opportunityTs != null) {
 				for (OpportunityT opportunityT : opportunityTs) {
@@ -1223,7 +1223,7 @@ public class OpportunityService {
 		} else {
 			List<String> opportunityIdList = new ArrayList<String>();
 			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = getPriviledgedOpportunityId(opportunityIdList);
+			previledgedOppIdList = getPreviledgedOpportunityId(opportunityIdList);
 			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
 					&& (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
@@ -1249,7 +1249,7 @@ public class OpportunityService {
 
 	}
 
-	private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
+	/*private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
 			throws Exception {
 		logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
 		HashMap<Integer, String> parameterMap = new HashMap<Integer, String>();
@@ -1267,9 +1267,9 @@ public class OpportunityService {
 		}
 
 		return opportunityQuery.getResultList();
-	}
+	}*/
 
-	private List<String> getPriviledgedOpportunityId(String opportunityId)
+	/*private List<String> getPriviledgedOpportunityId(String opportunityId)
 			throws Exception {
 		logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
 		HashMap<Integer, String> parameterMap = new HashMap<Integer, String>();
@@ -1288,6 +1288,20 @@ public class OpportunityService {
 			}
 		}
 		return opportunityQuery.getResultList();
+	}*/
+	
+	private List<String> getPreviledgedOpportunityId(String opportunityId)throws Exception
+	{
+		logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
+		List<String> opportunityIds = new ArrayList<String>();
+		opportunityIds.add(opportunityId);
+		String queryString = getOpportunityPreviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryString);
+		Query opportunityQuery = entityManager.createNativeQuery(queryString,
+				OpportunityT.class);
+		return opportunityQuery.getResultList();
+
 	}
 
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
@@ -1845,7 +1859,7 @@ public class OpportunityService {
 		return pageSpecification;
 	}
 
-	private QueryBufferDTO getOpportunityPriviledgeString(String userId,
+	/*private QueryBufferDTO getOpportunityPriviledgeString(String userId,
 			List<String> opportunityIds) throws Exception {
 		logger.debug("Inside getOpportunityPriviledgeString() method");
 		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
@@ -1859,7 +1873,7 @@ public class OpportunityService {
 						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
 
 		// Get WHERE clause string
-		queryBufferDTO = userAccessPrivilegeQueryBuilder
+		queryBufferDTO= userAccessPrivilegeQueryBuilder
 				.getUserAccessPrivilegeWhereCondition(userId, queryPrefixMap);
 
 		if (opportunityIds.size() > 0) {
@@ -1886,7 +1900,53 @@ public class OpportunityService {
 			queryBufferDTO.setParameterMap(null);
 		}
 		return queryBufferDTO;
+	}*/
+	private String getOpportunityPreviledgeString(String userId,List<String> opportunityIds) throws Exception {
+		logger.debug("Inside getOpportunityPreviledgeString() method");
+		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
+		// Get user access privilege groups
+
+		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
+				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
+						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
+		// Get WHERE clause string
+		String whereClause = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereConditionClause(userId,
+						queryPrefixMap);
+		if (opportunityIds.size() > 0) {
+			String oppIdList = "(";
+			{
+				for (String opportunityId : opportunityIds)
+					oppIdList += "'" + opportunityId + "',";
+			}
+			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
+			oppIdList += ")";
+			queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
+		}
+		if (whereClause != null && !whereClause.isEmpty()) {
+			queryBuffer.append(Constants.AND_CLAUSE + whereClause);
+		}
+		return queryBuffer.toString();
+	
+
 	}
+
+	
+			
+	
+	
+	private List<String> getPreviledgedOpportunityId(List<String> opportunityIds)
+			throws Exception {
+		logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
+		String queryString = getOpportunityPreviledgeString(DestinationUtils
+				.getCurrentUserDetails().getUserId(), opportunityIds);
+		logger.info("Query string: {}", queryString);
+		Query opportunityQuery = entityManager.createNativeQuery(queryString);
+		return opportunityQuery.getResultList();
+	}
+
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
 			String name, String keyword) {
