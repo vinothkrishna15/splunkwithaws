@@ -27,6 +27,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WorkflowService;
 import com.tcs.destination.utils.DestinationUtils;
@@ -371,15 +372,22 @@ public class WorkflowController {
 
 		logger.info("Inside WorkflowController: Start of approving opportunity reopen");
 		Status status = new Status();
+		String approveOrRejectMessage = null;
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (opportunityReopenRequestT != null) {
 				if (workflowService.approveOrRejectOpportunityReopen(opportunityReopenRequestT, status)) {
+					if(opportunityReopenRequestT.isRejectFlag()){
+						approveOrRejectMessage = WorkflowStatus.REJECTED.getStatus();
+					}
+					else{
+						approveOrRejectMessage = WorkflowStatus.APPROVED.getStatus();
+					}
 					logger.info("Inside WorkflowController: End of approving opportunity reopen");
 				}
 			}
 			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+					ResponseConstructors.filterJsonForFieldAndViews("all", "The Opportunity Reopen request is" + approveOrRejectMessage + "!!!",
 							status), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;
