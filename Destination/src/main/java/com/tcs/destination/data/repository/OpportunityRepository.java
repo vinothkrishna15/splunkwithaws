@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -1235,5 +1236,12 @@ public interface OpportunityRepository extends
 	@Query(value ="select opportunity_name from opportunity_t OPP "
 			+ "join connect_opportunity_link_id_t COPLT on OPP.opportunity_id=COPLT.opportunity_id where connect_id=?1", nativeQuery=true)
 	List<String> findLinkOpportunityByConnectId(String connectId);
+	
+	
+	@Modifying
+	@Query(value = "update opportunity_t set sales_stage_code=(select sales_stage_code from opportunity_timeline_history_t "
+			+ "where opportunity_id=(:opportunityId) and sales_stage_code<>12 order by updated_datetime desc limit 1) "
+			+ "where opportunity_id=(:opportunityId) ",nativeQuery=true)
+	int reopenOpportunity(@Param("opportunityId") String opportunityId);
 	
 }

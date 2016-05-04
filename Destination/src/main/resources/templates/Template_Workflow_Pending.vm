@@ -2,7 +2,8 @@
 	<body>
 		<h3>Dear ${userGroupOrUserRole},</h3>
 		<p>
-			 ${userName} has requested for creation of ${workflowEntity} : ${workflowEntityName}  on ${submittedDate}. Kindly approve or reject in the system.
+			 ${userName} has requested ${operation} ${workflowEntity} : ${workflowEntityName}  on ${submittedDate}. Kindly approve or reject in the system.
+			 ${reason}
 		</p>		
 		<p>
 		Regards,<br>

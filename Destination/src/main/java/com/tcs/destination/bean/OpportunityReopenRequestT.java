@@ -60,6 +60,9 @@ public class OpportunityReopenRequestT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
+	
+	@Transient
+	private boolean rejectFlag;
 
 	public OpportunityReopenRequestT() {
 	}
@@ -159,5 +162,15 @@ public class OpportunityReopenRequestT implements Serializable {
 	public void setRequestedByUser(UserT requestedByUser) {
 		this.requestedByUser = requestedByUser;
 	}
+
+	public boolean isRejectFlag() {
+		return rejectFlag;
+	}
+
+	public void setRejectFlag(boolean rejectFlag) {
+		this.rejectFlag = rejectFlag;
+	}
+	
+	
 
 }

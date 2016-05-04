@@ -37,7 +37,7 @@ public class UserAccessPrivilegeQueryBuilder {
 	@Autowired
 	UserService userService;
 	
-	HashMap<Integer,String> parameterMap=new HashMap<Integer,String>();
+	
 	
  
 	/**
@@ -91,6 +91,7 @@ public class UserAccessPrivilegeQueryBuilder {
 	public QueryBufferDTO getUserAccessPrivilegeWhereCondition(String userId,
 			HashMap<String, String> queryPrefix) throws Exception {
 		logger.debug("Inside getUserAccessPrivilegeWhereConditionClause() method");
+		HashMap<Integer,String> parameterMap=new HashMap<Integer,String>();
 		int startcount=1;
 		
 		QueryBufferDTO queryBuffer=new QueryBufferDTO();
@@ -108,7 +109,7 @@ public class UserAccessPrivilegeQueryBuilder {
 				
 				PrivilegeGroup privilegeGroup = new PrivilegeGroup();
 				initGroupConditions(privilegeGroup, queryPrefix);
-				populateCondGroup(parentPrivilege, privilegeGroup,startcount);
+				populateCondGroup(parentPrivilege, privilegeGroup,startcount,parameterMap);
 				replaceLastCommaWithParenthesisInQueryCondition(privilegeGroup);
 				startcount++;
 				privilegeGroups.add(privilegeGroup);
@@ -280,7 +281,7 @@ public class UserAccessPrivilegeQueryBuilder {
 	 * @throws Exception
 	 */
 	private void populateCondGroup(UserAccessPrivilegesT privilege,
-			PrivilegeGroup privilegeGroup,int count) throws Exception {
+			PrivilegeGroup privilegeGroup,int count,HashMap<Integer,String> parameterMap) throws Exception {
 		logger.debug("Inside populateConditionGroup() method");
 		String privilegeType = privilege.getPrivilegeType();
 		String privilegeValue = privilege.getPrivilegeValue();
@@ -318,7 +319,7 @@ public class UserAccessPrivilegeQueryBuilder {
 				break;
 			case CUSTOMER:
 				if (custBuffer != null && custBuffer.length() > 0) {
-					manageCustomer(privilegeGroup, privilegeValue, custBuffer,count);
+					manageCustomer(privilegeGroup, privilegeValue, custBuffer,count,parameterMap);
 				}
 				break;
 			case GROUP_CUSTOMER: {
@@ -383,12 +384,12 @@ public class UserAccessPrivilegeQueryBuilder {
 	 * @throws Exception
 	 */
 	private void manageCustomer(PrivilegeGroup privilegeGroup,
-			String privilegeValue, StringBuffer customerBuffer,int count)
+			String privilegeValue, StringBuffer customerBuffer,int count,HashMap<Integer,String> parameterMap)
 			throws Exception {
 		logger.debug("Inside handleCustomer() method");
 		if (!privilegeValue.equals(Constants.GLOBAL)) {
 			
-			parameterMap.put(count, privilegeValue);
+			 parameterMap.put(count, privilegeValue);
 			 privilegeValue="?"+count;
 			customerBuffer.append( privilegeValue + Constants.COMMA);
 			privilegeGroup.setCustomerBuffer(customerBuffer);

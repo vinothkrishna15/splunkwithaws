@@ -16,7 +16,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @EnableRedisHttpSession
 public class EmbeddedRedisConfiguration {
 
-	@Value("${spring.redis.host}")
+	 @Value("${spring.redis.host}")
 	private String redisHost;
 	
 	@Value("${spring.redis.port}")
@@ -27,7 +27,7 @@ public class EmbeddedRedisConfiguration {
 	
     @Bean
     public JedisConnectionFactory connectionFactory() throws IOException {
-    	JedisConnectionFactory connection = new JedisConnectionFactory();
+   	JedisConnectionFactory connection = new JedisConnectionFactory();
         connection.setPort(redisPort);
         connection.setHostName(redisHost);
         return connection;
@@ -38,7 +38,7 @@ public class EmbeddedRedisConfiguration {
     @Bean
     public RedisOperationsSessionRepository sessionRepository(RedisTemplate<String, ExpiringSession> sessionRedisTemplate) {
         RedisOperationsSessionRepository sessionRepository = new RedisOperationsSessionRepository(sessionRedisTemplate);
-        sessionRepository.cleanupExpiredSessions();
+
         sessionRepository.setDefaultMaxInactiveInterval(maxInactiveIntervalInSeconds);
         
         return sessionRepository;
