@@ -88,8 +88,9 @@ public class TaskT implements Serializable {
 	private List<DocumentRepositoryT> documentRepositoryTs;
 
 	// bi-directional many-to-one association to NotesT
-	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "task_id")
+	//	@OneToMany(cascade = CascadeType.ALL)
+	//	@JoinColumn(name = "task_id")
+	@OneToMany(mappedBy = "taskT", cascade = CascadeType.ALL)
 	private List<NotesT> notesTs;
 
 	// bi-directional many-to-one association to TaskBdmsTaggedLinkT

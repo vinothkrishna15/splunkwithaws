@@ -209,4 +209,59 @@ public class CollaborationCommentsService {
 					"Invalid Entity Type");
 		}
 	}
+
+	/**
+	 * Edit Collaboration Comments 
+	 * 
+	 * @param comments
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean editComments(CollaborationCommentT comments) throws Exception{
+		
+		boolean statusFlag=false;
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		String username = DestinationUtils.getCurrentUserDetails().getUserName();
+		
+		if(StringUtils.isEmpty(comments.getCommentId())){
+			logger.error("BAD_REQUEST: Comment ID cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Comment ID cannot be empty");
+		}
+		
+		if(!StringUtils.isEmpty(comments.getUserId())){
+			if(!comments.getUserId().equals(userId)){
+				logger.error("BAD_REQUEST: Only {} can edit this comment",username);
+				throw new DestinationException(HttpStatus.FORBIDDEN, "Only "+username+" can edit this comment");
+			}
+		} else {
+			logger.error("BAD_REQUEST: User ID cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "User ID cannot be empty");
+		}
+		
+		if(!StringUtils.isEmpty(comments.getCommentType())){
+			if(!comments.getCommentType().equals(CommentType.USER.toString())){
+				logger.error("FORBIDDEN: Only USER comments can be edited");
+				throw new DestinationException(HttpStatus.FORBIDDEN, "Only USER comments can be edited");
+			}
+		} else {
+			logger.error("BAD_REQUEST: Comment Type cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Comment Type cannot be empty");
+		}
+		
+		if (isValidComment(comments)) {
+			try {
+				CollaborationCommentT collaborationCommentT = commentsRepository
+						.save(comments);
+				processNotifications(collaborationCommentT.getCommentId());
+				statusFlag = true;
+				
+			} catch (Exception e) {
+				logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR, "Backend Error while editing comments");
+			}
+		}
+		
+		return statusFlag;
+	}
 }
