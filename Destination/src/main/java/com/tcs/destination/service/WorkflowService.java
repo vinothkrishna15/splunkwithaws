@@ -2539,11 +2539,9 @@ public class WorkflowService {
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getApprovedRejectedComments() != null) {
 				WorkflowRequestT workflowRequest = workflowRequestRepository
-						.findByEntityTypeIdAndEntityId(entityTypeId,
-								opportunityId);
+						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
+								opportunityId,WorkflowStatus.PENDING.getStatus());
 				if (workflowRequest != null) {
-					if (workflowRequest.getStatus().equals(
-							WorkflowStatus.PENDING.getStatus())) {
 						WorkflowStepT workflowStepPending = workflowStepRepository
 								.findByRequestIdAndStepStatus(
 										workflowRequest.getRequestId(),
@@ -2580,6 +2578,7 @@ public class WorkflowService {
 											.save(workflowRequest);
 									logger.info("Request approved "
 											+ workflowRequest.getRequestId());
+									status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
 									sendEmailNotificationforPending(
 											workflowRequest.getRequestId(),
 											workflowRequest
@@ -2611,8 +2610,9 @@ public class WorkflowService {
 									workflowRequest.setModifiedBy(userId);
 									workflowRequestRepository
 											.save(workflowRequest);
-									logger.info("Request approved and Opportunity Reopened "
-											+ workflowRequest.getRequestId());
+									logger.info("Request approved and Opportunity Reopened.. Request Id :"
+											+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
+									status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
 									sendEmailNotificationforApprovedOrRejectMail(
 											workflowOpportunityReopenApprovedSubject,
 											workflowRequest.getRequestId(),
@@ -2635,8 +2635,9 @@ public class WorkflowService {
 												.getStatus());
 								workflowRequest.setModifiedBy(userId);
 								workflowRequestRepository.save(workflowRequest);
-								logger.info("Opportunity reopen rejected : request Id"
-										+ workflowRequest.getRequestId());
+								logger.info("Opportunity reopen rejected : Request Id :"
+											+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
+								status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been rejected");
 								sendEmailNotificationforApprovedOrRejectMail(
 										workflowOpportunityReopenRejectedSubject,
 										workflowRequest.getRequestId(),
@@ -2648,11 +2649,6 @@ public class WorkflowService {
 									HttpStatus.FORBIDDEN,
 									"You are not authorised to access this service");
 						}
-
-					} else {
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"The request is being already approved or rejected");
-					}
 
 				} else {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -2666,8 +2662,6 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Opportunity not found");
 		}
-		status.setStatus(Status.SUCCESS,
-				"The opportunity reopen request has been approved");
 		return true;
 	}
 
