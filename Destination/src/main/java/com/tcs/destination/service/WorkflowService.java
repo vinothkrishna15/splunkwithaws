@@ -1,15 +1,21 @@
 package com.tcs.destination.service;
 
-import com.google.common.collect.Lists;
-//i1297mport com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
-import com.tcs.destination.bean.WorkflowCompetitorT;
+import static com.tcs.destination.enums.EntityTypeId.COMPETITOR;
+import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
+import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -21,21 +27,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
-import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.MyWorklistDTO;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
-import com.tcs.destination.bean.RevenueCustomerMappingTPK;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
-import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
 import com.tcs.destination.bean.WorkflowPartnerT;
@@ -54,33 +61,19 @@ import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
+import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
-import com.tcs.destination.utils.StringUtils;
-
-import java.sql.Timestamp;
-import java.util.Collections;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-
-import com.tcs.destination.bean.MyWorklistDTO;
-import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
-import com.tcs.destination.enums.EntityType;
-import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.QueryConstants;
-
-import static com.tcs.destination.enums.EntityTypeId.COMPETITOR;
-import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
-import static com.tcs.destination.enums.EntityTypeId.PARTNER;
+import com.tcs.destination.utils.StringUtils;
+//i1297mport com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 
 /**
  * This service contains workflow related functionalities
@@ -395,6 +388,7 @@ public class WorkflowService {
 			@Override
 			public void run() {
 				try {
+					Thread.sleep(15000);
 					mailUtils.sendWorkflowApprovedOrRejectMail(
 							approveOrRejectSubject, requestId, date,
 							entityTypeId);
@@ -428,11 +422,12 @@ public class WorkflowService {
 			@Override
 			public void run() {
 				try {
-					mailUtils.sendWorkflowPendingMail(requestId, date,
-							entityTypeId);
+					logger.debug("Inside run() method of WorkflowNotificationForPending");
+					Thread.sleep(15000);
+					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Error sending email " + e.getMessage());
 				}
 			}
 
@@ -830,9 +825,11 @@ public class WorkflowService {
 			workflowCustomer.setModifiedBy(userId);
 			workflowCustomer.setDocumentsAttached(Constants.NO);
 			WorkflowCustomerT requestedCustomer = workflowCustomerRepository
-					.save(workflowCustomer);
+					.saveAndFlush(workflowCustomer);
 			logger.info("workflow Customer saved, Id :"
 					+ requestedCustomer.getWorkflowCustomerId());
+			logger.debug("workflow Customer saved, Name :"
+					+ requestedCustomer.getCustomerName());
 			if (requestedCustomer != null) {
 				String entityId = requestedCustomer.getWorkflowCustomerId();
 				Integer entityTypeId = EntityTypeId.CUSTOMER.getType();
@@ -848,6 +845,7 @@ public class WorkflowService {
 										+ " is submitted for approval");
 						// Sending email notification to whom with the request
 						// is pending currently
+						logger.debug("Request Id "+workflowRequest.getRequestId());
 						sendEmailNotificationforPending(
 								workflowRequest.getRequestId(), new Date(),
 								entityTypeId);
@@ -934,13 +932,13 @@ public class WorkflowService {
 		workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
 				workflowProcessTemplate, user, workflowRequest, comments);
 		workflowRequest.setWorkflowStepTs(workflowSteps);
-		workflowRequestTRepository.save(workflowRequest);
+		workflowRequestTRepository.saveAndFlush(workflowRequest);
 		logger.info("Workflow request saved, Request Id :"
 				+ workflowRequest.getRequestId());
 		// Saving the workflow steps and the setting the request id in each step
 		for (WorkflowStepT wfs : workflowSteps) {
 			wfs.setRequestId(workflowRequest.getRequestId());
-			workflowStepTRepository.save(wfs);
+			workflowStepTRepository.saveAndFlush(wfs);
 		}
 		logger.info("Inside End of populateWorkflowRequest method");
 		return workflowRequest;

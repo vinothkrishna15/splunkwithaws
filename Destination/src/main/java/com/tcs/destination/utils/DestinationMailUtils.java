@@ -65,7 +65,6 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
-import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -1147,6 +1146,7 @@ public class DestinationMailUtils {
 	public void sendWorkflowPendingMail(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
 		logger.info("Inside sendWorkflowPendingMail method");
+		
 		List<String> recepientIds = new ArrayList<String>();
 		String userGroupOrUserRoleOrUserId = null;
 		String workflowEntity = null;
@@ -1158,15 +1158,19 @@ public class DestinationMailUtils {
 		String[] recipientMailIdsArray = null;
 		String[] ccMailIdsArray = null;
 		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+		List<String> ccIds = new ArrayList<String>();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		StringBuffer subject = new StringBuffer(environmentName);
+		logger.info("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
-
-		List<String> ccIds = new ArrayList<String>();
-
+		if(workflowRequestT==null) {
+			logger.error("request not fetched");
+		}
+		logger.debug("Request fetched:");
+		logger.debug("EntityId:" +entityId );
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 		case CUSTOMER:
 			workflowEntity = Constants.WORKFLOW_CUSTOMER;
@@ -1224,6 +1228,7 @@ public class DestinationMailUtils {
 			reason = new StringBuffer(Constants.WORKFLOW_REOPEN_PREFIX)
 					.append(" ").append(workflowSubmittedStep.getComments())
 					.toString();
+			logger.info("Subject :"+subject);
 			break;
 		default:
 			break;
@@ -1246,10 +1251,12 @@ public class DestinationMailUtils {
 								.findUserIdsForWorkflowUserGroup(geography,
 										Constants.Y,
 										UserGroup.GEO_HEADS.getValue()));
+						logger.debug("recepient Ids for GEO Heads :" +recepientIds);
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 						ccIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowPMO(geography,
 										Constants.Y, pmoValue));
+						logger.debug("CCIds for PMO :"+ccIds);
 						break;
 					case Constants.WORKFLOW_PMO:
 						recepientIds.addAll(userAccessPrivilegesRepository
@@ -1279,10 +1286,11 @@ public class DestinationMailUtils {
 				}
 			}
 			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
+			logger.debug("recepients mail Ids" +recipientMailIdsArray);
 			if (CollectionUtils.isNotEmpty(ccIds)) {
 				ccMailIdsArray = getMailIdsFromUserIds(ccIds);
+				logger.debug("CCmail Ids" +ccMailIdsArray);
 			}
-
 			Map<String, Object> workflowMap = new HashMap<String, Object>();
 			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
 			workflowMap.put("workflowEntity", workflowEntity);
@@ -1293,7 +1301,7 @@ public class DestinationMailUtils {
 			workflowMap.put("reason", reason);
 			helper.setTo(recipientMailIdsArray);
 			if(ccMailIdsArray!=null) {
-			helper.setCc(ccMailIdsArray);
+				helper.setCc(ccMailIdsArray);
 			}
 			helper.setFrom(senderEmailId);
 
@@ -1302,14 +1310,12 @@ public class DestinationMailUtils {
 					workflowMap);
 			
 			logger.info("framed text for mail :" + text);
-
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
-			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
-					subject.toString(), text);
-			logger.info("Before sending mail");
+			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null, subject.toString(), text);
+			logger.info("before sending mail");
 			mailSender.send(automatedMIMEMessage);
-			logger.info("Mail Sent : Request Id: "+workflowRequestT.getRequestId());
+			logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1330,7 +1336,7 @@ public class DestinationMailUtils {
 			throw e;
 		}
 
-	}
+}
 
 
 	/**
@@ -1534,9 +1540,9 @@ public class DestinationMailUtils {
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
 						subject, text);
-				logger.info("Before sending mail");
+				logger.info("before sending mail");
 				mailSender.send(automatedMIMEMessage);
-				logger.info("Mail Sent : Request Id: "+workflowRequestT.getRequestId());
+				logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
 			}
 
 		} catch (MessagingException e) {
@@ -1558,7 +1564,7 @@ public class DestinationMailUtils {
 			logger.error("Error sending mail message", e.getMessage());
 			throw e;
 		}
-	}
+}
 	
 	 private String constructUserNamesSplitByComma(List<String> userNames) {
 			

@@ -4,9 +4,11 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -267,7 +269,8 @@ public class ConnectService {
 		logger.debug("Inside searchDateRangwWithWeekAndMonthCount() service");
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setPaginatedConnectResponse(searchforConnectsBetweenForUserOrCustomerOrPartner(
-				fromDate, toDate, userId, owner, customerId, partnerId, page, count));
+				fromDate, toDate, userId, owner, customerId, partnerId, page,
+				count));
 		if (weekStartDate.getTime() != weekEndDate.getTime()) {
 			logger.debug("WeekStartDate and WeekEndDate Time are Not Equal");
 			long totalCount = searchforConnectsBetweenForUserOrCustomerOrPartner(
@@ -283,18 +286,22 @@ public class ConnectService {
 					partnerId, page, count).getTotalCount();
 			int monthCount = (int) totalCount;
 			response.setMonthCount(monthCount);
-		} 
-		validateDashboardConnectResponse(
-				response, new Timestamp(fromDate.getTime()), new Timestamp(toDate.getTime()),
-				response.getPaginatedConnectResponse().getConnectTs(), new Timestamp(weekStartDate.getTime()), new Timestamp(weekEndDate.getTime()),
-				new Timestamp(monthStartDate.getTime()), new Timestamp(monthEndDate.getTime()));
+		}
+		validateDashboardConnectResponse(response,
+				new Timestamp(fromDate.getTime()),
+				new Timestamp(toDate.getTime()), response
+						.getPaginatedConnectResponse().getConnectTs(),
+				new Timestamp(weekStartDate.getTime()), new Timestamp(
+						weekEndDate.getTime()),
+				new Timestamp(monthStartDate.getTime()), new Timestamp(
+						monthEndDate.getTime()));
 		return response;
 	}
 
 	public PaginatedResponse searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
-			String customerId, String partnerId, int page,
-			int count) throws Exception {
+			String customerId, String partnerId, int page, int count)
+			throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner() service");
 		PaginatedResponse connectResponse = new PaginatedResponse();
 		Timestamp toTimestamp = new Timestamp(toDate.getTime()
@@ -348,8 +355,7 @@ public class ConnectService {
 
 	private List<ConnectT> paginateConnects(int page, int count,
 			List<ConnectT> connects) {
-		if (PaginationUtils.isValidPagination(page, count,
-				connects.size())) {
+		if (PaginationUtils.isValidPagination(page, count, connects.size())) {
 			int fromIndex = PaginationUtils.getStartIndex(page, count,
 					connects.size());
 			int toIndex = PaginationUtils.getEndIndex(page, count,
@@ -358,22 +364,21 @@ public class ConnectService {
 			logger.debug("ConnectT  after pagination size is "
 					+ connects.size());
 		} else {
-			connects=null;
+			connects = null;
 		}
 		return connects;
 	}
 
 	@Transactional
 	public boolean createConnect(ConnectT connect, boolean isBulkDataLoad)
-			throws Exception 
-	{
+			throws Exception {
 		logger.debug("Inside insertConnect() service");
 		connect.setCreatedBy(DestinationUtils.getCurrentUserDetails()
 				.getUserId());
 		connect.setModifiedBy(DestinationUtils.getCurrentUserDetails()
 				.getUserId());
 		// Validate request
-		validateRequest(connect, true);
+		validateRequest(connect, true, null);
 		// Take a copy to keep child objects
 		ConnectT requestConnect = (ConnectT) DestinationUtils.copy(connect);
 		logger.debug("Copied connect object.");
@@ -480,28 +485,28 @@ public class ConnectService {
 			notificationsHelper.setOldObject(oldObject);
 		}
 		notificationsHelper
-		.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
 		notificationsHelper
-		.setUserNotificationsTRepository(userNotificationsTRepository);
+				.setUserNotificationsTRepository(userNotificationsTRepository);
 		notificationsHelper
-		.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
 		notificationsHelper
-		.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setCrudRepository(connectRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
 		notificationsHelper
-		.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
 		notificationsHelper
-		.setSearchKeywordsRepository(searchKeywordsRepository);
+				.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
 
-	private void validateRequest(ConnectT connect, boolean isInsert)
-			throws Exception {
+	private void validateRequest(ConnectT connect, boolean isInsert,
+			ConnectT connectBeforeEdit) throws Exception {
 		logger.debug("Inside validateRequest() method");
 		String connectCategory = connect.getConnectCategory();
 
@@ -520,7 +525,8 @@ public class ConnectService {
 					isValid = true;
 				if (partnerId != null) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Invalid Request - Partner Id set for category : " + connectCategory);
+							"Invalid Request - Partner Id set for category : "
+									+ connectCategory);
 				}
 				break;
 			case PARTNER:
@@ -528,7 +534,8 @@ public class ConnectService {
 					isValid = true;
 				if (customerId != null) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Invalid Request - Customer Id set for category : " + connectCategory);
+							"Invalid Request - Customer Id set for category : "
+									+ connectCategory);
 				}
 				break;
 			default:
@@ -561,35 +568,57 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-		if(isInsert)
-		{
-			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-			UserT user = userRepository.findByUserId(userId);
-			String userGroup = user.getUserGroup();
-			if (UserGroup.contains(userGroup)) {
-				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-				case PRACTICE_HEAD:
-				case PRACTICE_OWNER:
-					List<String> owners = new ArrayList<String>();
-					owners.add(connect.getPrimaryOwner());
-					if (connect.getConnectSecondaryOwnerLinkTs() != null) {
-						for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
-								.getConnectSecondaryOwnerLinkTs()) {
-							owners.add(connectSecondaryOwnerLinkT.getSecondaryOwner());
-						}
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
+		String userGroup = user.getUserGroup();
+		if (UserGroup.contains(userGroup)) {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case PRACTICE_HEAD:
+			case PRACTICE_OWNER:
+				Set<String> owners = new HashSet<String>();
+				owners.add(connect.getPrimaryOwner());
+				if (connect.getConnectSecondaryOwnerLinkTs() != null
+						&& !connect.getConnectSecondaryOwnerLinkTs().isEmpty()) {
+					for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+							.getConnectSecondaryOwnerLinkTs()) {
+						owners.add(connectSecondaryOwnerLinkT
+								.getSecondaryOwner());
 					}
-					if (owners != null) {
-						if (!isOwnersAreBDMorBDMSupervisor(owners)) {
-							throw new DestinationException(HttpStatus.BAD_REQUEST,
-									"Either Primary Owner or Secondary owners should be BDM or BDM Supervisor");
-						} 
-					}
-					break;
-				default:
-					break;
 				}
+				if (connectBeforeEdit != null) {
+					owners.addAll(connectRepository
+							.findOwnersOfConnect(connectBeforeEdit
+									.getConnectId()));
+				}
+				if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
+						&& connect.getDeleteConnectSecondaryOwnerLinkTs()
+								.size() > 0) {
+					for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+							.getDeleteConnectSecondaryOwnerLinkTs()) {
+						if (!connect
+								.getPrimaryOwner()
+								.equals(connectSecondaryOwnerRepository
+										.findSecondaryOwner(connectSecondaryOwnerLinkT
+												.getConnectSecondaryOwnerLinkId()))) {
+							owners.remove(connectSecondaryOwnerRepository
+									.findSecondaryOwner(connectSecondaryOwnerLinkT
+											.getConnectSecondaryOwnerLinkId()));
+						}
+
+					}
+				}
+				if (owners != null) {
+					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Please tag BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+					}
+				}
+				break;
+			default:
+				break;
 			}
 		}
+
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -629,7 +658,7 @@ public class ConnectService {
 
 	private void populateConnectTcsAccountContactLinks(String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
-					throws Exception {
+			throws Exception {
 		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
@@ -769,10 +798,11 @@ public class ConnectService {
 		// for edit access
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
+		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-			ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
-			if (validateEditAccessForConnect(connectBeforeEdit,
-					userGroup, userId)) {
+
+			if (!validateEditAccessForConnect(connectBeforeEdit, userGroup,
+					userId)) {
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorized to edit this Connect");
 			}
@@ -783,7 +813,7 @@ public class ConnectService {
 		ConnectT oldObject = (ConnectT) DestinationUtils.copy(beforeConnect);
 
 		// Update database
-		ConnectT afterConnect = editConnect(connect);
+		ConnectT afterConnect = editConnect(connect, connectBeforeEdit);
 
 		if (afterConnect != null) {
 			logger.info("Connect has been updated successfully: " + connectId);
@@ -808,11 +838,12 @@ public class ConnectService {
 		return connect;
 	}
 
-	public ConnectT editConnect(ConnectT connect) throws Exception {
+	public ConnectT editConnect(ConnectT connect, ConnectT connectBeforeEdit)
+			throws Exception {
 		logger.debug("inside editConnect() method");
 
 		// Validate request
-		validateRequest(connect, false);
+		validateRequest(connect, false, connectBeforeEdit);
 
 		String categoryUpperCase = connect.getConnectCategory().toUpperCase();
 		connect.setConnectCategory(categoryUpperCase);
@@ -1030,16 +1061,17 @@ public class ConnectService {
 						.getUserId();
 				String userGroup = userRepository.findByUserId(userId)
 						.getUserGroup();
-				if(userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+				if (userGroup
+						.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 					connectT.setEnableEditAccess(true);
-				}
-				else {
-					connectT.setEnableEditAccess(validateEditAccessForConnect(connectT, userGroup, userId));
+				} else {
+					connectT.setEnableEditAccess(validateEditAccessForConnect(
+							connectT, userGroup, userId));
 				}
 
 			} catch (Exception e) {
-				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-						e.getMessage());
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 			setSearchKeywordTs(connectT);
 			removeCyclicForLinkedOpportunityTs(connectT);
@@ -1080,7 +1112,7 @@ public class ConnectService {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getOpportunityT()
-					.setConnectOpportunityLinkIdTs(null);
+							.setConnectOpportunityLinkIdTs(null);
 				}
 			}
 		}
@@ -1097,11 +1129,11 @@ public class ConnectService {
 			autoCommentsHelper.setOldObject(oldObject);
 		}
 		autoCommentsHelper
-		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper
-		.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper
-		.setCollaborationCommentsRepository(collaborationCommentsRepository);
+				.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(connectRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
@@ -1154,7 +1186,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-				.setPaginatedConnectResponse(connectResponse);
+						.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1176,12 +1208,11 @@ public class ConnectService {
 				List<ConnectT> monthConnects = connectRepository
 						.getTeamConnects(users, monthStartDateTs,
 								monthEndDateTs);
-				dashBoardConnectsResponse
-				.setMonthCount(monthConnects.size());
+				dashBoardConnectsResponse.setMonthCount(monthConnects.size());
 
-				validateDashboardConnectResponse(dashBoardConnectsResponse, fromDateTs, toDateTs,
-						connects, weekStartDateTs, weekEndDateTs,
-						monthStartDateTs, monthEndDateTs);
+				validateDashboardConnectResponse(dashBoardConnectsResponse,
+						fromDateTs, toDateTs, connects, weekStartDateTs,
+						weekEndDateTs, monthStartDateTs, monthEndDateTs);
 
 			}
 
@@ -1206,7 +1237,7 @@ public class ConnectService {
 				prepareConnect(connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-				.setPaginatedConnectResponse(connectResponse);
+						.setPaginatedConnectResponse(connectResponse);
 			}
 
 			// If ROLE is SECONDARY
@@ -1228,7 +1259,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-				.setPaginatedConnectResponse(connectResponse);
+						.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1267,17 +1298,14 @@ public class ConnectService {
 			logger.error(
 					"NOT_FOUND: No Connects found for for days between {} and {}, "
 							+ "days of week between {} and {}, days of month between {} and {}",
-							fromDateTs, toDateTs,
-							weekStartDateTs, weekEndDateTs, monthStartDateTs,
-							monthEndDateTs);
+					fromDateTs, toDateTs, weekStartDateTs, weekEndDateTs,
+					monthStartDateTs, monthEndDateTs);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Connects found for days between "
-							+ fromDateTs + " and " + toDateTs
-							+ ", days of week between "
+					"No Connects found for days between " + fromDateTs
+							+ " and " + toDateTs + ", days of week between "
 							+ weekStartDateTs + " and " + weekEndDateTs
-							+ ", days of month between "
-							+ monthStartDateTs + " and "
-							+ monthEndDateTs);
+							+ ", days of month between " + monthStartDateTs
+							+ " and " + monthEndDateTs);
 		}
 	}
 
@@ -1291,8 +1319,11 @@ public class ConnectService {
 
 		if (dashBoardConnectsResponse != null) {
 
-			if ((dashBoardConnectsResponse.getPaginatedConnectResponse().getConnectTs() != null)
-					&& (!dashBoardConnectsResponse.getPaginatedConnectResponse().getConnectTs().isEmpty())) {
+			if ((dashBoardConnectsResponse.getPaginatedConnectResponse()
+					.getConnectTs() != null)
+					&& (!dashBoardConnectsResponse
+							.getPaginatedConnectResponse().getConnectTs()
+							.isEmpty())) {
 
 				for (ConnectT connectT : dashBoardConnectsResponse
 						.getPaginatedConnectResponse().getConnectTs()) {
@@ -1690,46 +1721,49 @@ public class ConnectService {
 				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
 			isEditAccessRequired = false;
 		} else {
-			if (opportunityService.isSubordinateAsOwner(userId, connect.getConnectId(),
-					null)) {
+			if (opportunityService.isSubordinateAsOwner(userId,
+					connect.getConnectId(), null)) {
 				isEditAccessRequired = true;
 			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
 					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
 				isEditAccessRequired = false;
 			} else {
-				if(!StringUtils.isEmpty(connect.getCustomerId())){
-					isEditAccessRequired = opportunityService.checkEditAccessForGeoAndIou(userGroup,
-							userId, connect.getCustomerId());
+				if (!StringUtils.isEmpty(connect.getCustomerId())) {
+					isEditAccessRequired = opportunityService
+							.checkEditAccessForGeoAndIou(userGroup, userId,
+									connect.getCustomerId());
 				}
-				if(!StringUtils.isEmpty(connect.getPartnerId())){
-					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(userId, userGroup,
-							connect.getPartnerId());
+				if (!StringUtils.isEmpty(connect.getPartnerId())) {
+					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
+							userId, userGroup, connect.getPartnerId());
 				}
 			}
 		}
 		return isEditAccessRequired;
 	}
 
-
 	private boolean isUserOwner(String userId, ConnectT connect) {
 		if (connect.getPrimaryOwner().equals(userId))
 			return true;
 		else {
-			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect.getConnectSecondaryOwnerLinkTs()){
-				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(userId))
+			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+					.getConnectSecondaryOwnerLinkTs()) {
+				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(
+						userId))
 					return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean isEditAccessNotAuthorisedForPartner(String userId, String userGroup,
-			String partnerId) {
+	public boolean isEditAccessNotAuthorisedForPartner(String userId,
+			String userGroup, String partnerId) {
 		boolean isEditAccessRequired = false;
 		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 		case GEO_HEADS:
 		case PMO:
-			String geography = partnerRepository.findGeographyByPartnerId(partnerId);
+			String geography = partnerRepository
+					.findGeographyByPartnerId(partnerId);
 
 			List<String> geographyList = userAccessPrivilegesRepository
 					.getPrivilegeValueForUser(userId,
@@ -1749,13 +1783,14 @@ public class ConnectService {
 		return isEditAccessRequired;
 	}
 
-	public boolean isOwnersAreBDMorBDMSupervisor(List<String> owners) {
+	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
 		// TODO Auto-generated method stub
 		boolean isBDMOrBDMSupervisor = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
 		for (String userGroup : userGroups) {
 			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())) {
+					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+					|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
 				isBDMOrBDMSupervisor = true;
 				break;
 			}
@@ -1763,16 +1798,16 @@ public class ConnectService {
 		return isBDMOrBDMSupervisor;
 	}
 
-	private boolean isEditAccessRequiredForOpportunity(
-			ConnectT connectT, String userGroup, String userId) {
+	private boolean isEditAccessRequiredForOpportunity(ConnectT connectT,
+			String userGroup, String userId) {
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, connectT)) {
 			isEditAccessRequired = true;
 
 		} else if (!userGroup.equals(UserGroup.BDM)
 				|| !userGroup.equals(UserGroup.PRACTICE_OWNER)) {
-			if (opportunityService.isSubordinateAsOwner(userId, connectT.getConnectId(),
-					null)) {
+			if (opportunityService.isSubordinateAsOwner(userId,
+					connectT.getConnectId(), null)) {
 				isEditAccessRequired = true;
 			} else if (!userGroup.equals(UserGroup.BDM_SUPERVISOR)
 					|| !userGroup.equals(UserGroup.PRACTICE_HEAD)) {
@@ -1792,7 +1827,7 @@ public class ConnectService {
 		case GEO_HEADS:
 		case PMO:
 			String geography = customerRepository
-			.findGeographyByCustomerId(customerId);
+					.findGeographyByCustomerId(customerId);
 
 			List<String> geographyList = userAccessPrivilegesRepository
 					.getPrivilegeValueForUser(userId,
