@@ -190,6 +190,7 @@ public class WorkflowService {
 				masterRequest = workflowRequestTRepository.findRequestedRecord(
 						Constants.CONSTANT_ZERO,
 						workflowCustomerT.getWorkflowCustomerId());
+				UserT requestedUser = masterRequest.getCreatedByUser();
 				for (WorkflowStepT stepRecord : requestSteps) {
 					if (stepRecord.getStepStatus().equals(
 							WorkflowStatus.PENDING.getStatus())) {
@@ -210,12 +211,12 @@ public class WorkflowService {
 								CustomerMasterT oldCustomerMaster = customerRepository.findByCustomerName(oldCustomerName);
 								if(oldCustomerMaster!=null) {
 									saveToMasterTables(oldCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 								else{
 									CustomerMasterT newCustomerMaster = new CustomerMasterT();
 									saveToMasterTables(newCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 							}
 							//
@@ -733,6 +734,8 @@ public class WorkflowService {
 										WorkflowStatus.PENDING.getStatus())) {
 					masterRequest = workflowRequestTRepository
 							.findOne(workflowStepToReject.getRequestId());
+					
+					UserT requestedUser = userRepository.findByUserId(masterRequest.getCreatedBy());
 					workflowStepToReject.setUserId(userId);
 					workflowStepToReject.setStepStatus(workflowStepT
 							.getStepStatus());
@@ -741,6 +744,8 @@ public class WorkflowService {
 							&& (workflowStepT.getComments() != null)) {
 						workflowStepToReject.setComments(workflowStepT
 								.getComments());
+						
+						
 					} else {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"Comments is mandatory: give reason for rejection");
@@ -751,7 +756,7 @@ public class WorkflowService {
 					workflowRequestTRepository.save(masterRequest);
 
 					if(masterRequest.getEntityTypeId().equals(EntityTypeId.CUSTOMER.getType())){
-						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejectedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejectedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
 					}
 					if (masterRequest.getEntityTypeId().equals(
 							EntityTypeId.PARTNER.getType())) {

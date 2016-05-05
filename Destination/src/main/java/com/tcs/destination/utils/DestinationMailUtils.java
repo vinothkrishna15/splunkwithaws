@@ -185,7 +185,7 @@ public class DestinationMailUtils {
 
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
-	
+
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
@@ -953,7 +953,7 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-//			UserT recipient = userService.findByUserId(recipientId);
+			//			UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -968,7 +968,7 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-//			UserT recipient = userService.findByUserId(recipientId);
+			//			UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -1155,14 +1155,14 @@ public class DestinationMailUtils {
 	public void sendWorkflowPendingMail(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
 		logger.info("Inside sendWorkflowPendingMail method");
-		
+
 		List<String> recepientIds = new ArrayList<String>();
 		String userGroupOrUserRoleOrUserId = null;
 		String workflowEntity = null;
 		String workflowEntityName = null;
 		String geography = null;
 		String userName = null;
-		String notes = null;
+		String notes = "NA";
 		String operation = null;
 		String reason = "";
 		String[] recipientMailIdsArray = null;
@@ -1184,13 +1184,16 @@ public class DestinationMailUtils {
 				workflowEntity = Constants.WORKFLOW_CUSTOMER;
 				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 						.findOne(entityId);
+				if(!StringUtils.isEmpty(workflowCustomerT.getNotes())){
+					notes = workflowCustomerT.getNotes();
+				}
 				workflowEntityName = workflowCustomerT.getCustomerName();
 				geography = workflowCustomerT.getGeography();
 				userName = userRepository.findUserNameByUserId(workflowCustomerT
 						.getCreatedBy());
 				subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT)
-						.append(" ").append(Constants.FROM).append(" ")
-						.append(userName);
+				.append(" ").append(Constants.FROM).append(" ")
+				.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
 			case PARTNER:
@@ -1202,22 +1205,22 @@ public class DestinationMailUtils {
 				userName = userRepository.findUserNameByUserId(workflowPartnerT
 						.getCreatedBy());
 				subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT)
-						.append(" ").append(Constants.FROM).append(" ")
-						.append(userName);
+				.append(" ").append(Constants.FROM).append(" ")
+				.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
-//			case COMPETITOR:
-//				workflowEntity = Constants.WORKFLOW_COMPETITOR;
-//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-//						.findOne(entityId);
-//				workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
-//				userName = userRepository.findUserNameByUserId(workflowCompetitor
-//						.getCreatedBy());
-//				subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
-//						.append(" ").append(Constants.FROM).append(" ")
-//						.append(userName);
-//				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
-//				break;
+				//			case COMPETITOR:
+				//				workflowEntity = Constants.WORKFLOW_COMPETITOR;
+				//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+				//						.findOne(entityId);
+				//				workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
+				//				userName = userRepository.findUserNameByUserId(workflowCompetitor
+				//						.getCreatedBy());
+				//				subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
+				//						.append(" ").append(Constants.FROM).append(" ")
+				//						.append(userName);
+				//				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
+				//				break;
 			case OPPORTUNITY:
 				workflowEntity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 				OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -1234,8 +1237,8 @@ public class DestinationMailUtils {
 						.findByRequestIdAndStepStatus(requestId,
 								WorkflowStatus.SUBMITTED.getStatus());
 				reason = new StringBuffer(Constants.WORKFLOW_REOPEN_PREFIX)
-						.append(" ").append(workflowSubmittedStep.getComments())
-						.toString();
+				.append(" ").append(workflowSubmittedStep.getComments())
+				.toString();
 				logger.info("Subject :"+subject);
 				break;
 			default:
@@ -1314,15 +1317,17 @@ public class DestinationMailUtils {
 					helper.setCc(ccMailIdsArray);
 				}
 				helper.setFrom(senderEmailId);
-				if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals("CUSTOMER")){
-				text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
-						workflowMap);
+				if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals(EntityTypeId.CUSTOMER)){
+					text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, workflowCustomerPendingTemplateLoc, Constants.UTF8,
+							workflowMap);
 				}
 				else{
-					
+					text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
+							workflowMap);
 				}
-				
+
 				logger.info("framed text for mail :" + text);
 				helper.setSubject(subject.toString());
 				helper.setText(text, true);
@@ -1352,7 +1357,7 @@ public class DestinationMailUtils {
 		} else {
 			logger.error("request not fetched");
 		}
-}
+	}
 
 
 	/**
@@ -1389,6 +1394,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
+			String notes = "NA";
 			helper = new MimeMessageHelper(automatedMIMEMessage, true);
 			WorkflowStepT workflowStepSubmitted = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
@@ -1399,6 +1405,9 @@ public class DestinationMailUtils {
 					entity = Constants.WORKFLOW_CUSTOMER;
 					WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 							.findOne(entityId);
+					if(!StringUtils.isEmpty(workflowCustomerT.getNotes())){
+						notes = workflowCustomerT.getNotes();
+					}
 					entityName = workflowCustomerT.getCustomerName();
 					geography = workflowCustomerT.getGeography();
 					userName = userRepository
@@ -1419,17 +1428,17 @@ public class DestinationMailUtils {
 					operation = Constants.WORKFLOW_OPERATION_CREATE;
 					recepientIds.add(workflowPartnerT.getCreatedBy());
 					break;
-//				case COMPETITOR:
-//					entity = Constants.WORKFLOW_COMPETITOR;
-//					WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-//							.findOne(entityId);
-//					entityName = workflowCompetitor.getWorkflowCompetitorName();
-//					userName = userRepository
-//							.findUserNameByUserId(workflowCompetitor
-//									.getCreatedBy());
-//					operation = Constants.WORKFLOW_OPERATION_CREATE;
-//					recepientIds.add(workflowCompetitor.getCreatedBy());
-//					break;
+					//				case COMPETITOR:
+					//					entity = Constants.WORKFLOW_COMPETITOR;
+					//					WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+					//							.findOne(entityId);
+					//					entityName = workflowCompetitor.getWorkflowCompetitorName();
+					//					userName = userRepository
+					//							.findUserNameByUserId(workflowCompetitor
+					//									.getCreatedBy());
+					//					operation = Constants.WORKFLOW_OPERATION_CREATE;
+					//					recepientIds.add(workflowCompetitor.getCreatedBy());
+					//					break;
 				case OPPORTUNITY:
 					entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 					OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -1531,6 +1540,8 @@ public class DestinationMailUtils {
 					workflowMap.put("approvedOrRejectedUserName",
 							approvedOrRejectedUserName);
 					workflowMap.put("comment", comment);
+					workflowMap.put("notes", notes);
+					workflowMap.put("geography", geography);
 				} else {
 					WorkflowStepT workflowStepRejected = workflowStepRepository
 							.findByRequestIdAndStepStatus(requestId,
@@ -1539,24 +1550,26 @@ public class DestinationMailUtils {
 							.findUserNameByUserId(workflowStepRejected
 									.getUserId());
 					comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
-							.append(" ")
-							.append(workflowStepRejected.getComments())
-							.toString();
+					.append(" ")
+					.append(workflowStepRejected.getComments())
+					.toString();
 					workflowMap.put("approvedOrRejectedUserName",
 							approvedOrRejectedUserName);
 					workflowMap.put("status", "rejected");
 					workflowMap.put("comment", comment);
+					workflowMap.put("notes", notes);
+					workflowMap.put("geography", geography);
 				}
 
-				if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals("CUSTOMER")){
+				if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals(EntityTypeId.CUSTOMER)){
 					text = VelocityEngineUtils.mergeTemplateIntoString(
 							velocityEngine, workflowCustomerApproveOrRejectTemplateLoc,
 							Constants.UTF8, workflowMap);
 				}
 				else{
-				text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine, workflowApproveOrRejectTemplateLoc,
-						Constants.UTF8, workflowMap);
+					text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, workflowApproveOrRejectTemplateLoc,
+							Constants.UTF8, workflowMap);
 				}
 				logger.info("framed text for mail :" + text);
 				helper.setText(text, true);
