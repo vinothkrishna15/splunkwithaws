@@ -644,32 +644,6 @@ public class OpportunityService {
 			}
 
 			if (opportunity.getOpportunityId() != null) {
-				// if(opportunityBeforeEdit!=null){
-				// if(opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()
-				// != null &&
-				// !opportunityBeforeEdit.getOpportunitySalesSupportLinkTs().isEmpty())
-				// {
-				// for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT
-				// : opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()) {
-				// owners.add(opportunitySalesSupportLinkT
-				// .getSalesSupportOwner());
-				// }
-				// }
-				// if (opportunityBeforeEdit.getBidDetailsTs() != null &&
-				// !opportunityBeforeEdit.getBidDetailsTs().isEmpty()) {
-				// for (BidDetailsT bidDetails : opportunityBeforeEdit
-				// .getBidDetailsTs()) {
-				// if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
-				// for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT :
-				// bidDetails
-				// .getBidOfficeGroupOwnerLinkTs()) {
-				// owners.add(bidOfficeGroupOwnerLinkT
-				// .getBidOfficeGroupOwner());
-				// }
-				// }
-				// }
-				// }
-				// }
 				owners.addAll(opportunityRepository.getAllOwners(opportunity
 						.getOpportunityId()));
 			}
@@ -694,7 +668,7 @@ public class OpportunityService {
 			if (owners != null && !owners.isEmpty()) {
 				if (!isOwnersAreBDMorBDMSupervisor(owners)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Please tag BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+							"Please tag active BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
 				}
 			}
 
@@ -2193,17 +2167,19 @@ public class OpportunityService {
 	 */
 	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
 		// TODO Auto-generated method stub
-		logger.info("Inside isOwnersAreBDMorBDMSupervisor");
 		boolean isBDMOrBDMSupervisor = false;
-		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
-		for (String userGroup : userGroups) {
-			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-				isBDMOrBDMSupervisor = true;
-				break;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
+		if(CollectionUtils.isNotEmpty(userGroups)){
+			for (String userGroup : userGroups) {
+				if (userGroup.equals(UserGroup.BDM.getValue())
+						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
+					isBDMOrBDMSupervisor = true;
+					break;
+				}
 			}
 		}
+		
 		return isBDMOrBDMSupervisor;
 	}
 	

@@ -610,7 +610,7 @@ public class ConnectService {
 				if (owners != null) {
 					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Please tag BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+								"Please tag active BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
 					}
 				}
 				break;
@@ -1786,15 +1786,18 @@ public class ConnectService {
 	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
 		// TODO Auto-generated method stub
 		boolean isBDMOrBDMSupervisor = false;
-		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
-		for (String userGroup : userGroups) {
-			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-				isBDMOrBDMSupervisor = true;
-				break;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
+		if(CollectionUtils.isNotEmpty(userGroups)){
+			for (String userGroup : userGroups) {
+				if (userGroup.equals(UserGroup.BDM.getValue())
+						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
+					isBDMOrBDMSupervisor = true;
+					break;
+				}
 			}
 		}
+		
 		return isBDMOrBDMSupervisor;
 	}
 
