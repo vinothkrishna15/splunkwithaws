@@ -110,9 +110,6 @@ public class WorkflowService {
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
 
-	@Value("${workflowCustomerRejected}")
-	private String workflowCustomerRejected;
-
 	@Autowired 
 	WorkflowStepTRepository workflowStepTRepository;
 
@@ -184,7 +181,6 @@ public class WorkflowService {
 		UserT user = userRepository.findByUserId(userId);
 
 		try{
-
 			if (validateWorkflowRequest(workflowCustomerT)) {
 				requestSteps = workflowStepTRepository.findStepForEditAndApprove(Constants.CONSTANT_ZERO,workflowCustomerT.getWorkflowCustomerId());
 				masterRequest = workflowRequestTRepository.findRequestedRecord(Constants.CONSTANT_ZERO,workflowCustomerT.getWorkflowCustomerId());
@@ -204,12 +200,12 @@ public class WorkflowService {
 								CustomerMasterT oldCustomerMaster = customerRepository.findByCustomerName(oldCustomerName);
 								if(oldCustomerMaster!=null) {
 									saveToMasterTables(oldCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 								else{
 									CustomerMasterT newCustomerMaster = new CustomerMasterT();
 									saveToMasterTables(newCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
+									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
 								}
 							}
 							//
@@ -661,6 +657,7 @@ public class WorkflowService {
 
 		int stepId = -1;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
 		stepId = workflowStepT.getStepId();
 		WorkflowStepT workflowStepToReject = new WorkflowStepT();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
@@ -687,7 +684,7 @@ public class WorkflowService {
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
 					if(masterRequest.getEntityTypeId().equals(EntityTypeId.CUSTOMER.getType())){
-						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejected,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
+						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejectedSubject + user.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
 					}
 					if(masterRequest.getEntityTypeId().equals(EntityTypeId.PARTNER.getType())){
 						sendEmailNotificationforApprovedOrRejectMail(workflowPartnerRejectedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.PARTNER.getType());

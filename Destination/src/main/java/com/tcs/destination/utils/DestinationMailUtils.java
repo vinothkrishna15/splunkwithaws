@@ -65,6 +65,7 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
@@ -117,8 +118,15 @@ public class DestinationMailUtils {
 	@Value("${workflowPendingTemplateLoc}")
 	private String workflowPendingTemplateLoc;
 
+	@Value("${workflowCustomerPendingTemplateLoc}")
+	private String workflowCustomerPendingTemplateLoc;
+
+
 	@Value("${workflowApproveOrRejectTemplateLoc}")
 	private String workflowApproveOrRejectTemplateLoc;
+
+	@Value("${workflowCustomerApproveOrRejectTemplateLoc}")
+	private String workflowCustomerApproveOrRejectTemplateLoc;
 
 	@Value("${upload.template}")
 	private String uploadTemplateLoc;
@@ -173,7 +181,7 @@ public class DestinationMailUtils {
 
 	@Autowired
 	WorkflowProcessTemplateRepository workflowProcessTemplateRepository;
-	
+
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
 
@@ -255,7 +263,7 @@ public class DestinationMailUtils {
 
 			String template = null;
 			StringBuffer subject = new StringBuffer(environmentName)
-					.append(" Admin: ");
+			.append(" Admin: ");
 
 			String userName = null;
 			String entity = null;
@@ -275,7 +283,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 2: {
 				// Customer upload
@@ -284,7 +292,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 3: {
 				// Connect upload
@@ -293,7 +301,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 4: {
 				// Opportunity upload
@@ -302,7 +310,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 5: {
 				// Actual revenue upload
@@ -311,7 +319,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 6: {
 				// Customer contact upload
@@ -320,7 +328,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
 			}
-				break;
+			break;
 
 			case 7: {
 				// Partner upload
@@ -329,7 +337,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 8: {
 				// Partner contact upload
@@ -338,7 +346,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 			case 9: {
 				// Beacon upload
 				subject.append(BEACON_UPLOAD_SUBJECT);
@@ -346,7 +354,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 10: {
 				// User download
@@ -355,7 +363,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.USER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 11: {
 				// Customer download
@@ -364,7 +372,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 12: {
 				// Connect download
@@ -373,7 +381,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CONNECT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 13: {
 				// Opportunity download
@@ -382,7 +390,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 14: {
 				// Actual revenue download
@@ -391,7 +399,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.ACTUAL_REVENUE.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 15: {
 				// Customer contact download
@@ -400,7 +408,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.CUSTOMER_CONTACT
 						.name().toLowerCase());
 			}
-				break;
+			break;
 
 			case 16: {
 				// Partner download
@@ -409,7 +417,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 17: {
 				// Partner contact download
@@ -418,7 +426,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.PARTNER_CONTACT.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 18: {
 				// Beacon download
@@ -427,7 +435,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.BEACON.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			case 19: {
 				// Opportunity download
@@ -436,7 +444,7 @@ public class DestinationMailUtils {
 				entity = WordUtils.capitalize(EntityType.OPPORTUNITY.name()
 						.toLowerCase());
 			}
-				break;
+			break;
 
 			}
 
@@ -560,7 +568,7 @@ public class DestinationMailUtils {
 
 			String template = uploadNotifyTemplateLoc;
 			StringBuffer subject = new StringBuffer(environmentName)
-					.append(" Admin: ");
+			.append(" Admin: ");
 
 			String userName = user.getUserName();
 			;
@@ -576,7 +584,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 2: {
 				// Customer upload
@@ -585,7 +593,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 3: {
 				// Connect upload
@@ -594,7 +602,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 4: {
 				// Opportunity upload
@@ -603,7 +611,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 5: {
 				// Actual revenue upload
@@ -612,7 +620,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 6: {
 				// Customer contact upload
@@ -621,7 +629,7 @@ public class DestinationMailUtils {
 						.name().toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 7: {
 				// Partner upload
@@ -630,7 +638,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			case 8: {
 				// Partner contact upload
@@ -639,7 +647,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 			case 9: {
 				// Beacon upload
 				subject.append(BEACON_UPLOAD_NOTIFY_SUBJECT);
@@ -647,7 +655,7 @@ public class DestinationMailUtils {
 						.toLowerCase());
 				fileName = request.getFileName();
 			}
-				break;
+			break;
 
 			}
 
@@ -812,7 +820,7 @@ public class DestinationMailUtils {
 	 */
 	private void sendUserAccessMail(DestinationMailMessage message,
 			UserAccessRequestT userAccessRequest, String dateStr)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside sendUserAccessMail method");
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
@@ -923,7 +931,7 @@ public class DestinationMailUtils {
 			mailIdsArray = getMailIdsFromUserIds(idList);
 		return mailIdsArray;
 	}
-	
+
 	private String[] getSetMailAddressArr(Set<String> idList) throws Exception {
 		String[] mailIdsArray = new String[0];
 		if (idList != null)
@@ -949,7 +957,7 @@ public class DestinationMailUtils {
 				.toArray(new String[recipientMailIds.size()]);
 		return recipientMailIdsArray;
 	}
-	
+
 	private String[] getSetMailIdsFromUserIds(Set<String> recipientIdList)
 			throws Exception {
 		List<String> recipientMailIds = new ArrayList<String>();
@@ -1077,7 +1085,7 @@ public class DestinationMailUtils {
 			DestinationMailMessage message,
 			OpportunityReopenRequestT oppReopenRequest, UserT user,
 			OpportunityT opp, String dateStr, CustomerMasterT customer)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside sendOpportunityReopenProcessedMail method");
 		List<String> recipientIdList = message.getRecipients();
 		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
@@ -1146,6 +1154,7 @@ public class DestinationMailUtils {
 		String workflowEntityName = null;
 		String geography = null;
 		String userName = null;
+		String notes = null;
 		String[] recipientMailIdsArray = null;
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
@@ -1153,7 +1162,9 @@ public class DestinationMailUtils {
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
-		
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
+
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 		case CUSTOMER :
 			workflowEntity = Constants.WORKFLOW_CUSTOMER;
@@ -1161,15 +1172,17 @@ public class DestinationMailUtils {
 					.findOne(entityId);
 			workflowEntityName = workflowCustomerT.getCustomerName();
 			geography = workflowCustomerT.getGeography();
+			notes = workflowCustomerT.getNotes();
 			userName = userRepository
 					.findUserNameByUserId(workflowCustomerT.getCreatedBy());
-			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT);
+			subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT + " " + user.getUserName());
 			break;
 		case PARTNER :
 			workflowEntity = Constants.WORKFLOW_PARTNER;
 			WorkflowPartnerT workflowPartnerT = workflowPartnerRepository.findOne(entityId);
 			workflowEntityName = workflowPartnerT.getPartnerName();
 			geography = workflowPartnerT.getGeography();
+			notes = workflowPartnerT.getNotes();
 			userName = userRepository
 					.findUserNameByUserId(workflowPartnerT.getCreatedBy());
 			subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT);
@@ -1181,6 +1194,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
+			String text = "";
 			helper = new MimeMessageHelper(automatedMIMEMessage, true);
 			WorkflowStepT workflowStepPending = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
@@ -1192,7 +1206,7 @@ public class DestinationMailUtils {
 					switch (workflowStepPending.getUserGroup()) {
 					case Constants.WORKFLOW_GEO_HEADS:
 
-//						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+						//						String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 						recepientIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowUserGroup(
 										geography, Constants.Y,
@@ -1227,14 +1241,22 @@ public class DestinationMailUtils {
 			workflowMap.put("workflowEntityName", workflowEntityName);
 			workflowMap.put("submittedDate", dateStr);
 			workflowMap.put("userName", userName);
+			workflowMap.put("notes", notes);
+			workflowMap.put("geography", geography);
 			helper.setTo(recipientMailIdsArray);
 			helper.setFrom(senderEmailId);
 
-			String text = VelocityEngineUtils.mergeTemplateIntoString(
-					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
-					workflowMap);
+			if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals("CUSTOMER")){
+				text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine, workflowCustomerPendingTemplateLoc, Constants.UTF8,
+						workflowMap);
+			}
+			else{
+				text = VelocityEngineUtils.mergeTemplateIntoString(
+						velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
+						workflowMap);
+			}
 			logger.info("framed text for mail :" + text);
-
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
 			logMailDetails(recipientMailIdsArray, null, null, subject.toString(), text);
@@ -1289,32 +1311,32 @@ public class DestinationMailUtils {
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.SUBMITTED.getStatus());
 			if (workflowStepSubmitted != null) {
-			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
-			case CUSTOMER :
-				entity = Constants.WORKFLOW_CUSTOMER;
-				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
-						.findOne(entityId);
-				entityName = workflowCustomerT.getCustomerName();
-				geography = workflowCustomerT.getGeography();
-				userName = userRepository
-						.findUserNameByUserId(workflowCustomerT.getCreatedBy());
-				recepientIds.add(workflowCustomerT.getCreatedBy());
-				break;
-			case PARTNER :
-				entity = Constants.WORKFLOW_PARTNER;
-				WorkflowPartnerT workflowPartnerT = workflowPartnerRepository.findOne(entityId);
-				entityName = workflowPartnerT.getPartnerName();
-				geography = workflowPartnerT.getGeography();
-				userName = userRepository
-						.findUserNameByUserId(workflowPartnerT.getCreatedBy());
-				recepientIds.add(workflowPartnerT.getCreatedBy());
-				break;
-			default:
-				break;
-			}
-			
+				switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
+				case CUSTOMER :
+					entity = Constants.WORKFLOW_CUSTOMER;
+					WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
+							.findOne(entityId);
+					entityName = workflowCustomerT.getCustomerName();
+					geography = workflowCustomerT.getGeography();
+					userName = userRepository
+							.findUserNameByUserId(workflowCustomerT.getCreatedBy());
+					recepientIds.add(workflowCustomerT.getCreatedBy());
+					break;
+				case PARTNER :
+					entity = Constants.WORKFLOW_PARTNER;
+					WorkflowPartnerT workflowPartnerT = workflowPartnerRepository.findOne(entityId);
+					entityName = workflowPartnerT.getPartnerName();
+					geography = workflowPartnerT.getGeography();
+					userName = userRepository
+							.findUserNameByUserId(workflowPartnerT.getCreatedBy());
+					recepientIds.add(workflowPartnerT.getCreatedBy());
+					break;
+				default:
+					break;
+				}
+
 				List<WorkflowStepT> workflowStepforCcIds = new ArrayList<WorkflowStepT>();
-				
+
 				List<WorkflowStepT> workflowStepsBelowMaximumStep = workflowStepRepository.findWorkflowTemplateBelowMaximumStep(requestId);
 				if(CollectionUtils.isNotEmpty(workflowStepsBelowMaximumStep)) {
 					for(WorkflowStepT workflowStep:workflowStepsBelowMaximumStep){
@@ -1332,13 +1354,13 @@ public class DestinationMailUtils {
 								switch (workflowStep.getUserGroup()) {
 								case Constants.WORKFLOW_GEO_HEADS:
 
-//									String pmoValue = "%"
-//											+ Constants.PMO_KEYWORD + "%";
+									//									String pmoValue = "%"
+									//											+ Constants.PMO_KEYWORD + "%";
 									ccIds.addAll(userAccessPrivilegesRepository
 											.findUserIdsForWorkflowUserGroup(
 													geography, Constants.Y,
 													UserGroup.GEO_HEADS
-															.getValue()));
+													.getValue()));
 								default:
 
 								}
@@ -1365,7 +1387,7 @@ public class DestinationMailUtils {
 					ccMailIdsArray = getSetMailAddressArr(ccIds);
 					helper.setCc(ccMailIdsArray);
 				}
-				
+
 				helper.setTo(recipientMailIdsArray);
 				helper.setFrom(senderEmailId);
 				helper.setSubject(subject);
@@ -1374,15 +1396,15 @@ public class DestinationMailUtils {
 				workflowMap.put("entity", Constants.WORKFLOW_CUSTOMER);
 				workflowMap.put("entityName", entityName);
 				workflowMap.put("submittedDate", dateStr);
-				
+				String text = "";
 				if (workflowRequestT.getStatus().equals(
 						WorkflowStatus.APPROVED.getStatus())) {
 					WorkflowStepT workflowStepForFinalApproval = workflowStepRepository.findWorkflowStepForFinalApproval(requestId);
 					if (workflowStepForFinalApproval.getComments() != null) {
 						comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
-								.append(" ")
-								.append(workflowStepForFinalApproval
-										.getComments()).toString();
+						.append(" ")
+						.append(workflowStepForFinalApproval
+								.getComments()).toString();
 					}
 					approvedOrRejectedUserName = userRepository.findUserNameByUserId(workflowStepForFinalApproval.getUserId());
 					workflowMap.put("status", "approved");
@@ -1393,17 +1415,25 @@ public class DestinationMailUtils {
 					WorkflowStepT workflowStepRejected = workflowStepRepository.findByRequestIdAndStepStatus(requestId,WorkflowStatus.REJECTED.getStatus());
 					approvedOrRejectedUserName = userRepository.findUserNameByUserId(workflowStepRejected.getUserId());
 					comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
-							.append(" ")
-							.append(workflowStepRejected
-									.getComments()).toString();
+					.append(" ")
+					.append(workflowStepRejected
+							.getComments()).toString();
 					workflowMap.put("approvedOrRejectedUserName",
 							approvedOrRejectedUserName);
 					workflowMap.put("status", "rejected");
 					workflowMap.put("comment", comment);
 				}
-				String text = VelocityEngineUtils.mergeTemplateIntoString(
+
+				if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals("CUSTOMER")){
+					text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, workflowCustomerApproveOrRejectTemplateLoc,
+							Constants.UTF8, workflowMap);
+				}
+				else{
+				text = VelocityEngineUtils.mergeTemplateIntoString(
 						velocityEngine, workflowApproveOrRejectTemplateLoc,
 						Constants.UTF8, workflowMap);
+				}
 				logger.info("framed text for mail :" + text);
 				helper.setText(text, true);
 				logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
@@ -1431,20 +1461,20 @@ public class DestinationMailUtils {
 			throw e;
 		}
 	}
-	
-	 private String constructUserNamesSplitByComma(List<String> userNames) {
-			
-			StringBuilder buffer = new StringBuilder();
 
-			for(String userName : userNames){
-			    buffer.append(userName+",");
-			}
-			
-			if(buffer.length()>0){
-			    buffer.deleteCharAt(buffer.length()-1);
-			}
-			logger.debug("Inside constructUserNamesSplitByComma Service");
-			return buffer.toString();
-		    }
+	private String constructUserNamesSplitByComma(List<String> userNames) {
+
+		StringBuilder buffer = new StringBuilder();
+
+		for(String userName : userNames){
+			buffer.append(userName+",");
+		}
+
+		if(buffer.length()>0){
+			buffer.deleteCharAt(buffer.length()-1);
+		}
+		logger.debug("Inside constructUserNamesSplitByComma Service");
+		return buffer.toString();
+	}
 
 }
