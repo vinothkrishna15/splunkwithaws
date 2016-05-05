@@ -12,6 +12,9 @@ public class DestinationMailMessage {
 	private String subject;
 	private String message;
 	
+	private String atchFileName;
+	private String atchFilePath;
+	
 	public List<String> getRecipients() {
 		return recipientIdList;
 	}
@@ -54,7 +57,23 @@ public class DestinationMailMessage {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-	
-	
+	public List<String> getRecipientIdList() {
+		return recipientIdList;
+	}
+	public void setRecipientIdList(List<String> recipientIdList) {
+		this.recipientIdList = recipientIdList;
+	}
+	public String getAtchFileName() {
+		return atchFileName;
+	}
+	public void setAtchFileName(String atchFileName) {
+		this.atchFileName = atchFileName;
+	}
+	public String getAtchFilePath() {
+		return atchFilePath;
+	}
+	public void setAtchFilePath(String atchFilePath) {
+		this.atchFilePath = atchFilePath;
+	}
 	
 }

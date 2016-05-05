@@ -62,11 +62,11 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
-import com.tcs.destination.bean.NotesT;
-import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
@@ -185,12 +185,15 @@ public class DestinationMailUtils {
 
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
-
+	
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
 	@Autowired
 	private OpportunityService oppService;
+
+	@Autowired
+	private DestinationMailSender destMailSender;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
@@ -204,26 +207,19 @@ public class DestinationMailUtils {
 			Date requestedDateTime) throws Exception {
 		logger.debug("inside sendPasswordAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setMessageType(Constants.MIME);
 
-		List<String> recipientIds = new ArrayList<String>();
-		String userId = user.getUserId();
-		recipientIds.add(userId);
-		message.setRecipients(recipientIds);
+		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
 
-		List<String> ccIds = new ArrayList<String>();
-		message.setCcList(ccIds);
+		message.setSubject(formatSubject(subject));
 
-		List<String> bccIds = new ArrayList<String>();
-		message.setBccList(bccIds);
+		Map<String, Object> forgotPasswordTemplateDataModel = Maps.newHashMap();
+		forgotPasswordTemplateDataModel.put("user", user);
+		forgotPasswordTemplateDataModel.put("date", formatDate(requestedDateTime));
+		String text = mergeTmplWithData(forgotPasswordTemplateDataModel, forgotPasswordTemplateLoc);
 
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
-				.append(subject).toString();
-		message.setSubject(sub);
-		logger.info("Subject : " + sub);
-		sendPasswordMail(message, user, dateStr);
+		message.setMessage(text);
+		destMailSender.send(message);
+		logger.info("Forgot Password : Mail sent");
 	}
 
 	/**
@@ -235,7 +231,6 @@ public class DestinationMailUtils {
 	 */
 	public boolean sendUserRequestResponse(DataProcessingRequestT request,
 			List<UserRole> roles) throws Exception {
-
 		logger.debug("inside sendUserRequestResponse method");
 
 		boolean status = false;
@@ -452,14 +447,14 @@ public class DestinationMailUtils {
 
 			}
 
-			if (requestType > 0 && requestType < 10) {
+			if (requestType > 0 && requestType < 10) { //upload
 				template = uploadTemplateLoc;
 				requestId = request.getProcessRequestId().toString();
 				uploadedFileName = request.getFileName();
 				attachmentFilePath = request.getErrorFilePath()
 						+ request.getErrorFileName();
 				attachmentFileName = request.getErrorFileName();
-			} else if (requestType > 9 && requestType < 19) {
+			} else if (requestType > 9 && requestType < 19) { //download
 				template = downloadTemplateLoc;
 				attachmentFilePath = request.getFilePath()
 						+ request.getFileName();
@@ -690,43 +685,38 @@ public class DestinationMailUtils {
 	}
 
 	/**
-	 * @param subject
-	 *            - subject of the mail to be sent
-	 * @param reqId
-	 *            - request id for new user access
-	 * @param requestedDateTime
-	 *            - requested timestamp
+	 * send a mail to the system admin, when a user request for access
+	 * @param subject - subject of the mail to be sent
+	 * @param reqId - request id for new user access
+	 * @param requestedDateTime - requested timestamp
 	 * @throws Exception
 	 */
 	public void sendUserAccessAutomatedEmail(String subject, String reqId,
 			Date requestedDateTime) throws Exception {
 		logger.debug("inside sendUserAccessAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
-		message.setMessageType(Constants.MIME);
 
+		//add all system admins in "to address"
+		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
+		message.setRecipients(listMailIdsFromUserIds(recipientIds));
+
+		//cc to the requested user and his supervisor
 		UserAccessRequestT userAccessRequest = userAccessRepo.findOne(reqId);
-
-		List<String> recipientIds = userService
-				.findByUserRole(Constants.SYSTEM_ADMIN);
-		message.setRecipients(recipientIds);
-
-		List<String> ccIds = new ArrayList<String>();
-		String supervisorId = userAccessRequest.getSupervisorId();
-		ccIds.add(supervisorId);
+		UserT supervisor = userRepository.findOne(userAccessRequest.getSupervisorId());
+		List<String> ccIds = Lists.newArrayList(userAccessRequest.getUserEmailId(), supervisor.getUserEmailId());
 		message.setCcList(ccIds);
 
-		List<String> bccIds = new ArrayList<String>();
-		message.setBccList(bccIds);
+		message.setSubject(formatSubject(subject));
 
-		String sub = new StringBuffer(environmentName).append(" ")
-				.append(subject).toString();
-		message.setSubject(sub);
-		logger.info("Subject : " + sub);
-
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String requestedDateStr = df.format(requestedDateTime);
-
-		sendUserAccessMail(message, userAccessRequest, requestedDateStr);
+		String requestedDateStr = formatDate(requestedDateTime);
+		logger.info("User Access - Sender : " + senderEmailId);
+		Map<String, Object> userAccessTemplateDataModel = Maps.newHashMap();
+		userAccessTemplateDataModel.put("request", userAccessRequest);
+		userAccessTemplateDataModel.put("date", requestedDateStr);
+		String text = mergeTmplWithData(userAccessTemplateDataModel, userAccessTemplateLoc);
+		message.setMessage(text);
+		
+		destMailSender.send(message);
 	}
 
 	/**
@@ -761,59 +751,11 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
 
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
-				.append(subject).toString();
+		String dateStr = formatDate(requestedDateTime);
+		String sub = formatSubject(subject);
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
 		sendOpportunityReopenMail(message, oppReopenRequest, user, opp, dateStr);
-	}
-
-	/**
-	 * @param message
-	 * @param user
-	 * @param dateStr
-	 * @throws Exception
-	 */
-	private void sendPasswordMail(DestinationMailMessage message, UserT user,
-			String dateStr) throws Exception {
-		logger.debug("Inside sendPasswordMail method");
-		List<String> recipientIdList = message.getRecipients();
-		String[] recipientMailIdsArray = getMailIdsFromUserIds(recipientIdList);
-		String[] ccMailIdsArray = getMailAddressArr(message.getCcList());
-		String[] bccMailIdsArray = getMailAddressArr(message.getBccList());
-
-		if (message.getMessageType().equals(Constants.MIME)) {
-			MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
-					.createMimeMessage();
-			try {
-				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
-				helper.setTo(recipientMailIdsArray);
-				helper.setCc(ccMailIdsArray);
-				helper.setBcc(bccMailIdsArray);
-				String subject = message.getSubject();
-				helper.setSubject(subject);
-				logger.info("Forgot Password - Sender : " + senderEmailId);
-				logger.info("Forgot Password - date : " + dateStr);
-				helper.setFrom(senderEmailId);
-				Map forgotPasswordTemplateDataModel = new HashMap();
-				forgotPasswordTemplateDataModel.put("user", user);
-				forgotPasswordTemplateDataModel.put("date", dateStr);
-				String text = VelocityEngineUtils.mergeTemplateIntoString(
-						velocityEngine, forgotPasswordTemplateLoc,
-						Constants.UTF8, forgotPasswordTemplateDataModel);
-				helper.setText(text, true);
-				logMailDetails(recipientMailIdsArray, ccMailIdsArray,
-						bccMailIdsArray, subject, text);
-				mailSender.send(automatedMIMEMessage);
-				logger.info("Forgot Password : Mail sent");
-			} catch (Exception e) {
-				logger.error("Error sending mail message", e.getMessage());
-				throw e;
-			}
-		}
 	}
 
 	/**
@@ -822,7 +764,7 @@ public class DestinationMailUtils {
 	 * @param dateStr
 	 * @throws Exception
 	 */
-	private void sendUserAccessMail(DestinationMailMessage message,
+	/*private void sendUserAccessMail(DestinationMailMessage message,
 			UserAccessRequestT userAccessRequest, String dateStr)
 					throws Exception {
 		logger.debug("Inside sendUserAccessMail method");
@@ -866,7 +808,8 @@ public class DestinationMailUtils {
 			}
 		}
 
-	}
+	}*/
+
 
 	/**
 	 * This method initializes the actual mime message that will be sent
@@ -953,7 +896,7 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-			//			UserT recipient = userService.findByUserId(recipientId);
+//			UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -963,12 +906,20 @@ public class DestinationMailUtils {
 		return recipientMailIdsArray;
 	}
 
+	private List<String> listMailIdsFromUserIds(List<String> recipientIdList) {
+		List<String> emailIds = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(recipientIdList)) {
+			emailIds = userRepository.findUserMailIdsFromUserId(recipientIdList);
+		}
+		return emailIds;		
+	}
+
 	private String[] getSetMailIdsFromUserIds(Set<String> recipientIdList)
 			throws Exception {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-			//			UserT recipient = userService.findByUserId(recipientId);
+//			UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -1077,10 +1028,8 @@ public class DestinationMailUtils {
 		message.setCcList(ccIds);
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(date);
-		String sub = new StringBuffer(environmentName).append(" ")
-				.append(reopenOpportunityProcessedSubject).toString();
+		String dateStr = formatDate(date);
+		String sub = formatSubject(reopenOpportunityProcessedSubject);
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
 		sendOpportunityReopenProcessedMail(message, oppReopenRequest, user,
@@ -1155,7 +1104,7 @@ public class DestinationMailUtils {
 	public void sendWorkflowPendingMail(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
 		logger.info("Inside sendWorkflowPendingMail method");
-
+		
 		List<String> recepientIds = new ArrayList<String>();
 		String userGroupOrUserRoleOrUserId = null;
 		String workflowEntity = null;
@@ -1169,8 +1118,7 @@ public class DestinationMailUtils {
 		String[] ccMailIdsArray = null;
 		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 		List<String> ccIds = new ArrayList<String>();
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(date);
+		String dateStr = formatDate(date);
 		StringBuffer subject = new StringBuffer(environmentName);
 		logger.info("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
@@ -1375,8 +1323,7 @@ public class DestinationMailUtils {
 		Set<String> ccIds = new HashSet<String>();
 		List<String> recepientIds = new ArrayList<String>();
 		String[] recipientMailIdsArray = null;
-		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		String dateStr = df.format(date);
+		String dateStr = formatDate(date);
 		String approvedOrRejectedUserName = null;
 		String entity = null;
 		String operation = null;
@@ -1385,8 +1332,7 @@ public class DestinationMailUtils {
 		String geography = null;
 		String pmoValue = "%"
 				+ Constants.PMO_KEYWORD + "%";
-		String subject = new StringBuffer(environmentName).append(" ")
-				.append(workflowCustomerApprovedOrRejectSubject).toString();
+		String subject = formatSubject(workflowCustomerApprovedOrRejectSubject);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
@@ -1616,5 +1562,40 @@ public class DestinationMailUtils {
 		logger.debug("Inside constructUserNamesSplitByComma Service");
 		return buffer.toString();
 	}
+		/**
+		 * merge the data in the given template
+		 * @param data
+		 * @param tmpl
+		 * @return
+		 */
+		private String mergeTmplWithData(
+				Map<String, Object> data, String tmpl) {
+			return VelocityEngineUtils.mergeTemplateIntoString(
+					velocityEngine, tmpl,
+					Constants.UTF8, data);
+		}
+		
 
+		/**
+		 * format the given date to predefined destination date-format
+		 * @param requestedDateTime
+		 * @return
+		 */
+		private String formatDate(final Date requestedDateTime) {
+			DateFormat df = new SimpleDateFormat(dateFormatStr);
+			String dateStr = df.format(requestedDateTime);
+			return dateStr;
+		}
+		
+
+		/**
+		 * format the subject with environment name
+		 * @param subject
+		 * @return
+		 */
+		private String formatSubject(String subject) {
+			String sub = new StringBuffer(environmentName).append(" ")
+					.append(subject).toString();
+			return sub;
+		}
 }
