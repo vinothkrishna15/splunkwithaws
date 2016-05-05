@@ -26,5 +26,8 @@ public interface ConnectSecondaryOwnerRepository extends
 			@Param("endTime") Timestamp endTime,
 			@Param("customerId") String customerId,
 			@Param("partnerId") String partnerId);
+
+	@Query(value = "select secondary_owner from connect_secondary_owner_link_t where connect_secondary_owner_link_id = ?1",nativeQuery=true)
+	String findSecondaryOwner(String connectSecondaryOwnerLinkId);
 	
 }

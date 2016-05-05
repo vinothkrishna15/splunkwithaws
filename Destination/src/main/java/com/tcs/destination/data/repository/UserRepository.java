@@ -1,6 +1,7 @@
 package com.tcs.destination.data.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -97,9 +98,9 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select user_id from user_t where user_id like ?1 or user_group = ?2", nativeQuery = true)
 	List<String> findGeoHeadsAndPMOUserIds(String pmoValue, String value);
     
-	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds)", nativeQuery = true)
-	List<String> findUserGroupByUserIds(@Param("userIds") List<String> userIds);
-
 	List<UserT> findByBaseLocationIgnoreCaseContainingOrderByUserNameAsc(String baseLocation);
+	
+	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds)", nativeQuery = true)
+	List<String> findUserGroupByUserIds(@Param("userIds") Set<String> userIds);
 
 }

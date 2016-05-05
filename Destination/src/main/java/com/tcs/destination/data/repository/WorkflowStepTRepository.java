@@ -43,6 +43,8 @@ public interface WorkflowStepTRepository extends JpaRepository<WorkflowStepT, In
 	public List<WorkflowStepT> findStepForEditAndApprove(int entityTypeId, String requestId);
 	
 	public WorkflowStepT findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(Integer requestId, String stepStatus);
+
+	WorkflowStepT findByRequestIdAndStep(Integer requestId, int step);
 	
 	
 	

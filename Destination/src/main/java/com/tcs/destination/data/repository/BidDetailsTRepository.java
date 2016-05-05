@@ -45,7 +45,8 @@ public interface BidDetailsTRepository extends
 	List<String> getBidRequestType();
 
 	List<BidDetailsT> findByOpportunityId(String opportunityId);
-
 	
+	@Query(value = "select (BID.*) from bid_details_t BID where opportunity_id=(:opportunityId) order by bid_id asc limit 1", nativeQuery = true)
+	BidDetailsT findLatestBidByOpportunityId(@Param("opportunityId") String opportunityId);
 	
 }
