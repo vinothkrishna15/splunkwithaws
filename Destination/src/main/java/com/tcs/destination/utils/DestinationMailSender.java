@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.exception.DestinationException;
 
 /**
  * 
@@ -82,11 +83,14 @@ public class DestinationMailSender {
 				logMailDetails(recipients, ccList, bccList, subject, mailBody);
 				
 				mailSender.send(mimeMessage);
+				logger.info("mail sent, subject : {}", subject);
 				
 			} catch (MessagingException | MailException e) {
 				logger.error("Error sending mail {}", e.getMessage());
 				throw e;
 			}
+		} else {
+			throw new DestinationException("Invalid mail : Check recipients and subject");
 		}
 
 
