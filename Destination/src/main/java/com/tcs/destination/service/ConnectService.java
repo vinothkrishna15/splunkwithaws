@@ -1,5 +1,7 @@
 package com.tcs.destination.service;
 
+import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -83,6 +85,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 @Service("connectService")
@@ -610,7 +613,7 @@ public class ConnectService {
 				if (owners != null) {
 					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Please tag active BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+								PropertyUtil.getProperty(ERR_INAC_01));
 					}
 				}
 				break;

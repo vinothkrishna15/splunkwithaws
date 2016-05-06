@@ -90,6 +90,7 @@
                 <value>application.properties</value>
                 <value>mailsubject.properties</value>
                 <value>batch.properties</value>
+                <value>errormessages.properties</value>
                 <value>environment_dev.properties</value>
                 <!-- value>environment_sit.properties</value-->
                 <!-- value>environment_uat.properties</value-->

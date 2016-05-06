@@ -92,7 +92,10 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
+
+import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 @Service
 public class OpportunityService {
@@ -668,7 +671,7 @@ public class OpportunityService {
 			if (owners != null && !owners.isEmpty()) {
 				if (!isOwnersAreBDMorBDMSupervisor(owners)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Please tag active BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+							PropertyUtil.getProperty(ERR_INAC_01));
 				}
 			}
 
