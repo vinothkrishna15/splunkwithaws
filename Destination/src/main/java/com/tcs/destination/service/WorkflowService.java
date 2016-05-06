@@ -54,6 +54,7 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
@@ -128,6 +129,9 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowRequestTRepository workflowRequestTRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	@Autowired
 	CustomerUploadService customerUploadService;
@@ -1403,6 +1407,8 @@ public class WorkflowService {
 	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
+		Set<String> pmos = new HashSet<String>();
+		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
@@ -1412,17 +1418,28 @@ public class WorkflowService {
 		// approval/rejection
 		if (userId.contains("pmo")) {
 			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GEO_GROUP_QUERY);
+					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
 			Query query = entityManager.createNativeQuery(queryBuffer
 					.toString());
+			
+			
 			query.setParameter("userId", userId);
+			if (resultList == null) {
+				resultList = query.getResultList();
+			}
+			else {
+				List<Object[]> resultForPMOPending = query.getResultList();
+				resultList.addAll(resultForPMOPending);
+			}
+			//query.setParameter("pmoValue", pmoValue);
 		}
 		// Query to get pending with group of users, based on user's role and
 		// user group
+		
 		StringBuffer queryBuffer = new StringBuffer(
 				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
 		Query query = entityManager.createNativeQuery(queryBuffer.toString());
-		query.setParameter("userRole", userRole);
+	query.setParameter("userRole", userRole);
 		query.setParameter("userGroup", userGroup);
 		if (resultList == null) {
 			resultList = query.getResultList();
@@ -1430,7 +1447,6 @@ public class WorkflowService {
 			List<Object[]> resultForGroupPending = query.getResultList();
 			resultList.addAll(resultForGroupPending);
 		}
-
 		return resultList;
 	}
 
