@@ -40,7 +40,7 @@
 	<import resource="/jobs/customerContactDownload-job.xml"/>
     <import resource="/jobs/userUpload-job.xml"/>
     <import resource="/jobs/customerContactUpload-job.xml"/>
+    <import resource="/jobs/opportunityWonLostEmailNotification-job.xml"/>
 
-	
 </beans>
 	

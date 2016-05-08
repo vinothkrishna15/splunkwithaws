@@ -51,6 +51,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -79,6 +80,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
@@ -220,6 +222,9 @@ public class OpportunityService {
 
 	@Autowired
 	FollowedService followService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
@@ -947,56 +952,42 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void updateOpportunity(OpportunityT opportunity) throws Exception {
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		opportunity.setCreatedBy(userId);
-		opportunity.setModifiedBy(userId);
-		logger.debug("Inside updateOpportunity() service");
-		String opportunityId = opportunity.getOpportunityId();
-		if (opportunityId == null) {
-			logger.error("OpportunityId is required for update");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"OpportunityId is required for update");
+	public void updateOpportunity(OpportunityT opportunity,OpportunityT opportunityBeforeEdit) throws Exception {
+	String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+	opportunity.setCreatedBy(userId);
+	opportunity.setModifiedBy(userId);
+	String opportunityId = opportunity.getOpportunityId();
+	logger.debug("Inside updateOpportunity() service");
+	UserT user = userRepository.findByUserId(userId);
+	String userGroup = user.getUserGroup();
+	if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
-		}
-		// Check if opportunity exists
-		if (!opportunityRepository.exists(opportunityId)) {
-			logger.error("Opportunity not found for update: {}", opportunityId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Opportunity not found for update: " + opportunityId);
-		}
-		UserT user = userRepository.findByUserId(userId);
-		String userGroup = user.getUserGroup();
-		OpportunityT opportunityBeforeEdit = opportunityRepository
-				.findOne(opportunityId);
-		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+	if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
+	userGroup, userId)) {
+	throw new DestinationException(HttpStatus.FORBIDDEN,
+	"User is not authorized to edit this opportunity");
+	}
+	}
+	        
+	// Load db object before update with lazy collections populated for auto
+	// comments
+	OpportunityT beforeOpp = loadDbOpportunityWithLazyCollections(opportunityId);
+	// Copy the db object as the above object is managed by current
+	// hibernate session
+	OpportunityT oldObject = (OpportunityT) DestinationUtils
+	.copy(beforeOpp);
 
-			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
-					userGroup, userId)) {
-				throw new DestinationException(HttpStatus.FORBIDDEN,
-						"User is not authorized to edit this opportunity");
-			}
-		}
-
-		// Load db object before update with lazy collections populated for auto
-		// comments
-		OpportunityT beforeOpp = loadDbOpportunityWithLazyCollections(opportunityId);
-		// Copy the db object as the above object is managed by current
-		// hibernate session
-		OpportunityT oldObject = (OpportunityT) DestinationUtils
-				.copy(beforeOpp);
-
-		// Update database
-		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
-				opportunityBeforeEdit);
-		if (afterOpp != null) {
-			logger.info("Opportunity has been updated successfully: "
-					+ opportunityId);
-			// Invoke Asynchronous Auto Comments Thread
-			processAutoComments(opportunityId, oldObject);
-			// Invoke Asynchronous Notifications Thread
-			processNotifications(opportunityId, oldObject);
-		}
+	// Update database
+	OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
+	opportunityBeforeEdit);
+	if (afterOpp != null) {
+	logger.info("Opportunity has been updated successfully: "
+	+ opportunityId);
+	// Invoke Asynchronous Auto Comments Thread
+	processAutoComments(opportunityId, oldObject);
+	// Invoke Asynchronous Notifications Thread
+	processNotifications(opportunityId, oldObject);
+	}
 	}
 
 	// This method is used to load database object with auto comments eligible
@@ -2403,6 +2394,43 @@ public class OpportunityService {
 
 		return isEditAccessRequired;
 
+	}
+	
+	/**
+	* This method is used to update the opportunity details and also
+	* send email notification if opportunity won or lost
+	* @param opportunity
+	* @throws Exception
+	*/
+	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
+		String opportunityId = opportunity.getOpportunityId();
+		if (opportunityId == null) {
+			logger.error("OpportunityId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"OpportunityId is required for update");
+
+		}
+		// Check if opportunity exists
+		if (!opportunityRepository.exists(opportunityId)) {
+			logger.error("Opportunity not found for update: {}", opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunity not found for update: " + opportunityId);
+		}
+		OpportunityT opportunityBeforeEdit = opportunityRepository
+				.findOne(opportunityId);
+		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
+		updateOpportunity(opportunity, opportunityBeforeEdit);
+		// If won or lost, sending email notification to group of users using
+		// asynchronous job
+		if ((oldSalesStageCode != 9 && opportunity.getSalesStageCode() == 9)
+				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
+			logger.info("Opportunity : " + opportunityId
+					+ " is either won or lost");
+			jobLauncherController.asyncJobLaunch(
+					JobName.opportunityWonLostEmailNotification,
+					EntityType.OPPORTUNITY.toString(),
+					opportunity.getOpportunityId());
+		}
 	}
 
 }

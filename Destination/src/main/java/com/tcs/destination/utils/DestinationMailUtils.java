@@ -69,6 +69,7 @@ import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserAccessRequestT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowCustomerT;
@@ -76,6 +77,7 @@ import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
@@ -90,6 +92,7 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -98,6 +101,9 @@ public class DestinationMailUtils {
 
 	@Value("${senderEmailId}")
 	private String senderEmailId;
+	
+	@Value("${opportunityWonLostGroupMailId}")
+	private String opportunityWonLostGroupMailId;
 
 	@Value("${dateFormat}")
 	private String dateFormatStr;
@@ -131,6 +137,12 @@ public class DestinationMailUtils {
 
 	@Value("${daily.download.template}")
 	private String dailyDownloadTemplateLoc;
+	
+	@Value("${opportunityWonTemplate}")
+	private String opportunityWonTemplateLoc;
+	
+	@Value("${opportunityLostTemplate}")
+	private String opportunityLostTemplateLoc;
 
 	@Value("${environment.name}")
 	private String environmentName;
@@ -176,6 +188,9 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
+	
+	@Autowired
+	OpportunityRepository opportunityRepository;
 
 	@Autowired
 	private OpportunityService oppService;
@@ -1484,5 +1499,130 @@ public class DestinationMailUtils {
 			logger.debug("Inside constructUserNamesSplitByComma Service");
 			return buffer.toString();
 		    }
+
+	/**
+	 * This method is used to send the email notification to group of users on 
+	 * opportunity won or lost 
+	 * @param entityId
+	 */
+	public void sendOpportunityWonLostNotification(String entityId) throws Exception {
+		// TODO Auto-generated method stub
+		logger.info("Inside sendOpportunityWonLostNotification method");
+		OpportunityT opportunity = opportunityRepository.findOne(entityId);
+		List<String> recepientIds = new ArrayList<String>();
+		String templateLoc = null;
+		String subject = null;
+		if (opportunity != null) {
+			String opportunityName = opportunity.getOpportunityName();
+			logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
+					+ opportunityName);
+			String customerName = opportunity.getCustomerMasterT()
+					.getCustomerName();
+			String opportunityOwner = userRepository
+					.findUserNameByUserId(opportunity.getOpportunityOwner());
+			Integer digitalBidValue = opportunity.getDigitalDealValue();
+			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+			Date dealClosureDate = opportunity.getDealClosureDate();
+			String dealClosureDateStr = df.format(dealClosureDate);
+			String opportunityDescription = opportunity
+					.getOpportunityDescription();
+			List<String> winLossFactors = new ArrayList<String>();
+			List<String> opportunitySalesSupportOwners = new ArrayList<String>();
+			String salesSupportOwners = "";
+			String factorsForWinLoss = "";
+			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+					.getOpportunityWinLossFactorsTs()) {
+				winLossFactors.add(opportunityWinLossFactorsT
+						.getWinLossFactor());
+			}
+			if (CollectionUtils.isNotEmpty(winLossFactors)) {
+				factorsForWinLoss = constructUserNamesSplitByComma(winLossFactors);
+				logger.info("factors for win/loss : "+factorsForWinLoss);
+			}
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
+
+				opportunitySalesSupportOwners.add(userRepository
+						.findUserNameByUserId(opportunitySalesSupportLinkT
+								.getSalesSupportOwner()));
+			}
+			if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
+				salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
+				logger.info("sales support owners : "+salesSupportOwners);
+			}
+
+			recepientIds.add(opportunityWonLostGroupMailId);
+			if (opportunity.getSalesStageCode() == 9) {
+				logger.info("opportunity Won");
+				subject = new StringBuffer("Destination:").append(" ")
+						.append("Deal Won for").append(" ")
+						.append(customerName).append(" ").append("on")
+						.append(" ").append(dealClosureDateStr).toString();
+				logger.info("Subject :"+subject);
+				templateLoc = opportunityWonTemplateLoc;
+				
+			}
+			
+			if(opportunity.getSalesStageCode() == 10) {
+				logger.info("OpportunityLost");
+				subject = new StringBuffer("Destination:").append(" ")
+						.append("Deal Lost for").append(" ")
+						.append(customerName).append(" ").append("on")
+						.append(" ").append(dealClosureDateStr).toString();
+				logger.info("Subject :"+subject);
+				templateLoc = opportunityLostTemplateLoc;
+				
+			}
+			if(templateLoc!=null) {
+				MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+						.createMimeMessage();
+				MimeMessageHelper helper;
+				try {
+					helper = new MimeMessageHelper(automatedMIMEMessage, true);
+					helper.setTo(opportunityWonLostGroupMailId);
+					logger.info("To email address : "+opportunityWonLostGroupMailId);
+					helper.setFrom(senderEmailId);
+					helper.setSubject(subject);
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("opportunityName", opportunityName);
+					map.put("customerName", customerName);
+					map.put("factorsForWinLoss", factorsForWinLoss);
+					map.put("opportunityOwner", opportunityOwner);
+					map.put("salesSupportOwners", salesSupportOwners);
+					map.put("digitalBidValue", digitalBidValue);
+					map.put("opportunityDescription", opportunityDescription);
+					String text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, templateLoc, Constants.UTF8,
+							map);
+					logger.info("framed text for mail :" + text);
+					helper.setText(text, true);
+					logger.info("before sending mail");
+					mailSender.send(automatedMIMEMessage);
+					logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "+entityId);
+				} catch (MessagingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (MailSendException e) {
+					logger.error("Error sending mail message", e.getMessage());
+					throw e;
+				} catch (MailParseException e) {
+					logger.error("Error parsing mail message", e.getMessage());
+					throw e;
+				} catch (MailAuthenticationException e) {
+					logger.error("Error authnticatingh e-mail message", e.getMessage());
+					throw e;
+				} catch (MailPreparationException e) {
+					logger.error("Error preparing mail message", e.getMessage());
+					throw e;
+				} catch (Exception e) {
+					logger.error("Error sending mail message", e.getMessage());
+					throw e;
+				}
+			}
+		} else {
+			throw new DestinationException("Opportunity not found :"+entityId);
+		}
+
+	}
 
 }
