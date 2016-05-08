@@ -51,6 +51,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -79,6 +80,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
@@ -226,6 +228,9 @@ public class OpportunityService {
 	
 	@Autowired
 	ConnectRepository connectRepository;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
@@ -905,28 +910,16 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void updateOpportunity(OpportunityT opportunity) throws Exception {
+	public void updateOpportunity(OpportunityT opportunity, OpportunityT opportunityBeforeEdit) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String opportunityId = opportunity.getOpportunityId();
 		opportunity.setCreatedBy(userId);
 		opportunity.setModifiedBy(userId);
 		logger.debug("Inside updateOpportunity() service");
-		String opportunityId = opportunity.getOpportunityId();
-		if (opportunityId == null) {
-			logger.error("OpportunityId is required for update");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"OpportunityId is required for update");
-
-		}
-		// Check if opportunity exists
-		if (!opportunityRepository.exists(opportunityId)) {
-			logger.error("Opportunity not found for update: {}", opportunityId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Opportunity not found for update: " + opportunityId);
-		}
+		
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
-		OpportunityT opportunityBeforeEdit = opportunityRepository
-				.findOne(opportunityId);
+		
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
 			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
@@ -2302,6 +2295,32 @@ public class OpportunityService {
 
 	}
 
-	
+	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
+		String opportunityId = opportunity.getOpportunityId();
+		if (opportunityId == null) {
+			logger.error("OpportunityId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"OpportunityId is required for update");
+
+		}
+		// Check if opportunity exists
+		if (!opportunityRepository.exists(opportunityId)) {
+			logger.error("Opportunity not found for update: {}", opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunity not found for update: " + opportunityId);
+		}
+		
+		OpportunityT opportunityBeforeEdit = opportunityRepository
+				.findOne(opportunityId);
+		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
+		updateOpportunity(opportunity,opportunityBeforeEdit);
+		//If won or lost
+		if((oldSalesStageCode!=9 && opportunity.getSalesStageCode()==9) || (oldSalesStageCode!=10 && opportunity.getSalesStageCode()==10)) {
+			logger.info("Opportunity won or lost");
+			jobLauncherController.asyncJobLaunch(JobName.opportunityWonLostEmailNotification,
+					EntityType.OPPORTUNITY.toString(), opportunity.getOpportunityId());
+				
+		}
+	}
 }
 
