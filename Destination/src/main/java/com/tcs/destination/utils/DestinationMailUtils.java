@@ -1553,7 +1553,7 @@ public class DestinationMailUtils {
 			recepientIds.add(opportunityWonLostGroupMailId);
 			if (opportunity.getSalesStageCode() == 9) {
 				logger.info("opportunity Won");
-				subject.append(" ").append(subSpsStr).append("Destination:").append(" ")
+				subject.append(" - ").append("Destination:").append(" ").append(subSpsStr).append(" ")
 						.append("Deal Won for").append(" ")
 						.append(customerName).append(" ").append("on")
 						.append(" ").append(dealClosureDateStr);
@@ -1564,7 +1564,7 @@ public class DestinationMailUtils {
 			
 			if(opportunity.getSalesStageCode() == 10) {
 				logger.info("OpportunityLost");
-				subject.append(" ").append(subSpsStr).append("Destination:").append(" ")
+				subject.append(" - ").append("Destination:").append(" ").append(subSpsStr).append(" ")
 						.append("Deal Lost for").append(" ")
 						.append(customerName).append(" ").append("on")
 						.append(" ").append(dealClosureDateStr);
