@@ -68,6 +68,7 @@ import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
+import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserAccessRequestT;
@@ -1486,19 +1487,9 @@ public class DestinationMailUtils {
 }
 	
 	 private String constructUserNamesSplitByComma(List<String> userNames) {
-			
-			StringBuilder buffer = new StringBuilder();
-
-			for(String userName : userNames){
-			    buffer.append(userName+",");
-			}
-			
-			if(buffer.length()>0){
-			    buffer.deleteCharAt(buffer.length()-1);
-			}
-			logger.debug("Inside constructUserNamesSplitByComma Service");
-			return buffer.toString();
-		    }
+		 logger.debug("Inside constructUserNamesSplitByComma Service");
+		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
+	    }
 
 	/**
 	 * This method is used to send the email notification to group of users on 
@@ -1511,7 +1502,7 @@ public class DestinationMailUtils {
 		OpportunityT opportunity = opportunityRepository.findOne(entityId);
 		List<String> recepientIds = new ArrayList<String>();
 		String templateLoc = null;
-		String subject = null;
+		StringBuffer subject = new StringBuffer(environmentName);
 		if (opportunity != null) {
 			String opportunityName = opportunity.getOpportunityName();
 			logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
@@ -1528,8 +1519,16 @@ public class DestinationMailUtils {
 					.getOpportunityDescription();
 			List<String> winLossFactors = new ArrayList<String>();
 			List<String> opportunitySalesSupportOwners = new ArrayList<String>();
+			List<String> opportunitySubSps = new ArrayList<String>();
 			String salesSupportOwners = "";
 			String factorsForWinLoss = "";
+			String subSpsStr = "";
+			for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
+				opportunitySubSps.add(opportunitySubSpLinkT.getSubSp());
+			}
+			if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
+				subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
+			}
 			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
 					.getOpportunityWinLossFactorsTs()) {
 				winLossFactors.add(opportunityWinLossFactorsT
@@ -1554,10 +1553,10 @@ public class DestinationMailUtils {
 			recepientIds.add(opportunityWonLostGroupMailId);
 			if (opportunity.getSalesStageCode() == 9) {
 				logger.info("opportunity Won");
-				subject = new StringBuffer("Destination:").append(" ")
+				subject.append(" ").append(subSpsStr).append("Destination:").append(" ")
 						.append("Deal Won for").append(" ")
 						.append(customerName).append(" ").append("on")
-						.append(" ").append(dealClosureDateStr).toString();
+						.append(" ").append(dealClosureDateStr);
 				logger.info("Subject :"+subject);
 				templateLoc = opportunityWonTemplateLoc;
 				
@@ -1565,10 +1564,10 @@ public class DestinationMailUtils {
 			
 			if(opportunity.getSalesStageCode() == 10) {
 				logger.info("OpportunityLost");
-				subject = new StringBuffer("Destination:").append(" ")
+				subject.append(" ").append(subSpsStr).append("Destination:").append(" ")
 						.append("Deal Lost for").append(" ")
 						.append(customerName).append(" ").append("on")
-						.append(" ").append(dealClosureDateStr).toString();
+						.append(" ").append(dealClosureDateStr);
 				logger.info("Subject :"+subject);
 				templateLoc = opportunityLostTemplateLoc;
 				
@@ -1582,7 +1581,7 @@ public class DestinationMailUtils {
 					helper.setTo(opportunityWonLostGroupMailId);
 					logger.info("To email address : "+opportunityWonLostGroupMailId);
 					helper.setFrom(senderEmailId);
-					helper.setSubject(subject);
+					helper.setSubject(subject.toString());
 					Map<String, Object> map = new HashMap<String, Object>();
 					map.put("opportunityName", opportunityName);
 					map.put("customerName", customerName);
