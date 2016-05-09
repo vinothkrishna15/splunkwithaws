@@ -1419,16 +1419,16 @@ public class WorkflowService {
 		if (userId.contains("pmo")) {
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
-			Query query = entityManager.createNativeQuery(queryBuffer
+			Query query1 = entityManager.createNativeQuery(queryBuffer
 					.toString());
 			
 			
-			query.setParameter("userId", userId);
+			query1.setParameter("userId", userId);
 			if (resultList == null) {
-				resultList = query.getResultList();
+				resultList = query1.getResultList();
 			}
 			else {
-				List<Object[]> resultForPMOPending = query.getResultList();
+				List<Object[]> resultForPMOPending = query1.getResultList();
 				resultList.addAll(resultForPMOPending);
 			}
 			//query.setParameter("pmoValue", pmoValue);
@@ -1438,13 +1438,13 @@ public class WorkflowService {
 		
 		StringBuffer queryBuffer = new StringBuffer(
 				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
-		Query query = entityManager.createNativeQuery(queryBuffer.toString());
-	query.setParameter("userRole", userRole);
-		query.setParameter("userGroup", userGroup);
+		Query query2 = entityManager.createNativeQuery(queryBuffer.toString());
+	query2.setParameter("userRole", userRole);
+		query2.setParameter("userGroup", userGroup);
 		if (resultList == null) {
-			resultList = query.getResultList();
+			resultList = query2.getResultList();
 		} else {
-			List<Object[]> resultForGroupPending = query.getResultList();
+			List<Object[]> resultForGroupPending = query2.getResultList();
 			resultList.addAll(resultForGroupPending);
 		}
 		return resultList;
