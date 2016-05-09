@@ -9,7 +9,7 @@
             <b>&quot;${factorsForWinLoss}&quot;</b>. <br/><br/>
 
               This opportunity was led by <b>&quot;${opportunityOwner}&quot;</b> with support from <b>&quot;${salesSupportOwners}&quot;</b>.<br/>
-              Deal size recorded is <b>&quot;${digitalBidValue}&quot;</b>.<br/>
+              Deal size recorded is <b>&quot;${digitalBidValue} ${currencyType}&quot;</b>.<br/>
               Opportunity Description: <b>&quot;${opportunityDescription}&quot;</b><br/>		
         </p>		
 		<p>

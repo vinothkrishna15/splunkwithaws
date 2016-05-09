@@ -1497,7 +1497,6 @@ public class DestinationMailUtils {
 	 * @param entityId
 	 */
 	public void sendOpportunityWonLostNotification(String entityId) throws Exception {
-		// TODO Auto-generated method stub
 		logger.info("Inside sendOpportunityWonLostNotification method");
 		OpportunityT opportunity = opportunityRepository.findOne(entityId);
 		List<String> recepientIds = new ArrayList<String>();
@@ -1512,6 +1511,7 @@ public class DestinationMailUtils {
 			String opportunityOwner = userRepository
 					.findUserNameByUserId(opportunity.getOpportunityOwner());
 			Integer digitalBidValue = opportunity.getDigitalDealValue();
+			String currencyType = opportunity.getDealCurrency();
 			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 			Date dealClosureDate = opportunity.getDealClosureDate();
 			String dealClosureDateStr = df.format(dealClosureDate);
@@ -1590,6 +1590,7 @@ public class DestinationMailUtils {
 					map.put("salesSupportOwners", salesSupportOwners);
 					map.put("digitalBidValue", digitalBidValue);
 					map.put("opportunityDescription", opportunityDescription);
+					map.put("currencyType",currencyType);
 					String text = VelocityEngineUtils.mergeTemplateIntoString(
 							velocityEngine, templateLoc, Constants.UTF8,
 							map);
