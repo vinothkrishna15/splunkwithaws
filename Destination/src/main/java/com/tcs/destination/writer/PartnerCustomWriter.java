@@ -131,7 +131,7 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				}
 			
 			}
-			if (CollectionUtils.isNotEmpty(insertList)) {
+			if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
 			
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				partnerService.save(insertList);

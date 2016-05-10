@@ -127,6 +127,7 @@
 		<property name="helper" ref="userUploadHelper"/>
 		<property name="userService" ref="userService"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="userGoalsRepository" ref="userGoalsRepository"/>
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 	

@@ -7,6 +7,7 @@ import static com.tcs.destination.utils.Constants.REQUEST;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,8 +25,11 @@ import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.CustomerContactUploadHelper;
 import com.tcs.destination.service.ContactService;
@@ -56,6 +60,10 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 	private ContactService contactService;
 
 	private CustomerContactUploadHelper helper;
+	
+	private ContactRepository contactRepository;
+
+	
 
 	@Override
 	public void onWritePossible() throws IOException {
@@ -102,7 +110,7 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 
 				String errorPath = request.getFilePath() + "ERROR"
 						+ FILE_DIR_SEPERATOR;
-				String errorFileName = "opportunityUpload_error.xlsx";
+				String errorFileName = "customerContactUpload_error.xlsx";
 
 				File file = FileManager.createFile(errorPath, errorFileName);
 				FileOutputStream outputStream = new FileOutputStream(file);
@@ -132,7 +140,17 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 	public void write(List<? extends String[]> items) throws Exception {
 		// TODO Auto-generated method stub
 		List<ContactT> contactList = new ArrayList<ContactT>();
+		List<ContactT> updateList = new ArrayList<ContactT>();
+		List<ContactT> deleteList = new ArrayList<ContactT>();
+		String operation = null; 
+		
+		
 		for (String[] data : items) {
+			operation = (String) data[1];
+			if(operation!=null)
+			{
+			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+				logger.debug("***CUSTOMER CONTACT ADD***");
 			ContactT contact = new ContactT();
 			UploadServiceErrorDetailsDTO errorDTO = helper
 					.validateCustomerContactData(data, request.getUserT()
@@ -144,9 +162,73 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 			} else if (errorDTO.getMessage() == null) {
 				contactList.add(contact);
 			}
+			}
+			else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
+			{
+
+				logger.debug("***CUSTOMER CONTACT UPDATE***");
+				String contactId =data[2];
+				ContactT contact = new ContactT();
+                UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				if (!contactId.isEmpty()) {
+					try{
+						
+						contact= contactRepository.findByContactId(contactId);
+						if (contact != null) {
+						errorDTO = helper.validateContactDataUpdate(data, request.getUserT().getUserId() ,contact);
+						if (errorDTO.getMessage() != null) {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						} 
+						else if (errorDTO.getMessage() == null) {
+							updateList.add(contact);
+						}
+					} else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Contact Id is invalid");
+						errorList.add(errorDTO);
+					}
+				}catch(InvocationTargetException e){System.out.println("Exception Cause:"+e.getCause());}
+					}
+				else {
+					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+					errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+					errorDTO.setMessage("Contact Id is mandatory");
+					errorList.add(errorDTO);
+				}
+			}
+			else if (operation.equalsIgnoreCase(Operation.DELETE.name()))
+			{
+
+				logger.debug("***CUSTOMER CONTACT DELETE***");
+				ContactT contactT =  new ContactT();
+				contactT = contactRepository.findByContactId(data[2]);
+				 UploadServiceErrorDetailsDTO errorDTO = helper.validateContactId(data, contactT);
+				 
+				 if (errorDTO.getMessage() != null) {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorList.add(errorDTO);
+					} else if (errorDTO.getMessage() == null) {
+						deleteList.add(contactT);
+				}
+			
+			
+			
+			}
+			
+			}
 		}
-		if (CollectionUtils.isNotEmpty(contactList)) {
-			contactService.saveCustomerContact(contactList);
+		if ((CollectionUtils.isNotEmpty(contactList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
+			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+				contactService.save(contactList);
+			} 
+			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+				contactService.updateContact(updateList);
+			}
+			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+				contactService.deleteContact(deleteList);
+			}
 		}
 
 	}
@@ -198,6 +280,14 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 
 	public void setHelper(CustomerContactUploadHelper helper) {
 		this.helper = helper;
+	}
+	
+	public ContactRepository getContactRepository() {
+		return contactRepository;
+	}
+
+	public void setContactRepository(ContactRepository contactRepository) {
+		this.contactRepository = contactRepository;
 	}
 
 }

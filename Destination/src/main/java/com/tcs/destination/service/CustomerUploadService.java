@@ -344,11 +344,11 @@ public class CustomerUploadService {
 
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
 		logger.debug("Begin:Inside getNameAndIdFromCustomerMasterT() for CustomerUploadService");
-		List<Object[]> listOfCustomerMasterT = customerRepository
+		List<CustomerMasterT> listOfCustomerMasterT = customerRepository
 				.getNameAndId();
 
-		for (Object[] st : listOfCustomerMasterT) {
-			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
+		for (CustomerMasterT customerMasterT : listOfCustomerMasterT) {
+			mapOfCMT.put(customerMasterT.getCustomerName(), customerMasterT.getCustomerId());
 		}
 		logger.debug("End:Inside getNameAndIdFromCustomerMasterT() for CustomerUploadService");
 		return mapOfCMT;

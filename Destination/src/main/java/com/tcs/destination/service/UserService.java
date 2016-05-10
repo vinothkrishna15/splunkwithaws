@@ -134,6 +134,9 @@ public class UserService {
 		logger.debug("End:Inside findByUserName Service");
 		return users;
 	}
+	
+	
+
 
 	/**
 	 * This method is used to retrieve user details based on user role
@@ -265,10 +268,34 @@ public class UserService {
 	 * This method is used to update user details
 	 * @param user
 	 */
-	public void updateUser(UserT user) {
+	public void updateUser(UserT userUpdateList) {
 		logger.debug("Begin:Inside updateUser() service");
-		userRepository.save(user);
+		userRepository.save(userUpdateList);
 		logger.debug("End:Inside updateUser() service");
+	}
+	
+	
+	/**
+	 * This method is used to update user details
+	 * @param user
+	 */
+	public void updateUser(List<UserT> userUpdateList) {
+		logger.debug("Begin:Inside updateUser() service");
+		userRepository.save(userUpdateList);
+		logger.debug("End:Inside updateUser() service");
+	}
+	
+	/**
+	 * This service deletes user details from user_t
+	 * 
+	 * @param userList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void deleteUser(List<UserT> userDeleteList) {
+		logger.debug("Begin:Inside deleteUser method of UserService");
+	    userRepository.save(userDeleteList);
+		logger.debug("End:Inside deleteUser method of UserService");
 	}
 
 	/**

@@ -144,37 +144,8 @@ public class PartnerService {
 	 * @throws Exception
 	 */
 	public void deletePartner(List<PartnerMasterT> partnerList) {
-		logger.debug("Begin:Inside deletePartner method of PartnerService");
-		List<ContactT> contactListT = new ArrayList<ContactT>();
-		List<ConnectT> connectListT = new ArrayList<ConnectT>();
-		List<OpportunityPartnerLinkT> opportunityPartnerListT = new ArrayList<OpportunityPartnerLinkT>();
-		List<ConnectCustomerContactLinkT> connectCustomerContactListT = new ArrayList<ConnectCustomerContactLinkT>();
-
-		if (!partnerList.isEmpty()) {
-			for (PartnerMasterT partnerT : partnerList) {
-
-				contactListT = contactRepository.findByPartnerId(partnerT
-						.getPartnerId());
-
-				connectListT = connectRepository.findByPartnerId(partnerT
-						.getPartnerId());
-
-				opportunityPartnerListT = opportunityPartnerLinkTRepository
-						.findByPartnerId(partnerT.getPartnerId());
-
-				for (ContactT contactT : contactListT) {
-					connectCustomerContactListT = connectCustomerContactLinkTRepository
-							.findByContactId(contactT.getContactId());
-				}
-
-			}
-		}
-		connectCustomerContactLinkTRepository
-				.delete(connectCustomerContactListT);
-		contactRepository.delete(contactListT);
-		connectRepository.delete(connectListT);
-		opportunityPartnerLinkTRepository.delete(opportunityPartnerListT);
-		partnerRepository.delete(partnerList);
+	    logger.debug("Begin:Inside deletePartner method of PartnerService");
+		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
 	}
 
