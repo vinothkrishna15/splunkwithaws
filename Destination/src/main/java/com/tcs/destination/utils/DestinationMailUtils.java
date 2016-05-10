@@ -264,7 +264,7 @@ public class DestinationMailUtils {
 
 		try {
 			MimeMessageHelper helper = new MimeMessageHelper(
-					automatedMIMEMessage, true);
+					automatedMIMEMessage, true, Constants.UTF8);
 			helper.setTo(recipientMailIdsArray);
 
 			helper.setFrom(senderEmailId);
@@ -570,7 +570,7 @@ public class DestinationMailUtils {
 
 		try {
 			MimeMessageHelper helper = new MimeMessageHelper(
-					automatedMIMEMessage, true);
+					automatedMIMEMessage, true, Constants.UTF8);
 			helper.setTo(recipientMailIdsArray);
 			helper.setFrom(senderEmailId);
 
@@ -793,7 +793,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -844,7 +844,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -897,7 +897,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -1109,7 +1109,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -1212,7 +1212,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
 			WorkflowStepT workflowStepPending = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.PENDING.getStatus());
@@ -1332,7 +1332,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
 			WorkflowStepT workflowStepSubmitted = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.SUBMITTED.getStatus());
@@ -1577,7 +1577,7 @@ public class DestinationMailUtils {
 						.createMimeMessage();
 				MimeMessageHelper helper;
 				try {
-					helper = new MimeMessageHelper(automatedMIMEMessage, true);
+					helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
 					helper.setTo(opportunityWonLostGroupMailId);
 					logger.info("To email address : "+opportunityWonLostGroupMailId);
 					helper.setFrom(senderEmailId);
