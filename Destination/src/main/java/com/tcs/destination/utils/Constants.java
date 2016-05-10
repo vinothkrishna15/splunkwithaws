@@ -214,4 +214,6 @@ public class Constants {
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
+	
+	public static final String USD_PATTERN = "###,###.## USD";
 }
