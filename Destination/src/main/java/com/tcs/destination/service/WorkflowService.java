@@ -1519,7 +1519,7 @@ public class WorkflowService {
 	private Set<MyWorklistDTO> populateSubmittedAndApprovedRequests(
 			Set<WorkflowRequestT> workFlowRequestCompetitor) {
 
-		logger.debug("Starting populateCompetitorList");
+		logger.info("Starting populateCompetitorList");
 
 		Set<MyWorklistDTO> myWorklistDTOs = new HashSet<MyWorklistDTO>();
 		if (CollectionUtils.isNotEmpty(workFlowRequestCompetitor)) {
@@ -1547,9 +1547,7 @@ public class WorkflowService {
 				case OPPORTUNITY:
 					myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY
 							.getDisplayName());
-					myWorklistDTO.setEntityName(workflowOpportunityRepository
-							.findOne(requestT.getEntityId())
-							.getOpportunityName());
+					myWorklistDTO.setEntityName(workflowOpportunityRepository.findOne(requestT.getEntityId()).getOpportunityName());
 					break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
@@ -1637,61 +1635,66 @@ public class WorkflowService {
 					} else {
 						worklist.setEntityName("Unnamed");
 					}
+					
 					if (MyWorklistDTOArray[2] != null) {
-						String s = MyWorklistDTOArray[2].toString();
-						workflowStep.setStepId(Integer.parseInt(s));
+						String entityId = MyWorklistDTOArray[2].toString();
+						worklist.setEntityId(entityId);
 					}
 					if (MyWorklistDTOArray[3] != null) {
 						String s = MyWorklistDTOArray[3].toString();
-						workflowStep.setRequestId(Integer.parseInt(s));
+						workflowStep.setStepId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[4] != null) {
 						String s = MyWorklistDTOArray[4].toString();
-						workflowStep.setStep(Integer.parseInt(s));
+						workflowStep.setRequestId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[5] != null) {
+						String s = MyWorklistDTOArray[5].toString();
+						workflowStep.setStep(Integer.parseInt(s));
+					}
+					if (MyWorklistDTOArray[9] != null) {
 						workflowStep
-								.setUserId(MyWorklistDTOArray[5].toString());
+								.setUserId(MyWorklistDTOArray[9].toString());
 						workflowStep
 								.setUser(userRepository
-										.findByUserId(MyWorklistDTOArray[5]
+										.findByUserId(MyWorklistDTOArray[9]
 												.toString()));
 					}
-					if (MyWorklistDTOArray[6] != null) {
-						workflowStep.setStepStatus(MyWorklistDTOArray[6]
+					if (MyWorklistDTOArray[1] != null) {
+						workflowStep.setStepStatus(MyWorklistDTOArray[1]
 								.toString());
 					}
-					if (MyWorklistDTOArray[7] != null) {
+				/*	if (MyWorklistDTOArray[7] != null) {
 						workflowStep.setComments(MyWorklistDTOArray[7]
 								.toString());
-					}
-					if (MyWorklistDTOArray[8] != null) {
-						workflowStep.setCreatedBy(MyWorklistDTOArray[8]
+					}*/
+					if (MyWorklistDTOArray[9] != null) {
+						workflowStep.setCreatedBy(MyWorklistDTOArray[9]
 								.toString());
 						workflowStep
 								.setCreatedByUser(userRepository
-										.findByUserId(MyWorklistDTOArray[8]
+										.findByUserId(MyWorklistDTOArray[9]
 												.toString()));
 					}
-					if (MyWorklistDTOArray[9] != null) {
-						String s = MyWorklistDTOArray[9].toString();
+					if (MyWorklistDTOArray[10] != null) {
+						String s = MyWorklistDTOArray[10].toString();
 						workflowStep.setCreatedDatetime(Timestamp.valueOf(s));
 					}
-					if (MyWorklistDTOArray[10] != null) {
-						workflowStep.setModifiedBy(MyWorklistDTOArray[10]
+					if (MyWorklistDTOArray[11] != null) {
+						workflowStep.setModifiedBy(MyWorklistDTOArray[11]
 								.toString());
 					}
-					if (MyWorklistDTOArray[11] != null) {
-						String s = MyWorklistDTOArray[11].toString();
+					if (MyWorklistDTOArray[12] != null) {
+						String s = MyWorklistDTOArray[12].toString();
 						workflowStep.setModifiedDatetime(Timestamp.valueOf(s));
 						worklist.setModifiedDatetime(Timestamp.valueOf(s));
 					}
-					if (MyWorklistDTOArray[12] != null) {
-						workflowStep.setUserGroup(MyWorklistDTOArray[12]
+					if (MyWorklistDTOArray[13] != null) {
+						workflowStep.setUserGroup(MyWorklistDTOArray[13]
 								.toString());
 					}
-					if (MyWorklistDTOArray[13] != null) {
-						workflowStep.setUserRole(MyWorklistDTOArray[13]
+					if (MyWorklistDTOArray[14] != null) {
+						workflowStep.setUserRole(MyWorklistDTOArray[14]
 								.toString());
 					}
 					worklist.setWorkflowStep(workflowStep);

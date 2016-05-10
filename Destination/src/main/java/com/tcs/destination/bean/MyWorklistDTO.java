@@ -16,6 +16,7 @@ public class MyWorklistDTO implements Serializable, Comparable<MyWorklistDTO> {
 	private WorkflowStepT workflowStep;
 	private String entityType;
 	private String entityName;
+	private String entityId;
 	private Timestamp modifiedDatetime;
 	@JsonIgnore
 	private Integer requestId;
@@ -82,6 +83,12 @@ public class MyWorklistDTO implements Serializable, Comparable<MyWorklistDTO> {
             return -1;
 		else
             return 0;
+	}
+	public String getEntityId() {
+		return entityId;
+	}
+	public void setEntityId(String entityId) {
+		this.entityId = entityId;
 	}
 	
 	
