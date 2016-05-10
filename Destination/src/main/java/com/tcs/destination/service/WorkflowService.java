@@ -1551,6 +1551,7 @@ public class WorkflowService {
 					break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
+				myWorklistDTO.setEntityId(requestT.getEntityId());
 
 				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
