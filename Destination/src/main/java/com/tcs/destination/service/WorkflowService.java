@@ -223,20 +223,10 @@ public class WorkflowService {
 								if (oldCustomerMaster != null) {
 									saveToMasterTables(oldCustomerMaster,
 											workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(
-											workflowCustomerApprovedSubject,
-											masterRequest.getRequestId(),
-											masterRequest.getCreatedDatetime(),
-											masterRequest.getEntityTypeId());
 								} else {
 									CustomerMasterT newCustomerMaster = new CustomerMasterT();
 									saveToMasterTables(newCustomerMaster,
 											workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(
-											workflowCustomerApprovedSubject,
-											masterRequest.getRequestId(),
-											masterRequest.getCreatedDatetime(),
-											masterRequest.getEntityTypeId());
 								}
 							}
 							//
@@ -276,6 +266,13 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if(masterRequest.getStatus().contains("APPROVED")){
+				sendEmailNotificationforApprovedOrRejectMail(
+						workflowCustomerApprovedSubject,
+						masterRequest.getRequestId(),
+						masterRequest.getCreatedDatetime(),
+						masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
