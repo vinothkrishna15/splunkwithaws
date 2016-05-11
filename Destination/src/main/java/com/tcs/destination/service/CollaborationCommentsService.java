@@ -221,7 +221,6 @@ public class CollaborationCommentsService {
 		
 		boolean statusFlag=false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		String username = DestinationUtils.getCurrentUserDetails().getUserName();
 		
 		if(StringUtils.isEmpty(comments.getCommentId())){
 			logger.error("BAD_REQUEST: Comment ID cannot be empty");
@@ -230,6 +229,7 @@ public class CollaborationCommentsService {
 		
 		if(!StringUtils.isEmpty(comments.getUserId())){
 			if(!comments.getUserId().equals(userId)){
+				String username = userRepository.findUserNameByUserId(comments.getUserId());
 				logger.error("BAD_REQUEST: Only {} can edit this comment",username);
 				throw new DestinationException(HttpStatus.FORBIDDEN, "Only "+username+" can edit this comment");
 			}
