@@ -139,6 +139,9 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 
 				Cell cellFinanceGeo = row.createCell(7);
 				cellFinanceGeo.setCellValue(finance.getCustomerGeography().trim());
+				
+				Cell active = row.createCell(8);//TODO inactive indicator - adding a column for active flag - done
+				active.setCellValue(finance.isActive());
 
 				// Increment row counter
 				rowCount++;

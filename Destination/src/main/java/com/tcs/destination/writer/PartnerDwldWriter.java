@@ -193,6 +193,9 @@ public class PartnerDwldWriter implements ItemWriter<PartnerMasterT>,
 				if(partnerMaster.getCorporateHqAddress()!=null)
 					cellCorporateHqAddress.setCellValue(partnerMaster.getCorporateHqAddress().trim());
 				
+				Cell active = row.createCell(7);
+				active.setCellValue(partnerMaster.isActive());//TODO inactive indicator - adding extra column for active -done
+				
 				// Increment row counter
 				rowCount++;
 			}
