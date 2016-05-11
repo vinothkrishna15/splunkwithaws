@@ -1,6 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +43,13 @@ public class GeographyController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String findAll(
+	public @ResponseBody String findAllActive(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside Geography controller: Start of find");
 		try {
-			ArrayList<GeographyMappingT> geogaraphyMappingTs = new ArrayList<GeographyMappingT>();
-			geogaraphyMappingTs = (ArrayList<GeographyMappingT>) geographyService
-					.findAll();
+			List<GeographyMappingT> geogaraphyMappingTs = geographyService.findAllActive();
 			logger.info("Inside Geography controller: End of find");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, geogaraphyMappingTs);

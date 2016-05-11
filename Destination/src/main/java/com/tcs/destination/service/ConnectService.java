@@ -14,6 +14,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,19 +51,23 @@ import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.CommentsTRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
-import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CountryRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
+import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
@@ -83,7 +88,6 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 @Service("connectService")
 public class ConnectService {
@@ -204,6 +208,18 @@ public class ConnectService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
+
+	@Autowired
+	OfferingRepository offeringRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+
+	@Autowired
+	CountryRepository countryRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -619,6 +635,7 @@ public class ConnectService {
 			}
 		}
 
+		validateInactiveIndicators(connect);
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -1854,5 +1871,146 @@ public class ConnectService {
 			break;
 		}
 		return isEditAccessRequired;
+	}
+	
+
+	/**
+	 * validate the connect for any inactive fields(owners, customer, etc)
+	 * @param connect
+	 */
+	private void validateInactiveIndicators(ConnectT connect) {
+		
+		// createdBy,
+		String createdBy = connect.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+		
+		// modifiedBy,
+		String modifiedBy = connect.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+		
+		// primaryOwner,
+		String primaryOwner = connect.getPrimaryOwner();
+		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The primary owner is inactive");
+		}
+		
+		// customerId,
+		String customerId = connect.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+		
+		// partnerId,
+		String partnerId = connect.getPartnerId();
+		if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+		}
+		
+		//connectCustomerContactLinkTs,
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs = connect.getConnectCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectCustomerContactLinkTs)) {
+			for (ConnectCustomerContactLinkT contact : connectCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
+				}
+			}
+		}
+		
+		// connectOfferingLinkTs,
+		List<ConnectOfferingLinkT> connectOfferingLinkTs = connect.getConnectOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (ConnectOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
+				}
+			}
+		}
+		
+		//connectSecondaryOwnerLinkTs,
+		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs = connect.getConnectSecondaryOwnerLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSecondaryOwnerLinkTs)) {
+			for (ConnectSecondaryOwnerLinkT secOwnerLink : connectSecondaryOwnerLinkTs) {
+				String owner = secOwnerLink.getSecondaryOwner();
+				if(StringUtils.isNotBlank(owner) && userRepository.findByActiveTrueAndUserId(owner) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The secondary owner is inactive");
+				}
+			}
+		}
+		
+		//connectSubSpLinkTs,
+		List<ConnectSubSpLinkT> connectSubSpLinkTs = connect.getConnectSubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
+			for (ConnectSubSpLinkT subSpLink : connectSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+		
+		//List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs,
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs = connect.getConnectTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectTcsAccountContactLinkTs)) {
+			for (ConnectTcsAccountContactLinkT contactLink : connectTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+		
+		// country
+		String country = connect.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+		
+		/*String connectId,
+		String connectCategory,
+		String connectName,
+		Timestamp createdDatetime,
+		Timestamp modifiedDatetime,
+		
+		String documentsAttached,
+		Timestamp endDatetimeOfConnect,
+		Timestamp startDatetimeOfConnect,
+		
+		String timeZone,
+		String location,
+		CityMapping cityMapping,
+		String type,
+		ConnectTypeMappingT connectTypeMappingT,
+		TimeZoneMappingT timeZoneMappingT,
+		List<SearchKeywordsT> searchKeywordsTs,
+		List<CollaborationCommentT> collaborationCommentTs,
+		List<CommentsT> commentsTs,
+		
+		CustomerMasterT customerMasterT,
+		GeographyCountryMappingT geographyCountryMappingT,
+		PartnerMasterT partnerMasterT,
+		UserT primaryOwnerUser,
+		List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs,
+		List<DocumentRepositoryT> documentRepositoryTs,
+		List<NotesT> notesTs,
+		List<TaskT> taskTs,
+		List<UserFavoritesT> userFavoritesTs,
+		List<UserNotificationsT> userNotificationsTs,
+		List<UserTaggedFollowedT> userTaggedFollowedTs,
+		List<ConnectSubSpLinkT> connectSubLinkDeletionList,
+		List<ConnectOfferingLinkT> connectOfferingLinkDeletionList,
+		List<DocumentRepositoryT> documentsDeletionList,
+		List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs,
+		List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs,
+		List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs,
+		List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs,
+		List<SearchKeywordsT> deleteSearchKeywordsTs,
+		boolean enableEditAccess*/
+		
 	}
 }

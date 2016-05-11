@@ -1,6 +1,6 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +22,9 @@ public class SubSpService {
 	@Autowired
 	SubSpRepository subSpRepository;
 
-	public ArrayList<SubSpMappingT> findAll() {
+	public List<SubSpMappingT> findAllActive() {
 		logger.debug("Inside findAll() SubSpService");
-		return (ArrayList<SubSpMappingT>) subSpRepository.findAll();
+		return subSpRepository.findByActiveTrue();
 	}
 
 }

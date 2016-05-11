@@ -1,6 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,7 @@ public class WinLossFactorMappingController {
 			throws DestinationException {
 		logger.info("Start of retreiving win loss factors mapping");
 		try {
-			ArrayList<WinLossFactorMappingT> winLossMapping = (ArrayList<WinLossFactorMappingT>) winLossMappingService
-					.findAll();
+			List<WinLossFactorMappingT> winLossMapping = winLossMappingService.findAllActive();
 			logger.info("End of retreiving win loss factors mapping");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, winLossMapping);

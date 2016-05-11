@@ -109,4 +109,6 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds)", nativeQuery = true)
 	List<String> findUserMailIdsFromUserId(@Param("userIds") List<String> userIds);
 	
+	UserT findByActiveTrueAndUserName(String userName);
+	UserT findByActiveTrueAndUserId(String userId);
 }

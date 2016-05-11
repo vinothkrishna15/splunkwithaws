@@ -17,5 +17,9 @@ public interface OfferingRepository extends
     List<Object[]> getSubSpOffering();
     
     OfferingMappingT findByOffering(String offering);
+    
+    List<OfferingMappingT> findByActive(String active);
+
+	OfferingMappingT findByActiveTrueAndOffering(String offering);
 
 }

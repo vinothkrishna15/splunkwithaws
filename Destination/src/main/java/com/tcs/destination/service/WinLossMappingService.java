@@ -1,6 +1,6 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +27,9 @@ public class WinLossMappingService {
 	/**
 	 * This method is used to retrieve all Win Loss Mappings
 	 */
-	public ArrayList<WinLossFactorMappingT> findAll() {
+	public List<WinLossFactorMappingT> findAllActive() {
 		logger.debug("Inside findAll method of WinLossMappingService");
-		return (ArrayList<WinLossFactorMappingT>) winLossMappingRepository
-				.findAll();
+		return winLossMappingRepository.findByActiveTrue();
 	}
 
 }

@@ -16,6 +16,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,12 +57,16 @@ import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
+import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
+import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
@@ -72,12 +77,15 @@ import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
@@ -92,7 +100,6 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class OpportunityService {
@@ -223,6 +230,29 @@ public class OpportunityService {
 	
 	@Autowired
 	ConnectRepository connectRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
+
+	@Autowired
+	OfferingRepository offeringRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+
+	@Autowired
+	CountryRepository countryRepository;
+
+	@Autowired
+	WinLossMappingRepository winlossFactorRepository;
+	
+	@Autowired
+	CompetitorRepository competitorRepository;
+	
+	@Autowired
+	PartnerRepository partnerRepository;
+	
+	
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
@@ -700,6 +730,8 @@ public class OpportunityService {
 
 		}
 
+		validateInactiveIndicators(opportunity);
+		
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
@@ -707,6 +739,125 @@ public class OpportunityService {
 		return saveChildObject(opportunity);
 
 	}
+
+	/**
+	 * validate a opertunity which has any inactive fields
+	 * @param opportunity
+	 */
+	private void validateInactiveIndicators(OpportunityT opportunity) {
+		//createdBy
+		String createdBy = opportunity.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+		
+		// modifiedBy,
+		String modifiedBy = opportunity.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+		
+		// customerId,
+		String customerId = opportunity.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+				
+		// country
+		String country = opportunity.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+		
+		// opportunityOwner,
+		String opportunityOwner = opportunity.getOpportunityOwner();
+		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The opportunity owner is inactive");
+		}
+		
+		// opportunityCompetitorLinkTs,
+		List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs = opportunity.getOpportunityCompetitorLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityCompetitorLinkTs)) {
+			for (OpportunityCompetitorLinkT compLink : opportunityCompetitorLinkTs) {
+				String competitorName = compLink.getCompetitorName();
+				if(StringUtils.isNotBlank(competitorName) && competitorRepository.findByActiveTrueAndCompetitorName(competitorName) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The competitor is inactive");
+				}
+			}
+		}
+		
+		
+		// opportunityCustomerContactLinkTs,
+		List<OpportunityCustomerContactLinkT> oppCustomerContactLinkTs = opportunity.getOpportunityCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(oppCustomerContactLinkTs)) {
+			for (OpportunityCustomerContactLinkT contact : oppCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
+				}
+			}
+		}
+		
+		// opportunityOfferingLinkTs,
+		List<OpportunityOfferingLinkT> connectOfferingLinkTs = opportunity.getOpportunityOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (OpportunityOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
+				}
+			}
+		}
+		
+		//List<OpportunityPartnerLinkT> opportunityPartnerLinkTs,
+		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunity.getOpportunityPartnerLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityPartnerLinkTs)) {
+			for (OpportunityPartnerLinkT partnerLink : opportunityPartnerLinkTs) {
+				String partnerId = partnerLink.getPartnerId();
+				if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+				}
+			}
+		}
+		
+		
+		//opportunitySubSpLinkTs,
+		List<OpportunitySubSpLinkT> oppSubSpLinkTs = opportunity.getOpportunitySubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(oppSubSpLinkTs)) {
+			for (OpportunitySubSpLinkT subSpLink : oppSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+		
+		
+		// opportunityTcsAccountContactLinkTs,
+		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = opportunity.getOpportunityTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityTcsAccountContactLinkTs)) {
+			for (OpportunityTcsAccountContactLinkT contactLink : opportunityTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+		
+		// opportunityWinLossFactorsTs,
+		List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs = opportunity.getOpportunityWinLossFactorsTs();
+		if(CollectionUtils.isNotEmpty(opportunityWinLossFactorsTs)) {
+			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
+				String wlFactor = oppWLFactor.getWinLossFactor();
+				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+		
+	}
+
+
 
 	private OpportunityT saveChildObject(OpportunityT opportunity)
 			throws Exception {

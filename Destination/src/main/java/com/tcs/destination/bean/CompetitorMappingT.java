@@ -33,9 +33,9 @@ public class CompetitorMappingT implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="competitor_name")
 	private String competitorName;
-
-	@Column(name="active_flag")
-	private String activeFlag;
+	
+	@Column(name="active")
+	private boolean active;
 
 	//bi-directional many-to-one association to OpportunityCompetitorLinkT
 	@JsonIgnore
@@ -51,14 +51,6 @@ public class CompetitorMappingT implements Serializable {
 
 	public void setCompetitorName(String competitorName) {
 		this.competitorName = competitorName;
-	}
-
-	public String getActiveFlag() {
-		return this.activeFlag;
-	}
-
-	public void setActiveFlag(String activeFlag) {
-		this.activeFlag = activeFlag;
 	}
 
 	public List<OpportunityCompetitorLinkT> getOpportunityCompetitorLinkTs() {
@@ -83,4 +75,12 @@ public class CompetitorMappingT implements Serializable {
 		return opportunityCompetitorLinkT;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
 }

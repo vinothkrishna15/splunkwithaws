@@ -9,7 +9,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactT;
 
 /**
@@ -127,5 +126,7 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 			+ "or contact_name like '6%' or contact_name like '7%' or contact_name like '8%' or contact_name like '9%') "
 			+ "and (contact_category = ?1 or ?1 = '') and (contact_type = ?2 or ?2 = '')", nativeQuery = true)
 	List<ContactT> findContactsStartingWithNumbers(String category, String type);
+
+	ContactT findByActiveTrueAndContactId(String contactId);
 
 }

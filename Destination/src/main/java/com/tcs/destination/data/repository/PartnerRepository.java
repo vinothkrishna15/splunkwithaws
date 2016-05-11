@@ -80,5 +80,7 @@ public interface PartnerRepository extends
 	String findPartnerName(@Param("partnerName") String partnerName);
 	
 	@Query(value = "select geography from partner_master_t where partner_id = ?1", nativeQuery = true)			
-	String findGeographyByPartnerId(String partnerId);	
+	String findGeographyByPartnerId(String partnerId);
+
+	PartnerMasterT findByActiveTrueAndPartnerId(String partnerId);	
 }

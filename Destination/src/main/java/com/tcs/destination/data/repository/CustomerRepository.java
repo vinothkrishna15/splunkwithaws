@@ -122,4 +122,7 @@ public interface CustomerRepository extends
     
     @Query(value = "select iou from customer_master_t where customer_id = ?1", nativeQuery = true)
 	String findIouByCustomerId(String customerId);
+    
+    CustomerMasterT findByActiveTrueAndCustomerId(String customerId);
+
 }

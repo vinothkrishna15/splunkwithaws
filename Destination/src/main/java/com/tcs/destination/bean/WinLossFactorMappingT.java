@@ -30,6 +30,8 @@ public class WinLossFactorMappingT implements Serializable {
 	private String winLossFactor;
 
 	private String type;
+	
+	private boolean active;
 
 	//bi-directional many-to-one association to OpportunityWinLossFactorsT
 	@JsonIgnore
@@ -77,4 +79,12 @@ public class WinLossFactorMappingT implements Serializable {
 		return opportunityWinLossFactorsT;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
 }
