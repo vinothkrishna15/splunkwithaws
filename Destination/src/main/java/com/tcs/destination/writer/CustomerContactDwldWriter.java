@@ -282,6 +282,9 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 						cellCustomerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
 
+					Cell active = row.createCell(10);//TODO inactive indicator - added a separate column for active flag - done
+					active.setCellValue(ct.isActive());
+					
 					// Increment row counter for partner contact sheet
 					rowCount++;
 

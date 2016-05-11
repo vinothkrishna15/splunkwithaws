@@ -214,6 +214,9 @@ public class CustomerDownloadService {
 				Cell cellBeaconGeo = row.createCell(7);
 				cellBeaconGeo.setCellValue(beacon.getGeographyMappingT().getGeography().trim());
 
+				Cell active = row.createCell(8);//TODO inactive indicator - adding a separate column for active flag -done
+				active.setCellValue(beacon.isActive());
+
 				// Increment row counter
 				rowCount++;
 			}
@@ -256,6 +259,9 @@ public class CustomerDownloadService {
 				Cell cellFinanceGeo = row.createCell(7);
 				cellFinanceGeo.setCellValue(finance.getCustomerGeography().trim());
 
+				Cell active = row.createCell(8);//TODO inactive indicator - adding a separate column for active flag -done
+				active.setCellValue(finance.isActive());
+
 				// Increment row counter
 				rowCount++;
 			}
@@ -289,6 +295,9 @@ public class CustomerDownloadService {
 				Cell cellGeo = row.createCell(4);
 				cellGeo.setCellValue(cmt.getGeographyMappingT().getGeography()
 						.trim());
+				
+				Cell active = row.createCell(5);//TODO inactive indicator - adding a separate column for active flag -done
+				active.setCellValue(cmt.isActive());
 
 				// Increment row counter
 				rowCount++;
@@ -396,8 +405,8 @@ public class CustomerDownloadService {
 					Row row = customerContactSheet.createRow(rowCountCustomerSheet);
 
 					// Create new Cell and set cell value
-					Cell cellCustomerId = row.createCell(1);
-					cellCustomerId.setCellValue(ct.getContactId());
+					Cell cellContactId = row.createCell(1);
+					cellContactId.setCellValue(ct.getContactId());
 					
 					// Create new Cell and set cell value saturday modified
 					Cell cellCustomerName = row.createCell(2);
@@ -422,6 +431,9 @@ public class CustomerDownloadService {
 					if(ct.getContactEmailId()!=null) {
 						cellCustomerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
+					
+					Cell active = row.createCell(10);//TODO inactive indicator - adding a separate column for active flag -done
+					active.setCellValue(ct.isActive());
 
 					// Increment row counter for partner contact sheet
 					rowCountCustomerSheet++;

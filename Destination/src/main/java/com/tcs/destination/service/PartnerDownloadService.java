@@ -156,7 +156,7 @@ public class PartnerDownloadService
 			// Get Cell and set cell value
 			row.createCell(2).setCellValue(partnerName[0].toString());
 			row.createCell(3).setCellValue(partnerName[1].toString());
-
+			row.createCell(7).setCellValue(partnerName[2].toString());//TODO inactive indicator - adding a separate column in template with data - done 
 			// Increment row counter
 			currentRow++;
 		}
@@ -201,6 +201,9 @@ public class PartnerDownloadService
 					if(ct.getContactEmailId()!=null) {
 						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
+					
+					Cell active = row.createCell(7);//TODO inactive indicator - added a separate column for active flag - done
+					active.setCellValue(ct.isActive());
 
 					// Increment row counter for partner contact sheet
 					rowCountPartnerSheet++;

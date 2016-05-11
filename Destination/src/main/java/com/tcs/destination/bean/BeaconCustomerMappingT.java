@@ -57,6 +57,9 @@ public class BeaconCustomerMappingT implements Serializable {
 	@Column(name = "beacon_iou")
 	private String beaconIou;
 	
+	@Column(name = "active")
+	private boolean active;
+	
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
 	@JoinColumn(name="customer_geography", insertable = false, updatable = false)
@@ -159,6 +162,14 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
+	}
+	
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 }
