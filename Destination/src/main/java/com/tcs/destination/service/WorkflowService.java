@@ -266,7 +266,7 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
-				if(masterRequest.getStatus().contains("APPROVED")){
+				if(masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus())){
 				sendEmailNotificationforApprovedOrRejectMail(
 						workflowCustomerApprovedSubject,
 						masterRequest.getRequestId(),
