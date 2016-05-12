@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -36,10 +36,8 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.CommonHelper;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  * This service deals with partner requests and provide functionalities like
@@ -85,8 +83,9 @@ public class PartnerService {
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 	
+	@Autowired
+	private GeographyRepository geoRepository;
 	
-
 	private Map<String, GeographyMappingT> geographyMapping = null;
 	
 	
@@ -254,11 +253,34 @@ public class PartnerService {
 			partnerMasterT.setGeographyMappingT(partnerToInsert
 					.getGeographyMappingT());
 			partnerMasterT.setDocumentsAttached("NO");
+			
+			validateInactiveIndicators(partnerMasterT);
+			
 			partnerMasterT = partnerRepository.save(partnerMasterT);
 			logger.debug("End:Inside addPartner method of PartnerService");
 		}
 
 		return partnerMasterT;
+	}
+
+	/**
+	 * validates all the fields of partner which has any inactive fields 
+	 * @param partner
+	 * @throws {@link DestinationException} if any inactive records founds
+	 */
+	private void validateInactiveIndicators(PartnerMasterT partner) {
+
+		//createdModifiedBy, 
+		String createdBy = partner.getCreatedModifiedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+
+		// geography, 
+		String geography = partner.getGeography();
+		if(StringUtils.isNotBlank(geography) && geoRepository.findByActiveTrueAndGeography(geography) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The geography is inactive");
+		}
 	}
 
 	public PaginatedResponse findByNameContaining(String nameWith, int page,

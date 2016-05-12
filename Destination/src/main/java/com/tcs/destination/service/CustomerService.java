@@ -646,6 +646,7 @@ public class CustomerService {
 	/**
 	 * validates all the fields of customer which has any inactive fields 
 	 * @param customer
+	 * @throws {@link DestinationException} if any inactive records founds
 	 */
 	public void validateInactiveIndicators(CustomerMasterT customer) {
 

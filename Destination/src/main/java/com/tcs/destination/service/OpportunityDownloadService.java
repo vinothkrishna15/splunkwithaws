@@ -706,9 +706,7 @@ public class OpportunityDownloadService {
 	    } 
 	    
 	    Cell cellActive = row.createCell(4);
-	    if(ssmt.getActive()!=null){
-		cellActive.setCellValue(ssmt.getActive().trim());
-	    }
+	    cellActive.setCellValue(ssmt.isActive());
 
 	    // Increment row counter
 	    rowCount++;
