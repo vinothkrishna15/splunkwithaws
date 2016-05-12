@@ -285,7 +285,6 @@ public class OpportunityController {
 		Status status = new Status();
 		try {
 			opportunityService.updateOpportunityT(opportunity);
-//			opportunityService.updateOpportunity(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 			logger.info("Inside OpportunityController: End of edit opportunity");
 			return new ResponseEntity<String>(

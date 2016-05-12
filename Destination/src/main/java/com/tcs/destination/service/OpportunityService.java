@@ -938,9 +938,11 @@ public class OpportunityService {
 				.copy(beforeOpp);
 
 		// deal closure comments is mandatory for sales stage codes (11/12/13) 
+		if(opportunity.getSalesStageCode() == 11 || opportunity.getSalesStageCode() == 12 || opportunity.getSalesStageCode() == 13){
 		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
 			logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+		}
 		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,

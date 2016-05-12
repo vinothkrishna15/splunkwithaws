@@ -1316,36 +1316,12 @@ public class WorkflowService {
 			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(
 					status, userId);
 
-			if (status.equalsIgnoreCase("ALL")) {
+			if (status.equalsIgnoreCase("ALL") || status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
 
 				// Get all requests pending for approval/rejection by user
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
-				// List<Object[]> pendingCompetitorRequests =
-				// getPendingCompetitorRequests(userId);
-				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
-
-				// Add all the lists of customer requests
-				listOfCustomerRequests.add(pendingCustomerRequests);
-
-				// Add all the lists of partner requests
-				listOfPartnerRequests.add(pendingPartnerRequests);
-
-				// Add all the lists of competitor requests
-				// listOfCompetitorRequests.add(pendingCompetitorRequests);
-
-				// Add all the lists of opportunity re-open requests
-				listOfOpportunityReopenRequests
-						.add(pendingOpportunityReopenRequests);
-			}
-			if (status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
-				myWorklist = new ArrayList<MyWorklistDTO>();
-
-				// Get all requests pending for user's approval/rejection
-				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
-				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
-				// List<Object[]> pendingCompetitorRequests =
-				// getPendingCompetitorRequests(userId);
+				// List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
@@ -1372,7 +1348,7 @@ public class WorkflowService {
 			populateResponseList(listOfOpportunityReopenRequests,
 					EntityType.OPPORTUNITY.toString(), myWorklist);
 
-			// Add competitor list
+			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
 			// Sort the list based on modified date time
@@ -1404,8 +1380,7 @@ public class WorkflowService {
 	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
-		Set<String> pmos = new HashSet<String>();
-		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
+		String pmoValue = "pmo";
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
@@ -1413,7 +1388,7 @@ public class WorkflowService {
 		userGroup = "%" + userGroup + "%";
 		// Query to get pending partner requests for specific user's
 		// approval/rejection
-		if (userId.contains("pmo")) {
+		if (userId.contains(pmoValue)) {
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
 			Query query1 = entityManager.createNativeQuery(queryBuffer
@@ -1702,167 +1677,6 @@ public class WorkflowService {
 			}
 		}
 		logger.debug("End of populating response for worklist");
-	}
-
-	/**
-	 * This method retrieves new customer requests created by user, based on the
-	 * status of request
-	 * 
-	 * @param status
-	 * @param userId
-	 * @return
-	 */
-	private List<Object[]> getMyRequestsForCustomer(String status, String userId) {
-		logger.debug("Inside getMyRequestsForCustomer method : Start");
-		List<Object[]> resultList = null;
-		Query query = null;
-		if (status.equals("ALL")) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX2);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX3);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
-				|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer
-					.append(QueryConstants.MY_REQUESTS_PENDING_REJECTED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("stepStatus", status);
-		} else if (status.equals(WorkflowStatus.APPROVED.getStatus())) {
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_WHERE);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		}
-		if (query != null) {
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getMyRequestsForCustomer method : End");
-		return resultList;
-	}
-
-	/**
-	 * This method retrieves new partner requests created by user, based on the
-	 * status of request
-	 * 
-	 * @param status
-	 * @param userId
-	 * @return
-	 */
-	private List<Object[]> getMyRequestsForPartner(String status, String userId) {
-		logger.debug("Inside getMyRequestsForPartner method : Start");
-		// Query to get new customer requests created by user
-		List<Object[]> resultList = null;
-		Query query = null;
-		if (status.equals("ALL")) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX2);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX3);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
-				|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer
-					.append(QueryConstants.MY_REQUESTS_PENDING_REJECTED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("stepStatus", status);
-		} else if (status.equals(WorkflowStatus.APPROVED.getStatus())) {
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_WHERE);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		}
-		if (query != null) {
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getMyRequestsForPartner method : End");
-		return resultList;
-
-	}
-
-	/**
-	 * This method is used to retrieve requests which are
-	 * approved/rejected(status) by the user
-	 * 
-	 * @param status
-	 * @param userId
-	 * @param entity
-	 * @return
-	 */
-	private List<Object[]> getRequestsApprovedOrRejectedByUser(String status,
-			String userId, String entity) {
-		logger.debug("Inside getRequestsApprovedOrRejectedByUser method : Start");
-		Query query = null;
-		List<Object[]> resultList = null;
-		if (entity.equals(EntityType.CUSTOMER.toString())) {
-			if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
-				// Query to get customer requests APPROVED by user
-				query = entityManager
-						.createNativeQuery(QueryConstants.QUERY_CUSTOMER_FINAL_APPROVED);
-
-			} else {
-				// Query to get customer requests REJECTED by user
-				StringBuffer queryBuffer = new StringBuffer(
-						QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX2);
-				query = entityManager.createNativeQuery(queryBuffer.toString());
-
-			}
-			query.setParameter("stepStatus", status);
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-
-		} else if (entity.equals(EntityType.PARTNER.toString())) {
-			if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
-				// Query to get partner requests APPROVED by user
-				query = entityManager
-						.createNativeQuery(QueryConstants.QUERY_PARTNER_FINAL_APPROVED);
-			} else {
-				// Query to get partner requests REJECTED by user
-				StringBuffer queryBuffer = new StringBuffer(
-						QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX3);
-				query = entityManager.createNativeQuery(queryBuffer.toString());
-			}
-			query.setParameter("stepStatus", status);
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getRequestsApprovedOrRejectedByUser method : End");
-		return resultList;
-
 	}
 
 	/**
