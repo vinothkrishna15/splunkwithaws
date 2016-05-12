@@ -850,23 +850,35 @@ public class UserService {
 		logger.info("Inside saveUserPrivileges() method");
 		//save parent privileges
 		for (UserAccessPrivilegesT parentAccessPrivilege : user.getUserAccessPrivilegesTs()) {
-			parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
-			parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
-			parentAccessPrivilege.setUserId(user.getUserId());
-			parentAccessPrivilege.setIsactive(Constants.Y);
-			parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
-			logger.info("Parent Privilege saved");
-			Integer parentAccessPrivilegeId = parentAccessPrivilege.getPrivilegeId();
-			//save child privilege
-			for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
-				childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
-				childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
-				childAccessPrivilege.setParentPrivilegeId(parentAccessPrivilegeId);
-				childAccessPrivilege.setUserId(user.getUserId());
-				childAccessPrivilege.setIsactive(Constants.Y);
-				childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
-				logger.info("Child Privilege saved");
-			}
+			 saveParentChildPrivileges(user, parentAccessPrivilege);
+		}
+	}
+
+
+
+	/**
+	 * This method is used to save parent child privileges
+	 * 
+	 * @param user
+	 * @param parentAccessPrivilege
+	 */
+	private void saveParentChildPrivileges(UserT user, UserAccessPrivilegesT parentAccessPrivilege) {
+		parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
+		parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
+		parentAccessPrivilege.setUserId(user.getUserId());
+		parentAccessPrivilege.setIsactive(Constants.Y);
+		parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
+		logger.info("Parent Privilege saved");
+		Integer parentAccessPrivilegeId = parentAccessPrivilege.getPrivilegeId();
+		//save child privilege
+		for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
+			childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
+			childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
+			childAccessPrivilege.setParentPrivilegeId(parentAccessPrivilegeId);
+			childAccessPrivilege.setUserId(user.getUserId());
+			childAccessPrivilege.setIsactive(Constants.Y);
+			childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
+			logger.info("Child Privilege saved");
 		}
 	}
 
@@ -924,26 +936,47 @@ public class UserService {
 		deleteUserPrivileges(user);
 
 		for (UserAccessPrivilegesT parentAccessPrivilege : user.getUserAccessPrivilegesTs()) {
-			parentAccessPrivilege.setPrivilegeId(parentAccessPrivilege.getPrivilegeId());
-			parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
-			parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
-			parentAccessPrivilege.setUserId(user.getUserId());
-			parentAccessPrivilege.setIsactive(Constants.Y);
-			
-			for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
-				childAccessPrivilege.setPrivilegeId(childAccessPrivilege.getPrivilegeId());
-				childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
-				childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
-				childAccessPrivilege.setParentPrivilegeId(childAccessPrivilege.getParentPrivilegeId());
-				childAccessPrivilege.setUserId(user.getUserId());
-				childAccessPrivilege.setIsactive(Constants.Y);
-				childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
-				logger.info("Child Privileges Updated");
-			}
+			if(parentAccessPrivilege.getPrivilegeId()==null){
+				saveParentChildPrivileges(user,parentAccessPrivilege);
+			} else {
+				parentAccessPrivilege.setPrivilegeId(parentAccessPrivilege.getPrivilegeId());
+				parentAccessPrivilege.setPrivilegeType(parentAccessPrivilege.getPrivilegeType());
+				parentAccessPrivilege.setPrivilegeValue(parentAccessPrivilege.getPrivilegeValue());
+				parentAccessPrivilege.setUserId(user.getUserId());
+				parentAccessPrivilege.setIsactive(Constants.Y);
+				
+				for (UserAccessPrivilegesT childAccessPrivilege : parentAccessPrivilege.getUserAccessPrivilegesTs()) {
+					if(childAccessPrivilege.getPrivilegeId()==null){
+						saveChildPrivilege(user, childAccessPrivilege);
+					} else {
+						childAccessPrivilege.setPrivilegeId(childAccessPrivilege.getPrivilegeId());
+						saveChildPrivilege(user, childAccessPrivilege);
+					}
+					childAccessPrivilege = userAccessPrivilegesRepository.save(childAccessPrivilege);
+					logger.info("Child Privileges Updated");
+				}
 			parentAccessPrivilege = userAccessPrivilegesRepository.save(parentAccessPrivilege);
 			logger.info("Parent Privileges Updated");
+			}
 		}
 		logger.info("End of updateUserPrivileges method");
+	}
+
+
+
+	/**
+	 * This method is used to set child privileges to 
+	 * 
+	 * @param user
+	 * @param childAccessPrivilege
+	 */
+	private void saveChildPrivilege(UserT user,
+			UserAccessPrivilegesT childAccessPrivilege) {
+		childAccessPrivilege.setPrivilegeType(childAccessPrivilege.getPrivilegeType());
+		childAccessPrivilege.setPrivilegeValue(childAccessPrivilege.getPrivilegeValue());
+		childAccessPrivilege.setParentPrivilegeId(childAccessPrivilege.getParentPrivilegeId());
+		childAccessPrivilege.setUserId(user.getUserId());
+		childAccessPrivilege.setIsactive(Constants.Y);
 	}
 
 	/**
