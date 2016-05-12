@@ -10,6 +10,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.BeaconCustomerMappingT;
-import com.tcs.destination.bean.BeaconCustomerMappingTPK;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
@@ -34,12 +34,14 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
-import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
-import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -48,7 +50,6 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class CustomerService {
@@ -123,10 +124,18 @@ public class CustomerService {
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
+	@Autowired
+	private IouRepository iouRepository;
+	
+	@Autowired
+	private GeographyRepository geoRepository;
+	
+	@Autowired
+	private ContactRepository contactRepository;
+
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
-
 
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
@@ -625,11 +634,82 @@ public class CustomerService {
 				throw new DestinationException(HttpStatus.CONFLICT,
 						"customer Already Exist!");
 			}
+			validateInactiveIndicators(customerT);
+			
 			logger.info("before save");
 			customerT = customerRepository.save(customerT);
 			logger.info("Customer Saved .... " + customerT.getCustomerId());
 		}
 		return customerT;
+	}
+
+	/**
+	 * validates all the fields of customer which has any inactive fields 
+	 * @param customer
+	 */
+	public void validateInactiveIndicators(CustomerMasterT customer) {
+
+		//iou,
+		String iou = customer.getIou();
+		if(StringUtils.isNotBlank(iou) && iouRepository.findByActiveTrueAndIou(iou) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The iou is inactive");
+		}
+
+		// createdModifiedBy, 
+		String createdBy = customer.getCreatedModifiedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+
+		// geography, 
+		String geography = customer.getGeography();
+		if(StringUtils.isNotBlank(geography) && geoRepository.findByActiveTrueAndGeography(geography) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The geography is inactive");
+		}
+
+		// beaconCustomerMappingTs,
+		List<BeaconCustomerMappingT> beaconCustomerMapping = customer.getBeaconCustomerMappingTs();
+		if(CollectionUtils.isNotEmpty(beaconCustomerMapping)) {
+			for (BeaconCustomerMappingT beaconCustomer : beaconCustomerMapping) {
+				String beaconIou = beaconCustomer.getBeaconIou();
+				if(StringUtils.isNotBlank(beaconIou) && iouRepository.findByActiveTrueAndIou(beaconIou) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon iou is inactive");
+				}
+
+				String geo = beaconCustomer.getCustomerGeography();
+				if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon geography is inactive");
+				}
+			}
+		}
+
+		// revenueCustomerMappingTs,
+		List<RevenueCustomerMappingT> revenueCustMapping = customer.getRevenueCustomerMappingTs();
+		if(CollectionUtils.isNotEmpty(revenueCustMapping)) {
+			for (RevenueCustomerMappingT revenueCust : revenueCustMapping) {
+				String financeIou = revenueCust.getFinanceIou();
+				if(StringUtils.isNotBlank(financeIou) && iouRepository.findByActiveTrueAndIou(financeIou) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue iou is inactive");
+				}
+
+				String geo = revenueCust.getCustomerGeography();
+				if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue geography is inactive");
+				}
+			}
+		}
+
+		// contactCustomerLinkTs,
+		List<ContactCustomerLinkT> contactCustomerLink = customer.getContactCustomerLinkTs();
+		if(CollectionUtils.isNotEmpty(contactCustomerLink)) {
+			for (ContactCustomerLinkT revenueCust : contactCustomerLink) {
+				String contact = revenueCust.getContactId();
+				if(StringUtils.isNotBlank(contact) && contactRepository.findByActiveTrueAndContactId(contact) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The contact is inactive");
+				}
+			}
+		}
+		
 	}
 
 	/**
