@@ -3,18 +3,19 @@
 		Dear User,
 		<p>
      
-              We regret to inform you that <b>TCS Digital Enterprise</b> has <b>LOST</b> the opportunity <b>&quot;${opportunityName}&quot;</b> for <b>&quot;${customerName}&quot;</b>.<br/><br/>
+              We regret to inform you that TCS Digital Enterprise has Lost the opportunity.<br/><br/>
+              Opportunity : <b>${opportunityName}</b><br/>
+              Customer : <b>${customerName}</b><br/><br/>
 
-              The key factors identified for the loss are as mentioned below:<br/>
-            <b>&quot;${factorsForWinLoss}&quot;</b>. <br/><br/>
+              The key factors for the loss are : <b>${factorsForWinLoss}</b>.<br/><br/>
 
-              This opportunity was led by <b>&quot;${opportunityOwner}&quot;</b> with support from <b>&quot;${salesSupportOwners}&quot;</b>.<br/>
-              Deal size recorded is <b>&quot;${digitalBidValue} ${currencyType}&quot;</b>.<br/>
-              Opportunity Description: <b>&quot;${opportunityDescription}&quot;</b><br/>		
+              This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
+              Deal size recorded is <b>${digitalBidValue}</b>.<br/>
+              Opportunity Description: <b>${opportunityDescription}</b><br/>		
         </p>		
 		<p>
-		Thanks,<br>
-		Destination Team.
+		<b>Thanks,</b><br>
+		<b>Team Destination</b>
 		</p>
 		<br>
 		<p>

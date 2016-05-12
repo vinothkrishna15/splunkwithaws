@@ -3,18 +3,19 @@
 		Dear User,
 		<p>
      
-              We are glad to inform you that TCS Digital Enterprise has successfully closed the opportunity <b>&quot;${opportunityName}&quot;</b> for <b>&quot;${customerName}&quot;</b> and it is a <b>WIN</b>.<br/><br/>
+              We are glad to inform you that TCS Digital Enterprise has successfully closed the opportunity and it is a WIN.<br/><br/>
+              Opportunity : <b>${opportunityName}</b><br/>
+              Customer : <b>${customerName}</b><br/><br/>
 
-              The key factors for the Win are as mentioned below:<br/>
-            <b>&quot;${factorsForWinLoss}&quot;</b>. <br/><br/>
+              The key factors for the Win : <b>${factorsForWinLoss}</b>.<br/><br/>
 
-              This opportunity was led by <b>&quot;${opportunityOwner}&quot;</b> with support from <b>&quot;${salesSupportOwners}&quot;</b>.<br/>
-              Deal size recorded is <b>&quot;${digitalBidValue} ${currencyType}&quot;</b>.<br/>
-              Opportunity Description: <b>&quot;${opportunityDescription}&quot;</b><br/>		
+              This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
+              Deal size recorded is <b>${digitalBidValue}</b>.<br/>
+              Opportunity Description: <b>${opportunityDescription}</b><br/>		
         </p>		
 		<p>
-		Thanks,<br>
-		Destination Team.
+		<b>Thanks,</b><br>
+		<b>Team Destination</b>
 		</p>
 		<br>
 		<p>

@@ -29,6 +29,7 @@ import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,7 +66,6 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
-import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
@@ -94,6 +94,8 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.NumericUtil;
+import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -192,6 +194,9 @@ public class DestinationMailUtils {
 	
 	@Autowired
 	OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
 
 	@Autowired
 	private OpportunityService oppService;
@@ -1511,7 +1516,14 @@ public class DestinationMailUtils {
 			String opportunityOwner = userRepository
 					.findUserNameByUserId(opportunity.getOpportunityOwner());
 			Integer digitalBidValue = opportunity.getDigitalDealValue();
+			logger.info("digital Bid Value : "+digitalBidValue);
 			String currencyType = opportunity.getDealCurrency();
+			//Converting deal value to USD
+			BigDecimal digitalBidValueUSD = opportunityDownloadService.convertCurrencyToUSD(currencyType, digitalBidValue);
+			logger.info("digitalBidValueUSD : "+digitalBidValueUSD);
+			//Converting the USD value in number scale
+			String dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
+			logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
 			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 			Date dealClosureDate = opportunity.getDealClosureDate();
 			String dealClosureDateStr = df.format(dealClosureDate);
@@ -1523,6 +1535,7 @@ public class DestinationMailUtils {
 			String salesSupportOwners = "";
 			String factorsForWinLoss = "";
 			String subSpsStr = "";
+			String withSupportFrom = "";
 			for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
 				opportunitySubSps.add(opportunitySubSpLinkT.getSubSp());
 			}
@@ -1541,11 +1554,15 @@ public class DestinationMailUtils {
 			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 					.getOpportunitySalesSupportLinkTs()) {
 
-				opportunitySalesSupportOwners.add(userRepository
-						.findUserNameByUserId(opportunitySalesSupportLinkT
-								.getSalesSupportOwner()));
+				if(!opportunitySalesSupportLinkT.getSalesSupportOwner().contains("pmo")) {
+					opportunitySalesSupportOwners.add(userRepository
+							.findUserNameByUserId(opportunitySalesSupportLinkT
+									.getSalesSupportOwner()));
+				}
+				
 			}
 			if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
+				withSupportFrom = Constants.WITH_SUPPORT_FROM;
 				salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
 				logger.info("sales support owners : "+salesSupportOwners);
 			}
@@ -1588,9 +1605,9 @@ public class DestinationMailUtils {
 					map.put("factorsForWinLoss", factorsForWinLoss);
 					map.put("opportunityOwner", opportunityOwner);
 					map.put("salesSupportOwners", salesSupportOwners);
-					map.put("digitalBidValue", digitalBidValue);
+					map.put("digitalBidValue", dealValueUSDInNumberScale);
 					map.put("opportunityDescription", opportunityDescription);
-					map.put("currencyType",currencyType);
+					map.put("withSupportFrom", withSupportFrom);
 					String text = VelocityEngineUtils.mergeTemplateIntoString(
 							velocityEngine, templateLoc, Constants.UTF8,
 							map);

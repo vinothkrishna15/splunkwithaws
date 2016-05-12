@@ -49,15 +49,15 @@ public class NumericUtil {
 		String returnVal = null;
 		
 		if (value.compareTo(THOUSAND) != 1) {
-			returnVal = value.round(mc).stripTrailingZeros().toEngineeringString() + " " + USD;
+			returnVal = USD + " " + value.round(mc).stripTrailingZeros().toEngineeringString();
 		} else if (value.compareTo(THOUSAND) != -1 && value.compareTo(MILLION) == -1) {
-			returnVal = value.divide(THOUSAND, mc).round(mc).stripTrailingZeros().toEngineeringString() + "K " + USD;
+			returnVal = USD + " " + value.divide(THOUSAND, mc).round(mc).stripTrailingZeros().toEngineeringString() + "K ";
 		} else if (value.compareTo(MILLION) != -1 && value.compareTo(BILLION) == -1) {
-			returnVal = value.divide(MILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "M " + USD;
+			returnVal = USD + " " + value.divide(MILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "M ";
 		} else if (value.compareTo(MILLION) != -1 && value.compareTo(TRILLION) == -1) {
-			returnVal = value.divide(BILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "B " + USD;
+			returnVal = USD + " " + value.divide(BILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "B ";
 		} else if (value.compareTo(TRILLION) != -1) {
-			returnVal = value.divide(TRILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "T " + USD;
+			returnVal = USD + " " + value.divide(TRILLION, mc).round(mc).stripTrailingZeros().toEngineeringString() + "T ";
 		}
 		
 		return returnVal;
