@@ -880,6 +880,8 @@ public class UserService {
 	@Transactional
 	public boolean updateUserDetails(UserT user) throws Exception {
 		logger.info("Begin:inside updateUserDetails() of UserService");
+		UserT userT= userRepository.findByUserId(user.getUserId());
+		user.setTempPassword(userT.getTempPassword());
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
