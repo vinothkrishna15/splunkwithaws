@@ -920,6 +920,7 @@ public class UserService {
 		for (UserGoalsT userGoal : user.getUserGoalsTs1()) {
 			userGoal.setUserId(user.getUserId());
 			userGoal.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			userGoal.setFinancialYear(DateUtils.getCurrentFinancialYear());
 			userGoalsRepository.save(userGoal);
 			logger.info("user Goals saved/updated: " + userGoal.getGoalId());
 		}
