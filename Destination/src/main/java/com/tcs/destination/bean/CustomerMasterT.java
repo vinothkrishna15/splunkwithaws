@@ -64,7 +64,7 @@ public class CustomerMasterT implements Serializable {
 	private String website;
 	private String iou;
 	private String geography;
-	private boolean active;
+	private boolean active = true;
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy = "customerMasterT")
