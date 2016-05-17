@@ -5,7 +5,8 @@
      
               We are glad to inform you that TCS Digital Enterprise has successfully closed the opportunity and it is a WIN.<br/><br/>
               Opportunity : <b>${opportunityName}</b><br/>
-              Customer : <b>${customerName}</b><br/><br/>
+              Customer : <b>${customerName}</b><br/>
+              Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
 
               The key factors for the Win : <b>${factorsForWinLoss}</b>.<br/><br/>
 
