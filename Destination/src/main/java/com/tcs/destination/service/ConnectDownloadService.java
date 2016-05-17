@@ -280,7 +280,7 @@ public class ConnectDownloadService {
 		    row = (XSSFRow) spreadSheet.createRow(rowCount);
 		    row.createCell(0).setCellValue(offeringT.getSubSp());
 			row.createCell(1).setCellValue(offeringT.getOffering());
-			row.createCell(2).setCellValue(offeringT.getActive());
+			row.createCell(2).setCellValue(offeringT.isActive());
 
 		    // Increment row counter
 		    rowCount++;

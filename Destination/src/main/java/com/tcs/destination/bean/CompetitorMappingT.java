@@ -37,6 +37,8 @@ public class CompetitorMappingT implements Serializable {
 	@Column(name="active")
 	private boolean active;
 
+	private String website;
+
 	//bi-directional many-to-one association to OpportunityCompetitorLinkT
 	@JsonIgnore
 	@OneToMany(mappedBy="competitorMappingT")
@@ -83,4 +85,12 @@ public class CompetitorMappingT implements Serializable {
 		this.active = active;
 	}
 	
+	public String getWebsite() {
+		return website;
+	}
+
+	public void setWebsite(String website) {
+		this.website = website;
+	}
+
 }

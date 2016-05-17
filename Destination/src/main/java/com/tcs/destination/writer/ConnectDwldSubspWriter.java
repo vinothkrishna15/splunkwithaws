@@ -132,8 +132,8 @@ public class ConnectDwldSubspWriter implements ItemWriter<SubSpMappingT>,
 				} 
 				ExcelUtils.createCell(code,row, 3);
 				
-				String active = subSpMappingT.getActive();
-				ExcelUtils.createCell(active, row, 4);
+				boolean active = subSpMappingT.isActive();
+				ExcelUtils.createCell(String.valueOf(active), row, 4);
 				
 				// Increment row counter
 				rowCount++;

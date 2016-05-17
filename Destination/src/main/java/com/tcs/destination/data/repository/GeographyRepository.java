@@ -23,4 +23,6 @@ public interface GeographyRepository extends
 
 	List<GeographyMappingT> findByActiveTrue();
 
+	GeographyMappingT findByActiveTrueAndGeography(String geography);
+
 }

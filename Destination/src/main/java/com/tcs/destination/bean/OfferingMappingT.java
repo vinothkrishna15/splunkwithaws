@@ -29,7 +29,7 @@ public class OfferingMappingT implements Serializable {
 	@Id
 	private String offering;
 
-	private String active;
+	private boolean active;
 
 	@Column(name = "offering_id")
 	private Integer offeringId;
@@ -58,11 +58,11 @@ public class OfferingMappingT implements Serializable {
 		this.offering = offering;
 	}
 
-	public String getActive() {
-		return this.active;
+	public boolean isActive() {
+		return active;
 	}
 
-	public void setActive(String active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 

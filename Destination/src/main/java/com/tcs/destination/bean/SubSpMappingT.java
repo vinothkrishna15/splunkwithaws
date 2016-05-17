@@ -30,7 +30,7 @@ public class SubSpMappingT implements Serializable {
 	@Column(name = "sub_sp")
 	private String subSp;
 
-	private String active;
+	private boolean active;
 
 	@Column(name = "display_sub_sp")
 	private String displaySubSp;
@@ -75,11 +75,11 @@ public class SubSpMappingT implements Serializable {
 		this.subSp = subSp;
 	}
 
-	public String getActive() {
-		return this.active;
+	public boolean isActive() {
+		return active;
 	}
 
-	public void setActive(String active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 
