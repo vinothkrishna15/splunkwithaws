@@ -349,6 +349,7 @@ public class UserDetailsController {
 						currentPassword);
 				if (dbUser != null) {
 					dbUser.setTempPassword(newPassword);
+					dbUser.setStatus(2);
 					userService.updateUser(dbUser);
 					status.setStatus(Status.SUCCESS,
 							"Password has been updated successfully");

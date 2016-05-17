@@ -105,15 +105,15 @@ public class DestinationMailUtils {
 
 	@Value("${environment.name}")
 	private String environmentName;
+	
+	@Value("${destinationUrl}")
+	private String destinationUrl;
+	
+	@Value("${defaultPasswordTemplateLoc}")
+	private String defaultPasswordTemplateLoc;
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private JavaMailSender mailSender;
-
-	@Autowired
-	private JavaMailSenderImpl sender;
 
 	@Autowired
 	private VelocityEngine velocityEngine;
@@ -184,6 +184,35 @@ public class DestinationMailUtils {
 		logger.info("Forgot Password : Mail sent");
 	}
 
+	
+	public boolean sendDefaultPasswordAutomatedEmail(String subject, UserT user
+			) throws Exception {
+		logger.debug("inside sendDefaultPasswordAutomatedEmail method");
+		DestinationMailMessage message = new DestinationMailMessage();
+
+		List<String> recipientIds = new ArrayList<String>();
+		String userId = user.getUserId();
+		recipientIds.add(userId);
+		
+		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
+
+		//DateFormat df = new SimpleDateFormat(dateFormatStr);
+		//String dateStr = df.format(requestedDateTime);
+		message.setSubject(formatSubject(subject));
+		
+		Map<String, Object> defaultPasswordTemplateDataModel = Maps.newHashMap();
+		defaultPasswordTemplateDataModel.put("user", user);
+		defaultPasswordTemplateDataModel.put("destinationUrl", destinationUrl);
+		String text = mergeTmplWithData(defaultPasswordTemplateDataModel, defaultPasswordTemplateLoc);
+		message.setMessage(text);
+		try{
+			destMailSender.send(message);
+		} catch (Exception e){
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * @param request
 	 * @param subject

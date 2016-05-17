@@ -35,13 +35,13 @@ public class EmailDefaultPasswordProcessor implements Tasklet{
 		 List<UserT> userList = userRepo.findUsersByStatusAndActive(0,true);
 		//for each user 
 		 for(UserT user : userList){
-			 //1. form email
+			 //form email
 			 boolean mailSent = destinationMailUtils.sendDefaultPasswordAutomatedEmail("DESTINATION : User Account created ",user);
 			 
-			 //2. update table
-			 if(mailSent){
-			 user.setStatus(1);
-			 userRepo.save(user);
+			 //update table
+			 if(mailSent) {
+			  user.setStatus(1);
+			  userRepo.save(user);
 			 }
 		 }
   		 
