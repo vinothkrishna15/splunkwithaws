@@ -213,16 +213,15 @@ public class OpportunityDownloadHelper {
 			if (opportunity.getOverallDealSize() != null) {
 				Cell cellOverallDealValue = row.createCell(17);
 				cellOverallDealValue.setCellValue(opportunity
-						.getOverallDealSize());
+						.getOverallDealSize().doubleValue());
 			}
 
 			// OVERALL DEAL SIZE in USD
 			// if(dealValueFlag){
 			if (opportunity.getOverallDealSize() != null) {
 				Cell cellOverallDealValue = row.createCell(18);
-				cellOverallDealValue.setCellValue(convertCurrencyToUSD(
-						opportunity.getDealCurrency(),
-						opportunity.getOverallDealSize()).doubleValue());
+				BigDecimal overallDealValue = convertCurrencyToUSD(opportunity.getDealCurrency(), opportunity.getOverallDealSize().doubleValue());
+				cellOverallDealValue.setCellValue(overallDealValue.doubleValue());
 			}
 			// }
 
@@ -230,16 +229,15 @@ public class OpportunityDownloadHelper {
 			if (opportunity.getDigitalDealValue() != null) {
 				Cell cellDigitalDealValue = row.createCell(19);
 				cellDigitalDealValue.setCellValue(opportunity
-						.getDigitalDealValue());
+						.getDigitalDealValue().doubleValue());
 			}
 
 			// DIGITAL DEAL SIZE in USD
 			// if(dealValueFlag){
 			if (opportunity.getDigitalDealValue() != null) {
 				Cell cellDigitalDealValue = row.createCell(20);
-				cellDigitalDealValue.setCellValue(convertCurrencyToUSD(
-						opportunity.getDealCurrency(),
-						opportunity.getDigitalDealValue()).doubleValue());
+				BigDecimal digitalDealValue = convertCurrencyToUSD(opportunity.getDealCurrency(),	opportunity.getDigitalDealValue().doubleValue());
+				cellDigitalDealValue.setCellValue(digitalDealValue.doubleValue());
 			}
 			// }
 
@@ -482,10 +480,10 @@ public class OpportunityDownloadHelper {
 	 * @throws Exception
 	 */
 	private BigDecimal convertCurrencyToUSD(String dealCurrency,
-			Integer overallDealSize) throws Exception {
+			Double overallDealSize) throws Exception {
 
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD",
-				overallDealSize.doubleValue());
+				overallDealSize);
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.tcs.destination.data.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -23,5 +24,5 @@ public interface UserNotificationSettingsConditionRepository extends
 
 	@Query(value = "select distinct(user_id) from user_notification_settings_conditions_t where condition_id = 6 and (CAST(REGEXP_REPLACE(coalesce(condition_value,'0'),'[^0-9]*','0') AS NUMERIC)) < (:digitalDealValue) ", nativeQuery = true)
 	Set<String> findUserIdByDigitalDealValueGreaterThan(
-			@Param("digitalDealValue") Integer digitalDealValue);
+			@Param("digitalDealValue") BigDecimal digitalDealValue);
 }
