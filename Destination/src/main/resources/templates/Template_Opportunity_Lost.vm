@@ -5,7 +5,8 @@
      
               We regret to inform you that TCS Digital Enterprise has Lost the opportunity.<br/><br/>
               Opportunity : <b>${opportunityName}</b><br/>
-              Customer : <b>${customerName}</b><br/><br/>
+              Customer : <b>${customerName}</b><br/>
+              Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
 
               The key factors for the loss are : <b>${factorsForWinLoss}</b>.<br/><br/>
 

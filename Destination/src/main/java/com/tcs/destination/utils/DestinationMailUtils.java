@@ -81,6 +81,7 @@ import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -148,8 +149,8 @@ public class DestinationMailUtils {
 	@Value("${opportunityLostTemplate}")
 	private String opportunityLostTemplateLoc;
 
-	@Value("${environment.name}")
-	private String environmentName;
+	@Value("${mail.environment.name}")
+	private String mailSubjectAppendEnvName;
 
 	@Autowired
 	private UserService userService;
@@ -201,6 +202,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private OpportunityService oppService;
+	
+	@Autowired
+	SubSpRepository subSpRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
@@ -229,7 +233,7 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -276,7 +280,7 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = null;
-			StringBuffer subject = new StringBuffer(environmentName)
+			StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName)
 					.append(" Admin: ");
 
 			String userName = null;
@@ -581,7 +585,7 @@ public class DestinationMailUtils {
 			helper.setFrom(senderEmailId);
 
 			String template = uploadNotifyTemplateLoc;
-			StringBuffer subject = new StringBuffer(environmentName)
+			StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName)
 					.append(" Admin: ");
 
 			String userName = user.getUserName();
@@ -728,7 +732,7 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
 
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -773,7 +777,7 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -1089,7 +1093,7 @@ public class DestinationMailUtils {
 		message.setBccList(bccIds);
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(reopenOpportunityProcessedSubject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -1180,7 +1184,7 @@ public class DestinationMailUtils {
 		List<String> ccIds = new ArrayList<String>();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
-		StringBuffer subject = new StringBuffer(environmentName);
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
 		logger.info("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -1383,7 +1387,8 @@ public class DestinationMailUtils {
 		String geography = null;
 		String pmoValue = "%"
 				+ Constants.PMO_KEYWORD + "%";
-		String subject = new StringBuffer(environmentName).append(" ")
+
+		String subject = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(workflowCustomerApprovedOrRejectSubject).toString();
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -1600,7 +1605,7 @@ public class DestinationMailUtils {
 		OpportunityT opportunity = opportunityRepository.findOne(entityId);
 		List<String> recepientIds = new ArrayList<String>();
 		String templateLoc = null;
-		StringBuffer subject = new StringBuffer(environmentName);
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
 		if (opportunity != null) {
 			String opportunityName = opportunity.getOpportunityName();
 			logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
@@ -1618,7 +1623,7 @@ public class DestinationMailUtils {
 			//Converting the USD value in number scale
 			String dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
 			logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
-			DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+			DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
 			Date dealClosureDate = opportunity.getDealClosureDate();
 			String dealClosureDateStr = df.format(dealClosureDate);
 			String opportunityDescription = opportunity
@@ -1630,8 +1635,10 @@ public class DestinationMailUtils {
 			String factorsForWinLoss = "";
 			String subSpsStr = "";
 			String withSupportFrom = "";
+			String displaySubSp = null;
 			for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
-				opportunitySubSps.add(opportunitySubSpLinkT.getSubSp());
+				displaySubSp = subSpRepository.findOne(opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
+				opportunitySubSps.add(displaySubSp);
 			}
 			if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
 				subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
@@ -1664,22 +1671,20 @@ public class DestinationMailUtils {
 			recepientIds.add(opportunityWonLostGroupMailId);
 			if (opportunity.getSalesStageCode() == 9) {
 				logger.info("opportunity Won");
-				subject.append(" - ").append("Destination:").append(" ").append(subSpsStr).append(" ")
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
 						.append("Deal Won for").append(" ")
-						.append(customerName).append(" ").append("on")
-						.append(" ").append(dealClosureDateStr);
-				logger.info("Subject :"+subject);
+						.append(customerName);
+				logger.info("Subject for opportunity won :"+subject);
 				templateLoc = opportunityWonTemplateLoc;
 				
 			}
 			
 			if(opportunity.getSalesStageCode() == 10) {
 				logger.info("OpportunityLost");
-				subject.append(" - ").append("Destination:").append(" ").append(subSpsStr).append(" ")
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
 						.append("Deal Lost for").append(" ")
-						.append(customerName).append(" ").append("on")
-						.append(" ").append(dealClosureDateStr);
-				logger.info("Subject :"+subject);
+						.append(customerName);
+				logger.info("Subject for opportunity lost :"+subject);
 				templateLoc = opportunityLostTemplateLoc;
 				
 			}
@@ -1702,6 +1707,7 @@ public class DestinationMailUtils {
 					map.put("digitalBidValue", dealValueUSDInNumberScale);
 					map.put("opportunityDescription", opportunityDescription);
 					map.put("withSupportFrom", withSupportFrom);
+					map.put("dealClosureDate", dealClosureDateStr);
 					String text = VelocityEngineUtils.mergeTemplateIntoString(
 							velocityEngine, templateLoc, Constants.UTF8,
 							map);
