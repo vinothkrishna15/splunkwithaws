@@ -219,7 +219,7 @@ public class DashBoardService {
 				if (pipeline[1] != null && pipeline[0] != null) {
 					pipelineSum = pipelineSum.add(beaconService.convert(
 							pipeline[1].toString(), "USD",
-							((Integer) pipeline[0]).doubleValue()));
+							((BigDecimal) pipeline[0]).doubleValue()));
 					hasValues = true;
 				}
 
@@ -235,7 +235,7 @@ public class DashBoardService {
 				if (win[1] != null && win[0] != null)
 					winSum = winSum.add(beaconService.convert(
 							win[1].toString(), "USD",
-							((Integer) win[0]).doubleValue()));
+							((BigDecimal) win[0]).doubleValue()));
 				hasValues = true;
 			}
 
@@ -1043,7 +1043,7 @@ public class DashBoardService {
 						opportunitiesProspects.add(opp);
 						if (opp.getDigitalDealValue() != null) {
 							sumOfDealValueProspects = sumOfDealValueProspects +
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue().doubleValue(), beaconConverterMap).doubleValue();
 						}
 					} else if ((opp.getSalesStageCode() >= 4)
 							&& (opp.getSalesStageCode() <= 8)) { // For Pipeline
@@ -1051,14 +1051,14 @@ public class DashBoardService {
 						opportunitiesPipeline.add(opp);
 						if (opp.getDigitalDealValue() != null) {
 							sumOfDealValuePipeline = sumOfDealValuePipeline + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue().doubleValue(), beaconConverterMap).doubleValue();
 						}
 					} else if (opp.getSalesStageCode() == 9) { // For Won
 
 						opportunitiesWon.add(opp);
 						if (opp.getDigitalDealValue() != null) {
 							sumOfDealValueWon = sumOfDealValueWon + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue().doubleValue(), beaconConverterMap).doubleValue();
 						}
 					} else if ((opp.getSalesStageCode() == 10)
 							|| (opp.getSalesStageCode() == 11)
@@ -1067,14 +1067,14 @@ public class DashBoardService {
 						opportunitiesLost.add(opp);
 						if (opp.getDigitalDealValue() != null) {
 							sumOfDealValueLost = sumOfDealValueLost + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue().doubleValue(), beaconConverterMap).doubleValue();
 						}
 					} else if (opp.getSalesStageCode() == 12) { // For Shelved
 
 						opportunitiesShelved.add(opp);
 						if (opp.getDigitalDealValue() != null) {
 							sumOfDealValueShelved = sumOfDealValueShelved + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue().doubleValue(), beaconConverterMap).doubleValue();
 						}
 					}
 			}

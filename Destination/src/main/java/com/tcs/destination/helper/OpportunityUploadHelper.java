@@ -1,5 +1,6 @@
 package com.tcs.destination.helper;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -348,15 +349,13 @@ public class OpportunityUploadHelper {
 		// OVERALL BID SIZE
 		String overallBidSize = data[18];
 		if (!StringUtils.isEmpty(overallBidSize)) {
-			opportunity.setOverallDealSize(Double.valueOf(overallBidSize)
-					.intValue());
+			opportunity.setOverallDealSize(new BigDecimal((overallBidSize)));
 		}
 
 		// DIGITAL DEAL VALUE
 		String digitalDealValue = data[20];
 		if (!StringUtils.isEmpty(digitalDealValue)) {
-			opportunity.setDigitalDealValue(Double.valueOf(digitalDealValue)
-					.intValue());
+			opportunity.setDigitalDealValue(new BigDecimal(digitalDealValue));
 		}
 
 		// OPPORTUNITY OWNER

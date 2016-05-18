@@ -263,7 +263,7 @@ public class OpportunityDownloadService {
 	    //OVERALL DEAL SIZE
 	    if(opp.getOverallDealSize()!=null) {
 		Cell cellOverallDealValue = row.createCell(17);
-		cellOverallDealValue.setCellValue(opp.getOverallDealSize());
+		cellOverallDealValue.setCellValue(opp.getOverallDealSize().doubleValue());
 	    }
 	    
 	    //	OVERALL DEAL SIZE in USD
@@ -277,7 +277,7 @@ public class OpportunityDownloadService {
 	    //DIGITAL DEAL VALUE
 	    if(opp.getDigitalDealValue()!=null){
 		Cell cellDigitalDealValue = row.createCell(19);
-		cellDigitalDealValue.setCellValue(opp.getDigitalDealValue());
+		cellDigitalDealValue.setCellValue(opp.getDigitalDealValue().doubleValue());
 	    }
 	    
 	    // DIGITAL DEAL SIZE in USD
@@ -461,7 +461,7 @@ public class OpportunityDownloadService {
      * @return
      * @throws Exception
      */
-    private BigDecimal convertCurrencyToUSD(String dealCurrency,Integer overallDealSize) throws Exception{
+    private BigDecimal convertCurrencyToUSD(String dealCurrency,BigDecimal overallDealSize) throws Exception{
     	logger.debug("Inside convertCurrencyToUSD of OpportunityDownloadService");
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD", overallDealSize.doubleValue());
 	}

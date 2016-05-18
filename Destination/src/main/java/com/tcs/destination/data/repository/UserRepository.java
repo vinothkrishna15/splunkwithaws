@@ -111,4 +111,6 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	UserT findByActiveTrueAndUserName(String userName);
 	UserT findByActiveTrueAndUserId(String userId);
+	
+	List<UserT> findUsersByStatusAndActive(int status,boolean active);
 }

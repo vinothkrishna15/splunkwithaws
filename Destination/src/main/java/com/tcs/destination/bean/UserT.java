@@ -73,6 +73,17 @@ public class UserT implements Serializable {
 
 	@Column(name = "active")
 	private boolean active;
+	
+	@Column(name = "status")
+    private int status; // added to mark whether password is default or notified or changed
+	
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
 
 	@Transient
 	private Timestamp lastLogin;
