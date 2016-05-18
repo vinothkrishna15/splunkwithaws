@@ -74,8 +74,8 @@ public interface CustomerRepository extends
 	@Query(value = "update customer_master_t set logo = ?1  where customer_id=?2", nativeQuery = true)
 	void addImage(byte[] imageBytes, String id);
 
-	@Query(value = "select customer_name, customer_id from customer_master_t", nativeQuery = true)
-	List<Object[]> getNameAndId();
+	@Query(value = "select * from customer_master_t", nativeQuery = true)
+	List<CustomerMasterT> getNameAndId();
 	
 	@Query(value = "select distinct group_customer_name, customer_name, iou, geography, customer_id from customer_master_t", nativeQuery = true)
 	List<Object[]> getCustomerNameAndIouAndGeography();

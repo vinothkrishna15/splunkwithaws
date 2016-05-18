@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserGoalsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
+import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
@@ -65,6 +67,10 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 	private UserService userService;
 
 	private UserRepository userRepository;
+	
+	private UserGoalsRepository userGoalsRepository;
+
+	
 
 	List<UserT> usersList= new ArrayList<UserT>();
 
@@ -74,7 +80,9 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 		logger.debug("Inside write:");
 
 		List<UserGoalsT> goalList = new ArrayList<UserGoalsT>();
-
+		List<UserGoalsT> goalUpdateList = new ArrayList<UserGoalsT>();
+		
+		
 		String operation = null; 
 
 		for (String[] data: items) {
@@ -95,17 +103,65 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 					}
 
 				}
-				if (CollectionUtils.isNotEmpty(goalList)) {
+				else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
+				{
+					logger.debug("***USER GOALS UPDATE***");
+					String userId =data[2].toString();
+					userId = userId.indexOf(".") < 0 ? userId : userId.replaceAll("0*$", "").replaceAll("\\.$", "");
+					UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				    errorDTO.setSheetName(Constants.USER_TEMPLATE_USERGOALS);
+					if (!userId.isEmpty()) {
+						List<UserGoalsT> userGoalList= userGoalsRepository.findByUserId(userId);
+						if (userGoalList != null) {
+						UserGoalsT userGoal =  new UserGoalsT();
+						errorDTO = helper.validateUserGoalsData(data, request.getUserT().getUserId() ,userGoal);
+						if (errorDTO.getMessage() != null) {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						} 
+						else if (errorDTO.getMessage() == null) {
+							goalUpdateList.add(userGoal);
+						}
+                        } else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("User Id is invalid");
+						errorList.add(errorDTO);
+                         }
+						}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("User Id is mandatory");
+						errorList.add(errorDTO);
+					}
+					
+					}
+		    
+				if ((CollectionUtils.isNotEmpty(goalList)) || (CollectionUtils.isNotEmpty(goalUpdateList))) {
 
 					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 						userService.saveUserGoalsData(goalList,usersList,request.getUserT().getUserId(),errorList);
 					} 
+
+					if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
+						userService.saveUserGoalsData(goalUpdateList,usersList,request.getUserT().getUserId(),errorList);
+					}
 
 				}
 			}
 		}
 	}
 
+
+	public UserGoalsRepository getUserGoalsRepository() {
+		return userGoalsRepository;
+	}
+
+
+	public void setUserGoalsRepository(UserGoalsRepository userGoalsRepository) {
+		this.userGoalsRepository = userGoalsRepository;
+	}
 
 	public UserUploadHelper getHelper() {
 		return helper;

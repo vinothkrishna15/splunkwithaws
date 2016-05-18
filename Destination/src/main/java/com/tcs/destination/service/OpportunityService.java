@@ -52,6 +52,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -87,6 +88,7 @@ import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
@@ -100,6 +102,9 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
+import com.tcs.destination.utils.PropertyUtil;
+
+import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 @Service
 public class OpportunityService {
@@ -221,6 +226,9 @@ public class OpportunityService {
 
 	@Autowired
 	FollowedService followService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
@@ -674,32 +682,6 @@ public class OpportunityService {
 			}
 
 			if (opportunity.getOpportunityId() != null) {
-				// if(opportunityBeforeEdit!=null){
-				// if(opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()
-				// != null &&
-				// !opportunityBeforeEdit.getOpportunitySalesSupportLinkTs().isEmpty())
-				// {
-				// for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT
-				// : opportunityBeforeEdit.getOpportunitySalesSupportLinkTs()) {
-				// owners.add(opportunitySalesSupportLinkT
-				// .getSalesSupportOwner());
-				// }
-				// }
-				// if (opportunityBeforeEdit.getBidDetailsTs() != null &&
-				// !opportunityBeforeEdit.getBidDetailsTs().isEmpty()) {
-				// for (BidDetailsT bidDetails : opportunityBeforeEdit
-				// .getBidDetailsTs()) {
-				// if (bidDetails.getBidOfficeGroupOwnerLinkTs() != null) {
-				// for (BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT :
-				// bidDetails
-				// .getBidOfficeGroupOwnerLinkTs()) {
-				// owners.add(bidOfficeGroupOwnerLinkT
-				// .getBidOfficeGroupOwner());
-				// }
-				// }
-				// }
-				// }
-				// }
 				owners.addAll(opportunityRepository.getAllOwners(opportunity
 						.getOpportunityId()));
 			}
@@ -724,7 +706,7 @@ public class OpportunityService {
 			if (owners != null && !owners.isEmpty()) {
 				if (!isOwnersAreBDMorBDMSupervisor(owners)) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Please tag BDM or BDM Supervisor or GEO Head as primary or secondary Owner");
+							PropertyUtil.getProperty(ERR_INAC_01));
 				}
 			}
 
@@ -1079,28 +1061,16 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void updateOpportunity(OpportunityT opportunity) throws Exception {
+	public void updateOpportunity(OpportunityT opportunity, OpportunityT opportunityBeforeEdit) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String opportunityId = opportunity.getOpportunityId();
 		opportunity.setCreatedBy(userId);
 		opportunity.setModifiedBy(userId);
 		logger.debug("Inside updateOpportunity() service");
-		String opportunityId = opportunity.getOpportunityId();
-		if (opportunityId == null) {
-			logger.error("OpportunityId is required for update");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"OpportunityId is required for update");
-
-		}
-		// Check if opportunity exists
-		if (!opportunityRepository.exists(opportunityId)) {
-			logger.error("Opportunity not found for update: {}", opportunityId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Opportunity not found for update: " + opportunityId);
-		}
+		
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
-		OpportunityT opportunityBeforeEdit = opportunityRepository
-				.findOne(opportunityId);
+		
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
 			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
@@ -1119,9 +1089,11 @@ public class OpportunityService {
 				.copy(beforeOpp);
 
 		// deal closure comments is mandatory for sales stage codes (11/12/13) 
+		if(opportunity.getSalesStageCode() == 11 || opportunity.getSalesStageCode() == 12 || opportunity.getSalesStageCode() == 13){
 		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
 			logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+		}
 		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
@@ -2344,17 +2316,19 @@ public class OpportunityService {
 	 */
 	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
 		// TODO Auto-generated method stub
-		logger.info("Inside isOwnersAreBDMorBDMSupervisor");
 		boolean isBDMOrBDMSupervisor = false;
-		List<String> userGroups = userRepository.findUserGroupByUserIds(owners);
-		for (String userGroup : userGroups) {
-			if (userGroup.equals(UserGroup.BDM.getValue())
-					|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-				isBDMOrBDMSupervisor = true;
-				break;
+		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
+		if(CollectionUtils.isNotEmpty(userGroups)){
+			for (String userGroup : userGroups) {
+				if (userGroup.equals(UserGroup.BDM.getValue())
+						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
+						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
+					isBDMOrBDMSupervisor = true;
+					break;
+				}
 			}
 		}
+		
 		return isBDMOrBDMSupervisor;
 	}
 	
@@ -2473,7 +2447,42 @@ public class OpportunityService {
 		return isEditAccessRequired;
 
 	}
-
 	
+	/**
+	* This method is used to update the opportunity details and also
+	* send email notification if opportunity won or lost
+	* @param opportunity
+	* @throws Exception
+	*/
+	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
+		String opportunityId = opportunity.getOpportunityId();
+		if (opportunityId == null) {
+			logger.error("OpportunityId is required for update");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"OpportunityId is required for update");
+
+		}
+		// Check if opportunity exists
+		if (!opportunityRepository.exists(opportunityId)) {
+			logger.error("Opportunity not found for update: {}", opportunityId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Opportunity not found for update: " + opportunityId);
+		}
+		OpportunityT opportunityBeforeEdit = opportunityRepository
+				.findOne(opportunityId);
+		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
+		updateOpportunity(opportunity, opportunityBeforeEdit);
+		// If won or lost, sending email notification to group of users using
+		// asynchronous job
+		if ((oldSalesStageCode != 9 && opportunity.getSalesStageCode() == 9)
+				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
+			logger.info("Opportunity : " + opportunityId
+					+ " is either won or lost");
+			jobLauncherController.asyncJobLaunch(
+					JobName.opportunityWonLostEmailNotification,
+					EntityType.OPPORTUNITY.toString(),
+					opportunity.getOpportunityId());
+		}
+	}
 }
 

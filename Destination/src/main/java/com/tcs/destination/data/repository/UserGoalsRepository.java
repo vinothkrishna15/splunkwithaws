@@ -23,5 +23,8 @@ public interface UserGoalsRepository extends JpaRepository<UserGoalsT, String> {
 	
     @Query(value = "select * from user_goals_t where user_id=?1 and goal_id=?2 and financial_year=?3", nativeQuery = true)
 	List<UserGoalsT> getUserGoals(String userIdGoalSheet,String goalId,String financialYear);
-	
+   
+    UserGoalsT  findByGoalId(String goalId);
+    
+   List<UserGoalsT> findByUserId(String userId);
 }

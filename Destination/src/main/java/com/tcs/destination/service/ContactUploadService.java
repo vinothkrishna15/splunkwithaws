@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.data.repository.ContactRepository;
@@ -640,11 +641,11 @@ public class ContactUploadService {
 		logger.debug("Begin:inside getNameAndIdFromCustomerMasterT() of ContactUploadService");
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
 
-		List<Object[]> listOfCustomerMasterT = customerRepository
+		List<CustomerMasterT> listOfCustomerMasterT = customerRepository
 				.getNameAndId();
 
-		for (Object[] st : listOfCustomerMasterT) {
-			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
+		for (CustomerMasterT customerMasterT : listOfCustomerMasterT) {
+			mapOfCMT.put(customerMasterT.getCustomerName(), customerMasterT.getCustomerId());
 		}
 		logger.debug("End:inside getNameAndIdFromCustomerMasterT() of ContactUploadService");
 		return mapOfCMT;

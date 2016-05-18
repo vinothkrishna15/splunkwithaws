@@ -419,22 +419,15 @@ public class WorkflowController {
 
 		logger.info("Inside WorkflowController: Start of approving opportunity reopen");
 		Status status = new Status();
-		String approveOrRejectMessage = null;
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (opportunityReopenRequestT != null) {
 				if (workflowService.approveOrRejectOpportunityReopen(opportunityReopenRequestT, status)) {
-					if(opportunityReopenRequestT.isRejectFlag()){
-						approveOrRejectMessage = WorkflowStatus.REJECTED.getStatus();
-					}
-					else{
-						approveOrRejectMessage = WorkflowStatus.APPROVED.getStatus();
-					}
 					logger.info("Inside WorkflowController: End of approving opportunity reopen");
 				}
 			}
 			return new ResponseEntity<String>(
-					ResponseConstructors.filterJsonForFieldAndViews("all", "The Opportunity Reopen request is" + approveOrRejectMessage + "!!!",
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
 		} catch (DestinationException e) {
 			throw e;

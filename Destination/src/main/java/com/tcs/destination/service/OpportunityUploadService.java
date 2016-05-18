@@ -34,6 +34,7 @@ import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.CompetitorMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.ContactTMapDTO;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -1222,12 +1223,12 @@ public class OpportunityUploadService {
     	logger.debug("Begin:Inside getNameAndIdFromCustomerMasterT of OpportunityUploadService");
 	Map<String, String> mapOfCMT = new HashMap<String, String>();
 	try {
-	    List<Object[]> listOfCustomerMasterT = customerRepository
-		    .getNameAndId();
+		List<CustomerMasterT> listOfCustomerMasterT = customerRepository
+				.getNameAndId();
 
-	    for (Object[] st : listOfCustomerMasterT) {
-		mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
-	    }
+		for (CustomerMasterT customerMasterT : listOfCustomerMasterT) {
+			mapOfCMT.put(customerMasterT.getCustomerName(), customerMasterT.getCustomerId());
+		}
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}

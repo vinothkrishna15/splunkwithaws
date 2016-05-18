@@ -1,21 +1,15 @@
 package com.tcs.destination.helper;
 
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
-import com.tcs.destination.bean.OfferingMappingT;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
@@ -50,6 +44,9 @@ public class PartnerUploadHelper {
 	
 	@Autowired
 	private  ConnectTypeRepository connectTypeRepository;
+	
+	@Autowired
+	private GeographyRepository geographyRepository;
 	
 	
 	
@@ -114,6 +111,11 @@ public class PartnerUploadHelper {
 					
 				//DOCUMENTS_ATTACHED
 				partnerMasterT.setDocumentsAttached(Constants.NO);
+				
+				//ACTIVE
+				partnerMasterT.setActive(true);
+				
+				
 
 		return error;
 	}
@@ -124,34 +126,51 @@ public class PartnerUploadHelper {
 		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 	
-
-		String partnername = data[3];
+        
+		
+		String partnerId=data[2];
 	
-		if (!StringUtils.isEmpty(partnername)) {
+		if (!StringUtils.isEmpty(partnerId)) {
 
-			List<PartnerMasterT> partners = partnerRepository.findByPartnerName(partnername);
+		PartnerMasterT partnerMasterT = partnerRepository.findByPartnerId(partnerId);
+		if(partnerMasterT==null)
+		{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Invalid Partner Id");
+			
+		}
+		}
+		else
+		{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Partner id is mandatory");
+		}
 
-			if (!partners.isEmpty()) {
-				partner.setPartnerId(partners.get(0)
-						.getPartnerId());
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Invalid Partner Name; ");
-			}
-		} else {
+		String partnerName = data[3];
+		
+		if (!StringUtils.isEmpty(partnerName)) 
+		{
+		     partner.setPartnerName(partnerName);
+		}
+		else
+		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("Partner Name Is Mandatory; ");
+			
 		}
 		
 		// GEOGRAPHY 
 		String geography = data[4];
 		if(!StringUtils.isEmpty(geography))
 		{
-			GeographyMappingT geographyMappingT=new GeographyMappingT();
-			geographyMappingT.setGeography(geography);
-			partner.setGeographyMappingT(geographyMappingT);
+			GeographyMappingT geographyMappingT=geographyRepository.findByGeography(geography);
+			if(geographyMappingT.getGeography()!=null)
+			{
+			 partner.setGeography(geography);
+			}
 		}
-		else{
+		else
+		{
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("Geography Is Mandatory; ");
 		}
@@ -185,6 +204,9 @@ public class PartnerUploadHelper {
 		//DOCUMENTS_ATTACHED
 		partner.setDocumentsAttached(Constants.NO);
 		
+		//ACTIVE
+		partner.setActive(true);
+		
 		return error;
 
 	}
@@ -199,10 +221,16 @@ public class PartnerUploadHelper {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("Partner Id is mandatory ");
 		} else {
-			partner = partnerRepository.findByPartnerId(partnerId);
-			if (partner.getPartnerId() == null) {
+			PartnerMasterT partnerMasterT = partnerRepository.findByPartnerId(partnerId);
+			if (partnerMasterT.getPartnerId() == null) {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
 				error.setMessage("Invalid Partner Id ");
+			}
+			else
+			{
+				//ACTIVE
+				partner.setActive(false);
+				
 			}
 		}
 
@@ -221,10 +249,4 @@ public class PartnerUploadHelper {
 		return val;
 	}
 	
-	
-	
-	
-
-
-
 }

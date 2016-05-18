@@ -100,8 +100,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
     
 	List<UserT> findByBaseLocationIgnoreCaseContainingOrderByUserNameAsc(String baseLocation);
 	
-	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds)", nativeQuery = true)
-	List<String> findUserGroupByUserIds(@Param("userIds") Set<String> userIds);
+	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds) and active = (:active)", nativeQuery = true)
+	List<String> findUserGroupByUserIds(@Param("userIds") Set<String> userIds, @Param("active") boolean active);
 
 	@Query(value = "select distinct(user_email_id) from user_t where active='true' and user_email_id in (:userMails)", nativeQuery = true)
 	List<String> findActiveUserMailIds(@Param("userMails") List<String> userMails);

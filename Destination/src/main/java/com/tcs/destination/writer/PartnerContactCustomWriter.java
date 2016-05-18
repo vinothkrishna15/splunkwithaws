@@ -25,6 +25,7 @@ import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
@@ -70,6 +71,8 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 		logger.info("Begin Inside write of PartnerContactCustomWriter:");
 
 		List<ContactT> insertList = new ArrayList<ContactT>();
+		List<ContactT> updateList = new ArrayList<ContactT>();
+		List<ContactT> deleteList = new ArrayList<ContactT>();
 
 		String operation = null; 
 
@@ -91,12 +94,72 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 					}
 
 				}
-				if (CollectionUtils.isNotEmpty(insertList)) {
+				else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
+				{
 
-					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
+					logger.debug("***PARTNER CONTACT UPDATE***");
+					String contactId =data[9];
+	                UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					if (!contactId.isEmpty()) {
+						try{
+							
+							ContactT contact= contactRepository.findByContactId(contactId);
+						    if (contact != null) {
+							errorDTO = helper.validatePartnerContactUpdate(data, request.getUserT().getUserId() ,contact);
+							if (errorDTO.getMessage() != null) {
+								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+								errorList.add(errorDTO);
+							} 
+							else if (errorDTO.getMessage() == null) {
+								updateList.add(contact);
+							}
+						} else {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+							errorDTO.setMessage("Contact Id is invalid");
+							errorList.add(errorDTO);
+						}
+					}catch(InvocationTargetException e){System.out.println("Exception Cause:"+e.getCause());}
+						}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Contact Id is mandatory");
+						errorList.add(errorDTO);
+					}
+				}
+				
+				else if (operation.equalsIgnoreCase(Operation.DELETE.name()))
+				{
+
+					logger.debug("***PARTNER CONTACT DELETE***");
+					ContactT contactT =  new ContactT();
+					contactT = contactRepository.findByContactId(data[9]);
+					 UploadServiceErrorDetailsDTO errorDTO = helper.validateContactId(data, contactT);
+					 
+					 if (errorDTO.getMessage() != null) {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						} else if (errorDTO.getMessage() == null) {
+							deleteList.add(contactT);
+					}
+				
+				
+				
+				}
+				
+				if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) 
+				{
+                    if (operation.equalsIgnoreCase(Operation.ADD.name())){
 						contactService.save(insertList);
 						logger.info("contact is saved");
 					} 
+					else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+						contactService.updateContact(updateList);
+					}
+					else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+						contactService.deleteContact(deleteList);
+					}
 				}
 			}
 		}

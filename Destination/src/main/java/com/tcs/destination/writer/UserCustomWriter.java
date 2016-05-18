@@ -63,6 +63,8 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 	private UserRepository userRepository;
 
 	List<UserT> insertList = new ArrayList<UserT>();
+	List<UserT> updateList = new ArrayList<UserT>();
+	List<UserT> deleteList = new ArrayList<UserT>();
 
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
@@ -70,6 +72,7 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 
 
 		String operation = null; 
+		
 
 		for (String[] data: items) {
 			operation = (String) data[1];
@@ -89,11 +92,68 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 					}
 
 				}
-				if (CollectionUtils.isNotEmpty(insertList)) {
+				else if (operation.equalsIgnoreCase(Operation.UPDATE.name()))
+				{
+					logger.debug("***USER UPDATE***");
+					String userId =data[2].toString();
+					userId = userId.indexOf(".") < 0 ? userId : userId.replaceAll("0*$", "").replaceAll("\\.$", "");
+				    UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+					if (!userId.isEmpty()) {
+						try{
+							
+							UserT user= userRepository.findOne(userId);
+						    if (user != null) {
+							errorDTO = helper.validateUserDataUpdate(data, request.getUserT().getUserId() ,user);
+							if (errorDTO.getMessage() != null) {
+								errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+								errorList.add(errorDTO);
+							} 
+							else if (errorDTO.getMessage() == null) {
+								updateList.add(user);
+							}
+						} else {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+							errorDTO.setMessage("User Id is invalid");
+							errorList.add(errorDTO);
+						}
+					}catch(InvocationTargetException e){System.out.println("Exception Cause:"+e.getCause());}
+						}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("User Id is mandatory");
+						errorList.add(errorDTO);
+					}
+					
+					}
+				else if (operation.equalsIgnoreCase(Operation.DELETE.name()))
+				{
+					logger.debug("***USER DELETE***");
+					UserT user =  new UserT();
+					user = userRepository.findByUserId(data[2]);
+					 UploadServiceErrorDetailsDTO errorDTO = helper.validateUserId(data, user);
+					 
+					 if (errorDTO.getMessage() != null) {
+							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+							errorList.add(errorDTO);
+						} else if (errorDTO.getMessage() == null) {
+							deleteList.add(user);
+					}
+				
+					
+				}
+				if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
 
 					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 						userService.save(insertList);
 					} 
+					else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+						userService.updateUser(updateList);
+					}
+					else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+						userService.deleteUser(deleteList);
+					}
 
 				}
 			}
