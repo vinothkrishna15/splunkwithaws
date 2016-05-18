@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -29,8 +27,9 @@ import com.tcs.destination.utils.Constants;
 public class CompetitorMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	
+//	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="competitor_name")
 	private String competitorName;
 	
