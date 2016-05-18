@@ -1263,10 +1263,17 @@ public class OpportunityService {
 		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
-			// Apply user access privileges if not primary / sales support owner
-			if (!isUserOwner(userId, opportunityT)) {
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
+			if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+				opportunityT.setEnableEditAccess(true);
+			} else {
+				opportunityT
+						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
+								opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
 			}
+
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -1274,9 +1281,7 @@ public class OpportunityService {
 		setUserFavourite(opportunityT);
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
-		removeCyclicForCustomers(opportunityT);
-
-	}
+		removeCyclicForCustomers(opportunityT);}
 
 	private void setUserFavourite(OpportunityT opportunityT) {
 		// TODO Auto-generated method stub
@@ -2366,41 +2371,7 @@ public class OpportunityService {
 		return isSubordinateAsOwner;
 	}
 
-	/**
-	 * This method is used to check wheteher the logged in user has edit access
-	 * for an opportunity
-	 * 
-	 * @param opportunity
-	 * @param userGroup
-	 * @param userId
-	 * @return
-	 */
-	private boolean isEditAccessRequiredForOpportunity(
-			OpportunityT opportunity, String userGroup, String userId) {
-		logger.info("Inside isEditAccessRequiredForOpportunity method");
-		boolean isEditAccessRequired;
-		if (isUserOwner(userId, opportunity)) {
-			isEditAccessRequired = true;
-
-		} else if (userGroup.equals(UserGroup.BDM.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
-			isEditAccessRequired = false;
-		} else {
-			if (isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
-					null)) {
-				isEditAccessRequired = true;
-			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
-				isEditAccessRequired = false;
-			} else {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, opportunity.getCustomerId());
-			}
-		}
-
-		return isEditAccessRequired;
-	}
-
+	
 	/**
 	 * This method is used to check whether Geo heads PMO and Iou Heads have the
 	 * edit access for an opportunity
@@ -2443,7 +2414,8 @@ public class OpportunityService {
 		default:
 			break;
 		}
-
+        
+				
 		return isEditAccessRequired;
 
 	}
@@ -2483,6 +2455,49 @@ public class OpportunityService {
 					EntityType.OPPORTUNITY.toString(),
 					opportunity.getOpportunityId());
 		}
+	}
+	
+	/**
+	 * This method is used to check wheteher the logged in user has edit access
+	 * for an opportunity
+	 * 
+	 * @param opportunity
+	 * @param userGroup
+	 * @param userId
+	 * @return
+	 */
+	private boolean isEditAccessRequiredForOpportunity(
+			OpportunityT opportunity, String userGroup, String userId) {
+		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		boolean isEditAccessRequired = false;
+		if (isUserOwner(userId, opportunity)) {
+			isEditAccessRequired = true;
+
+		} 
+		else {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM :
+				isEditAccessRequired = false;
+				break;
+			case BDM_SUPERVISOR:
+				isEditAccessRequired = isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
+						null);
+				break;
+			case GEO_HEADS:
+			case PMO:
+			case IOU_HEADS:	
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, opportunity.getCustomerId());
+				break;
+			default:
+				break;	 
+				
+				
+			}
+		}
+		
+		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
+		return isEditAccessRequired;
 	}
 }
 

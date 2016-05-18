@@ -627,7 +627,7 @@ public class ConnectService {
 					}
 				}
 				if (owners != null) {
-					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+					if (!isOwnersAreBDMorBDMSupervisorOrGeoHead(owners)) {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								PropertyUtil.getProperty(ERR_INAC_01));
 					}
@@ -821,7 +821,7 @@ public class ConnectService {
 		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
-			if (!validateEditAccessForConnect(connectBeforeEdit, userGroup,
+			if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
 					userId)) {
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorized to edit this Connect");
@@ -1085,7 +1085,7 @@ public class ConnectService {
 						.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 					connectT.setEnableEditAccess(true);
 				} else {
-					connectT.setEnableEditAccess(validateEditAccessForConnect(
+					connectT.setEnableEditAccess(isEditAccessRequiredForConnect(
 							connectT, userGroup, userId));
 				}
 
@@ -1729,25 +1729,25 @@ public class ConnectService {
 	}
 
 	// edit access for connect
-	private boolean validateEditAccessForConnect(ConnectT connect,
+	private boolean isEditAccessRequiredForConnect(ConnectT connect,
 			String userGroup, String userId) {
-		String customerId = null;
-		String partnerId = null;
 		logger.info("Inside validateEditAccessForConnect method");
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, connect)) {
 			isEditAccessRequired = true;
-		} else if (userGroup.equals(UserGroup.BDM.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
-			isEditAccessRequired = false;
-		} else {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connect.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+		} 
+		else {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM :
 				isEditAccessRequired = false;
-			} else {
+				break;
+			case BDM_SUPERVISOR:
+				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
+						connect.getConnectId());
+				break;
+			case GEO_HEADS:
+			case PMO:
+			case IOU_HEADS:
 				if (!StringUtils.isEmpty(connect.getCustomerId())) {
 					isEditAccessRequired = opportunityService
 							.checkEditAccessForGeoAndIou(userGroup, userId,
@@ -1757,11 +1757,23 @@ public class ConnectService {
 					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
 							userId, userGroup, connect.getPartnerId());
 				}
+				break;
+			default:
+				break;
 			}
 		}
+		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
-
+    
+	/**
+	 * This method is used to check whether the logged in user is one of the
+	 * owner of connect
+	 * 
+	 * @param userId
+	 * @param connect
+	 * @return
+	 */
 	private boolean isUserOwner(String userId, ConnectT connect) {
 		if (connect.getPrimaryOwner().equals(userId))
 			return true;
@@ -1802,81 +1814,30 @@ public class ConnectService {
 		}
 		return isEditAccessRequired;
 	}
-
-	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
+    
+	/**
+	 * This method is used to check whether the one of the owners
+	 * of connect is BDM or BDM Supervisor or GEO Head 
+	 * @param owners
+	 * @return
+	 */
+	public boolean isOwnersAreBDMorBDMSupervisorOrGeoHead(Set<String> owners) {
 		// TODO Auto-generated method stub
-		boolean isBDMOrBDMSupervisor = false;
+		logger.info("Inside isOwnersAreBDMorBDMSupervisorOrGeoHead method");
+		boolean isBDMOrBDMSupervisorOrGeoHead = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
 		if(CollectionUtils.isNotEmpty(userGroups)){
 			for (String userGroup : userGroups) {
 				if (userGroup.equals(UserGroup.BDM.getValue())
 						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
 						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-					isBDMOrBDMSupervisor = true;
+					isBDMOrBDMSupervisorOrGeoHead = true;
 					break;
 				}
 			}
 		}
 		
-		return isBDMOrBDMSupervisor;
-	}
-
-	private boolean isEditAccessRequiredForOpportunity(ConnectT connectT,
-			String userGroup, String userId) {
-		boolean isEditAccessRequired = false;
-		if (isUserOwner(userId, connectT)) {
-			isEditAccessRequired = true;
-
-		} else if (!userGroup.equals(UserGroup.BDM)
-				|| !userGroup.equals(UserGroup.PRACTICE_OWNER)) {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connectT.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (!userGroup.equals(UserGroup.BDM_SUPERVISOR)
-					|| !userGroup.equals(UserGroup.PRACTICE_HEAD)) {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, connectT.getCustomerId());
-			}
-		}
-		return isEditAccessRequired;
-
-		// TODO Auto-generated method stub
-	}
-
-	private boolean checkEditAccessForGeoAndIou(String userGroup,
-			String userId, String customerId) {
-		boolean isEditAccessRequired = false;
-		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
-		case PMO:
-			String geography = customerRepository
-					.findGeographyByCustomerId(customerId);
-
-			List<String> geographyList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.GEOGRAPHY.getValue());
-			if (CollectionUtils.isNotEmpty(geographyList)) {
-				if (geographyList.contains(geography)) {
-					isEditAccessRequired = true;
-				}
-			}
-			break;
-		case IOU_HEADS:
-			String iou = customerRepository.findIouByCustomerId(customerId);
-			List<String> iouList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.IOU.getValue());
-			if (CollectionUtils.isNotEmpty(iouList)) {
-				if (iouList.contains(iou)) {
-					isEditAccessRequired = true;
-
-				}
-			}
-			break;
-		default:
-			break;
-		}
-		return isEditAccessRequired;
+		return isBDMOrBDMSupervisorOrGeoHead;
 	}
 	
 
