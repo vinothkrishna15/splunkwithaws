@@ -461,7 +461,7 @@ public class OpportunityDownloadService {
      * @return
      * @throws Exception
      */
-    private BigDecimal convertCurrencyToUSD(String dealCurrency,BigDecimal overallDealSize) throws Exception{
+    public BigDecimal convertCurrencyToUSD(String dealCurrency,BigDecimal overallDealSize) throws Exception{
 
     	logger.debug("Inside convertCurrencyToUSD of OpportunityDownloadService");
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD", overallDealSize.doubleValue());
