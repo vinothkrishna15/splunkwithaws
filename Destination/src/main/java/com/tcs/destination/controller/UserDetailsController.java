@@ -47,6 +47,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.utils.StringUtils;
 
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.OperatingSystem;
@@ -348,18 +349,23 @@ public class UserDetailsController {
 				UserT dbUser = userService.findByUserIdAndPassword(userId,
 						currentPassword);
 				if (dbUser != null) {
-					if(!newPassword.equals(currentPassword)){
-						dbUser.setTempPassword(newPassword);
-						dbUser.setStatus(2);
-						userService.updateUser(dbUser);
-						status.setStatus(Status.SUCCESS,
-								"Password has been updated successfully");
-						// invalidate session to force user to re-authenticate with
-						// updated password
-						session.invalidate();
+					if(!StringUtils.isEmpty(newPassword)){
+						if(!newPassword.equals(currentPassword)){
+							dbUser.setTempPassword(newPassword);
+							dbUser.setStatus(2);
+							userService.updateUser(dbUser);
+							status.setStatus(Status.SUCCESS,
+									"Password has been updated successfully");
+							// invalidate session to force user to re-authenticate with
+							// updated password
+							session.invalidate();
+						} else {
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Current password and New password cannot be same");
+						}
 					} else {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"Current password and New password cannot be same");
+								"New password cannot be empty");
 					}
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
