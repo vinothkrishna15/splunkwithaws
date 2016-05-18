@@ -90,6 +90,7 @@
                 <value>application.properties</value>
                 <value>mailsubject.properties</value>
                 <value>batch.properties</value>
+                <value>errormessages.properties</value>
                 <value>environment_dev.properties</value>
                 <!-- value>environment_sit.properties</value-->
                 <!-- value>environment_uat.properties</value-->
@@ -131,4 +132,12 @@
 		<property name="jobRegistry" ref="jobRegistry" />
 	</bean>
 	
+	<bean id="asyncJobLauncher"
+	      class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+	    <property name="jobRepository" ref="jobRepository" />
+	    <property name="taskExecutor">
+	        <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" />
+    </property>
+    
+</bean>
 </beans>

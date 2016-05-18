@@ -1,0 +1,26 @@
+<html>
+	<body>
+		Dear User,
+		<p>
+     
+              We regret to inform you that TCS Digital Enterprise has Lost the opportunity.<br/><br/>
+              Opportunity : <b>${opportunityName}</b><br/>
+              Customer : <b>${customerName}</b><br/>
+              Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
+
+              The key factors for the loss are : <b>${factorsForWinLoss}</b>.<br/><br/>
+
+              This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
+              Deal size recorded is <b>${digitalBidValue}</b>.<br/>
+              Opportunity Description: <b>${opportunityDescription}</b><br/>		
+        </p>		
+		<p>
+		<b>Thanks,</b><br>
+		<b>Team Destination</b>
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

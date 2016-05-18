@@ -16,6 +16,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserAccessPrivilegeDTO;
@@ -33,6 +34,7 @@ import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
+import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
@@ -86,6 +88,9 @@ public class UserUploadHelper {
 	@Autowired
 	CustomerRepository custRepository;
 	
+	@Autowired
+	UserGoalsRepository userGoalsRepository;
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(UserUploadHelper.class);
 	
@@ -108,7 +113,7 @@ public class UserUploadHelper {
 			    error.setMessage("User Id Already Exists! ");
 			}
 	    	else
-	    	{
+	    	{      
 	    	    userT.setUserId(usrId);
 	    	}
 		}
@@ -207,28 +212,28 @@ public class UserUploadHelper {
 				}
 				
 				//USER TELEPHONE
-				String userPhone = data[9].trim();
+				String userPhone = data[8].trim();
 				if(!StringUtils.isEmpty(userPhone))
 				{
 					userT.setUserTelephone(userPhone);
 				}
 				
 				//USER EMAIL ID
-				String emailId = data[10].trim();
+				String emailId = data[9].trim();
 				if(!StringUtils.isEmpty(emailId))
 				{
 					userT.setUserEmailId(emailId);
 				}
 				
 				//USER SUPERVISOR ID
-				String supervisorId = validateAndRectifyValue(data[11].trim());
+				String supervisorId = validateAndRectifyValue(data[10].trim());
 				if(!StringUtils.isEmpty(supervisorId))
 				{
 					userT.setSupervisorUserId(supervisorId);
 				}
 				
 				//USER SUPERVISOR NAME
-				String supervisorName = data[12].trim();
+				String supervisorName = data[11].trim();
 				if(!StringUtils.isEmpty(supervisorName))
 				{
 					userT.setSupervisorUserName(supervisorName);
@@ -237,6 +242,186 @@ public class UserUploadHelper {
 				return error;
 	}
 	
+	/**
+	 * This method validates User Data to be update
+	 */
+	public  UploadServiceErrorDetailsDTO validateUserDataUpdate(String[] data, String userId, UserT userT) throws Exception 
+	{
+		
+		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		
+		// USER_ID 
+		String usrId = validateAndRectifyValue(data[2].trim());
+	    if(!StringUtils.isEmpty(usrId))
+	    {
+			if (!isUserExists(usrId)) 
+			 {
+			   error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			   error.setMessage("Invalid User Id ! ");
+			 }
+			 else
+			 {      
+			    	    userT.setUserId(usrId);
+			 }
+		}
+		else
+		{
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("User Id Is Mandatory; ");
+		}
+	    
+	 // USER_NAME 
+		String userName = data[3].trim();
+		if(!StringUtils.isEmpty(userName))
+		{
+			userT.setUserName(userName);
+		 }
+		else
+		{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("User Name Is Mandatory; ");
+		}
+		
+		// PASSWORD 
+		String password = data[4].trim();
+		if(!StringUtils.isEmpty(password))
+		{
+			userT.setTempPassword(password);
+		}
+		else{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Password Is Mandatory; ");
+		}
+		
+		//USER GROUP 
+		String userGroup = data[5].trim();
+		if(!StringUtils.isEmpty(userGroup))
+		{
+           // check if valid user group
+		    boolean validGroup = false;
+			for (UserGroup group : UserGroup.values()) {
+				if (userGroup.equalsIgnoreCase(group.getValue())) {
+					validGroup = true;
+				}
+			}
+			if (!validGroup) {
+                error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("User Group Is Invalid ");
+				
+			}
+			else
+			{
+			  userT.setUserGroup(userGroup);
+			}
+		}
+		else{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("User Group Is Mandatory; ");
+		}
+		
+		
+		//USER ROLE 
+		String userRole = data[6].trim();
+		if(!StringUtils.isEmpty(userRole))
+		{
+            // check if valid user role
+			boolean validRole = false;
+			for (UserRole role : UserRole.values()) {
+				if (userRole.equalsIgnoreCase(role.getValue())) {
+					validRole = true;
+				}
+			}
+            if (!validRole) 
+            {
+            	error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("User Role Is Invalid ");
+			}
+            else
+            {
+		        userT.setUserRole(userRole);
+            }
+		}
+		else{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("User Role Is Mandatory; ");
+		}
+		
+		//USER LOCATION 
+		String userLocation = data[7].trim();
+		if(!StringUtils.isEmpty(userLocation))
+		{
+			userT.setBaseLocation(userLocation);
+		}
+		else{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("User Location Is Mandatory; ");
+		}
+		
+		//USER TELEPHONE
+		String userPhone = data[9].trim();
+		if(!StringUtils.isEmpty(userPhone))
+		{
+			userT.setUserTelephone(userPhone);
+		}
+		
+		//USER EMAIL ID
+		String emailId = data[10].trim();
+		if(!StringUtils.isEmpty(emailId))
+		{
+			userT.setUserEmailId(emailId);
+		}
+		
+		//USER SUPERVISOR ID
+		String supervisorId = validateAndRectifyValue(data[11].trim());
+		if(!StringUtils.isEmpty(supervisorId))
+		{
+			userT.setSupervisorUserId(supervisorId);
+		}
+		
+		//USER SUPERVISOR NAME
+		String supervisorName = data[12].trim();
+		if(!StringUtils.isEmpty(supervisorName))
+		{
+			userT.setSupervisorUserName(supervisorName);
+		}
+		
+		return error;
+		
+	}
+	
+	
+
+	/**
+	 * This method validates User Data to be delete
+	 */
+	public  UploadServiceErrorDetailsDTO validateUserId(String[] data,
+			UserT user)
+	{
+
+		// TODO Auto-generated method stub
+		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		String userId = data[2];
+
+		if (StringUtils.isEmpty(userId)) {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("User Id is mandatory ");
+		} else {
+			user = userRepository.findByUserId(userId);
+			if (user.getUserId() == null) {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Invalid User Id ");
+			}
+			else
+			{
+				//ACTIVE
+				user.setActive(false);
+				
+			}
+		}
+
+		return error;
+	
+	}
 	
 	/**
 	 * This method validates User Notification Settings Data to be inserted 
@@ -367,6 +552,8 @@ public class UserUploadHelper {
 	  	 
 	  	 return error;
 	}
+	
+	
 	
 	/**
 	 * This method validates User Access Privileges Data to be inserted 
@@ -568,7 +755,7 @@ public class UserUploadHelper {
 		GoalMappingT goalMappingT=new GoalMappingT();
 		
 		  // USER_ID 
-		String usrId = validateAndRectifyValue(data[2].trim());
+		String 	usrId = validateAndRectifyValue(data[2].trim());
 	    if(!StringUtils.isEmpty(usrId))
 	    {
 	    	if (isUserExists(usrId)) 
@@ -645,6 +832,8 @@ public class UserUploadHelper {
 		return error;
 	
 	}
+	
+	
 	/**
 	 * This method is used to retrieve the values as a list
 	 * @param value

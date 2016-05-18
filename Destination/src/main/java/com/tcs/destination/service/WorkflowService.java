@@ -59,6 +59,7 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
@@ -128,6 +129,9 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowRequestTRepository workflowRequestTRepository;
+	
+	@Autowired
+	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	@Autowired
 	CustomerUploadService customerUploadService;
@@ -215,16 +219,18 @@ public class WorkflowService {
 								workflowCustomerRepository.save(oldObject);
 							}
 							//
-							if( user.getUserRole().equals(UserRole.STRATEGIC_GROUP_ADMIN.getValue())){
-								CustomerMasterT oldCustomerMaster = customerRepository.findByCustomerName(oldCustomerName);
-								if(oldCustomerMaster!=null) {
-									saveToMasterTables(oldCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
-								}
-								else{
+
+							if (user.getUserRole().equals(
+									UserRole.STRATEGIC_GROUP_ADMIN.getValue())) {
+								CustomerMasterT oldCustomerMaster = customerRepository
+										.findByCustomerName(oldCustomerName);
+								if (oldCustomerMaster != null) {
+									saveToMasterTables(oldCustomerMaster,
+											workflowCustomerT);
+								} else {
 									CustomerMasterT newCustomerMaster = new CustomerMasterT();
-									saveToMasterTables(newCustomerMaster,workflowCustomerT);
-									sendEmailNotificationforApprovedOrRejectMail(workflowCustomerApprovedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
+									saveToMasterTables(newCustomerMaster,
+											workflowCustomerT);
 								}
 							}
 							//
@@ -264,6 +270,13 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if(masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus())){
+				sendEmailNotificationforApprovedOrRejectMail(
+						workflowCustomerApprovedSubject,
+						masterRequest.getRequestId(),
+						masterRequest.getCreatedDatetime(),
+						masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
@@ -1385,11 +1398,12 @@ public class WorkflowService {
 			// Get all requests
 			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(status, userId);
 
-			if (status.equalsIgnoreCase("ALL")) {
+			if (status.equalsIgnoreCase("ALL") || status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
 
 				// Get all requests pending for approval/rejection by user
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
+				
 				// List<Object[]> pendingCompetitorRequests =
 				// getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
@@ -1407,28 +1421,6 @@ public class WorkflowService {
 				listOfOpportunityReopenRequests
 						.add(pendingOpportunityReopenRequests);
 			}
-			if (status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
-				myWorklist = new ArrayList<MyWorklistDTO>();
-
-				// Get all requests pending for user's approval/rejection
-				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
-				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
-				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
-
-				// Add all the lists of customer requests
-				listOfCustomerRequests.add(pendingCustomerRequests);
-
-				// Add all the lists of partner requests
-				listOfPartnerRequests.add(pendingPartnerRequests);
-
-				// Add all the lists of competitor requests
-				//	listOfCompetitorRequests.add(pendingCompetitorRequests);
-
-				// Add all the lists of opportunity re-open requests
-				listOfOpportunityReopenRequests.add(pendingOpportunityReopenRequests);
-				// listOfCompetitorRequests.add(pendingCompetitorRequests);
-
-			}
 
 			// Populate the response object
 			populateResponseList(listOfCustomerRequests,
@@ -1440,7 +1432,7 @@ public class WorkflowService {
 			populateResponseList(listOfOpportunityReopenRequests,
 					EntityType.OPPORTUNITY.toString(), myWorklist);
 
-			// Add competitor list
+			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
 			// Sort the list based on modified date time
@@ -1472,6 +1464,7 @@ public class WorkflowService {
 	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
+		String pmoValue = "pmo";
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
@@ -1479,27 +1472,37 @@ public class WorkflowService {
 		userGroup = "%" + userGroup + "%";
 		// Query to get pending partner requests for specific user's
 		// approval/rejection
-		if (userId.contains("pmo")) {
+		if (userId.contains(pmoValue)) {
 			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GEO_GROUP_QUERY);
-			Query query = entityManager.createNativeQuery(queryBuffer
+					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
+			Query query1 = entityManager.createNativeQuery(queryBuffer
 					.toString());
-			query.setParameter("userId", userId);
+			
+			
+			query1.setParameter("userId", userId);
+			if (resultList == null) {
+				resultList = query1.getResultList();
+			}
+			else {
+				List<Object[]> resultForPMOPending = query1.getResultList();
+				resultList.addAll(resultForPMOPending);
+			}
+			//query.setParameter("pmoValue", pmoValue);
 		}
 		// Query to get pending with group of users, based on user's role and
 		// user group
+		
 		StringBuffer queryBuffer = new StringBuffer(
 				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
-		Query query = entityManager.createNativeQuery(queryBuffer.toString());
-		query.setParameter("userRole", userRole);
-		query.setParameter("userGroup", userGroup);
+		Query query2 = entityManager.createNativeQuery(queryBuffer.toString());
+	query2.setParameter("userRole", userRole);
+		query2.setParameter("userGroup", userGroup);
 		if (resultList == null) {
-			resultList = query.getResultList();
+			resultList = query2.getResultList();
 		} else {
-			List<Object[]> resultForGroupPending = query.getResultList();
+			List<Object[]> resultForGroupPending = query2.getResultList();
 			resultList.addAll(resultForGroupPending);
 		}
-
 		return resultList;
 	}
 
@@ -1570,7 +1573,7 @@ public class WorkflowService {
 	private Set<MyWorklistDTO> populateSubmittedAndApprovedRequests(
 			Set<WorkflowRequestT> workFlowRequestCompetitor) {
 
-		logger.debug("Starting populateCompetitorList");
+		logger.info("Starting populateCompetitorList");
 
 		Set<MyWorklistDTO> myWorklistDTOs = new HashSet<MyWorklistDTO>();
 		if (CollectionUtils.isNotEmpty(workFlowRequestCompetitor)) {
@@ -1598,12 +1601,11 @@ public class WorkflowService {
 				case OPPORTUNITY:
 					myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY
 							.getDisplayName());
-					myWorklistDTO.setEntityName(workflowOpportunityRepository
-							.findOne(requestT.getEntityId())
-							.getOpportunityName());
+					myWorklistDTO.setEntityName(workflowOpportunityRepository.findOne(requestT.getEntityId()).getOpportunityName());
 					break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
+				myWorklistDTO.setEntityId(requestT.getEntityId());
 
 				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
@@ -1688,61 +1690,66 @@ public class WorkflowService {
 					} else {
 						worklist.setEntityName("Unnamed");
 					}
+					
 					if (MyWorklistDTOArray[2] != null) {
-						String s = MyWorklistDTOArray[2].toString();
-						workflowStep.setStepId(Integer.parseInt(s));
+						String entityId = MyWorklistDTOArray[2].toString();
+						worklist.setEntityId(entityId);
 					}
 					if (MyWorklistDTOArray[3] != null) {
 						String s = MyWorklistDTOArray[3].toString();
-						workflowStep.setRequestId(Integer.parseInt(s));
+						workflowStep.setStepId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[4] != null) {
 						String s = MyWorklistDTOArray[4].toString();
-						workflowStep.setStep(Integer.parseInt(s));
+						workflowStep.setRequestId(Integer.parseInt(s));
 					}
 					if (MyWorklistDTOArray[5] != null) {
+						String s = MyWorklistDTOArray[5].toString();
+						workflowStep.setStep(Integer.parseInt(s));
+					}
+					if (MyWorklistDTOArray[9] != null) {
 						workflowStep
-								.setUserId(MyWorklistDTOArray[5].toString());
+								.setUserId(MyWorklistDTOArray[9].toString());
 						workflowStep
 								.setUser(userRepository
-										.findByUserId(MyWorklistDTOArray[5]
+										.findByUserId(MyWorklistDTOArray[9]
 												.toString()));
 					}
-					if (MyWorklistDTOArray[6] != null) {
-						workflowStep.setStepStatus(MyWorklistDTOArray[6]
+					if (MyWorklistDTOArray[1] != null) {
+						workflowStep.setStepStatus(MyWorklistDTOArray[1]
 								.toString());
 					}
-					if (MyWorklistDTOArray[7] != null) {
+				/*	if (MyWorklistDTOArray[7] != null) {
 						workflowStep.setComments(MyWorklistDTOArray[7]
 								.toString());
-					}
-					if (MyWorklistDTOArray[8] != null) {
-						workflowStep.setCreatedBy(MyWorklistDTOArray[8]
+					}*/
+					if (MyWorklistDTOArray[9] != null) {
+						workflowStep.setCreatedBy(MyWorklistDTOArray[9]
 								.toString());
 						workflowStep
 								.setCreatedByUser(userRepository
-										.findByUserId(MyWorklistDTOArray[8]
+										.findByUserId(MyWorklistDTOArray[9]
 												.toString()));
 					}
-					if (MyWorklistDTOArray[9] != null) {
-						String s = MyWorklistDTOArray[9].toString();
+					if (MyWorklistDTOArray[10] != null) {
+						String s = MyWorklistDTOArray[10].toString();
 						workflowStep.setCreatedDatetime(Timestamp.valueOf(s));
 					}
-					if (MyWorklistDTOArray[10] != null) {
-						workflowStep.setModifiedBy(MyWorklistDTOArray[10]
+					if (MyWorklistDTOArray[11] != null) {
+						workflowStep.setModifiedBy(MyWorklistDTOArray[11]
 								.toString());
 					}
-					if (MyWorklistDTOArray[11] != null) {
-						String s = MyWorklistDTOArray[11].toString();
+					if (MyWorklistDTOArray[12] != null) {
+						String s = MyWorklistDTOArray[12].toString();
 						workflowStep.setModifiedDatetime(Timestamp.valueOf(s));
 						worklist.setModifiedDatetime(Timestamp.valueOf(s));
 					}
-					if (MyWorklistDTOArray[12] != null) {
-						workflowStep.setUserGroup(MyWorklistDTOArray[12]
+					if (MyWorklistDTOArray[13] != null) {
+						workflowStep.setUserGroup(MyWorklistDTOArray[13]
 								.toString());
 					}
-					if (MyWorklistDTOArray[13] != null) {
-						workflowStep.setUserRole(MyWorklistDTOArray[13]
+					if (MyWorklistDTOArray[14] != null) {
+						workflowStep.setUserRole(MyWorklistDTOArray[14]
 								.toString());
 					}
 					worklist.setWorkflowStep(workflowStep);
@@ -1755,6 +1762,7 @@ public class WorkflowService {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * This method retrieves new customer requests created by user, based on the
 	 * status of request
 	 * 
@@ -1917,6 +1925,8 @@ public class WorkflowService {
 	}
 
 	/**
+=======
+>>>>>>> Destination_v1.8.n.0
 	 * This method is used to retrieve customer requests pending with user
 	 * 
 	 * @param userId
@@ -2662,11 +2672,9 @@ public class WorkflowService {
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getApprovedRejectedComments() != null) {
 				WorkflowRequestT workflowRequest = workflowRequestRepository
-						.findByEntityTypeIdAndEntityId(entityTypeId,
-								opportunityId);
+						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
+								opportunityId,WorkflowStatus.PENDING.getStatus());
 				if (workflowRequest != null) {
-					if (workflowRequest.getStatus().equals(
-							WorkflowStatus.PENDING.getStatus())) {
 						WorkflowStepT workflowStepPending = workflowStepRepository
 								.findByRequestIdAndStepStatus(
 										workflowRequest.getRequestId(),
@@ -2703,6 +2711,7 @@ public class WorkflowService {
 											.save(workflowRequest);
 									logger.info("Request approved "
 											+ workflowRequest.getRequestId());
+									status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
 									sendEmailNotificationforPending(
 											workflowRequest.getRequestId(),
 											workflowRequest
@@ -2734,8 +2743,9 @@ public class WorkflowService {
 									workflowRequest.setModifiedBy(userId);
 									workflowRequestRepository
 											.save(workflowRequest);
-									logger.info("Request approved and Opportunity Reopened "
-											+ workflowRequest.getRequestId());
+									logger.info("Request approved and Opportunity Reopened.. Request Id :"
+											+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
+									status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
 									sendEmailNotificationforApprovedOrRejectMail(
 											workflowOpportunityReopenApprovedSubject,
 											workflowRequest.getRequestId(),
@@ -2758,8 +2768,9 @@ public class WorkflowService {
 												.getStatus());
 								workflowRequest.setModifiedBy(userId);
 								workflowRequestRepository.save(workflowRequest);
-								logger.info("Opportunity reopen rejected : request Id"
-										+ workflowRequest.getRequestId());
+								logger.info("Opportunity reopen rejected : Request Id :"
+											+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
+								status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been rejected");
 								sendEmailNotificationforApprovedOrRejectMail(
 										workflowOpportunityReopenRejectedSubject,
 										workflowRequest.getRequestId(),
@@ -2771,11 +2782,6 @@ public class WorkflowService {
 									HttpStatus.FORBIDDEN,
 									"You are not authorised to access this service");
 						}
-
-					} else {
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"The request is being already approved or rejected");
-					}
 
 				} else {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -2789,8 +2795,6 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Opportunity not found");
 		}
-		status.setStatus(Status.SUCCESS,
-				"The opportunity reopen request has been approved");
 		return true;
 	}
 

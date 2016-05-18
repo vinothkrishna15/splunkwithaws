@@ -81,7 +81,34 @@ public class ContactService {
 		logger.debug("Inside save method");
 		contactRepository.save(insertList);
 	}
+  
+	/**
+	 * This service updates contact details in contact_t
+	 * 
+	 * @param contactList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void updateContact(List<ContactT> updateList) {
+		logger.debug("Begin:Inside updateContact method of ContactService");
+		contactRepository.save(updateList);
+		logger.debug("End:Inside updateContact method of ContactService");
+	}
+	
+	/**
+	 * This service deletes contact details from contact_t
+	 * 
+	 * @param contactList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void deleteContact(List<ContactT> deleteList) {
+		logger.debug("Begin:Inside deleteContact method of ContactService");
+		contactRepository.save(deleteList);
+		logger.debug("End:Inside deleteContact method of ContactService");
 
+	}
+	
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 

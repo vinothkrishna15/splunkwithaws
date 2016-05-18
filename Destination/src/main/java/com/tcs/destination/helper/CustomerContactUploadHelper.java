@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
+import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.utils.StringUtils;
@@ -30,6 +33,9 @@ public class CustomerContactUploadHelper {
 
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
 
 	private List<ContactRoleMappingT> listOfContactRole = null;
 
@@ -68,7 +74,7 @@ public class CustomerContactUploadHelper {
 			List<String> customerIds = retrieveCustomerIdFromName(customerNameList);
 			if ((customerIds != null) && (!customerIds.isEmpty())) {
 				List<ContactCustomerLinkT> cclt = constructContactCustomerLinkT(
-						customerIds, userId);
+						customerIds, userId,data[2]);
 				contact.setContactCustomerLinkTs(cclt);
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -126,8 +132,9 @@ public class CustomerContactUploadHelper {
 
 		// Contact Telephone
 		String contactTelephone = data[9];
-		if (!StringUtils.isEmpty(contactTelephone)) {
-			contact.setContactTelephone(contactTelephone);
+		Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
+		if (telephoneNumber!=null) {
+			contact.setContactTelephone(telephoneNumber.toString());
 		}
 
 		// Contact LinkedIn profile
@@ -135,8 +142,179 @@ public class CustomerContactUploadHelper {
 		if (!StringUtils.isEmpty(contactLinkedInProfile)) {
 			contact.setContactLinkedinProfile(contactLinkedInProfile);
 		}
+		
+		//ACTIVE
+		String active=data[11];
+		boolean activeFlag=false;
+		if (!StringUtils.isEmpty(active)) {
+		 if(active.equalsIgnoreCase("true"))
+		 {
+			activeFlag=true;
+			contact.setActive(activeFlag);
+			
+		 }
+		 else
+		 {
+			 contact.setActive(activeFlag);
+		 }
+		}
+		
+		
+		
 		return error;
 	}
+	
+	public UploadServiceErrorDetailsDTO validateContactDataUpdate(
+			String[] data, String userId, ContactT contact) throws Exception {
+
+		        // TODO Auto-generated method stub
+				UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+				
+				listOfContactRole = (List<ContactRoleMappingT>) contactRoleMappingTRepository
+						.findAll();
+				
+				mapOfCustomerMasterT = getNameAndIdFromCustomerMasterT();
+			
+		        String contactId=data[2];
+			
+				if (!StringUtils.isEmpty(contactId)) {
+
+					ContactT contactT = contactRepository.findByContactId(contactId);
+				if(contactT==null)
+				{
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Invalid Contact Id");
+					
+				}
+				}
+				else
+				{
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact id is mandatory");
+				}
+	
+				// Customer Names
+				String customerName = data[3].trim();
+				if (!StringUtils.isEmpty(customerName)) {
+					String[] customerNameList = customerName.split(",");
+					List<String> customerIds = retrieveCustomerIdFromName(customerNameList);
+					if ((customerIds != null) && (!customerIds.isEmpty())) {
+						List<ContactCustomerLinkT> cclt = constructContactCustomerLinkT(
+								customerIds, userId,contactId);
+						contact.setContactCustomerLinkTs(cclt);
+					} else {
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Invalid Customer Name");
+					}
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Customer Name is mandatory ");
+				}
+
+				// Contact Type
+                String contactType = data[4];
+				if (!StringUtils.isEmpty(contactType)) {
+					contact.setContactType(contactType);
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact Type is mandatory ");
+				}
+				
+				// Employee Number
+				String employeeNumber = data[5];
+				if (!StringUtils.isEmpty(employeeNumber)) {
+					contact.setEmployeeNumber(employeeNumber);
+				}
+
+				// Contact Name
+				String contactName = data[6];
+				if (!StringUtils.isEmpty(contactName)) {
+					contact.setContactName(contactName);
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact Name is mandatory ");
+				}
+
+				// Contact Role
+				String contactRole = data[7];
+				if (!StringUtils.isEmpty(contactRole)) {
+					if (validateContactRole(contactRole)) {
+						contact.setContactRole(contactRole);
+					} else {
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Invalid Contact role ");
+					}
+				} else {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact role is mandatory ");
+				}
+				
+				// Contact Email id
+				String contactEmailId = data[8];
+				if (!StringUtils.isEmpty(contactEmailId)) {
+					contact.setContactEmailId(contactEmailId);
+				}
+
+				// Contact Telephone
+				String contactTelephone= data[9];
+				Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
+				if (telephoneNumber!=null) {
+					contact.setContactTelephone(telephoneNumber.toString());
+				}
+
+				// Contact LinkedIn profile
+				String contactLinkedInProfile = data[10];
+				if (!StringUtils.isEmpty(contactLinkedInProfile)) {
+					contact.setContactLinkedinProfile(contactLinkedInProfile);
+				}
+				
+				//ACTIVE
+				String active=data[11];
+				boolean activeFlag=false;
+				if (!StringUtils.isEmpty(active)) {
+				 if(active.equalsIgnoreCase("true"))
+				 {
+					activeFlag=true;
+					contact.setActive(activeFlag);
+					
+				 }
+				 else
+				 {
+					 contact.setActive(activeFlag);
+				 }
+				}
+
+				return error;
+	
+	}
+	
+	public UploadServiceErrorDetailsDTO validateContactId(String[] data,
+			ContactT contact) {
+		// TODO Auto-generated method stub
+		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		String contactId = data[2];
+
+		if (StringUtils.isEmpty(contactId)) {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Contact Id is mandatory ");
+		} else {
+			ContactT contactT = contactRepository.findByContactId(contactId);
+			if (contactT.getContactId() == null) {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Invalid Contact Id ");
+			}
+			else
+			{
+				//ACTIVE
+				contact.setActive(false);
+				
+			}
+		}
+
+		return error;
+		
+	}
+
 
 	/**
 	 * This method is used to validate the contact role by checking whether the
@@ -165,10 +343,10 @@ public class CustomerContactUploadHelper {
 	private Map<String, String> getNameAndIdFromCustomerMasterT()
 			throws Exception {
 		Map<String, String> mapOfCMT = new HashMap<String, String>();
-		List<Object[]> listOfCustomerMasterT = customerRepository
+		List<CustomerMasterT> listOfCustomerMasterT = customerRepository
 				.getNameAndId();
-		for (Object[] st : listOfCustomerMasterT) {
-			mapOfCMT.put(st[0].toString().trim(), st[1].toString().trim());
+		for (CustomerMasterT customer : listOfCustomerMasterT) {
+			mapOfCMT.put(customer.getCustomerName(), customer.getCustomerId());
 		}
 		return mapOfCMT;
 	}
@@ -223,7 +401,7 @@ public class CustomerContactUploadHelper {
 	 * @throws Exception
 	 */
 	private List<ContactCustomerLinkT> constructContactCustomerLinkT(
-			List<String> listOfCustomerId, String userId) throws Exception {
+			List<String> listOfCustomerId, String userId,String contactId) throws Exception {
 		List<ContactCustomerLinkT> listOfContactCustomerLinkT = null;
 		if ((listOfCustomerId != null) && (!listOfCustomerId.isEmpty())) {
 			listOfContactCustomerLinkT = new ArrayList<ContactCustomerLinkT>();
@@ -231,6 +409,11 @@ public class CustomerContactUploadHelper {
 				ContactCustomerLinkT cclt = new ContactCustomerLinkT();
 				cclt.setCreatedModifiedBy(userId);
 				cclt.setCustomerId(custId);
+				if(contactId!=null)
+				{
+					cclt.setContactId(contactId);
+				}
+			
 				listOfContactCustomerLinkT.add(cclt);
 			}
 		}

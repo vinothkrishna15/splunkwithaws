@@ -11,8 +11,13 @@ public class DestinationException extends RuntimeException {
 	private String message = null;
 	private HttpStatus httpStatus = null;
 
+	public DestinationException() {
+		super();
+	}
+	
 	public DestinationException(String message) {
 		super(message);
+		this.message = message;
 	}
 
 	public DestinationException(HttpStatus httpStatus, String message) {
@@ -21,9 +26,6 @@ public class DestinationException extends RuntimeException {
 		this.httpStatus = httpStatus;
 	}
 	
-	public DestinationException() {
-		super();
-	}
 
 	@Override
 	public String toString() {

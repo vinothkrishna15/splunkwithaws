@@ -22,6 +22,7 @@ import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -104,6 +105,9 @@ public class TaskService {
 
 	@Autowired
 	CollaborationCommentsService collaborationCommentsService;
+	
+	@Autowired
+	NotesTRepository notesTRepository;
 
 	// Required beans for Notifications - end
 
@@ -304,17 +308,13 @@ public class TaskService {
 	public TaskT createTask(TaskT task) throws Exception {
 		logger.debug("Begin: Inside createTask() of TaskService");
 		List<TaskBdmsTaggedLinkT> taskBdmsTaggedLinkTs = null;
+		List<NotesT> listOfNotesT = null;
 		TaskT managedTask = null;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		// getting user Id
 		task.setCreatedBy(userId);
 		task.setModifiedBy(userId);
 
-		if (task.getNotesTs() != null) {
-			for (NotesT notes : task.getNotesTs()) {
-				notes.setUserUpdated(userId);
-			}
-		}
 		// Validate input parameters
 		validateTask(task);
 
@@ -326,8 +326,16 @@ public class TaskService {
 		}
 
 		managedTask = taskRepository.save(task);
-
+		
 		if ((null != managedTask) && managedTask.getTaskId() != null) {
+			
+			if (task.getNotesTs() != null) {
+				for (NotesT notes : task.getNotesTs()) {
+					notes.setTaskId(managedTask.getTaskId());
+				}
+				listOfNotesT = (List<NotesT>) notesTRepository.save(task.getNotesTs());
+			}
+			
 			if (taskBdmsTaggedLinkTs != null) {
 				for (TaskBdmsTaggedLinkT taskBdmTaggedLink : taskBdmsTaggedLinkTs) {
 					taskBdmTaggedLink.setTaskT(managedTask);
@@ -412,7 +420,6 @@ public class TaskService {
 			if (task.getNotesTs() != null) {
 				for (NotesT notes : task.getNotesTs()) {
 					notes.setTaskId(task.getTaskId());
-					notes.setUserUpdated(userId);
 				}
 			}
 

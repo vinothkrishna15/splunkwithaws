@@ -67,7 +67,7 @@ public class ContactController {
 			@PathVariable("id") String contactId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of retrieving the contact by contact id");
 		try {
@@ -112,7 +112,7 @@ public class ContactController {
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of retrieving the contacts by name");
 		PaginatedResponse paginatedContacts=null;
@@ -162,7 +162,7 @@ public class ContactController {
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of retrieving the contacts by contact type");
 		PaginatedResponse paginatedContacts=null;
@@ -234,7 +234,8 @@ public class ContactController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (contactService.save(contact, true)) {
+			if (contactService.validateContactRequest(contact)){
+				contactService.save(contact, true);
 				status.setStatus(Status.SUCCESS, contact.getContactId());
 				logger.debug("Contact Updated Successfully"
 						+ contact.getContactId());
@@ -267,7 +268,7 @@ public class ContactController {
 			@RequestParam(value = "count", defaultValue = "100") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside ContactController: Start of retrieving the Contact Role Mapping");
 		PaginatedResponse paginatedContacts=null;
 		try {
@@ -302,7 +303,7 @@ public class ContactController {
 			@RequestParam("contactCategory") String contactCategory,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		logger.info("Inside ContactController: Start of contact upload");
 		List<UploadServiceErrorDetailsDTO> errorDetailsDTOs = null;
@@ -317,8 +318,8 @@ public class ContactController {
 					.getErrorSheet(errorDetailsDTOs);
 			HttpHeaders respHeaders = new HttpHeaders();
 			respHeaders
-					.setContentType(MediaType
-							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			.setContentType(MediaType
+					.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"contact_upload_error.xlsx");
 			logger.info("Inside ContactController: End of contact upload");
@@ -332,7 +333,7 @@ public class ContactController {
 					"Backend error while uploading the contacts");
 		}
 	}
-	
+
 	/**
 	 * Search for Contacts by name starting with and name containing
 	 * 
@@ -357,7 +358,7 @@ public class ContactController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside ContactController: Start of /contact/search service");
 		PaginatedResponse contactlist = null;
 		try {
@@ -387,7 +388,7 @@ public class ContactController {
 					"Backend error in retrieving the contacts for /contact/search "+ nameWith+" "+startsWith);
 		}
 	}
-	
+
 	/**
 	 * This service is used to search the contacts for ajax search functionality
 	 * 
@@ -406,7 +407,7 @@ public class ContactController {
 			@RequestParam(value = "type", defaultValue = "") String type,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside ContactController: Start of /contact/ajaxsearch service");
 		List<ContactT> contactlist = null;
 		try {
