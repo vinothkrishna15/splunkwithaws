@@ -57,7 +57,7 @@ public class DestinationMailSender {
 		if(isValidMessage(message)) {
 			try {
 				MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true);
+				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true, Constants.UTF8);
 				
 				List<String> recipients = message.getRecipients();
 				List<String> ccList = message.getCcList();
