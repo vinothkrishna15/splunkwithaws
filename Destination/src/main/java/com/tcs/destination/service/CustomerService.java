@@ -1063,13 +1063,18 @@ public class CustomerService {
 
 		// Check if the customer name already exists
 		if (!StringUtils.isEmpty((customerMaster.getCustomerName()))) {
-			duplicateCustomer = customerRepository.findByCustomerName(customerMaster.getCustomerName());
-			if(duplicateCustomer == null){
-				customerCopy.setCustomerName(customerMaster.getCustomerName());
-			}
-			else{
-				logger.error("BAD_REQUEST: This Customer name already exists: {}",customerMaster.getCustomerName());
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "This Customer name already exists: " + customerMaster.getCustomerId());
+			CustomerMasterT oldObject = new CustomerMasterT();
+			oldObject = customerRepository.findOne(customerMaster.getCustomerId());
+			if (!customerMaster.getCustomerName().equals(
+					oldObject.getCustomerName())) {
+				duplicateCustomer = customerRepository.findByCustomerName(customerMaster.getCustomerName());
+				if(duplicateCustomer == null){
+					customerCopy.setCustomerName(customerMaster.getCustomerName());
+				}
+				else{
+					logger.error("BAD_REQUEST: This Customer name already exists: {}",customerMaster.getCustomerName());
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "This Customer name already exists: " + customerMaster.getCustomerName());
+				}
 			}
 		}
 		else{
