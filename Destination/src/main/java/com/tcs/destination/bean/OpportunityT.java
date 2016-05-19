@@ -1,7 +1,6 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -81,7 +80,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	//private String descriptionForWinLoss;
 
 	@Column(name = "digital_deal_value")
-	private BigDecimal digitalDealValue;
+	private Integer digitalDealValue;
 
 	@Column(name = "documents_attached")
 	private String documentsAttached;
@@ -116,7 +115,7 @@ public class OpportunityT implements Serializable, Cloneable {
 	private Date opportunityRequestReceiveDate;
 
 	@Column(name = "overall_deal_size")
-	private BigDecimal overallDealSize;
+	private Integer overallDealSize;
 
 	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
@@ -395,6 +394,14 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.dealClosureDate = dealClosureDate;
 	}
 
+	public Integer getDigitalDealValue() {
+		return this.digitalDealValue;
+	}
+
+	public void setDigitalDealValue(Integer digitalDealValue) {
+		this.digitalDealValue = digitalDealValue;
+	}
+
 	/*public String getDescriptionForWinLoss() {
 		return this.descriptionForWinLoss;
 	}
@@ -468,7 +475,14 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.opportunityRequestReceiveDate = opportunityRequestReceiveDate;
 	}
 
-	
+	public Integer getOverallDealSize() {
+		return this.overallDealSize;
+	}
+
+	public void setOverallDealSize(Integer overallDealSize) {
+		this.overallDealSize = overallDealSize;
+	}
+
 	public String getStrategicInitiative() {
 		return this.strategicInitiative;
 	}
@@ -1174,22 +1188,6 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setDealClosureComments(String dealClosureComments) {
 		this.dealClosureComments = dealClosureComments;
-	}
-
-	public BigDecimal getDigitalDealValue() {
-		return digitalDealValue;
-	}
-
-	public void setDigitalDealValue(BigDecimal digitalDealValue) {
-		this.digitalDealValue = digitalDealValue;
-	}
-
-	public BigDecimal getOverallDealSize() {
-		return overallDealSize;
-	}
-
-	public void setOverallDealSize(BigDecimal overallDealSize) {
-		this.overallDealSize = overallDealSize;
 	}
 
 }

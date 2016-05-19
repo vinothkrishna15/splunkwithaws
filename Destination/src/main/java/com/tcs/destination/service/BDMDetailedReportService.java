@@ -2,7 +2,6 @@ package com.tcs.destination.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -402,7 +401,7 @@ public class BDMDetailedReportService {
 				//set project deal value and deal currency
 				if (projectDVFlag) {
 					if(opportunity.getDigitalDealValue() != null){
-						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue().doubleValue());
+						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
 					} else {
 						row.createCell(colValue).setCellValue(0);
 					}
@@ -673,7 +672,7 @@ public class BDMDetailedReportService {
 				//set project deal value and deal currency
 				if (projectDVFlag) {
 					if(opportunity.getDigitalDealValue() != null){
-						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue().doubleValue());
+						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
 					} else {
 						row.createCell(colValue).setCellValue(0);
 					}

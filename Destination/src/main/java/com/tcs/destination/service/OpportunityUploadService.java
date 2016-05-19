@@ -327,14 +327,14 @@ public class OpportunityUploadService {
 				if (!StringUtils.isEmpty(listOfCellValues.get(18))&&!StringUtils.isEmpty(listOfCellValues.get(16))) {
 					BigDecimal actualDealValue=beaconConverterService.convert("USD",opp.getDealCurrency(), Double.valueOf(listOfCellValues.get(20)));
 					actualDealValue.setScale(2, RoundingMode.HALF_DOWN);
-				    opp.setOverallDealSize(actualDealValue);
+				    opp.setOverallDealSize(actualDealValue.intValue());
 				}
 
 				// DIGITAL DEAL VALUE
 				if (!StringUtils.isEmpty(listOfCellValues.get(20))&&!StringUtils.isEmpty(listOfCellValues.get(16))) {
 					BigDecimal digitalDealValue=beaconConverterService.convert("USD",opp.getDealCurrency(), Double.valueOf(listOfCellValues.get(20)));
 					digitalDealValue.setScale(2, RoundingMode.HALF_DOWN);
-				    opp.setDigitalDealValue(digitalDealValue);
+				    opp.setDigitalDealValue(digitalDealValue.intValue());
 				}
 
 				// OPPORTUNITY OWNER

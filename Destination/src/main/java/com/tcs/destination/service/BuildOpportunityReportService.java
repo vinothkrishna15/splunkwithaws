@@ -461,7 +461,7 @@ public class BuildOpportunityReportService {
 			
 			if (projectDVFlag) {
 				if(opportunity.getDigitalDealValue() != null){
-					row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue().doubleValue());
+					row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
 				} else {
 					row.createCell(colValue).setCellValue(0);
 				}
