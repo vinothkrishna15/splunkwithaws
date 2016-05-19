@@ -29,6 +29,7 @@ import static com.tcs.destination.utils.Constants.USER_DOWNLOAD_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_NOTIFY_SUBJECT;
 import static com.tcs.destination.utils.Constants.USER_UPLOAD_SUBJECT;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
+import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserAccessRequestT;
@@ -79,6 +81,7 @@ import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -92,6 +95,9 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.NumericUtil;
+import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.UserService;
 
@@ -143,8 +149,8 @@ public class DestinationMailUtils {
 	@Value("${opportunityLostTemplate}")
 	private String opportunityLostTemplateLoc;
 
-	@Value("${environment.name}")
-	private String environmentName;
+	@Value("${mail.environment.name}")
+	private String mailSubjectAppendEnvName;
 
 	@Autowired
 	private UserService userService;
@@ -192,7 +198,13 @@ public class DestinationMailUtils {
 	OpportunityRepository opportunityRepository;
 
 	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
+
+	@Autowired
 	private OpportunityService oppService;
+	
+	@Autowired
+	SubSpRepository subSpRepository;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
@@ -221,7 +233,7 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -262,13 +274,13 @@ public class DestinationMailUtils {
 
 		try {
 			MimeMessageHelper helper = new MimeMessageHelper(
-					automatedMIMEMessage, true);
+					automatedMIMEMessage, true, Constants.UTF8);
 			helper.setTo(recipientMailIdsArray);
 
 			helper.setFrom(senderEmailId);
 
 			String template = null;
-			StringBuffer subject = new StringBuffer(environmentName)
+			StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName)
 					.append(" Admin: ");
 
 			String userName = null;
@@ -568,12 +580,12 @@ public class DestinationMailUtils {
 
 		try {
 			MimeMessageHelper helper = new MimeMessageHelper(
-					automatedMIMEMessage, true);
+					automatedMIMEMessage, true, Constants.UTF8);
 			helper.setTo(recipientMailIdsArray);
 			helper.setFrom(senderEmailId);
 
 			String template = uploadNotifyTemplateLoc;
-			StringBuffer subject = new StringBuffer(environmentName)
+			StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName)
 					.append(" Admin: ");
 
 			String userName = user.getUserName();
@@ -720,7 +732,7 @@ public class DestinationMailUtils {
 		List<String> bccIds = new ArrayList<String>();
 		message.setBccList(bccIds);
 
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -765,7 +777,7 @@ public class DestinationMailUtils {
 
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(requestedDateTime);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(subject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -791,7 +803,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -842,7 +854,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -895,7 +907,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -1081,7 +1093,7 @@ public class DestinationMailUtils {
 		message.setBccList(bccIds);
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
-		String sub = new StringBuffer(environmentName).append(" ")
+		String sub = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(reopenOpportunityProcessedSubject).toString();
 		message.setSubject(sub);
 		logger.info("Subject : " + sub);
@@ -1108,7 +1120,7 @@ public class DestinationMailUtils {
 					.createMimeMessage();
 			try {
 				MimeMessageHelper helper = new MimeMessageHelper(
-						automatedMIMEMessage, true);
+						automatedMIMEMessage, true, Constants.UTF8);
 				helper.setTo(recipientMailIdsArray);
 				helper.setCc(ccMailIdsArray);
 				helper.setBcc(bccMailIdsArray);
@@ -1172,7 +1184,7 @@ public class DestinationMailUtils {
 		List<String> ccIds = new ArrayList<String>();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
-		StringBuffer subject = new StringBuffer(environmentName);
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
 		logger.info("RequestId" +requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -1248,7 +1260,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
 			WorkflowStepT workflowStepPending = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.PENDING.getStatus());
@@ -1375,7 +1387,8 @@ public class DestinationMailUtils {
 		String geography = null;
 		String pmoValue = "%"
 				+ Constants.PMO_KEYWORD + "%";
-		String subject = new StringBuffer(environmentName).append(" ")
+
+		String subject = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(workflowCustomerApprovedOrRejectSubject).toString();
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -1384,7 +1397,7 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
 			WorkflowStepT workflowStepSubmitted = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.SUBMITTED.getStatus());
@@ -1578,144 +1591,158 @@ public class DestinationMailUtils {
 }
 	
 	 private String constructUserNamesSplitByComma(List<String> userNames) {
-			
-			StringBuilder buffer = new StringBuilder();
+		 logger.debug("Inside constructUserNamesSplitByComma Service");
+		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
+	    }
 
-			for(String userName : userNames){
-			    buffer.append(userName+",");
+	/**
+	 * This method is used to send the email notification to group of users on 
+	 * opportunity won or lost 
+	 * @param entityId
+	 */
+	public void sendOpportunityWonLostNotification(String entityId) throws Exception {
+		logger.info("Inside sendOpportunityWonLostNotification method");
+		OpportunityT opportunity = opportunityRepository.findOne(entityId);
+		List<String> recepientIds = new ArrayList<String>();
+		String templateLoc = null;
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
+		if (opportunity != null) {
+			String opportunityName = opportunity.getOpportunityName();
+			logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
+					+ opportunityName);
+			String customerName = opportunity.getCustomerMasterT()
+					.getCustomerName();
+			String opportunityOwner = userRepository
+					.findUserNameByUserId(opportunity.getOpportunityOwner());
+			Integer digitalBidValue = opportunity.getDigitalDealValue();
+			logger.info("digital Bid Value : "+digitalBidValue);
+			String currencyType = opportunity.getDealCurrency();
+			//Converting deal value to USD
+			BigDecimal digitalBidValueUSD = opportunityDownloadService.convertCurrencyToUSD(currencyType, digitalBidValue);
+			logger.info("digitalBidValueUSD : "+digitalBidValueUSD);
+			//Converting the USD value in number scale
+			String dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
+			logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
+			DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+			Date dealClosureDate = opportunity.getDealClosureDate();
+			String dealClosureDateStr = df.format(dealClosureDate);
+			String opportunityDescription = opportunity
+					.getOpportunityDescription();
+			List<String> winLossFactors = new ArrayList<String>();
+			List<String> opportunitySalesSupportOwners = new ArrayList<String>();
+			List<String> opportunitySubSps = new ArrayList<String>();
+			String salesSupportOwners = "";
+			String factorsForWinLoss = "";
+			String subSpsStr = "";
+			String withSupportFrom = "";
+			String displaySubSp = null;
+			for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
+				displaySubSp = subSpRepository.findOne(opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
+				opportunitySubSps.add(displaySubSp);
 			}
-			
-			if(buffer.length()>0){
-			    buffer.deleteCharAt(buffer.length()-1);
+			if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
+				subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
 			}
-			logger.debug("Inside constructUserNamesSplitByComma Service");
-			return buffer.toString();
-		    }
-	 
-	 /**
-		 * This method is used to send the email notification to group of users on 
-		 * opportunity won or lost 
-		 * @param entityId
-	 * @throws DestinationDoesNotExistException 
-		 */
-		public void sendOpportunityWonLostNotification(String entityId) throws DestinationDoesNotExistException {
-			// TODO Auto-generated method stub
-			logger.info("Inside sendOpportunityWonLostNotification method");
-			OpportunityT opportunity = opportunityRepository.findOne(entityId);
-			List<String> recepientIds = new ArrayList<String>();
-			String templateLoc = null;
-			String subject = null;
-			if (opportunity != null) {
-				String opportunityName = opportunity.getOpportunityName();
-				logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
-						+ opportunityName);
-				String customerName = opportunity.getCustomerMasterT()
-						.getCustomerName();
-				String opportunityOwner = userRepository
-						.findUserNameByUserId(opportunity.getOpportunityOwner());
-				Integer digitalBidValue = opportunity.getDigitalDealValue();
-				DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
-				Date dealClosureDate = opportunity.getDealClosureDate();
-				String dealClosureDateStr = df.format(dealClosureDate);
-				String opportunityDescription = opportunity
-						.getOpportunityDescription();
-				List<String> winLossFactors = new ArrayList<String>();
-				List<String> opportunitySalesSupportOwners = new ArrayList<String>();
-				String salesSupportOwners = "";
-				String factorsForWinLoss = "";
-				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-						.getOpportunityWinLossFactorsTs()) {
-					winLossFactors.add(opportunityWinLossFactorsT
-							.getWinLossFactor());
-				}
-				
-				if (CollectionUtils.isNotEmpty(winLossFactors)) {
-					factorsForWinLoss = constructUserNamesSplitByComma(winLossFactors);
-					logger.info("Win Loss factors :"+factorsForWinLoss);
-				}
-				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-						.getOpportunitySalesSupportLinkTs()) {
+			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+					.getOpportunityWinLossFactorsTs()) {
+				winLossFactors.add(opportunityWinLossFactorsT
+						.getWinLossFactor());
+			}
+			if (CollectionUtils.isNotEmpty(winLossFactors)) {
+				factorsForWinLoss = constructUserNamesSplitByComma(winLossFactors);
+				logger.info("factors for win/loss : "+factorsForWinLoss);
+			}
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
 
+				if(!opportunitySalesSupportLinkT.getSalesSupportOwner().contains("pmo")) {
 					opportunitySalesSupportOwners.add(userRepository
 							.findUserNameByUserId(opportunitySalesSupportLinkT
 									.getSalesSupportOwner()));
 				}
-				if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
-					
-					salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
-					logger.info("Sales support owners :"+salesSupportOwners);
-				}
-
-				recepientIds.add(opportunityWonLostGroupMailId);
-				if (opportunity.getSalesStageCode() == 9) {
-					logger.info("opportunity Won");
-					subject = new StringBuffer("Destination:").append(" ")
-							.append("Deal Won for").append(" ")
-							.append(customerName).append(" ").append("on")
-							.append(" ").append(dealClosureDateStr).toString();
-					templateLoc = opportunityWonTemplateLoc;
-					
-				}
 				
-				if(opportunity.getSalesStageCode() == 10) {
-					logger.info("OpportunityLost");
-					subject = new StringBuffer("Destination:").append(" ")
-							.append("Deal Lost for").append(" ")
-							.append(customerName).append(" ").append("on")
-							.append(" ").append(dealClosureDateStr).toString();
-					templateLoc = opportunityLostTemplateLoc;
-					
-				}
-				if(templateLoc!=null) {
-					MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
-							.createMimeMessage();
-					MimeMessageHelper helper;
-					try {
-						helper = new MimeMessageHelper(automatedMIMEMessage, true);
-						helper.setTo(opportunityWonLostGroupMailId);
-						helper.setFrom(senderEmailId);
-						helper.setSubject(subject);
-						Map<String, Object> map = new HashMap<String, Object>();
-						map.put("opportunityName", opportunityName);
-						map.put("customerName", customerName);
-						map.put("factorsForWinLoss", factorsForWinLoss);
-						map.put("opportunityOwner", opportunityOwner);
-						map.put("salesSupportOwners", salesSupportOwners);
-						map.put("digitalBidValue", digitalBidValue);
-						map.put("opportunityDescription", opportunityDescription);
-						String text = VelocityEngineUtils.mergeTemplateIntoString(
-								velocityEngine, templateLoc, Constants.UTF8,
-								map);
-						logger.info("framed text for mail :" + text);
-						helper.setText(text, true);
-						logger.info("before sending mail");
-						mailSender.send(automatedMIMEMessage);
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (MailSendException e) {
-						logger.error("Error sending mail message", e.getMessage());
-						throw e;
-					} catch (MailParseException e) {
-						logger.error("Error parsing mail message", e.getMessage());
-						throw e;
-					} catch (MailAuthenticationException e) {
-						logger.error("Error authnticatingh e-mail message", e.getMessage());
-						throw e;
-					} catch (MailPreparationException e) {
-						logger.error("Error preparing mail message", e.getMessage());
-						throw e;
-					} catch (Exception e) {
-						logger.error("Error sending mail message", e.getMessage());
-						throw e;
-					}
-				}
 			}
-			else {
-				throw new DestinationDoesNotExistException("Opportunity not exists");
+			if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
+				withSupportFrom = Constants.WITH_SUPPORT_FROM;
+				salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
+				logger.info("sales support owners : "+salesSupportOwners);
 			}
 
-		}
+			recepientIds.add(opportunityWonLostGroupMailId);
+			if (opportunity.getSalesStageCode() == 9) {
+				logger.info("opportunity Won");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
+						.append("Deal Won for").append(" ")
+						.append(customerName);
+				logger.info("Subject for opportunity won :"+subject);
+				templateLoc = opportunityWonTemplateLoc;
+				
+			}
+			
+			if(opportunity.getSalesStageCode() == 10) {
+				logger.info("OpportunityLost");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
+						.append("Deal Lost for").append(" ")
+						.append(customerName);
+				logger.info("Subject for opportunity lost :"+subject);
+				templateLoc = opportunityLostTemplateLoc;
+				
+			}
+			if(templateLoc!=null) {
+				MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
+						.createMimeMessage();
+				MimeMessageHelper helper;
+				try {
+					helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
+					helper.setTo(opportunityWonLostGroupMailId);
+					logger.info("To email address : "+opportunityWonLostGroupMailId);
+					helper.setFrom(senderEmailId);
+					helper.setSubject(subject.toString());
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("opportunityName", opportunityName);
+					map.put("customerName", customerName);
+					map.put("factorsForWinLoss", factorsForWinLoss);
+					map.put("opportunityOwner", opportunityOwner);
+					map.put("salesSupportOwners", salesSupportOwners);
+					map.put("digitalBidValue", dealValueUSDInNumberScale);
+					map.put("opportunityDescription", opportunityDescription);
+					map.put("withSupportFrom", withSupportFrom);
+					map.put("dealClosureDate", dealClosureDateStr);
+					String text = VelocityEngineUtils.mergeTemplateIntoString(
+							velocityEngine, templateLoc, Constants.UTF8,
+							map);
+					logger.info("framed text for mail :" + text);
+					helper.setText(text, true);
+					logger.info("before sending mail");
+					mailSender.send(automatedMIMEMessage);
+					logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "+entityId);
+				} catch (MessagingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (MailSendException e) {
+					logger.error("Error sending mail message", e.getMessage());
+					throw e;
+				} catch (MailParseException e) {
+					logger.error("Error parsing mail message", e.getMessage());
+					throw e;
+				} catch (MailAuthenticationException e) {
+					logger.error("Error authnticatingh e-mail message", e.getMessage());
+					throw e;
+				} catch (MailPreparationException e) {
+					logger.error("Error preparing mail message", e.getMessage());
+					throw e;
+				} catch (Exception e) {
+					logger.error("Error sending mail message", e.getMessage());
+					throw e;
+				}
+			}
+			
+		    } else {
+		    	throw new DestinationException("Opportunity not found : "+entityId);
+		    }
+	 
+	 
+	}
 
 
 }

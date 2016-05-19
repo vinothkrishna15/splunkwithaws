@@ -217,6 +217,8 @@ public class Constants {
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
 	
+	public static final String 	WITH_SUPPORT_FROM = "with support from";
+	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	public static final String WORKFLOW_OPPORTUNITY_REOPEN_PENDING_SUBJECT = "Pending Opportunity reopen request";
@@ -229,4 +231,6 @@ public class Constants {
 	public static final String UAT = "UAT";
 	public static final String SIT = "SIT";
 	public static final String PROD = "PROD";
+	
+	public static final String USD_PATTERN = "###,###.## USD";
 }

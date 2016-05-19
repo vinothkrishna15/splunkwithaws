@@ -11,6 +11,11 @@ public class DestinationException extends RuntimeException {
 	private String message = null;
 	private HttpStatus httpStatus = null;
 
+	public DestinationException(String message) {
+		super(message);
+		this.message = message;
+	}
+
 	public DestinationException() {
 		super();
 	}

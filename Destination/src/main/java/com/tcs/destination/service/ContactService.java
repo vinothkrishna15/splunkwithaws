@@ -722,9 +722,27 @@ public class ContactService {
 			
 			List<ContactT> pageContactList = paginateContacts(page, count, contactList);
 			prepareContactDetails(pageContactList);
+			removeCyclicContactForPartner(pageContactList);
 			paginatedResponse.setContactTs(pageContactList);
 			
 			return paginatedResponse;
+		}
+		
+		/**
+		 * Remove Contacts inside Partner Contacts 
+		 * 
+		 * @param contactTs
+		 */
+		private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
+			
+			for(ContactT contactT : contactTs){
+				if(contactT.getPartnerMasterT()!=null){
+					if(contactT.getPartnerMasterT().getContactTs()!=null){
+						contactT.getPartnerMasterT().setContactTs(null);
+					}
+				}
+			}
+		
 		}
 		
 		/**

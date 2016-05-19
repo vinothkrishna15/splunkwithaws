@@ -1285,4 +1285,13 @@ public class CustomerService {
 		}
 		return oldCustomerObj;
 	}
+	/*
+	 * soft delete - status updated as inactive for the given customer list
+	 */
+	public void makeInactive(List<CustomerMasterT> deleteList) {
+		for(CustomerMasterT customer : deleteList){
+			customer.setActive(false);
+			customerRepository.save(customer);
+		}
+	}
 }

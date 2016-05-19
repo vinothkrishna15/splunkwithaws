@@ -13,7 +13,7 @@ import com.tcs.destination.utils.DestinationMailUtils;
 
 /**
  * This tasklet sends the email notification on opportunity won or lost
- * @author bnpp
+ * @author tcs
  *
  */
 @Component("opportunityWonLostEmailNotificationTasklet")
@@ -30,9 +30,9 @@ public class OpportunityWonLostEmailNotificationTasklet implements Tasklet {
 			ChunkContext chunkContext) throws Exception {
 				String entityId = chunkContext.getStepContext()
 				.getStepExecution().getJobExecution().getJobParameters().getString("entityId");
-				logger.info("Inside OpportunityWonLostEmailNotificationTasklet");
+				logger.info("Inside OpportunityWonLostEmailNotificationTasklet ");
 				destinationMailUtils.sendOpportunityWonLostNotification(entityId);	
-				return RepeatStatus.FINISHED;
+			return RepeatStatus.FINISHED;
 	}
 
 

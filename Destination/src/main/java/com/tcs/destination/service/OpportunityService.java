@@ -219,6 +219,9 @@ public class OpportunityService {
 
 	@Autowired
 	FollowedService followService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
@@ -228,9 +231,6 @@ public class OpportunityService {
 	
 	@Autowired
 	ConnectRepository connectRepository;
-	
-	@Autowired
-	JobLauncherController jobLauncherController;
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
@@ -2296,7 +2296,13 @@ public class OpportunityService {
 		return isEditAccessRequired;
 
 	}
-
+	
+	/**
+	* This method is used to update the opportunity details and also
+	* send email notification if opportunity won or lost
+	* @param opportunity
+	* @throws Exception
+	*/
 	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
@@ -2311,17 +2317,20 @@ public class OpportunityService {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportunity not found for update: " + opportunityId);
 		}
-		
 		OpportunityT opportunityBeforeEdit = opportunityRepository
 				.findOne(opportunityId);
 		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
-		updateOpportunity(opportunity,opportunityBeforeEdit);
-		//If won or lost
-		if((oldSalesStageCode!=9 && opportunity.getSalesStageCode()==9) || (oldSalesStageCode!=10 && opportunity.getSalesStageCode()==10)) {
-			logger.info("Opportunity won or lost");
-			jobLauncherController.asyncJobLaunch(JobName.opportunityWonLostEmailNotification,
-					EntityType.OPPORTUNITY.toString(), opportunity.getOpportunityId());
-				
+		updateOpportunity(opportunity, opportunityBeforeEdit);
+		// If won or lost, sending email notification to group of users using
+		// asynchronous job
+		if ((oldSalesStageCode != 9 && opportunity.getSalesStageCode() == 9)
+				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
+			logger.info("Opportunity : " + opportunityId
+					+ " is either won or lost");
+			jobLauncherController.asyncJobLaunch(
+					JobName.opportunityWonLostEmailNotification,
+					EntityType.OPPORTUNITY.toString(),
+					opportunity.getOpportunityId());
 		}
 	}
 }

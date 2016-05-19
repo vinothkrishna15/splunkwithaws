@@ -180,6 +180,10 @@ public class CustomerDwldWriter implements ItemWriter<CustomerMasterT>,
 				Cell active = row.createCell(5);//TODO inactive indicator - adding a column for active flag - done
 				active.setCellValue(cmt.isActive());
 				
+
+				Cell cellCustId = row.createCell(6);
+				cellCustId.setCellValue(cmt.getCustomerId());
+				
 				// Increment row counter
 				rowCount++;
 			}

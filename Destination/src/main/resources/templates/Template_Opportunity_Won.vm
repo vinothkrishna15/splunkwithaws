@@ -1,20 +1,22 @@
 <html>
 	<body>
-		<h3>Dear User,</h3>
+		Dear User,
 		<p>
      
-            We are glad to inform you that TCS Digital Enterprise has successfully closed the opportunity ${opportunityName} for ${customerName} and it’s a WIN.
+              We are glad to inform you that TCS Digital Enterprise has successfully closed the opportunity and it is a WIN.<br/><br/>
+              Opportunity : <b>${opportunityName}</b><br/>
+              Customer : <b>${customerName}</b><br/>
+              Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
 
-            The key factors for the Win are as mentioned below:
-            ${factorsForWinLoss}. 
+              The key factors for the Win : <b>${factorsForWinLoss}</b>.<br/><br/>
 
-            This opportunity was led by ${opportunityOwner} with support from ${salesSupportOwners}.
-            Deal size recorded is ${digitalBidValue}.
-            Opportunity Description: ${opportunityDescription}		
+              This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
+              Deal size recorded is <b>${digitalBidValue}</b>.<br/>
+              Opportunity Description: <b>${opportunityDescription}</b><br/>		
         </p>		
 		<p>
-		Regards,<br>
-		Destination Team.
+		<b>Thanks,</b><br>
+		<b>Team Destination</b>
 		</p>
 		<br>
 		<p>
