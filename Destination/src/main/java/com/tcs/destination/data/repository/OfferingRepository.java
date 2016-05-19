@@ -18,7 +18,7 @@ public interface OfferingRepository extends
     
     OfferingMappingT findByOffering(String offering);
     
-    List<OfferingMappingT> findByActive(String active);
+    List<OfferingMappingT> findByActiveTrue();
 
 	OfferingMappingT findByActiveTrueAndOffering(String offering);
 
