@@ -31,8 +31,10 @@ public interface PartnerRepository extends
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
 			String startsWith, Pageable pageable,boolean active);
 
-	@Query(value = "select * from partner_master_t p ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
+	@Query(value = "select * from partner_master_t p where p.active=TRUE ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
 	List<PartnerMasterT> findRecent(int count);
+	@Query(value = "select * from partner_master_t where partner_id=? and active=TRUE", nativeQuery = true)
+	PartnerMasterT findactivepartner(String partner_id);//TODO inactive indicator - remove this
 
 	@Query(value = "update partner_master_t set logo = ?1  where partner_id=?2", nativeQuery = true)
 	void addImage(byte[] imageBytes, String id);
