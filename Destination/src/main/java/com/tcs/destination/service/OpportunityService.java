@@ -836,7 +836,34 @@ public class OpportunityService {
 				}
 			}
 		}
-		
+
+		// OpportunitySalesSupportLink,
+		List<OpportunitySalesSupportLinkT> opportunitySaleSupOwnTs = opportunity.getOpportunitySalesSupportLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunitySaleSupOwnTs)) {
+			for (OpportunitySalesSupportLinkT oppWLFactor : opportunitySaleSupOwnTs) {
+				String userId = oppWLFactor.getSalesSupportOwner();
+				if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The sales support owner is inactive");
+				}
+			}
+		}
+
+		// BidDetails,
+		List<BidDetailsT> bidDetailsT = opportunity.getBidDetailsTs();
+		if(CollectionUtils.isNotEmpty(bidDetailsT)) {
+			for (BidDetailsT bidDetail : bidDetailsT) {
+				List<BidOfficeGroupOwnerLinkT> bidofficeGrpOwners = bidDetail.getBidOfficeGroupOwnerLinkTs();
+				if(CollectionUtils.isNotEmpty(bidofficeGrpOwners)) {
+					for (BidOfficeGroupOwnerLinkT bidgrpOwner : bidofficeGrpOwners) {
+						String userId = bidgrpOwner.getBidOfficeGroupOwner();
+						if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
+							throw new DestinationException(HttpStatus.BAD_REQUEST, "The Bid Office Group Owner is inactive");
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 
