@@ -27,6 +27,7 @@ import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.TargetVsActualResponse;
@@ -824,10 +825,10 @@ public class CustomerService {
 					}
 					beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(bcmtNew.getBeaconCustomerName(),bcmtNew.getCustomerGeography(),bcmtNew.getBeaconIou());
 					if(!beaconCustomers.isEmpty() && isBeaconCustomerModifiedFlag == true){
-						logger.error("This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
+						logger.error("This Beacon details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
 						throw new DestinationException(
 								HttpStatus.BAD_REQUEST,
-								"This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
+								"This Beacon details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
 					}
 					if(isBeaconCustomerModifiedFlag == true){
 						beaconRepository.save(bcmtOld);
@@ -913,6 +914,7 @@ public class CustomerService {
 		boolean isCustomerModifiedFlag = false;
 		String corporateHqAdress = "";
 		String website = "";
+		String notes = "";
 		String facebook = "";
 		byte[] logo=null;
 		//customer name
@@ -949,7 +951,14 @@ public class CustomerService {
 			}
 		}
 
-
+		//notes edited
+		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){
+			notes = oldCustomerObj.getNotes();
+		}
+		if (!customerMaster.getNotes().equals(notes)) {
+			oldCustomerObj.setNotes(customerMaster.getNotes());
+			isCustomerModifiedFlag = true;
+		}
 		//facebook
 		if(!StringUtils.isEmpty(oldCustomerObj.getFacebook())){
 			facebook = oldCustomerObj.getFacebook();
@@ -1123,6 +1132,16 @@ public class CustomerService {
 		{
 			customerCopy.setLogo(null);
 		}*/
+
+		if(customerMaster.getNotes()!=null)
+		{
+			customerCopy.setNotes(customerMaster.getNotes());
+		}
+		else
+		{
+			customerCopy.setNotes("");
+		}
+
 		if(customerMaster.getCorporateHqAddress()!=null)
 		{
 			customerCopy.setCorporateHqAddress(customerMaster.getCorporateHqAddress());

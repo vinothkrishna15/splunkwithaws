@@ -60,7 +60,7 @@ public class CustomerMasterT implements Serializable {
 	private String groupCustomerName;
 
 	private byte[] logo;
-
+	private String notes;
 	private String website;
 	private String iou;
 	private String geography;
@@ -440,6 +440,14 @@ public class CustomerMasterT implements Serializable {
 
 	public void setIou(String iou) {
 		this.iou = iou;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 }
