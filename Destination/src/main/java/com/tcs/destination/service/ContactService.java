@@ -713,6 +713,7 @@ public class ContactService {
 				contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
 			}
 			if (contactList == null || contactList.isEmpty()) {
+				// If No Contacts are found for the given search
 				logger.error("NOT_FOUND: Contact information not available");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Contacts found");
@@ -723,6 +724,13 @@ public class ContactService {
 			List<ContactT> pageContactList = paginateContacts(page, count, contactList);
 			prepareContactDetails(pageContactList);
 			removeCyclicContactForPartner(pageContactList);
+			
+			if (pageContactList == null || pageContactList.isEmpty()) {
+				// If No Contacts are found for the given search and page
+				logger.error("NOT_FOUND: Contact information not available");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Contacts found");
+			}
 			paginatedResponse.setContactTs(pageContactList);
 			
 			return paginatedResponse;
@@ -735,14 +743,16 @@ public class ContactService {
 		 */
 		private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
 			
-			for(ContactT contactT : contactTs){
-				if(contactT.getPartnerMasterT()!=null){
-					if(contactT.getPartnerMasterT().getContactTs()!=null){
-						contactT.getPartnerMasterT().setContactTs(null);
+			if(contactTs!=null){
+				for(ContactT contactT : contactTs){
+					if(contactT.getPartnerMasterT()!=null){
+						if(contactT.getPartnerMasterT().getContactTs()!=null){
+							contactT.getPartnerMasterT().setContactTs(null);
+						}
 					}
 				}
 			}
-		
+			
 		}
 		
 		/**
