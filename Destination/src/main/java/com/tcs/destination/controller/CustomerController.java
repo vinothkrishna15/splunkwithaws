@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.FrequentlySearchedResponse;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TargetVsActualResponse;
@@ -99,6 +100,40 @@ public class CustomerController {
 							+ customerId);
 		}
 		return response;
+	}
+
+	/**
+	 * 
+	 * @param customerId
+	 * @param view
+	 * @param fields
+	 * @return String - Opportunity count for the respective customer
+	 * @throws DestinationException
+	 *             The method gives the count of opportunity for given
+	 *             customerId
+	 */
+	@RequestMapping(value = "/opportunitycount/{id}", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getCountOfOpportunitiesByCustomerId(
+			@PathVariable("id") String customerId,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "fields", defaultValue = "") String fields)
+			throws DestinationException {
+		logger.info("Inside CustomerController: Start of retrieving the count of customer details by id");
+
+		int response = 0;
+		try {
+			response = customerService.getOpportunityCountByCustomerId(customerId);
+			
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "", response), HttpStatus.OK);
+		}  catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in creating the opportunity");
+		}
+
 	}
 
 	/**
@@ -328,11 +363,14 @@ public class CustomerController {
 			customerDownloadExcel = customerDownloadService
 					.getCustomers(oppFlag);
 			respHeaders = new HttpHeaders();
-			String environmentName=PropertyUtil.getProperty("environment.name");
-			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-		    String repName =environmentName+"_CustomerMasterDownload_" + todaysDate_formatted + ".xlsm";
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
+			String repName = environmentName + "_CustomerMasterDownload_"
+					+ todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment",repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
 			logger.info("Inside CustomerController: Customer Master Report Downloaded Successfully ");
@@ -370,11 +408,14 @@ public class CustomerController {
 			customerDownloadExcel = customerDownloadService
 					.getCustomerContacts(oppFlag);
 			respHeaders = new HttpHeaders();
-			String todaysDate_formatted = DateUtils.getCurrentDateInDesiredFormat();
-			String environmentName=PropertyUtil.getProperty("environment.name");
-			String repName =environmentName+"_CustomerContactDownload_" + todaysDate_formatted + ".xlsm";
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String repName = environmentName + "_CustomerContactDownload_"
+					+ todaysDate_formatted + ".xlsm";
 			respHeaders.add("reportName", repName);
-			respHeaders.setContentDispositionFormData("attachment",repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
 
 			respHeaders.setContentType(MediaType
 					.parseMediaType("application/octet-stream"));
@@ -483,21 +524,26 @@ public class CustomerController {
 		}
 		return response;
 	}
+
 	/**
-	 * This handles the request for handling the edit operation on Customer details
+	 * This handles the request for handling the edit operation on Customer
+	 * details
+	 * 
 	 * @param customerMaster
 	 * @return
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editCustomer(
-			@RequestBody CustomerMasterT customerMaster) throws DestinationException {
+			@RequestBody CustomerMasterT customerMaster)
+			throws DestinationException {
 		logger.info("Inside CustomerController: Start of Edit Customer");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
 			if (customerService.updateCustomer(customerMaster)) {
-				status.setStatus(Status.SUCCESS, "Customer was edited successfully!!!");
+				status.setStatus(Status.SUCCESS,
+						"Customer was edited successfully!!!");
 			}
 			logger.info("Inside CustomerController: End of Edit Customer");
 			return new ResponseEntity<String>(

@@ -61,7 +61,7 @@ public class FrequentlySearchedService {
 			case CUSTOMER:
 				for (Object[] frequent : frequentMapping) {
 					CustomerMasterT customer = customerRepository
-							.findOne(frequent[1].toString());
+							.findactivecust(frequent[1].toString());
 					FrequentlySearchedResponse frequentResponse = ResponseConstructors
 							.convertToFrequentlySearchedResponse(
 									Integer.parseInt(frequent[0].toString()),
