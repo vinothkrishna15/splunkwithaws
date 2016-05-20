@@ -1,6 +1,8 @@
 package com.tcs.destination.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -21,12 +23,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ConnectCustomerContactLinkT;
 import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
+import com.tcs.destination.bean.ConnectsSplitDTO;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.OpportunitiesSplitDTO;
+import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
@@ -37,6 +46,7 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
@@ -132,7 +142,166 @@ public class ContactService {
 		if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 			prepareContactDetails(contact, null);
 		}
+		updateContactTFor360(contact);
 		return contact;
+	}
+
+	// update contact object to include connects by date wise and opportunities by sales stage 
+	private void updateContactTFor360(ContactT contact) {
+		handleConnects(contact);
+		handleOpportunities(contact);
+	}
+
+	//handling opportunities for 360
+	private void handleOpportunities(ContactT contact) {
+		handleCustomerContactForOpportunities(contact);
+		handleTcsAccountContactForOpportunities(contact);
+	}
+
+	//handling tcs account opportunities for 360
+	private void handleTcsAccountContactForOpportunities(ContactT contact) {
+		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs
+			= contact.getOpportunityTcsAccountContactLinkTs();
+		OpportunitiesSplitDTO opportunitiesTcsAccountContactSplitDTO
+			= new OpportunitiesSplitDTO();
+		
+		List<OpportunityT> wonOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> lostOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> pipelineOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> anticipatingOpportunitiesList = Lists.newArrayList();
+		
+		for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT :
+			opportunityTcsAccountContactLinkTs){
+			OpportunityT opportunity = opportunityTcsAccountContactLinkT.getOpportunityT();
+			int salesStageCode = opportunity.getSalesStageCode();
+			switch(salesStageCode){
+				case 0 :
+				case 1 :
+				case 2 :
+				case 3 :
+						 anticipatingOpportunitiesList.add(opportunity);
+					     break;
+				case 4 :
+				case 5 :
+				case 6 :
+				case 7 :
+				case 8 : 
+						pipelineOpportunitiesList.add(opportunity);
+						break;
+				case 9 :
+						wonOpportunitiesList.add(opportunity);
+						break;
+				case 10 :
+				case 11 :
+				case 12 :
+				case 13 :
+					    lostOpportunitiesList.add(opportunity);
+					    break;
+			}
+		}
+		
+		opportunitiesTcsAccountContactSplitDTO.setAnticipatingOpportunitiesDTO(anticipatingOpportunitiesList);
+		opportunitiesTcsAccountContactSplitDTO.setPipelineOpportunitiesDTO(pipelineOpportunitiesList);
+		opportunitiesTcsAccountContactSplitDTO.setWonOpportunitiesDTO(wonOpportunitiesList);
+		opportunitiesTcsAccountContactSplitDTO.setLostOpportunitiesDTO(lostOpportunitiesList);
+		contact.setTcsAccountContactOpportunitiesDTO(opportunitiesTcsAccountContactSplitDTO);
+	}
+
+	//handling customer opportunities for 360
+	private void handleCustomerContactForOpportunities(ContactT contact) {
+		List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs
+			= contact.getOpportunityCustomerContactLinkTs();
+		OpportunitiesSplitDTO opportunitiesCustomerContactSplitDTO
+			= new OpportunitiesSplitDTO();
+		
+		List<OpportunityT> wonOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> lostOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> pipelineOpportunitiesList = Lists.newArrayList();
+		List<OpportunityT> anticipatingOpportunitiesList = Lists.newArrayList();
+		
+		for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT :
+			opportunityCustomerContactLinkTs){
+			OpportunityT opportunity = opportunityCustomerContactLinkT.getOpportunityT();
+			int salesStageCode = opportunity.getSalesStageCode();
+			switch(salesStageCode){
+				case 0 :
+				case 1 :
+				case 2 :
+				case 3 :
+						 anticipatingOpportunitiesList.add(opportunity);
+					     break;
+				case 4 :
+				case 5 :
+				case 6 :
+				case 7 :
+				case 8 : 
+						pipelineOpportunitiesList.add(opportunity);
+						break;
+				case 9 :
+						wonOpportunitiesList.add(opportunity);
+						break;
+				case 10 :
+				case 11 :
+				case 12 :
+				case 13 :
+					    lostOpportunitiesList.add(opportunity);
+					    break;
+			}
+		}
+		
+		opportunitiesCustomerContactSplitDTO.setAnticipatingOpportunitiesDTO(anticipatingOpportunitiesList);
+		opportunitiesCustomerContactSplitDTO.setPipelineOpportunitiesDTO(pipelineOpportunitiesList);
+		opportunitiesCustomerContactSplitDTO.setWonOpportunitiesDTO(wonOpportunitiesList);
+		opportunitiesCustomerContactSplitDTO.setLostOpportunitiesDTO(lostOpportunitiesList);
+		contact.setCustomerContactOpportunitiesDTO(opportunitiesCustomerContactSplitDTO);
+	}
+
+	//handling connects for 360
+	private void handleConnects(ContactT contact) {
+		handleCustomerContactConnects(contact);
+		handleTcsAccountContactConnects(contact);
+	}
+
+	//handling tcs account connects for 360
+	private void handleTcsAccountContactConnects(ContactT contact) {
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs 
+		= contact.getConnectTcsAccountContactLinkTs();
+		ConnectsSplitDTO connectSplitDTO = new ConnectsSplitDTO();
+		List<ConnectT> pastConnects = Lists.newArrayList();
+		List<ConnectT> upcomingConnects = Lists.newArrayList();
+		for(ConnectTcsAccountContactLinkT connectTcsAccountContactLinkT : connectTcsAccountContactLinkTs){
+			ConnectT connect = connectTcsAccountContactLinkT.getConnectT();
+			Timestamp nowStamp = DateUtils.getCurrentTimeStamp();
+			if(connect.getStartDatetimeOfConnect().before(nowStamp)){
+				pastConnects.add(connect);
+			} else {
+				upcomingConnects.add(connect);
+			}
+		}
+		connectSplitDTO.setPastConnects(pastConnects);
+		connectSplitDTO.setUpcomingConnects(upcomingConnects);
+		contact.setTcsAccountContactConnectsDTO(connectSplitDTO);
+	}
+
+	//handling customer connects for 360
+	private void handleCustomerContactConnects(ContactT contact) {
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs 
+		= contact.getConnectCustomerContactLinkTs();
+		ConnectsSplitDTO connectSplitDTO = new ConnectsSplitDTO();
+		List<ConnectT> pastConnects = Lists.newArrayList();
+		List<ConnectT> upcomingConnects = Lists.newArrayList();
+		for(ConnectCustomerContactLinkT connectCustomerContactLinkT : connectCustomerContactLinkTs){
+			ConnectT connect = connectCustomerContactLinkT.getConnectT();
+			Timestamp nowStamp = DateUtils.getCurrentTimeStamp();
+			if(connect.getStartDatetimeOfConnect().before(nowStamp)){
+				pastConnects.add(connect);
+			} else {
+				upcomingConnects.add(connect);
+			}
+		}
+		connectSplitDTO.setPastConnects(pastConnects);
+		connectSplitDTO.setUpcomingConnects(upcomingConnects);
+		contact.setCustomerContactConnectsDTO(connectSplitDTO);
 	}
 
 	/**
