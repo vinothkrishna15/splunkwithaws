@@ -106,6 +106,21 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	@Query(value = "select * from contact_t where contact_id in (select contact_id from contact_customer_link_t where customer_id = ?1) and contact_type = ?2 and contact_category = ?3 and contact_name = ?4 and contact_role = ?5",nativeQuery = true)
 	List<ContactT> findDuplicateContacts(String customerId, String contactType, String contactCategory, String conatctName, String contactRole);
 	
+	
+	/**
+	 * This method to find the duplicate Internal contacts
+	 * 
+	 * @param customerId
+	 * @param contactType
+	 * @param contactCategory
+	 * @param conatctName
+	 * @param contactRole
+	 * @return
+	 */
+	@Query(value = "select * from contact_t where employee_number=?1 and contact_type = ?2 and contact_name = ?3 ",nativeQuery = true)
+	List<ContactT> findDuplicateInternalContacts(String empNumber, String contactType, String conatctName);
+	
+	
 	/**
 	 * Retrieve Contacts based on starting or containing characters 
 	 * 
