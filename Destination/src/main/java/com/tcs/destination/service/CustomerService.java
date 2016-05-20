@@ -41,6 +41,7 @@ import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -751,19 +752,29 @@ public class CustomerService {
 					switch(UserGroup.valueOf(UserGroup.getName(userGroup)))
 					{
 					case BDM:
-
-						List<UserAccessPrivilegesT> userAccessPrivilegeList=userAccessPrivilegesRepository.getPrivilegeTypeAndValueByUserId(userId);
-						for(UserAccessPrivilegesT userAccessPrivilegesT:userAccessPrivilegeList)
+						List<String> privilegeValueList = null; 
+						List<UserAccessPrivilegesT> userAccessPrevilegeList = userAccessPrivilegesRepository.findByUserIdAndIsactive(userId, "Y");
+						for(UserAccessPrivilegesT userPrivege:userAccessPrevilegeList)
 						{
-							String privilegeType=userAccessPrivilegesT.getPrivilegeType();
-							String privilegeValue=userAccessPrivilegesT.getPrivilegeValue();
-							if((privilegeType.equalsIgnoreCase("CUSTOMER"))&&(privilegeValue.equals(customerMaster.getCustomerName())))
-							{
+							switch (PrivilegeType.valueOf(userPrivege.getPrivilegeType())){
+							case CUSTOMER: 
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.CUSTOMER.toString());
+								privilegeValueList.contains(customerMaster.getCustomerName());
 								isBdmWithAccess=true;
-
+								break;
+							case GEOGRAPHY:
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.GEOGRAPHY.toString());
+								privilegeValueList.contains(customerMaster.getGeography());
+								isBdmWithAccess=true;
+								break;
+							case IOU:
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.IOU.toString());
+								privilegeValueList.contains(customerMaster.getIou());
+								isBdmWithAccess=true;
+								break;
 							}
-
 						}
+
 						if(isBdmWithAccess)
 						{
 							customerEdited = validateCustomerDetails(customerMaster);  
