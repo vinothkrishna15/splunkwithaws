@@ -804,8 +804,8 @@ public class UserService {
 		logger.info("Begin:inside checkIfAlreadyExist() method");
 		UserT usert = userRepository.findByUserId(user.getUserId());
 		if(usert!=null){
-			logger.info("BAD_REQUEST, UserId Already Present");
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "UserId Already Present");
+			logger.info("BAD_REQUEST, UserId Already Exist");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "UserId Already Exist");
 		}
 	}
 
