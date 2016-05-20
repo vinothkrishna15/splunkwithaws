@@ -79,7 +79,7 @@ public class ContactT implements Serializable, Cloneable {
 	private String partnerId;
 	
 	@Column(name = "active")
-	private boolean active;
+	private boolean active = true;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "contactT")
