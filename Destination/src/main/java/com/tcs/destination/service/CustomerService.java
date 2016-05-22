@@ -953,8 +953,8 @@ public class CustomerService {
 		}
 
 		//logo
-		if(oldCustomerObj.getLogo()!=null)
-		{
+		if ((oldCustomerObj.getLogo() == null && customerMaster.getLogo() != null)
+				|| (!oldCustomerObj.getLogo().equals(customerMaster.getLogo()))) {
 			logo = oldCustomerObj.getLogo();
 			if (!customerMaster.getLogo().equals(logo)) {
 				oldCustomerObj.setLogo(customerMaster.getLogo());
