@@ -15,6 +15,8 @@ import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.StringUtils;
 
@@ -47,8 +49,9 @@ public class PartnerUploadHelper {
 	
 	@Autowired
 	private GeographyRepository geographyRepository;
-	
-	
+
+	@Autowired
+	private PartnerService partnerService;
 	
 	
 	public UploadServiceErrorDetailsDTO validatePartnerData(String[] data, String userId, PartnerMasterT partnerMasterT) throws Exception 
@@ -59,6 +62,7 @@ public class PartnerUploadHelper {
 		
 		        // PARTNER_NAME 
 				String partnername = data[3];
+				int rowNumber = Integer.parseInt(data[0]) + 1;
 				if(!StringUtils.isEmpty(partnername))
 				{
 					
@@ -67,7 +71,7 @@ public class PartnerUploadHelper {
 				}
 				else
 				{
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Partner Name Is Mandatory; ");
 				}
 				
@@ -80,7 +84,7 @@ public class PartnerUploadHelper {
 					partnerMasterT.setGeographyMappingT(geographyMappingT);
 				}
 				else{
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Geography Is Mandatory; ");
 				}
 				
@@ -115,7 +119,13 @@ public class PartnerUploadHelper {
 				//ACTIVE
 				partnerMasterT.setActive(true);
 				
-				
+				//check for inactive records and log 
+				try {
+					partnerService.validateInactiveIndicators(partnerMasterT);
+				} catch(DestinationException e) {
+					error.setRowNumber(rowNumber);
+					error.setMessage(e.getMessage());
+				}
 
 		return error;
 	}
@@ -123,26 +133,24 @@ public class PartnerUploadHelper {
 	public UploadServiceErrorDetailsDTO validatePartnerDataUpdate(
 			String[] data, String userId, PartnerMasterT partner) throws Exception 
 	{
-		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-	
-        
 		
 		String partnerId=data[2];
 	
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if (!StringUtils.isEmpty(partnerId)) {
 
 		PartnerMasterT partnerMasterT = partnerRepository.findByPartnerId(partnerId);
 		if(partnerMasterT==null)
 		{
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Invalid Partner Id");
 			
 		}
 		}
 		else
 		{
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Partner id is mandatory");
 		}
 
@@ -154,7 +162,7 @@ public class PartnerUploadHelper {
 		}
 		else
 		{
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Partner Name Is Mandatory; ");
 			
 		}
@@ -171,7 +179,7 @@ public class PartnerUploadHelper {
 		}
 		else
 		{
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Geography Is Mandatory; ");
 		}
 		
@@ -207,13 +215,20 @@ public class PartnerUploadHelper {
 		//ACTIVE
 		partner.setActive(true);
 		
+		//check for inactive records and log 
+		try {
+			partnerService.validateInactiveIndicators(partner);
+		} catch(DestinationException e) {
+			error.setRowNumber(rowNumber);
+			error.setMessage(e.getMessage());
+		}
+		
 		return error;
 
 	}
 	
 	public UploadServiceErrorDetailsDTO validatePartnerId(String[] data,
 			PartnerMasterT partner) {
-		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		String partnerId = data[2];
 

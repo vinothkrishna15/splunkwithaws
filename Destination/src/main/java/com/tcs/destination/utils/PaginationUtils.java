@@ -58,6 +58,13 @@ public class PaginationUtils {
 	}
 	
 	
+	/**
+	 * trim the list to accommodate to pagination
+	 * @param page - page number
+	 * @param count - number records/page
+	 * @param list 
+	 * @return
+	 */
 	public static <T> PaginatedResponse<T> paginateList(int page, int count,
 			List<T> list) {
 		PaginatedResponse<T> paginatedResponse = new PaginatedResponse<T>();

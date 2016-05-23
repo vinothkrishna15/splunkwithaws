@@ -726,7 +726,7 @@ public class OpportunityService {
 	 * validate a opertunity which has any inactive fields
 	 * @param opportunity
 	 */
-	private void validateInactiveIndicators(OpportunityT opportunity) {
+	public void validateInactiveIndicators(OpportunityT opportunity) {
 		//createdBy
 		String createdBy = opportunity.getCreatedBy();
 		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {

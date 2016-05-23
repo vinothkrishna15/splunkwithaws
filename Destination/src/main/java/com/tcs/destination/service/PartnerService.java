@@ -15,9 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -239,7 +236,7 @@ public class PartnerService {
 	 * @param partner
 	 * @throws {@link DestinationException} if any inactive records founds
 	 */
-	private void validateInactiveIndicators(PartnerMasterT partner) {
+	public void validateInactiveIndicators(PartnerMasterT partner) {
 
 		//createdModifiedBy, 
 		String createdBy = partner.getCreatedModifiedBy();
