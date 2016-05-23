@@ -4,7 +4,6 @@ import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -41,9 +40,6 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	ConnectT findByConnectId(String connectid);
 	
-	@Query(value ="select * from connect_t where partner_id=?1",nativeQuery = true)
-	List<ConnectT> findByPartnerId(String partnerId);
-
 	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(String name,
 			String customerId,Pageable page);
 
@@ -657,4 +653,43 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("toDate") Timestamp toDate,
 			@Param("connectCategory") String connectCategory);
 
+	
+	/* ---------- repository methods for smart search --------- */
+	
+	@Query(value = "SELECT connect_id, connect_name FROM connect_t "
+			+ "WHERE UPPER(connect_name) like UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
+	List<Object[]> searchByConnectName(@Param("term") String term, @Param("limit") int limit);
+	
+	@Query(value = "SELECT customer_id,customer_name FROM customer_master_t "
+			+ "WHERE UPPER(customer_name) LIKE UPPER(:term) AND customer_id IN (SELECT DISTINCT(customer_id) FROM connect_t) "
+			+ "ORDER BY customer_name "
+			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
+	List<Object[]> searchByCustomerName(@Param("term") String term, @Param("limit") int limit);
+
+	@Query(value = "SELECT partner_id,partner_name FROM partner_master_t "
+			+ "WHERE UPPER(partner_name) LIKE UPPER(:term) AND partner_id IN (SELECT DISTINCT(partner_id) FROM connect_t) "
+			+ "ORDER BY partner_name "
+			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
+	List<Object[]> searchByPartnerName(@Param("term") String term, @Param("limit") int limit);
+
+	@Query(value = "SELECT sub_sp AS id, sub_sp FROM sub_sp_mapping_t "
+			+ "WHERE sub_sp IN (SELECT DISTINCT(sub_sp) FROM connect_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
+			+ "ORDER BY sub_sp "
+			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
+	List<Object[]> searchBySubsp(@Param("term") String term, @Param("limit") int limit);
+
+	List<ConnectT> findByCustomerId(String id);
+
+	List<ConnectT> findByPartnerId(String id);
+	
+	@Query(value = "SELECT * FROM connect_t  "
+			+ "WHERE connect_id IN (SELECT connect_id FROM connect_sub_sp_link_t WHERE sub_sp=:subsp)", nativeQuery = true)
+	List<ConnectT> findBySubsp(@Param("subsp") String subsp);
+	
+	
+	
+
+	/* ---------- ends - repository methods for smart search --------- */
 }

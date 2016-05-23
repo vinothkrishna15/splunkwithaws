@@ -25,9 +25,11 @@ import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultResponseDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectDownloadService;
 import com.tcs.destination.service.ConnectService;
@@ -180,8 +182,7 @@ public class ConnectController {
 			// }
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, dashboardConnectsResponse);
-		} catch (DestinationException e) {
-			throw e;
+		
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -515,5 +516,68 @@ public class ConnectController {
 					"Backend error while retrieving connects list");
 		}
 	}
+
+	/**
+	 * Service to fetch the connect related information based on search type and the search keyword 
+	 * @param type - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.POST)
+	public @ResponseBody SearchResultResponseDTO smartSearch(
+			@RequestParam("type") String type,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside ConnectController: smart search by search term");
+		try {
+			SearchResultResponseDTO res = connectService.smartSearch(SmartSearchType.get(type), term, getAll);
+			logger.info("Inside ConnectController: End - smart search by search term");
+			return res;
+		} catch (Exception e) {
+			logger.error("########", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving connects list");
+		}
+		
+	}
+	
+	/**
+	 * @param type
+	 * @param id
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/select", method = RequestMethod.POST)
+	public @ResponseBody String smartSearchSelect(
+			@RequestParam("type") String type,
+			@RequestParam("id") String id,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside ConnectController: smart search by search term");
+		try {
+			List<ConnectT> connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id);
+			logger.info("Inside ConnectController: End of retrieving Connects by list of connect id's");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, connectList);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Error on smart search select - ", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving connects list");
+		}
+		
+	}
+	
 
 }

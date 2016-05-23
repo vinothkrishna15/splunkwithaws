@@ -28,6 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CityMapping;
 import com.tcs.destination.bean.CommentsT;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
@@ -44,6 +45,8 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.bean.SearchResultResponseDTO;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
@@ -81,6 +84,7 @@ import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -1845,7 +1849,7 @@ public class ConnectService {
 	 * validate the connect for any inactive fields(owners, customer, etc)
 	 * @param connect
 	 */
-	private void validateInactiveIndicators(ConnectT connect) {
+	public void validateInactiveIndicators(ConnectT connect) {
 		
 		// createdBy,
 		String createdBy = connect.getCreatedBy();
@@ -1980,4 +1984,107 @@ public class ConnectService {
 		boolean enableEditAccess*/
 		
 	}
+	
+	/**
+	 * Service method to fetch the connect related information based on search type and the search keyword 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll 
+	 * @return
+	 */
+	public SearchResultResponseDTO smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll) {
+		logger.info("ConnectService::smartSearch type {}",smartSearchType);
+		SearchResultResponseDTO res = new SearchResultResponseDTO();
+		List<SearchResultDTO> resList = Lists.newArrayList();
+		if(smartSearchType != null) {
+			int limit = 3;
+			if(getAll) {
+				limit = 0;
+			}
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getConnectsByName(term, limit));
+				resList.add(getConnectCustomers(term, limit));
+				resList.add(getConnectPartners(term, limit));
+				resList.add(getConnectSubSps(term, limit));
+				break;
+			case CONNECT:
+				resList.add(getConnectsByName(term, limit));
+				break;
+			case CUSTOMER:
+				resList.add(getConnectCustomers(term, limit));
+				break;
+			case PARTNER:
+				resList.add(getConnectPartners(term, limit));
+				break;
+			case SUBSP:
+				resList.add(getConnectSubSps(term, limit));
+				break;
+			default:
+				break;
+
+			}
+		}
+		res.setResults(resList);
+		return res;
+	}
+	
+	public List<ConnectT> smartSearchSelect(SmartSearchType smartSearchType,
+			String id) {
+		logger.info("ConnectService::smartSearchSelect, type {}",smartSearchType);
+		List<ConnectT> resList = Lists.newArrayList();
+		if(smartSearchType != null && StringUtils.isNotBlank(id)) {
+			
+			switch(smartSearchType) {
+			case CUSTOMER:
+				resList = connectRepository.findByCustomerId(id);
+				break;
+			case PARTNER:
+				resList = connectRepository.findByPartnerId(id);
+				break;
+			case SUBSP:
+				resList = connectRepository.findBySubsp(id);
+				break;
+			default:
+				break;
+
+			}
+		}
+		return resList;
+	}
+
+	private SearchResultDTO getConnectSubSps(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.SUBSP);
+		List<Object[]> records = connectRepository.searchBySubsp("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectPartners(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.PARTNER);
+		List<Object[]> records = connectRepository.searchByPartnerName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectCustomers(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.CUSTOMER);
+		List<Object[]> records = connectRepository.searchByCustomerName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectsByName(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.CONNECT);
+		List<Object[]> records = connectRepository.searchByConnectName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
 }

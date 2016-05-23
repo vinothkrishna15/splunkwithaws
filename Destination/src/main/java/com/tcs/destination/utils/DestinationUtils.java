@@ -5,12 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.Lists;
+import com.tcs.destination.bean.SearchResult;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.controller.UserRepositoryUserDetailsService.UserRepositoryUserDetails;
 import com.tcs.destination.exception.DestinationException;
@@ -78,6 +81,22 @@ public class DestinationUtils {
 					"Error occurred while cloning the object:" + cnfe.getMessage());
 		}
 		return copyObject;
+	}
+
+	/**
+	 * creates list of smart search result dto from the array of id and name
+	 * @param records
+	 * @return
+	 */
+	public static List<SearchResult> getSearchResults(List<Object[]> records) {
+		List<SearchResult> res = Lists.newArrayList();
+		if(records != null) {
+			for (Object[] rec : records) {
+				SearchResult searchResult = new SearchResult(String.valueOf(rec[0]), String.valueOf(rec[1]));
+				res.add(searchResult);
+			}
+		}
+		return res;
 	}
 	
 }
