@@ -1482,7 +1482,7 @@ public class WorkflowService {
 				WorkflowRequestT requestForAction = (WorkflowRequestT) requestIterator.next();
 				List<WorkflowStepT> workflowStepTs = requestForAction.getWorkflowStepTs();
 				for(WorkflowStepT requestStep : workflowStepTs){
-					if((requestStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus()) && requestStep.getUserId().equalsIgnoreCase(Constants.PMO_PENDING_WITH_SPECIFIC_USER))){
+					if((requestStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus()) && requestStep.getUserId() != null && requestStep.getUserId().equalsIgnoreCase(Constants.PMO_PENDING_WITH_SPECIFIC_USER))){
 						duplicatesRemoved.add(requestForAction);
 						break;
 					}
