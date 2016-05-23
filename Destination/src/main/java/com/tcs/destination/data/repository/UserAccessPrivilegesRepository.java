@@ -52,9 +52,18 @@ public interface UserAccessPrivilegesRepository extends
  			+ " and uat.privilege_type = ?2", nativeQuery = true)
  	List<String> getIouPrivilegeValue(String userId,String privilegeType);
  	
- 	@Query(value="select distinct(uat.user_id) from user_access_privileges_t uat join user_t ut "
+ 	@Query(value = "select privilege_id from user_access_privileges_t where parent_privilege_id =?1", nativeQuery = true)
+	List<Integer> findByParentPrivilegeIds(Integer parentPrivilegeId);
+
+	UserAccessPrivilegesT findByPrivilegeId(Integer privilegeId);
+
+	@Query(value = "select user_id from user_access_privileges_t where privilege_value in ?1", nativeQuery = true)
+	List<String> findByGeography(List<String> geographies);
+	
+	List<UserAccessPrivilegesT> getPrivilegeTypeAndValueByUserId(String userId);
+	
+	@Query(value="select distinct(uat.user_id) from user_access_privileges_t uat join user_t ut "
  			+ "on ut.user_id = uat.user_id "
             + "where uat.privilege_value = ?1 and uat.isactive = ?2 and ut.user_id like ?3",nativeQuery = true)
  	List<String> findUserIdsForWorkflowPMO(String geography,String isactive, String pmoValue);
-
 }

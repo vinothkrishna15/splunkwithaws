@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -49,6 +48,9 @@ public class RevenueCustomerMappingT implements Serializable {
 	
 	@Column(name = "finance_iou")
 	private String financeIou;
+	
+	@Column(name = "active")
+	private boolean active = true;
 
 	// bi-directional many-to-one association to ActualRevenuesDataT
 	@JsonIgnore
@@ -190,6 +192,14 @@ public class RevenueCustomerMappingT implements Serializable {
 
 	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
+	}
+	
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 }

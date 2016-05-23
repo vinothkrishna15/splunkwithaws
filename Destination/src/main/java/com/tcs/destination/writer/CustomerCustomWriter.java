@@ -173,6 +173,7 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 		List<CustomerMasterT> updateList = new ArrayList<CustomerMasterT>();
 		for (String[] data : items) {
 			String operation = (String) data[1];
+			
 			if ((!StringUtils.isEmpty(operation))) {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
@@ -224,15 +225,15 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 		}
 		// for saving the rows which are valid
 		if (CollectionUtils.isNotEmpty(insertList)) {
-			// vinodh for branch change  customerService.save(insertList);
+			customerService.save(insertList);
 		}
 		// for deleting the rows which are valid
 		if (CollectionUtils.isNotEmpty(deleteList)) {
-			// vinodh for branch change customerService.delete(deleteList);
+			customerService.makeInactive(deleteList);
 		}
 		// for updating the rows which are valid
 				if (CollectionUtils.isNotEmpty(updateList)) {
-					// vinodh for branch change		customerService.save(updateList);
+					customerService.save(updateList);
 				}
 	}
 

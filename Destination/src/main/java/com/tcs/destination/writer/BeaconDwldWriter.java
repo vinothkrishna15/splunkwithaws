@@ -142,6 +142,9 @@ public class BeaconDwldWriter implements ItemWriter<BeaconCustomerMappingT>,
 				Cell cellBeaconGeo = row.createCell(7);
 				cellBeaconGeo.setCellValue(beacon.getGeographyMappingT().getGeography().trim());
 
+				Cell active = row.createCell(8);//TODO inactive indicator - adding a column for active flag - done
+				active.setCellValue(beacon.isActive());
+
 				// Increment row counter
 				rowCount++;
 			} 

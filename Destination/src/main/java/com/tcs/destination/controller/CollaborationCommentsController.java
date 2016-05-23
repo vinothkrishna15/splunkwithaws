@@ -62,5 +62,39 @@ public class CollaborationCommentsController {
 					"Backend error in inserting the collaboration comments");
 		}
 	}
+	
+	/**
+	 * This is used to edit a comment
+	 * 
+	 * @param comments
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/edit", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editComments(
+			@RequestBody CollaborationCommentT comments)
+			throws DestinationException {
+		logger.info("Inside CollaborationCommentsController : Start of edit the comments");
+		try {
+			Status status = new Status();
+			if (commentsService.editComments(comments)) {
+				logger.debug("Comments Inserted Successfully");
+				status.setStatus(Status.SUCCESS, "Comments Inserted Successfully");
+			} else {
+				logger.debug("Comments Could not be saved");
+				status.setStatus(Status.FAILED, "Comments Could not be saved");
+			}
+			logger.info("Inside CollaborationCommentsController : End of edit the comments");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in editing the collaboration comments");
+		}
+	}
 
 }

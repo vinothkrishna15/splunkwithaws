@@ -200,6 +200,10 @@ public class UserDwldWriter implements ItemWriter<String[]>,
 
 				String supervisorName = (String) userRecord[10];
 				ExcelUtils.createCell(supervisorName, row, 11);
+				
+				String active = String.valueOf(userRecord[11]);//TODO inactive indicator - adding a separate column for active active column - done
+				ExcelUtils.createCell(active, row, 12);
+				
 				UserT user = new UserT();
 				user.setUserId(userId);
 				user.setUserName(userName);

@@ -22,11 +22,13 @@ public interface CustomerRepository extends
 	List<CustomerMasterT> findByCustomerNameIgnoreCaseContainingOrderByCustomerNameAsc(
 			String customerName);
 
-	Page<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot,Pageable page);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseContainingAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+			String name, String nameNot,boolean active,Pageable page);
 
-	Page<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeOrderByCustomerNameAsc(
-			String name, String nameNot,Pageable page);
+	Page<CustomerMasterT> findByCustomerNameIgnoreCaseStartingWithAndCustomerNameIgnoreCaseNotLikeAndActiveOrderByCustomerNameAsc(
+			String name, String nameNot,boolean active,Pageable page);
+	
+	
 
 	@Query(value = "select * from customer_Master_T c ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
 	List<CustomerMasterT> findRecent(int count);
@@ -40,8 +42,13 @@ public interface CustomerRepository extends
 	@Query(value = "SELECT B.Quarter,B.target FROM BEACON_DATA_T B,BEACON_CUSTOMER_MAPPING_T CM WHERE  B.beacon_customer_name =CM.beacon_customer_name AND B.FINANCIAL_YEAR=?2  AND CM.customer_name=?1", nativeQuery = true)
 	List<Object[]> findTarget(String customerName, String financialYear);
 
+	
+	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeAndActiveOrderByGroupCustomerNameAsc(
+			String groupCustName, String groupCustNameNot,boolean active);
+	
 	List<CustomerMasterT> findByGroupCustomerNameIgnoreCaseContainingAndGroupCustomerNameIgnoreCaseNotLikeOrderByGroupCustomerNameAsc(
 			String groupCustName, String groupCustNameNot);
+
 
 	// @Query(value =
 	// "update customer_master_t set logo = ?1  where customer_id=?2",
@@ -67,8 +74,8 @@ public interface CustomerRepository extends
 	@Query(value = "update customer_master_t set logo = ?1  where customer_id=?2", nativeQuery = true)
 	void addImage(byte[] imageBytes, String id);
 
-	@Query(value = "select customer_name, customer_id from customer_master_t", nativeQuery = true)
-	List<Object[]> getNameAndId();
+	@Query(value = "select * from customer_master_t", nativeQuery = true)
+	List<CustomerMasterT> getNameAndId();
 	
 	@Query(value = "select distinct group_customer_name, customer_name, iou, geography, customer_id from customer_master_t", nativeQuery = true)
 	List<Object[]> getCustomerNameAndIouAndGeography();
@@ -91,7 +98,8 @@ public interface CustomerRepository extends
 			@Param("geography") String geography);
 
 	@Query(value = "select * from customer_master_t where "
-			+ "(upper(customer_name) like (:customerName)) "
+			+ "(active='true' or active=(:active))"
+			+ "and (upper(customer_name) like (:customerName)) "
 			+ "and (upper(group_customer_name) like (:groupCustomerName)) "
 			+ "and (geography in (:geography) or ('') in (:geography)) "
 			+ "and iou in (select iou from iou_customer_mapping_t where (display_iou in (:displayIOU) or ('') in (:displayIOU)))", nativeQuery = true)
@@ -99,7 +107,8 @@ public interface CustomerRepository extends
 			@Param("groupCustomerName") String groupCustomerNameWith,
 			@Param("customerName") String nameWith,
 			@Param("geography") List<String> geography,
-			@Param("displayIOU") List<String> displayIOU);
+			@Param("displayIOU") List<String> displayIOU,
+			@Param("active") boolean active);
 	
 	
 	@Query(value = "select customer_id,customer_name from customer_master_t", nativeQuery=true)

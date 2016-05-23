@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -56,6 +55,9 @@ public class BeaconCustomerMappingT implements Serializable {
 	
 	@Column(name = "beacon_iou")
 	private String beaconIou;
+	
+	@Column(name = "active")
+	private boolean active = true;
 	
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
@@ -159,6 +161,14 @@ public class BeaconCustomerMappingT implements Serializable {
 
 	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
+	}
+	
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 }

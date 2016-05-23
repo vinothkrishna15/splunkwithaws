@@ -11,7 +11,11 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.utils.DestinationMailUtils;
 
 
-
+/**
+ * This tasklet sends the email notification on opportunity won or lost
+ * @author tcs
+ *
+ */
 @Component("opportunityWonLostEmailNotificationTasklet")
 public class OpportunityWonLostEmailNotificationTasklet implements Tasklet {
 

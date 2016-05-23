@@ -2,6 +2,7 @@ package com.tcs.destination.helper;
 
 import java.util.Map;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.utils.Constants;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("customerUploadHelper")
@@ -39,7 +41,9 @@ public class CustomerUploadHelper {
 		String MasterCustomerName = data[3];
 		String MasterIOU = data[4];
 		String MasterGoegraphy = data[5];
+		String custId = data[7]; // retrieving customer id for updation/deletion 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		if(StringUtils.isEmpty(custId)){
 		CustomerMasterT customer = customerRepository
 				.findByCustomerName(MasterCustomerName);
 		if (customer == null) {
@@ -99,7 +103,7 @@ public class CustomerUploadHelper {
 			error.setMessage("CustomerName already exist ");
 
 		}
-
+		}
 		return error;
 	}
 
@@ -118,18 +122,22 @@ public class CustomerUploadHelper {
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
+		String custId = data[7];// retrieving customer id for updation/deletion 
 		String MasterGroupClient = data[2];
 		String MasterCustomerName = data[3];
 		String MasterIOU = data[4];
 		String MasterGoegraphy = data[5];
 		//we are getting the customer id i.e the primary key from customer_Master_T table
-		CustomerMasterT customerId = customerRepository
-				.findByCustomerName(MasterCustomerName);
-		if (customerId == null) {
+		if(!StringUtils.isEmpty(custId)){
+		CustomerMasterT customer = customerRepository
+				.findOne(custId);
+		if (customer == null) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
 			error.setMessage("customer not found,hence it cannot be updated");
 
 		} else {
+			if(customer.isActive()){
+				customerMasterT.setCustomerId(custId);
 			customerMasterT.setCreatedModifiedBy(userId);
 			// customerMasterT.setCreatedBy(userId);
 			customerMasterT.setDocumentsAttached(Constants.NO);
@@ -148,6 +156,15 @@ public class CustomerUploadHelper {
 				error.setMessage("MasterIOU not found");
 
 			}
+			if (!StringUtils.isEmpty(MasterCustomerName)) {
+				
+					customerMasterT.setCustomerName(MasterCustomerName);
+
+			} else {
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Master Customer Name not found");
+
+			}
 			if (!StringUtils.isEmpty(MasterGoegraphy)) {
 				if (mapOfGeographyMappingT.containsKey(MasterGoegraphy)) {
 					customerMasterT.setGeography(MasterGoegraphy);
@@ -158,8 +175,15 @@ public class CustomerUploadHelper {
 				}
 
 			}
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Customer is inactive and cannot be updated");
 		}
-
+		}
+		} else {
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("CustomerId cannot be empty");
+		}
 		return error;
 	}
 
@@ -169,40 +193,28 @@ public class CustomerUploadHelper {
 		String MasterCustomerName = data[3];
 		String MasterIOU = data[4];
 		String MasterGoegraphy = data[5];
+		String custId = data[7];// retrieving customer id for updation/deletion 
+		String status = data[6];
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-		customerT = new CustomerMasterT();
-		if (!StringUtils.isEmpty(MasterIOU)) {
-			if (!mapOfIouMappingT.containsKey(MasterIOU)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("MasterIOU not found");
-			}
-
-		}
-		if (!StringUtils.isEmpty(MasterGoegraphy)) {
-			if (!mapOfGeographyMappingT.containsKey(MasterGoegraphy)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("MasterGoegraphy not found");
-			}
-		}
-		if (!StringUtils.isEmpty(MasterGroupClient)
-				&& !StringUtils.isEmpty(MasterCustomerName)) {
-			String customerId = customerRepository
-					.findCustomerIdForDeleteOrUpdate(MasterGroupClient,
-							MasterCustomerName, MasterIOU, MasterGoegraphy);
-
-			if (!StringUtils.isEmpty(customerId)) {
-				customerT.setCustomerId(customerId);
+		if(!StringUtils.isEmpty(custId)){
+			
+			CustomerMasterT customer = customerRepository.findOne(custId);
+			if(customerT!=null){
+				try {
+					BeanUtils.copyProperties(customerT, customer );
+				} catch (Exception e) {
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Backend Error while cloning");
+				}
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
 				error.setMessage("customer not found");
-
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("either Master Customer Name or Master Group Client is empty");
+			error.setMessage("Customer id cannot be blank for deletion");
 		}
 		return error;
-
 	}
 
 }

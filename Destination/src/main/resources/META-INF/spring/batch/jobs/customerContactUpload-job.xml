@@ -44,6 +44,7 @@
 		scope="step">
 		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
 		<property name="helper" ref="customerContactUploadHelper" />
+		<property name="contactRepository" ref="contactRepository"/>
 		<property name="contactService" ref="contactService" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />

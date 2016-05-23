@@ -375,7 +375,7 @@ public class BDMDetailedReportService {
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
 			boolean factorForWLFlag = fields.contains(ReportConstants.FACTORSFORWINLOSS);
-			boolean descForWLFlag = fields.contains(ReportConstants.DESCRIPTIONFORWINLOSS);
+			boolean descForWLFlag = fields.contains(ReportConstants.DEALCLOSURECOMMENTS);
 			boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
 			
 			boolean subSpFlag = fields.contains(ReportConstants.SUBSP);
@@ -463,8 +463,8 @@ public class BDMDetailedReportService {
 			
 			//set description for win loss
 			if (descForWLFlag) {
-				if(opportunity.getDescriptionForWinLoss() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
+				if(opportunity.getDealClosureComments() != null) {
+					row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
 				}
 				colValue++;
 			}
@@ -653,7 +653,7 @@ public class BDMDetailedReportService {
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
 			boolean factorForWLFlag = fields.contains(ReportConstants.FACTORSFORWINLOSS);
-			boolean descForWLFlag = fields.contains(ReportConstants.DESCRIPTIONFORWINLOSS);
+			boolean descForWLFlag = fields.contains(ReportConstants.DEALCLOSURECOMMENTS);
 			boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
 			
 			for(Object[] userIdAndOpp:userIdAndOppList){
@@ -746,8 +746,8 @@ public class BDMDetailedReportService {
 			
 			//set description for win loss
 			if (descForWLFlag) {
-				if(opportunity.getDescriptionForWinLoss() != null)
-				row.createCell(colValue).setCellValue(opportunity.getDescriptionForWinLoss());
+				if(opportunity.getDealClosureComments() != null)
+				row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
 				else
 					row.createCell(colValue).setCellValue("");
 				colValue++;

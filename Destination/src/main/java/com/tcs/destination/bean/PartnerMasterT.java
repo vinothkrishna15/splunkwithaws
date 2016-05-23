@@ -53,6 +53,9 @@ public class PartnerMasterT implements Serializable {
 	private String documentsAttached;
 
 	private String facebook;
+	
+	@Column(name = "active")
+	private boolean active = true;
 
 	private byte[] logo;
 
@@ -62,6 +65,8 @@ public class PartnerMasterT implements Serializable {
 	private String partnerName;
 
 	private String website;
+	
+	private String notes;
 
 	// bi-directional many-to-one association to CommentsT
 	@OneToMany(mappedBy = "partnerMasterT")
@@ -360,6 +365,22 @@ public class PartnerMasterT implements Serializable {
 
 	public void setGeography(String geography) {
 		this.geography = geography;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 }

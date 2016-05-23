@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -376,6 +377,56 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findTeamOpportunityDetailsBySupervisorIdInFinancialYear(
 			@Param("users") List<String> users,
 			@Param("startTs") Timestamp startTs, @Param("endTs") Timestamp endTs);
+	
+	@Query(value = "select * from opportunity_t OPP " 
+			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id "
+			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) " 
+			+ "and (OPP.sales_stage_code in (:salesStageCode) or (-1) in (:salesStageCode)) "
+			+ "and (OPP.strategic_initiative=(:strategicInitiative) or (:strategicInitiative)='' ) "
+			+ "and (OPP.new_logo = (:newLogo) or (:newLogo) ='' ) " 
+			+ "and (((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:dealCurrency)) between (:minDigitalDealValue) and (:maxDigitalDealValue)) or (:defaultDealRange)='YES') " 
+			+ "and (OPP.digital_flag=(:digitalFlag) or (:digitalFlag)='' ) " 
+			+ "and (CMT.iou in (select iou from iou_customer_mapping_t where display_iou in (:displayIou) or ('') in (:displayIou))) "
+			+ "and (OPP.country in (:country) or ('') in (:country)) " 
+			+ "and ((OPP.deal_closure_date between (:fromDate) and (:toDate) and OPP.sales_stage_code >= 9)or (OPP.sales_stage_code < 9)) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_partner_link_t where partner_id in (:partnerId)) or ('') in (:partnerId)) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_competitor_link_t where competitor_name in (:competitorName)) or ('') in (:competitorName)) "
+			+ "and (((OPP.opportunity_id in (select entity_id from search_keywords_t where UPPER(search_keywords) similar to (:searchKeywords))) or (UPPER(OPP.opportunity_name) similar to (:opportunityName))) or ((:opportunityName) = (:searchKeywords) and (:opportunityName) = '')) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from bid_details_t where bid_request_type in (:bidRequestType)) or ('') in (:bidRequestType)) "
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_offering_link_t where offering in (:offering)) or ('') in (:offering)) " 
+			+ "and (OPP.opportunity_id in (select opportunity_id from opportunity_sub_sp_link_t where sub_sp in (select sub_sp from sub_sp_mapping_t where display_sub_sp in (:displaySubSp))) or ('') in (:displaySubSp)) " 
+			+ "and ((OPP.opportunity_owner in (:userId) and (:isPrimaryOwner)) " 
+		    + "or  (OPP.opportunity_id in (select opportunity_id from opportunity_sales_support_link_t where (sales_support_owner in (:userId) and (:isSalesSupportOwner)))) " 
+			+ "or  (OPP.opportunity_id in (select BDT.opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where (bid_office_group_owner in (:userId) and (:isBidOfficeOwner))))) " 
+			+ "or  ('') in (:userId)) "
+			+ "order by OPP.modified_datetime", nativeQuery = true)
+	List<OpportunityT> findByOpportunitiesForCurrentFyIgnoreCaseLike(
+			@Param("customerIdList") List<String> customerIdList,
+			@Param("salesStageCode") List<Integer> salesStageCode,
+			@Param("strategicInitiative") String strategicInitiative,
+			@Param("newLogo") String newLogo,
+			@Param("defaultDealRange") String defaultDealRange,
+			@Param("minDigitalDealValue") double minDigitalDealValue,
+			@Param("maxDigitalDealValue") double maxDigitalDealValue,
+			@Param("dealCurrency") String dealCurrency,
+			@Param("digitalFlag") String digitalFlag,
+			@Param("displayIou") List<String> displayIou,
+			@Param("country") List<String> country,
+			@Param("partnerId") List<String> partnerId,
+			@Param("competitorName") List<String> competitorName,
+			@Param("searchKeywords") String searchKeywords,
+			@Param("bidRequestType") List<String> bidRequestType,
+			@Param("offering") List<String> offering,
+			@Param("displaySubSp") List<String> displaySubSp,
+			@Param("opportunityName") String opportunityName,
+			@Param("userId") List<String> userId,
+			@Param("isPrimaryOwner") boolean isPrimaryOwner,
+			@Param("isSalesSupportOwner") boolean isSalesSupportOwner,
+			@Param("isBidOfficeOwner") boolean isBidOfficeOwner,
+			@Param("fromDate") Date fromDate,
+			@Param("toDate") Date toDate
+			);
+	
 	
 	@Query(value = "select * from opportunity_t OPP " 
 			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id "
@@ -1185,5 +1236,12 @@ public interface OpportunityRepository extends
 	@Query(value ="select opportunity_name from opportunity_t OPP "
 			+ "join connect_opportunity_link_id_t COPLT on OPP.opportunity_id=COPLT.opportunity_id where connect_id=?1", nativeQuery=true)
 	List<String> findLinkOpportunityByConnectId(String connectId);
+	
+	
+	@Modifying
+	@Query(value = "update opportunity_t set sales_stage_code=(select sales_stage_code from opportunity_timeline_history_t "
+			+ "where opportunity_id=(:opportunityId) and sales_stage_code<>12 order by updated_datetime desc limit 1) "
+			+ "where opportunity_id=(:opportunityId) ",nativeQuery=true)
+	int reopenOpportunity(@Param("opportunityId") String opportunityId);
 	
 }

@@ -194,6 +194,7 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController End of /opportunity/recent GET");
 		return response;
 	}
+	
 
 	/**
 	 * This method is used to get the opportunity details by Task Owner
@@ -253,10 +254,8 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService
-					.createOpportunity(opportunity, false, null, null);
-
-			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			opportunityService.createOpportunity(opportunity, false, null, null);
+            status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 			logger.info("Inside OpportunityController: End of create opportunity");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -628,6 +627,7 @@ public class OpportunityController {
 			@RequestParam(value = "salesStageCode", defaultValue = "") List<Integer> salesStageCode,
 			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
 			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") double minDigitalDealValue,
+			@RequestParam(value = "isCurrentFinancialYear", defaultValue = "false") Boolean isCurrentFinancialYear,
 			@RequestParam(value = "maxDigitalDealValue", defaultValue = ""
 					+ Double.MAX_VALUE) double maxDigitalDealValue,
 			@RequestParam(value = "dealCurrency", defaultValue = "USD") String dealCurrency,
@@ -648,7 +648,7 @@ public class OpportunityController {
 					dealCurrency, digitalFlag, displayIou, country, partnerId,
 					competitorName, searchKeywords, bidRequestType, offering,
 					displaySubSp, opportunityName, userId, currency, page,
-					count, role);
+					count, role,isCurrentFinancialYear);
 
 			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, opportunityResponse);

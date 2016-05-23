@@ -193,6 +193,13 @@ StepExecutionListener {
 					if(ct.getContactEmailId()!=null) {
 						cellPartnerContactLinkedIn.setCellValue(ct.getContactEmailId());
 					}
+					
+					Cell active = row.createCell(7);//TODO inactive indicator - added a separate column for active flag - done
+					active.setCellValue(ct.isActive());
+					
+					Cell partnerId=row.createCell(8);
+					partnerId.setCellValue(ct.getContactId());
+
 					// Increment row counter for partner contact sheet
 					rowCountPartnerSheet++;
 				}

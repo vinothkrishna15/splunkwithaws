@@ -278,10 +278,10 @@ public class OpportunityDownloadHelper {
 			}
 
 			// COMMENTS FOR WIN LOSS
-			if (opportunity.getDescriptionForWinLoss() != null) {
+			if (opportunity.getDealClosureComments() != null) {
 				Cell cellCommentsWinLoss = row.createCell(40);
 				cellCommentsWinLoss.setCellValue(opportunity
-						.getDescriptionForWinLoss());
+						.getDealClosureComments());
 			}
 
 			// CUSTOMER NAME

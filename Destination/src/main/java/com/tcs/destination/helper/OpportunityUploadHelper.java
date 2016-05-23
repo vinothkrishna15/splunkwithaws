@@ -552,7 +552,7 @@ public class OpportunityUploadHelper {
 						+ OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE
 						+ " characters");
 			} else {
-				opportunity.setDescriptionForWinLoss(commentsForWinLoss);
+				opportunity.setDealClosureComments(commentsForWinLoss);
 			}
 		}
 
