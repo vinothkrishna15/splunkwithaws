@@ -64,15 +64,10 @@ public class CustomerMasterT implements Serializable {
 	private String website;
 	private String iou;
 	private String geography;
-	private boolean active;
+	
+	@Column(name = "active")
+	private boolean active = true;
 
-	public boolean isActive() {
-		return active;
-	}
-
-	public void setActive(boolean active) {
-		this.active = active;
-	}
 
 	// bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy = "customerMasterT")
@@ -450,4 +445,12 @@ public class CustomerMasterT implements Serializable {
 		this.notes = notes;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
 }

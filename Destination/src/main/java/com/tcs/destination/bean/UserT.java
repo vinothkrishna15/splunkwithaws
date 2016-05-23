@@ -72,7 +72,7 @@ public class UserT implements Serializable {
 	private String userRole;
 
 	@Column(name = "active")
-	private boolean active;
+	private boolean active = true;
 	
 	@Transient
 	private Timestamp lastLogin;

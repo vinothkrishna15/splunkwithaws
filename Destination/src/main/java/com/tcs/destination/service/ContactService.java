@@ -656,6 +656,7 @@ public class ContactService {
 
 	/**
 	 * method to validate the contact request to avoid duplicates
+	 * 
 	 * @param contact
 	 */
 	public boolean validateContactRequest(ContactT contact) {
@@ -672,6 +673,28 @@ public class ContactService {
 		 return validateEmail(contact);
 	}
 
+	/**
+	 * method to validate the contact request to avoid duplicates contacts
+	 * 
+	 * @param contact
+	 */
+	public boolean validateCreateContactRequest(ContactT contact) {
+		List<ContactT> contactList = new ArrayList<ContactT>(); 
+		if(contact.getContactType().equals("EXTERNAL")){
+			for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
+				String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
+				contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			}
+		} else {
+			contactList = contactRepository.findDuplicateInternalContacts(contact.getEmployeeNumber(), contact.getContactType(), contact.getContactName());
+		}
+		if(contactList.size()>0){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"This Contact details already exists !!!");
+		}
+		 return validateEmail(contact);
+	}
+	
 	/**
 	 * Method to validate the internal and external email address
 	 * @param contact

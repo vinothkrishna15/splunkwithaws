@@ -201,7 +201,7 @@ public class ContactController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (contactService.validateContactRequest(contact)){
+			if (contactService.validateCreateContactRequest(contact)){
 				contactService.save(contact, false);
 				status.setStatus(Status.SUCCESS, contact.getContactId());
 				logger.debug("Contact Created Successfully"

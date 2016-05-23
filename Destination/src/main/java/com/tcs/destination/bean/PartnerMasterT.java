@@ -55,7 +55,7 @@ public class PartnerMasterT implements Serializable {
 	private String facebook;
 	
 	@Column(name = "active")
-	private boolean active;
+	private boolean active = true;
 
 	private byte[] logo;
 
