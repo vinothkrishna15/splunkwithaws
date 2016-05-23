@@ -680,9 +680,9 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
 	List<Object[]> searchBySubsp(@Param("term") String term, @Param("limit") int limit);
 
-	List<ConnectT> findByCustomerId(String id);
+	Page<ConnectT> findByCustomerId(String id, Pageable pageable);
 
-	List<ConnectT> findByPartnerId(String id);
+	Page<ConnectT> findByPartnerId(String id, Pageable pageable);
 	
 	@Query(value = "SELECT * FROM connect_t  "
 			+ "WHERE connect_id IN (SELECT connect_id FROM connect_sub_sp_link_t WHERE sub_sp=:subsp)", nativeQuery = true)

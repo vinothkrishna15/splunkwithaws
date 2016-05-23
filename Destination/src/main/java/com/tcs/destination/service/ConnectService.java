@@ -1826,7 +1826,6 @@ public class ConnectService {
 	 * @return
 	 */
 	public boolean isOwnersAreBDMorBDMSupervisorOrGeoHead(Set<String> owners) {
-		// TODO Auto-generated method stub
 		logger.info("Inside isOwnersAreBDMorBDMSupervisorOrGeoHead method");
 		boolean isBDMOrBDMSupervisorOrGeoHead = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
@@ -1942,47 +1941,6 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
 		}
 		
-		/*String connectId,
-		String connectCategory,
-		String connectName,
-		Timestamp createdDatetime,
-		Timestamp modifiedDatetime,
-		
-		String documentsAttached,
-		Timestamp endDatetimeOfConnect,
-		Timestamp startDatetimeOfConnect,
-		
-		String timeZone,
-		String location,
-		CityMapping cityMapping,
-		String type,
-		ConnectTypeMappingT connectTypeMappingT,
-		TimeZoneMappingT timeZoneMappingT,
-		List<SearchKeywordsT> searchKeywordsTs,
-		List<CollaborationCommentT> collaborationCommentTs,
-		List<CommentsT> commentsTs,
-		
-		CustomerMasterT customerMasterT,
-		GeographyCountryMappingT geographyCountryMappingT,
-		PartnerMasterT partnerMasterT,
-		UserT primaryOwnerUser,
-		List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs,
-		List<DocumentRepositoryT> documentRepositoryTs,
-		List<NotesT> notesTs,
-		List<TaskT> taskTs,
-		List<UserFavoritesT> userFavoritesTs,
-		List<UserNotificationsT> userNotificationsTs,
-		List<UserTaggedFollowedT> userTaggedFollowedTs,
-		List<ConnectSubSpLinkT> connectSubLinkDeletionList,
-		List<ConnectOfferingLinkT> connectOfferingLinkDeletionList,
-		List<DocumentRepositoryT> documentsDeletionList,
-		List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs,
-		List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs,
-		List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs,
-		List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs,
-		List<SearchKeywordsT> deleteSearchKeywordsTs,
-		boolean enableEditAccess*/
-		
 	}
 	
 	/**
@@ -2031,28 +1989,39 @@ public class ConnectService {
 		return res;
 	}
 	
-	public List<ConnectT> smartSearchSelect(SmartSearchType smartSearchType,
-			String id) {
+	public PaginatedResponse<ConnectT> smartSearchSelect(SmartSearchType smartSearchType,
+			String id, int page, int count) {
 		logger.info("ConnectService::smartSearchSelect, type {}",smartSearchType);
-		List<ConnectT> resList = Lists.newArrayList();
+		Page<ConnectT> resPage ;
+		
+		Pageable pageable = new PageRequest(page, count);
+		PaginatedResponse<ConnectT> paginatedResponse = new PaginatedResponse<ConnectT>();
+		
 		if(smartSearchType != null && StringUtils.isNotBlank(id)) {
 			
 			switch(smartSearchType) {
 			case CUSTOMER:
-				resList = connectRepository.findByCustomerId(id);
+				resPage = connectRepository.findByCustomerId(id, pageable);
+				paginatedResponse.setTotalCount(resPage.getTotalElements());
+				paginatedResponse.setContentList(resPage.getContent());
 				break;
 			case PARTNER:
-				resList = connectRepository.findByPartnerId(id);
+				resPage = connectRepository.findByPartnerId(id, pageable);
+				paginatedResponse.setTotalCount(resPage.getTotalElements());
+				paginatedResponse.setContentList(resPage.getContent());
 				break;
 			case SUBSP:
-				resList = connectRepository.findBySubsp(id);
+				List<ConnectT> resList = connectRepository.findBySubsp(id);
+				paginatedResponse = PaginationUtils.paginateList(page, count, resList);
 				break;
 			default:
 				break;
 
 			}
+			
 		}
-		return resList;
+		prepareConnect(paginatedResponse.getContentList());
+		return paginatedResponse;
 	}
 
 	private SearchResultDTO getConnectSubSps(String term, int limit) {

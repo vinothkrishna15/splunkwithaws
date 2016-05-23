@@ -20,11 +20,11 @@ public class DashBoardConnectsResponse implements Serializable{
 
 	private int monthCount;
 	
-	private PaginatedResponse paginatedConnectResponse;
+	private PaginatedResponse<ConnectT> paginatedConnectResponse;
 	
 	
 	
-	public PaginatedResponse getPaginatedConnectResponse() {
+	public PaginatedResponse<ConnectT> getPaginatedConnectResponse() {
 		return paginatedConnectResponse;
 	}
 

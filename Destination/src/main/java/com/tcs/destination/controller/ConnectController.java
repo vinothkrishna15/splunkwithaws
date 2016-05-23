@@ -560,12 +560,14 @@ public class ConnectController {
 	public @ResponseBody String smartSearchSelect(
 			@RequestParam("type") String type,
 			@RequestParam("id") String id,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
 		logger.info("Inside ConnectController: smart search by search term");
 		try {
-			List<ConnectT> connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id);
+			PaginatedResponse<ConnectT> connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id, page, count);
 			logger.info("Inside ConnectController: End of retrieving Connects by list of connect id's");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, connectList);
