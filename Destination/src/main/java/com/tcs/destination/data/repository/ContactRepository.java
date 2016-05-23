@@ -1,5 +1,6 @@
 package com.tcs.destination.data.repository;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -105,6 +106,35 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 */
 	@Query(value = "select * from contact_t where contact_id in (select contact_id from contact_customer_link_t where customer_id = ?1) and contact_type = ?2 and contact_category = ?3 and contact_name = ?4 and contact_role = ?5",nativeQuery = true)
 	List<ContactT> findDuplicateContacts(String customerId, String contactType, String contactCategory, String conatctName, String contactRole);
+	
+	
+	/**
+	 * This method to find the duplicate contacts for a customer
+	 * @param customerId
+	 * @param contactType
+	 * @param contactCategory
+	 * @param conatctName
+	 * @param contactRole
+	 * @return
+	 */
+	@Query(value = "select count(1) from contact_t c, contact_customer_link_t cc where c.contact_id = cc.contact_id and c.contact_name = ?1 "
+			+ " and c.contact_category = ?2 and c.contact_type = ?3 and cc.customer_id = ?4 and cc.contact_id != ?5",nativeQuery = true)
+	BigInteger findDuplicateExternalContacts(String conatctName, String contactCategory, String contactType, String customerId, String contactId);
+	
+	
+	/**
+	 * This method to find the duplicate contacts for a customer
+	 * @param customerId
+	 * @param contactType
+	 * @param contactCategory
+	 * @param conatctName
+	 * @param contactRole
+	 * @return
+	 */
+	@Query(value = "select count(1) from contact_t c, contact_customer_link_t cc where c.contact_id = cc.contact_id and c.employee_number = ?1 "
+			+ " and c.contact_category = ?2 and c.contact_type = ?3 and cc.contact_id != ?4",nativeQuery = true)
+	BigInteger findDuplicateInternalContact(String empId, String contactCategory, String contactType, String contactId);
+	
 	
 	
 	/**
