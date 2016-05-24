@@ -1989,13 +1989,21 @@ public class ConnectService {
 		return res;
 	}
 	
-	public PaginatedResponse<ConnectT> smartSearchSelect(SmartSearchType smartSearchType,
+	/**
+	 * Fetch all connects based on the search type(customer, partner, subsp) and by the given id.
+	 * @param smartSearchType
+	 * @param id
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PaginatedResponse smartSearchSelect(SmartSearchType smartSearchType,
 			String id, int page, int count) {
 		logger.info("ConnectService::smartSearchSelect, type {}",smartSearchType);
 		Page<ConnectT> resPage ;
 		
 		Pageable pageable = new PageRequest(page, count);
-		PaginatedResponse<ConnectT> paginatedResponse = new PaginatedResponse<ConnectT>();
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		
 		if(smartSearchType != null && StringUtils.isNotBlank(id)) {
 			
@@ -2003,27 +2011,33 @@ public class ConnectService {
 			case CUSTOMER:
 				resPage = connectRepository.findByCustomerId(id, pageable);
 				paginatedResponse.setTotalCount(resPage.getTotalElements());
-				paginatedResponse.setContentList(resPage.getContent());
+				paginatedResponse.setConnectTs(resPage.getContent());
 				break;
 			case PARTNER:
 				resPage = connectRepository.findByPartnerId(id, pageable);
 				paginatedResponse.setTotalCount(resPage.getTotalElements());
-				paginatedResponse.setContentList(resPage.getContent());
+				paginatedResponse.setConnectTs(resPage.getContent());
 				break;
 			case SUBSP:
 				List<ConnectT> resList = connectRepository.findBySubsp(id);
-				paginatedResponse = PaginationUtils.paginateList(page, count, resList);
+				paginatedResponse.setTotalCount(resList.size());
+				paginatedResponse.setConnectTs(PaginationUtils.paginateList(page, count, resList));
 				break;
 			default:
 				break;
-
 			}
 			
 		}
-		prepareConnect(paginatedResponse.getContentList());
+		prepareConnect(paginatedResponse.getConnectTs());
 		return paginatedResponse;
 	}
 
+	/**
+	 * fetch all connects where the subsp contains the provided term
+	 * @param term - search keyword
+	 * @param limit - number to limit the record, 0 - to fetch all
+	 * @return
+	 */
 	private SearchResultDTO getConnectSubSps(String term, int limit) {
 		SearchResultDTO conRes = new SearchResultDTO();
 		conRes.setType(SmartSearchType.SUBSP);
@@ -2032,6 +2046,12 @@ public class ConnectService {
 		return conRes;
 	}
 
+	/**
+	 * fetch all connects where the partner name contains the provided term
+	 * @param term - search keyword
+	 * @param limit - number to limit the record, 0 - to fetch all
+	 * @return
+	 */
 	private SearchResultDTO getConnectPartners(String term, int limit) {
 		SearchResultDTO conRes = new SearchResultDTO();
 		conRes.setType(SmartSearchType.PARTNER);
@@ -2040,6 +2060,12 @@ public class ConnectService {
 		return conRes;
 	}
 
+	/**
+	 * fetch all connects where the customer contains the provided term
+	 * @param term - search keyword
+	 * @param limit - number to limit the record, 0 - to fetch all
+	 * @return
+	 */
 	private SearchResultDTO getConnectCustomers(String term, int limit) {
 		SearchResultDTO conRes = new SearchResultDTO();
 		conRes.setType(SmartSearchType.CUSTOMER);
@@ -2048,6 +2074,12 @@ public class ConnectService {
 		return conRes;
 	}
 
+	/**
+	 * fetch all connects where the connect name contains the provided term
+	 * @param term - search keyword
+	 * @param limit - number to limit the record, 0 - to fetch all
+	 * @return
+	 */
 	private SearchResultDTO getConnectsByName(String term, int limit) {
 		SearchResultDTO conRes = new SearchResultDTO();
 		conRes.setType(SmartSearchType.CONNECT);

@@ -541,7 +541,7 @@ public class ConnectController {
 			logger.info("Inside ConnectController: End - smart search by search term");
 			return res;
 		} catch (Exception e) {
-			logger.error("########", e);
+			logger.error("Error on smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving connects list");
 		}
@@ -549,6 +549,7 @@ public class ConnectController {
 	}
 	
 	/**
+	 * 
 	 * @param type
 	 * @param id
 	 * @param fields
@@ -565,14 +566,13 @@ public class ConnectController {
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
+		//TODO requirement not yet freeze. method may not required 
 		logger.info("Inside ConnectController: smart search by search term");
 		try {
-			PaginatedResponse<ConnectT> connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id, page, count);
+			PaginatedResponse connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id, page, count);
 			logger.info("Inside ConnectController: End of retrieving Connects by list of connect id's");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, connectList);
-		} catch (DestinationException e) {
-			throw e;
 		} catch (Exception e) {
 			logger.error("Error on smart search select - ", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

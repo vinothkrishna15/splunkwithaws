@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
 
 @JsonFilter(Constants.FILTER)
-public class PaginatedResponse<T> implements Serializable {
+public class PaginatedResponse implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private List<OpportunityT> opportunityTs;
@@ -28,18 +28,8 @@ public class PaginatedResponse<T> implements Serializable {
 	
 	private List<ContactRoleMappingT> contactRoleMappingTs;
 	
-	private List<T> contentList;
-
 	private long totalCount;
 	
-	public List<T> getContentList() {
-		return contentList;
-	}
-
-	public void setContentList(List<T> contentList) {
-		this.contentList = contentList;
-	}
-
 	public List<OpportunityT> getOpportunityTs() {
 		return opportunityTs;
 	}

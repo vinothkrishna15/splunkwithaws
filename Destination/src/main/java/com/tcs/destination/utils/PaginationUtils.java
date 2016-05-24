@@ -6,8 +6,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.tcs.destination.bean.PaginatedResponse;
-
 /**
  * This class performs Pagination
  * 
@@ -65,22 +63,17 @@ public class PaginationUtils {
 	 * @param list 
 	 * @return
 	 */
-	public static <T> PaginatedResponse<T> paginateList(int page, int count,
+	public static <T> List<T> paginateList(int page, int count,
 			List<T> list) {
-		PaginatedResponse<T> paginatedResponse = new PaginatedResponse<T>();
-		
+		List<T> trimlist = null;
 		if (CollectionUtils.isNotEmpty(list) && PaginationUtils.isValidPagination(page, count, list.size())) {
 			int size = list.size();
-			paginatedResponse.setTotalCount(size);
 			int fromIndex = PaginationUtils.getStartIndex(page, count, size);
 			int toIndex = PaginationUtils.getEndIndex(page, count, size) + 1;
-			List<T> trimlist = list.subList(fromIndex, toIndex);
+			 trimlist = list.subList(fromIndex, toIndex);
 			logger.debug("PaginationUtils after pagination size is {}", size);
-			paginatedResponse.setContentList(trimlist);
-		} else {
-			list = null;
 		}
-		return paginatedResponse;
+		return trimlist;
 	}
 
 }

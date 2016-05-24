@@ -1,9 +1,6 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;
@@ -20,11 +17,11 @@ public class DashBoardConnectsResponse implements Serializable{
 
 	private int monthCount;
 	
-	private PaginatedResponse<ConnectT> paginatedConnectResponse;
+	private PaginatedResponse paginatedConnectResponse;
 	
 	
 	
-	public PaginatedResponse<ConnectT> getPaginatedConnectResponse() {
+	public PaginatedResponse getPaginatedConnectResponse() {
 		return paginatedConnectResponse;
 	}
 
