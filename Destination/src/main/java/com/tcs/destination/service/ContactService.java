@@ -144,19 +144,28 @@ public class ContactService {
 		return contact;
 	}
 
-	// update contact object to include connects by date wise and opportunities by sales stage 
+	/**
+	 * This method is used to update contact object to include connects by date wise and opportunities by sales stage
+	 * @param contact
+	 */
 	private void updateContactTFor360(ContactT contact) {
 		handleConnects(contact);
 		handleOpportunities(contact);
 	}
 
-	//handling opportunities for 360
+	/**
+	 * This method is used for handling opportunities for 360
+	 * @param contact
+	 */
 	private void handleOpportunities(ContactT contact) {
 		handleCustomerContactForOpportunities(contact);
 		handleTcsAccountContactForOpportunities(contact);
 	}
 
-	//handling tcs account opportunities for 360
+	/**
+	 * This method is used for handling tcs account opportunities for 360
+	 * @param contact
+	 */
 	private void handleTcsAccountContactForOpportunities(ContactT contact) {
 		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs
 			= contact.getOpportunityTcsAccountContactLinkTs();
@@ -205,7 +214,10 @@ public class ContactService {
 		contact.setTcsAccountContactOpportunitiesDTO(opportunitiesTcsAccountContactSplitDTO);
 	}
 
-	//handling customer opportunities for 360
+	/**
+	 * This method is used for handling customer opportunities for 360
+	 * @param contact
+	 */
 	private void handleCustomerContactForOpportunities(ContactT contact) {
 		List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs
 			= contact.getOpportunityCustomerContactLinkTs();
@@ -254,13 +266,20 @@ public class ContactService {
 		contact.setCustomerContactOpportunitiesDTO(opportunitiesCustomerContactSplitDTO);
 	}
 
-	//handling connects for 360
+	
+	/**
+	 * This method is used for handling connects for 360
+	 * @param contact
+	 */
 	private void handleConnects(ContactT contact) {
 		handleCustomerContactConnects(contact);
 		handleTcsAccountContactConnects(contact);
 	}
 
-	//handling tcs account connects for 360
+	/**
+	 * This method is used for handling tcs account connects for 360
+	 * @param contact
+	 */
 	private void handleTcsAccountContactConnects(ContactT contact) {
 		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs 
 		= contact.getConnectTcsAccountContactLinkTs();
@@ -281,7 +300,10 @@ public class ContactService {
 		contact.setTcsAccountContactConnectsDTO(connectSplitDTO);
 	}
 
-	//handling customer connects for 360
+	/**
+	 * This method is used for handling customer connects for 360
+	 * @param contact
+	 */
 	private void handleCustomerContactConnects(ContactT contact) {
 		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs 
 		= contact.getConnectCustomerContactLinkTs();
@@ -403,6 +425,12 @@ public class ContactService {
 		return paginatedResponse;
 	}
 
+	/**
+	 * This method is used to save contact
+	 * @param contact
+	 * @param isUpdate
+	 * @return savedStatus
+	 */
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -496,6 +524,12 @@ public class ContactService {
 		}
 	}
 
+	/**
+	 * This method is used to save contact - base object
+	 * 
+	 * @param contact
+	 * @return contact
+	 */
 	private ContactT saveBaseContact(ContactT requestContact)
 			throws CloneNotSupportedException, Exception {
 		ContactT contact = requestContact.clone();
@@ -505,6 +539,12 @@ public class ContactService {
 		return contact;
 	}
 
+	/**
+	 * This method is used to save contact - child objects
+	 * 
+	 * @param contact
+	 * @return contact
+	 */
 	private ContactT saveChildContactObjects(ContactT contact) {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		// Set Contact Customer Links
@@ -518,6 +558,13 @@ public class ContactService {
 		return contactRepository.save(contact);
 	}
 
+	/**
+	 * This method is used to retrieve all contact roles
+	 * 
+	 * @param page
+	 * @param count
+	 * @return PaginatedResponse 
+	 */
 	public PaginatedResponse findContactRoles(int page,
 			int count)
 			throws DestinationException {
@@ -545,6 +592,10 @@ public class ContactService {
 		return contactResponse;
 	}
 
+	/**
+	 * This method is used to remove all cyclic references in the contacts while retrieval
+	 * @param ListOfContacts
+	 */
 	public void removeCyclicForLinkedContactTs(List<ContactT> contactTs) {
 		if (contactTs != null) {
 			for (ContactT contactT : contactTs) {
@@ -553,6 +604,10 @@ public class ContactService {
 		}
 	}
 
+	/**
+	 * This method is used to remove all cyclic references in the given contact
+	 * @param contactT
+	 */
 	public void removeCyclicForLinkedContactTs(ContactT contactT) {
 		if (contactT != null) {
 			if (contactT.getContactCustomerLinkTs() != null) {
@@ -565,6 +620,10 @@ public class ContactService {
 		}
 	}
 
+	/**
+	 * This method is used to prevent sensitive info in the contacts while retrieval
+	 * @param ListOfContacts
+	 */
 	public void preventSensitiveInfo(List<ContactT> contactTs) {
 		for (ContactT contactT : contactTs) {
 			if (contactT != null) {
@@ -573,6 +632,10 @@ public class ContactService {
 		}
 	}
 
+	/**
+	 * This method is used to prevent sensitive info in the contact while retrieval
+	 * @param contact
+	 */
 	public void preventSensitiveInfo(ContactT contactT) {
 		if (contactT != null) {
 			if (contactT.getContactType().equals(ContactType.EXTERNAL.name())
@@ -583,7 +646,11 @@ public class ContactService {
 			}
 		}
 	}
-
+	/**
+	 * This method is used to prepare contact object - prevent sensitive info and remove cyclic references
+	 * @param contactList
+	 * @throws Exception
+	 */
 	public void prepareContactDetails(ContactT contact,
 			ArrayList<String> contactIdList) throws DestinationException {
 		logger.debug("Inside prepareContactDetails() method");
@@ -604,7 +671,14 @@ public class ContactService {
 					e.getMessage());
 		}
 	}
-
+	
+	/**
+	 * This method is used to get list of contact with privileges
+	 * @param user
+	 * @param contactList
+	 * @param geographyIouCheckNeeded
+	 * @throws Exception
+	 */
 	private ArrayList<String> getPreviledgedContactIds(String userId,
 			ArrayList<String> contactIdList, boolean considerGeoIou)
 			throws Exception {
@@ -616,6 +690,13 @@ public class ContactService {
 		return (ArrayList<String>) contactQuery.getResultList();
 	}
 
+	/**
+	 * This method is used to get the query for retrieving the list of contact with privileges
+	 * @param user
+	 * @param contactList
+	 * @param geographyIouCheckNeeded
+	 * @throws Exception
+	 */
 	private String getContactPrevilegeQueryString(String userId,
 			ArrayList<String> contactIdList, boolean considerGeoIou)
 			throws Exception {
@@ -666,7 +747,12 @@ public class ContactService {
 		logger.info("queryString = " + queryBuffer.toString());
 		return queryBuffer.toString();
 	}
-
+	
+	/**
+	 * This method is used to prepare contact object - prevent sensitive info and remove cyclic references
+	 * @param contactList
+	 * @throws Exception
+	 */
 	private void prepareContactDetails(List<ContactT> contactList)
 			throws Exception {
 		removeCyclicForLinkedContactTs(contactList);
@@ -770,7 +856,6 @@ public class ContactService {
 	 * @param contactList
 	 */
 	public void saveCustomerContact(List<ContactT> contactList) {
-		// TODO Auto-generated method stub
 		logger.debug("Inside save method");
 
 		Map<Integer, List<ContactCustomerLinkT>> mapContactCustomer = new HashMap<Integer, List<ContactCustomerLinkT>>(
@@ -814,7 +899,6 @@ public class ContactService {
 	 */
 	private void populateContactCustomerLink(String contactId,
 			List<ContactCustomerLinkT> contactCustomerList) {
-		// TODO Auto-generated method stub
 		for (ContactCustomerLinkT contactCustomerLinkT : contactCustomerList) {
 			contactCustomerLinkT.setContactId(contactId);
 		}
@@ -827,7 +911,6 @@ public class ContactService {
 	 * @param contact
 	 */
 	public boolean validateContactRequest(ContactT contact) {
-		// TODO Auto-generated method stub
 		BigInteger contactCount = BigInteger.valueOf(0);
 		
 		if(contact.getContactType().equals("EXTERNAL")){
