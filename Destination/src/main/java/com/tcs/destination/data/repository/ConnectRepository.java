@@ -245,7 +245,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where subsp_primary=true AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) AND ((CON.primary_owner in (:userIds) "
 			+ "  OR CSOL.secondary_owner in (:userIds)) OR ('') in (:userIds)) group by SSM.display_sub_sp ", nativeQuery = true)
 	List<Object[]> findBySubSpCustomerConnectSummaryDetails(
@@ -276,7 +276,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where subsp_primary=true AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp ", nativeQuery = true)
 	List<Object[]> findSubSpCustomerConnectsSummaryDetails(
 			@Param("startDate") Timestamp startDate,
@@ -304,7 +304,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where subsp_primary=true AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
 			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
 			+ " group by SSM.display_sub_sp  ", nativeQuery = true)
@@ -332,7 +332,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where subsp_primary=true AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp  ", nativeQuery = true)
 	List<Object[]> findSubSpPartnerConnectsSummaryDetails(
 			@Param("startDate") Timestamp startDate,

@@ -60,6 +60,9 @@ public class OpportunitySubSpLinkT implements Serializable {
 
 	@Column(name = "sub_sp")
 	private String subSp;
+	
+	@Column(name="subsp_primary")
+	private Boolean subspPrimary;
 
 	// bi-directional many-to-one association to OpportunityT
 	@ManyToOne
@@ -175,4 +178,13 @@ public class OpportunitySubSpLinkT implements Serializable {
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
 	}
+
+	public Boolean getSubspPrimary() {
+		return subspPrimary;
+	}
+
+	public void setSubspPrimary(Boolean subspPrimary) {
+		this.subspPrimary = subspPrimary;
+	}
+	
 }
