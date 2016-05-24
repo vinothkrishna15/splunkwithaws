@@ -778,6 +778,7 @@ public class UserService {
 	 */
 	public boolean insertUserDetails(UserT user) throws Exception {
 		logger.info("Begin:inside insertUserDetails() method");
+		checkIfUserAlreadyExist(user);
 		user.setTempPassword(getTempPassword());
 		// validate user
 		validateUser(user, true);
@@ -791,6 +792,20 @@ public class UserService {
 		} else {
 			logger.info("End:inside insertUserDetails() of UserService: user not Saved");
 			return false;
+		}
+	}
+
+	/**
+	 * This method is used to verify whether userId is already present in database
+	 * 
+	 * @param user
+	 */
+	private void checkIfUserAlreadyExist(UserT user) {
+		logger.info("Begin:inside checkIfAlreadyExist() method");
+		UserT usert = userRepository.findByUserId(user.getUserId());
+		if(usert!=null){
+			logger.info("BAD_REQUEST, UserId Already Exist");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "UserId Already Exist");
 		}
 	}
 

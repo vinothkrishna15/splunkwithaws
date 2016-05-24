@@ -37,12 +37,13 @@ import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
-import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.IouRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -855,19 +856,29 @@ public class CustomerService {
 					switch(UserGroup.valueOf(UserGroup.getName(userGroup)))
 					{
 					case BDM:
-
-						List<UserAccessPrivilegesT> userAccessPrivilegeList=userAccessPrivilegesRepository.getPrivilegeTypeAndValueByUserId(userId);
-						for(UserAccessPrivilegesT userAccessPrivilegesT:userAccessPrivilegeList)
+						List<String> privilegeValueList = null; 
+						List<UserAccessPrivilegesT> userAccessPrevilegeList = userAccessPrivilegesRepository.findByUserIdAndIsactive(userId, "Y");
+						for(UserAccessPrivilegesT userPrivege:userAccessPrevilegeList)
 						{
-							String privilegeType=userAccessPrivilegesT.getPrivilegeType();
-							String privilegeValue=userAccessPrivilegesT.getPrivilegeValue();
-							if((privilegeType.equalsIgnoreCase("CUSTOMER"))&&(privilegeValue.equals(customerMaster.getCustomerName())))
-							{
+							switch (PrivilegeType.valueOf(userPrivege.getPrivilegeType())){
+							case CUSTOMER: 
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.CUSTOMER.toString());
+								privilegeValueList.contains(customerMaster.getCustomerName());
 								isBdmWithAccess=true;
-
+								break;
+							case GEOGRAPHY:
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.GEOGRAPHY.toString());
+								privilegeValueList.contains(customerMaster.getGeography());
+								isBdmWithAccess=true;
+								break;
+							case IOU:
+								privilegeValueList=userAccessPrivilegesRepository.getPrivilegeValueForUser(userId,PrivilegeType.IOU.toString());
+								privilegeValueList.contains(customerMaster.getIou());
+								isBdmWithAccess=true;
+								break;
 							}
-
 						}
+
 						if(isBdmWithAccess)
 						{
 							customerEdited = validateCustomerDetails(customerMaster);  
@@ -929,10 +940,10 @@ public class CustomerService {
 					}
 					beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(bcmtNew.getBeaconCustomerName(),bcmtNew.getCustomerGeography(),bcmtNew.getBeaconIou());
 					if(!beaconCustomers.isEmpty() && isBeaconCustomerModifiedFlag == true){
-						logger.error("This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
+						logger.error("This Beacon details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
 						throw new DestinationException(
 								HttpStatus.BAD_REQUEST,
-								"This Revenue details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
+								"This Beacon details already exists.."+bcmtNew.getBeaconCustomerName() +" " +bcmtNew.getCustomerGeography() + " " + bcmtNew.getBeaconIou());
 					}
 					if(isBeaconCustomerModifiedFlag == true){
 						beaconRepository.save(bcmtOld);
@@ -1018,6 +1029,7 @@ public class CustomerService {
 		boolean isCustomerModifiedFlag = false;
 		String corporateHqAdress = "";
 		String website = "";
+		String notes = "";
 		String facebook = "";
 		byte[] logo=null;
 		//customer name
@@ -1045,8 +1057,8 @@ public class CustomerService {
 		}
 
 		//logo
-		if(oldCustomerObj.getLogo()!=null)
-		{
+		if ((oldCustomerObj.getLogo() == null && customerMaster.getLogo() != null)
+				|| (!oldCustomerObj.getLogo().equals(customerMaster.getLogo()))) {
 			logo = oldCustomerObj.getLogo();
 			if (!customerMaster.getLogo().equals(logo)) {
 				oldCustomerObj.setLogo(customerMaster.getLogo());
@@ -1054,7 +1066,14 @@ public class CustomerService {
 			}
 		}
 
-
+		//notes edited
+		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){
+			notes = oldCustomerObj.getNotes();
+		}
+		if (!customerMaster.getNotes().equals(notes)) {
+			oldCustomerObj.setNotes(customerMaster.getNotes());
+			isCustomerModifiedFlag = true;
+		}
 		//facebook
 		if(!StringUtils.isEmpty(oldCustomerObj.getFacebook())){
 			facebook = oldCustomerObj.getFacebook();
@@ -1168,13 +1187,18 @@ public class CustomerService {
 
 		// Check if the customer name already exists
 		if (!StringUtils.isEmpty((customerMaster.getCustomerName()))) {
-			duplicateCustomer = customerRepository.findByCustomerName(customerMaster.getCustomerName());
-			if(duplicateCustomer == null){
-				customerCopy.setCustomerName(customerMaster.getCustomerName());
-			}
-			else{
-				logger.error("BAD_REQUEST: This Customer name already exists: {}",customerMaster.getCustomerName());
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "This Customer name already exists: " + customerMaster.getCustomerId());
+			CustomerMasterT oldObject = new CustomerMasterT();
+			oldObject = customerRepository.findOne(customerMaster.getCustomerId());
+			if (!customerMaster.getCustomerName().equals(
+					oldObject.getCustomerName())) {
+				duplicateCustomer = customerRepository.findByCustomerName(customerMaster.getCustomerName());
+				if(duplicateCustomer == null){
+					customerCopy.setCustomerName(customerMaster.getCustomerName());
+				}
+				else{
+					logger.error("BAD_REQUEST: This Customer name already exists: {}",customerMaster.getCustomerName());
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "This Customer name already exists: " + customerMaster.getCustomerName());
+				}
 			}
 		}
 		else{
@@ -1223,6 +1247,16 @@ public class CustomerService {
 		{
 			customerCopy.setLogo(null);
 		}*/
+
+		if(customerMaster.getNotes()!=null)
+		{
+			customerCopy.setNotes(customerMaster.getNotes());
+		}
+		else
+		{
+			customerCopy.setNotes("");
+		}
+
 		if(customerMaster.getCorporateHqAddress()!=null)
 		{
 			customerCopy.setCorporateHqAddress(customerMaster.getCorporateHqAddress());

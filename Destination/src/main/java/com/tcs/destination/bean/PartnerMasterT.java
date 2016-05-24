@@ -63,6 +63,8 @@ public class PartnerMasterT implements Serializable {
 	private String partnerName;
 
 	private String website;
+	
+	private String notes;
 
 	// bi-directional many-to-one association to CommentsT
 	@OneToMany(mappedBy = "partnerMasterT")
@@ -369,6 +371,14 @@ public class PartnerMasterT implements Serializable {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 }

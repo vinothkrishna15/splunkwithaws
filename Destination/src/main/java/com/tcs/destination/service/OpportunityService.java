@@ -52,6 +52,7 @@ import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -87,11 +88,14 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
+import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
+import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
 import com.tcs.destination.helper.AutoCommentsLazyLoader;
@@ -260,7 +264,7 @@ public class OpportunityService {
 	@Autowired
 	PartnerRepository partnerRepository;
 	
-	
+	WorkflowRequestTRepository workflowRequestRepository;
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
 
@@ -496,12 +500,17 @@ public class OpportunityService {
 					.findByEntityTypeAndEntityId(
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
-			
+
 			prepareOpportunity(opportunity, null);
 
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
-
+			//Getting the workflow request in order to check whether if the opportunity is placed for reopen request
+			WorkflowRequestT workflowRequestPending = workflowRequestRepository
+					.findByEntityTypeIdAndEntityIdAndStatus(
+							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
+							WorkflowStatus.PENDING.getStatus());
+			opportunity.setWorkflowRequest(workflowRequestPending);
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);

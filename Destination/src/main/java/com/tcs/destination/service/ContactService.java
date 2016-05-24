@@ -1,8 +1,8 @@
 package com.tcs.destination.service;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -31,13 +31,11 @@ import com.tcs.destination.bean.ConnectsSplitDTO;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.OpportunitiesSplitDTO;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -825,22 +823,51 @@ public class ContactService {
 
 	/**
 	 * method to validate the contact request to avoid duplicates
+	 * 
 	 * @param contact
 	 */
 	public boolean validateContactRequest(ContactT contact) {
 		// TODO Auto-generated method stub
-		List<ContactT> contactList = new ArrayList<ContactT>(); 
+		BigInteger contactCount = BigInteger.valueOf(0);
+		
+		if(contact.getContactType().equals("EXTERNAL")){
 		for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
 			String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
-			contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			contactCount = contactRepository.findDuplicateExternalContacts(contact.getContactName(),contact.getContactCategory(),contact.getContactType(), customerId, contact.getContactId());
 		}
-		if(contactList.size()>0){
+		}else {
+			contactCount = contactRepository.findDuplicateInternalContact(contact.getEmployeeNumber(),contact.getContactCategory(), contact.getContactType(), contact.getContactId());
+			
+		}
+		if(contactCount.intValue()>0){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"This Contact details already exists for this customer !!!");
 		}
 		 return validateEmail(contact);
 	}
 
+	/**
+	 * method to validate the contact request to avoid duplicates contacts
+	 * 
+	 * @param contact
+	 */
+	public boolean validateCreateContactRequest(ContactT contact) {
+		List<ContactT> contactList = new ArrayList<ContactT>(); 
+		if(contact.getContactType().equals("EXTERNAL")){
+			for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
+				String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
+				contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			}
+		} else {
+			contactList = contactRepository.findDuplicateInternalContacts(contact.getEmployeeNumber(), contact.getContactType(), contact.getContactName());
+		}
+		if(contactList.size()>0){
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"This Contact details already exists !!!");
+		}
+		 return validateEmail(contact);
+	}
+	
 	/**
 	 * Method to validate the internal and external email address
 	 * @param contact
@@ -882,6 +909,7 @@ public class ContactService {
 				contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
 			}
 			if (contactList == null || contactList.isEmpty()) {
+				// If No Contacts are found for the given search
 				logger.error("NOT_FOUND: Contact information not available");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No Contacts found");
@@ -891,9 +919,36 @@ public class ContactService {
 			
 			List<ContactT> pageContactList = paginateContacts(page, count, contactList);
 			prepareContactDetails(pageContactList);
+			removeCyclicContactForPartner(pageContactList);
+			
+			if (pageContactList == null || pageContactList.isEmpty()) {
+				// If No Contacts are found for the given search and page
+				logger.error("NOT_FOUND: Contact information not available");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Contacts found");
+			}
 			paginatedResponse.setContactTs(pageContactList);
 			
 			return paginatedResponse;
+		}
+		
+		/**
+		 * Remove Contacts inside Partner Contacts 
+		 * 
+		 * @param contactTs
+		 */
+		private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
+			
+			if(contactTs!=null){
+				for(ContactT contactT : contactTs){
+					if(contactT.getPartnerMasterT()!=null){
+						if(contactT.getPartnerMasterT().getContactTs()!=null){
+							contactT.getPartnerMasterT().setContactTs(null);
+						}
+					}
+				}
+			}
+			
 		}
 		
 		/**

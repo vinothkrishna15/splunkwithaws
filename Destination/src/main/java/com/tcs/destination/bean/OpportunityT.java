@@ -287,6 +287,9 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private boolean enableEditAccess;
 	
+	@Transient
+	private WorkflowRequestT workflowRequest;
+	
 	
 
 	public boolean isEnableEditAccess() {
@@ -1189,5 +1192,15 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setDealClosureComments(String dealClosureComments) {
 		this.dealClosureComments = dealClosureComments;
 	}
+
+	public WorkflowRequestT getWorkflowRequest() {
+		return workflowRequest;
+	}
+
+	public void setWorkflowRequest(WorkflowRequestT workflowRequest) {
+		this.workflowRequest = workflowRequest;
+	}
+	
+	
 
 }

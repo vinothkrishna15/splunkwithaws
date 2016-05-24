@@ -76,7 +76,7 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
-	
+
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 	
@@ -84,8 +84,8 @@ public class PartnerService {
 	private GeographyRepository geoRepository;
 	
 	private Map<String, GeographyMappingT> geographyMapping = null;
-	
-	
+
+
 
 	/**
 	 * This service saves partner details into partner_master_t
@@ -140,7 +140,7 @@ public class PartnerService {
 	 * @throws Exception
 	 */
 	public void deletePartner(List<PartnerMasterT> partnerList) {
-	    logger.debug("Begin:Inside deletePartner method of PartnerService");
+		logger.debug("Begin:Inside deletePartner method of PartnerService");
 		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
 	}
@@ -291,9 +291,9 @@ public class PartnerService {
 						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(i + "",  pageable,true);
 				paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 				partnerList.addAll(partnersPage.getContent());
-				}		
-			}
-		
+			}		
+		}
+
 		if (partnerList.isEmpty()) {
 			logger.error("NOT_FOUND: No Partners found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -316,9 +316,9 @@ public class PartnerService {
 					.getOpportunityPartnerLinkTs();
 			for (OpportunityPartnerLinkT opportunityPartnerLinkT : opportunityPartnerLinkTs) {
 				opportunityPartnerLinkT.getOpportunityT()
-						.setOpportunityPartnerLinkTs(null);
+				.setOpportunityPartnerLinkTs(null);
 				opportunityPartnerLinkT.getOpportunityT().getCustomerMasterT()
-						.setOpportunityTs(null);
+				.setOpportunityTs(null);
 			}
 
 		}
@@ -371,32 +371,32 @@ public class PartnerService {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
-	    String userGroup=user.getUserGroup();
-	    boolean isBdmWithAccess=false;
+		String userGroup=user.getUserGroup();
+		boolean isBdmWithAccess=false;
 		if (UserRole.contains(userRole)) {
 			switch (UserRole.valueOf(UserRole.getName(userRole))) {
 			case SYSTEM_ADMIN:
 			case STRATEGIC_GROUP_ADMIN:
-			     updateStatus=validateAndUpdatePartner(partnerMaster,isBdmWithAccess);
+				updateStatus=validateAndUpdatePartner(partnerMaster,isBdmWithAccess);
 				break;
-				
+
 			case USER:	
-				 if (UserGroup.contains(userGroup))
-				 {
-					 switch(UserGroup.valueOf(UserGroup.getName(userGroup)))
-					 {
-					   case BDM:
-						  
-						   isBdmWithAccess=true;
-						   updateStatus=validateAndUpdatePartner(partnerMaster,isBdmWithAccess);
-						   break;
-					  default:
-						  break;
-				
-						 
-					 }
-				 }
-				 break;
+				if (UserGroup.contains(userGroup))
+				{
+					switch(UserGroup.valueOf(UserGroup.getName(userGroup)))
+					{
+					case BDM:
+
+						isBdmWithAccess=true;
+						updateStatus=validateAndUpdatePartner(partnerMaster,isBdmWithAccess);
+						break;
+					default:
+						break;
+
+
+					}
+				}
+				break;
 			default:
 				logger.error("User is not authorized to access this service");
 				throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -406,11 +406,11 @@ public class PartnerService {
 		}
 		return updateStatus;
 	}
-	
+
 	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess)
 	{
-	 boolean isUpdate=false;
-	 String partnerId = partnerMaster.getPartnerId();
+		boolean isUpdate=false;
+		String partnerId = partnerMaster.getPartnerId();
 		if (partnerId == null) {
 			logger.error("BAD_REQUEST: partner Id is required for update");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -429,7 +429,7 @@ public class PartnerService {
 		// Partner Name
 		String partnerName = partnerMaster.getPartnerName();
 		if (!StringUtils.isEmpty(partnerName)) {
-			
+
 			List<PartnerMasterT> findPartnerName = partnerRepository.findByPartnerName(partnerName);
 			if(findPartnerName!=null && !findPartnerName.isEmpty()){
 				PartnerMasterT partnerExistingByName = findPartnerName.get(0);
@@ -441,8 +441,8 @@ public class PartnerService {
 			} else {
 				if(!isBdmWithAccess)
 				{
-				partner.setPartnerName(partnerName);
-				isUpdate=true;
+					partner.setPartnerName(partnerName);
+					isUpdate=true;
 				}
 				else
 				{
@@ -463,22 +463,22 @@ public class PartnerService {
 					.getGeography())) {
 				if(!(partner.getGeography().equals(partnerMaster.getGeography())))
 				{
-				 if(!isBdmWithAccess)
-				 {
-				 partner.setGeography(geography);
-				 isUpdate=true;
-				 }
-				else
-				{
-					logger.error("NOT_AUTHORISED: user is not authorised to update the geography");
-					throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the geography" );
-				}
+					if(!isBdmWithAccess)
+					{
+						partner.setGeography(geography);
+						isUpdate=true;
+					}
+					else
+					{
+						logger.error("NOT_AUTHORISED: user is not authorised to update the geography");
+						throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the geography" );
+					}
 				}
 			} else {
 				logger.error("Invalid geography");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"Geography :" + partnerMaster.getGeography()
-								+ "is not found");
+						+ "is not found");
 			}
 		} else {
 			logger.error("geography should not be empty");
@@ -491,6 +491,19 @@ public class PartnerService {
 			partner.setWebsite(website);
 			isUpdate=true;
 		}
+
+		// notes
+		String notes = partnerMaster.getNotes();
+		if (!StringUtils.isEmpty(notes)) {
+			partner.setNotes(notes);
+			isUpdate=true;
+		}
+		else
+		{
+			partner.setNotes("");
+		}
+
+
 		// Corporate HQ Address
 		String address = partnerMaster.getCorporateHqAddress();
 		if (!StringUtils.isEmpty(address)) {
@@ -509,15 +522,15 @@ public class PartnerService {
 			partner.setLogo(logo);
 			isUpdate=true;
 		}
-		
+
 		partner.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 
 		if(isUpdate)
 		{
-		partnerRepository.save(partner);
-	    logger.info(partner.getPartnerId() + " Partner details updated");
+			partnerRepository.save(partner);
+			logger.info(partner.getPartnerId() + " Partner details updated");
 		}
-	    return isUpdate;
-	
+		return isUpdate;
+
 	}
 }
