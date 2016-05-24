@@ -18,5 +18,7 @@ public interface CompetitorRepository extends
 	 List<String> getCompetitorName();
 
 	CompetitorMappingT findByActiveTrueAndCompetitorName(String competitorName);
+	
+	List<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String name);
 
 }
