@@ -1,5 +1,6 @@
 package com.tcs.destination.service;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,14 +22,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.CustomerMasterT;
-import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -661,12 +658,18 @@ public class ContactService {
 	 */
 	public boolean validateContactRequest(ContactT contact) {
 		// TODO Auto-generated method stub
-		List<ContactT> contactList = new ArrayList<ContactT>(); 
+		BigInteger contactCount = BigInteger.valueOf(0);
+		
+		if(contact.getContactType().equals("EXTERNAL")){
 		for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
 			String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
-			contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			contactCount = contactRepository.findDuplicateExternalContacts(contact.getContactName(),contact.getContactCategory(),contact.getContactType(), customerId, contact.getContactId());
 		}
-		if(contactList.size()>0){
+		}else {
+			contactCount = contactRepository.findDuplicateInternalContact(contact.getEmployeeNumber(),contact.getContactCategory(), contact.getContactType(), contact.getContactId());
+			
+		}
+		if(contactCount.intValue()>0){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"This Contact details already exists for this customer !!!");
 		}
