@@ -1,6 +1,5 @@
 package com.tcs.destination.helper;
 
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,6 +41,7 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.service.OpportunityUploadService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.OpportunityUploadConstants;
@@ -79,6 +79,9 @@ public class OpportunityUploadHelper {
 
 	@Autowired
 	private ContactRepository contactRepository;
+	
+	@Autowired
+	private OpportunityService oppService;
 
 	private List<String> listOfCompetitors = null;
 	private List<String> listOfSubSp = null;
@@ -129,17 +132,18 @@ public class OpportunityUploadHelper {
 
 		// Customer Id
 		String customerName = data[3];
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if (!StringUtils.isEmpty(customerName)) {
 			CustomerMasterT customerMasterT = customerRepository
 					.findByCustomerName(customerName);
 			if (customerMasterT != null) {
 				opportunity.setCustomerId(customerMasterT.getCustomerId());
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Customer Name; ");
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Customer Name Is Mandatory; ");
 		}
 
@@ -149,7 +153,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(country,
 					OpportunityUploadConstants.COUNTRY, 6,
 					OpportunityUploadConstants.COUNTRY_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.COUNTRY
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.COUNTRY_MAX_SIZE
@@ -159,12 +163,12 @@ public class OpportunityUploadHelper {
 				if (searchGeographyCountryMappingT(country)) {
 					opportunity.setCountry(country);
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid country ");
 				}
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Country Is Mandatory; ");
 		}
 
@@ -174,7 +178,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(crmId,
 					OpportunityUploadConstants.CRMID, 7,
 					OpportunityUploadConstants.CRMID_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.CRMID
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.CRMID_MAX_SIZE
@@ -190,7 +194,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(opportunityName,
 					OpportunityUploadConstants.OPP_NAME, 8,
 					OpportunityUploadConstants.OPP_NAME_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.OPP_NAME
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.OPP_NAME_MAX_SIZE
@@ -199,7 +203,7 @@ public class OpportunityUploadHelper {
 				opportunity.setOpportunityName(opportunityName);
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Opportunity name is Is Mandatory; ");
 		}
 
@@ -209,7 +213,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(opportunityDescription,
 					OpportunityUploadConstants.OPP_DESC, 9,
 					OpportunityUploadConstants.OPP_DESC_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.OPP_DESC
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.OPP_DESC_MAX_SIZE
@@ -229,7 +233,7 @@ public class OpportunityUploadHelper {
 					OpportunitySubSpLinkTs.add(constructOppSubSpLink(
 							value.trim(), userId));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid subSp  ");
 				}
 
@@ -248,7 +252,7 @@ public class OpportunityUploadHelper {
 					opportunityOfferingLinkTs.add(constructOppOfferingLink(
 							value.trim(), userId));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid Offering  ");
 				}
 
@@ -262,7 +266,7 @@ public class OpportunityUploadHelper {
 			opportunity.setOpportunityRequestReceiveDate(dateFormat
 					.parse(requestReceiveDate));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Request Receive date is Is Mandatory; ");
 		}
 
@@ -272,7 +276,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(newLogo,
 					OpportunityUploadConstants.NEW_LOGO, 13,
 					OpportunityUploadConstants.NEW_LOGO_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.NEW_LOGO
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.NEW_LOGO_MAX_SIZE
@@ -290,7 +294,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(strategicInitiative,
 					OpportunityUploadConstants.STRATEGIC_INIT, 14,
 					OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.STRATEGIC_INIT
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE
@@ -308,7 +312,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(digitalFlag,
 					OpportunityUploadConstants.DIGITAL_FLAG, 15,
 					OpportunityUploadConstants.DIGITAL_FLAG_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.DIGITAL_FLAG
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DIGITAL_FLAG_MAX_SIZE
@@ -326,7 +330,7 @@ public class OpportunityUploadHelper {
 			opportunity.setSalesStageCode((Integer.parseInt(salesStageCode
 					.substring(0, 2))));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Sales stage code is Mandatory; ");
 		}
 
@@ -336,7 +340,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(dealCurrency,
 					OpportunityUploadConstants.DEAL_CURRENCY, 17,
 					OpportunityUploadConstants.DEAL_CURRENCY_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.DEAL_CURRENCY
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_CURRENCY_MAX_SIZE
@@ -349,13 +353,15 @@ public class OpportunityUploadHelper {
 		// OVERALL BID SIZE
 		String overallBidSize = data[18];
 		if (!StringUtils.isEmpty(overallBidSize)) {
-			opportunity.setOverallDealSize(new BigDecimal((overallBidSize)));
+			opportunity.setOverallDealSize(Double.valueOf(overallBidSize)
+					.intValue());
 		}
 
 		// DIGITAL DEAL VALUE
 		String digitalDealValue = data[20];
 		if (!StringUtils.isEmpty(digitalDealValue)) {
-			opportunity.setDigitalDealValue(new BigDecimal(digitalDealValue));
+			opportunity.setDigitalDealValue(Double.valueOf(digitalDealValue)
+					.intValue());
 		}
 
 		// OPPORTUNITY OWNER
@@ -365,11 +371,11 @@ public class OpportunityUploadHelper {
 			if (user != null) {
 				opportunity.setOpportunityOwner(user.getUserId());
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Opportunity owner  ");
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Opportunity owner is Mandatory; ");
 		}
 
@@ -385,7 +391,7 @@ public class OpportunityUploadHelper {
 			opportunity
 					.setOpportunitySalesSupportLinkTs(opportunitySalesSupportLinkTs);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Sales support owner is empty  ");
 		}
 
@@ -399,7 +405,7 @@ public class OpportunityUploadHelper {
 						.setOpportunityTcsAccountContactLinkTs(constructOpportunityTCSContactLink(
 								contacts, userId));
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Tcs Account Contact; ");
 			}
 		}
@@ -415,7 +421,7 @@ public class OpportunityUploadHelper {
 						.setOpportunityCustomerContactLinkTs(constructOpportunityCustomerContactLink(
 								custContactList, userId));
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Customer Contact; ");
 			}
 		}
@@ -443,7 +449,7 @@ public class OpportunityUploadHelper {
 					opportunityCompetitorLinkTs.add(constructOppCompetitorLink(
 							value, userId));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid Competitor Name  ");
 				}
 
@@ -471,7 +477,7 @@ public class OpportunityUploadHelper {
 						expectedDateOfOutcome, winProbability, coreAttributes,
 						userId));
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid bid request type  ");
 			}
 		}
@@ -482,7 +488,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(dealType,
 					OpportunityUploadConstants.DEAL_TYPE, 36,
 					OpportunityUploadConstants.DEAL_TYPE_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.DEAL_TYPE
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_TYPE_MAX_SIZE
@@ -504,7 +510,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(engagementDuration,
 					OpportunityUploadConstants.ENGAGEMENT_DURATION, 38,
 					OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.ENGAGEMENT_DURATION
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.ENGAGEMENT_DURATION_MAX_SIZE
@@ -531,7 +537,7 @@ public class OpportunityUploadHelper {
 					opportunityWinLossFactorsTs.add(constructFactorsForWinLoss(
 							factor.trim(), userId));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid win loss factor  ");
 				}
 			}
@@ -545,7 +551,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(commentsForWinLoss,
 					OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS, 41,
 					OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.COMMENTS_FOR_WIN_LOSS_MAX_SIZE
@@ -568,7 +574,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(dealRemarks,
 					OpportunityUploadConstants.DEAL_STATUS_REMARKS, 42,
 					OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.DEAL_STATUS_REMARKS
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.DEAL_STATUS_REMARKS_MAX_SIZE
@@ -581,7 +587,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(remark1,
 					OpportunityUploadConstants.REMARKS_1, 44,
 					OpportunityUploadConstants.REMARKS_1_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.REMARKS_1
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.REMARKS_1_MAX_SIZE
@@ -594,7 +600,7 @@ public class OpportunityUploadHelper {
 			if (validateCellByStringLength(remark2,
 					OpportunityUploadConstants.REMARKS_2, 45,
 					OpportunityUploadConstants.REMARKS_2_MAX_SIZE)) {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage(OpportunityUploadConstants.REMARKS_2
 						+ " should be a maximum of "
 						+ OpportunityUploadConstants.REMARKS_2_MAX_SIZE
@@ -612,6 +618,15 @@ public class OpportunityUploadHelper {
 		// opportunity.setNotesTs(constructNotesT(dealRemarks,
 		// opportunity.getCustomerId(), userId));
 		// }
+		
+		//check for inactive records and log 
+		try {
+			oppService.validateInactiveIndicators(opportunity);
+		} catch(DestinationException e) {
+			error.setRowNumber(rowNumber);
+			error.setMessage(e.getMessage());
+		}
+		
 		logger.debug("opportunity" + opportunity);
 		return error;
 	}

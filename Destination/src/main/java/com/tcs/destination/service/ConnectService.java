@@ -28,6 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CityMapping;
 import com.tcs.destination.bean.CommentsT;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
@@ -44,6 +45,8 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.bean.SearchResultResponseDTO;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
@@ -81,6 +84,7 @@ import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -627,7 +631,7 @@ public class ConnectService {
 					}
 				}
 				if (owners != null) {
-					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+					if (!isOwnersAreBDMorBDMSupervisorOrGeoHead(owners)) {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								PropertyUtil.getProperty(ERR_INAC_01));
 					}
@@ -821,7 +825,7 @@ public class ConnectService {
 		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
-			if (!validateEditAccessForConnect(connectBeforeEdit, userGroup,
+			if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
 					userId)) {
 				throw new DestinationException(HttpStatus.FORBIDDEN,
 						"User is not authorized to edit this Connect");
@@ -1085,7 +1089,7 @@ public class ConnectService {
 						.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 					connectT.setEnableEditAccess(true);
 				} else {
-					connectT.setEnableEditAccess(validateEditAccessForConnect(
+					connectT.setEnableEditAccess(isEditAccessRequiredForConnect(
 							connectT, userGroup, userId));
 				}
 
@@ -1729,25 +1733,25 @@ public class ConnectService {
 	}
 
 	// edit access for connect
-	private boolean validateEditAccessForConnect(ConnectT connect,
+	private boolean isEditAccessRequiredForConnect(ConnectT connect,
 			String userGroup, String userId) {
-		String customerId = null;
-		String partnerId = null;
 		logger.info("Inside validateEditAccessForConnect method");
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, connect)) {
 			isEditAccessRequired = true;
-		} else if (userGroup.equals(UserGroup.BDM.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
-			isEditAccessRequired = false;
-		} else {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connect.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+		} 
+		else {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM :
 				isEditAccessRequired = false;
-			} else {
+				break;
+			case BDM_SUPERVISOR:
+				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
+						connect.getConnectId());
+				break;
+			case GEO_HEADS:
+			case PMO:
+			case IOU_HEADS:
 				if (!StringUtils.isEmpty(connect.getCustomerId())) {
 					isEditAccessRequired = opportunityService
 							.checkEditAccessForGeoAndIou(userGroup, userId,
@@ -1757,11 +1761,23 @@ public class ConnectService {
 					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
 							userId, userGroup, connect.getPartnerId());
 				}
+				break;
+			default:
+				break;
 			}
 		}
+		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
-
+    
+	/**
+	 * This method is used to check whether the logged in user is one of the
+	 * owner of connect
+	 * 
+	 * @param userId
+	 * @param connect
+	 * @return
+	 */
 	private boolean isUserOwner(String userId, ConnectT connect) {
 		if (connect.getPrimaryOwner().equals(userId))
 			return true;
@@ -1802,81 +1818,29 @@ public class ConnectService {
 		}
 		return isEditAccessRequired;
 	}
-
-	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
-		// TODO Auto-generated method stub
-		boolean isBDMOrBDMSupervisor = false;
+    
+	/**
+	 * This method is used to check whether the one of the owners
+	 * of connect is BDM or BDM Supervisor or GEO Head 
+	 * @param owners
+	 * @return
+	 */
+	public boolean isOwnersAreBDMorBDMSupervisorOrGeoHead(Set<String> owners) {
+		logger.info("Inside isOwnersAreBDMorBDMSupervisorOrGeoHead method");
+		boolean isBDMOrBDMSupervisorOrGeoHead = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
 		if(CollectionUtils.isNotEmpty(userGroups)){
 			for (String userGroup : userGroups) {
 				if (userGroup.equals(UserGroup.BDM.getValue())
 						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
 						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-					isBDMOrBDMSupervisor = true;
+					isBDMOrBDMSupervisorOrGeoHead = true;
 					break;
 				}
 			}
 		}
 		
-		return isBDMOrBDMSupervisor;
-	}
-
-	private boolean isEditAccessRequiredForOpportunity(ConnectT connectT,
-			String userGroup, String userId) {
-		boolean isEditAccessRequired = false;
-		if (isUserOwner(userId, connectT)) {
-			isEditAccessRequired = true;
-
-		} else if (!userGroup.equals(UserGroup.BDM)
-				|| !userGroup.equals(UserGroup.PRACTICE_OWNER)) {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connectT.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (!userGroup.equals(UserGroup.BDM_SUPERVISOR)
-					|| !userGroup.equals(UserGroup.PRACTICE_HEAD)) {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, connectT.getCustomerId());
-			}
-		}
-		return isEditAccessRequired;
-
-		// TODO Auto-generated method stub
-	}
-
-	private boolean checkEditAccessForGeoAndIou(String userGroup,
-			String userId, String customerId) {
-		boolean isEditAccessRequired = false;
-		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
-		case PMO:
-			String geography = customerRepository
-					.findGeographyByCustomerId(customerId);
-
-			List<String> geographyList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.GEOGRAPHY.getValue());
-			if (CollectionUtils.isNotEmpty(geographyList)) {
-				if (geographyList.contains(geography)) {
-					isEditAccessRequired = true;
-				}
-			}
-			break;
-		case IOU_HEADS:
-			String iou = customerRepository.findIouByCustomerId(customerId);
-			List<String> iouList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.IOU.getValue());
-			if (CollectionUtils.isNotEmpty(iouList)) {
-				if (iouList.contains(iou)) {
-					isEditAccessRequired = true;
-
-				}
-			}
-			break;
-		default:
-			break;
-		}
-		return isEditAccessRequired;
+		return isBDMOrBDMSupervisorOrGeoHead;
 	}
 	
 
@@ -1884,7 +1848,7 @@ public class ConnectService {
 	 * validate the connect for any inactive fields(owners, customer, etc)
 	 * @param connect
 	 */
-	private void validateInactiveIndicators(ConnectT connect) {
+	public void validateInactiveIndicators(ConnectT connect) {
 		
 		// createdBy,
 		String createdBy = connect.getCreatedBy();
@@ -1977,46 +1941,119 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
 		}
 		
-		/*String connectId,
-		String connectCategory,
-		String connectName,
-		Timestamp createdDatetime,
-		Timestamp modifiedDatetime,
-		
-		String documentsAttached,
-		Timestamp endDatetimeOfConnect,
-		Timestamp startDatetimeOfConnect,
-		
-		String timeZone,
-		String location,
-		CityMapping cityMapping,
-		String type,
-		ConnectTypeMappingT connectTypeMappingT,
-		TimeZoneMappingT timeZoneMappingT,
-		List<SearchKeywordsT> searchKeywordsTs,
-		List<CollaborationCommentT> collaborationCommentTs,
-		List<CommentsT> commentsTs,
-		
-		CustomerMasterT customerMasterT,
-		GeographyCountryMappingT geographyCountryMappingT,
-		PartnerMasterT partnerMasterT,
-		UserT primaryOwnerUser,
-		List<ConnectOpportunityLinkIdT> connectOpportunityLinkIdTs,
-		List<DocumentRepositoryT> documentRepositoryTs,
-		List<NotesT> notesTs,
-		List<TaskT> taskTs,
-		List<UserFavoritesT> userFavoritesTs,
-		List<UserNotificationsT> userNotificationsTs,
-		List<UserTaggedFollowedT> userTaggedFollowedTs,
-		List<ConnectSubSpLinkT> connectSubLinkDeletionList,
-		List<ConnectOfferingLinkT> connectOfferingLinkDeletionList,
-		List<DocumentRepositoryT> documentsDeletionList,
-		List<ConnectCustomerContactLinkT> deleteConnectCustomerContactLinkTs,
-		List<ConnectTcsAccountContactLinkT> deleteConnectTcsAccountContactLinkTs,
-		List<ConnectSecondaryOwnerLinkT> deleteConnectSecondaryOwnerLinkTs,
-		List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs,
-		List<SearchKeywordsT> deleteSearchKeywordsTs,
-		boolean enableEditAccess*/
-		
 	}
+	
+	/**
+	 * Service method to fetch the connect related information based on search type and the search keyword 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll 
+	 * @return
+	 */
+	public SearchResultResponseDTO smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll) {
+		logger.info("ConnectService::smartSearch type {}",smartSearchType);
+		SearchResultResponseDTO res = new SearchResultResponseDTO();
+		List<SearchResultDTO> resList = Lists.newArrayList();
+		if(smartSearchType != null) {
+			int limit = 3;
+			if(getAll) {
+				limit = 0;
+			}
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getConnectsByName(term, limit));
+				resList.add(getConnectCustomers(term, limit));
+				resList.add(getConnectPartners(term, limit));
+				resList.add(getConnectSubSps(term, limit));
+				break;
+			case CONNECT:
+				resList.add(getConnectsByName(term, limit));
+				break;
+			case CUSTOMER:
+				resList.add(getConnectCustomers(term, limit));
+				break;
+			case PARTNER:
+				resList.add(getConnectPartners(term, limit));
+				break;
+			case SUBSP:
+				resList.add(getConnectSubSps(term, limit));
+				break;
+			default:
+				break;
+
+			}
+		}
+		res.setResults(resList);
+		return res;
+	}
+	
+	public PaginatedResponse<ConnectT> smartSearchSelect(SmartSearchType smartSearchType,
+			String id, int page, int count) {
+		logger.info("ConnectService::smartSearchSelect, type {}",smartSearchType);
+		Page<ConnectT> resPage ;
+		
+		Pageable pageable = new PageRequest(page, count);
+		PaginatedResponse<ConnectT> paginatedResponse = new PaginatedResponse<ConnectT>();
+		
+		if(smartSearchType != null && StringUtils.isNotBlank(id)) {
+			
+			switch(smartSearchType) {
+			case CUSTOMER:
+				resPage = connectRepository.findByCustomerId(id, pageable);
+				paginatedResponse.setTotalCount(resPage.getTotalElements());
+				paginatedResponse.setContentList(resPage.getContent());
+				break;
+			case PARTNER:
+				resPage = connectRepository.findByPartnerId(id, pageable);
+				paginatedResponse.setTotalCount(resPage.getTotalElements());
+				paginatedResponse.setContentList(resPage.getContent());
+				break;
+			case SUBSP:
+				List<ConnectT> resList = connectRepository.findBySubsp(id);
+				paginatedResponse = PaginationUtils.paginateList(page, count, resList);
+				break;
+			default:
+				break;
+
+			}
+			
+		}
+		prepareConnect(paginatedResponse.getContentList());
+		return paginatedResponse;
+	}
+
+	private SearchResultDTO getConnectSubSps(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.SUBSP);
+		List<Object[]> records = connectRepository.searchBySubsp("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectPartners(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.PARTNER);
+		List<Object[]> records = connectRepository.searchByPartnerName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectCustomers(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.CUSTOMER);
+		List<Object[]> records = connectRepository.searchByCustomerName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
+	private SearchResultDTO getConnectsByName(String term, int limit) {
+		SearchResultDTO conRes = new SearchResultDTO();
+		conRes.setType(SmartSearchType.CONNECT);
+		List<Object[]> records = connectRepository.searchByConnectName("%"+term+"%", limit);
+		conRes.setValues(DestinationUtils.getSearchResults(records));
+		return conRes;
+	}
+
 }

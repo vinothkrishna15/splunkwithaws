@@ -38,6 +38,7 @@ public class UserT implements Serializable {
 		this.userId = user.userId;
 		this.userName = user.userName;
 		this.tempPassword = user.tempPassword;
+		this.active = user.active;
 	}
 
 	@Id
@@ -72,7 +73,7 @@ public class UserT implements Serializable {
 	private String userRole;
 
 	@Column(name = "active")
-	private boolean active;
+	private boolean active = true;
 	
 	@Column(name = "status")
     private int status; // added to mark whether password is default or notified or changed

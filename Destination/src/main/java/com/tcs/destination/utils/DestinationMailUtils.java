@@ -987,7 +987,7 @@ public class DestinationMailUtils {
 					 .getCustomerName();
 			 String opportunityOwner = userRepository
 					 .findUserNameByUserId(opportunity.getOpportunityOwner());
-			 BigDecimal digitalBidValue = opportunity.getDigitalDealValue();
+			 Integer digitalBidValue = opportunity.getDigitalDealValue();
 			 logger.info("digital Bid Value : "+digitalBidValue);
 			 String currencyType = opportunity.getDealCurrency();
 			 //Converting deal value to USD

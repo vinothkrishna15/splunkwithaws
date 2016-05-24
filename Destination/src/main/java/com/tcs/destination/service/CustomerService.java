@@ -37,6 +37,7 @@ import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
@@ -61,7 +62,7 @@ public class CustomerService {
 			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
 
 	private static final String TOP_REVENUE_PROJECTED_PREFIX = "select CMT.* from customer_master_t CMT, (";
-	private static final String TOP_REVENUE_PROJECTED_SUFFIX = ") as TRC where CMT.customer_name = TRC.customer_name order by TRC.revenue desc";
+	private static final String TOP_REVENUE_PROJECTED_SUFFIX = ") as TRC where CMT.customer_name = TRC.customer_name and CMT.active =TRUE order by TRC.revenue desc";
 
 	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
 	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
@@ -75,6 +76,9 @@ public class CustomerService {
 
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	OpportunityRepository opportunityRepository;
 
 	@Autowired
 	GeographyRepository geographyRepository;
@@ -141,7 +145,7 @@ public class CustomerService {
 			throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
-				.findOne(customerId);
+				.findactivecust(customerId);
 		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: Customer not found: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -151,6 +155,26 @@ public class CustomerService {
 		beaconConverterService.convertOpportunityCurrency(
 				customerMasterT.getOpportunityTs(), toCurrency);
 		return customerMasterT;
+	}
+	
+	/**
+	 * This method is used to get count of opportunities for a customerID,to avoid the duplicate opportunities
+	 * 
+	 * @param customerId
+	 * @return
+	 * @throws Exception
+	 */
+	public int getOpportunityCountByCustomerId(String customerId)
+			throws Exception {
+		logger.debug("Inside getOpportunityCountByCustomerId() service");
+		//To do - validate privilege
+		CustomerMasterT customer= customerRepository.findOne(customerId);
+		if(customer==null){
+			logger.info("BAD_REQUEST,Invalid Customer Id");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Customer Id");
+		}
+		int opportunityCount = opportunityRepository.getOpportunityCountByCustomerId(customerId);
+		return opportunityCount;
 	}
 
 	/**

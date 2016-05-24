@@ -47,6 +47,11 @@ public interface OpportunityRepository extends
 	@Query(value = "select digital_deal_value,deal_currency from opportunity_t where opportunity_owner=?1 and deal_closure_date >= ?2 and deal_closure_date <= ?3 and sales_stage_code =9", nativeQuery = true)
 	List<Object[]> findDealValueForWins(String userId, Date fromDate,
 			Date toDate);
+	/*
+	 * The query gives the count of opportunity for a given customerID
+	 */
+	@Query(value = "select count(opportunity_id) from opportunity_t where customer_id=? and sales_stage_code<9", nativeQuery = true)
+	int getOpportunityCountByCustomerId(String customerId);
 
 	@Query(value = "select digital_deal_value,deal_currency from opportunity_t opp where opp.opportunity_owner=?1 and  opp.opportunity_id in (select opportunity_id from (select opportunity_id, max(updated_datetime) from opportunity_timeline_history_t where updated_datetime <= ?2 and sales_stage_code < 9 group by opportunity_id order by opportunity_id) as opp_pipeline)", nativeQuery = true)
 	List<Object[]> findDealValueForPipeline(String userId, Timestamp endTime);

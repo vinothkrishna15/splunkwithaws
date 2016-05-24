@@ -15,9 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -106,7 +103,7 @@ public class PartnerService {
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Begin:Inside findById method of PartnerService");
-		PartnerMasterT partner = partnerRepository.findOne(partnerId);
+		PartnerMasterT partner = partnerRepository.findactivepartner(partnerId);
 		if (partner == null) {
 			logger.error("NOT_FOUND: No such partner found.");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -239,7 +236,7 @@ public class PartnerService {
 	 * @param partner
 	 * @throws {@link DestinationException} if any inactive records founds
 	 */
-	private void validateInactiveIndicators(PartnerMasterT partner) {
+	public void validateInactiveIndicators(PartnerMasterT partner) {
 
 		//createdModifiedBy, 
 		String createdBy = partner.getCreatedModifiedBy();
@@ -261,7 +258,7 @@ public class PartnerService {
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
 				.findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
-						nameWith, pageable, true);
+						nameWith, pageable,true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();

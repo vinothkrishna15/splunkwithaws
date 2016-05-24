@@ -1,5 +1,13 @@
 package com.tcs.destination.utils;
 
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.tcs.destination.bean.PaginatedResponse;
+
 /**
  * This class performs Pagination
  * 
@@ -7,6 +15,8 @@ package com.tcs.destination.utils;
  *
  */
 public class PaginationUtils {
+	
+	private static final Logger logger = LoggerFactory.getLogger(PaginationUtils.class);
 	
 	public static int getEndIndex(int page, int count, int listSize) {
 		int endIndex = listSize;
@@ -45,6 +55,32 @@ public class PaginationUtils {
 			isValid = true;
 		}
 		return isValid;
+	}
+	
+	
+	/**
+	 * trim the list to accommodate to pagination
+	 * @param page - page number
+	 * @param count - number records/page
+	 * @param list 
+	 * @return
+	 */
+	public static <T> PaginatedResponse<T> paginateList(int page, int count,
+			List<T> list) {
+		PaginatedResponse<T> paginatedResponse = new PaginatedResponse<T>();
+		
+		if (CollectionUtils.isNotEmpty(list) && PaginationUtils.isValidPagination(page, count, list.size())) {
+			int size = list.size();
+			paginatedResponse.setTotalCount(size);
+			int fromIndex = PaginationUtils.getStartIndex(page, count, size);
+			int toIndex = PaginationUtils.getEndIndex(page, count, size) + 1;
+			List<T> trimlist = list.subList(fromIndex, toIndex);
+			logger.debug("PaginationUtils after pagination size is {}", size);
+			paginatedResponse.setContentList(trimlist);
+		} else {
+			list = null;
+		}
+		return paginatedResponse;
 	}
 
 }

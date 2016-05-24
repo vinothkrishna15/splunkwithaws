@@ -23,7 +23,7 @@ public class OfferingService {
 
 	public List<OfferingMappingT> findAllActive() {
 		logger.debug("Inside findAll() OfferingService");
-		return offeringRepository.findByActive("Y");
+		return offeringRepository.findByActiveTrue();
 	}
 
 }

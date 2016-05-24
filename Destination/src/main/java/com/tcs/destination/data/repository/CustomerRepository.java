@@ -29,8 +29,10 @@ public interface CustomerRepository extends
 			String name, String nameNot,boolean active,Pageable page);
 	
 	
+	@Query(value = "select * from customer_master_t where customer_id=? and active=TRUE", nativeQuery=true)
+	CustomerMasterT findactivecust(String cust_id);
 
-	@Query(value = "select * from customer_Master_T c ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
+	@Query(value = "select * from customer_Master_T c where c.active=TRUE ORDER BY c.created_Modified_Datetime desc Limit ?1", nativeQuery = true)
 	List<CustomerMasterT> findRecent(int count);
 
 	@Query(value = "select CMT.* from customer_master_t CMT,(select RCMT.customer_name,sum(ART.revenue) from actual_revenues_data_t ART,revenue_customer_mapping_t RCMT where financial_year=?2 and ART.finance_customer_name=RCMT.finance_customer_name and ART.finance_geography=RCMT.customer_geography group by RCMT.customer_name order by sum desc limit ?1) as RV where RV.customer_name=CMT.customer_name order by RV.sum desc", nativeQuery = true)

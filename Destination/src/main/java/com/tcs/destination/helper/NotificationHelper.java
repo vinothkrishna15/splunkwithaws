@@ -14,7 +14,6 @@ import static com.tcs.destination.utils.Constants.TOKEN_TO;
 import static com.tcs.destination.utils.Constants.TOKEN_USER;
 
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -931,7 +930,7 @@ public class NotificationHelper implements Runnable {
 						opportunity.getOpportunityId());
 		String displayIOU = opportunity.getCustomerMasterT()
 				.getIouCustomerMappingT().getDisplayIou();
-		BigDecimal digitalDealValue = opportunity.getDigitalDealValue();
+		Integer digitalDealValue = opportunity.getDigitalDealValue();
 		String geography = opportunity.getGeographyCountryMappingT()
 				.getGeography();
 		String country = opportunity.getCountry();

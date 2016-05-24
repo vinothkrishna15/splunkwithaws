@@ -47,6 +47,8 @@ import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.ConnectService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.StringUtils;
@@ -97,7 +99,8 @@ public class ConnectUploadHelper {
 	@Autowired
 	private CommonHelper commonHelper;
 	
-	
+	@Autowired
+	ConnectService connectService;
 
 	private Map<String, String> timeZoneMap = null;
 	private Map<String, SubSpMappingT> mapOfSubSpMappingT = null;
@@ -110,6 +113,7 @@ public class ConnectUploadHelper {
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
 		String category = data[3];
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if (!StringUtils.isEmpty(category)) {
 
 			connectT.setConnectCategory(category);
@@ -125,11 +129,11 @@ public class ConnectUploadHelper {
 					if (customerMasterT != null) {
 						connectT.setCustomerId(customerMasterT.getCustomerId());
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid Customer Name; ");
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Customer Name Is Mandatory; ");
 				}
 			} else {
@@ -144,16 +148,16 @@ public class ConnectUploadHelper {
 					if (!partners.isEmpty()) {
 						connectT.setPartnerId(partners.get(0).getPartnerId());
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid Partner Name; ");
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Partner Name Is Mandatory; ");
 				}
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Category Is Mandatory; ");
 		}
 
@@ -162,7 +166,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(country)) {
 			connectT.setCountry(country);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Country Is Mandatory; ");
 		}
 
@@ -171,7 +175,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectName)) {
 			connectT.setConnectName(connectName);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Name Is Mandatory; ");
 		}
 
@@ -190,7 +194,7 @@ public class ConnectUploadHelper {
 					connectSubSpList.add(constructConnectSubSpLink(
 							subSp, userId, mapOfSubSpMappingT));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid SubSp; ");
 				}
 			}
@@ -215,7 +219,7 @@ public class ConnectUploadHelper {
 					connectOfferingList.add(constructConnectOfferingLink(
 							offering, userId, mapOfOfferingMappingT));
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid Offering; ");
 				}
 			}
@@ -231,7 +235,7 @@ public class ConnectUploadHelper {
 			connectT.setStartDatetimeOfConnect(new Timestamp(startDateOfConnect
 					.getTime()));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("start Date Of Connect Is Mandatory; ");
 		}
 
@@ -243,7 +247,7 @@ public class ConnectUploadHelper {
 			connectT.setEndDatetimeOfConnect(new Timestamp(endDateOfConnect
 					.getTime()));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("End Date Of Connect Is Mandatory; ");
 		}
 
@@ -259,7 +263,7 @@ public class ConnectUploadHelper {
 				connectT.setTimeZone(timezone.trim());
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Time Zone Is Mandatory; ");
 		}
 
@@ -268,7 +272,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(location)) {
 			connectT.setLocation(location.trim());
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Location Is Mandatory; ");
 		}
 
@@ -282,7 +286,7 @@ public class ConnectUploadHelper {
 			connectT.setConnectTypeMappingT(constructConnectType(connectType,
 					mapOfConnectTypeMappingT));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Invalid Connect Type; ");
 		}
 
@@ -294,11 +298,11 @@ public class ConnectUploadHelper {
 			if (userT != null) {
 				connectT.setPrimaryOwner(userT.getUserId());
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Connect Owner; ");
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Primary Owner Is Mandatory; ");
 		}
 
@@ -327,7 +331,7 @@ public class ConnectUploadHelper {
 				connectT.setConnectTcsAccountContactLinkTs(constructConnectTCSContactLink(
 						contacts, userId));
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Tcs Account Contact; ");
 			}
 		}
@@ -342,7 +346,7 @@ public class ConnectUploadHelper {
 			connectT.setConnectCustomerContactLinkTs(constructConnectCustomerContactLink(
 					custContactList, userId));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Customer Contact Is Mandatory; ");
 		}
 
@@ -361,6 +365,14 @@ public class ConnectUploadHelper {
 		// DOCUMENTS ATTACHED
 		connectT.setDocumentsAttached(Constants.NO);
 
+		//check for inactive records and log 
+		try {
+			connectService.validateInactiveIndicators(connectT);
+		} catch(DestinationException e) {
+			error.setRowNumber(rowNumber);
+			error.setMessage(e.getMessage());
+		}
+		
 		return error;
 	}
 
@@ -525,6 +537,7 @@ public class ConnectUploadHelper {
 		
 			
 		String category = data[3];
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if (!StringUtils.isEmpty(category)) {
 
 			connect.setConnectCategory(category);
@@ -541,11 +554,11 @@ public class ConnectUploadHelper {
 						connect.setCustomerId(customerMasterT
 								.getCustomerId());
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid Customer Name; ");
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Customer Name Is Mandatory; ");
 				}
 			} else {
@@ -561,16 +574,16 @@ public class ConnectUploadHelper {
 						connect.setPartnerId(partners.get(0)
 								.getPartnerId());
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid Partner Name; ");
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Partner Name Is Mandatory; ");
 				}
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Category Is Mandatory; ");
 		}
 
@@ -579,7 +592,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(country)) {
 			connect.setCountry(country);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Country Is Mandatory; ");
 		}
 
@@ -588,7 +601,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(connectName)) {
 			connect.setConnectName(connectName);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Name Is Mandatory; ");
 		}
 
@@ -624,7 +637,7 @@ public class ConnectUploadHelper {
 								connect);
 						updateList.add(connectSubSpLinkT);
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid SubSp; ");
 					}
 				}
@@ -667,7 +680,7 @@ public class ConnectUploadHelper {
 								mapOfOfferingMappingT, connect);
 						updateList.add(connectOfferingLinkT);
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setRowNumber(rowNumber);
 						error.setMessage("Invalid Offering; ");
 					}
 				}
@@ -684,7 +697,7 @@ public class ConnectUploadHelper {
 			connect.setStartDatetimeOfConnect(new Timestamp(
 					startDateOfConnect.getTime()));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("start Date Of Connect Is Mandatory; ");
 		}
 
@@ -696,7 +709,7 @@ public class ConnectUploadHelper {
 			connect.setEndDatetimeOfConnect(new Timestamp(
 					endDateOfConnect.getTime()));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("End Date Of Connect Is Mandatory; ");
 		}
 
@@ -712,7 +725,7 @@ public class ConnectUploadHelper {
 				connect.setTimeZone(timezone.trim());
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Time Zone Is Mandatory; ");
 		}
 
@@ -721,7 +734,7 @@ public class ConnectUploadHelper {
 		if (!StringUtils.isEmpty(location)) {
 			connect.setLocation(location.trim());
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Location Is Mandatory; ");
 		}
 
@@ -735,7 +748,7 @@ public class ConnectUploadHelper {
 			connect.setConnectTypeMappingT(constructConnectType(
 					connectType, mapOfConnectTypeMappingT));
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Invalid Connect Type; ");
 		}
 
@@ -747,11 +760,11 @@ public class ConnectUploadHelper {
 			if (userT != null) {
 				connect.setPrimaryOwner(userT.getUserId());
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Invalid Connect Owner; ");
 			}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Primary Owner Is Mandatory; ");
 		}
 
@@ -825,7 +838,7 @@ public class ConnectUploadHelper {
 
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid Tcs Account Contact; ");
 				}
 
@@ -869,14 +882,14 @@ public class ConnectUploadHelper {
 
 					}
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("Invalid Connect Customer Contact  ");
 				}
 			}
 			connectCustomerContactLinkTRepository.delete(deleteList);
 			connect.setConnectCustomerContactLinkTs(updateList);
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Connect Customer Contact Is Mandatory; ");
 		}
 
@@ -896,6 +909,14 @@ public class ConnectUploadHelper {
 		// DOCUMENTS ATTACHED
 		connect.setDocumentsAttached(Constants.NO);
 			
+		//check for inactive records and log 
+		try {
+			connectService.validateInactiveIndicators(connect);
+		} catch(DestinationException e) {
+			error.setRowNumber(rowNumber);
+			error.setMessage(e.getMessage());
+		}
+		
 		return error;
 	}
 
