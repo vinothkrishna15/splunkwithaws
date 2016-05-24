@@ -216,7 +216,6 @@ public class Constants {
 	public static final int CONSTANT_ZERO = 0;
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
-	public static final String PMO_PENDING_WITH_SPECIFIC_USER = "1019721";
 	
 	public static final String 	WITH_SUPPORT_FROM = "with support from";
 	
