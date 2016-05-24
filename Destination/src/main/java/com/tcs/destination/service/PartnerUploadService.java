@@ -64,22 +64,14 @@ public class PartnerUploadService {
 		uploadStatus.setListOfErrors(new ArrayList<UploadServiceErrorDetailsDTO>());
 
 		try {
-
 			if (validateSheetForPartner(workbook)) 
 			{
-
 				Sheet sheet = workbook.getSheet("Partner Master");
-
 				int rowCount = 0;
-
 				List<String> listOfCellValues = null;
-
 				Iterator<Row> rowIterator = sheet.iterator();
-
 				while (rowIterator.hasNext()&& rowCount <= sheet.getLastRowNum()) {
-
 					Row row = rowIterator.next();
-
 					if (rowCount > 0) {
 						String actionCellValue = getIndividualCellValue(row.getCell(0));
 						listOfCellValues = new ArrayList<String>();
@@ -99,11 +91,9 @@ public class PartnerUploadService {
 							error.setMessage(e.getMessage());
 							uploadStatus.getListOfErrors().add(error);
 						}
-
 					}
 					rowCount++;
 				}
-
 			} 
 			else 
 			{
@@ -129,7 +119,7 @@ public class PartnerUploadService {
 	 */
 	private PartnerMasterT constructPartnerTForPartner(List<String> listOfCellValues,
 			String userId, String action) throws Exception{
-	
+
 		logger.debug("Begin: constructPartnerTForPartner() of PartnerUploadService");
 		PartnerMasterT partnerMasterT = null;
 

@@ -79,10 +79,10 @@ public class PartnerService {
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
-	
+
 	@Autowired
 	private GeographyRepository geoRepository;
-	
+
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
 
@@ -100,6 +100,13 @@ public class PartnerService {
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
+	/**
+	 * Retrieve partner details based on partner id
+	 * @param partnerId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Begin:Inside findById method of PartnerService");
@@ -167,27 +174,6 @@ public class PartnerService {
 	 */
 
 	/**
-	 * This method is used to validate contact input parameters.
-	 * 
-	 * @param contact
-	 * @return
-	 */
-	private void validateRequest(PartnerMasterT partner)
-			throws DestinationException {
-		logger.debug("Begin:Inside validateRequest method of PartnerService");
-		if (partner.getPartnerName().isEmpty()
-				|| partner.getPartnerName() == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"PartnerName is required");
-		}
-		if (partner.getGeographyMappingT() == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Geography is required");
-		}
-		logger.debug("End:Inside validateRequest method of PartnerService");
-	}
-
-	/**
 	 * This method inserts partner to the database
 	 * 
 	 * @param partnerToInsert
@@ -221,9 +207,9 @@ public class PartnerService {
 			partnerMasterT.setGeographyMappingT(partnerToInsert
 					.getGeographyMappingT());
 			partnerMasterT.setDocumentsAttached("NO");
-			
+
 			validateInactiveIndicators(partnerMasterT);
-			
+
 			partnerMasterT = partnerRepository.save(partnerMasterT);
 			logger.debug("End:Inside addPartner method of PartnerService");
 		}
@@ -251,6 +237,14 @@ public class PartnerService {
 		}
 	}
 
+	/**
+	 * retrieves partner names containing a particular string
+	 * @param nameWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
 			int count) throws Exception {
 		logger.debug("Begin:Inside findByNameContaining method of PartnerService");
@@ -273,6 +267,14 @@ public class PartnerService {
 		return paginatedResponse;
 	}
 
+	/**
+	 * retrieves partner names starting with a particular string
+	 * @param startsWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
 		logger.debug("Begin:Inside findByNameStarting method of PartnerService");
@@ -325,6 +327,17 @@ public class PartnerService {
 
 	}
 
+	/**
+	 * service implementation for partner advanced search
+	 * with paginated response
+	 * @param name
+	 * @param geography
+	 * @param inactive
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws DestinationException
+	 */
 	public PaginatedResponse search(String name, List<String> geography, boolean inactive,
 			int page, int count) throws DestinationException {
 		logger.debug("Begin:Inside search method of PartnerService");
@@ -407,6 +420,12 @@ public class PartnerService {
 		return updateStatus;
 	}
 
+	/**
+	 * validation for partner details before it got saved to partner master T
+	 * @param partnerMaster
+	 * @param isBdmWithAccess
+	 * @return
+	 */
 	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess)
 	{
 		boolean isUpdate=false;
