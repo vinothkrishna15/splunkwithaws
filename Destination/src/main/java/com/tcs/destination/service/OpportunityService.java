@@ -659,7 +659,9 @@ public class OpportunityService {
 		opportunityTimelineHistoryTRepository.save(history);
 	}
 
-	/** this method is creates and saves a new opportunity and is also used to edit an existing opportunity
+	/** 
+	 * This method is used to save an opportunity and also used to edit an existing opportunity
+	 * 
 	 * @param opportunity
 	 * @param isUpdate
 	 * @param userGroup
@@ -1356,7 +1358,6 @@ public class OpportunityService {
 		removeCyclicForCustomers(opportunityT);}
 
 	private void setUserFavourite(OpportunityT opportunityT) {
-		// TODO Auto-generated method stub
 		boolean flag = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		for(UserFavoritesT userFavorite : opportunityT.getUserFavoritesTs()) {
@@ -2392,7 +2393,6 @@ public class OpportunityService {
 	 * @return
 	 */
 	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
-		// TODO Auto-generated method stub
 		boolean isBDMOrBDMSupervisor = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
 		if(CollectionUtils.isNotEmpty(userGroups)){

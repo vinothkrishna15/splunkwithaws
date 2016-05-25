@@ -371,7 +371,7 @@ public static final String OPPORTUNITY_PIPELINE_PROSPECTS_IOU_QUERY_PREFIX =
 		+ " inner join sales_stage_mapping_t SASMT on opp.sales_stage_code = SASMT.sales_stage_code"
 		+ " where ";
 
-private static final String CONNECT_START_AND_END_DATE_COND_PREFIX = "CON.start_datetime_of_connect between (:startDate) AND (:endDate)";
+private static final String CONNECT_START_AND_END_DATE_COND_PREFIX = " CON.start_datetime_of_connect between (:startDate) AND (:endDate)";
 private static final String CONNECT_PRIMARY_OR_SECONDARY_OWNER_IN_PREFIX = " AND ((CON.primary_owner in (:userIds)) OR CSOL.secondary_owner in (:userIds) OR ('') in (:userIds)) ";
 
 private static final String GEO_COND_PREFIX = "GMT.geography in (";
@@ -2154,7 +2154,7 @@ public void getCustomerConnectSubSpQueryString(String userId, Date fromDate, Dat
 	HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
 			.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, IOU_COND_PREFIX, null);
 	// Get WHERE clause string   
-	queryBuffer.append("where  subsp_primary=true ");
+	queryBuffer.append("where ");
 	queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
 	String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
 	if (whereClause != null && !whereClause.isEmpty()) {
@@ -2177,7 +2177,7 @@ public void getCustomerConnectSubSpQueryString(String userId, Date fromDate, Dat
 	queryBuffer.append(" group by "+groupBy+ ",CON.connect_id ");
 	queryBuffer.append(unionPartner);
 	queryBuffer.append(CONNECT_SECONDARY_OWNER_LINK_JOIN_PREFIX);
-	queryBuffer.append(" where subsp_primary=true AND ");
+	queryBuffer.append(" where ");
 	// Get WHERE clause string
 	queryBuffer.append(CONNECT_START_AND_END_DATE_COND_PREFIX);
 	
@@ -3016,8 +3016,8 @@ public InputStreamResource getConnectDetailedAndSummaryReports(String month, Str
 			if(!connectCategory.equals("All")){
 				category=category+connectCategory+Constants.SPACE;
 			}
-			logger.error("NOT_FOUND: Report could not be downloaded, as no"+category+" connects are available for user selection and privilege combination");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no"+category+" connects are available for user selection and privilege combination");
+			logger.error("NOT_FOUND: Report could not be downloaded, as no connects are available for user selection and privilege combination");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no "+category+" connects are available for user selection and privilege combination");
 		}
 		InputStreamResource inputStreamResource = getInputStreamResource(workbook);
 	

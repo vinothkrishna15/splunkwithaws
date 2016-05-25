@@ -339,7 +339,7 @@ public class ConnectDetailedReportService {
 		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
 		boolean modifiedDateFlag = fields
 				.contains(ReportConstants.MODIFIEDDATE);
-		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+		boolean modifiedByFlag = fields.contains(ReportConstants.MODIFIEDBY);
 
 		for (String connectId : connectIdList) {
 			ConnectT connect = connectRepository.findByConnectId(connectId);
@@ -361,33 +361,18 @@ public class ConnectDetailedReportService {
 			}
 
 			if (iouFlag) {
-				SXSSFCell iouCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				if (connect.getCustomerMasterT() != null) {
-					iouCell.setCellValue(connect.getCustomerMasterT()
-							.getIouCustomerMappingT().getIou());
-				}
+				setIouToSpreadSheet(spreadSheet, currentRow, connect, colNo);
 				colNo++;
 			}
 
 			if (geoFlag) {
-				SXSSFCell geographyCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				if (connect.getCustomerMasterT() != null) {
-					geographyCell.setCellValue(connect.getCustomerMasterT()
-							.getGeographyMappingT().getGeography());
-				} else {
-					geographyCell.setCellValue(connect.getPartnerMasterT()
-							.getGeographyMappingT().getGeography());
-				}
+				setCustomerOrPartnerGeographyToSpreadSheet(spreadSheet,
+						currentRow, connect, colNo);
 				colNo++;
 			}
 
 			if (countryFlag) {
-				SXSSFCell countryCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				countryCell.setCellValue(connect.getGeographyCountryMappingT()
-						.getCountry());
+				setCountryToSpreadSheet(spreadSheet, currentRow, connect, colNo);
 				colNo++;
 			}
 			if (subSpFlag) {
@@ -396,212 +381,101 @@ public class ConnectDetailedReportService {
 			}
 
 			if (offeringFlag) {
-				List<String> connectOffering = connectOfferingLinkRepository
-						.findOfferingByConnectId(connect.getConnectId());
-				SXSSFCell offeringCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				offeringCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(connectOffering));
+				setOfferingsToSpreadSheet(spreadSheet, currentRow, connect,	colNo);
 				colNo++;
 			}
 
 			if (tcsContactNameFlag) {
-				List<String> tcsContactNamesList = new ArrayList<String>();
-				List<String> tcsContactNames = new ArrayList<String>();
-				SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				for (Object[] tcsAccountContact : tcsAccountContactList) {
-					tcsContactNames.add((String) tcsAccountContact[0]);
-				}
-				for (int i = 1; i <= tcsAccountContactList.size(); i++) {
-					tcsContactNamesList.add(i + "-"
-							+ tcsContactNames.get(i - 1));
-				}
-				tcsAccountContactCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
+				setTcsContactNamesToSpreadSheet(spreadSheet, currentRow,
+						tcsAccountContactList, colNo);
 				colNo++;
 			}
 
 			if (tcsContactRoleFlag) {
-				List<String> tcsContactNamesList = new ArrayList<String>();
-				List<String> tcsContactRoles = new ArrayList<String>();
-				SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				for (Object[] tcsAccountContact : tcsAccountContactList) {
-					tcsContactRoles.add((String) tcsAccountContact[1]);
-				}
-				for (int i = 1; i <= tcsAccountContactList.size(); i++) {
-					tcsContactNamesList.add(i + "-"
-							+ tcsContactRoles.get(i - 1));
-				}
-				tcsAccountContactCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
+				setTcsContactRolesToSpreadSheet(spreadSheet, currentRow,
+						tcsAccountContactList, colNo);
 				colNo++;
 			}
 
 			if (custContactNameFlag) {
-				List<String> cusContactNamesList = new ArrayList<String>();
-				List<String> cusContactNames = new ArrayList<String>();
-				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				for (Object[] cusContact : cusContactList) {
-					cusContactNames.add((String) cusContact[0]);
-				}
-				for (int i = 1; i <= cusContactList.size(); i++) {
-					cusContactNamesList.add(i + "-"
-							+ cusContactNames.get(i - 1));
-				}
-				customerContactNameCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				setTcsContactNamesToSpreadSheet(spreadSheet, currentRow,
+						cusContactList, colNo);
 				colNo++;
 			}
 
 			if (custContactRoleFlag) {
-				List<String> cusContactNamesList = new ArrayList<String>();
-				List<String> cusContactRole = new ArrayList<String>();
-				SXSSFCell customerContactNameCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				for (Object[] cusContact : cusContactList) {
-					cusContactRole.add((String) cusContact[1]);
-				}
-				for (int i = 1; i <= cusContactList.size(); i++) {
-					cusContactNamesList
-							.add(i + "-" + cusContactRole.get(i - 1));
-				}
-				customerContactNameCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(cusContactNamesList));
+				setTcsContactRolesToSpreadSheet(spreadSheet, currentRow,
+						cusContactList, colNo);
 				colNo++;
 			}
 
 			if (startDateFlag) {
-				SXSSFCell startDateOfConnectCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				startDateOfConnectCell.setCellValue(connect
-						.getStartDatetimeOfConnect().toString());
+				setStartDateOfConnectToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 
 			if (endDateFlag) {
-				SXSSFCell endDateOfConnectCell = (SXSSFCell) spreadSheet
-						.getRow(currentRow - 1).createCell(colNo);
-				endDateOfConnectCell.setCellValue(connect
-						.getEndDatetimeOfConnect().toString());
+				setEndDateOfConnectToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 
 			if (primaryOwnerFlag) {
-				SXSSFCell primaryOwnerCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				UserT userT = userRepository.findByUserId(connect
-						.getPrimaryOwner());
-				primaryOwnerCell.setCellValue(userT.getUserName());
+				setConnectPrimaryOwnerToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 
 			if (secondaryOwnerFlag) {
-				List<String> secondaryOwnersList = userRepository
-						.getSecondaryOwnerNamesByConnectId(connect
-								.getConnectId());
-				SXSSFCell secondaryOwnerCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				secondaryOwnerCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(secondaryOwnersList));
+				setConnectSecondaryOwnersToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 
 			if (notesFlag) {
-				List<String> connectNotesList = notesTRepository
-						.findConnectNotesByConnectId(connect.getConnectId());
-				SXSSFCell connectNotesCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				connectNotesCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(connectNotesList));
+				setConnectNotesToSpreadSheet(spreadSheet, currentRow, connect,
+						colNo);
 				colNo++;
 			}
 
 			if (linkOppFlag) {
-				List<String> opportunityNames = opportunityRepository
-						.findLinkOpportunityByConnectId(connect.getConnectId());
-				SXSSFCell opportunityCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				opportunityCell
-						.setCellValue(ExcelUtils
-								.removeSquareBracesAndAppendListElementsAsString(opportunityNames));
+				setConnectLinkOpportunityNamesToSpreadSheet(spreadSheet,
+						currentRow, connect, colNo);
 				colNo++;
 			}
 
 			if (categoryFlag) {
-				SXSSFCell categoryCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				categoryCell.setCellValue(connect.getConnectCategory());
+				setConnectCategoryToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 
 			if (custPartNameFlag) {
-				if (connect.getCustomerMasterT() != null) {
-					SXSSFCell cusPartcell = (SXSSFCell) spreadSheet.getRow(
-							currentRow - 1).createCell(colNo);
-					cusPartcell.setCellValue(connect.getCustomerMasterT()
-							.getCustomerName());
-					colNo++;
-				} else if (connect.getPartnerMasterT() != null) {
-					SXSSFCell cusPartcell = (SXSSFCell) spreadSheet.getRow(
-							currentRow - 1).createCell(colNo);
-					cusPartcell.setCellValue(connect.getPartnerMasterT()
-							.getPartnerName());
-					colNo++;
-				} else {
-					colNo++;
-				}
+				setCustomerOrPartnerNameToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo); 
+				colNo++;
 			}
 
 			// 4 columns added as per prod tracker
 			if (createdDateFlag) {
-				SXSSFCell createdDateCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				Timestamp createdDateTimeStamp = connect.getCreatedDatetime();
-				java.util.Date createdDate = DateUtils
-						.toDate(createdDateTimeStamp);
-				String dateOfCreation = DateUtils
-						.convertDateToString(createdDate);
-				createdDateCell.setCellValue(dateOfCreation);
+				setCreatedDateToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
 			if (createdByFlag) {
-				if (!connect.getCreatedBy().isEmpty()) {
-					SXSSFCell createdByCell = (SXSSFCell) spreadSheet.getRow(
-							currentRow - 1).createCell(colNo);
-					createdByCell.setCellValue(connect.getCreatedByUser()
-							.getUserName());
-					colNo++;
-				}
-			}
-			if (modifiedDateFlag) {
-				SXSSFCell modifiedDateCell = (SXSSFCell) spreadSheet.getRow(
-						currentRow - 1).createCell(colNo);
-				Timestamp modifiedDateTimeStamp = connect.getModifiedDatetime();
-				java.util.Date modifiedDate = DateUtils
-						.toDate(modifiedDateTimeStamp);
-				String dateOfModification = DateUtils
-						.convertDateToString(modifiedDate);
-				modifiedDateCell.setCellValue(dateOfModification);
+				setCreatedConnectByToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
 				colNo++;
 			}
-			if (modifieddByFlag) {
-				if (!connect.getModifiedBy().isEmpty()) {
-					SXSSFCell modifiedByCell = (SXSSFCell) spreadSheet.getRow(
-							currentRow - 1).createCell(colNo);
-					modifiedByCell.setCellValue(connect.getModifiedByUser()
-							.getUserName());
-					colNo++;
-				}
+			if (modifiedDateFlag) {
+				setModifiedDateToSpreadSheet(spreadSheet, currentRow, connect, colNo);
+				colNo++;
+			}
+			if (modifiedByFlag) {
+				setModifiedConnectByToSpreadSheet(spreadSheet, currentRow,
+						connect, colNo);
+				colNo++;
 			}
 			if (taskFlag) {
 				List<TaskT> taskList = taskRepository.findByConnectId(connect
@@ -638,6 +512,353 @@ public class ConnectDetailedReportService {
 	}
 
 	/**
+	 * This method is used to set connect modified user to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setModifiedConnectByToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		if (!connect.getModifiedBy().isEmpty()) {
+			SXSSFCell modifiedByCell = (SXSSFCell) spreadSheet.getRow(
+					currentRow - 1).createCell(colNo);
+			modifiedByCell.setCellValue(connect.getModifiedByUser()
+					.getUserName());
+		}
+	}
+
+	/**
+	 * This method is used to set connect created user to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setCreatedConnectByToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		if (!connect.getCreatedBy().isEmpty()) {
+			SXSSFCell createdByCell = (SXSSFCell) spreadSheet.getRow(
+					currentRow - 1).createCell(colNo);
+			createdByCell.setCellValue(connect.getCreatedByUser()
+					.getUserName());
+		}
+	}
+
+	/**
+	 * This method is used to set connect category to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setConnectCategoryToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell categoryCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		categoryCell.setCellValue(connect.getConnectCategory());
+	}
+
+	/**
+	 * This method is used to set end date of connect to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setEndDateOfConnectToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell endDateOfConnectCell = (SXSSFCell) spreadSheet
+				.getRow(currentRow - 1).createCell(colNo);
+		endDateOfConnectCell.setCellValue(connect
+				.getEndDatetimeOfConnect().toString());
+	}
+
+	/**
+	 * This method is used to set start date of connect to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setStartDateOfConnectToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell startDateOfConnectCell = (SXSSFCell) spreadSheet
+				.getRow(currentRow - 1).createCell(colNo);
+		startDateOfConnectCell.setCellValue(connect
+				.getStartDatetimeOfConnect().toString());
+	}
+
+	/**
+	 * This method is used to set country to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setCountryToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell countryCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		countryCell.setCellValue(connect.getGeographyCountryMappingT()
+				.getCountry());
+	}
+
+	/**
+	 * This method is used to set iou to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setIouToSpreadSheet(SXSSFSheet spreadSheet, int currentRow,
+			ConnectT connect, int colNo) {
+		SXSSFCell iouCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		if (connect.getCustomerMasterT() != null) {
+			iouCell.setCellValue(connect.getCustomerMasterT()
+					.getIouCustomerMappingT().getIou());
+		}
+	}
+
+	/**
+	 * This method is used to set customer or partner geography to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setCustomerOrPartnerGeographyToSpreadSheet(
+			SXSSFSheet spreadSheet, int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell geographyCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		if (connect.getCustomerMasterT() != null) {
+			geographyCell.setCellValue(connect.getCustomerMasterT()
+					.getGeographyMappingT().getGeography());
+		} else {
+			geographyCell.setCellValue(connect.getPartnerMasterT()
+					.getGeographyMappingT().getGeography());
+		}
+	}
+
+	/**
+	 * This method is used to set connect primary owner to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setConnectPrimaryOwnerToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell primaryOwnerCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		UserT userT = userRepository.findByUserId(connect
+				.getPrimaryOwner());
+		primaryOwnerCell.setCellValue(userT.getUserName());
+	}
+
+	/**
+	 * This method is used to set connect secondary owners to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setConnectSecondaryOwnersToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		List<String> secondaryOwnersList = userRepository
+				.getSecondaryOwnerNamesByConnectId(connect
+						.getConnectId());
+		SXSSFCell secondaryOwnerCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		secondaryOwnerCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(secondaryOwnersList));
+	}
+
+	/**
+	 * This method is used to set connect notes to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setConnectNotesToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		List<String> connectNotesList = notesTRepository
+				.findConnectNotesByConnectId(connect.getConnectId());
+		SXSSFCell connectNotesCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		connectNotesCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(connectNotesList));
+	}
+
+	/**
+	 * This method is used to set connect link opportunities to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setConnectLinkOpportunityNamesToSpreadSheet(
+			SXSSFSheet spreadSheet, int currentRow, ConnectT connect, int colNo) {
+		List<String> opportunityNames = opportunityRepository
+				.findLinkOpportunityByConnectId(connect.getConnectId());
+		SXSSFCell opportunityCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		opportunityCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(opportunityNames));
+	}
+
+	/**
+	 * This method is used to set modified date to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setModifiedDateToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell modifiedDateCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		Timestamp modifiedDateTimeStamp = connect.getModifiedDatetime();
+		java.util.Date modifiedDate = DateUtils
+				.toDate(modifiedDateTimeStamp);
+		String dateOfModification = DateUtils
+				.convertDateToString(modifiedDate);
+		modifiedDateCell.setCellValue(dateOfModification);
+	}
+
+	/**
+	 * This method is used to set created date to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setCreatedDateToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		SXSSFCell createdDateCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		Timestamp createdDateTimeStamp = connect.getCreatedDatetime();
+		java.util.Date createdDate = DateUtils
+				.toDate(createdDateTimeStamp);
+		String dateOfCreation = DateUtils
+				.convertDateToString(createdDate);
+		createdDateCell.setCellValue(dateOfCreation);
+	}
+
+	/**
+	 * This Method is used to set customer or partner name to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setCustomerOrPartnerNameToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		if (connect.getCustomerMasterT() != null) {
+			SXSSFCell cusPartcell = (SXSSFCell) spreadSheet.getRow(
+					currentRow - 1).createCell(colNo);
+			cusPartcell.setCellValue(connect.getCustomerMasterT()
+					.getCustomerName());
+		} else if (connect.getPartnerMasterT() != null) {
+			SXSSFCell cusPartcell = (SXSSFCell) spreadSheet.getRow(
+					currentRow - 1).createCell(colNo);
+			cusPartcell.setCellValue(connect.getPartnerMasterT()
+					.getPartnerName());
+		}
+	}
+
+	/**
+	 * This method is used to set tcs contact roles to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param tcsAccountContactList
+	 * @param colNo
+	 */
+	private void setTcsContactRolesToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, List<Object[]> tcsAccountContactList, int colNo) {
+		List<String> tcsContactNamesList = new ArrayList<String>();
+		List<String> tcsContactRoles = new ArrayList<String>();
+		SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet
+				.getRow(currentRow - 1).createCell(colNo);
+		for (Object[] tcsAccountContact : tcsAccountContactList) {
+			tcsContactRoles.add((String) tcsAccountContact[1]);
+		}
+		for (int i = 1; i <= tcsAccountContactList.size(); i++) {
+			tcsContactNamesList.add(i + "-"
+					+ tcsContactRoles.get(i - 1));
+		}
+		tcsAccountContactCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
+	}
+
+	/**
+	 * This method is used to set tcs contact names to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param tcsAccountContactList
+	 * @param colNo
+	 */
+	private void setTcsContactNamesToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, List<Object[]> tcsAccountContactList, int colNo) {
+		List<String> tcsContactNamesList = new ArrayList<String>();
+		List<String> tcsContactNames = new ArrayList<String>();
+		SXSSFCell tcsAccountContactCell = (SXSSFCell) spreadSheet
+				.getRow(currentRow - 1).createCell(colNo);
+		for (Object[] tcsAccountContact : tcsAccountContactList) {
+			tcsContactNames.add((String) tcsAccountContact[0]);
+		}
+		for (int i = 1; i <= tcsAccountContactList.size(); i++) {
+			tcsContactNamesList.add(i + "-"
+					+ tcsContactNames.get(i - 1));
+		}
+		tcsAccountContactCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(tcsContactNamesList));
+	}
+
+	/**
+	 * This Method is used to set connect offerings to spreadSheet
+	 * 
+	 * @param spreadSheet
+	 * @param currentRow
+	 * @param connect
+	 * @param colNo
+	 */
+	private void setOfferingsToSpreadSheet(SXSSFSheet spreadSheet,
+			int currentRow, ConnectT connect, int colNo) {
+		List<String> connectOffering = connectOfferingLinkRepository
+				.findOfferingByConnectId(connect.getConnectId());
+		SXSSFCell offeringCell = (SXSSFCell) spreadSheet.getRow(
+				currentRow - 1).createCell(colNo);
+		offeringCell
+				.setCellValue(ExcelUtils
+						.removeSquareBracesAndAppendListElementsAsString(connectOffering));
+	}
+
+	/**
 	 * This Method is used to set primary and secondary subSp to spreadSheet
 	 * 
 	 * @param row
@@ -646,12 +867,8 @@ public class ConnectDetailedReportService {
 	 */
 	private void setConnectSubSpToSpreadSheet(SXSSFRow row, String connectId,
 			int colNo) {
-		List<String> connectSubSpList = new ArrayList<String>();
-		String connectPrimarySubSp = connectSubSpLinkRepository
-				.findPrimarySubSpByConnectId(connectId);
-		connectSubSpList.add(connectPrimarySubSp + ReportConstants.P);
-		connectSubSpList.addAll(connectSubSpLinkRepository
-				.findSubSpByConnectId(connectId));
+		List<String> connectSubSpList = connectSubSpLinkRepository
+				.findSubSpByConnectId(connectId);
 		if (!connectSubSpList.isEmpty()) {
 			row.createCell(colNo).setCellValue(
 					ExcelUtils.removeSquareBracesAndAppendListElementsAsString(connectSubSpList));
@@ -667,13 +884,8 @@ public class ConnectDetailedReportService {
 	 */
 	private void setDisplaySubSpToSpreadSheet(SXSSFRow row, ConnectT connect,
 			int colNo) {
-		List<String> connectDisplaySubSpList = new ArrayList<String>();
-		String connectPrimaryDisplaySubSp = connectSubSpLinkRepository
-				.findPrimaryDisplaySubSpByConnectId(connect.getConnectId());
-		connectDisplaySubSpList.add(connectPrimaryDisplaySubSp
-				+ ReportConstants.P);
-		connectDisplaySubSpList.addAll(connectSubSpLinkRepository
-				.findSecondaryDisplaySubSpByConnectId(connect.getConnectId()));
+		List<String> connectDisplaySubSpList = connectSubSpLinkRepository
+				.findDisplaySubSpByConnectId(connect.getConnectId());
 		if (!connectDisplaySubSpList.isEmpty()) {
 			row.createCell(colNo).setCellValue(
 					ExcelUtils.removeSquareBracesAndAppendListElementsAsString(connectDisplaySubSpList));

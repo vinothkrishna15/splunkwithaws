@@ -65,9 +65,6 @@ public class ConnectSubSpLinkT implements Serializable {
 	@Column(name="sub_sp")
 	private String subSp;
 	
-	@Column(name="subsp_primary")
-	private Boolean subspPrimary;
-
 //bi-directional many-to-one association to UserT
 //@ManyToOne
 //@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
@@ -199,13 +196,5 @@ public class ConnectSubSpLinkT implements Serializable {
 	
 	public void setUserT3(UserT userT3) {
 		this.userT3 = userT3;
-	}
-	
-	public Boolean getSubspPrimary() {
-		return subspPrimary;
-	}
-	
-	public void setSubspPrimary(Boolean subspPrimary) {
-		this.subspPrimary = subspPrimary;
 	}
 }
