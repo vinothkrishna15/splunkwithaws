@@ -663,6 +663,7 @@ public class OpportunityService {
 			boolean isUpdate, String userGroup,
 			OpportunityT opportunityBeforeEdit) throws Exception {
 		logger.debug("Inside saveOpportunity() method");
+		validateOpportunityPrimarySubSp(opportunity);
 		if (userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())
 				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
 			Set<String> owners = new HashSet<String>();
@@ -731,6 +732,33 @@ public class OpportunityService {
 
 	}
 
+	/**
+	* This method validates primary SubSp for a opportunity
+	* 
+	* @param opportunity
+	* @return
+	*/
+	private void validateOpportunityPrimarySubSp(OpportunityT opportunity) {
+		logger.info("Inside validation for opportunity primary SubSp");
+		int countOfPrimarySubSp = 0;
+		for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+				.getOpportunitySubSpLinkTs()) {
+			if (opportunitySubSpLinkT.getSubspPrimary()) {
+				countOfPrimarySubSp++;
+			}
+		}
+		if (countOfPrimarySubSp > 1) {
+			logger.error("Only one primary SubSp is allowed");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Only one SubSp can be primary");
+		} else if (countOfPrimarySubSp == 0) {
+			logger.error("There should be atleast one primary SubSp");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"No primary SubSp");
+		}
+		logger.info("End of validation for opportunity primary SubSp");
+	}
+	
 	/**
 	 * validate a opertunity which has any inactive fields
 	 * @param opportunity
