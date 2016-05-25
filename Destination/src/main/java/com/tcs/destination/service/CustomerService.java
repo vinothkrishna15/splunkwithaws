@@ -142,6 +142,13 @@ public class CustomerService {
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 
+	/**
+	 * This method is used to fetch customer details using customer id
+	 * @param customerId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public CustomerMasterT findById(String customerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Inside findById() service");
@@ -168,13 +175,39 @@ public class CustomerService {
 	public int getOpportunityCountByCustomerId(String customerId)
 			throws Exception {
 		logger.debug("Inside getOpportunityCountByCustomerId() service");
-		//To do - validate privilege
+		boolean isValid=false;
+		int opportunityCount=0;
+		ArrayList<String> customerNameList=new ArrayList<String>();
+		//Validating privilege for user and fetching opportunity count accordingly
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		CustomerMasterT customer= customerRepository.findOne(customerId);
-		if(customer==null){
+		if(customer==null)
+		{
 			logger.info("BAD_REQUEST,Invalid Customer Id");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Invalid Customer Id");
 		}
-		int opportunityCount = opportunityRepository.getOpportunityCountByCustomerId(customerId);
+		else
+        {
+        customerNameList.add(customer.getCustomerName());
+		customerNameList = getPreviledgedCustomerName(userId, customerNameList,
+				true);
+		for(String customerName:customerNameList)
+		{
+			if(customerName.equalsIgnoreCase(customer.getCustomerName()))
+			{
+				 opportunityCount = opportunityRepository.getOpportunityCountByCustomerId(customer.getCustomerId());
+				 isValid=true;
+			}
+		}
+		
+        }
+       
+		if(isValid==false)
+		{
+			logger.info("User doesn't have privilege to this customer");
+		    throw new DestinationException(HttpStatus.FORBIDDEN,"User doesn't have privilege to this customer");
+		}
+
 		return opportunityCount;
 	}
 
@@ -195,16 +228,23 @@ public class CustomerService {
 					+ customerT.getCustomerId());
 		}
 	}
-
-	// for batch save
-	public void save(List<CustomerMasterT> insertList) {
+    
+	/**
+	 * This method is used to save the customer details 
+	 * @param insertList
+	 */
+    public void save(List<CustomerMasterT> insertList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.save(insertList);
 
 	}
 
-	public void delete(List<CustomerMasterT> deleteList) {
+	/**
+	 * This method is used to delete the customer details
+	 * @param deleteList
+	 */
+    public void delete(List<CustomerMasterT> deleteList) {
 
 		logger.debug("Inside save method of customer service");
 		customerRepository.delete(deleteList);
@@ -276,7 +316,7 @@ public class CustomerService {
 		// Execute the native revenue query string
 		Query topRevenueQuery = entityManager.createNativeQuery(queryString, CustomerMasterT.class);
 		topRevenueQuery.setParameter("months",months);
-		List<CustomerMasterT> resultList = topRevenueQuery.getResultList();
+		List<CustomerMasterT> resultList = (ArrayList<CustomerMasterT>)topRevenueQuery.getResultList();
 		if (resultList == null || resultList.isEmpty()) {
 			logger.error("NOT_FOUND: Top revenue customers not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -326,6 +366,14 @@ public class CustomerService {
 				"", false, userId, false);
 	}
 
+	/**
+	 * This method is used to fetch the customer details based upon customer name
+	 * @param nameWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
 			int count) throws Exception {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
@@ -347,6 +395,12 @@ public class CustomerService {
 		return paginatedResponse;
 	}
 
+	/**
+	 * This method is used to fetch customer details based on group customer name
+	 * @param groupCustName
+	 * @return
+	 * @throws Exception
+	 */
 	public List<CustomerMasterT> findByGroupCustomerName(String groupCustName)
 			throws Exception {
 		logger.debug("Inside findByGroupCustomerName() service");
@@ -365,9 +419,17 @@ public class CustomerService {
 		return custList;
 	}
 
+	/**
+	 * This method is used to fetch the customer details whose name starts with using "startsWith" parameter
+	 * @param startsWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
-		// TODO: Paginated Response
+		
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		Pageable pageable = new PageRequest(page, count);
 		logger.debug("Starts With" + startsWith);
@@ -488,6 +550,14 @@ public class CustomerService {
 		return queryBuffer.toString();
 	}
 
+	/**
+	 * This method is used to fetch the customer name based upon priviledge
+	 * @param userId
+	 * @param customerNameList
+	 * @param considerGeoIou
+	 * @return
+	 * @throws Exception
+	 */
 	public ArrayList<String> getPreviledgedCustomerName(String userId,
 			ArrayList<String> customerNameList, boolean considerGeoIou)
 					throws Exception {
@@ -544,7 +614,11 @@ public class CustomerService {
 		}
 
 	}
-
+    
+	/**
+     * This method is used to hide the sensitive information of customer contact
+     * @param customerMasterT
+     */
 	private void hideSensitiveInfo(CustomerMasterT customerMasterT) {
 		logger.debug("Inside hideSensitiveInfo() method");
 
@@ -558,6 +632,7 @@ public class CustomerService {
 	}
 
 	/**
+	 * This method is used to find based upon group customer name based on privilege 
 	 * @param nameWith
 	 *            - string to be searched
 	 * @param userId
@@ -577,10 +652,18 @@ public class CustomerService {
 		Query groupCustomerPrivilegeQuery = entityManager
 				.createNativeQuery(queryString);
 
-		resultList = groupCustomerPrivilegeQuery.getResultList();
+		resultList = (ArrayList<String>) groupCustomerPrivilegeQuery.getResultList();
 
 		return resultList;
 	}
+	
+	/**
+	 * This method is used to fetch the group customer name with access priviledge restrictions applied
+	 * @param userId
+	 * @param nameWith
+	 * @return
+	 * @throws Exception
+	 */
 
 	private String getGroupCustomerPrivilegeQueryString(String userId,
 			String nameWith) throws Exception {
@@ -782,6 +865,18 @@ public class CustomerService {
 		return beaconT;
 	}
 
+	/**
+	 * This methos is used to perform a search 
+	 * @param groupCustomerNameWith
+	 * @param nameWith
+	 * @param geography
+	 * @param displayIOU
+	 * @param inactive
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws DestinationException
+	 */
 	public PaginatedResponse search(String groupCustomerNameWith,
 			String nameWith, List<String> geography, List<String> displayIOU,
 			boolean inactive, int page, int count) throws DestinationException {
@@ -820,7 +915,13 @@ public class CustomerService {
 		}
 		return paginatedResponse;
 	}
-
+    
+	/**
+	 * This method is used to update the customer details
+	 * @param customerMaster
+	 * @return
+	 * @throws Exception
+	 */
 	@Transactional
 	public boolean updateCustomer(CustomerMasterT customerMaster) throws Exception {
 
@@ -876,6 +977,8 @@ public class CustomerService {
 								privilegeValueList.contains(customerMaster.getIou());
 								isBdmWithAccess=true;
 								break;
+							default:
+									break;
 							}
 						}
 
@@ -1127,7 +1230,13 @@ public class CustomerService {
 
 		return isCustomerModifiedFlag;
 	}
-
+   
+	/**
+    * To validate the customer details
+    * @param requestedCustomerT
+    * @return
+    * @throws Exception
+    */
 	private CustomerMasterT validateCustomerDetails(CustomerMasterT requestedCustomerT) throws Exception {
 
 		CustomerMasterT customerToBeSaved = null;
@@ -1163,7 +1272,7 @@ public class CustomerService {
 	 * to validate the customer master details
 	 */
 	private CustomerMasterT validateCustomerMasterDetails(CustomerMasterT customerMaster) throws Exception {
-		// TODO Auto-generated method stub
+		
 
 		CustomerMasterT customerToBeSaved = new CustomerMasterT();
 		CustomerMasterT duplicateCustomer = new CustomerMasterT();
@@ -1363,37 +1472,6 @@ public class CustomerService {
 		return revenueCustomerMappingTs;
 	}
 
-	/**
-	 * This method creates a geography Map
-	 * @return geographyMap
-	 */
-	private Map<String, GeographyMappingT> getGeographyMappingT() {
-		logger.debug("Start: Inside getGeographyMappingT() of CustomerService");
-		List<GeographyMappingT> listOfGeographyMappingT = null;
-		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
-		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
-		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
-			geographyMap.put(geographyMappingT.getGeography(), geographyMappingT);
-		}
-		logger.debug("End: Inside getGeographyMappingT() of CustomerService");
-		return geographyMap;
-	}
-
-	/**
-	 * This method creates a IOU Map
-	 * @return iouMap
-	 */
-	private Map<String, IouCustomerMappingT> getIouMappingT() {
-		logger.debug("Start: Inside getIouMappingT() of CustomerService");
-		List<IouCustomerMappingT> listOfIouMappingT = null;
-		listOfIouMappingT = (List<IouCustomerMappingT>) customerIouMappingTRepository.findAll();
-		Map<String, IouCustomerMappingT> iouMap = new HashMap<String, IouCustomerMappingT>();
-		for (IouCustomerMappingT iouMappingT : listOfIouMappingT) {
-			iouMap.put(iouMappingT.getIou(), iouMappingT);
-		}
-		logger.debug("End: Inside getIouMappingT() of CustomerService");
-		return iouMap;
-	}
 
 	// Customer object is updated into the repository
 	@Transactional
@@ -1401,13 +1479,12 @@ public class CustomerService {
 	{
 
 		String customerId = customerMaster.getCustomerId();
-		CustomerMasterT customerSaved = null;
 		CustomerMasterT oldCustomerObj = customerRepository.findOne(customerId);
 		List<RevenueCustomerMappingT> oldRevenueObj =  revenueRepository.findByCustomerId(customerId);
 		List<BeaconCustomerMappingT> oldBeaconObj = beaconCustomerMappingRepository.findByCustomerId(customerId);
 		// updated customer object is saved to the database
 		if(isCustomerMasterModified(oldCustomerObj, customerMaster,isBdmFlag)){
-			customerSaved = customerRepository.save(oldCustomerObj);
+			 customerRepository.save(oldCustomerObj);
 		}
 		if(customerMaster.getRevenueCustomerMappingTs()!=null)
 		{
