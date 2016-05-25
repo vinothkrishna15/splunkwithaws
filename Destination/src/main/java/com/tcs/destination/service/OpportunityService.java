@@ -659,6 +659,14 @@ public class OpportunityService {
 		opportunityTimelineHistoryTRepository.save(history);
 	}
 
+	/** this method is creates and saves a new opportunity and is also used to edit an existing opportunity
+	 * @param opportunity
+	 * @param isUpdate
+	 * @param userGroup
+	 * @param opportunityBeforeEdit
+	 * @return
+	 * @throws Exception
+	 */
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate, String userGroup,
 			OpportunityT opportunityBeforeEdit) throws Exception {
