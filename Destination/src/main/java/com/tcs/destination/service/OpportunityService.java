@@ -743,7 +743,7 @@ public class OpportunityService {
 		int countOfPrimarySubSp = 0;
 		for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
 				.getOpportunitySubSpLinkTs()) {
-			if (opportunitySubSpLinkT.getSubspPrimary()) {
+			if (opportunitySubSpLinkT.isSubspPrimary()) {
 				countOfPrimarySubSp++;
 			}
 		}
