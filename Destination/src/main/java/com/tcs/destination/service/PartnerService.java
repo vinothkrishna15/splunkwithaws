@@ -110,7 +110,7 @@ public class PartnerService {
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Begin:Inside findById method of PartnerService");
-		PartnerMasterT partner = partnerRepository.findactivepartner(partnerId);
+		PartnerMasterT partner = partnerRepository.findOne(partnerId);
 		if (partner == null) {
 			logger.error("NOT_FOUND: No such partner found.");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
