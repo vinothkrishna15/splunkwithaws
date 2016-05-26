@@ -153,7 +153,7 @@ public class CustomerService {
 			throws Exception {
 		logger.debug("Inside findById() service");
 		CustomerMasterT customerMasterT = customerRepository
-				.findactivecust(customerId);
+				.findOne(customerId);
 		if (customerMasterT == null) {
 			logger.error("NOT_FOUND: Customer not found: {}", customerId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
