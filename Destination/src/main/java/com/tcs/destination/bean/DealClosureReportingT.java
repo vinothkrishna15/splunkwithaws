@@ -1,3 +1,12 @@
+/**
+ * 
+ * DealClosureReportingT.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2016
+ * 
+ * @Copyright 2016 Tata Consultancy 
+ */
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
@@ -36,12 +45,12 @@ public class DealClosureReportingT implements Serializable {
 	private Timestamp createdDateTime;
 
 	@Temporal(TemporalType.DATE)
-	@Column(name="deal_reporting_end_date")
-	private Date dealReportingEndDate;
-
-	@Temporal(TemporalType.DATE)
 	@Column(name="deal_reporting_start_date")
 	private Date dealReportingStartDate;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name="deal_reporting_end_date")
+	private Date dealReportingEndDate;
 
 	@Column(name="modified_by")
 	private String modifiedBy;

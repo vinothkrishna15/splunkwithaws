@@ -1,3 +1,12 @@
+/**
+ * 
+ * DealReportingController.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2016
+ * 
+ * @Copyright 2016 Tata Consultancy 
+ */
 package com.tcs.destination.controller;
 
 import java.util.List;
@@ -66,5 +75,34 @@ public class DealReportingController {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error while creating reporting for deal closure month!");
 		}
+	}
+	
+	/**
+	 * Method to retrieve deal closure data
+	 * 
+	 * @return List of deal closure data
+	 * @throws DestinationException 
+	 */
+	@RequestMapping(value = "/retrieve", method = RequestMethod.GET)
+	public @ResponseBody String getDealMonthReporting(
+			@RequestParam(value = "fields", defaultValue = "dealReportingStartDate, dealReportingEndDate") String fields,
+			@RequestParam(value = "view", defaultValue = "dealClosureData") String view) throws DestinationException{
+		logger.info("Begin dealReporting controller: inside . craete method");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try{
+			List<DealClosureReportingT> dealClosureList = dealReportingService.getDealMonthReporting();
+			
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+							view, dealClosureList);
+		}
+		catch(DestinationException e){
+			throw e;
+		}
+		catch(Exception e){
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error while retriving deal closure reporting data");
+		}
+		
 	}
 }
