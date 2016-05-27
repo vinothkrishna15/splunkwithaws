@@ -20,6 +20,7 @@ public class ViewFieldsMapper {
 		map.put("feedback", "feedbackId,title,description,issueType,module,subModule,priority,status,createdDatetime,updatedDatetime,resolutionComments,createdUser,modifiedUser,userId,userName");
 		map.put("connectreport", "connectId,connectName,customerMasterT,groupCustomerName,geographyMappingT,displayGeography,iouCustomerMappingT,displayIou,connectSubSpLinkTs,subSpMappingT,displaySubSp");
 		map.put("bidreport", "bidRequestType,bidRequestReceiveDate,opportunityT,opportunityDealValues,currency,digitalDealValue,overallDealSize,salesStageCode,opportunitySubSpLinkTs,subSpMappingT,displaySubSp,customerMasterT,groupCustomerName,country,iouCustomerMappingT,displayIou,geographyMappingT,displayGeography");
+		map.put("dealClosureData", "dealReportingStartDate,dealReportingEndDate");
 		VIEW_FIELD_MAP = Collections.unmodifiableMap(map);
 	}
 	

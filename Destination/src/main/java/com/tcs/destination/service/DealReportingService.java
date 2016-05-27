@@ -1,13 +1,19 @@
+/**
+ * 
+ * DealReportingService.java 
+ *
+ * @author TCS
+ * @Version 1.0 - 2016
+ * 
+ * @Copyright 2016 Tata Consultancy 
+ */
 package com.tcs.destination.service;
 
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +29,17 @@ import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
 
+/**
+ * This DealReportingService class holds the services for handling deal closure data
+ * 
+ */
 @Service
 public class DealReportingService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DealReportingService.class); 
 	
 	@Autowired
-	DealReportingRepository DealReportingRepository;
+	DealReportingRepository dealReportingRepository;
 	
 	@Autowired
 	UserRepository userRepository;
@@ -39,7 +49,6 @@ public class DealReportingService {
 		String userId = user.getUserId();
 		UserT userT = userRepository.findByUserId(userId);
 		String userRole = userT.getUserRole();
-		int i=0;
 		if(UserRole.contains(userRole)){
 			switch (UserRole.valueOf(UserRole.getName(userRole))){
 			case SYSTEM_ADMIN:
@@ -47,7 +56,7 @@ public class DealReportingService {
 					for(DealClosureReportingT monthsSelected : monthsSelectedList){
 						monthsSelected.setCreatedBy(userId);
 						monthsSelected.setActive(true);
-						DealReportingRepository.save(monthsSelected);
+						dealReportingRepository.save(monthsSelected);
 						status.setStatus(Status.SUCCESS, "The reporting Months for deal closure are selected!");
 					}
 				}
@@ -74,5 +83,27 @@ public class DealReportingService {
 					"Deal Reporting End Date is empty");
 		}
 		return true;
+	}
+	
+	/**
+	 * Method to retrieve active deal closure data
+	 *  
+	 * @return List<DealClosureReportingT>
+	 */
+	public List<DealClosureReportingT> getDealMonthReporting() {
+		
+		logger.debug("Entering method: getDealMonthReporting");
+		
+		List<DealClosureReportingT> dealClosureList = dealReportingRepository.findByActiveOrderByDealReportingStartDate(true);
+		
+		if (CollectionUtils.isEmpty(dealClosureList)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No active deal closure reporting data is available");
+		}
+		
+		logger.debug("Exit method: getDealMonthReporting");
+		
+		return dealClosureList;
+		
 	}
 }
