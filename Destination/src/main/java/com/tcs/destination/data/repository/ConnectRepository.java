@@ -656,40 +656,29 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	
 	/* ---------- repository methods for smart search --------- */
 	
-	@Query(value = "SELECT connect_id, connect_name FROM connect_t "
-			+ "WHERE UPPER(connect_name) like UPPER(:term) "
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE UPPER(connect_name) LIKE UPPER(:term) "
 			+ "ORDER BY modified_datetime DESC "
-			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
-	List<Object[]> searchByConnectName(@Param("term") String term, @Param("limit") int limit);
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByConnectName(@Param("term") String term, @Param("getAll") boolean getAll);
 	
-	@Query(value = "SELECT customer_id,customer_name FROM customer_master_t "
-			+ "WHERE UPPER(customer_name) LIKE UPPER(:term) AND customer_id IN (SELECT DISTINCT(customer_id) FROM connect_t) "
-			+ "ORDER BY customer_name "
-			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
-	List<Object[]> searchByCustomerName(@Param("term") String term, @Param("limit") int limit);
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByCustomerName(@Param("term") String term, @Param("getAll") boolean getAll);
 
-	@Query(value = "SELECT partner_id,partner_name FROM partner_master_t "
-			+ "WHERE UPPER(partner_name) LIKE UPPER(:term) AND partner_id IN (SELECT DISTINCT(partner_id) FROM connect_t) "
-			+ "ORDER BY partner_name "
-			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
-	List<Object[]> searchByPartnerName(@Param("term") String term, @Param("limit") int limit);
-
-	@Query(value = "SELECT sub_sp AS id, sub_sp FROM sub_sp_mapping_t "
-			+ "WHERE sub_sp IN (SELECT DISTINCT(sub_sp) FROM connect_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
-			+ "ORDER BY sub_sp "
-			+ "LIMIT CASE WHEN :limit=3 THEN 3 ELSE null END", nativeQuery = true)
-	List<Object[]> searchBySubsp(@Param("term") String term, @Param("limit") int limit);
-
-	Page<ConnectT> findByCustomerId(String id, Pageable pageable);
-
-	Page<ConnectT> findByPartnerId(String id, Pageable pageable);
-	
 	@Query(value = "SELECT * FROM connect_t  "
-			+ "WHERE connect_id IN (SELECT connect_id FROM connect_sub_sp_link_t WHERE sub_sp=:subsp)", nativeQuery = true)
-	List<ConnectT> findBySubsp(@Param("subsp") String subsp);
-	
-	
-	
+			+ "WHERE partner_id IN (SELECT partner_id FROM partner_master_t WHERE UPPER(partner_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE connect_id IN (SELECT DISTINCT(connect_id) FROM connect_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchBySubsp(@Param("term") String term, @Param("getAll") boolean getAll);
 
 	/* ---------- ends - repository methods for smart search --------- */
 }

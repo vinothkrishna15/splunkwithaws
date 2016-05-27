@@ -24,8 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tcs.destination.bean.ConnectNameKeywordSearch;
 import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.SearchResultResponseDTO;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -528,18 +529,21 @@ public class ConnectController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(value = "/search/smart", method = RequestMethod.POST)
-	public @ResponseBody SearchResultResponseDTO smartSearch(
+	public @ResponseBody String smartSearch(
 			@RequestParam("type") String type,
 			@RequestParam("term") String term,
 			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
 		logger.info("Inside ConnectController: smart search by search term");
 		try {
-			SearchResultResponseDTO res = connectService.smartSearch(SmartSearchType.get(type), term, getAll);
+			PageDTO<SearchResultDTO<ConnectT>> res = connectService.smartSearch(SmartSearchType.get(type), term, getAll, page, count);
 			logger.info("Inside ConnectController: End - smart search by search term");
-			return res;
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, res, !getAll);
 		} catch (Exception e) {
 			logger.error("Error on smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -547,39 +551,4 @@ public class ConnectController {
 		}
 		
 	}
-	
-	/**
-	 * 
-	 * @param type
-	 * @param id
-	 * @param fields
-	 * @param view
-	 * @return
-	 * @throws DestinationException
-	 */
-	@RequestMapping(value = "/search/select", method = RequestMethod.POST)
-	public @ResponseBody String smartSearchSelect(
-			@RequestParam("type") String type,
-			@RequestParam("id") String id,
-			@RequestParam(value = "page", defaultValue = "0") int page,
-			@RequestParam(value = "count", defaultValue = "30") int count,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-					throws DestinationException {
-		//TODO requirement not yet freeze. method may not required 
-		logger.info("Inside ConnectController: smart search by search term");
-		try {
-			PaginatedResponse connectList = connectService.smartSearchSelect(SmartSearchType.get(type), id, page, count);
-			logger.info("Inside ConnectController: End of retrieving Connects by list of connect id's");
-			return ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, connectList);
-		} catch (Exception e) {
-			logger.error("Error on smart search select - ", e);
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while retrieving connects list");
-		}
-		
-	}
-	
-
 }

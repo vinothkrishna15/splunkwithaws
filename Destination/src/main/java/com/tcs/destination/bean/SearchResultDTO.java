@@ -5,12 +5,12 @@ import java.util.List;
 
 import com.tcs.destination.enums.SmartSearchType;
 
-public class SearchResultDTO implements Serializable {
+public class SearchResultDTO<T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
 	private SmartSearchType type;
-	private List<SearchResult> values;
+	private List<T> values;
 	
 	public SmartSearchType getType() {
 		return type;
@@ -18,10 +18,10 @@ public class SearchResultDTO implements Serializable {
 	public void setType(SmartSearchType type) {
 		this.type = type;
 	}
-	public List<SearchResult> getValues() {
+	public List<T> getValues() {
 		return values;
 	}
-	public void setValues(List<SearchResult> values) {
+	public void setValues(List<T> values) {
 		this.values = values;
 	}
 	

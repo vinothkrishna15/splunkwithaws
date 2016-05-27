@@ -6,6 +6,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 /**
  * This class performs Pagination
  * 
@@ -65,12 +67,12 @@ public class PaginationUtils {
 	 */
 	public static <T> List<T> paginateList(int page, int count,
 			List<T> list) {
-		List<T> trimlist = null;
+		List<T> trimlist = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(list) && PaginationUtils.isValidPagination(page, count, list.size())) {
 			int size = list.size();
 			int fromIndex = PaginationUtils.getStartIndex(page, count, size);
 			int toIndex = PaginationUtils.getEndIndex(page, count, size) + 1;
-			 trimlist = list.subList(fromIndex, toIndex);
+			trimlist = list.subList(fromIndex, toIndex);
 			logger.debug("PaginationUtils after pagination size is {}", size);
 		}
 		return trimlist;
