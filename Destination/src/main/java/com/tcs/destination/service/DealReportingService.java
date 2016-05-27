@@ -39,26 +39,17 @@ public class DealReportingService {
 		String userId = user.getUserId();
 		UserT userT = userRepository.findByUserId(userId);
 		String userRole = userT.getUserRole();
-		//Date DatesOfMonth[] = new Date[2]; 
 		int i=0;
-	//	List<DealClosureReportingT> monthsSelectedList = new ArrayList<DealClosureReportingT>();
 		if(UserRole.contains(userRole)){
 			switch (UserRole.valueOf(UserRole.getName(userRole))){
 			case SYSTEM_ADMIN:
 				if(monthsSelectedList!=null){
 					for(DealClosureReportingT monthsSelected : monthsSelectedList){
-						//if(validateDealReporting(dealClosureReportingt)){
 						monthsSelected.setCreatedBy(userId);
-						//monthsSelected.setDealReportingStartDate(monthsSelected.getDealReportingStartDate());
-						//monthsSelected.setDealReportingEndDate(monthsSelected.getDealReportingEndDate());
-						System.out.println("iteration" + i);
-						System.out.println("deal start date" + monthsSelected.getDealReportingStartDate());
-						System.out.println("deal start date" +monthsSelected.getDealReportingEndDate());
-						i++;
+						monthsSelected.setActive(true);
 						DealReportingRepository.save(monthsSelected);
 						status.setStatus(Status.SUCCESS, "The reporting Months for deal closure are selected!");
 					}
-					
 				}
 				break;
 			default:
