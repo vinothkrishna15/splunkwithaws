@@ -79,6 +79,7 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.QueryConstants;
 import com.tcs.destination.utils.StringUtils;
+
 /**
  * This service contains workflow related functionalities
  * 
@@ -102,7 +103,7 @@ public class WorkflowService {
 
 	@Value("${workflowPartnerRejected}")
 	private String workflowPartnerRejectedSubject;
-	
+
 	@Value("${workflowCompetitorApproved}")
 	private String workflowCompetitorApprovedSubject;
 
@@ -118,7 +119,7 @@ public class WorkflowService {
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
 
-	@Autowired 
+	@Autowired
 	WorkflowStepTRepository workflowStepTRepository;
 
 	@Autowired
@@ -159,7 +160,7 @@ public class WorkflowService {
 
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
-	
+
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
@@ -168,7 +169,7 @@ public class WorkflowService {
 
 	@Autowired
 	OpportunityRepository workflowOpportunityRepository;
-	
+
 	@Autowired
 	CompetitorRepository competitorRepository;
 
@@ -197,7 +198,7 @@ public class WorkflowService {
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
 		UserT user = userRepository.findByUserId(userId);
 
-		try{
+		try {
 			if (validateWorkflowRequest(workflowCustomerT)) {
 				requestSteps = workflowStepTRepository
 						.findStepForEditAndApprove(Constants.CONSTANT_ZERO,
@@ -205,7 +206,6 @@ public class WorkflowService {
 				masterRequest = workflowRequestTRepository.findRequestedRecord(
 						Constants.CONSTANT_ZERO,
 						workflowCustomerT.getWorkflowCustomerId());
-				UserT requestedUser = masterRequest.getCreatedByUser();
 				for (WorkflowStepT stepRecord : requestSteps) {
 					if (stepRecord.getStepStatus().equals(
 							WorkflowStatus.PENDING.getStatus())) {
@@ -273,7 +273,8 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
-				if(masterRequest.getStatus().equals(WorkflowStatus.APPROVED.getStatus())){
+				if (masterRequest.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
 					sendEmailNotificationforApprovedOrRejectMail(
 							workflowCustomerApprovedSubject,
 							masterRequest.getRequestId(),
@@ -432,7 +433,8 @@ public class WorkflowService {
 				try {
 					logger.debug("Inside run() method of WorkflowNotificationForPending");
 					Thread.sleep(15000);
-					mailUtils.sendWorkflowPendingMail(requestId,date,entityTypeId);
+					mailUtils.sendWorkflowPendingMail(requestId, date,
+							entityTypeId);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					logger.error("Error sending email " + e.getMessage());
@@ -745,7 +747,6 @@ public class WorkflowService {
 
 		int stepId = -1;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		UserT user = userRepository.findByUserId(userId);
 		stepId = workflowStepT.getStepId();
 		WorkflowStepT workflowStepToReject = new WorkflowStepT();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
@@ -754,12 +755,13 @@ public class WorkflowService {
 				workflowStepToReject = workflowStepTRepository.findStep(stepId);
 				if (workflowStepToReject != null
 						&& workflowStepToReject.getStepStatus()
-						.equalsIgnoreCase(
-								WorkflowStatus.PENDING.getStatus())) {
+								.equalsIgnoreCase(
+										WorkflowStatus.PENDING.getStatus())) {
 					masterRequest = workflowRequestTRepository
 							.findOne(workflowStepToReject.getRequestId());
-					
-					UserT requestedUser = userRepository.findByUserId(masterRequest.getCreatedBy());
+
+					UserT requestedUser = userRepository
+							.findByUserId(masterRequest.getCreatedBy());
 					workflowStepToReject.setUserId(userId);
 					workflowStepToReject.setStepStatus(workflowStepT
 							.getStepStatus());
@@ -768,8 +770,7 @@ public class WorkflowService {
 							&& (workflowStepT.getComments() != null)) {
 						workflowStepToReject.setComments(workflowStepT
 								.getComments());
-						
-						
+
 					} else {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"Comments is mandatory: give reason for rejection");
@@ -779,8 +780,14 @@ public class WorkflowService {
 					workflowStepTRepository.save(workflowStepToReject);
 					workflowRequestTRepository.save(masterRequest);
 
-					if(masterRequest.getEntityTypeId().equals(EntityTypeId.CUSTOMER.getType())){
-						sendEmailNotificationforApprovedOrRejectMail(workflowCustomerRejectedSubject + " " + requestedUser.getUserName(),masterRequest.getRequestId(),masterRequest.getCreatedDatetime(),EntityTypeId.CUSTOMER.getType());
+					if (masterRequest.getEntityTypeId().equals(
+							EntityTypeId.CUSTOMER.getType())) {
+						sendEmailNotificationforApprovedOrRejectMail(
+								workflowCustomerRejectedSubject + " "
+										+ requestedUser.getUserName(),
+								masterRequest.getRequestId(),
+								masterRequest.getCreatedDatetime(),
+								EntityTypeId.CUSTOMER.getType());
 					}
 					if (masterRequest.getEntityTypeId().equals(
 							EntityTypeId.PARTNER.getType())) {
@@ -854,7 +861,8 @@ public class WorkflowService {
 										+ " is submitted for approval");
 						// Sending email notification to whom with the request
 						// is pending currently
-						logger.debug("Request Id "+workflowRequest.getRequestId());
+						logger.debug("Request Id "
+								+ workflowRequest.getRequestId());
 						sendEmailNotificationforPending(
 								workflowRequest.getRequestId(), new Date(),
 								entityTypeId);
@@ -882,7 +890,7 @@ public class WorkflowService {
 	 */
 	private WorkflowRequestT populateWorkflowRequest(String entityId,
 			Integer entityTypeId, String userId, String comments)
-					throws Exception {
+			throws Exception {
 		logger.info("Inside Start of populateWorkflowRequest method");
 		List<WorkflowStepT> workflowSteps = null;
 		UserT user = userRepository.findByUserId(userId);
@@ -984,11 +992,11 @@ public class WorkflowService {
 			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
 				for (WorkflowProcessTemplate workflowProcessTemplateForNotApplicable : workflowTemplatesForNotapplicable) {
 					workflowSteps
-					.add(constructWorkflowStep(
-							workflowProcessTemplateForNotApplicable,
-							userId,
-							WorkflowStatus.NOT_APPLICABLE.getStatus(),
-							comments));
+							.add(constructWorkflowStep(
+									workflowProcessTemplateForNotApplicable,
+									userId,
+									WorkflowStatus.NOT_APPLICABLE.getStatus(),
+									comments));
 				}
 			}
 
@@ -1111,7 +1119,6 @@ public class WorkflowService {
 		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
-			UserT user = userRepository.findByUserId(userId);
 			WorkflowCustomerDetailsDTO workflowCustomerDetailsDTO = new WorkflowCustomerDetailsDTO();
 			if (requestedCustomerId != null) {
 				// Request details are retrieved based on Id
@@ -1135,13 +1142,13 @@ public class WorkflowService {
 
 						if (workflowCustomer != null) {
 							workflowCustomer
-							.setRevenueCustomerMappingTs(revenueRepository
-									.getRevenueCustomerMappingForWorkflowCustomer(requestedCustomerId));
+									.setRevenueCustomerMappingTs(revenueRepository
+											.getRevenueCustomerMappingForWorkflowCustomer(requestedCustomerId));
 							workflowCustomer
-							.setBeaconCustomerMappingTs(beaconRepository
-									.getBeaconMappingForWorkflowCustomer(requestedCustomerId));
+									.setBeaconCustomerMappingTs(beaconRepository
+											.getBeaconMappingForWorkflowCustomer(requestedCustomerId));
 							workflowCustomerDetailsDTO
-							.setRequestedCustomer(workflowCustomer);
+									.setRequestedCustomer(workflowCustomer);
 
 							// Get the workflow steps associated with the new
 							// customer request
@@ -1149,10 +1156,10 @@ public class WorkflowService {
 									.getWorkflowStepTs();
 							if (workflowSteps != null) {
 								workflowCustomerDetailsDTO
-								.setWorkflowSteps(workflowSteps);
+										.setWorkflowSteps(workflowSteps);
 								// Check if user is authorized to access the
 								// request details
-							checkAuthorizedUser(workflowSteps, userId);						
+								checkAuthorizedUser(workflowSteps, userId);
 							} else {
 								logger.info("No step details found for workflow customer id: "
 										+ workflowCustomerId);
@@ -1231,7 +1238,7 @@ public class WorkflowService {
 
 						if (workflowPartner != null) {
 							workflowPartnerDetailsDTO
-							.setRequestedPartner(workflowPartner);
+									.setRequestedPartner(workflowPartner);
 
 							// Get the workflow steps associated with the new
 							// partner request
@@ -1239,7 +1246,7 @@ public class WorkflowService {
 									.getWorkflowStepTs();
 							if (workflowSteps != null) {
 								workflowPartnerDetailsDTO
-								.setWorkflowSteps(workflowSteps);
+										.setWorkflowSteps(workflowSteps);
 								// Check if user is authorized to access the
 								// request details
 								checkAuthorizedUser(workflowSteps, userId);
@@ -1284,9 +1291,10 @@ public class WorkflowService {
 					"Backend error while retrieving request partner details");
 		}
 	}
-	
+
 	/**
 	 * This method is used to retrieve workflow competitor details based on Id.
+	 * 
 	 * @param requestedCompetitorId
 	 * @return
 	 */
@@ -1294,7 +1302,8 @@ public class WorkflowService {
 			Integer requestedCompetitorId) {
 		logger.debug("Inside findRequestedCompetitorDetailsById() service: Start");
 		try {
-			String userId =  DestinationUtils.getCurrentUserDetails().getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails()
+					.getUserId();
 			WorkflowCompetitorDetailsDTO workflowCompetitorDetailsDTO = new WorkflowCompetitorDetailsDTO();
 			if (requestedCompetitorId != null) {
 				// Request details are retrieved based on Id
@@ -1302,7 +1311,8 @@ public class WorkflowService {
 						.findByRequestId(requestedCompetitorId);
 				if (workflowRequest != null) {
 
-					// Check if the particular request is a new competitor request
+					// Check if the particular request is a new competitor
+					// request
 					if (workflowRequest.getEntityTypeId() == EntityTypeId.COMPETITOR
 							.getType()) {
 
@@ -1318,14 +1328,16 @@ public class WorkflowService {
 								.findOne(workflowCompetitorId);
 
 						if (workflowCompetitor != null) {
-							workflowCompetitorDetailsDTO.setRequestedCompetitor(workflowCompetitor);
-							
+							workflowCompetitorDetailsDTO
+									.setRequestedCompetitor(workflowCompetitor);
+
 							// Get the workflow steps associated with the new
 							// competitor request
-							List<WorkflowStepT> workflowSteps = workflowRequest.getWorkflowStepTs();
+							List<WorkflowStepT> workflowSteps = workflowRequest
+									.getWorkflowStepTs();
 							if (workflowSteps != null) {
 								workflowCompetitorDetailsDTO
-								.setWorkflowSteps(workflowSteps);
+										.setWorkflowSteps(workflowSteps);
 								// Check if user is authorized to access the
 								// request details
 								checkAuthorizedUser(workflowSteps, userId);
@@ -1370,7 +1382,7 @@ public class WorkflowService {
 					"Backend error while retrieving request competitor details");
 		}
 	}
-	
+
 	/**
 	 * This service is used to retrieve the worklist of the logged in user
 	 * 
@@ -1399,15 +1411,18 @@ public class WorkflowService {
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
 			// Get all requests
-			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(status, userId);
+			Set<MyWorklistDTO> submittedAndApprovedRequests = getSubmittedAndApprovedRequests(
+					status, userId);
 
-			if (status.equalsIgnoreCase("ALL") || status.equalsIgnoreCase(WorkflowStatus.PENDING.getStatus())) {
+			if (status.equalsIgnoreCase("ALL")
+					|| status.equalsIgnoreCase(WorkflowStatus.PENDING
+							.getStatus())) {
 
 				// Get all requests pending for approval/rejection by user
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
-				
-				 List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+
+				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
@@ -1417,11 +1432,11 @@ public class WorkflowService {
 				listOfPartnerRequests.add(pendingPartnerRequests);
 
 				// Add all the lists of competitor requests
-				 listOfCompetitorRequests.add(pendingCompetitorRequests);
+				listOfCompetitorRequests.add(pendingCompetitorRequests);
 
 				// Add all the lists of opportunity re-open requests
 				listOfOpportunityReopenRequests
-				.add(pendingOpportunityReopenRequests);
+						.add(pendingOpportunityReopenRequests);
 			}
 
 			// Populate the response object
@@ -1430,7 +1445,7 @@ public class WorkflowService {
 			populateResponseList(listOfPartnerRequests,
 					EntityType.PARTNER.toString(), myWorklist);
 			populateResponseList(listOfCompetitorRequests,
-			 EntityType.COMPETITOR.toString(), myWorklist);
+					EntityType.COMPETITOR.toString(), myWorklist);
 			populateResponseList(listOfOpportunityReopenRequests,
 					EntityType.OPPORTUNITY.toString(), myWorklist);
 
@@ -1480,16 +1495,14 @@ public class WorkflowService {
 			Query query1 = entityManager.createNativeQuery(queryBuffer
 					.toString());
 
-
 			query1.setParameter("userId", userId);
 			if (resultList == null) {
 				resultList = query1.getResultList();
-			}
-			else {
+			} else {
 				List<Object[]> resultForPMOPending = query1.getResultList();
 				resultList.addAll(resultForPMOPending);
 			}
-			//query.setParameter("pmoValue", pmoValue);
+			// query.setParameter("pmoValue", pmoValue);
 		}
 		// Query to get pending with group of users, based on user's role and
 		// user group
@@ -1587,27 +1600,29 @@ public class WorkflowService {
 
 				switch (EntityTypeId.valueOf(EntityTypeId.getName(requestT
 						.getEntityTypeId()))) {
-						case CUSTOMER:
-							myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
-							myWorklistDTO.setEntityName(workflowCustomerRepository
-									.findOne(requestT.getEntityId()).getCustomerName());
-							break;
-						case PARTNER:
-							myWorklistDTO.setEntityType(PARTNER.getDisplayName());
-							myWorklistDTO.setEntityName(workflowPartnerRepository
-									.findOne(requestT.getEntityId()).getPartnerName());
-							break;
-						case COMPETITOR:
-							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
-							myWorklistDTO.setEntityName(workflowCompetitorRepository
-									.findOne(requestT.getEntityId())
-									.getWorkflowCompetitorName());
-							break;
-						case OPPORTUNITY:
-							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY
-									.getDisplayName());
-							myWorklistDTO.setEntityName(workflowOpportunityRepository.findOne(requestT.getEntityId()).getOpportunityName());
-							break;
+				case CUSTOMER:
+					myWorklistDTO.setEntityType(CUSTOMER.getDisplayName());
+					myWorklistDTO.setEntityName(workflowCustomerRepository
+							.findOne(requestT.getEntityId()).getCustomerName());
+					break;
+				case PARTNER:
+					myWorklistDTO.setEntityType(PARTNER.getDisplayName());
+					myWorklistDTO.setEntityName(workflowPartnerRepository
+							.findOne(requestT.getEntityId()).getPartnerName());
+					break;
+				case COMPETITOR:
+					myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
+					myWorklistDTO.setEntityName(workflowCompetitorRepository
+							.findOne(requestT.getEntityId())
+							.getWorkflowCompetitorName());
+					break;
+				case OPPORTUNITY:
+					myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY
+							.getDisplayName());
+					myWorklistDTO.setEntityName(workflowOpportunityRepository
+							.findOne(requestT.getEntityId())
+							.getOpportunityName());
+					break;
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
 				myWorklistDTO.setEntityId(requestT.getEntityId());
@@ -1714,27 +1729,28 @@ public class WorkflowService {
 					}
 					if (MyWorklistDTOArray[9] != null) {
 						workflowStep
-						.setUserId(MyWorklistDTOArray[9].toString());
+								.setUserId(MyWorklistDTOArray[9].toString());
 						workflowStep
-						.setUser(userRepository
-								.findByUserId(MyWorklistDTOArray[9]
-										.toString()));
+								.setUser(userRepository
+										.findByUserId(MyWorklistDTOArray[9]
+												.toString()));
 					}
 					if (MyWorklistDTOArray[1] != null) {
 						workflowStep.setStepStatus(MyWorklistDTOArray[1]
 								.toString());
 					}
-					/*	if (MyWorklistDTOArray[7] != null) {
-						workflowStep.setComments(MyWorklistDTOArray[7]
-								.toString());
-					}*/
+					/*
+					 * if (MyWorklistDTOArray[7] != null) {
+					 * workflowStep.setComments(MyWorklistDTOArray[7]
+					 * .toString()); }
+					 */
 					if (MyWorklistDTOArray[9] != null) {
 						workflowStep.setCreatedBy(MyWorklistDTOArray[9]
 								.toString());
 						workflowStep
-						.setCreatedByUser(userRepository
-								.findByUserId(MyWorklistDTOArray[9]
-										.toString()));
+								.setCreatedByUser(userRepository
+										.findByUserId(MyWorklistDTOArray[9]
+												.toString()));
 					}
 					if (MyWorklistDTOArray[10] != null) {
 						String s = MyWorklistDTOArray[10].toString();
@@ -1767,171 +1783,6 @@ public class WorkflowService {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * This method retrieves new customer requests created by user, based on the
-	 * status of request
-	 * 
-	 * @param status
-	 * @param userId
-	 * @return
-	 */
-	private List<Object[]> getMyRequestsForCustomer(String status, String userId) {
-		logger.debug("Inside getMyRequestsForCustomer method : Start");
-		List<Object[]> resultList = null;
-		Query query = null;
-		if (status.equals("ALL")) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX2);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX3);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
-				|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
-			// Query to get new customer requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer
-					.append(QueryConstants.MY_REQUESTS_PENDING_REJECTED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("stepStatus", status);
-		} else if (status.equals(WorkflowStatus.APPROVED.getStatus())) {
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_CUSTOMER_REQUESTS_SUFFIX1);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_WHERE);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		}
-		if (query != null) {
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getMyRequestsForCustomer method : End");
-		return resultList;
-	}
-
-	/**
-	 * This method retrieves new partner requests created by user, based on the
-	 * status of request
-	 * 
-	 * @param status
-	 * @param userId
-	 * @return
-	 */
-	private List<Object[]> getMyRequestsForPartner(String status, String userId) {
-		logger.debug("Inside getMyRequestsForPartner method : Start");
-		// Query to get new partner requests created by user
-		List<Object[]> resultList = null;
-		Query query = null;
-		if (status.equals("ALL")) {
-			// Query to get new partner requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX2);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_SUFFIX3);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		} else if ((status.equals(WorkflowStatus.PENDING.getStatus()))
-				|| (status.equals(WorkflowStatus.REJECTED.getStatus()))) {
-			// Query to get new partner requests created by user
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer
-					.append(QueryConstants.MY_REQUESTS_PENDING_REJECTED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-			query.setParameter("stepStatus", status);
-		} else if (status.equals(WorkflowStatus.APPROVED.getStatus())) {
-			StringBuffer queryBuffer = new StringBuffer(
-					QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-			queryBuffer.append(QueryConstants.MY_PARTNER_REQUESTS_SUFFIX);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_WHERE);
-			queryBuffer.append(QueryConstants.MY_REQUESTS_APPROVED_SUFFIX);
-
-			query = entityManager.createNativeQuery(queryBuffer.toString());
-		}
-		if (query != null) {
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getMyRequestsForPartner method : End");
-		return resultList;
-
-	}
-	
-
-	/**
-	 * This method is used to retrieve requests which are
-	 * approved/rejected(status) by the user
-	 * 
-	 * @param status
-	 * @param userId
-	 * @param entity
-	 * @return
-	 */
-	private List<Object[]> getRequestsApprovedOrRejectedByUser(String status,
-			String userId, String entity) {
-		logger.debug("Inside getRequestsApprovedOrRejectedByUser method : Start");
-		Query query = null;
-		List<Object[]> resultList = null;
-		if (entity.equals(EntityType.CUSTOMER.toString())) {
-			if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
-				// Query to get customer requests APPROVED by user
-				query = entityManager.createNativeQuery(QueryConstants.QUERY_CUSTOMER_FINAL_APPROVED);
-
-			}else
-			{
-				// Query to get customer requests REJECTED by user
-				StringBuffer queryBuffer = new StringBuffer(
-						QueryConstants.QUERY_FOR_CUSTOMER_REQUESTS_PREFIX);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX2);
-				query = entityManager.createNativeQuery(queryBuffer.toString());
-
-			}
-			query.setParameter("stepStatus", status);
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-
-		} else if (entity.equals(EntityType.PARTNER.toString())) {
-			if (status.equalsIgnoreCase(WorkflowStatus.APPROVED.getStatus())) {
-				// Query to get partner requests APPROVED by user
-				query = entityManager
-						.createNativeQuery(QueryConstants.QUERY_PARTNER_FINAL_APPROVED);
-			} else {
-				// Query to get partner requests REJECTED by user
-				StringBuffer queryBuffer = new StringBuffer(
-						QueryConstants.QUERY_FOR_PARTNER_REQUESTS_PREFIX);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX1);
-				queryBuffer
-						.append(QueryConstants.APPROVED_REJECTED_REQUESTS_SUFFIX3);
-				query = entityManager.createNativeQuery(queryBuffer.toString());
-			}
-			query.setParameter("stepStatus", status);
-			query.setParameter("userId", userId);
-			resultList = query.getResultList();
-		}
-		logger.debug("Inside getRequestsApprovedOrRejectedByUser method : End");
-		return resultList;
-
-	}
-
-	/**
-=======
->>>>>>> Destination_v1.8.n.0
 	 * This method is used to retrieve customer requests pending with user
 	 * 
 	 * @param userId
@@ -2127,7 +1978,8 @@ public class WorkflowService {
 	 * @return
 	 * @throws DestinationException
 	 */
-	private void checkAuthorizedUser(List<WorkflowStepT> workflowSteps, String userId)throws DestinationException{
+	private void checkAuthorizedUser(List<WorkflowStepT> workflowSteps,
+			String userId) throws DestinationException {
 		boolean authorizedUserFlag = false;
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
@@ -2472,8 +2324,10 @@ public class WorkflowService {
 			for (BeaconCustomerMappingT bcmpt : workflowCustomerT
 					.getBeaconCustomerMappingTs()) {
 				BeaconCustomerMappingT beaconCustomer = new BeaconCustomerMappingT();
-				//	BeaconCustomerMappingTPK beaconTPK = new BeaconCustomerMappingTPK();
-				beaconCustomer.setBeaconCustomerName(bcmpt.getBeaconCustomerName());
+				// BeaconCustomerMappingTPK beaconTPK = new
+				// BeaconCustomerMappingTPK();
+				beaconCustomer.setBeaconCustomerName(bcmpt
+						.getBeaconCustomerName());
 				beaconCustomer.setBeaconIou(bcmpt.getBeaconIou());
 				beaconCustomer.setCustomerGeography(bcmpt
 						.getCustomerGeography());
@@ -2483,27 +2337,38 @@ public class WorkflowService {
 			}
 		}
 	}
-	
+
 	@Transactional
 	public boolean insertWorkflowCompetitor(
-			WorkflowCompetitorT workflowCompetitorT, Status status) throws Exception {
+			WorkflowCompetitorT workflowCompetitorT, Status status)
+			throws Exception {
 		logger.info("Inside insertWorkflowCompetitor method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		validateWorkflowCompetitor(workflowCompetitorT);
 		workflowCompetitorT.setCreatedBy(userId);
 		workflowCompetitorT.setModifiedBy(userId);
-		WorkflowCompetitorT requestedCompetitor = workflowCompetitorRepository.save(workflowCompetitorT);
-		logger.info("Workflow Competitor saved" +requestedCompetitor.getWorkflowCompetitorId());
-		if(requestedCompetitor != null) {
+		WorkflowCompetitorT requestedCompetitor = workflowCompetitorRepository
+				.save(workflowCompetitorT);
+		logger.info("Workflow Competitor saved"
+				+ requestedCompetitor.getWorkflowCompetitorId());
+		if (requestedCompetitor != null) {
 			String entityId = requestedCompetitor.getWorkflowCompetitorId();
 			String comments = requestedCompetitor.getWorkflowCompetitorNotes();
 			Integer entityTypeId = EntityTypeId.COMPETITOR.getType();
 			WorkflowRequestT workflowRequest = populateWorkflowRequest(
 					entityId, entityTypeId, userId, comments);
-			if(workflowRequest!=null) {
-				if(workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
-					status.setStatus(Status.SUCCESS, "Request for new competitor " +requestedCompetitor.getWorkflowCompetitorName()+ " is submitted for approval");
-					sendEmailNotificationforPending(workflowRequest.getRequestId(), new Date(), entityTypeId);
+			if (workflowRequest != null) {
+				if (workflowRequest.getStatus().equals(
+						WorkflowStatus.PENDING.getStatus())) {
+					status.setStatus(
+							Status.SUCCESS,
+							"Request for new competitor "
+									+ requestedCompetitor
+											.getWorkflowCompetitorName()
+									+ " is submitted for approval");
+					sendEmailNotificationforPending(
+							workflowRequest.getRequestId(), new Date(),
+							entityTypeId);
 				} else {
 					saveToCompetitorTable(requestedCompetitor);
 					status.setStatus(Status.SUCCESS, "Competitor "
@@ -2519,28 +2384,34 @@ public class WorkflowService {
 		// TODO Auto-generated method stub
 		logger.info("Inside saveToCompetitorTable method");
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
-		competitorMappingT.setCompetitorName(requestedCompetitor.getWorkflowCompetitorName());
-		competitorMappingT.setWebsite(requestedCompetitor.getWorkflowCompetitorWebsite());
+		competitorMappingT.setCompetitorName(requestedCompetitor
+				.getWorkflowCompetitorName());
+		competitorMappingT.setWebsite(requestedCompetitor
+				.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
-		logger.info("Competitor saved " +competitorMappingT.getCompetitorName());
-		
+		logger.info("Competitor saved "
+				+ competitorMappingT.getCompetitorName());
+
 	}
 
 	private void validateWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT) {
 		// TODO Auto-generated method stub
-		if(!StringUtils.isEmpty(workflowCompetitorT.getWorkflowCompetitorName())) {
-			if(competitorRepository.findOne(workflowCompetitorT.getWorkflowCompetitorName())!=null) {
+		if (!StringUtils.isEmpty(workflowCompetitorT
+				.getWorkflowCompetitorName())) {
+			if (competitorRepository.findOne(workflowCompetitorT
+					.getWorkflowCompetitorName()) != null) {
 				logger.error("Competitor name already exists");
-				throw new DestinationException(HttpStatus.BAD_REQUEST, "Competitor name already exists");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Competitor name already exists");
 			}
-		}
-		else {
+		} else {
 			logger.error("Competitor name is mandatory");
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Competitor name is mandatory");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Competitor name is mandatory");
 		}
-		
+
 	}
 
 	/**
@@ -2554,7 +2425,7 @@ public class WorkflowService {
 	@Transactional
 	public boolean requestOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
-					throws Exception {
+			throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("Inside requestOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -2587,7 +2458,7 @@ public class WorkflowService {
 										Status.SUCCESS,
 										"Your request to reopen the Opportunity "
 												+ opportunity
-												.getOpportunityName()
+														.getOpportunityName()
 												+ " is submitted");
 							} else {
 								int i = opportunityRepository
@@ -2597,7 +2468,7 @@ public class WorkflowService {
 											Status.SUCCESS,
 											"Opportunity "
 													+ opportunity
-													.getOpportunityName()
+															.getOpportunityName()
 													+ "has been reopened");
 									logger.info("Opportunity reopened :"
 											+ opportunityId);
@@ -2635,7 +2506,7 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Cannot reopen a request which is on "
 							+ opportunity.getSalesStageMappingT()
-							.getSalesStageDescription());
+									.getSalesStageDescription());
 		}
 
 		if (opportunity.getOpportunityOwner().equals(
@@ -2663,7 +2534,7 @@ public class WorkflowService {
 	@Transactional
 	public boolean approveOrRejectOpportunityReopen(
 			OpportunityReopenRequestT opportunityReopenRequestT, Status status)
-					throws Exception {
+			throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("Inside approveOpportunityReopen method");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
@@ -2678,7 +2549,8 @@ public class WorkflowService {
 			if (opportunityReopenRequestT.getApprovedRejectedComments() != null) {
 				WorkflowRequestT workflowRequest = workflowRequestRepository
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
-								opportunityId,WorkflowStatus.PENDING.getStatus());
+								opportunityId,
+								WorkflowStatus.PENDING.getStatus());
 				if (workflowRequest != null) {
 					WorkflowStepT workflowStepPending = workflowStepRepository
 							.findByRequestIdAndStepStatus(
@@ -2695,62 +2567,63 @@ public class WorkflowService {
 							if (workflowNextStep != null) {
 								// If the user is a intermediate approver
 								workflowStepPending
-								.setStepStatus(WorkflowStatus.APPROVED
-										.getStatus());
+										.setStepStatus(WorkflowStatus.APPROVED
+												.getStatus());
 
 								workflowStepPending.setUserId(userId);
 								workflowStepPending
-								.setComments(opportunityReopenRequestT
-										.getApprovedRejectedComments());
+										.setComments(opportunityReopenRequestT
+												.getApprovedRejectedComments());
 								workflowStepPending.setModifiedBy(userId);
 								workflowStep.add(workflowStepPending);
 								// Changing the next step status to pending
 								workflowNextStep
-								.setStepStatus(WorkflowStatus.PENDING
-										.getStatus());
+										.setStepStatus(WorkflowStatus.PENDING
+												.getStatus());
 								workflowNextStep.setModifiedBy(userId);
 								workflowStep.add(workflowNextStep);
 								workflowStepRepository.save(workflowStep);
 								workflowRequest.setModifiedBy(userId);
-								workflowRequestRepository
-								.save(workflowRequest);
+								workflowRequestRepository.save(workflowRequest);
 								logger.info("Request approved "
 										+ workflowRequest.getRequestId());
-								status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
+								status.setStatus(Status.SUCCESS,
+										"The Opportunity reopen request has been approved");
 								sendEmailNotificationforPending(
 										workflowRequest.getRequestId(),
-										workflowRequest
-										.getCreatedDatetime(),
+										workflowRequest.getCreatedDatetime(),
 										entityTypeId);
 
 							} else {
 								// if the user is a final approver
 								workflowStepPending
-								.setStepStatus(WorkflowStatus.APPROVED
-										.getStatus());
+										.setStepStatus(WorkflowStatus.APPROVED
+												.getStatus());
 								workflowStepPending.setUserId(userId);
 								workflowStepPending.setModifiedBy(userId);
 								workflowStepPending
-								.setComments(opportunityReopenRequestT
-										.getApprovedRejectedComments());
+										.setComments(opportunityReopenRequestT
+												.getApprovedRejectedComments());
 								// reopen the opportunity and setting the
 								// status
 								// for
 								// request and step as approved
 								opportunityRepository
-								.reopenOpportunity(opportunityId);
+										.reopenOpportunity(opportunityId);
 
 								workflowStepRepository
-								.save(workflowStepPending);
+										.save(workflowStepPending);
 								workflowRequest
-								.setStatus(WorkflowStatus.APPROVED
-										.getStatus());
+										.setStatus(WorkflowStatus.APPROVED
+												.getStatus());
 								workflowRequest.setModifiedBy(userId);
-								workflowRequestRepository
-								.save(workflowRequest);
+								workflowRequestRepository.save(workflowRequest);
 								logger.info("Request approved and Opportunity Reopened.. Request Id :"
-										+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
-								status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been approved");
+										+ workflowRequest.getRequestId()
+										+ " Opportunity Id :"
+										+ opportunity.getOpportunityId());
+								status.setStatus(Status.SUCCESS,
+										"The Opportunity reopen request has been approved");
 								sendEmailNotificationforApprovedOrRejectMail(
 										workflowOpportunityReopenApprovedSubject,
 										workflowRequest.getRequestId(),
@@ -2759,32 +2632,32 @@ public class WorkflowService {
 							}
 						} else {
 							workflowStepPending
-							.setStepStatus(WorkflowStatus.REJECTED
-									.getStatus());
+									.setStepStatus(WorkflowStatus.REJECTED
+											.getStatus());
 							workflowStepPending.setUserId(userId);
 							workflowStepPending.setModifiedBy(userId);
 							workflowStepPending
-							.setComments(opportunityReopenRequestT
-									.getApprovedRejectedComments());
-							workflowStepRepository
-							.save(workflowStepPending);
-							workflowRequest
-							.setStatus(WorkflowStatus.REJECTED
+									.setComments(opportunityReopenRequestT
+											.getApprovedRejectedComments());
+							workflowStepRepository.save(workflowStepPending);
+							workflowRequest.setStatus(WorkflowStatus.REJECTED
 									.getStatus());
 							workflowRequest.setModifiedBy(userId);
 							workflowRequestRepository.save(workflowRequest);
 							logger.info("Opportunity reopen rejected : Request Id :"
-									+ workflowRequest.getRequestId()+ " Opportunity Id :" +opportunity.getOpportunityId());
-							status.setStatus(Status.SUCCESS, "The Opportunity reopen request has been rejected");
+									+ workflowRequest.getRequestId()
+									+ " Opportunity Id :"
+									+ opportunity.getOpportunityId());
+							status.setStatus(Status.SUCCESS,
+									"The Opportunity reopen request has been rejected");
 							sendEmailNotificationforApprovedOrRejectMail(
 									workflowOpportunityReopenRejectedSubject,
-									workflowRequest.getRequestId(),
-									new Date(), entityTypeId);
+									workflowRequest.getRequestId(), new Date(),
+									entityTypeId);
 						}
 
 					} else {
-						throw new DestinationException(
-								HttpStatus.FORBIDDEN,
+						throw new DestinationException(HttpStatus.FORBIDDEN,
 								"You are not authorised to access this service");
 					}
 
@@ -2805,7 +2678,7 @@ public class WorkflowService {
 
 	/**
 	 * This method is used to check whether the user is having the access to
-	 * aspprove or reject a request
+	 * approve or reject a request
 	 * 
 	 * @param workflowStep
 	 * @param userGroup
@@ -2815,7 +2688,6 @@ public class WorkflowService {
 	 */
 	private boolean checkUserAccess(WorkflowStepT workflowStep,
 			String userGroup, String userRole, String userId) {
-		// TODO Auto-generated method stub
 		logger.info("Inside checkUserAccess method");
 		boolean flag = false;
 		if (workflowStep.getUserGroup() != null) {
@@ -2837,165 +2709,203 @@ public class WorkflowService {
 		}
 		return flag;
 	}
-	
+
 	// competitor workflow
-				public boolean approveCompetitorWorkflowEntity(
-						WorkflowCompetitorT workflowCompetitorT) {
-					int stepId = -1;
-					int requestId = 0;
-					int rowIteration = 0;
-					int step = 0;
-					String oldCompetitorName = null;
-					List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
-					String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-					WorkflowRequestT masterRequest = new WorkflowRequestT();
-					mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
-					UserT user = userRepository.findByUserId(userId);
+	public boolean approveCompetitorWorkflowEntity(
+			WorkflowCompetitorT workflowCompetitorT) {
+		int stepId = -1;
+		int requestId = 0;
+		int rowIteration = 0;
+		int step = 0;
+		String oldCompetitorName = null;
+		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		WorkflowRequestT masterRequest = new WorkflowRequestT();
+		mapOfGeographyMappingT = customerUploadService.getGeographyMappingT();
+		UserT user = userRepository.findByUserId(userId);
 
-					try{
-						if (validateWorkflowCompetitorMasterDetails(workflowCompetitorT) ) {
+		try {
+			if (validateWorkflowCompetitorMasterDetails(workflowCompetitorT)) {
 
-							requestSteps = workflowStepTRepository.findStepForEditAndApprove(Constants.CONSTANT_TWO,workflowCompetitorT.getWorkflowCompetitorId());
-							masterRequest = workflowRequestTRepository.findRequestedRecord(Constants.CONSTANT_TWO,workflowCompetitorT.getWorkflowCompetitorId());
-							for (WorkflowStepT stepRecord : requestSteps){
-								if(stepRecord.getStepStatus().equals(WorkflowStatus.PENDING.getStatus())){
-									stepId = stepRecord.getStepId();
-									requestId = stepRecord.getRequestId();
-									WorkflowCompetitorT oldObject = new WorkflowCompetitorT();
-									if(stepId != -1 && requestId != 0 && rowIteration == 0){
-										oldObject = workflowCompetitorRepository.findOne(workflowCompetitorT.getWorkflowCompetitorId());
-										oldCompetitorName = oldObject.getWorkflowCompetitorName();
-										if (isCompetitorModified(oldObject,workflowCompetitorT)){
-											workflowCompetitorT.setModifiedBy(userId);
-											workflowCompetitorRepository.save(oldObject);
-										}
-										if( user.getUserRole().equals(UserRole.SYSTEM_ADMIN.getValue())){
-											List<CompetitorMappingT> oldCompetitorMasterList = competitorRepository.findByCompetitorNameIgnoreCaseLike(oldCompetitorName);
-											if(oldCompetitorMasterList.size()>0) {
-												for(CompetitorMappingT oldPartnerMaster : oldCompetitorMasterList){
-													saveToCompetitorMasterTables(oldPartnerMaster,workflowCompetitorT);
-												}
-											}
-											else{
-												CompetitorMappingT newCompetitorMaster = new CompetitorMappingT();
-												saveToCompetitorMasterTables(newCompetitorMaster,workflowCompetitorT);
-											}
-										}
-										stepRecord.setUserId(userId);
-										stepRecord.setStepStatus(WorkflowStatus.APPROVED.getStatus());
-										stepRecord.setModifiedBy(userId);
-										if (!StringUtils.isEmpty(workflowCompetitorT.getWorkflowCompetitorNotes())) {
-											stepRecord.setComments(workflowCompetitorT.getWorkflowCompetitorNotes());
-										}
-										// for updating the status in workflow_request_t
-										masterRequest.setModifiedBy(userId);
-										masterRequest.setStatus(WorkflowStatus.APPROVED.getStatus());
-										sendEmailNotificationforApprovedOrRejectMail(workflowCompetitorApprovedSubject,masterRequest.getRequestId(),masterRequest.getCreatedDatetime(), masterRequest.getEntityTypeId());
-										step = stepRecord.getStep()+1;
-										rowIteration++;
+				requestSteps = workflowStepTRepository
+						.findStepForEditAndApprove(Constants.CONSTANT_TWO,
+								workflowCompetitorT.getWorkflowCompetitorId());
+				masterRequest = workflowRequestTRepository.findRequestedRecord(
+						Constants.CONSTANT_TWO,
+						workflowCompetitorT.getWorkflowCompetitorId());
+				for (WorkflowStepT stepRecord : requestSteps) {
+					if (stepRecord.getStepStatus().equals(
+							WorkflowStatus.PENDING.getStatus())) {
+						stepId = stepRecord.getStepId();
+						requestId = stepRecord.getRequestId();
+						WorkflowCompetitorT oldObject = new WorkflowCompetitorT();
+						if (stepId != -1 && requestId != 0 && rowIteration == 0) {
+							oldObject = workflowCompetitorRepository
+									.findOne(workflowCompetitorT
+											.getWorkflowCompetitorId());
+							oldCompetitorName = oldObject
+									.getWorkflowCompetitorName();
+							if (isCompetitorModified(oldObject,
+									workflowCompetitorT)) {
+								workflowCompetitorT.setModifiedBy(userId);
+								workflowCompetitorRepository.save(oldObject);
+							}
+							if (user.getUserRole().equals(
+									UserRole.SYSTEM_ADMIN.getValue())) {
+								List<CompetitorMappingT> oldCompetitorMasterList = competitorRepository
+										.findByCompetitorNameIgnoreCaseLike(oldCompetitorName);
+								if (oldCompetitorMasterList.size() > 0) {
+									for (CompetitorMappingT oldPartnerMaster : oldCompetitorMasterList) {
+										saveToCompetitorMasterTables(
+												oldPartnerMaster,
+												workflowCompetitorT);
 									}
-								}
-
-								if (stepRecord.getStep().equals(step) && (rowIteration == 1)) {
-									stepRecord.setStepStatus(WorkflowStatus.PENDING
-											.getStatus());
-									// for updating the status in workflow_request_t
-									masterRequest.setModifiedBy(userId);
-									masterRequest.setStatus(WorkflowStatus.PENDING.getStatus());
-									stepRecord.setModifiedBy(userId);
-									sendEmailNotificationforPending(masterRequest.getRequestId(),new Date(), masterRequest.getEntityTypeId());
-									rowIteration++;
+								} else {
+									CompetitorMappingT newCompetitorMaster = new CompetitorMappingT();
+									saveToCompetitorMasterTables(
+											newCompetitorMaster,
+											workflowCompetitorT);
 								}
 							}
-							workflowStepTRepository.save(requestSteps);
-							workflowRequestTRepository.save(masterRequest);
+							stepRecord.setUserId(userId);
+							stepRecord.setStepStatus(WorkflowStatus.APPROVED
+									.getStatus());
+							stepRecord.setModifiedBy(userId);
+							if (!StringUtils.isEmpty(workflowCompetitorT
+									.getWorkflowCompetitorNotes())) {
+								stepRecord.setComments(workflowCompetitorT
+										.getWorkflowCompetitorNotes());
+							}
+							// for updating the status in workflow_request_t
+							masterRequest.setModifiedBy(userId);
+							masterRequest.setStatus(WorkflowStatus.APPROVED
+									.getStatus());
+							sendEmailNotificationforApprovedOrRejectMail(
+									workflowCompetitorApprovedSubject,
+									masterRequest.getRequestId(),
+									masterRequest.getCreatedDatetime(),
+									masterRequest.getEntityTypeId());
+							step = stepRecord.getStep() + 1;
+							rowIteration++;
 						}
-					} catch (DestinationException e) {
-						throw e;
-					} catch (Exception e) {
-						logger.error(e.getMessage());
-						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-								"Backend error while approving the request");
 					}
-					return true;
+
+					if (stepRecord.getStep().equals(step)
+							&& (rowIteration == 1)) {
+						stepRecord.setStepStatus(WorkflowStatus.PENDING
+								.getStatus());
+						// for updating the status in workflow_request_t
+						masterRequest.setModifiedBy(userId);
+						masterRequest.setStatus(WorkflowStatus.PENDING
+								.getStatus());
+						stepRecord.setModifiedBy(userId);
+						sendEmailNotificationforPending(
+								masterRequest.getRequestId(), new Date(),
+								masterRequest.getEntityTypeId());
+						rowIteration++;
+					}
 				}
-				
-				
-				/**
-				 * to save the new competitor entity into the competitor master table after 
-				 * @param oldPartnerMaster
-				 * @param workflowCompetitorT
-				 */
-				private void saveToCompetitorMasterTables(CompetitorMappingT oldCompetitorMaster,
-						WorkflowCompetitorT workflowCompetitorT) {
-					String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-					oldCompetitorMaster.setCompetitorName(workflowCompetitorT.getWorkflowCompetitorName());
+				workflowStepTRepository.save(requestSteps);
+				workflowRequestTRepository.save(masterRequest);
+			}
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while approving the request");
+		}
+		return true;
+	}
 
-					//check for  "" in db
-					if(!StringUtils.isEmpty(workflowCompetitorT.getWorkflowCompetitorWebsite())){
-						oldCompetitorMaster.setWebsite(workflowCompetitorT.getWorkflowCompetitorWebsite());
-					}
-					//oldCompetitorMaster.set(userId);
-					competitorRepository.save(oldCompetitorMaster);
-				}
+	/**
+	 * to save the new competitor entity into the competitor master table after
+	 * 
+	 * @param oldPartnerMaster
+	 * @param workflowCompetitorT
+	 */
+	private void saveToCompetitorMasterTables(
+			CompetitorMappingT oldCompetitorMaster,
+			WorkflowCompetitorT workflowCompetitorT) {
+		oldCompetitorMaster.setCompetitorName(workflowCompetitorT
+				.getWorkflowCompetitorName());
 
-				private boolean isCompetitorModified(WorkflowCompetitorT oldObject,
-						WorkflowCompetitorT workflowCompetitorT) {
-					boolean isCompetitorModifiedFlag = false;
-					String website = "";
-					String notes = "";
+		// check for "" in db
+		if (!StringUtils.isEmpty(workflowCompetitorT
+				.getWorkflowCompetitorWebsite())) {
+			oldCompetitorMaster.setWebsite(workflowCompetitorT
+					.getWorkflowCompetitorWebsite());
+		}
+		// oldCompetitorMaster.set(userId);
+		competitorRepository.save(oldCompetitorMaster);
+	}
 
-					//competitor name
-					if (!workflowCompetitorT.getWorkflowCompetitorName().equals(oldObject.getWorkflowCompetitorName())) {
-						oldObject.setWorkflowCompetitorName(workflowCompetitorT.getWorkflowCompetitorName());
-						isCompetitorModifiedFlag = true;
-					}
+	private boolean isCompetitorModified(WorkflowCompetitorT oldObject,
+			WorkflowCompetitorT workflowCompetitorT) {
+		boolean isCompetitorModifiedFlag = false;
+		String website = "";
+		String notes = "";
 
-					//website
-					if(!StringUtils.isEmpty(oldObject.getWorkflowCompetitorWebsite())){
-						website = oldObject.getWorkflowCompetitorWebsite();
-					}
-					if (!workflowCompetitorT.getWorkflowCompetitorWebsite().equals(website)) {
-						oldObject.setWorkflowCompetitorWebsite(workflowCompetitorT.getWorkflowCompetitorWebsite());
-						isCompetitorModifiedFlag = true;
-					}
+		// competitor name
+		if (!workflowCompetitorT.getWorkflowCompetitorName().equals(
+				oldObject.getWorkflowCompetitorName())) {
+			oldObject.setWorkflowCompetitorName(workflowCompetitorT
+					.getWorkflowCompetitorName());
+			isCompetitorModifiedFlag = true;
+		}
 
-					//notes for edit
-					if(!StringUtils.isEmpty(oldObject.getWorkflowCompetitorNotes())){
-						notes = oldObject.getWorkflowCompetitorNotes();
-					}
-					if(!workflowCompetitorT.getWorkflowCompetitorNotes().equals(notes) && (!StringUtils.isEmpty(workflowCompetitorT.getWorkflowCompetitorNotes()))){
-						oldObject.setWorkflowCompetitorNotes(workflowCompetitorT.getWorkflowCompetitorNotes());
-						isCompetitorModifiedFlag = true;
-					}
-					return isCompetitorModifiedFlag;
-				}
+		// website
+		if (!StringUtils.isEmpty(oldObject.getWorkflowCompetitorWebsite())) {
+			website = oldObject.getWorkflowCompetitorWebsite();
+		}
+		if (!workflowCompetitorT.getWorkflowCompetitorWebsite().equals(website)) {
+			oldObject.setWorkflowCompetitorWebsite(workflowCompetitorT
+					.getWorkflowCompetitorWebsite());
+			isCompetitorModifiedFlag = true;
+		}
 
-				/**
-				 *to validate the competitor requests
-				 * @param workflowCompetitorT
-				 * @return
-				 */
-				private boolean validateWorkflowCompetitorMasterDetails(
-						WorkflowCompetitorT workflowCompetitorT) {
-					boolean validated = true;
-					String competitorName = workflowCompetitorT.getWorkflowCompetitorName();
-					// competitor name should not be empty
-					if (StringUtils.isEmpty(competitorName)) {
-						logger.error("competitor Name should not be empty");
-						validated = false;
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"competitor Name should not be empty");
-					}
-					// to check duplicate of competitor name
-					List<CompetitorMappingT> competitorMaster = competitorRepository.findByCompetitorNameIgnoreCaseLike(workflowCompetitorT.getWorkflowCompetitorName());
-					if ((competitorMaster.size() != 0)) {
-						logger.error("competitor name already exists");
-						validated = false;
-						throw new DestinationException(HttpStatus.BAD_REQUEST,
-								"competitor name already exists" + competitorName);
-					}
-					return validated;
-				}
+		// notes for edit
+		if (!StringUtils.isEmpty(oldObject.getWorkflowCompetitorNotes())) {
+			notes = oldObject.getWorkflowCompetitorNotes();
+		}
+		if (!workflowCompetitorT.getWorkflowCompetitorNotes().equals(notes)
+				&& (!StringUtils.isEmpty(workflowCompetitorT
+						.getWorkflowCompetitorNotes()))) {
+			oldObject.setWorkflowCompetitorNotes(workflowCompetitorT
+					.getWorkflowCompetitorNotes());
+			isCompetitorModifiedFlag = true;
+		}
+		return isCompetitorModifiedFlag;
+	}
 
-    }
+	/**
+	 * to validate the competitor requests
+	 * 
+	 * @param workflowCompetitorT
+	 * @return
+	 */
+	private boolean validateWorkflowCompetitorMasterDetails(
+			WorkflowCompetitorT workflowCompetitorT) {
+		boolean validated = true;
+		String competitorName = workflowCompetitorT.getWorkflowCompetitorName();
+		// competitor name should not be empty
+		if (StringUtils.isEmpty(competitorName)) {
+			logger.error("competitor Name should not be empty");
+			validated = false;
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"competitor Name should not be empty");
+		}
+		// to check duplicate of competitor name
+		List<CompetitorMappingT> competitorMaster = competitorRepository
+				.findByCompetitorNameIgnoreCaseLike(workflowCompetitorT
+						.getWorkflowCompetitorName());
+		if ((competitorMaster.size() != 0)) {
+			logger.error("competitor name already exists");
+			validated = false;
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"competitor name already exists" + competitorName);
+		}
+		return validated;
+	}
+
+}
