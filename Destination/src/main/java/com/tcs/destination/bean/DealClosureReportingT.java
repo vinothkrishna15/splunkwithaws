@@ -48,6 +48,9 @@ public class DealClosureReportingT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDateTime;
+	
+	@Column(name="active")
+	private boolean active;
 
 	public DealClosureReportingT() {
 	}
@@ -102,5 +105,13 @@ public class DealClosureReportingT implements Serializable {
 
 	public Integer getReportingId() {
 		return this.reportingId;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }
