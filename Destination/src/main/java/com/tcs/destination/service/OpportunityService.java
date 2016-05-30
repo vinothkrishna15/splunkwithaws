@@ -264,6 +264,7 @@ public class OpportunityService {
 	@Autowired
 	PartnerRepository partnerRepository;
 	
+	@Autowired
 	WorkflowRequestTRepository workflowRequestRepository;
 	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
@@ -489,8 +490,8 @@ public class OpportunityService {
 
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
-		logger.debug("Inside findByOpportunityId() service");
-
+		logger.debug("Inside findByOpportunityId() service");	
+		
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
@@ -510,14 +511,14 @@ public class OpportunityService {
 					.findByEntityTypeIdAndEntityIdAndStatus(
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
-			opportunity.setWorkflowRequest(workflowRequestPending);
+				opportunity.setWorkflowRequest(workflowRequestPending);
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty not found: " + opportunityId);
 		}
-	}
+	} 
 
 	private void restrictOpportunity(OpportunityT opportunity) {
 		opportunity.setDigitalDealValue(null);
