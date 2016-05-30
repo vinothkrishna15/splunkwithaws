@@ -11,6 +11,7 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -24,6 +25,7 @@ import com.tcs.destination.bean.DealClosureReportingT;
 @Repository
 public interface DealReportingRepository extends CrudRepository<DealClosureReportingT, Integer>{
 	
+	@Modifying
 	@Query("update DealClosureReportingT d set d.active = ?1 where d.active = 'true'") 
 	void updateDealClosureActiveStatus(Boolean active);
 	

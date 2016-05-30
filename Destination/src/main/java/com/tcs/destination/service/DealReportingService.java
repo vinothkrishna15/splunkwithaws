@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.DealClosureReportingT;
 import com.tcs.destination.bean.Status;
@@ -44,6 +45,7 @@ public class DealReportingService {
 	@Autowired
 	UserRepository userRepository;
 
+	@Transactional
 	public void createDealMonthReporting(List<DealClosureReportingT> monthsSelectedList, Status status) throws ParseException {
 		UserT user = DestinationUtils.getCurrentUserDetails();
 		String userId = user.getUserId();
