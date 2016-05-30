@@ -1434,7 +1434,7 @@ public class WorkflowService {
 		// Query to get pending with group of users, based on user's role and
 		// user group
 		StringBuffer queryBuffer = new StringBuffer(
-				QueryConstants.PARTNER_PENDING_WITH_GROUP_QUERY);
+				QueryConstants.COMPETITOR_PENDING_WITH_GROUP_QUERY);
 		Query query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userRole", userRole);
 		query.setParameter("userGroup", userGroup);
