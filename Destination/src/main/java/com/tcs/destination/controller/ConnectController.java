@@ -528,7 +528,7 @@ public class ConnectController {
 	 * @return
 	 * @throws DestinationException
 	 */
-	@RequestMapping(value = "/search/smart", method = RequestMethod.POST)
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
 	public @ResponseBody String smartSearch(
 			@RequestParam("searchType") String searchType,
 			@RequestParam("term") String term,

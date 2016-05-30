@@ -113,4 +113,20 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	UserT findByActiveTrueAndUserId(String userId);
 	
 	List<UserT> findUsersByStatusAndActive(int status,boolean active);
+
+	
+	/* ------- user smart search repository methods ------- */
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_id) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByUserId(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByUserName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(supervisor_user_name) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchBySupervisor(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(base_location) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByLocation(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	/* ------- END  - user smart search repository methods ------- */
 }
