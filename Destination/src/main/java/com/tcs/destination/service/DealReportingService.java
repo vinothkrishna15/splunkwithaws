@@ -53,12 +53,13 @@ public class DealReportingService {
 			switch (UserRole.valueOf(UserRole.getName(userRole))){
 			case SYSTEM_ADMIN:
 				if(monthsSelectedList!=null){
+					dealReportingRepository.updateDealClosureActiveStatus(false);
 					for(DealClosureReportingT monthsSelected : monthsSelectedList){
 						monthsSelected.setCreatedBy(userId);
 						monthsSelected.setActive(true);
 						dealReportingRepository.save(monthsSelected);
-						status.setStatus(Status.SUCCESS, "The reporting Months for deal closure are selected!");
 					}
+					status.setStatus(Status.SUCCESS, "The reporting Months for deal closure are selected!");
 				}
 				break;
 			default:
@@ -69,22 +70,6 @@ public class DealReportingService {
 		}
 	}
 
-	private boolean validateDealReporting(
-			DealClosureReportingT dealClosureReportingt) {
-		if(dealClosureReportingt.getDealReportingStartDate() == null){
-			logger.error("NOT_FOUND: Deal Reporting Start Date is empty");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Deal Reporting Start Date is empty");
-		}
-
-		if(dealClosureReportingt.getDealReportingEndDate() == null){
-			logger.error("NOT_FOUND: Deal Reporting End Date is empty");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Deal Reporting End Date is empty");
-		}
-		return true;
-	}
-	
 	/**
 	 * Method to retrieve active deal closure data
 	 *  

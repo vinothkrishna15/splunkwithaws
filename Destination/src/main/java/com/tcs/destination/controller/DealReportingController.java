@@ -52,7 +52,7 @@ public class DealReportingController {
 	 * @return
 	 * @throws DestinationException 
 	 */
-	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	@RequestMapping(value = "/save", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> createMonthReporting(
 			@RequestBody List<DealClosureReportingT> monthsSelected,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
