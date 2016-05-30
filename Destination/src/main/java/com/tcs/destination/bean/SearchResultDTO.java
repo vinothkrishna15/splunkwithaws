@@ -9,14 +9,14 @@ public class SearchResultDTO<T> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private SmartSearchType type;
+	private SmartSearchType searchType;
 	private List<T> values;
 	
-	public SmartSearchType getType() {
-		return type;
+	public SmartSearchType getSearchType() {
+		return searchType;
 	}
-	public void setType(SmartSearchType type) {
-		this.type = type;
+	public void setSearchType(SmartSearchType type) {
+		this.searchType = type;
 	}
 	public List<T> getValues() {
 		return values;

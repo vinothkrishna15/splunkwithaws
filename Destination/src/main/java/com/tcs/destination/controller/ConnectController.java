@@ -520,7 +520,7 @@ public class ConnectController {
 
 	/**
 	 * Service to fetch the connect related information based on search type and the search keyword 
-	 * @param type - category type
+	 * @param searchType - category type
 	 * @param term - keyword
 	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
 	 * @param fields
@@ -530,7 +530,7 @@ public class ConnectController {
 	 */
 	@RequestMapping(value = "/search/smart", method = RequestMethod.POST)
 	public @ResponseBody String smartSearch(
-			@RequestParam("type") String type,
+			@RequestParam("searchType") String searchType,
 			@RequestParam("term") String term,
 			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -540,7 +540,7 @@ public class ConnectController {
 					throws DestinationException {
 		logger.info("Inside ConnectController: smart search by search term");
 		try {
-			PageDTO<SearchResultDTO<ConnectT>> res = connectService.smartSearch(SmartSearchType.get(type), term, getAll, page, count);
+			PageDTO<SearchResultDTO<ConnectT>> res = connectService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
 			logger.info("Inside ConnectController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, res, !getAll);

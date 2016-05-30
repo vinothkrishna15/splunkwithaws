@@ -2045,7 +2045,7 @@ public class ConnectService {
 	private SearchResultDTO<ConnectT> createSearchResultFrom(
 			List<ConnectT> records, SmartSearchType type, boolean getAll) {
 		SearchResultDTO<ConnectT> conRes = new SearchResultDTO<ConnectT>();
-		conRes.setType(type);
+		conRes.setSearchType(type);
 		if(getAll) {
 			prepareConnect(records);
 		}
