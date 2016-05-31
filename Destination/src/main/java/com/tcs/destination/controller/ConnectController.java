@@ -184,6 +184,8 @@ public class ConnectController {
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, dashboardConnectsResponse);
 		
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
