@@ -3,9 +3,11 @@ package com.tcs.destination.service;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
@@ -253,6 +255,14 @@ public class ConnectDetailedReportService {
 		//		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.DATAROW);
 		logger.info("Inside connectReportWithOptionalFields() method");
 		currentRow = currentRow + 1;
+		CellStyle cellStyleTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
+		CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
+		cellStyleTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
+		
+//		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
+//		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy")); 
+
+		
 		boolean iouFlag = fields.contains(ReportConstants.IOU);
 		boolean geoFlag = fields.contains(ReportConstants.GEOGRAPHY);
 		boolean subSpFlag = fields.contains(ReportConstants.SUBSP);
@@ -389,13 +399,15 @@ public class ConnectDetailedReportService {
 
 			if(startDateFlag) {
 				SXSSFCell startDateOfConnectCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				startDateOfConnectCell.setCellValue(connect.getStartDatetimeOfConnect().toString());
+				startDateOfConnectCell.setCellValue(connect.getStartDatetimeOfConnect());
+				startDateOfConnectCell.setCellStyle(cellStyleTimeFormat);
 				colValue++;
 			}
 
 			if(endDateFlag) {
 				SXSSFCell endDateOfConnectCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
-				endDateOfConnectCell.setCellValue(connect.getEndDatetimeOfConnect().toString());
+				endDateOfConnectCell.setCellValue(connect.getEndDatetimeOfConnect());
+				endDateOfConnectCell.setCellStyle(cellStyleTimeFormat);
 				colValue++;
 			}
 
@@ -451,9 +463,9 @@ public class ConnectDetailedReportService {
 			if(createdDateFlag) {
 				SXSSFCell createdDateCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				Timestamp createdDateTimeStamp = connect.getCreatedDatetime();
-				java.util.Date createdDate = DateUtils.toDate(createdDateTimeStamp);
-				String dateOfCreation = DateUtils.convertDateToString(createdDate);
-				createdDateCell.setCellValue(dateOfCreation);
+				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+				createdDateCell.setCellValue(createdDate);
+				createdDateCell.setCellStyle(cellStyleTimeFormat);
 				colValue++;
 			}
 			if(createdByFlag) {
@@ -466,9 +478,9 @@ public class ConnectDetailedReportService {
 			if(modifiedDateFlag) {
 				SXSSFCell modifiedDateCell = (SXSSFCell) spreadSheet.getRow(currentRow - 1).createCell(colValue);
 				Timestamp modifiedDateTimeStamp = connect.getModifiedDatetime();
-				java.util.Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
-				modifiedDateCell.setCellValue(dateOfModification);
+				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+				modifiedDateCell.setCellValue(modifiedDate);
+				modifiedDateCell.setCellStyle(cellStyleTimeFormat);
 				colValue++;
 			}
 			if(modifieddByFlag) {
