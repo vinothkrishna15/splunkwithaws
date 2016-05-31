@@ -232,7 +232,10 @@ public class ConnectService {
 		logger.debug("Inside findConnectById() service");
 		ConnectT connectT = connectRepository.findByConnectId(connectId);
 		if (connectT != null) {
-			prepareConnect(connectT);
+			String userId = DestinationUtils.getCurrentUserId();
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
+			prepareConnect(connectT, userId, userGroup);
 		} else {
 			logger.error("NOT_FOUND: Connect not found: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -591,7 +594,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserId();
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
 		if (UserGroup.contains(userGroup)) {
@@ -823,13 +826,11 @@ public class ConnectService {
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
 		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
-		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-
-			if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
-					userId)) {
-				throw new DestinationException(HttpStatus.FORBIDDEN,
-						"User is not authorized to edit this Connect");
-			}
+		
+		if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
+				userId)) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User is not authorized to edit this Connect");
 		}
 		ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
 		// Copy the db object as the above object is managed by current
@@ -1071,28 +1072,21 @@ public class ConnectService {
 	private void prepareConnect(List<ConnectT> connectTs) {
 		logger.debug("Inside prepareConnect(List<>) method");
 		if (CollectionUtils.isNotEmpty(connectTs)) {
+			String userId = DestinationUtils.getCurrentUserId();
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
 			for (ConnectT connectT : connectTs) {
-				prepareConnect(connectT);
+				prepareConnect(connectT, userId, userGroup);
 			}
 		}
 	}
 
-	private void prepareConnect(ConnectT connectT) {
+	private void prepareConnect(ConnectT connectT, String userId, String userGroup) {
 		logger.debug("Inside prepareConnect() method");
 		if (connectT != null) {
 			try {
-				String userId = DestinationUtils.getCurrentUserDetails()
-						.getUserId();
-				String userGroup = userRepository.findByUserId(userId)
-						.getUserGroup();
-				if (userGroup
-						.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-					connectT.setEnableEditAccess(true);
-				} else {
-					connectT.setEnableEditAccess(isEditAccessRequiredForConnect(
-							connectT, userGroup, userId));
-				}
-
+				connectT.setEnableEditAccess(isEditAccessRequiredForConnect(
+						connectT, userGroup, userId));
 			} catch (Exception e) {
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -1737,7 +1731,9 @@ public class ConnectService {
 			String userGroup, String userId) {
 		logger.info("Inside validateEditAccessForConnect method");
 		boolean isEditAccessRequired = false;
-		if (isUserOwner(userId, connect)) {
+		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+			isEditAccessRequired = true;
+		} else if (isUserOwner(userId, connect)) {
 			isEditAccessRequired = true;
 		} else {
 			switch (UserGroup.getUserGroup(userGroup)) {
@@ -1781,7 +1777,11 @@ public class ConnectService {
 		if (StringUtils.equals(connect.getPrimaryOwner(), userId))
 			return true;
 		else if(CollectionUtils.isNotEmpty(connect.getConnectSecondaryOwnerLinkTs())) {
-			return connect.getConnectSecondaryOwnerLinkTs().contains(userId);
+			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
+					.getConnectSecondaryOwnerLinkTs()) {
+				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(userId))
+					return true;
+			}
 		}
 		return false;
 	}

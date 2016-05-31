@@ -38,7 +38,7 @@ public enum UserGroup {
 	}
 	public static UserGroup getUserGroup(String value) {
 		for (UserGroup c : UserGroup.values()) {
-			if (c.getValue().equals(value)) {
+			if (c.getValue().equalsIgnoreCase(value)) {
 				return c;
 			}
 		}
