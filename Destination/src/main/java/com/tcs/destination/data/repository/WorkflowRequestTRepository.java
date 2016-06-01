@@ -28,22 +28,27 @@ public interface WorkflowRequestTRepository extends
 	public List<WorkflowRequestT> findByCreatedBy(String createdBy);
 
 	/**
+	 * Query fetches submitted or approved or rejected requests by a specific user.
+	 * (based on filter status)
+	 * Except Pending requests with specific user.
 	 * @param userId
 	 * @param status
 	 * @param type
 	 * @return WorkflowRequestT
 	 */
-	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE wf.status = :status  AND ws.userId = :userId ORDER BY ws.stepId")
+	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE wf.status = :status  AND ws.userId = :userId AND ws.stepStatus NOT LIKE 'PENDING' ORDER BY ws.stepId")
 	public List<WorkflowRequestT> getModifiedByAndStatus(
 			@Param("userId") String userId,
 			@Param("status") String status);
 
 	/**
+	 * Query fetches submitted, approved and rejected requests by a specific user.
+	 * Except Pending requests with specific user.
 	 * @param userId
 	 * @param type
 	 * @return WorkflowRequestT
 	 */
-	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE ws.userId = :userId ORDER BY ws.stepId")
+	@Query("SELECT wf FROM WorkflowRequestT wf JOIN wf.workflowStepTs ws WHERE ws.userId = :userId AND ws.stepStatus NOT LIKE 'PENDING' ORDER BY ws.stepId")
 	public List<WorkflowRequestT> getModifiedBy(
 			@Param("userId") String userId);
 

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1435,7 +1434,7 @@ public class WorkflowService {
 		// Query to get pending with group of users, based on user's role and
 		// user group
 		StringBuffer queryBuffer = new StringBuffer(
-				QueryConstants.PARTNER_PENDING_WITH_GROUP_QUERY);
+				QueryConstants.COMPETITOR_PENDING_WITH_GROUP_QUERY);
 		Query query = entityManager.createNativeQuery(queryBuffer.toString());
 		query.setParameter("userRole", userRole);
 		query.setParameter("userGroup", userGroup);
@@ -1461,9 +1460,6 @@ public class WorkflowService {
 		Set<WorkflowRequestT> workFlowRequest = new HashSet<WorkflowRequestT>();
 		List<WorkflowRequestT> workFlowSubmittedRequest = null;
 		List<WorkflowRequestT> workFlowActionedRequest = null;
-		List<WorkflowRequestT> duplicatesRemoved = Lists.newArrayList();
-		boolean isDuplicatesRemoved = false;
-		boolean finalRequestTobeAdded = false;
 
 		if (status.equalsIgnoreCase("ALL")) {
 			workFlowActionedRequest = workflowRequestTRepository
@@ -1477,21 +1473,7 @@ public class WorkflowService {
 
 			workFlowSubmittedRequest = workflowRequestTRepository
 					.findByCreatedByAndStatus(userId, status);
-			Iterator requestIterator = workFlowActionedRequest.iterator();
-			while(requestIterator.hasNext()){
-				WorkflowRequestT requestForAction = (WorkflowRequestT) requestIterator.next();
-				List<WorkflowStepT> workflowStepTs = requestForAction.getWorkflowStepTs();
-				for(WorkflowStepT requestStep : workflowStepTs){
-					if((requestStep.getStepStatus().equals(WorkflowStatus.PENDING.getStatus()) && requestStep.getUserId() != null && requestStep.getUserId().equalsIgnoreCase(Constants.PMO_PENDING_WITH_SPECIFIC_USER))){
-						duplicatesRemoved.add(requestForAction);
-						break;
-					}
-				}
-				
-			}
-			workFlowActionedRequest.removeAll(duplicatesRemoved);
 		}
-		
 
 		if (CollectionUtils.isNotEmpty(workFlowSubmittedRequest)) {
 			workFlowRequest.addAll(workFlowSubmittedRequest);

@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -350,9 +350,6 @@ public class BDMDetailedReportService {
 				}
 			} else {
 				setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(currentRow, spreadSheet, cellStyle, currency, fields, isIncludingSupervisor);
-				if(currency.size()>1){
-					currentRow++;
-				}
 				setBDMReportAlongWithOptionalFieldsDetail(currentRow, spreadSheet, opportunityList, currency, fields, isIncludingSupervisor);
 			}
 		}
@@ -384,6 +381,11 @@ public class BDMDetailedReportService {
 			boolean createdDateFlag = fields.contains(ReportConstants.CREATEDDATE);
 			boolean modifiedByFlag = fields.contains(ReportConstants.MODIFIEDBY);
 			boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
+			CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
+			CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
+			CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
+			cellStyleDateTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
+			cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
 			
 			for(OpportunityT opportunity:opportunityList){
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
@@ -488,7 +490,8 @@ public class BDMDetailedReportService {
 			//set deal closure date
 			if (dealClosureDateFlag) {
 				if(opportunity.getDealClosureDate() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
+					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
 				}
 				colValue++;
 			}
@@ -502,9 +505,8 @@ public class BDMDetailedReportService {
 			if (createdDateFlag) {
 				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
 				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
-				
-				String dateOfCreation = DateUtils.convertDateToString(createdDate);
-				row.createCell(colValue).setCellValue(getFormattedDate(opportunity.getCreatedDatetime().toString(), actualFormat, desiredFormat));
+				row.createCell(colValue).setCellValue(createdDate);
+				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
 				colValue++;
 			}
 			//set modified by 
@@ -517,8 +519,8 @@ public class BDMDetailedReportService {
 			if (modifiedDateFlag) {
 				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
 				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
-				row.createCell(colValue).setCellValue(dateOfModification);
+				row.createCell(colValue).setCellValue(modifiedDate);
+				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
 				colValue++;
 			}
 			}
@@ -856,8 +858,6 @@ public class BDMDetailedReportService {
 		private void setBDMSupervisorMandatoryHeaderToExcel(SXSSFRow row, int currentRow, SXSSFSheet spreadSheet, 
 				CellStyle cellStyle, List<String> currency, boolean isIncludingSupervisor) {
 			logger.info("Inside setBDMSupervisorMandatoryHeaderToExcel method");
-			CellStyle currencyStyle = ExcelUtils.createRowStyle(
-					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
 			List<String> headerList = new ArrayList<String>();
 			headerList.add("BDM");
 			if(isIncludingSupervisor){
@@ -873,15 +873,10 @@ public class BDMDetailedReportService {
 				columnNo++;
 			}
 			if (currency.size() > 1) {
-				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE);
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo + currency.size() - 1));
-				
-				SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-				for (int i = 0; i < currency.size(); i++) {
-					row1.createCell((columnNo + i)).setCellValue(currency.get(i));
-					row1.getCell(columnNo + i).setCellStyle(currencyStyle);
-				}
+				row.createCell(columnNo).setCellValue(ReportConstants.DEALVALUEINR);
+				row.getCell(columnNo++).setCellStyle(cellStyle);
+				row.createCell(columnNo).setCellValue(ReportConstants.DEALVALUEUSD);
+				row.getCell(columnNo++).setCellStyle(cellStyle);
 			} else {
 				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0) + ")");
 				row.getCell(columnNo).setCellStyle(cellStyle);
