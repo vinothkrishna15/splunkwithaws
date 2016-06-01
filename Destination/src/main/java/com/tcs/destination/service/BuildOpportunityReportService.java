@@ -20,6 +20,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
@@ -442,6 +443,12 @@ public class BuildOpportunityReportService {
 		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+		
+		CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
+		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
+		CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
+		cellStyleDateTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
+		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
 
 		
 		if (currency.size() > 1) {
@@ -542,7 +549,8 @@ public class BuildOpportunityReportService {
 
 			if (reqRecvDtFlag) {
 				if(opportunity.getOpportunityRequestReceiveDate() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getOpportunityRequestReceiveDate().toString());
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityRequestReceiveDate());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 				}
 				colValue++;
 			}
@@ -598,7 +606,8 @@ public class BuildOpportunityReportService {
 			
 			if (dealClDtFlag) {
 				if(opportunity.getDealClosureDate() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
+					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 				}
 				colValue++;
 			}
@@ -639,7 +648,8 @@ public class BuildOpportunityReportService {
 			if (bidReqRcvDtFlag) {
 				if (bidDetailsT!=null) {
 					if(bidDetailsT.getBidRequestReceiveDate() != null){
-						row.createCell(colValue).setCellValue(bidDetailsT.getBidRequestReceiveDate().toString());
+						row.createCell(colValue).setCellValue(bidDetailsT.getBidRequestReceiveDate());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 						}
 					}
 					colValue++;
@@ -657,7 +667,8 @@ public class BuildOpportunityReportService {
 			if (actualBidSubDtFlag) {
 				if (bidDetailsT!=null) {
 					if(bidDetailsT.getActualBidSubmissionDate() != null) {
-						row.createCell(colValue).setCellValue(bidDetailsT.getActualBidSubmissionDate().toString());
+						row.createCell(colValue).setCellValue(bidDetailsT.getActualBidSubmissionDate());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 					}
 				}
 				colValue++;
@@ -666,7 +677,8 @@ public class BuildOpportunityReportService {
 			if (targetBidSubDtFlag) {
 				if (bidDetailsT!=null) {
 					if(bidDetailsT.getTargetBidSubmissionDate() != null) {
-						row.createCell(colValue).setCellValue(bidDetailsT.getTargetBidSubmissionDate().toString());
+						row.createCell(colValue).setCellValue(bidDetailsT.getTargetBidSubmissionDate());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 					}
 				}
 				colValue++;
@@ -693,7 +705,8 @@ public class BuildOpportunityReportService {
 			if (expDtOfOutcomeFlag) {
 				if (bidDetailsT!=null) {
 					if(bidDetailsT.getExpectedDateOfOutcome() != null) {
-						row.createCell(colValue).setCellValue(bidDetailsT.getExpectedDateOfOutcome().toString());
+						row.createCell(colValue).setCellValue(bidDetailsT.getExpectedDateOfOutcome());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
 					}
 				}
 				colValue++;
@@ -703,8 +716,8 @@ public class BuildOpportunityReportService {
 			if (createdDateFlag) {
 				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
 				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
-				String dateOfCreation = DateUtils.convertDateToString(createdDate);
-				row.createCell(colValue).setCellValue(dateOfCreation);
+				row.createCell(colValue).setCellValue(createdDate);
+				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat); 
 				colValue++;
 			}
 			if (createdByFlag) {
@@ -714,8 +727,8 @@ public class BuildOpportunityReportService {
 			if (modifiedDateFlag) {
 				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
 				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
-				row.createCell(colValue).setCellValue(dateOfModification);
+			    row.createCell(colValue).setCellValue(modifiedDate);
+				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat); 
 				colValue++;
 			}
 			if (modifieddByFlag) {
