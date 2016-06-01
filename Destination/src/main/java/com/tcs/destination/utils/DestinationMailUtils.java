@@ -67,6 +67,7 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
@@ -106,7 +107,7 @@ public class DestinationMailUtils {
 
 	@Value("${senderEmailId}")
 	private String senderEmailId;
-	
+
 	@Value("${opportunityWonLostGroupMailId}")
 	private String opportunityWonLostGroupMailId;
 
@@ -142,10 +143,10 @@ public class DestinationMailUtils {
 
 	@Value("${daily.download.template}")
 	private String dailyDownloadTemplateLoc;
-	
+
 	@Value("${opportunityWonTemplate}")
 	private String opportunityWonTemplateLoc;
-	
+
 	@Value("${opportunityLostTemplate}")
 	private String opportunityLostTemplateLoc;
 
@@ -190,10 +191,10 @@ public class DestinationMailUtils {
 
 	@Autowired
 	WorkflowProcessTemplateRepository workflowProcessTemplateRepository;
-	
+
 	@Autowired
 	WorkflowPartnerRepository workflowPartnerRepository;
-	
+
 	@Autowired
 	OpportunityRepository opportunityRepository;
 
@@ -202,7 +203,7 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private OpportunityService oppService;
-	
+
 	@Autowired
 	SubSpRepository subSpRepository;
 
@@ -949,13 +950,6 @@ public class DestinationMailUtils {
 			mailIdsArray = getMailIdsFromUserIds(idList);
 		return mailIdsArray;
 	}
-	
-	private String[] getSetMailAddressArr(Set<String> idList) throws Exception {
-		String[] mailIdsArray = new String[0];
-		if (idList != null)
-			mailIdsArray = getSetMailIdsFromUserIds(idList);
-		return mailIdsArray;
-	}
 
 	/**
 	 * @param recipientIdList
@@ -967,7 +961,7 @@ public class DestinationMailUtils {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-//			UserT recipient = userService.findByUserId(recipientId);
+			// UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -976,13 +970,13 @@ public class DestinationMailUtils {
 				.toArray(new String[recipientMailIds.size()]);
 		return recipientMailIdsArray;
 	}
-	
+
 	private String[] getSetMailIdsFromUserIds(Set<String> recipientIdList)
 			throws Exception {
 		List<String> recipientMailIds = new ArrayList<String>();
 
 		for (String recipientId : recipientIdList) {
-//			UserT recipient = userService.findByUserId(recipientId);
+			// UserT recipient = userService.findByUserId(recipientId);
 			UserT recipient = userRepository.findOne(recipientId);
 			String mailId = recipient.getUserEmailId();
 			recipientMailIds.add(mailId);
@@ -1169,7 +1163,7 @@ public class DestinationMailUtils {
 	public void sendWorkflowPendingMail(Integer requestId, Date date,
 			Integer entityTypeId) throws Exception {
 		logger.info("Inside sendWorkflowPendingMail method");
-		
+
 		List<String> recepientIds = new ArrayList<String>();
 		String userGroupOrUserRoleOrUserId = null;
 		String workflowEntity = null;
@@ -1185,15 +1179,12 @@ public class DestinationMailUtils {
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(date);
 		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
-		logger.info("RequestId" +requestId);
+		logger.info("RequestId" + requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
-		if(workflowRequestT==null) {
-			logger.error("request not fetched");
-		}
 		logger.debug("Request fetched:");
-		logger.debug("EntityId:" +entityId );
+		logger.debug("EntityId:" + entityId);
 		switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 		case CUSTOMER:
 			workflowEntity = Constants.WORKFLOW_CUSTOMER;
@@ -1221,18 +1212,18 @@ public class DestinationMailUtils {
 					.append(userName);
 			operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 			break;
-//		case COMPETITOR:
-//			workflowEntity = Constants.WORKFLOW_COMPETITOR;
-//			WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-//					.findOne(entityId);
-//			workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
-//			userName = userRepository.findUserNameByUserId(workflowCompetitor
-//					.getCreatedBy());
-//			subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
-//					.append(" ").append(Constants.FROM).append(" ")
-//					.append(userName);
-//			operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
-//			break;
+		// case COMPETITOR:
+		// workflowEntity = Constants.WORKFLOW_COMPETITOR;
+		// WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+		// .findOne(entityId);
+		// workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
+		// userName = userRepository.findUserNameByUserId(workflowCompetitor
+		// .getCreatedBy());
+		// subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
+		// .append(" ").append(Constants.FROM).append(" ")
+		// .append(userName);
+		// operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
+		// break;
 		case OPPORTUNITY:
 			workflowEntity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 			OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -1251,7 +1242,7 @@ public class DestinationMailUtils {
 			reason = new StringBuffer(Constants.WORKFLOW_REOPEN_PREFIX)
 					.append(" ").append(workflowSubmittedStep.getComments())
 					.toString();
-			logger.info("Subject :"+subject);
+			logger.info("Subject :" + subject);
 			break;
 		default:
 			break;
@@ -1260,7 +1251,8 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true,
+					Constants.UTF8);
 			WorkflowStepT workflowStepPending = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.PENDING.getStatus());
@@ -1274,12 +1266,13 @@ public class DestinationMailUtils {
 								.findUserIdsForWorkflowUserGroup(geography,
 										Constants.Y,
 										UserGroup.GEO_HEADS.getValue()));
-						logger.debug("recepient Ids for GEO Heads :" +recepientIds);
+						logger.debug("recepient Ids for GEO Heads :"
+								+ recepientIds);
 						userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 						ccIds.addAll(userAccessPrivilegesRepository
 								.findUserIdsForWorkflowPMO(geography,
 										Constants.Y, pmoValue));
-						logger.debug("CCIds for PMO :"+ccIds);
+						logger.debug("CCIds for PMO :" + ccIds);
 						break;
 					case Constants.WORKFLOW_PMO:
 						recepientIds.addAll(userAccessPrivilegesRepository
@@ -1304,15 +1297,15 @@ public class DestinationMailUtils {
 							.asList(workflowUserIds);
 					List<String> userNames = userRepository
 							.findUserNamesByUserIds(workflowUserIdList);
-					userGroupOrUserRoleOrUserId = constructUserNamesSplitByComma(userNames);
+					userGroupOrUserRoleOrUserId = splitStringByComma(userNames);
 					recepientIds.addAll(workflowUserIdList);
 				}
 			}
 			recipientMailIdsArray = getMailIdsFromUserIds(recepientIds);
-			logger.debug("recepients mail Ids" +recipientMailIdsArray);
+			logger.debug("recepients mail Ids" + recipientMailIdsArray);
 			if (CollectionUtils.isNotEmpty(ccIds)) {
 				ccMailIdsArray = getMailIdsFromUserIds(ccIds);
-				logger.debug("CCmail Ids" +ccMailIdsArray);
+				logger.debug("CCmail Ids" + ccMailIdsArray);
 			}
 			Map<String, Object> workflowMap = new HashMap<String, Object>();
 			workflowMap.put("userGroupOrUserRole", userGroupOrUserRoleOrUserId);
@@ -1323,7 +1316,7 @@ public class DestinationMailUtils {
 			workflowMap.put("operation", operation);
 			workflowMap.put("reason", reason);
 			helper.setTo(recipientMailIdsArray);
-			if(ccMailIdsArray!=null) {
+			if (ccMailIdsArray != null) {
 				helper.setCc(ccMailIdsArray);
 			}
 			helper.setFrom(senderEmailId);
@@ -1331,14 +1324,16 @@ public class DestinationMailUtils {
 			String text = VelocityEngineUtils.mergeTemplateIntoString(
 					velocityEngine, workflowPendingTemplateLoc, Constants.UTF8,
 					workflowMap);
-			
+
 			logger.info("framed text for mail :" + text);
 			helper.setSubject(subject.toString());
 			helper.setText(text, true);
-			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null, subject.toString(), text);
+			logMailDetails(recipientMailIdsArray, ccMailIdsArray, null,
+					subject.toString(), text);
 			logger.info("before sending mail");
 			mailSender.send(automatedMIMEMessage);
-			logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
 		} catch (MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1359,11 +1354,11 @@ public class DestinationMailUtils {
 			throw e;
 		}
 
-}
-
+	}
 
 	/**
 	 * This method is used to send the mail on approval of a workflow entity
+	 * 
 	 * @param workflowCustomerApprovedOrRejectSubject
 	 * @param requestId
 	 * @param date
@@ -1385,8 +1380,7 @@ public class DestinationMailUtils {
 		String entityName = null;
 		String userName = null;
 		String geography = null;
-		String pmoValue = "%"
-				+ Constants.PMO_KEYWORD + "%";
+		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 
 		String subject = new StringBuffer(mailSubjectAppendEnvName).append(" ")
 				.append(workflowCustomerApprovedOrRejectSubject).toString();
@@ -1397,7 +1391,8 @@ public class DestinationMailUtils {
 				.createMimeMessage();
 		MimeMessageHelper helper;
 		try {
-			helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
+			helper = new MimeMessageHelper(automatedMIMEMessage, true,
+					Constants.UTF8);
 			WorkflowStepT workflowStepSubmitted = workflowStepRepository
 					.findByRequestIdAndStepStatus(requestId,
 							WorkflowStatus.SUBMITTED.getStatus());
@@ -1428,23 +1423,27 @@ public class DestinationMailUtils {
 					operation = Constants.WORKFLOW_OPERATION_CREATE;
 					recepientIds.add(workflowPartnerT.getCreatedBy());
 					break;
-//				case COMPETITOR:
-//					entity = Constants.WORKFLOW_COMPETITOR;
-//					WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-//							.findOne(entityId);
-//					entityName = workflowCompetitor.getWorkflowCompetitorName();
-//					userName = userRepository
-//							.findUserNameByUserId(workflowCompetitor
-//									.getCreatedBy());
-//					operation = Constants.WORKFLOW_OPERATION_CREATE;
-//					recepientIds.add(workflowCompetitor.getCreatedBy());
-//					break;
+				// case COMPETITOR:
+				// entity = Constants.WORKFLOW_COMPETITOR;
+				// WorkflowCompetitorT workflowCompetitor =
+				// workflowCompetitorRepository
+				// .findOne(entityId);
+				// entityName = workflowCompetitor.getWorkflowCompetitorName();
+				// userName = userRepository
+				// .findUserNameByUserId(workflowCompetitor
+				// .getCreatedBy());
+				// operation = Constants.WORKFLOW_OPERATION_CREATE;
+				// recepientIds.add(workflowCompetitor.getCreatedBy());
+				// break;
 				case OPPORTUNITY:
 					entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
-					OpportunityT opportunity = opportunityRepository.findOne(entityId);
+					OpportunityT opportunity = opportunityRepository
+							.findOne(entityId);
 					geography = opportunity.getCustomerMasterT().getGeography();
 					entityName = opportunity.getOpportunityName();
-					userName = userRepository.findUserNameByUserId(workflowRequestT.getCreatedBy());
+					userName = userRepository
+							.findUserNameByUserId(workflowRequestT
+									.getCreatedBy());
 					operation = Constants.WORKFLOW_OPERATION_REOPEN;
 					recepientIds.add(workflowRequestT.getCreatedBy());
 					break;
@@ -1566,7 +1565,8 @@ public class DestinationMailUtils {
 						subject, text);
 				logger.info("before sending mail");
 				mailSender.send(automatedMIMEMessage);
-				logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
+				logger.info("Mail Sent for request"
+						+ workflowRequestT.getRequestId());
 			}
 
 		} catch (MessagingException e) {
@@ -1588,19 +1588,21 @@ public class DestinationMailUtils {
 			logger.error("Error sending mail message", e.getMessage());
 			throw e;
 		}
-}
-	
-	 private String constructUserNamesSplitByComma(List<String> userNames) {
-		 logger.debug("Inside constructUserNamesSplitByComma Service");
-		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
-	    }
+	}
+
+	private String splitStringByComma(List<String> userNames) {
+		logger.debug("Inside constructUserNamesSplitByComma Service");
+		return org.apache.commons.lang.StringUtils.join(userNames, ", ");
+	}
 
 	/**
-	 * This method is used to send the email notification to group of users on 
-	 * opportunity won or lost 
+	 * This method is used to send the email notification to group of users on
+	 * opportunity won or lost
+	 * 
 	 * @param entityId
 	 */
-	public void sendOpportunityWonLostNotification(String entityId) throws Exception {
+	public void sendOpportunityWonLostNotification(String entityId)
+			throws Exception {
 		logger.info("Inside sendOpportunityWonLostNotification method");
 		OpportunityT opportunity = opportunityRepository.findOne(entityId);
 		List<String> recepientIds = new ArrayList<String>();
@@ -1615,14 +1617,17 @@ public class DestinationMailUtils {
 			String opportunityOwner = userRepository
 					.findUserNameByUserId(opportunity.getOpportunityOwner());
 			Integer digitalBidValue = opportunity.getDigitalDealValue();
-			logger.info("digital Bid Value : "+digitalBidValue);
+			logger.info("digital Bid Value : " + digitalBidValue);
 			String currencyType = opportunity.getDealCurrency();
-			//Converting deal value to USD
-			BigDecimal digitalBidValueUSD = opportunityDownloadService.convertCurrencyToUSD(currencyType, digitalBidValue);
-			logger.info("digitalBidValueUSD : "+digitalBidValueUSD);
-			//Converting the USD value in number scale
-			String dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
-			logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
+			// Converting deal value to USD
+			BigDecimal digitalBidValueUSD = opportunityDownloadService
+					.convertCurrencyToUSD(currencyType, digitalBidValue);
+			logger.info("digitalBidValueUSD : " + digitalBidValueUSD);
+			// Converting the USD value in number scale
+			String dealValueUSDInNumberScale = NumericUtil
+					.toUSDinNumberScale(digitalBidValueUSD);
+			logger.info("dealValueUSDInNumberScale : "
+					+ dealValueUSDInNumberScale);
 			DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
 			Date dealClosureDate = opportunity.getDealClosureDate();
 			String dealClosureDateStr = df.format(dealClosureDate);
@@ -1631,71 +1636,111 @@ public class DestinationMailUtils {
 			List<String> winLossFactors = new ArrayList<String>();
 			List<String> opportunitySalesSupportOwners = new ArrayList<String>();
 			List<String> opportunitySubSps = new ArrayList<String>();
+			List<String> opportunityCompetitors = new ArrayList<String>();
+			List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
 			String salesSupportOwners = "";
 			String factorsForWinLoss = "";
 			String subSpsStr = "";
 			String withSupportFrom = "";
 			String displaySubSp = null;
-			for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
-				displaySubSp = subSpRepository.findOne(opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
+			String competitorNames = Constants.NOT_AVAILABLE;
+			String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
+			// Getting display subSps
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getOpportunitySubSpLinkTs()) {
+				displaySubSp = subSpRepository.findOne(
+						opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
 				opportunitySubSps.add(displaySubSp);
 			}
-			if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
-				subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
+			if (CollectionUtils.isNotEmpty(opportunitySubSps)) {
+				subSpsStr = splitStringByComma(opportunitySubSps);
 			}
+			// Getting Win Loss Factors
 			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
 					.getOpportunityWinLossFactorsTs()) {
 				winLossFactors.add(opportunityWinLossFactorsT
 						.getWinLossFactor());
 			}
 			if (CollectionUtils.isNotEmpty(winLossFactors)) {
-				factorsForWinLoss = constructUserNamesSplitByComma(winLossFactors);
-				logger.info("factors for win/loss : "+factorsForWinLoss);
+				factorsForWinLoss = splitStringByComma(winLossFactors);
+				logger.info("factors for win/loss : " + factorsForWinLoss);
 			}
+			// Getting Sales Support Owners
 			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 					.getOpportunitySalesSupportLinkTs()) {
 
-				if(!opportunitySalesSupportLinkT.getSalesSupportOwner().contains("pmo")) {
+				if (!opportunitySalesSupportLinkT.getSalesSupportOwner()
+						.contains("pmo")) {
 					opportunitySalesSupportOwners.add(userRepository
 							.findUserNameByUserId(opportunitySalesSupportLinkT
 									.getSalesSupportOwner()));
 				}
-				
+
 			}
 			if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
 				withSupportFrom = Constants.WITH_SUPPORT_FROM;
-				salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
-				logger.info("sales support owners : "+salesSupportOwners);
+				salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
+				logger.info("sales support owners : " + salesSupportOwners);
+			}
+			// Getting Opportunity Competitors
+			if (CollectionUtils.isNotEmpty(opportunity
+					.getOpportunityCompetitorLinkTs())) {
+				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+						.getOpportunityCompetitorLinkTs()) {
+					if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
+							Constants.Y)) {
+						opportunityIncumbentCompetitors
+								.add(opportunityCompetitorLinkT
+										.getCompetitorName());
+					} else {
+						opportunityCompetitors.add(opportunityCompetitorLinkT
+								.getCompetitorName());
+					}
+
+				}
+			}
+
+			if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
+				competitorNames = splitStringByComma(opportunityCompetitors);
+			}
+
+			if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
+				incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
 			}
 
 			recepientIds.add(opportunityWonLostGroupMailId);
+			// If the Opportunity is won, framing the subject ang getting the
+			// template loc
 			if (opportunity.getSalesStageCode() == 9) {
 				logger.info("opportunity Won");
-				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
-						.append("Deal Won for").append(" ")
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Won for").append(" ")
 						.append(customerName);
-				logger.info("Subject for opportunity won :"+subject);
+				logger.info("Subject for opportunity won : {}", subject);
 				templateLoc = opportunityWonTemplateLoc;
-				
+
 			}
-			
-			if(opportunity.getSalesStageCode() == 10) {
+			// If the Opportunity is lost, framing the subject ang getting the
+			// template loc
+			if (opportunity.getSalesStageCode() == 10) {
 				logger.info("OpportunityLost");
-				subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
-						.append("Deal Lost for").append(" ")
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Lost for").append(" ")
 						.append(customerName);
-				logger.info("Subject for opportunity lost :"+subject);
+				logger.info("Subject for opportunity lost :" + subject);
 				templateLoc = opportunityLostTemplateLoc;
-				
+
 			}
-			if(templateLoc!=null) {
+			if (templateLoc != null) {
 				MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 						.createMimeMessage();
 				MimeMessageHelper helper;
 				try {
-					helper = new MimeMessageHelper(automatedMIMEMessage, true, Constants.UTF8);
+					helper = new MimeMessageHelper(automatedMIMEMessage, true,
+							Constants.UTF8);
 					helper.setTo(opportunityWonLostGroupMailId);
-					logger.info("To email address : "+opportunityWonLostGroupMailId);
+					logger.info("To email address : "
+							+ opportunityWonLostGroupMailId);
 					helper.setFrom(senderEmailId);
 					helper.setSubject(subject.toString());
 					Map<String, Object> map = new HashMap<String, Object>();
@@ -1708,16 +1753,18 @@ public class DestinationMailUtils {
 					map.put("opportunityDescription", opportunityDescription);
 					map.put("withSupportFrom", withSupportFrom);
 					map.put("dealClosureDate", dealClosureDateStr);
+					map.put("competitorNames", competitorNames);
+					map.put("incumbentCompetitorNames",
+							incumbentCompetitorNames);
 					String text = VelocityEngineUtils.mergeTemplateIntoString(
-							velocityEngine, templateLoc, Constants.UTF8,
-							map);
+							velocityEngine, templateLoc, Constants.UTF8, map);
 					logger.info("framed text for mail :" + text);
 					helper.setText(text, true);
 					logger.info("before sending mail");
 					mailSender.send(automatedMIMEMessage);
-					logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "+entityId);
+					logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "
+							+ entityId);
 				} catch (MessagingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (MailSendException e) {
 					logger.error("Error sending mail message", e.getMessage());
@@ -1726,7 +1773,8 @@ public class DestinationMailUtils {
 					logger.error("Error parsing mail message", e.getMessage());
 					throw e;
 				} catch (MailAuthenticationException e) {
-					logger.error("Error authnticatingh e-mail message", e.getMessage());
+					logger.error("Error authnticatingh e-mail message",
+							e.getMessage());
 					throw e;
 				} catch (MailPreparationException e) {
 					logger.error("Error preparing mail message", e.getMessage());
@@ -1736,13 +1784,11 @@ public class DestinationMailUtils {
 					throw e;
 				}
 			}
-			
-		    } else {
-		    	throw new DestinationException("Opportunity not found : "+entityId);
-		    }
-	 
-	 
+
+		} else {
+			throw new DestinationException("Opportunity not found : "
+					+ entityId);
+		}
+
 	}
-
-
 }
