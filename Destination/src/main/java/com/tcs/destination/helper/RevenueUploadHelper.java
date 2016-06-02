@@ -153,7 +153,7 @@ public class RevenueUploadHelper {
 		// and (composite key) has foreign key existence in
 		// revenue_customer_mapping_t
 		revenueCustomerData = revenueCustomerMappingTRepository
-				.checkRevenueMappingPK(financeCustomerName, customerGeography,
+				.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName, customerGeography,
 						financeIou);
 		logger.info("revenueCustomerData.size() "
 				+ Integer.toString(revenueCustomerData.size()));
@@ -270,7 +270,7 @@ public class RevenueUploadHelper {
 		// and (composite key) has foreign key existence in
 		// revenue_customer_mapping_t
 		revenueCustomerData = revenueCustomerMappingTRepository
-				.checkRevenueMappingPK(financeCustomerName, customerGeography,
+				.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName, customerGeography,
 						financeIou);
 		logger.debug("size " + revenueCustomerData.size());
 		if ((!revenueCustomerData.isEmpty())
@@ -394,7 +394,7 @@ public class RevenueUploadHelper {
 		// and (composite key) has foreign key existence in
 		// revenue_customer_mapping_t
 		revenueCustomerData = revenueCustomerMappingTRepository
-				.checkRevenueMappingPK(financeCustomerName, customerGeography,
+				.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName, customerGeography,
 						financeIou);
 
 		if ((!revenueCustomerData.isEmpty())

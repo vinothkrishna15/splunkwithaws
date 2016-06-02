@@ -51,24 +51,26 @@ public class WorkflowCustomerT implements Serializable {
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
-	
+
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	@Column(name="modified_by")
 	private String modifiedBy;
 
-	private String notes;
-	
+	//private String notes;
+
+	private String remarks;
+
 	@Transient
 	private String comments;
 
 	private String website;
-	
+
 	private String iou;
-	
+
 	private String geography;
-	
+
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
 	@JoinColumn(name="geography", insertable = false, updatable = false)
@@ -84,13 +86,13 @@ public class WorkflowCustomerT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", updatable = false, insertable = false)
 	private UserT modifiedByUser;
-	
+
 	@Transient
 	private List<RevenueCustomerMappingT> revenueCustomerMappingTs;
-	
+
 	@Transient
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;
-	
+
 
 	public WorkflowCustomerT() {
 	}
@@ -167,14 +169,14 @@ public class WorkflowCustomerT implements Serializable {
 		this.modifiedDatetime = modifiedDatetime;
 	}
 
-	public String getNotes() {
+	/*public String getNotes() {
 		return this.notes;
 	}
 
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
-
+	 */
 	public String getWebsite() {
 		return this.website;
 	}
@@ -190,8 +192,8 @@ public class WorkflowCustomerT implements Serializable {
 	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
 		this.geographyMappingT = geographyMappingT;
 	}
-    
-	
+
+
 
 	public UserT getCreatedByUser() {
 		return createdByUser;
@@ -208,7 +210,7 @@ public class WorkflowCustomerT implements Serializable {
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
 	}
-	
+
 	public String getIou() {
 		return iou;
 	}
@@ -265,5 +267,13 @@ public class WorkflowCustomerT implements Serializable {
 
 	public void setComments(String comments) {
 		this.comments = comments;
+	}
+
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
 	}
 }

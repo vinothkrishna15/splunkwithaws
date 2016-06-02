@@ -527,7 +527,7 @@ public class DestinationMailUtils {
 		String workflowEntityName = null;
 		String geography = null;
 		String userName = null;
-		String notes = "NA";
+		String remarks = "NA";
 		String operation = null;
 		String reason = "";
 		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
@@ -545,8 +545,8 @@ public class DestinationMailUtils {
 				workflowEntity = Constants.WORKFLOW_CUSTOMER;
 				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 						.findOne(entityId);
-				if(!StringUtils.isEmpty(workflowCustomerT.getNotes())){
-					notes = workflowCustomerT.getNotes();
+				if(!StringUtils.isEmpty(workflowCustomerT.getRemarks())){
+					remarks = workflowCustomerT.getRemarks();
 				}
 				workflowEntityName = workflowCustomerT.getCustomerName();
 				geography = workflowCustomerT.getGeography();
@@ -657,7 +657,7 @@ public class DestinationMailUtils {
 			workflowMap.put("workflowEntityName", workflowEntityName);
 			workflowMap.put("submittedDate", dateStr);
 			workflowMap.put("userName", userName);
-			workflowMap.put("notes", notes);
+			workflowMap.put("remarks", remarks);
 			workflowMap.put("operation", operation);
 			workflowMap.put("reason", reason);
 			String tmpl;
@@ -711,7 +711,7 @@ public class DestinationMailUtils {
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
 		String entityId = workflowRequestT.getEntityId();
-		String notes = "NA";
+		String remarks = "NA";
 		WorkflowStepT workflowStepSubmitted = workflowStepRepository
 				.findByRequestIdAndStepStatus(requestId,
 						WorkflowStatus.SUBMITTED.getStatus());
@@ -721,8 +721,8 @@ public class DestinationMailUtils {
 				entity = Constants.WORKFLOW_CUSTOMER;
 				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 						.findOne(entityId);
-				if(!StringUtils.isEmpty(workflowCustomerT.getNotes())){
-					notes = workflowCustomerT.getNotes();
+				if(!StringUtils.isEmpty(workflowCustomerT.getRemarks())){
+					remarks = workflowCustomerT.getRemarks();
 				}
 				entityName = workflowCustomerT.getCustomerName();
 				geography = workflowCustomerT.getGeography();
@@ -849,7 +849,7 @@ public class DestinationMailUtils {
 				workflowMap.put("approvedOrRejectedUserName",
 						approvedOrRejectedUserName);
 				workflowMap.put("comment", comment);
-				workflowMap.put("notes", notes);
+				workflowMap.put("Remarks", remarks);
 				workflowMap.put("geography", geography);
 			} else {
 				WorkflowStepT workflowStepRejected = workflowStepRepository
@@ -866,7 +866,7 @@ public class DestinationMailUtils {
 						approvedOrRejectedUserName);
 				workflowMap.put("status", "rejected");
 				workflowMap.put("comment", comment);
-				workflowMap.put("notes", notes);
+				workflowMap.put("Remarks", remarks);
 				workflowMap.put("geography", geography);
 			}
 
