@@ -424,7 +424,7 @@ public class BDMDetailedReportService {
 			}
 			//set modified by 
 			if (modifiedByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getModifiedBy());
+				row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
 				colValue++;
 			}
 			
