@@ -751,21 +751,23 @@ public class OpportunityService {
 	*/
 	private void validateOpportunityPrimarySubSp(OpportunityT opportunity) {
 		logger.info("Inside validation for opportunity primary SubSp");
-		int countOfPrimarySubSp = 0;
-		for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
-				.getOpportunitySubSpLinkTs()) {
-			if (opportunitySubSpLinkT.isSubspPrimary()) {
-				countOfPrimarySubSp++;
+		if(opportunity.getOpportunitySubSpLinkTs()!=null){
+			int countOfPrimarySubSp = 0;
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getOpportunitySubSpLinkTs()) {
+				if (opportunitySubSpLinkT.isSubspPrimary()) {
+					countOfPrimarySubSp++;
+				}
 			}
-		}
-		if (countOfPrimarySubSp > 1) {
-			logger.error("Only one primary SubSp is allowed");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Only one SubSp can be primary");
-		} else if (countOfPrimarySubSp == 0) {
-			logger.error("There should be atleast one primary SubSp");
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"No primary SubSp");
+			if (countOfPrimarySubSp > 1) {
+				logger.error("Only one primary SubSp is allowed");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Only one SubSp can be primary");
+			} else if (countOfPrimarySubSp == 0) {
+				logger.error("There should be atleast one primary SubSp");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"No primary SubSp");
+			}
 		}
 		logger.info("End of validation for opportunity primary SubSp");
 	}
