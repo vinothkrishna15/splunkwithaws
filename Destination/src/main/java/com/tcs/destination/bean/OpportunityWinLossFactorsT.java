@@ -48,6 +48,9 @@ public class OpportunityWinLossFactorsT implements Serializable {
 	@Column(name = "modified_datetime")
 	private Timestamp modifiedDatetime;
 
+	@Column(name="win_loss_others_description")
+	private String winLossOthersDescription;
+
 	@ManyToOne
 	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
@@ -176,6 +179,14 @@ public class OpportunityWinLossFactorsT implements Serializable {
 
 	public String getWinLossFactor() {
 		return winLossFactor;
+	}
+
+	public String getWinLossOthersDescription() {
+		return winLossOthersDescription;
+	}
+
+	public void setWinLossOthersDescription(String winLossOthersDescription) {
+		this.winLossOthersDescription = winLossOthersDescription;
 	}
 
 	public void setWinLossFactor(String winLossFactor) {
