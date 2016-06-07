@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tcs.destination.bean.ContactCustomerLinkT;
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
@@ -45,6 +46,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.UserRoleMappingRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -54,8 +56,8 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 import com.tcs.destination.utils.PropertyUtil;
+import com.tcs.destination.utils.StringUtils;
 
 /**
  * 
@@ -1049,4 +1051,82 @@ public class UserService {
 				PrivilegeType.CUSTOMER.getValue(),PrivilegeType.GROUP_CUSTOMER.getValue()};
 		return privilegeType;
 	}
+
+
+
+
+	public PageDTO<SearchResultDTO<UserT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, int page, int count) {
+		logger.info("UserService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<UserT>> res = new PageDTO<SearchResultDTO<UserT>>();
+		List<SearchResultDTO<UserT>> resList = Lists.newArrayList();
+		SearchResultDTO<UserT> searchResultDTO = new SearchResultDTO<UserT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getUsersByNumber(term, getAll));
+				resList.add(getUserByName(term, getAll));
+				resList.add(getUserBySupervisor(term, getAll));
+				resList.add(getUserByLocation(term, getAll));
+				break;
+			case EMPNO:
+				searchResultDTO = getUsersByNumber(term, getAll);
+				break;
+			case EMPNAME:
+				searchResultDTO = getUserByName(term, getAll);
+				break;
+			case SUPERVISOR:
+				searchResultDTO = getUserBySupervisor(term, getAll);
+				break;
+			case LOCATION:
+				searchResultDTO = getUserByLocation(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<UserT> values = searchResultDTO.getValues();
+					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+	private SearchResultDTO<UserT> getUserByLocation(String term, boolean getAll) {
+		List<UserT> records = userRepository.searchByLocation("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.LOCATION);
+	}
+
+	private SearchResultDTO<UserT> getUserBySupervisor(String term,
+			boolean getAll) {
+		List<UserT> records = userRepository.searchBySupervisor("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUPERVISOR);
+	}
+
+	private SearchResultDTO<UserT> getUserByName(String term, boolean getAll) {
+		List<UserT> records = userRepository.searchByUserName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.EMPNAME);
+	}
+
+	private SearchResultDTO<UserT> getUsersByNumber(String term, boolean getAll) {
+		List<UserT> records = userRepository.searchByUserId("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.EMPNO);
+	}
+	
+	private SearchResultDTO<UserT> createSearchResultFrom(
+			List<UserT> records, SmartSearchType type) {
+		SearchResultDTO<UserT> conRes = new SearchResultDTO<UserT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
+	}
+
 }

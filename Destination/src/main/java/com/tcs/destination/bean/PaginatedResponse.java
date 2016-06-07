@@ -27,9 +27,9 @@ public class PaginatedResponse implements Serializable {
 	private List<ContactT> contactTs;
 	
 	private List<ContactRoleMappingT> contactRoleMappingTs;
-
+	
 	private long totalCount;
-
+	
 	public List<OpportunityT> getOpportunityTs() {
 		return opportunityTs;
 	}

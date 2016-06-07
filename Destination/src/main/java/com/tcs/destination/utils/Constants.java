@@ -205,6 +205,7 @@ public class Constants {
 	public static final String WORKFLOW_CUSTOMER = "Customer";
 	public static final String WORKFLOW_PARTNER = "Partner";
 	public static final String WORKFLOW_OPPORTUNITY_REOPEN = "Opportunity";
+	public static final String WORKFLOW_COMPETITOR = "Competitor";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
 	public static final String WORKFLOW_OPERATION_CREATION_TEMPLATE = "for creation of";
 	public static final String WORKFLOW_OPERATION_REOPEN_TEMPLATE = "to reopen the";
@@ -216,12 +217,11 @@ public class Constants {
 	public static final int CONSTANT_ZERO = 0;
 	public static final int CONSTANT_ONE = 1;
 	public static final int CONSTANT_TWO = 2;
-	
-	public static final String 	WITH_SUPPORT_FROM = "with support from";
-	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
+	public static final String 	WITH_SUPPORT_FROM = "with support from";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	public static final String WORKFLOW_OPPORTUNITY_REOPEN_PENDING_SUBJECT = "Pending Opportunity reopen request";
+	public static final String WORKFLOW_COMPETITOR_PENDING_SUBJECT = "Pending New Competitor Request";
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 	public static final String TCS_UAT = "tcs_uat";
@@ -231,6 +231,5 @@ public class Constants {
 	public static final String UAT = "UAT";
 	public static final String SIT = "SIT";
 	public static final String PROD = "PROD";
-	
 	public static final String USD_PATTERN = "###,###.## USD";
 }

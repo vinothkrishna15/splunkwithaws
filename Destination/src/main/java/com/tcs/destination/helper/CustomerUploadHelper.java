@@ -13,8 +13,9 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.CustomerService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("customerUploadHelper")
@@ -32,6 +33,9 @@ public class CustomerUploadHelper {
 	@Autowired
 	CustomerIOUMappingRepository customerIouMappingTRepository;
 
+	@Autowired
+	CustomerService customerService;
+
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
 
@@ -46,6 +50,7 @@ public class CustomerUploadHelper {
 		if(StringUtils.isEmpty(custId)){
 		CustomerMasterT customer = customerRepository
 				.findByCustomerName(MasterCustomerName);
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if (customer == null) {
 			// Get List of geographies from DB for validating the geographies
 			// which
@@ -66,7 +71,7 @@ public class CustomerUploadHelper {
 				customerMasterT.setGroupCustomerName(MasterGroupClient);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("MasterGroupClient Is Mandatory; ");
 
 			}
@@ -75,7 +80,7 @@ public class CustomerUploadHelper {
 				customerMasterT.setCustomerName(MasterCustomerName);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("MasterCustomerName Is Mandatory; ");
 
 			}
@@ -85,7 +90,7 @@ public class CustomerUploadHelper {
 				customerMasterT.setIou(MasterIOU);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("MasterIOU Is Mandatory; ");
 
 			}
@@ -94,12 +99,21 @@ public class CustomerUploadHelper {
 				customerMasterT.setGeography(MasterGoegraphy);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("MasterGoegraphy Is Mandatory; ");
 
 			}
+			
+			//check for inactive records and log 
+			try {
+				customerService.validateInactiveIndicators(customerMasterT);
+			} catch(DestinationException e) {
+				error.setRowNumber(rowNumber);
+				error.setMessage(e.getMessage());
+			}
+			
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("CustomerName already exist ");
 
 		}
@@ -128,11 +142,12 @@ public class CustomerUploadHelper {
 		String MasterIOU = data[4];
 		String MasterGoegraphy = data[5];
 		//we are getting the customer id i.e the primary key from customer_Master_T table
+		int rowNumber = Integer.parseInt(data[0]) + 1;
 		if(!StringUtils.isEmpty(custId)){
 		CustomerMasterT customer = customerRepository
 				.findOne(custId);
 		if (customer == null) {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("customer not found,hence it cannot be updated");
 
 		} else {
@@ -152,7 +167,7 @@ public class CustomerUploadHelper {
 				}
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("MasterIOU not found");
 
 			}
@@ -161,7 +176,7 @@ public class CustomerUploadHelper {
 					customerMasterT.setCustomerName(MasterCustomerName);
 
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setRowNumber(rowNumber);
 				error.setMessage("Master Customer Name not found");
 
 			}
@@ -169,19 +184,28 @@ public class CustomerUploadHelper {
 				if (mapOfGeographyMappingT.containsKey(MasterGoegraphy)) {
 					customerMasterT.setGeography(MasterGoegraphy);
 				} else {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setRowNumber(rowNumber);
 					error.setMessage("MasterGoegraphy not found");
 
 				}
 
 			}
+			
+			//check for inactive records and log 
+			try {
+				customerService.validateInactiveIndicators(customerMasterT);
+			} catch(DestinationException e) {
+				error.setRowNumber(rowNumber);
+				error.setMessage(e.getMessage());
+			}
+			
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("Customer is inactive and cannot be updated");
 		}
 		}
 		} else {
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setRowNumber(rowNumber);
 			error.setMessage("CustomerId cannot be empty");
 		}
 		return error;

@@ -1,6 +1,6 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +21,9 @@ public class OfferingService {
 	@Autowired
 	OfferingRepository offeringRepository;
 
-	public ArrayList<OfferingMappingT> findAll() {
+	public List<OfferingMappingT> findAllActive() {
 		logger.debug("Inside findAll() OfferingService");
-		return (ArrayList<OfferingMappingT>) offeringRepository.findAll();
+		return offeringRepository.findByActiveTrue();
 	}
 
 }

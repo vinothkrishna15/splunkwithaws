@@ -1,6 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +49,8 @@ public class OfferingController {
 			throws DestinationException {
 		try {
 			logger.info("Inside OfferingController: Start of search");
-			ArrayList<OfferingMappingT> offeringMapping = (ArrayList<OfferingMappingT>) offeringService
-					.findAll();
+			List<OfferingMappingT> offeringMapping = offeringService
+					.findAllActive();
 			logger.info("Inside OfferingController: End of search");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, offeringMapping);

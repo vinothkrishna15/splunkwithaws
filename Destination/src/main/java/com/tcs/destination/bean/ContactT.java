@@ -121,6 +121,54 @@ public class ContactT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "contactT")
 	private List<UserFavoritesT> userFavoritesTs;
+	
+	@Transient
+	private ConnectsSplitDTO tcsAccountContactConnectsDTO; // added for 360 changes
+	
+	@Transient
+	private ConnectsSplitDTO customerContactConnectsDTO; // added for 360 changes
+	
+	@Transient
+	private OpportunitiesSplitDTO tcsAccountContactOpportunitiesDTO; // added for 360 changes
+	
+	@Transient
+	private OpportunitiesSplitDTO customerContactOpportunitiesDTO; // added for 360 changes
+
+	public ConnectsSplitDTO getTcsAccountContactConnectsDTO() {
+		return tcsAccountContactConnectsDTO;
+	}
+
+	public void setTcsAccountContactConnectsDTO(
+			ConnectsSplitDTO tcsAccountContactConnectsDTO) {
+		this.tcsAccountContactConnectsDTO = tcsAccountContactConnectsDTO;
+	}
+
+	public ConnectsSplitDTO getCustomerContactConnectsDTO() {
+		return customerContactConnectsDTO;
+	}
+
+	public void setCustomerContactConnectsDTO(
+			ConnectsSplitDTO customerContactConnectsDTO) {
+		this.customerContactConnectsDTO = customerContactConnectsDTO;
+	}
+
+	public OpportunitiesSplitDTO getTcsAccountContactOpportunitiesDTO() {
+		return tcsAccountContactOpportunitiesDTO;
+	}
+
+	public void setTcsAccountContactOpportunitiesDTO(
+			OpportunitiesSplitDTO tcsAccountContactOpportunitiesDTO) {
+		this.tcsAccountContactOpportunitiesDTO = tcsAccountContactOpportunitiesDTO;
+	}
+
+	public OpportunitiesSplitDTO getCustomerContactOpportunitiesDTO() {
+		return customerContactOpportunitiesDTO;
+	}
+
+	public void setCustomerContactOpportunitiesDTO(
+			OpportunitiesSplitDTO customerContactOpportunitiesDTO) {
+		this.customerContactOpportunitiesDTO = customerContactOpportunitiesDTO;
+	}
 
 	public ContactT() {
 	}

@@ -113,16 +113,15 @@ public class OfferingDwldWriter implements ItemWriter<OfferingMappingT>,
 				String offering = offeringMappingT.getOffering();
 				ExcelUtils.createCell(offering, row, 1);
 				
-				String active = offeringMappingT.getActive();
-				ExcelUtils.createCell(active, row, 2);
-				
+				boolean active = offeringMappingT.isActive();
+				ExcelUtils.createCell(String.valueOf(active), row, 2);
 
 				// Increment row counter
 				rowCount++;
 			}
 		}
 	}
-
+	
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}

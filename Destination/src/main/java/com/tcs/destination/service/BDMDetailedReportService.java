@@ -7,13 +7,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -27,12 +24,11 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
-import com.tcs.destination.bean.OpportunitySubSpLinkT;
 import com.tcs.destination.bean.OpportunityT;
-import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -60,47 +56,6 @@ public class BDMDetailedReportService {
     private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yy");
 	
-	
-	private static final String BDM_DETAILED_REPORT_PREFIX = "select user_id, opportunity from ( ";
-	
-	private static final String BDM_DETAILED_REPORT_PART1 = " (select distinct user_id, (OPP.opportunity_id) as opportunity from opportunity_t OPP "
-			+ " join user_t USR on USR.user_id=OPP.opportunity_owner "
-			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography " 
-			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
-	
-	private static final String BDM_DETAILED_REPORT_PART2 = " UNION (select distinct user_id, (OPP.opportunity_id) as opportunity from opportunity_t OPP " 
-			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography " 
-			+ " join bid_details_t bidt on opp.opportunity_id = bidt.opportunity_id join bid_office_group_owner_link_t bofg on bidt.bid_id = bofg.bid_id " 
-			+ " join user_t USR on USR.user_id=bofg.bid_office_group_owner  "
-			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
-	
-	private static final String BDM_DETAILED_REPORT_PART3 = " UNION (select distinct sales_support_owner, (OPP.opportunity_id) as opportunity from opportunity_t OPP " 
-			+ " join opportunity_sales_support_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ " join user_t USR on USR.user_id=OSSLT.sales_support_owner "
-			+ " join geography_country_mapping_t GCMT on GCMT.country=OPP.country join geography_mapping_t GMT on GMT.geography = GCMT.geography "
-			+ " left outer join opportunity_sub_sp_link_t ssl on opp.opportunity_id = ssl.opportunity_id "
-			+ " left outer join sub_sp_mapping_t SSMT on ssl.sub_sp = SSMT.sub_sp join customer_master_t CMT on opp.customer_id = CMT.customer_id where ";
-	
-	private static final String SALES_STAGE_CODE = " sales_stage_code in (";
-	
-	private static final String OPPORTUNITY_OWNER = " OPP.opportunity_owner in (";
-	
-	private static final String BID_OFFICE_OWNER = " bofg.bid_office_group_owner in (";
-	
-	private static final String SALES_SUPPORT_OWNER = " OSSLT.sales_support_owner in (";
-	
-	private static final String SALES_STAGE_AND_DEAL_CLOSURE_DATE = " AND ((OPP.sales_stage_code between 0 and 8) "
-			+ " OR (OPP.deal_closure_date between ('";
-	
-	private static final String DEAL_CLOSURE_END_DATE = " AND ('";
-	
-	private static final String GEO_COND_PREFIX = "GMT.geography in (";
-	private static final String SUBSP_COND_PREFIX = "SSMT.display_sub_sp in (";
-	private static final String COUNTRY_COND_PREFIX = "OPP.country in (";
-	
-	private static final String BDM_DETAILED_REPORT_SUFFIX =") as bdmUserAndOppId order by user_id ";
 	
 	@Autowired
 	UserRepository userRepository;
@@ -137,9 +92,13 @@ public class BDMDetailedReportService {
 	
 	@Autowired
 	NotesTRepository notesTRepository;
+	
+	@Autowired
+	BidDetailsTRepository bidDetailsTRepository;
 
 	/**
 	 * This Method used to BDM Performance detailed report in excel format
+	 * 
 	 * @param financialYear
 	 * @param from
 	 * @param to
@@ -173,6 +132,7 @@ public class BDMDetailedReportService {
 
 	/**
 	 * This Method used to set the bdm performance details based on user access privileges
+	 * 
 	 * @param financialYear
 	 * @param from
 	 * @param to
@@ -251,8 +211,6 @@ public class BDMDetailedReportService {
 			    	throw new DestinationException(HttpStatus.NOT_FOUND, "Given BDM is not his Subordinate");
 				    }
 				isIncludingSupervisor = true;
-//				setBDMOpportunityDetailsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-//						serviceLinesList, iouList, countryList, currency, salesStage, users, fields, isIncludingSupervisor, workbook);
 				getBDMSupervisorPerformanceReport(users, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 				break;
 			default :
@@ -263,9 +221,6 @@ public class BDMDetailedReportService {
 					userIdList.addAll(opportunityOwners);
 				}
 				isIncludingSupervisor = true;
-//				setBDMOpportunityDetailsBasedOnUserAccessPrivileges(userId, fromDate, toDate, geoList, 
-//						serviceLinesList, iouList, countryList, currency, salesStage, userIdList, 
-//						fields, isIncludingSupervisor, workbook);
 				getBDMSupervisorPerformanceReport(userIdList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
 				break;
 				}
@@ -276,29 +231,6 @@ public class BDMDetailedReportService {
 		}
 	}
 		
-		/**
-	 * @param userId
-	 * @param fromDate
-	 * @param toDate
-	 * @param geoList
-	 * @param serviceLinesList
-	 * @param iouList
-	 * @param countryList
-	 * @param currency
-	 * @param salesStage
-	 * @param userIdList
-	 * @param fields
-	 * @param isIncludingSupervisor
-	 * @param workbook
-		 * @throws Exception 
-	 */
-//	private void setBDMOpportunityDetailsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList,
-//			List<String> serviceLinesList, List<String> iouList, List<String> countryList, List<String> currency,
-//			List<Integer> salesStage, List<String> userIdList, List<String> fields, boolean isIncludingSupervisor,
-//			SXSSFWorkbook workbook) throws Exception {
-//		getBDMSupervisorPerformanceReport(userIdList, fromDate, toDate, geoList, salesStage, serviceLinesList, iouList, countryList, currency, workbook, fields,isIncludingSupervisor);
-//	}
-
 		/**
 		 * This Method retrieves the BDM Supervisor performance details
 		 * 
@@ -326,6 +258,8 @@ public class BDMDetailedReportService {
 		
 
 		/**
+		 * This method is used to set BDM opportunities to spreadSheet
+		 * 
 		 * @param opportunityList
 		 * @param currency
 		 * @param workbook
@@ -358,6 +292,8 @@ public class BDMDetailedReportService {
 		}
 			
 		/**
+		 * This method is used to set bdm performance report both mandatory and optional fields to spreadSheet
+		 * 
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param object
@@ -399,6 +335,7 @@ public class BDMDetailedReportService {
 				}
 				
 				//set project deal value and deal currency
+
 				if (projectDVFlag) {
 					if(opportunity.getDigitalDealValue() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
@@ -408,119 +345,107 @@ public class BDMDetailedReportService {
 					colValue++;
 					if(opportunity.getDealCurrency() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
-						}
-					colValue++;
 					}
+					colValue++;
+				}
 				
-				
-			for (int i = 0; i < colValue; i++) {
-				if(opportunity.getBidDetailsTs().size() > 0)
-				spreadSheet.addMergedRegion(new CellRangeAddress(currentRow - 1, currentRow + opportunity.getBidDetailsTs().size() - 2, i, i));
-			}
+				BidDetailsT bidDetailsT=bidDetailsTRepository.findLatestBidByOpportunityId(opportunity.getOpportunityId());
 			
-			// set win probability
-			if (winProbFlag) {
-				if (opportunity.getBidDetailsTs().size() > 0) {
-					for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
-						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
-						if(opportunity.getBidDetailsTs().get(bid).getWinProbability() != null) {
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getWinProbability());
+				// set win probability
+				if (winProbFlag) {
+					if (bidDetailsT!=null) {
+						if(bidDetailsT.getWinProbability() != null) {
+							row.createCell(colValue).setCellValue(bidDetailsT.getWinProbability());
 						}
 					}
 					colValue++;
-				} else {
-					colValue++;
 				}
-			}
 			
-			//set target bid submission date
-			if (targetBidSubDtFlag) {
-				if (opportunity.getBidDetailsTs().size() > 0) {
-					for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
-						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
-						if(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate() != null) {
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
+				//set target bid submission date
+				if (targetBidSubDtFlag) {
+					if (bidDetailsT!=null) {
+						if(bidDetailsT.getTargetBidSubmissionDate() != null) {
+							row.createCell(colValue).setCellValue(bidDetailsT.getTargetBidSubmissionDate().toString());
 						}
 					}
 					colValue++;
-				} else {
+				}
+				
+				//set opportunity name
+				if (opportunityNameFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
 					colValue++;
 				}
-			}
-			
-			//set opportunity name
-			if (opportunityNameFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-				colValue++;
-			}
-
-			//set factors for win loss
-			if (factorForWLFlag) {
-				List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
-				row.createCell(colValue).setCellValue(oppFactorsForWinLossList.toString().replace("[", "").replace("]", ""));
-				colValue++;
-			}
-			
-			//set description for win loss
-			if (descForWLFlag) {
-				if(opportunity.getDealClosureComments() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
+	
+				//set factors for win loss
+				if (factorForWLFlag) {
+					List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
+					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppFactorsForWinLossList));
+					colValue++;
 				}
-				colValue++;
-			}
-			
-			// set deal remarks notes
-			if (dealMarkFlag) {
-				List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
-				row.createCell(colValue).setCellValue(oppDealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-				colValue++;
-				}
-			
-			//Setting SubSp
-			if (subSpFlag) {
-				List<String> oppSubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
-				if(!oppSubSpList.isEmpty()){
-					row.createCell(colValue).setCellValue(oppSubSpList.toString().replace("]", "").replace("[", ""));
-				}
-				colValue++;
-			}
-
-			//set deal closure date
-			if (dealClosureDateFlag) {
-				if(opportunity.getDealClosureDate() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
-				}
-				colValue++;
-			}
-			
-			//set created by 
-			if (createdByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
-				colValue++;
-			}
-			//set created date
-			if (createdDateFlag) {
-				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
-				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
 				
-				String dateOfCreation = DateUtils.convertDateToString(createdDate);
-				row.createCell(colValue).setCellValue(getFormattedDate(opportunity.getCreatedDatetime().toString(), actualFormat, desiredFormat));
-				colValue++;
-			}
-			//set modified by 
-			if (modifiedByFlag) {
-				row.createCell(colValue).setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(), actualFormat, desiredFormat));
-				colValue++;
-			}
-			
-			//set modified date 
-			if (modifiedDateFlag) {
-				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
-				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-				String dateOfModification = DateUtils.convertDateToString(modifiedDate);
-				row.createCell(colValue).setCellValue(dateOfModification);
-				colValue++;
-			}
+				//set description for win loss
+				if (descForWLFlag) {
+					if(opportunity.getDealClosureComments() != null) {
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
+					}
+					colValue++;
+				}
+				
+				// set deal remarks notes
+				if (dealMarkFlag) {
+					List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
+					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppDealRemarksNotesList));
+					colValue++;
+					}
+				
+				//Setting SubSp
+				if (subSpFlag) {
+					List<String> oppSubSpList = new ArrayList<String>();
+					String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
+					oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+					oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
+					if(!oppSubSpList.isEmpty()){
+						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
+					}
+					colValue++;
+				}
+	
+				//set deal closure date
+				if (dealClosureDateFlag) {
+					if(opportunity.getDealClosureDate() != null) {
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
+					}
+					colValue++;
+				}
+				
+				//set created by 
+				if (createdByFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
+					colValue++;
+				}
+				//set created date
+				if (createdDateFlag) {
+					Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
+					Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+					String dateOfCreation = DateUtils.convertDateToString(createdDate);
+					row.createCell(colValue).setCellValue(getFormattedDate(dateOfCreation, actualFormat, desiredFormat));
+					colValue++;
+				}
+				//set modified by 
+				if (modifiedByFlag) {
+					row.createCell(colValue).setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(), actualFormat, desiredFormat));
+					colValue++;
+				}
+				
+				//set modified date 
+				if (modifiedDateFlag) {
+					Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
+					Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+					String dateOfModification = DateUtils.convertDateToString(modifiedDate);
+					row.createCell(colValue).setCellValue(dateOfModification);
+					colValue++;
+				}
 			}
 		}
 			
@@ -545,8 +470,8 @@ public class BDMDetailedReportService {
 					salesSupportOwnerList.add(user.getUserName());
 					supervisorList.add(user.getSupervisorUserName());
 				}
-				String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
-				String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
+				String salesOwner = ExcelUtils.removeSquareBracesAndAppendListElementsAsString(salesSupportOwnerList);
+				String salesOwnerSupervisor = ExcelUtils.removeSquareBracesAndAppendListElementsAsString(supervisorList);
 				
 				//set BDM
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName()+", "+salesOwner);
@@ -555,15 +480,20 @@ public class BDMDetailedReportService {
 				if(isIncludingSupervisor){
 					row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName()+", "+salesOwnerSupervisor);
 				}
-				
 				//set opportunity owner name
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
+				
 				//set sales support owners
 				row.createCell(columnNo++).setCellValue(salesOwner);
+				
 				//set display_sub_sp
-				List<String> oppDisplaySubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
-				if(!oppDisplaySubSpList.isEmpty()){
-					row.createCell(columnNo++).setCellValue(oppDisplaySubSpList.toString().replace("]", "").replace("[", ""));
+				List<String> displaySubSpList = new ArrayList<String>();
+				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
+				displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
+				
+				if(!displaySubSpList.isEmpty()){
+					row.createCell(2).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 				}
 				//set display IOU
 				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
@@ -599,252 +529,6 @@ public class BDMDetailedReportService {
 				}
 			}
 			
-
-		/**
-		 * This Method used to set bdms opportunity details to excel
-		 * 
-		 * @param userIdAndOppList
-		 * @param currency
-		 * @param workbook
-		 * @param fields
-		 * @param isIncludingSupervisor
-		 */
-		private void setBDMsOpportunitiesAndNameToExcel(List<Object[]> userIdAndOppList, List<String> currency,
-				SXSSFWorkbook workbook, List<String> fields, boolean isIncludingSupervisor) {
-			logger.info("Inside setBDMsOpportunitiesAndNameToExcel method");
-			SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Detailed Report");
-			int currentRow = 0;
-			CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
-			SXSSFRow row = null;
-			if(fields.isEmpty()){
-				row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-				setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-				for(Object[] userIdAndOpp:userIdAndOppList){
-					String opportunityId = 	(String) userIdAndOpp[1];
-					OpportunityT opportunity = opportunityRepository.findByOpportunityId(opportunityId);
-					currentRow++;
-					row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-					setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor, opportunity);
-				}
-			} else {
-				setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(currentRow, spreadSheet, cellStyle, currency, fields, isIncludingSupervisor);
-				if(currency.size()>1){
-					currentRow++;
-				}
-				setBDMSupervisorAlongWithOptionalFieldsDetail(currentRow, spreadSheet, userIdAndOppList, currency, fields, isIncludingSupervisor);
-			}
-		}
-
-		/**
-		 * This Method is used to set bdm supervisor details along with optional fields to excel
-		 * @param currentRow
-		 * @param spreadSheet
-		 * @param userIdAndOppList
-		 * @param currency
-		 * @param fields
-		 * @param isIncludingSupervisor
-		 */
-		private void setBDMSupervisorAlongWithOptionalFieldsDetail(int currentRow, SXSSFSheet spreadSheet,
-				List<Object[]> userIdAndOppList, List<String> currency, List<String> fields, boolean isIncludingSupervisor) {
-			logger.info("Insie setBDMSupervisorAlongWithOptionalFieldsDetail method");
-			SXSSFRow row = null;
-			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
-			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
-			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
-			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
-			boolean factorForWLFlag = fields.contains(ReportConstants.FACTORSFORWINLOSS);
-			boolean descForWLFlag = fields.contains(ReportConstants.DEALCLOSURECOMMENTS);
-			boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
-			
-			for(Object[] userIdAndOpp:userIdAndOppList){
-				OpportunityT opportunity = opportunityRepository.findByOpportunityId((String) userIdAndOpp[1]);
-				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
-				setBDMSupervisorMandatoryDetails(row, userIdAndOpp, spreadSheet, currency, isIncludingSupervisor, opportunity);
-				int currentCol=11;
-				if(isIncludingSupervisor){
-					currentCol=12;
-				}
-				int colValue = currentCol;
-				if (currency.size() > 1) {
-					colValue = currentCol+1;
-				}
-				
-				//set project deal value and deal currency
-				if (projectDVFlag) {
-					if(opportunity.getDigitalDealValue() != null){
-						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
-					} else {
-						row.createCell(colValue).setCellValue(0);
-					}
-					colValue++;
-					if(opportunity.getDealCurrency() != null){
-						row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
-						} else {
-							row.createCell(colValue).setCellValue("");
-						}
-					colValue++;
-					}
-				
-				
-			for (int i = 0; i < colValue; i++) {
-				if(opportunity.getBidDetailsTs().size() > 0)
-				spreadSheet.addMergedRegion(new CellRangeAddress(currentRow - 1, currentRow + opportunity.getBidDetailsTs().size() - 2, i, i));
-			}
-			
-			// set win probability
-			if (winProbFlag) {
-				if (opportunity.getBidDetailsTs().size() > 0) {
-					for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
-						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
-						if(opportunity.getBidDetailsTs().get(bid).getWinProbability() != null) {
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getWinProbability());
-						} else {
-							row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-					}
-					colValue++;
-				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					colValue++;
-				}
-			}
-			
-			//set target bid submission date
-			if (targetBidSubDtFlag) {
-				if (opportunity.getBidDetailsTs().size() > 0) {
-					for (int bid = 0; bid < opportunity.getBidDetailsTs().size(); bid++) {
-						row = ExcelUtils.getRow(spreadSheet, (currentRow + bid));
-						if(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate() != null) {
-							row.createCell(colValue).setCellValue(opportunity.getBidDetailsTs().get(bid).getTargetBidSubmissionDate().toString());
-						} else {
-								row.createCell(colValue).setCellValue(Constants.SPACE);
-						}
-					}
-					colValue++;
-				} else {
-					row.createCell(colValue).setCellValue(Constants.SPACE);
-					colValue++;
-				}
-			}
-			
-			//set opportunity name
-			if (opportunityNameFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-				colValue++;
-			}
-
-			//set factors for win loss
-			if (factorForWLFlag) {
-				List<String> factorsForWinLossList = new ArrayList<String>();
-				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-						.getOpportunityWinLossFactorsTs()) {
-					factorsForWinLossList.add(opportunityWinLossFactorsT.getWinLossFactor());
-				}
-				row.createCell(colValue).setCellValue(factorsForWinLossList.toString().replace("[", "").replace("]", ""));
-				colValue++;
-			}
-			
-			//set description for win loss
-			if (descForWLFlag) {
-				if(opportunity.getDealClosureComments() != null)
-				row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
-				else
-					row.createCell(colValue).setCellValue("");
-				colValue++;
-			}
-			
-			// set deal remarks notes
-			if (dealMarkFlag) {
-				List<String> dealRemarksNotesList = new ArrayList<String>();
-				for (NotesT notesT : opportunity.getNotesTs()) {
-					dealRemarksNotesList.add(notesT.getNotesUpdated());
-				}
-				row.createCell(colValue).setCellValue(dealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-				colValue++;
-				}
-			
-			}
-		}
-
-		/**
-		 * This Method used to set bdm supervisor details with mandatory fields to excel
-		 * @param row
-		 * @param userIdAndOpp
-		 * @param currentRow
-		 * @param spreadSheet
-		 * @param currencyList
-		 * @param isIncludingSupervisor
-		 * @param opportunity2 
-		 */
-		private void setBDMSupervisorMandatoryDetails(SXSSFRow row, Object[] userIdAndOpp, SXSSFSheet spreadSheet,
-				List<String> currencyList, boolean isIncludingSupervisor, OpportunityT opportunity) {
-			logger.info("Inside setBDMSupervisorMandatoryDetails method");
-			List<String> salesSupportOwnerList = new ArrayList<String>();
-			List<String> supervisorList = new ArrayList<String>();
-			int columnNo = 0;
-			UserT bdmUser = userRepository.findByUserId((String) userIdAndOpp[0]);
-			UserT oppOwner = userRepository.findByUserId(opportunity.getOpportunityOwner());
-			
-			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity.getOpportunitySalesSupportLinkTs()) {
-				UserT user = userRepository.findByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner());
-				salesSupportOwnerList.add(user.getUserName());
-				supervisorList.add(user.getSupervisorUserName());
-			}
-			String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
-			
-			//set BDM
-			row.createCell(columnNo++).setCellValue(bdmUser.getUserName());
-			
-			//set supervisor
-			if(isIncludingSupervisor){
-			row.createCell(columnNo++).setCellValue(bdmUser.getSupervisorUserName());
-			}
-			//set display_sub_sp
-			
-			List<String> displaySubSpList = new ArrayList<String>();
-			for (OpportunitySubSpLinkT displaySubSp : opportunity.getOpportunitySubSpLinkTs()) {
-				displaySubSpList.add(displaySubSp.getSubSpMappingT().getDisplaySubSp());
-			}
-			row.createCell(columnNo++).setCellValue(displaySubSpList.toString().replace("[", "").replace("]", ""));
-			//set opportunity owner name
-			row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
-			//set sales support owners
-			row.createCell(columnNo++).setCellValue(salesOwner);
-			//set display geography
-			row.createCell(columnNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());
-			//set country
-			row.createCell(columnNo++).setCellValue(opportunity.getCountry());
-			//set group customer name
-			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());
-			//set customer name
-			row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getCustomerName());
-			//set sales stage code
-			row.createCell(columnNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());
-			
-			//set expected date of outcome
-			if(!opportunity.getBidDetailsTs().isEmpty()){
-				if(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome()!=null){
-					row.createCell(columnNo++).setCellValue(opportunity.getBidDetailsTs().get(0).getExpectedDateOfOutcome().toString());
-				}  else {
-					row.createCell(columnNo++).setCellValue(Constants.SPACE);
-				}
-			} else {
-				row.createCell(columnNo++).setCellValue(Constants.SPACE);
-			}
-			//set Digital deal value
-			int i = 0;
-			for(String currency : currencyList) {
-				if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
-					row.createCell(columnNo + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency, 
-							opportunity.getDigitalDealValue().doubleValue()).doubleValue());
-				} else {
-					row.createCell(columnNo + i).setCellValue(0);
-				}
-				i++;
-			}
-		}
-
-
 		/**
 		 * This Method used to set bdm supervisor mandatory fields to excel 
 		 * @param row 
@@ -920,130 +604,6 @@ public class BDMDetailedReportService {
 				columnNo++;
 				}
 			}
-		}
-
-		/**
-		 * This Method used to get opportunity ids based on user access privileges
-		 * @param userId
-		 * @param fromDate
-		 * @param toDate
-		 * @param geoList
-		 * @param serviceLinesList
-		 * @param countryList
-		 * @param currency
-		 * @param salesStage
-		 * @param opportunityOwnerList
-		 * @param fields
-		 * @param isIncludingSupervisor
-		 * @param workbook
-		 * @throws Exception
-		 */
-		private void getBDMOpportunityIdsBasedOnUserAccessPrivileges(String userId, Date fromDate, Date toDate, List<String> geoList, List<String> serviceLinesList,  List<String> iouList, List<String> countryList,
-				List<String> currency, List<Integer> salesStage, List<String> opportunityOwnerList, List<String> fields, boolean isIncludingSupervisor, SXSSFWorkbook workbook) throws Exception {
-			logger.debug("Inside getOpportunityListBasedOnUserAccessPrivileges() method");
-			// Form the native top revenue query string
-			String queryString = getOpportunityListQueryString(userId, fromDate, toDate, geoList, countryList, serviceLinesList, salesStage, opportunityOwnerList);
-			logger.debug("Query string: {}", queryString);
-			// Execute the native revenue query string
-			Query bdmReportQuery = entityManager.createNativeQuery(queryString);
-			List<Object[]> bdmUserAndOppId = bdmReportQuery.getResultList();
-			
-			if (bdmUserAndOppId == null || bdmUserAndOppId.isEmpty()) {
-				logger.error("NOT_FOUND: Report could not be downloaded, as no details are available for user selection and privilege combination");
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Report could not be downloaded, as no details are available for user selection and privilege combination");
-			}
-			setBDMsOpportunitiesAndNameToExcel(bdmUserAndOppId, currency, workbook, fields, isIncludingSupervisor);
-		}
-
-
-		/**
-		 * This Method used construct query based on user access privileges, this query retrieves the list of opportunity ids and bdm details
-		 * @param users 
-		 * @param fromDate * @param toDate * @param geoList
-		 * @param countryList * @param serviceLinesList * @return
-		 * @param salesStage 
-		 * @param opportunityOwnerList 
-		 * @throws Exception
-		 */
-		private String getOpportunityListQueryString(String userId, Date fromDate, Date toDate, List<String> geoList,
-				List<String> countryList, List<String> serviceLinesList, List<Integer> salesStage, List<String> opportunityOwnerList) throws Exception {
-			logger.debug("Inside getBDMDetailedQueryString() method");
-			
-			StringBuffer queryBuffer = new StringBuffer(BDM_DETAILED_REPORT_PREFIX);
-			queryBuffer.append(BDM_DETAILED_REPORT_PART1);
-			// Get user access privilege groups 
-			HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(GEO_COND_PREFIX, SUBSP_COND_PREFIX, null, null);
-			String whereClause = userAccessPrivilegeQueryBuilder.getUserAccessPrivilegeWhereConditionClause(userId, queryPrefixMap);
-			
-			queryBuffer.append(SALES_STAGE_CODE +salesStage.toString().replace("[", "").replace("]", "") + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(SALES_STAGE_AND_DEAL_CLOSURE_DATE + fromDate+ Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(DEAL_CLOSURE_END_DATE + toDate+ Constants.SINGLE_QUOTE + ")))");
-			
-			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + OPPORTUNITY_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if (whereClause != null && !whereClause.isEmpty()) { 
-					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-				}
-			queryBuffer.append(Constants.RIGHT_PARANTHESIS);
-			//query part 2
-			queryBuffer.append(BDM_DETAILED_REPORT_PART2);
-			queryBuffer.append(SALES_STAGE_CODE +salesStage.toString().replace("[", "").replace("]", "") + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(SALES_STAGE_AND_DEAL_CLOSURE_DATE + fromDate+ Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(DEAL_CLOSURE_END_DATE + toDate+ Constants.SINGLE_QUOTE + ")))");
-			
-			
-			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + BID_OFFICE_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if (whereClause != null && !whereClause.isEmpty()) { 
-					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-				}
-			queryBuffer.append(Constants.RIGHT_PARANTHESIS);
-			
-			//query part 3
-			queryBuffer.append(BDM_DETAILED_REPORT_PART3);
-			queryBuffer.append(SALES_STAGE_CODE +salesStage.toString().replace("[", "").replace("]", "") + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(SALES_STAGE_AND_DEAL_CLOSURE_DATE + fromDate+ Constants.SINGLE_QUOTE + Constants.RIGHT_PARANTHESIS);
-			queryBuffer.append(DEAL_CLOSURE_END_DATE + toDate+ Constants.SINGLE_QUOTE + ")))");
-			
-			if(!opportunityOwnerList.contains("") && opportunityOwnerList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SALES_SUPPORT_OWNER +ExcelUtils.getStringListWithSingleQuotes(opportunityOwnerList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!geoList.contains("") && geoList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + GEO_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(geoList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!serviceLinesList.contains("") && serviceLinesList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + SUBSP_COND_PREFIX +ExcelUtils.getStringListWithSingleQuotes(serviceLinesList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if(!countryList.contains("") && countryList!=null){
-			queryBuffer.append(Constants.AND_CLAUSE + COUNTRY_COND_PREFIX + ExcelUtils.getStringListWithSingleQuotes(countryList) + Constants.RIGHT_PARANTHESIS);
-			}
-			if (whereClause != null && !whereClause.isEmpty()) { 
-					queryBuffer.append(Constants.AND_CLAUSE + whereClause);
-				}
-			queryBuffer.append(Constants.RIGHT_PARANTHESIS);
-			
-			queryBuffer.append(BDM_DETAILED_REPORT_SUFFIX);
-			return queryBuffer.toString();
 		}
 
 		

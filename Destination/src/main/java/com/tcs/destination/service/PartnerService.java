@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -36,10 +33,8 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.CommonHelper;
-import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  * This service deals with partner requests and provide functionalities like
@@ -84,8 +79,9 @@ public class PartnerService {
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
-	
 
+	@Autowired
+	private GeographyRepository geoRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
 
@@ -104,6 +100,13 @@ public class PartnerService {
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
+	/**
+	 * Retrieve partner details based on partner id
+	 * @param partnerId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public PartnerMasterT findById(String partnerId, List<String> toCurrency)
 			throws Exception {
 		logger.debug("Begin:Inside findById method of PartnerService");
@@ -171,27 +174,6 @@ public class PartnerService {
 	 */
 
 	/**
-	 * This method is used to validate contact input parameters.
-	 * 
-	 * @param contact
-	 * @return
-	 */
-	private void validateRequest(PartnerMasterT partner)
-			throws DestinationException {
-		logger.debug("Begin:Inside validateRequest method of PartnerService");
-		if (partner.getPartnerName().isEmpty()
-				|| partner.getPartnerName() == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"PartnerName is required");
-		}
-		if (partner.getGeographyMappingT() == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"Geography is required");
-		}
-		logger.debug("End:Inside validateRequest method of PartnerService");
-	}
-
-	/**
 	 * This method inserts partner to the database
 	 * 
 	 * @param partnerToInsert
@@ -225,6 +207,9 @@ public class PartnerService {
 			partnerMasterT.setGeographyMappingT(partnerToInsert
 					.getGeographyMappingT());
 			partnerMasterT.setDocumentsAttached("NO");
+
+			validateInactiveIndicators(partnerMasterT);
+
 			partnerMasterT = partnerRepository.save(partnerMasterT);
 			logger.debug("End:Inside addPartner method of PartnerService");
 		}
@@ -232,6 +217,34 @@ public class PartnerService {
 		return partnerMasterT;
 	}
 
+	/**
+	 * validates all the fields of partner which has any inactive fields 
+	 * @param partner
+	 * @throws {@link DestinationException} if any inactive records founds
+	 */
+	public void validateInactiveIndicators(PartnerMasterT partner) {
+
+		//createdModifiedBy, 
+		String createdBy = partner.getCreatedModifiedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+
+		// geography, 
+		String geography = partner.getGeography();
+		if(StringUtils.isNotBlank(geography) && geoRepository.findByActiveTrueAndGeography(geography) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The geography is inactive");
+		}
+	}
+
+	/**
+	 * retrieves partner names containing a particular string
+	 * @param nameWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameContaining(String nameWith, int page,
 			int count) throws Exception {
 		logger.debug("Begin:Inside findByNameContaining method of PartnerService");
@@ -239,7 +252,7 @@ public class PartnerService {
 		Pageable pageable = new PageRequest(page, count);
 		Page<PartnerMasterT> partnersPage = partnerRepository
 				.findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
-						nameWith, pageable, true);
+						nameWith, pageable,true);
 
 		paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 		List<PartnerMasterT> partners = partnersPage.getContent();
@@ -254,6 +267,14 @@ public class PartnerService {
 		return paginatedResponse;
 	}
 
+	/**
+	 * retrieves partner names starting with a particular string
+	 * @param startsWith
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByNameStarting(String startsWith, int page,
 			int count) throws Exception {
 		logger.debug("Begin:Inside findByNameStarting method of PartnerService");
@@ -306,6 +327,17 @@ public class PartnerService {
 
 	}
 
+	/**
+	 * service implementation for partner advanced search
+	 * with paginated response
+	 * @param name
+	 * @param geography
+	 * @param inactive
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws DestinationException
+	 */
 	public PaginatedResponse search(String name, List<String> geography, boolean inactive,
 			int page, int count) throws DestinationException {
 		logger.debug("Begin:Inside search method of PartnerService");
@@ -388,6 +420,12 @@ public class PartnerService {
 		return updateStatus;
 	}
 
+	/**
+	 * validation for partner details before it got saved to partner master T
+	 * @param partnerMaster
+	 * @param isBdmWithAccess
+	 * @return
+	 */
 	boolean validateAndUpdatePartner(PartnerMasterT partnerMaster,boolean isBdmWithAccess)
 	{
 		boolean isUpdate=false;

@@ -4,7 +4,6 @@ import static com.tcs.destination.utils.QueryConstants.CONNECT_REMINDER;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -41,9 +40,6 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	 */
 	ConnectT findByConnectId(String connectid);
 	
-	@Query(value ="select * from connect_t where partner_id=?1",nativeQuery = true)
-	List<ConnectT> findByPartnerId(String partnerId);
-
 	Page<ConnectT> findByConnectNameIgnoreCaseLikeAndCustomerIdOrderByModifiedDatetimeDesc(String name,
 			String customerId,Pageable page);
 
@@ -249,7 +245,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) AND ((CON.primary_owner in (:userIds) "
 			+ "  OR CSOL.secondary_owner in (:userIds)) OR ('') in (:userIds)) group by SSM.display_sub_sp ", nativeQuery = true)
 	List<Object[]> findBySubSpCustomerConnectSummaryDetails(
@@ -280,7 +276,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (CMT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer join connect_sub_sp_link_t CSL on CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM on (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='CUSTOMER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp ", nativeQuery = true)
 	List<Object[]> findSubSpCustomerConnectsSummaryDetails(
 			@Param("startDate") Timestamp startDate,
@@ -308,7 +304,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) "
 			+ " AND ((CON.primary_owner IN (:userIds) OR CSOL.secondary_owner IN (:userIds)) OR ('') IN (:userIds)) "
 			+ " group by SSM.display_sub_sp  ", nativeQuery = true)
@@ -336,7 +332,7 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ " JOIN geography_mapping_t GMT ON (PAT.geography=GMT.geography AND (GMT.display_geography = (:displayGeography) OR ('') = (:displayGeography))) "
 			+ " left outer Join connect_sub_sp_link_t CSL ON CON.connect_id=CSL.connect_id "
 			+ " left outer JOIN sub_sp_mapping_t SSM ON (CSL.sub_sp=SSM.sub_sp AND (SSM.display_sub_sp IN (:serviceLines) OR ('') IN (:serviceLines))) "
-			+ " where CON.connect_category='PARTNER' AND CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
+			+ " where CON.start_datetime_of_connect between (:startDate) AND (:endDate) "
 			+ " AND (CON.country IN (:countryList) OR ('') IN (:countryList)) group by SSM.display_sub_sp  ", nativeQuery = true)
 	List<Object[]> findSubSpPartnerConnectsSummaryDetails(
 			@Param("startDate") Timestamp startDate,
@@ -657,4 +653,32 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			@Param("toDate") Timestamp toDate,
 			@Param("connectCategory") String connectCategory);
 
+	
+	/* ---------- repository methods for smart search --------- */
+	
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE UPPER(connect_name) LIKE UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByConnectName(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByCustomerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM connect_t  "
+			+ "WHERE partner_id IN (SELECT partner_id FROM partner_master_t WHERE UPPER(partner_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchByPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM connect_t "
+			+ "WHERE connect_id IN (SELECT DISTINCT(connect_id) FROM connect_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<ConnectT> searchBySubsp(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	/* ---------- ends - repository methods for smart search --------- */
 }

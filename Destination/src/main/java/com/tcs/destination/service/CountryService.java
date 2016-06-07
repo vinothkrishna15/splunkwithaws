@@ -1,15 +1,13 @@
 package com.tcs.destination.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.GeographyCountryMappingT;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.tcs.destination.data.repository.CountryRepository;
 
 /**
@@ -24,10 +22,9 @@ public class CountryService {
 	@Autowired
 	CountryRepository countryRepository;
 
-	public List<GeographyCountryMappingT> findAll() {
+	public List<GeographyCountryMappingT> findAllActive() {
 		logger.debug("Inside findAll() of CountryService");
-		return (ArrayList<GeographyCountryMappingT>) countryRepository
-				.findAll();
+		return countryRepository.findByActiveTrue();
 	}
 
 }

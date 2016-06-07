@@ -1,6 +1,5 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,10 +21,9 @@ public class IOUService {
 	@Autowired
 	CustomerIOUMappingRepository customerIOUMappingRepository;
 
-	public List<IouCustomerMappingT> findAll() {
+	public List<IouCustomerMappingT> findAllActive() {
 		logger.debug("Inside findAll() of IOUService");
-		return (ArrayList<IouCustomerMappingT>) customerIOUMappingRepository
-				.findAll();
+		return customerIOUMappingRepository.findByActiveTrue();
 	}
 
 }

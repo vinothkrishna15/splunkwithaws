@@ -16,6 +16,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +59,16 @@ import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.BidOfficeGroupOwnerLinkTRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
+import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
+import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
@@ -74,12 +79,15 @@ import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTcsAccountContactLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WinLossMappingRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
@@ -99,7 +107,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
-import com.tcs.destination.utils.StringUtils;
 
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
@@ -235,6 +242,27 @@ public class OpportunityService {
 	
 	@Autowired
 	ConnectRepository connectRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
+
+	@Autowired
+	OfferingRepository offeringRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+
+	@Autowired
+	CountryRepository countryRepository;
+
+	@Autowired
+	WinLossMappingRepository winlossFactorRepository;
+	
+	@Autowired
+	CompetitorRepository competitorRepository;
+	
+	@Autowired
+	PartnerRepository partnerRepository;
 	
 	@Autowired
 	WorkflowRequestTRepository workflowRequestRepository;
@@ -462,8 +490,8 @@ public class OpportunityService {
 
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
-		logger.debug("Inside findByOpportunityId() service");
-
+		logger.debug("Inside findByOpportunityId() service");	
+		
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
@@ -483,14 +511,14 @@ public class OpportunityService {
 					.findByEntityTypeIdAndEntityIdAndStatus(
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
-			opportunity.setWorkflowRequest(workflowRequestPending);
+				opportunity.setWorkflowRequest(workflowRequestPending);
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Opportuinty not found: " + opportunityId);
 		}
-	}
+	} 
 
 	private void restrictOpportunity(OpportunityT opportunity) {
 		opportunity.setDigitalDealValue(null);
@@ -632,10 +660,21 @@ public class OpportunityService {
 		opportunityTimelineHistoryTRepository.save(history);
 	}
 
+	/** 
+	 * This method is used to save an opportunity and also used to edit an existing opportunity
+	 * 
+	 * @param opportunity
+	 * @param isUpdate
+	 * @param userGroup
+	 * @param opportunityBeforeEdit
+	 * @return
+	 * @throws Exception
+	 */
 	private OpportunityT saveOpportunity(OpportunityT opportunity,
 			boolean isUpdate, String userGroup,
 			OpportunityT opportunityBeforeEdit) throws Exception {
 		logger.debug("Inside saveOpportunity() method");
+		validateOpportunityPrimarySubSp(opportunity);
 		if (userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())
 				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
 			Set<String> owners = new HashSet<String>();
@@ -694,6 +733,8 @@ public class OpportunityService {
 
 		}
 
+		validateInactiveIndicators(opportunity);
+		
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
@@ -701,6 +742,181 @@ public class OpportunityService {
 		return saveChildObject(opportunity);
 
 	}
+
+	/**
+	* This method validates primary SubSp for a opportunity
+	* 
+	* @param opportunity
+	* @return
+	*/
+	private void validateOpportunityPrimarySubSp(OpportunityT opportunity) {
+		logger.info("Inside validation for opportunity primary SubSp");
+		if(opportunity.getOpportunitySubSpLinkTs()!=null){
+			int countOfPrimarySubSp = 0;
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getOpportunitySubSpLinkTs()) {
+				if (opportunitySubSpLinkT.isSubspPrimary()) {
+					countOfPrimarySubSp++;
+				}
+			}
+			if (countOfPrimarySubSp > 1) {
+				logger.error("Only one primary SubSp is allowed");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Only one SubSp can be primary");
+			} else if (countOfPrimarySubSp == 0) {
+				logger.error("There should be atleast one primary SubSp");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"No primary SubSp");
+			}
+		}
+		logger.info("End of validation for opportunity primary SubSp");
+	}
+	
+	/**
+	 * validate a opertunity which has any inactive fields
+	 * @param opportunity
+	 */
+	public void validateInactiveIndicators(OpportunityT opportunity) {
+		//createdBy
+		String createdBy = opportunity.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
+		}
+		
+		// modifiedBy,
+		String modifiedBy = opportunity.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+		
+		// customerId,
+		String customerId = opportunity.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+				
+		// country
+		String country = opportunity.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+		
+		// opportunityOwner,
+		String opportunityOwner = opportunity.getOpportunityOwner();
+		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The opportunity owner is inactive");
+		}
+		
+		// opportunityCompetitorLinkTs,
+		List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs = opportunity.getOpportunityCompetitorLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityCompetitorLinkTs)) {
+			for (OpportunityCompetitorLinkT compLink : opportunityCompetitorLinkTs) {
+				String competitorName = compLink.getCompetitorName();
+				if(StringUtils.isNotBlank(competitorName) && competitorRepository.findByActiveTrueAndCompetitorName(competitorName) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The competitor is inactive");
+				}
+			}
+		}
+		
+		
+		// opportunityCustomerContactLinkTs,
+		List<OpportunityCustomerContactLinkT> oppCustomerContactLinkTs = opportunity.getOpportunityCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(oppCustomerContactLinkTs)) {
+			for (OpportunityCustomerContactLinkT contact : oppCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
+				}
+			}
+		}
+		
+		// opportunityOfferingLinkTs,
+		List<OpportunityOfferingLinkT> connectOfferingLinkTs = opportunity.getOpportunityOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (OpportunityOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
+				}
+			}
+		}
+		
+		//List<OpportunityPartnerLinkT> opportunityPartnerLinkTs,
+		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunity.getOpportunityPartnerLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityPartnerLinkTs)) {
+			for (OpportunityPartnerLinkT partnerLink : opportunityPartnerLinkTs) {
+				String partnerId = partnerLink.getPartnerId();
+				if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+				}
+			}
+		}
+		
+		
+		//opportunitySubSpLinkTs,
+		List<OpportunitySubSpLinkT> oppSubSpLinkTs = opportunity.getOpportunitySubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(oppSubSpLinkTs)) {
+			for (OpportunitySubSpLinkT subSpLink : oppSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+		
+		
+		// opportunityTcsAccountContactLinkTs,
+		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = opportunity.getOpportunityTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunityTcsAccountContactLinkTs)) {
+			for (OpportunityTcsAccountContactLinkT contactLink : opportunityTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+		
+		// opportunityWinLossFactorsTs,
+		List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs = opportunity.getOpportunityWinLossFactorsTs();
+		if(CollectionUtils.isNotEmpty(opportunityWinLossFactorsTs)) {
+			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
+				String wlFactor = oppWLFactor.getWinLossFactor();
+				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+
+		// OpportunitySalesSupportLink,
+		List<OpportunitySalesSupportLinkT> opportunitySaleSupOwnTs = opportunity.getOpportunitySalesSupportLinkTs();
+		if(CollectionUtils.isNotEmpty(opportunitySaleSupOwnTs)) {
+			for (OpportunitySalesSupportLinkT oppWLFactor : opportunitySaleSupOwnTs) {
+				String userId = oppWLFactor.getSalesSupportOwner();
+				if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The sales support owner is inactive");
+				}
+			}
+		}
+
+		// BidDetails,
+		List<BidDetailsT> bidDetailsT = opportunity.getBidDetailsTs();
+		if(CollectionUtils.isNotEmpty(bidDetailsT)) {
+			for (BidDetailsT bidDetail : bidDetailsT) {
+				List<BidOfficeGroupOwnerLinkT> bidofficeGrpOwners = bidDetail.getBidOfficeGroupOwnerLinkTs();
+				if(CollectionUtils.isNotEmpty(bidofficeGrpOwners)) {
+					for (BidOfficeGroupOwnerLinkT bidgrpOwner : bidofficeGrpOwners) {
+						String userId = bidgrpOwner.getBidOfficeGroupOwner();
+						if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
+							throw new DestinationException(HttpStatus.BAD_REQUEST, "The Bid Office Group Owner is inactive");
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+
 
 	private OpportunityT saveChildObject(OpportunityT opportunity)
 			throws Exception {
@@ -1124,10 +1340,17 @@ public class OpportunityService {
 		try {
 			String userId = DestinationUtils.getCurrentUserDetails()
 					.getUserId();
-			// Apply user access privileges if not primary / sales support owner
-			if (!isUserOwner(userId, opportunityT)) {
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
+			if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
+				opportunityT.setEnableEditAccess(true);
+			} else {
+				opportunityT
+						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
+								opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
 			}
+
 		} catch (Exception e) {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -1135,12 +1358,9 @@ public class OpportunityService {
 		setUserFavourite(opportunityT);
 		setSearchKeywordTs(opportunityT);
 		removeCyclicForLinkedConnects(opportunityT);
-		removeCyclicForCustomers(opportunityT);
-
-	}
+		removeCyclicForCustomers(opportunityT);}
 
 	private void setUserFavourite(OpportunityT opportunityT) {
-		// TODO Auto-generated method stub
 		boolean flag = false;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		for(UserFavoritesT userFavorite : opportunityT.getUserFavoritesTs()) {
@@ -2176,7 +2396,6 @@ public class OpportunityService {
 	 * @return
 	 */
 	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
-		// TODO Auto-generated method stub
 		boolean isBDMOrBDMSupervisor = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
 		if(CollectionUtils.isNotEmpty(userGroups)){
@@ -2227,41 +2446,7 @@ public class OpportunityService {
 		return isSubordinateAsOwner;
 	}
 
-	/**
-	 * This method is used to check wheteher the logged in user has edit access
-	 * for an opportunity
-	 * 
-	 * @param opportunity
-	 * @param userGroup
-	 * @param userId
-	 * @return
-	 */
-	private boolean isEditAccessRequiredForOpportunity(
-			OpportunityT opportunity, String userGroup, String userId) {
-		logger.info("Inside isEditAccessRequiredForOpportunity method");
-		boolean isEditAccessRequired;
-		if (isUserOwner(userId, opportunity)) {
-			isEditAccessRequired = true;
-
-		} else if (userGroup.equals(UserGroup.BDM.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
-			isEditAccessRequired = false;
-		} else {
-			if (isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
-					null)) {
-				isEditAccessRequired = true;
-			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
-				isEditAccessRequired = false;
-			} else {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, opportunity.getCustomerId());
-			}
-		}
-
-		return isEditAccessRequired;
-	}
-
+	
 	/**
 	 * This method is used to check whether Geo heads PMO and Iou Heads have the
 	 * edit access for an opportunity
@@ -2304,7 +2489,8 @@ public class OpportunityService {
 		default:
 			break;
 		}
-
+        
+				
 		return isEditAccessRequired;
 
 	}
@@ -2344,6 +2530,49 @@ public class OpportunityService {
 					EntityType.OPPORTUNITY.toString(),
 					opportunity.getOpportunityId());
 		}
+	}
+	
+	/**
+	 * This method is used to check wheteher the logged in user has edit access
+	 * for an opportunity
+	 * 
+	 * @param opportunity
+	 * @param userGroup
+	 * @param userId
+	 * @return
+	 */
+	private boolean isEditAccessRequiredForOpportunity(
+			OpportunityT opportunity, String userGroup, String userId) {
+		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		boolean isEditAccessRequired = false;
+		if (isUserOwner(userId, opportunity)) {
+			isEditAccessRequired = true;
+
+		} 
+		else {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case BDM :
+				isEditAccessRequired = false;
+				break;
+			case BDM_SUPERVISOR:
+				isEditAccessRequired = isSubordinateAsOwner(userId, opportunity.getOpportunityId(),
+						null);
+				break;
+			case GEO_HEADS:
+			case PMO:
+			case IOU_HEADS:	
+				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
+						userId, opportunity.getCustomerId());
+				break;
+			default:
+				break;	 
+				
+				
+			}
+		}
+		
+		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
+		return isEditAccessRequired;
 	}
 }
 

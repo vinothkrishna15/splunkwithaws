@@ -107,7 +107,7 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 
 		@Override
 		public boolean isEnabled() {
-			return true;
+			return isActive();
 		}
 	}
 }

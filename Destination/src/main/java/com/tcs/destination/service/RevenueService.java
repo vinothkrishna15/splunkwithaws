@@ -52,7 +52,7 @@ public class RevenueService {
 			revenueTPK = new RevenueCustomerMappingTPK();
 			
 			// to find the uniqueness of the primary key (here composite key)
-			financeCustomers = revenueRepository.checkRevenueMappingPK(revenueCustomerToInsert.getFinanceCustomerName(),revenueCustomerToInsert.getCustomerGeography(),revenueCustomerToInsert.getFinanceIou());
+			financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(revenueCustomerToInsert.getFinanceCustomerName(),revenueCustomerToInsert.getCustomerGeography(),revenueCustomerToInsert.getFinanceIou());
 			
 			if (financeCustomers.isEmpty()) 
             {

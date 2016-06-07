@@ -204,5 +204,6 @@ public class ReportConstants {
 	public static final String ROWLABELS = "Row Labels";
 	public static final String ANTICIPATING = "anticipating";
 	public static final String PROJECTDEALVALUE = "projectDealValue";
+	public static final String P = " (P)";
 
 }

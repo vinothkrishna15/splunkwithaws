@@ -1,6 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +48,7 @@ public class IOUController {
 			throws DestinationException {
 		logger.info("Inside IOUController: Start of search");
 		try {
-			ArrayList<IouCustomerMappingT> iouCustomerMappingTs = new ArrayList<IouCustomerMappingT>();
-			iouCustomerMappingTs = (ArrayList<IouCustomerMappingT>) iouService
-					.findAll();
+			List<IouCustomerMappingT> iouCustomerMappingTs = iouService.findAllActive();
 			logger.info("Inside IOUController: End of search");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, iouCustomerMappingTs);
