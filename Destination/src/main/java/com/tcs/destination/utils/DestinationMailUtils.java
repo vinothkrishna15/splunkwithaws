@@ -44,8 +44,8 @@ import java.util.Set;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.activemq.DestinationDoesNotExistException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -1655,16 +1655,7 @@ public class DestinationMailUtils {
 			if (CollectionUtils.isNotEmpty(opportunitySubSps)) {
 				subSpsStr = splitStringByComma(opportunitySubSps);
 			}
-			// Getting Win Loss Factors
-			for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-					.getOpportunityWinLossFactorsTs()) {
-				winLossFactors.add(opportunityWinLossFactorsT
-						.getWinLossFactor());
-			}
-			if (CollectionUtils.isNotEmpty(winLossFactors)) {
-				factorsForWinLoss = splitStringByComma(winLossFactors);
-				logger.info("factors for win/loss : " + factorsForWinLoss);
-			}
+
 			// Getting Sales Support Owners
 			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 					.getOpportunitySalesSupportLinkTs()) {
@@ -1710,7 +1701,7 @@ public class DestinationMailUtils {
 
 			recepientIds.add(opportunityWonLostGroupMailId);
 			// If the Opportunity is won, framing the subject ang getting the
-			// template loc
+			// template loc and win factors
 			if (opportunity.getSalesStageCode() == 9) {
 				logger.info("opportunity Won");
 				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
@@ -1718,10 +1709,27 @@ public class DestinationMailUtils {
 						.append(customerName);
 				logger.info("Subject for opportunity won : {}", subject);
 				templateLoc = opportunityWonTemplateLoc;
+				// Getting Win Loss Factors
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Win-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.WIN_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossOthersDescription());
+						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
+					}
+				}
 
 			}
 			// If the Opportunity is lost, framing the subject ang getting the
-			// template loc
+			// template loc and loss factors
 			if (opportunity.getSalesStageCode() == 10) {
 				logger.info("OpportunityLost");
 				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
@@ -1730,7 +1738,29 @@ public class DestinationMailUtils {
 				logger.info("Subject for opportunity lost :" + subject);
 				templateLoc = opportunityLostTemplateLoc;
 
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Loss-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.LOSS_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossOthersDescription());
+						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
+					}
+				}
 			}
+
+			if (CollectionUtils.isNotEmpty(winLossFactors)) {
+				factorsForWinLoss = splitStringByComma(winLossFactors);
+				logger.info("factors for win/loss : " + factorsForWinLoss);
+			}
+
 			if (templateLoc != null) {
 				MimeMessage automatedMIMEMessage = ((JavaMailSenderImpl) mailSender)
 						.createMimeMessage();

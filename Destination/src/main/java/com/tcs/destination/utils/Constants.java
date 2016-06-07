@@ -220,10 +220,13 @@ public class Constants {
 	//For Opportunity win/loss mail
 	public static final String 	WITH_SUPPORT_FROM = "with support from";
 	public static final String NOT_AVAILABLE = "Not Available";
+	public static final String LOSS_OTHER = "Loss - Other";
+	public static final String WIN_OTHER = "Win - Other";
 	
 	public static final String WORKFLOW_CUSTOMER_PENDING_SUBJECT = "Pending New Customer Request";
 	public static final String WORKFLOW_PARTNER_PENDING_SUBJECT = "Pending New Partner Request";
 	public static final String WORKFLOW_OPPORTUNITY_REOPEN_PENDING_SUBJECT = "Pending Opportunity reopen request";
+	
 	
 	public static final String ENVIRONMENT_NAME = "environment.name";
 	public static final String TCS_UAT = "tcs_uat";
