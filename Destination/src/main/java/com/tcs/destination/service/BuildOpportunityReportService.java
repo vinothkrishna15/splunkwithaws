@@ -1490,7 +1490,7 @@ public class BuildOpportunityReportService {
 						row.getCell(2 + offsetValue).setCellStyle(
 								subHeadingStyle2);
 						if ((currency.size() > 1)) {
-							row.getCell(3 + offsetValue).setCellFormula(
+							row.createCell(3 + offsetValue).setCellFormula(
 									"SUM(" + ((char) (68 + offsetValue)) + "7:"
 											+ ((char) (68 + offsetValue))
 											+ (rowValue) + ")");
