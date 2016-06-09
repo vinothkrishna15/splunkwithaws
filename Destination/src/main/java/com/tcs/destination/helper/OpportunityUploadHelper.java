@@ -300,10 +300,10 @@ public class OpportunityUploadHelper {
 						+ OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE
 						+ " characters");
 			} else {
-				opportunity.setStrategicInitiative(strategicInitiative);
+				opportunity.setStrategicDeal(strategicInitiative);
 			}
 		} else {
-			opportunity.setStrategicInitiative(Constants.NO);
+			opportunity.setStrategicDeal(Constants.NO);
 		}
 
 		// DIGITAL FLAG

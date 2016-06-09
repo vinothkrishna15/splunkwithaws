@@ -1118,8 +1118,8 @@ public class OpportunityService {
 		baseOpportunityT.setOpportunityRequestReceiveDate(opportunity
 				.getOpportunityRequestReceiveDate());
 		baseOpportunityT.setOverallDealSize(opportunity.getOverallDealSize());
-		baseOpportunityT.setStrategicInitiative(opportunity
-				.getStrategicInitiative());
+		baseOpportunityT.setStrategicDeal(opportunity
+				.getStrategicDeal());
 		baseOpportunityT.setDealType(opportunity.getDealType());
 		baseOpportunityT.setCountry(opportunity.getCountry());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
