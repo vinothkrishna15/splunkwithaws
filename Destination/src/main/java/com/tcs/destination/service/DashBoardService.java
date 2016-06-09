@@ -269,7 +269,8 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	public LeadershipConnectsDTO getLeadershipConnectsByGeography(
-			String userId, Date fromDate, Date toDate, String geography, String connectCategory)
+			String userId, Date fromDate, Date toDate, String geography, String connectCategory, 
+			String searchedUserId, boolean teamFlag)
 			throws Exception {
 		logger.debug("Start:Inside getLeadershipConnectsByGeography() of DashBoardService");
 
@@ -293,7 +294,7 @@ public class DashBoardService {
 							"User is not authorised to access this service");
 				default:
 					leadershipConnectsDTO = getTeamConnectsBasedOnUserPrivileges(
-							userId, fromDate, toDate, geography, connectCategory);
+							userId, fromDate, toDate, geography, connectCategory, searchedUserId, teamFlag);
 				}
 			}
 
@@ -319,33 +320,46 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	private LeadershipConnectsDTO getTeamConnectsBasedOnUserPrivileges(
-			String supervisorId, Date startDate, Date endDate, String geography, String connectCategory)
+			String supervisorId, Date startDate, Date endDate, String geography, String connectCategory,
+			String searchedUserId, boolean teamFlag)
 			throws Exception {
 		
 		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
 
 		String privilegesQuery = "";
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
-
+		List<ConnectT> listOfPastConnects = null;
+		List<ConnectT> listOfUpcomingConnects = null;
 		Timestamp fromDateTs = new Timestamp(startDate.getTime());
 		Timestamp toDateTs = new Timestamp(endDate.getTime()
 				+ Constants.ONE_DAY_IN_MILLIS - 1);
 		Date now = new Date(); // Get current DateTime
-		Timestamp nowTs = new Timestamp(now.getTime()); // Get the current
-														// timestamp
-		Timestamp nowNextMsTs = new Timestamp(now.getTime() + 1); // Get the
-																	// next
-																	// millisecond's
-																	// timestamp
-																	// w.r.t now
+		
+		// Get the current timestamp
+		Timestamp nowTs = new Timestamp(now.getTime()); 
+		
+		// Get the next  millisecond's timestamp w.r.t now
+		Timestamp nowNextMsTs = new Timestamp(now.getTime() + 1); 
+		
+		// If user to search is empty, get the Dashboard details for Sales Heads/SI
+		if(StringUtils.isEmpty(searchedUserId)) {
+		
+			// Get the Past connects
+			listOfPastConnects = getLeadershipDashboardTeamConnects(
+					supervisorId, geography, fromDateTs, nowTs, connectCategory);
 
-		// Get the Past connects
-		List<ConnectT> listOfPastConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, fromDateTs, nowTs, connectCategory);
-
-		// Get the Future Connects using the constructed query
-		List<ConnectT> listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
+			// Get the Future Connects using the constructed query
+			listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
+					supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
+			
+		} else {
+			
+			// Get the Past connects for the searched user
+			listOfPastConnects = getLeadershipDashboardConnectsForUsers(searchedUserId, teamFlag, fromDateTs, nowTs, connectCategory);
+			
+			// Get the Upcoming Connects for the searched user
+			listOfUpcomingConnects = getLeadershipDashboardConnectsForUsers(searchedUserId, teamFlag, nowNextMsTs, toDateTs, connectCategory);
+		}
 
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
@@ -372,6 +386,42 @@ public class DashBoardService {
 		return leadershipConnectsDTO;
 	}
 
+	/**
+	 * Get Leadership Dashboard Connects for Users
+	 * 
+	 * @param searchedUserId
+	 * @param teamFlag
+	 * @param fromDateTs
+	 * @param toDateTs
+	 * @param category
+	 * @return
+	 * @throws Exception
+	 */
+	private List<ConnectT> getLeadershipDashboardConnectsForUsers(String searchedUserId, boolean teamFlag, 
+			Timestamp fromDateTs, Timestamp toDateTs, String category) throws Exception {
+		List<ConnectT> connectTs = null;
+
+		List<String> searchUserList = new ArrayList<String>();
+		searchUserList.add(searchedUserId);
+
+		if (teamFlag) { // If Team Flag is false, subordinate details will not be shown
+
+			// Get all subordinates for the supervisor
+			List<String> subordinates = userRepository
+					.getAllSubordinatesIdBySupervisorId(searchedUserId);
+			
+			// Add the users to the resultant list
+			for (String user : subordinates) {
+				searchUserList.add(user);
+			}
+		}
+		
+		// Get the connects for the users
+		connectTs = connectRepository.getConnectsForUsers(searchUserList, fromDateTs, toDateTs, category);
+
+		return connectTs;
+	}
+	
 //	/**
 //	 * This method returns a list of Connects based on the query string formed
 //	 * 
@@ -572,7 +622,7 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	public LeadershipOverallWinsDTO getLeadershipWinsByGeography(String userId,
-			Date fromDate, Date toDate, String geography) throws Exception {
+			Date fromDate, Date toDate, String geography, String searchedUserId, boolean teamFlag) throws Exception {
 		
 		logger.debug("Start: Inside getLeadershipWinsByGeography() of DashBoardService");
 
@@ -596,7 +646,7 @@ public class DashBoardService {
 							"User is not authorised to access this service");
 				default:
 					leadershipOverallWinsDTO = getLeadershipWinsByUserPrivileges(
-							userId, fromDate, toDate, geography);
+							userId, fromDate, toDate, geography, searchedUserId, teamFlag);
 				}
 			}
 
@@ -622,28 +672,37 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
-			String userId, Date fromDate, Date toDate, String geography)
+			String userId, Date fromDate, Date toDate, String geography, String searchedUserId, boolean teamFlag)
 			throws Exception {
         
 		logger.debug("Start: Inside getLeadershipWinsByUserPrivileges() of DashBoardService");
 		String privilegesQuery = "";
 		LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
+		LeadershipWinsDTO leadershipWins = null;
 
 		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 		Timestamp toDateTs = new Timestamp(toDate.getTime()
 				+ Constants.ONE_DAY_IN_MILLIS - 1);
 
-		// Get the privileges for the user and append to the query constructed
-		// above
-		privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
+		// If user to search is empty, get the Dashboard details for Sales Heads/SI
+		if(StringUtils.isEmpty(searchedUserId)) {
+		
+			// Get the privileges for the user and append to the query constructed
+			// above
+			privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
 
-		// Construct the Query for Wins
-		StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
+			// Construct the Query for Wins
+			StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
 				userId, geography, fromDateTs, toDateTs, privilegesQuery);
 
-		// Get wins using the constructed query
-		LeadershipWinsDTO leadershipWins = getWinsFromQueryBuffer(
+			// Get wins using the constructed query
+			leadershipWins = getWinsFromQueryBuffer(
 				queryBufferForWins, userId);
+		} else {
+			// Get Opportunity Wins for users and his subordinates 
+			leadershipWins = getLeadershipWinsForSearchedUsers(searchedUserId,
+					teamFlag, fromDateTs, toDateTs);
+		}
 
 		// Get Wins Greater than 5 Million and 1 Million and upto 1 Million
 		List<OpportunityT> oppWinsFiveMillion = null;
@@ -769,6 +828,56 @@ public class DashBoardService {
 		}
 		logger.debug("End: Inside getLeadershipWinsByUserPrivileges() of DashBoardService");
 		return leadershipTotalWinsDTO;
+	}
+
+	/**
+	 * Get Leadership Wins for searched users
+	 * 
+	 * @param searchedUserId
+	 * @param teamFlag
+	 * @param fromDateTs
+	 * @param toDateTs
+	 * @return
+	 * @throws Exception
+	 */
+	LeadershipWinsDTO getLeadershipWinsForSearchedUsers(String searchedUserId,
+			boolean teamFlag, Timestamp fromDateTs, Timestamp toDateTs)
+			throws Exception {
+		LeadershipWinsDTO leadershipWins = null;
+
+		List<String> searchUserList = new ArrayList<String>();
+		searchUserList.add(searchedUserId);
+
+		if (teamFlag) { // If Team Flag is false, subordinate details will not be shown
+			List<String> subordinates = userRepository
+					.getAllSubordinatesIdBySupervisorId(searchedUserId);
+			
+			// Add the subordinates
+			for (String user : subordinates) {
+				searchUserList.add(user);
+			}
+		}
+
+		// Get the Opportunity Wins for users
+		List<OpportunityT> oppWinsByUsers = opportunityRepository
+				.getOpportunityWinsForUsers(searchUserList, fromDateTs,
+						toDateTs);
+
+		leadershipWins = new LeadershipWinsDTO();
+		leadershipWins.setListOfWins(oppWinsByUsers);
+		leadershipWins.setSizeOfWins(oppWinsByUsers.size());
+
+		// To Get the Sum of Wins in USD
+		Double convertedDigitalDealValueForSumOfWins = 0.0;
+		for (OpportunityT oppWins : oppWinsByUsers) {
+			convertedDigitalDealValueForSumOfWins = convertedDigitalDealValueForSumOfWins
+					+ beaconConverterService.convert(oppWins.getDealCurrency(),
+							Constants.USD, oppWins.getDigitalDealValue())
+							.doubleValue();
+		}
+		leadershipWins
+				.setSumOfdigitalDealValue(convertedDigitalDealValueForSumOfWins);
+		return leadershipWins;
 	}
 
 	/**

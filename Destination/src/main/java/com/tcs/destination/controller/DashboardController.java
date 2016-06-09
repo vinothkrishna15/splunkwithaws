@@ -116,14 +116,16 @@ public class DashboardController {
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "connectCategory") String connectCategory,
-			@RequestParam(value = "view", defaultValue = "") String view)
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "searchedUserId", defaultValue = "") String searchedUserId,
+			@RequestParam(value = "teamFlag", defaultValue = "false") boolean teamFlag)
 			throws DestinationException {
 		logger.info("Start of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		LeadershipConnectsDTO connects = null;
 		try {
 			connects = dashboardService.getLeadershipConnectsByGeography(
-					userId, fromDate, toDate, geography, connectCategory);
+					userId, fromDate, toDate, geography, connectCategory, searchedUserId, teamFlag);
 			logger.info("End of retrieving a list of Connects based on the user (SI, Geo Heads, IOU Heads)");
 			return ResponseConstructors.filterJsonForFieldAndViews(
 					includeFields, view, connects);
@@ -199,6 +201,8 @@ public class DashboardController {
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
+			@RequestParam(value = "searchedUserId", defaultValue = "") String searchedUserId,
+			@RequestParam(value = "teamFlag", defaultValue = "false") boolean teamFlag,
 			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
@@ -207,7 +211,7 @@ public class DashboardController {
 		LeadershipOverallWinsDTO wins = null;
 		try {
 			wins = dashboardService.getLeadershipWinsByGeography(userId,
-					fromDate, toDate, geography);
+					fromDate, toDate, geography, searchedUserId, teamFlag);
 			logger.info("End of retrieving the leadership wins by geography");
 			return ResponseConstructors.filterJsonForFieldAndViews(
 					includeFields, view, wins);

@@ -681,4 +681,23 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 	List<ConnectT> searchBySubsp(@Param("term") String term, @Param("getAll") boolean getAll);
 
 	/* ---------- ends - repository methods for smart search --------- */
+	
+	/**
+	 * Get Connects for Users
+	 * 
+	 * @param users
+	 * @param fromDate
+	 * @param toDate
+	 * @param category
+	 * @return
+	 */
+	@Query(value = "SELECT * FROM connect_t c2 WHERE "
+			+ "((c2.connect_id IN ((SELECT c1.connect_id FROM Connect_T c1 WHERE c1.primary_owner in (:users)) "
+			+ "UNION (SELECT c.connect_id FROM Connect_T c, connect_secondary_owner_link_T cs "
+			+ "WHERE (c.connect_id=cs.connect_id) AND (cs.secondary_owner in (:users))))) "
+			+ "AND (c2.start_datetime_of_connect between (:fromDate) and (:toDate))) "
+			+ "AND (c2.connect_category = (:category) OR '' = (:category)) "
+			+ "ORDER BY c2.location", nativeQuery = true)
+	List<ConnectT> getConnectsForUsers(@Param("users") List<String> users, @Param("fromDate") Timestamp fromDate, 
+			@Param("toDate") Timestamp toDate, @Param("category") String category);
 }
