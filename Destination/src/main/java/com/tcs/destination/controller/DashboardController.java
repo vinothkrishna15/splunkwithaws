@@ -242,7 +242,9 @@ public class DashboardController {
 			@RequestParam(value = "geography", defaultValue = "") String geography,
 			@RequestParam(value = "fromDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
 			@RequestParam(value = "toDate", defaultValue = "01012099") @DateTimeFormat(pattern = "ddMMyyyy") Date toDate,
-			@RequestParam(value = "fields", defaultValue = "all") String includeFields,
+			@RequestParam(value="searchedUserId",defaultValue="")String searchedUserId,
+			@RequestParam(value="teamFlag",defaultValue="false")boolean teamFlag,
+            @RequestParam(value = "fields", defaultValue = "all") String includeFields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Start of retrieving the leadership opportunities by geography");
@@ -251,7 +253,7 @@ public class DashboardController {
 		try {
 			opportunities = dashboardService
 					.getLeadershipOpportunitiesByGeography(userId, fromDate,
-							toDate, geography);
+							toDate, geography,searchedUserId,teamFlag);
 			logger.info("End of retrieving the leadership opportunities by geography");
 			return ResponseConstructors.filterJsonForFieldAndViews(
 					includeFields, view, opportunities);

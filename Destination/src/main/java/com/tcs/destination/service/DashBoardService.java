@@ -1002,7 +1002,7 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	public LeadershipOpportunitiesDTO getLeadershipOpportunitiesByGeography(
-			String userId, Date fromDate, Date toDate, String geography)
+			String userId, Date fromDate, Date toDate, String geography,String searchedUserId,boolean teamFlag)
 			throws Exception {
 
 		logger.debug("Start:Inside getLeadershipOpportunitiesByGeography()");
@@ -1027,7 +1027,7 @@ public class DashBoardService {
 							"User is not authorised to access this service");
 				default:
 					listOfOppportunities = getLeadershipOpportunitiesByUserPrivileges(
-							userId, fromDate, toDate, geography);
+							userId, fromDate, toDate, geography,searchedUserId,teamFlag);
 				}
 			}
 
@@ -1052,28 +1052,68 @@ public class DashBoardService {
 	 * @throws Exception
 	 */
 	private LeadershipOpportunitiesDTO getLeadershipOpportunitiesByUserPrivileges(
-			String userId, Date fromDate, Date toDate, String geography)
+			String userId, Date fromDate, Date toDate, String geography,String searchedUserId,boolean teamFlag)
 			throws Exception {
 
 		logger.debug("Start: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
 		LeadershipOpportunitiesDTO listOfOppportunities = null;
-
-		List<OpportunityT> opportunitiesBySalesCode = getPrevilegedOpportunities(
+		List<OpportunityT> opportunitiesBySalesCode=new ArrayList<OpportunityT>();
+		List<String> searchedIdList=new ArrayList<String>();
+		if((!StringUtils.isEmpty(searchedUserId))&&(teamFlag==false))
+		{
+			searchedIdList.add(searchedUserId);
+			opportunitiesBySalesCode = getOpportunitiesBasedOnSearchedUserId(
+					searchedIdList, fromDate, toDate, geography);
+			
+		}
+		else if((!StringUtils.isEmpty(searchedUserId))&&(teamFlag==true))
+		{
+			searchedIdList=userRepository.getAllSubordinatesIdBySupervisorId(searchedUserId);
+			searchedIdList.add(searchedUserId);
+			opportunitiesBySalesCode = getOpportunitiesBasedOnSearchedUserId(
+					searchedIdList, fromDate, toDate, geography);
+			
+		}
+		else
+		{
+		   opportunitiesBySalesCode = getPrevilegedOpportunities(
 				userId, fromDate, toDate, geography);
-
-		// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
-		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
-		// 10,11,13(lost),
-		// 12(shelved)
-		listOfOppportunities = getOpportunitiesBySalesStageCode(
-				opportunitiesBySalesCode, userId);
-
-		getPrevilegedOpportunities(
-				userId, fromDate, toDate, geography);
+            
+     		getPrevilegedOpportunities(
+    				userId, fromDate, toDate, geography);
+		}
+		 // Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
+ 		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
+ 		// 10,11,13(lost),
+ 		// 12(shelved)
+ 		listOfOppportunities = getOpportunitiesBySalesStageCode(
+ 				opportunitiesBySalesCode, userId);
 		logger.debug("End: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
+		
 		return listOfOppportunities;
 
+
 	}
+	
+	/**
+	 * To fetch the opportunities based on searched user id
+	 * @param searchedUserId
+	 * @param fromDate
+	 * @param toDate
+	 * @param geography
+	 * @return
+	 */
+	 List<OpportunityT> getOpportunitiesBasedOnSearchedUserId(List<String> searchedUserId,
+				Date fromDate, Date toDate, String geography)
+	 {
+		 logger.debug("Start: Inside getOpportunitiesBasedOnSearchedUserId() of DashBoardService");
+		 List<OpportunityT> opportunitiesBySalesCode = null;
+		 Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+		 Timestamp toDateTs = new Timestamp(toDate.getTime()
+					+ Constants.ONE_DAY_IN_MILLIS - 1);
+		 opportunitiesBySalesCode = opportunityRepository.getAllOpportunitiesBySearchedIdQuery(searchedUserId,fromDateTs,toDateTs);
+		 return opportunitiesBySalesCode;
+	 }
 
 	/**
 	 * @param userId
