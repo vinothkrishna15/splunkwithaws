@@ -3,9 +3,8 @@ package com.tcs.destination.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -52,10 +51,6 @@ import com.tcs.destination.utils.ReportConstants;
 public class BDMDetailedReportService {
 
 	private static final Logger logger = LoggerFactory.getLogger(BDMDetailedReportService.class);
-	
-    private static final DateFormat actualFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static final DateFormat desiredFormat = new SimpleDateFormat("MM/dd/yy");
-	
 	
 	@Autowired
 	UserRepository userRepository;
@@ -284,9 +279,6 @@ public class BDMDetailedReportService {
 				}
 			} else {
 				setBDMSupervisorHeaderAlongWithOptionalFieldsToExcel(currentRow, spreadSheet, cellStyle, currency, fields, isIncludingSupervisor);
-				if(currency.size()>1){
-					currentRow++;
-				}
 				setBDMReportAlongWithOptionalFieldsDetail(currentRow, spreadSheet, opportunityList, currency, fields, isIncludingSupervisor);
 			}
 		}
@@ -320,6 +312,11 @@ public class BDMDetailedReportService {
 			boolean createdDateFlag = fields.contains(ReportConstants.CREATEDDATE);
 			boolean modifiedByFlag = fields.contains(ReportConstants.MODIFIEDBY);
 			boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
+			CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
+			CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
+			CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
+			cellStyleDateTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
+			cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
 			
 			for(OpportunityT opportunity:opportunityList){
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
@@ -390,6 +387,7 @@ public class BDMDetailedReportService {
 						row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
 					}
 					colValue++;
+
 				}
 				
 				// set deal remarks notes
@@ -410,15 +408,16 @@ public class BDMDetailedReportService {
 					}
 					colValue++;
 				}
-	
+			
 				//set deal closure date
 				if (dealClosureDateFlag) {
 					if(opportunity.getDealClosureDate() != null) {
-						row.createCell(colValue).setCellValue(opportunity.getDealClosureDate().toString());
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureDate());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat);
 					}
 					colValue++;
 				}
-				
+			
 				//set created by 
 				if (createdByFlag) {
 					row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
@@ -428,13 +427,13 @@ public class BDMDetailedReportService {
 				if (createdDateFlag) {
 					Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
 					Date createdDate = DateUtils.toDate(createdDateTimeStamp);
-					String dateOfCreation = DateUtils.convertDateToString(createdDate);
-					row.createCell(colValue).setCellValue(getFormattedDate(dateOfCreation, actualFormat, desiredFormat));
+					row.createCell(colValue).setCellValue(createdDate);
+					row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
 					colValue++;
 				}
 				//set modified by 
 				if (modifiedByFlag) {
-					row.createCell(colValue).setCellValue(getFormattedDate(opportunity.getModifiedDatetime().toString(), actualFormat, desiredFormat));
+					row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
 					colValue++;
 				}
 				
@@ -442,8 +441,8 @@ public class BDMDetailedReportService {
 				if (modifiedDateFlag) {
 					Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
 					Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-					String dateOfModification = DateUtils.convertDateToString(modifiedDate);
-					row.createCell(colValue).setCellValue(dateOfModification);
+					row.createCell(colValue).setCellValue(modifiedDate);
+					row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
 					colValue++;
 				}
 			}
@@ -540,8 +539,6 @@ public class BDMDetailedReportService {
 		private void setBDMSupervisorMandatoryHeaderToExcel(SXSSFRow row, int currentRow, SXSSFSheet spreadSheet, 
 				CellStyle cellStyle, List<String> currency, boolean isIncludingSupervisor) {
 			logger.info("Inside setBDMSupervisorMandatoryHeaderToExcel method");
-			CellStyle currencyStyle = ExcelUtils.createRowStyle(
-					(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
 			List<String> headerList = new ArrayList<String>();
 			headerList.add("BDM");
 			if(isIncludingSupervisor){
@@ -557,22 +554,15 @@ public class BDMDetailedReportService {
 				columnNo++;
 			}
 			if (currency.size() > 1) {
-				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE);
-				row.getCell(columnNo).setCellStyle(cellStyle);
-				spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, columnNo, columnNo + currency.size() - 1));
-				
-				SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-				for (int i = 0; i < currency.size(); i++) {
-					row1.createCell((columnNo + i)).setCellValue(currency.get(i));
-					row1.getCell(columnNo + i).setCellStyle(currencyStyle);
-				}
+				row.createCell(columnNo).setCellValue(ReportConstants.DEALVALUEINR);
+				row.getCell(columnNo++).setCellStyle(cellStyle);
+				row.createCell(columnNo).setCellValue(ReportConstants.DEALVALUEUSD);
+				row.getCell(columnNo++).setCellStyle(cellStyle);
 			} else {
 				row.createCell(columnNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0) + ")");
 				row.getCell(columnNo).setCellStyle(cellStyle);
 			}
 		}
-
-
 		
 		/**
 		 * This Method used to set bdm supervisor header(both mandatory and optional fields) details to excel
@@ -597,7 +587,11 @@ public class BDMDetailedReportService {
 				row.getCell(columnNo).setCellStyle(cellStyle);
 				columnNo++;
 			}
-			for (String field : fields) {
+			
+			List<String> orderedFields = Arrays.asList("projectDealValue","winProbability", "targetBidSubmissionDate", "opportunityName", "factorsForWinLoss", 
+					"dealClosureComments", "dealRemarksNotes", "subSp", "dealClosureDate", "createdBy",	"createdDate","modifiedBy","modifiedDate");
+			
+			for (String field : orderedFields) {
 				if(fields.contains(field)){
 				row.createCell(columnNo).setCellValue(FieldsMap.bdmReportFieldMap.get(field));
 				row.getCell(columnNo).setCellStyle(cellStyle);
@@ -606,7 +600,6 @@ public class BDMDetailedReportService {
 			}
 		}
 
-		
 		/**
 		 * This Method used to get all subordinates of supervisor 
 		 * @param userId
@@ -643,19 +636,4 @@ public class BDMDetailedReportService {
 				targetList.addAll(geographyRepository.findByDisplayGeography(itemList));
 			}
 		}
-		
-		
-		/**
-	     * Method to convert date in a format to another format
-	     * 
-	     * @param Stringdate
-	     * @param actualFormat
-	     * @param destFormat
-	     * @return String
-	     * @throws Exception
-	     */
-	    public static String getFormattedDate(String Stringdate, DateFormat actualFormat, DateFormat destFormat) throws Exception{
-
-		return destFormat.format(actualFormat.parse(Stringdate));
-	    }
-}
+ }

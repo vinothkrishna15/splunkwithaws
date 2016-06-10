@@ -351,6 +351,7 @@ public class ConnectDetailedReportService {
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifiedByFlag = fields.contains(ReportConstants.MODIFIEDBY);
 		CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
+		
 		CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
 		cellStyleDateTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
 		

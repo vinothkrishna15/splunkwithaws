@@ -203,73 +203,59 @@ public class BuildOpportunityReportService {
 			List<String> fields, List<String> currency, SXSSFWorkbook workbook)
 			throws Exception {
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet(ReportConstants.COMPLETEDATA);
+		CellStyle cellStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
 		SXSSFRow headerRow = null;
 		int currentRow = 0;
-		int headerColumnValue = 0;
+		int headerColumnNo = 0;
 		headerRow = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			createHeaderOpportunityReportMandatoryFields(headerRow, spreadSheet, currency);
-			currentRow = getOpportunityReportWithMandatoryFields(opportunityIdList, spreadSheet, headerRow, currency);
+			getMandatoryHeaderForOpportunityReport(headerRow, spreadSheet, cellStyle,currency);
 			currentRow++;
+			getOpportunityReportWithMandatoryFields(opportunityIdList, spreadSheet, headerRow, currency,currentRow);
 		} else {
-			SXSSFRow currencyRow = (SXSSFRow) spreadSheet.createRow(1);
-			headerColumnValue = createHeaderOpportunityReportOptionalFields(headerRow, currencyRow, fields, workbook, spreadSheet, currentRow, currency);
-			currentRow = getOpportunityReportWithOptionalFields(opportunityIdList, headerRow, spreadSheet, currentRow, fields, headerRow, currency, headerColumnValue);
-			currentRow++;
+			createHeaderOpportunityReportOptionalFields(headerRow, fields, workbook, spreadSheet, currentRow, currency);
+			getOpportunityReportWithOptionalFields(opportunityIdList, headerRow, spreadSheet, currentRow, fields, headerRow, currency, headerColumnNo);
 		}
 	}
 
-	/**
-	 * This Method is used set Opportunity Report Mandatory header fields including deal value to excel 
-	 * @param row
-	 * @param spreadSheet
-	 * @param currency
-	 */
-	public void createHeaderOpportunityReportMandatoryFields(SXSSFRow row,
-			SXSSFSheet spreadSheet, List<String> currency) {
-		CellStyle cellStyle = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
-		getMandatoryHeaderForOpportunityReport(row, spreadSheet, cellStyle);
-		if (currency.size() > 1) {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-			row.getCell(8).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
-			CellStyle cellStyle1 = ExcelUtils.createRowStyle((SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
-			SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-			for (int i = 0; i < currency.size(); i++) {
-				row1.createCell((8 + i)).setCellValue(currency.get(i));
-				row1.getCell(8 + i).setCellStyle(cellStyle1);
-			}
-		} else {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)	+ ")");
-			row.getCell(8).setCellStyle(cellStyle);
-		}
-	}
 
 	/**
 	 * This Method is used to set Opportunity Report Mandatory fields header to excel
 	 * @param row
 	 * @param spreadSheet
 	 * @param cellStyle
+	 * @param currency 
 	 */
 	private void getMandatoryHeaderForOpportunityReport(SXSSFRow row,
-			SXSSFSheet spreadSheet, CellStyle cellStyle) {
-		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
-		row.getCell(0).setCellStyle(cellStyle);
-		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
-		row.getCell(1).setCellStyle(cellStyle);
-		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
-		row.getCell(2).setCellStyle(cellStyle);
-		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
-		row.getCell(3).setCellStyle(cellStyle);
-		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
-		row.getCell(4).setCellStyle(cellStyle);
-		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
-		row.getCell(5).setCellStyle(cellStyle);
-		row.createCell(6).setCellValue(ReportConstants.OPPORTUNITYNAME);
-		row.getCell(6).setCellStyle(cellStyle);
-		row.createCell(7).setCellValue(ReportConstants.OPPORTUNITYOWNER);
-		row.getCell(7).setCellStyle(cellStyle);
+			SXSSFSheet spreadSheet, CellStyle cellStyle, List<String> currency) {
+		int colNo = 0;
+		row.createCell(colNo).setCellValue(ReportConstants.OPPORTUNITYID);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYGEO);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYSERVICELINE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYIOU);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.SALESSTAGE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.OPPORTUNITYNAME);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.OPPORTUNITYOWNER);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		if (currency.size() > 1) {
+			row.createCell(colNo).setCellValue(ReportConstants.DEALVALUEINR);
+			row.getCell(colNo++).setCellStyle(cellStyle);
+			row.createCell(colNo).setCellValue(ReportConstants.DEALVALUEUSD);
+			row.getCell(colNo++).setCellStyle(cellStyle);
+		} else {
+			row.createCell(colNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)	+ ")");
+			row.getCell(colNo++).setCellStyle(cellStyle);
+		}
 	}
+
 
 	/**
 	 * This Method is used for setting opportunity report header fields to excel
@@ -280,40 +266,26 @@ public class BuildOpportunityReportService {
 	 * @param spreadSheet
 	 * @param currentRow
 	 * @param currency
-	 * @return
 	 */
-	public int createHeaderOpportunityReportOptionalFields(SXSSFRow row, SXSSFRow row1,
+	public void createHeaderOpportunityReportOptionalFields(SXSSFRow row, 
 			List<String> fields, SXSSFWorkbook workbook, SXSSFSheet spreadSheet,
 			int currentRow, List<String> currency) {
 
 		CellStyle cellStyle = ExcelUtils.createRowStyle(
 				(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER);
-		CellStyle cellStyle1 = ExcelUtils.createRowStyle(
-				(SXSSFWorkbook) spreadSheet.getWorkbook(), ReportConstants.REPORTHEADER1);
 
 		/**
 		 * This method creates default headers
 		 */
-		getMandatoryHeaderForOpportunityReport(row, spreadSheet, cellStyle);
+		getMandatoryHeaderForOpportunityReport(row, spreadSheet, cellStyle,currency);
+		
+		int colNo = 9;
 		if (currency.size() > 1) {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-			row.getCell(8).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
-			for (int i = 0; i < currency.size(); i++) {
-				row1.createCell((8 + i)).setCellValue(currency.get(i));
-				row1.getCell(8 + i).setCellStyle(cellStyle1);
-			}
-		} else {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)+")");
-			row.getCell(8).setCellStyle(cellStyle);
+			colNo = 10;
 		}
-		int colValue = 9;
-		if (currency.size() > 1) {
-			colValue = 10;
-		}
-		createHeaderForOptionalFields(row, spreadSheet, cellStyle,fields, colValue);		
-		return colValue;
+		createHeaderForOptionalFields(row, spreadSheet, cellStyle,fields, colNo);		
 	}
+
 
 	/**
 	 * This Method is used for setting opportunity report optional fields to excel
@@ -345,21 +317,15 @@ public class BuildOpportunityReportService {
 		}
 	}
 
-	public int getOpportunityReportWithMandatoryFields(
+	public void getOpportunityReportWithMandatoryFields(
 			List<String> opportunityIdList, SXSSFSheet spreadSheet,
-			SXSSFRow row, List<String> currency) throws DestinationException {
-		int currentRow = 1;
-		if (currency.size() > 1) {
-			currentRow = 2;
-		}
+			SXSSFRow row, List<String> currency,int currentRow) throws DestinationException {
 		for (String opportunityId : opportunityIdList) {
 			OpportunityT opportunity = (OpportunityT) opportunityRepository.findOpportunityById(opportunityId);
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
-			getOpportunityReportMandatoryFields(spreadSheet, row, currency,
-					opportunity);
+			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
 			currentRow++;
 		}
-		return currentRow;
 	}
 
 	/**
@@ -469,12 +435,7 @@ public class BuildOpportunityReportService {
 		cellStyleDateTimeFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy hh:mm")); 
 		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
 
-		
-		if (currency.size() > 1) {
-			currentRow = currentRow + 2;
-		} else {
-			currentRow = currentRow + 1;
-		}
+		currentRow = currentRow + 1;
 		for (String opportunityId : opportunityIdList) {
 			OpportunityT opportunity = (OpportunityT) opportunityRepository.findOpportunityById(opportunityId);
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);

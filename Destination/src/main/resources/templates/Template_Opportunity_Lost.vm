@@ -9,6 +9,9 @@
               Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
 
               The key factors for the loss are : <b>${factorsForWinLoss}</b>.<br/><br/>
+              
+              Competitor(s) : <b>${competitorNames}</b>.<br/>
+              Incumbent Competitor(s) : <b>${incumbentCompetitorNames}</b>.<br/><br/>
 
               This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
               Deal size recorded is <b>${digitalBidValue}</b>.<br/>

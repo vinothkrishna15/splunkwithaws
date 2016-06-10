@@ -84,6 +84,8 @@ public class ReportConstants {
 	public static final String SALESSTAGE = "Sales Stage";
 	public static final String OPPORTUNITYNAME = "Opportunity Name";
 	public static final String DIGITALDEALVALUE = "Digital Deal Value";
+	public static final String DEALVALUEINR = "Deal Value In INR";
+	public static final String DEALVALUEUSD = "Deal Value In USD";
 	public static final String CRMID = "CrmId";
 	public static final String REPORTHEADINGSTYLE = "reportHeadingStyle";
 	public static final String SUBHEADINGSTYLE = "subHeadingStyle";
