@@ -36,6 +36,11 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 			+ " ) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc", nativeQuery = true)
 	List<String> getAllSubordinatesIdBySupervisorId(String supervisorId);
 
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t"
+			+ " WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id"
+			+ " ) SELECT U1.* FROM U1 WHERE UPPER(user_name) like UPPER(?2) ORDER BY U1.user_id asc ", nativeQuery = true)
+	List<UserT> getSubordinatesIdBySupervisorId(String supervisorId, String userName);
+	
 	@Query(value = "select user_id from user_t where user_role=?1", nativeQuery = true)
 	List<String> findUserIdByUserRole(String userRole);
 
@@ -129,4 +134,8 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> searchByLocation(@Param("term") String term, @Param("getAll") boolean getAll);
 	
 	/* ------- END  - user smart search repository methods ------- */
+	
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_name) like UPPER(?1) ORDER BY user_id asc", nativeQuery = true)
+	List<UserT> getUsersByUserNameKeyword(String userName);
+	
 }

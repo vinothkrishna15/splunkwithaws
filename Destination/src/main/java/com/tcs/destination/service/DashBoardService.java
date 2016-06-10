@@ -43,6 +43,7 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.StringUtils;
 
 import static com.tcs.destination.utils.LeadershipQueryConstants.*;
@@ -83,7 +84,7 @@ public class DashBoardService {
 
 	@Autowired
 	BeaconConverterService beaconConverterService;
-	
+
 	private static Map<String, BigDecimal> beaconConverterMap = null;
 
 	/**
@@ -103,56 +104,56 @@ public class DashBoardService {
 
 		financialYear = financialYear.equals("") ? DateUtils
 				.getCurrentFinancialYear() : financialYear;
-		List<BigDecimal> targetList = bdmTargetRepository
-				.findSumOfTargetByBdmTargetIdAndYear(userId, financialYear);
-		if (targetList != null && !targetList.isEmpty()) {
-			performanceBean.setTarget(targetList.get(0));
-			if (targetList.get(0) != null)
-				hasValues = true;
-		}
-		String year = financialYear.substring(3, 7);
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.YEAR, Integer.parseInt(year));
-		cal.set(Calendar.MONTH, Calendar.APRIL);
-		cal.set(Calendar.DATE, 1);
-		Date fromDate = new Date(cal.getTimeInMillis());
-		cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
-		Date toDate = new Date(cal.getTimeInMillis());
+				List<BigDecimal> targetList = bdmTargetRepository
+						.findSumOfTargetByBdmTargetIdAndYear(userId, financialYear);
+				if (targetList != null && !targetList.isEmpty()) {
+					performanceBean.setTarget(targetList.get(0));
+					if (targetList.get(0) != null)
+						hasValues = true;
+				}
+				String year = financialYear.substring(3, 7);
+				Calendar cal = Calendar.getInstance();
+				cal.set(Calendar.YEAR, Integer.parseInt(year));
+				cal.set(Calendar.MONTH, Calendar.APRIL);
+				cal.set(Calendar.DATE, 1);
+				Date fromDate = new Date(cal.getTimeInMillis());
+				cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
+				Date toDate = new Date(cal.getTimeInMillis());
 
-		List<Object[]> pipelineList = opportunityRepository
-				.findDealValueForPipeline(userId,
-						new Timestamp(toDate.getTime()));
+				List<Object[]> pipelineList = opportunityRepository
+						.findDealValueForPipeline(userId,
+								new Timestamp(toDate.getTime()));
 
-		BigDecimal pipelineSum = new BigDecimal(0);
+				BigDecimal pipelineSum = new BigDecimal(0);
 
-		for (Object[] pipeline : pipelineList) {
-			if (pipeline[1] != null && pipeline[0] != null) {
-				pipelineSum = pipelineSum.add(beaconService.convert(
-						pipeline[1].toString(), "USD",
-						((Integer) pipeline[0]).doubleValue()));
-				hasValues = true;
-			}
+				for (Object[] pipeline : pipelineList) {
+					if (pipeline[1] != null && pipeline[0] != null) {
+						pipelineSum = pipelineSum.add(beaconService.convert(
+								pipeline[1].toString(), "USD",
+								((Integer) pipeline[0]).doubleValue()));
+						hasValues = true;
+					}
 
-		}
-		performanceBean.setPipelineSum(pipelineSum);
+				}
+				performanceBean.setPipelineSum(pipelineSum);
 
-		List<Object[]> winList = opportunityRepository.findDealValueForWins(
-				userId, fromDate, toDate);
-		BigDecimal winSum = new BigDecimal(0);
-		for (Object[] win : winList) {
-			if (win[1] != null && win[0] != null)
-				winSum = winSum.add(beaconService.convert(win[1].toString(),
-						"USD", ((Integer) win[0]).doubleValue()));
-			hasValues = true;
-		}
-		performanceBean.setWinSum(winSum);
+				List<Object[]> winList = opportunityRepository.findDealValueForWins(
+						userId, fromDate, toDate);
+				BigDecimal winSum = new BigDecimal(0);
+				for (Object[] win : winList) {
+					if (win[1] != null && win[0] != null)
+						winSum = winSum.add(beaconService.convert(win[1].toString(),
+								"USD", ((Integer) win[0]).doubleValue()));
+					hasValues = true;
+				}
+				performanceBean.setWinSum(winSum);
 
-		if (!hasValues) {
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Not Data found for the performance Chart");
-		}
-		logger.debug("End: Inside  getChartValues() of DashBoardService");
-		return performanceBean;
+				if (!hasValues) {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"Not Data found for the performance Chart");
+				}
+				logger.debug("End: Inside  getChartValues() of DashBoardService");
+				return performanceBean;
 	}
 
 	/**
@@ -171,7 +172,7 @@ public class DashBoardService {
 
 		boolean hasValues = false;
 		PerformaceChartBean performanceBean = null;
-		
+
 		if (!StringUtils.isEmpty(supervisorId)) {
 
 			// Get all users under a supervisor
@@ -187,67 +188,67 @@ public class DashBoardService {
 			financialYear = financialYear.equals("") ? DateUtils
 					.getCurrentFinancialYear() : financialYear;
 
-			// Get the sum of targets
-			List<BigDecimal> targetList = bdmTargetRepository
-					.findSumOfTargetBySubordinatesPerSupervisorAndYear(users,
-							financialYear);
-			if (targetList != null && !targetList.isEmpty()) {
-				performanceBean.setTarget(targetList.get(0));
-				if (targetList.get(0) != null)
-					hasValues = true;
-			}
+					// Get the sum of targets
+					List<BigDecimal> targetList = bdmTargetRepository
+							.findSumOfTargetBySubordinatesPerSupervisorAndYear(users,
+									financialYear);
+					if (targetList != null && !targetList.isEmpty()) {
+						performanceBean.setTarget(targetList.get(0));
+						if (targetList.get(0) != null)
+							hasValues = true;
+					}
 
-			// Manipulate fromDate and toDate
-			String year = financialYear.substring(3, 7);
-			Calendar cal = Calendar.getInstance();
-			cal.set(Calendar.YEAR, Integer.parseInt(year));
-			cal.set(Calendar.MONTH, Calendar.APRIL);
-			cal.set(Calendar.DATE, 1);
-			Date fromDate = new Date(cal.getTimeInMillis());
-			cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
-			Date toDate = new Date(cal.getTimeInMillis());
+					// Manipulate fromDate and toDate
+					String year = financialYear.substring(3, 7);
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.YEAR, Integer.parseInt(year));
+					cal.set(Calendar.MONTH, Calendar.APRIL);
+					cal.set(Calendar.DATE, 1);
+					Date fromDate = new Date(cal.getTimeInMillis());
+					cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 1);
+					Date toDate = new Date(cal.getTimeInMillis());
 
-			// Get the opportunities which are in the pipeline and find the sum
-			// in USD
-			List<Object[]> pipelineList = opportunityRepository
-					.findDealValueForPipelineBySubordinatesPerSupervisor(users,
-							new Timestamp(toDate.getTime()));
+					// Get the opportunities which are in the pipeline and find the sum
+					// in USD
+					List<Object[]> pipelineList = opportunityRepository
+							.findDealValueForPipelineBySubordinatesPerSupervisor(users,
+									new Timestamp(toDate.getTime()));
 
-			BigDecimal pipelineSum = new BigDecimal(0);
+					BigDecimal pipelineSum = new BigDecimal(0);
 
-			for (Object[] pipeline : pipelineList) {
-				if (pipeline[1] != null && pipeline[0] != null) {
-					pipelineSum = pipelineSum.add(beaconService.convert(
-							pipeline[1].toString(), "USD",
-							((Integer) pipeline[0]).doubleValue()));
-					hasValues = true;
-				}
+					for (Object[] pipeline : pipelineList) {
+						if (pipeline[1] != null && pipeline[0] != null) {
+							pipelineSum = pipelineSum.add(beaconService.convert(
+									pipeline[1].toString(), "USD",
+									((Integer) pipeline[0]).doubleValue()));
+							hasValues = true;
+						}
 
-			}
-			performanceBean.setPipelineSum(pipelineSum);
+					}
+					performanceBean.setPipelineSum(pipelineSum);
 
-			// Get the opportunities which have been won and find the sum in USD
-			List<Object[]> winList = opportunityRepository
-					.findDealValueForWinsBySubordinatesPerSupervisor(users,
-							fromDate, toDate);
-			BigDecimal winSum = new BigDecimal(0);
-			for (Object[] win : winList) {
-				if (win[1] != null && win[0] != null)
-					winSum = winSum.add(beaconService.convert(
-							win[1].toString(), "USD",
-							((Integer) win[0]).doubleValue()));
-				hasValues = true;
-			}
+					// Get the opportunities which have been won and find the sum in USD
+					List<Object[]> winList = opportunityRepository
+							.findDealValueForWinsBySubordinatesPerSupervisor(users,
+									fromDate, toDate);
+					BigDecimal winSum = new BigDecimal(0);
+					for (Object[] win : winList) {
+						if (win[1] != null && win[0] != null)
+							winSum = winSum.add(beaconService.convert(
+									win[1].toString(), "USD",
+									((Integer) win[0]).doubleValue()));
+						hasValues = true;
+					}
 
-			performanceBean.setWinSum(winSum);
+					performanceBean.setWinSum(winSum);
 
-			if (!hasValues) {
-				logger.error("NOT FOUND : No Data found for Team Performance Chart with supervisor Id {}"
-						+ supervisorId);
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Data found for Team Performance Chart with supervisor Id "
+					if (!hasValues) {
+						logger.error("NOT FOUND : No Data found for Team Performance Chart with supervisor Id {}"
 								+ supervisorId);
-			}
+						throw new DestinationException(HttpStatus.NOT_FOUND,
+								"No Data found for Team Performance Chart with supervisor Id "
+										+ supervisorId);
+					}
 		} else {
 			logger.error("NOT_FOUND: Supervisor Id is empty");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -271,7 +272,7 @@ public class DashBoardService {
 	public LeadershipConnectsDTO getLeadershipConnectsByGeography(
 			String userId, Date fromDate, Date toDate, String geography, String connectCategory, 
 			String searchedUserId, boolean teamFlag)
-			throws Exception {
+					throws Exception {
 		logger.debug("Start:Inside getLeadershipConnectsByGeography() of DashBoardService");
 
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
@@ -322,8 +323,8 @@ public class DashBoardService {
 	private LeadershipConnectsDTO getTeamConnectsBasedOnUserPrivileges(
 			String supervisorId, Date startDate, Date endDate, String geography, String connectCategory,
 			String searchedUserId, boolean teamFlag)
-			throws Exception {
-		
+					throws Exception {
+
 		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
 
 		String privilegesQuery = "";
@@ -334,16 +335,16 @@ public class DashBoardService {
 		Timestamp toDateTs = new Timestamp(endDate.getTime()
 				+ Constants.ONE_DAY_IN_MILLIS - 1);
 		Date now = new Date(); // Get current DateTime
-		
+
 		// Get the current timestamp
 		Timestamp nowTs = new Timestamp(now.getTime()); 
-		
+
 		// Get the next  millisecond's timestamp w.r.t now
 		Timestamp nowNextMsTs = new Timestamp(now.getTime() + 1); 
-		
+
 		// If user to search is empty, get the Dashboard details for Sales Heads/SI
 		if(StringUtils.isEmpty(searchedUserId)) {
-		
+
 			// Get the Past connects
 			listOfPastConnects = getLeadershipDashboardTeamConnects(
 					supervisorId, geography, fromDateTs, nowTs, connectCategory);
@@ -351,12 +352,12 @@ public class DashBoardService {
 			// Get the Future Connects using the constructed query
 			listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
 					supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
-			
+
 		} else {
-			
+
 			// Get the Past connects for the searched user
 			listOfPastConnects = getLeadershipDashboardConnectsForUsers(searchedUserId, teamFlag, fromDateTs, nowTs, connectCategory);
-			
+
 			// Get the Upcoming Connects for the searched user
 			listOfUpcomingConnects = getLeadershipDashboardConnectsForUsers(searchedUserId, teamFlag, nowNextMsTs, toDateTs, connectCategory);
 		}
@@ -376,10 +377,10 @@ public class DashBoardService {
 			}
 			if (listOfUpcomingConnects != null) {
 				leadershipConnectsDTO
-						.setUpcomingConnects(listOfUpcomingConnects);
+				.setUpcomingConnects(listOfUpcomingConnects);
 				leadershipConnectsDTO
-						.setSizeOfUpcomingConnects(listOfUpcomingConnects
-								.size());
+				.setSizeOfUpcomingConnects(listOfUpcomingConnects
+						.size());
 			}
 		}
 		logger.debug("End:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
@@ -409,57 +410,57 @@ public class DashBoardService {
 			// Get all subordinates for the supervisor
 			List<String> subordinates = userRepository
 					.getAllSubordinatesIdBySupervisorId(searchedUserId);
-			
+
 			// Add the users to the resultant list
 			for (String user : subordinates) {
 				searchUserList.add(user);
 			}
 		}
-		
+
 		// Get the connects for the users
 		connectTs = connectRepository.getConnectsForUsers(searchUserList, fromDateTs, toDateTs, category);
 
 		return connectTs;
 	}
-	
-//	/**
-//	 * This method returns a list of Connects based on the query string formed
-//	 * 
-//	 * @param queryBuffer
-//	 * @return
-//	 */
-//	private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer,
-//			String userId) throws Exception {
-//		List<String> resultList = null;
-//		List<ConnectT> listOfConnects = null;
-//
-//		try {
-//			// Get the Connect Ids
-//			Query teamConnects = entityManager.createNativeQuery(queryBuffer
-//					.toString());
-//
-//			// Get list of Connects using the result of the above query
-//			if ((teamConnects != null)
-//					&& !(teamConnects.getResultList().isEmpty())) {
-//
-//				resultList = teamConnects.getResultList();
-//
-//				if ((resultList != null) && !(resultList.isEmpty())) {
-//					listOfConnects = connectRepository
-//							.findByConnectIdInOrderByLocationAsc(resultList);
-//
-//				}
-//			}
-//		} catch (Exception e) {
-//			logger.error(
-//					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
-//					userId);
-//			throw new DestinationException(HttpStatus.NOT_FOUND,
-//					"An Internal Error has occured while processing request for userId "
-//							+ userId);
-//		}
-//		return listOfConnects;
-//	}
+
+	//	/**
+	//	 * This method returns a list of Connects based on the query string formed
+	//	 * 
+	//	 * @param queryBuffer
+	//	 * @return
+	//	 */
+	//	private List<ConnectT> getConnectsFromQueryBuffer(StringBuffer queryBuffer,
+	//			String userId) throws Exception {
+	//		List<String> resultList = null;
+	//		List<ConnectT> listOfConnects = null;
+	//
+	//		try {
+	//			// Get the Connect Ids
+	//			Query teamConnects = entityManager.createNativeQuery(queryBuffer
+	//					.toString());
+	//
+	//			// Get list of Connects using the result of the above query
+	//			if ((teamConnects != null)
+	//					&& !(teamConnects.getResultList().isEmpty())) {
+	//
+	//				resultList = teamConnects.getResultList();
+	//
+	//				if ((resultList != null) && !(resultList.isEmpty())) {
+	//					listOfConnects = connectRepository
+	//							.findByConnectIdInOrderByLocationAsc(resultList);
+	//
+	//				}
+	//			}
+	//		} catch (Exception e) {
+	//			logger.error(
+	//					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
+	//					userId);
+	//			throw new DestinationException(HttpStatus.NOT_FOUND,
+	//					"An Internal Error has occured while processing request for userId "
+	//							+ userId);
+	//		}
+	//		return listOfConnects;
+	//	}
 
 	/**
 	 * This method returns the query string for privileges for a user
@@ -470,7 +471,7 @@ public class DashBoardService {
 	 */
 	private String constructPrivilegesQueryForLeadershipDashboard(
 			String supervisorId) throws Exception {
-        
+
 		logger.debug("Start:Inside  constructPrivilegesQueryForLeadershipDashboard() of DashBoardService");
 		String privilegesQuery = "";
 
@@ -505,10 +506,10 @@ public class DashBoardService {
 			Timestamp toDate, String connectCategory) throws Exception {
 		logger.debug("Start:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");		
 		List<ConnectT> leadershipConnects = null;
-		
+
 		//For retrieving customer connects alone
 		if(connectCategory.equalsIgnoreCase(Constants.CUSTOMER)){			
-			
+
 			leadershipConnects = getLeadershipDashboardConnectsForCustomer(supervisorId, displayGeography,
 					fromDate, toDate);
 		}
@@ -516,11 +517,11 @@ public class DashBoardService {
 		else if(connectCategory.equalsIgnoreCase(Constants.PARTNER)){
 			leadershipConnects = getLeadershipDashboardConnectsForPartner(
 					fromDate, toDate);
-			
+
 		}
 		logger.debug("End:Inside  getLeadershipDashboardTeamConnects() of DashBoardService");
 		return leadershipConnects;
-	  }
+	}
 
 	/**
 	 * This method is used to retrieve partner connects for leadership dashboard without access privileges logic
@@ -531,7 +532,7 @@ public class DashBoardService {
 	private List<ConnectT> getLeadershipDashboardConnectsForPartner(
 			Timestamp fromDate, Timestamp toDate) throws Exception {
 		logger.debug("Start:Inside  getLeadershipDashboardConnectsForPartner() of DashBoardService");
-		
+
 		//Query to get partner connects
 		StringBuffer queryBufferForPartner = new StringBuffer(TEAM_CONNECTS_QUERY_PARTNER);
 		Query queryForPartnerConnects = entityManager.createNativeQuery(queryBufferForPartner.toString(),
@@ -539,7 +540,7 @@ public class DashBoardService {
 
 		queryForPartnerConnects.setParameter("fromDate", fromDate);
 		queryForPartnerConnects.setParameter("toDate", toDate);		
-		
+
 		logger.debug("End:Inside  getLeadershipDashboardConnectsForPartner() of DashBoardService");
 		return queryForPartnerConnects.getResultList();
 	}
@@ -555,17 +556,17 @@ public class DashBoardService {
 	 */
 	private List<ConnectT> getLeadershipDashboardConnectsForCustomer(String supervisorId,
 			String displayGeography, Timestamp fromDate, Timestamp toDate)
-			throws Exception {
+					throws Exception {
 		logger.debug("Start: Inside getConnectsForCustomer() method of Dashboard Service");
 
 		//Connects for a customer are stored
 		Set<ConnectT> customerConnects = null;
-		
+
 		StringBuffer queryBufferForCustomerConnects = new StringBuffer(TEAM_CONNECTS_QUERY_PART1);
 		// Append privileges obtained above. Note that access privilege is only
 		// for customers and not for partners
 		queryBufferForCustomerConnects
-				.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
+		.append(constructPrivilegesQueryForLeadershipDashboard(supervisorId));
 		queryBufferForCustomerConnects.append(TEAM_CONNECTS_QUERY_PART2);
 		Query queryForCustomerConnects = entityManager.createNativeQuery(queryBufferForCustomerConnects.toString(),
 				ConnectT.class);
@@ -574,7 +575,7 @@ public class DashBoardService {
 		queryForCustomerConnects.setParameter("toDate", toDate);
 		queryForCustomerConnects.setParameter("displayGeography", displayGeography);
 		customerConnects= new HashSet<ConnectT>(queryForCustomerConnects.getResultList());
-		
+
 		//Check if user is a GEO HEAD or IOU HEAD
 		UserT user = userService.findByUserId(supervisorId);
 		if (user != null) {
@@ -582,13 +583,13 @@ public class DashBoardService {
 			if (UserGroup.contains(userGroup)) {
 				if((userGroup.equalsIgnoreCase(UserGroup.GEO_HEADS.getValue()))||
 						(userGroup.equalsIgnoreCase(UserGroup.IOU_HEADS.getValue()))){
-					
+
 					//Query to get the user's subordinates till n-level
 					List<String> userIds = userRepository
 							.getAllSubordinatesIdBySupervisorId(supervisorId);
 					//User is also added to the list of userIds
 					userIds.add(supervisorId);
-					
+
 					//Query to get subordinate's connects
 					StringBuffer queryBufferForSub = new StringBuffer(TEAM_CONNECTS_QUERY_CUSTOMER);
 					Query queryForSubordinateConnects = entityManager.createNativeQuery(queryBufferForSub.toString(),
@@ -603,7 +604,7 @@ public class DashBoardService {
 					}						
 				}
 			}
-			
+
 		}	
 		logger.debug("End: Inside getConnectsForCustomer() method of Dashboard Service");
 		return new ArrayList<ConnectT>(customerConnects);
@@ -623,7 +624,7 @@ public class DashBoardService {
 	 */
 	public LeadershipOverallWinsDTO getLeadershipWinsByGeography(String userId,
 			Date fromDate, Date toDate, String geography, String searchedUserId, boolean teamFlag) throws Exception {
-		
+
 		logger.debug("Start: Inside getLeadershipWinsByGeography() of DashBoardService");
 
 		LeadershipOverallWinsDTO leadershipOverallWinsDTO = null;
@@ -673,8 +674,8 @@ public class DashBoardService {
 	 */
 	private LeadershipOverallWinsDTO getLeadershipWinsByUserPrivileges(
 			String userId, Date fromDate, Date toDate, String geography, String searchedUserId, boolean teamFlag)
-			throws Exception {
-        
+					throws Exception {
+
 		logger.debug("Start: Inside getLeadershipWinsByUserPrivileges() of DashBoardService");
 		String privilegesQuery = "";
 		LeadershipOverallWinsDTO leadershipTotalWinsDTO = null;
@@ -686,18 +687,18 @@ public class DashBoardService {
 
 		// If user to search is empty, get the Dashboard details for Sales Heads/SI
 		if(StringUtils.isEmpty(searchedUserId)) {
-		
+
 			// Get the privileges for the user and append to the query constructed
 			// above
 			privilegesQuery = constructPrivilegesQueryForLeadershipDashboard(userId);
 
 			// Construct the Query for Wins
 			StringBuffer queryBufferForWins = constructQueryForLeadershipDashboardWinsWithPrivileges(
-				userId, geography, fromDateTs, toDateTs, privilegesQuery);
+					userId, geography, fromDateTs, toDateTs, privilegesQuery);
 
 			// Get wins using the constructed query
 			leadershipWins = getWinsFromQueryBuffer(
-				queryBufferForWins, userId);
+					queryBufferForWins, userId);
 		} else {
 			// Get Opportunity Wins for users and his subordinates 
 			leadershipWins = getLeadershipWinsForSearchedUsers(searchedUserId,
@@ -734,7 +735,7 @@ public class DashBoardService {
 					Double convertedDigitalDealValue = beaconConverterService
 							.convert(oppWins.getDealCurrency(), Constants.USD,
 									oppWins.getDigitalDealValue())
-							.doubleValue();
+									.doubleValue();
 
 					if (convertedDigitalDealValue > Constants.FIVE_MILLION) {
 						if (leadershipWinsAboveFiveMillion == null) {
@@ -770,12 +771,12 @@ public class DashBoardService {
 			if ((leadershipWinsAboveFiveMillion != null)
 					&& (!oppWinsFiveMillion.isEmpty())) {
 				leadershipWinsAboveFiveMillion
-						.setListOfWins(oppWinsFiveMillion);
+				.setListOfWins(oppWinsFiveMillion);
 				leadershipWinsAboveFiveMillion.setSizeOfWins(oppWinsFiveMillion
 						.size());
 				leadershipWinsAboveFiveMillion.setSumOfdigitalDealValue(Double
 						.parseDouble((new DecimalFormat("##.##")
-								.format(sumOfDigitalDealValueFiveMillion))));
+						.format(sumOfDigitalDealValueFiveMillion))));
 			}
 			if ((leadershipWinsAboveOneMillion != null)
 					&& (!oppWinsOneMillion.isEmpty())) {
@@ -784,17 +785,17 @@ public class DashBoardService {
 						.size());
 				leadershipWinsAboveOneMillion.setSumOfdigitalDealValue(Double
 						.parseDouble((new DecimalFormat("##.##")
-								.format(sumOfDigitalDealValueOneMillion))));
+						.format(sumOfDigitalDealValueOneMillion))));
 			}
 			if ((leadershipWinsUptoOneMillion != null)
 					&& (!oppWinsUptoOneMillion.isEmpty())) {
 				leadershipWinsUptoOneMillion
-						.setListOfWins(oppWinsUptoOneMillion);
+				.setListOfWins(oppWinsUptoOneMillion);
 				leadershipWinsUptoOneMillion
-						.setSizeOfWins(oppWinsUptoOneMillion.size());
+				.setSizeOfWins(oppWinsUptoOneMillion.size());
 				leadershipWinsUptoOneMillion.setSumOfdigitalDealValue(Double
 						.parseDouble((new DecimalFormat("##.##")
-								.format(sumOfDigitalDealValueUptoOneMillion))));
+						.format(sumOfDigitalDealValueUptoOneMillion))));
 			}
 		}
 
@@ -814,15 +815,15 @@ public class DashBoardService {
 			}
 			if (leadershipWinsAboveFiveMillion != null) {
 				leadershipTotalWinsDTO
-						.setLeadershipWinsAboveFiveMillions(leadershipWinsAboveFiveMillion);
+				.setLeadershipWinsAboveFiveMillions(leadershipWinsAboveFiveMillion);
 			}
 			if (leadershipWinsAboveOneMillion != null) {
 				leadershipTotalWinsDTO
-						.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
+				.setLeadershipWinsAboveOneMillion(leadershipWinsAboveOneMillion);
 			}
 			if (leadershipWinsUptoOneMillion != null) {
 				leadershipTotalWinsDTO
-						.setLeadershipWinsUptoOneMillion(leadershipWinsUptoOneMillion);
+				.setLeadershipWinsUptoOneMillion(leadershipWinsUptoOneMillion);
 			}
 
 		}
@@ -842,7 +843,7 @@ public class DashBoardService {
 	 */
 	LeadershipWinsDTO getLeadershipWinsForSearchedUsers(String searchedUserId,
 			boolean teamFlag, Timestamp fromDateTs, Timestamp toDateTs)
-			throws Exception {
+					throws Exception {
 		LeadershipWinsDTO leadershipWins = null;
 
 		List<String> searchUserList = new ArrayList<String>();
@@ -851,7 +852,7 @@ public class DashBoardService {
 		if (teamFlag) { // If Team Flag is false, subordinate details will not be shown
 			List<String> subordinates = userRepository
 					.getAllSubordinatesIdBySupervisorId(searchedUserId);
-			
+
 			// Add the subordinates
 			for (String user : subordinates) {
 				searchUserList.add(user);
@@ -876,7 +877,7 @@ public class DashBoardService {
 							.doubleValue();
 		}
 		leadershipWins
-				.setSumOfdigitalDealValue(convertedDigitalDealValueForSumOfWins);
+		.setSumOfdigitalDealValue(convertedDigitalDealValueForSumOfWins);
 		return leadershipWins;
 	}
 
@@ -933,9 +934,9 @@ public class DashBoardService {
 				leadershipWinsDTO.setSizeOfWins(resultList.size());
 				leadershipWinsDTO.setSumOfdigitalDealValue(Double
 						.parseDouble((new DecimalFormat("##.##")
-								.format(opportunityRepository
-										.findDigitalDealValueByOpportunityIdIn(
-												resultList).doubleValue()))));
+						.format(opportunityRepository
+								.findDigitalDealValueByOpportunityIdIn(
+										resultList).doubleValue()))));
 				opportunityList = opportunityRepository
 						.findByOpportunityIdInOrderByCountryAsc(resultList);
 				leadershipWinsDTO.setListOfWins(opportunityList);
@@ -977,9 +978,9 @@ public class DashBoardService {
 
 		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART2);
 
-        queryBuffer.append(fromDateTs);
+		queryBuffer.append(fromDateTs);
 
-	    queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
+		queryBuffer.append(TEAM_OPPORTUNITY_WIN_QUERY_PART3);
 
 		queryBuffer.append(toDateTs);
 
@@ -1003,7 +1004,7 @@ public class DashBoardService {
 	 */
 	public LeadershipOpportunitiesDTO getLeadershipOpportunitiesByGeography(
 			String userId, Date fromDate, Date toDate, String geography,String searchedUserId,boolean teamFlag)
-			throws Exception {
+					throws Exception {
 
 		logger.debug("Start:Inside getLeadershipOpportunitiesByGeography()");
 
@@ -1053,7 +1054,7 @@ public class DashBoardService {
 	 */
 	private LeadershipOpportunitiesDTO getLeadershipOpportunitiesByUserPrivileges(
 			String userId, Date fromDate, Date toDate, String geography,String searchedUserId,boolean teamFlag)
-			throws Exception {
+					throws Exception {
 
 		logger.debug("Start: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
 		LeadershipOpportunitiesDTO listOfOppportunities = null;
@@ -1064,7 +1065,7 @@ public class DashBoardService {
 			searchedIdList.add(searchedUserId);
 			opportunitiesBySalesCode = getOpportunitiesBasedOnSearchedUserId(
 					searchedIdList, fromDate, toDate, geography);
-			
+
 		}
 		else if((!StringUtils.isEmpty(searchedUserId))&&(teamFlag==true))
 		{
@@ -1072,29 +1073,29 @@ public class DashBoardService {
 			searchedIdList.add(searchedUserId);
 			opportunitiesBySalesCode = getOpportunitiesBasedOnSearchedUserId(
 					searchedIdList, fromDate, toDate, geography);
-			
+
 		}
 		else
 		{
-		   opportunitiesBySalesCode = getPrevilegedOpportunities(
-				userId, fromDate, toDate, geography);
-            
-     		getPrevilegedOpportunities(
-    				userId, fromDate, toDate, geography);
+			opportunitiesBySalesCode = getPrevilegedOpportunities(
+					userId, fromDate, toDate, geography);
+
+			getPrevilegedOpportunities(
+					userId, fromDate, toDate, geography);
 		}
-		 // Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
- 		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
- 		// 10,11,13(lost),
- 		// 12(shelved)
- 		listOfOppportunities = getOpportunitiesBySalesStageCode(
- 				opportunitiesBySalesCode, userId);
+		// Get ListOfOpp, sum Of digital deal value based on Sales Stage Code
+		// i.e. 0-3(Prospecting), 4-8(Qualified Pipeline), 9(won),
+		// 10,11,13(lost),
+		// 12(shelved)
+		listOfOppportunities = getOpportunitiesBySalesStageCode(
+				opportunitiesBySalesCode, userId);
 		logger.debug("End: Inside getLeadershipOpportunitiesByUserPrivileges() of DashBoardService");
-		
+
 		return listOfOppportunities;
 
 
 	}
-	
+
 	/**
 	 * To fetch the opportunities based on searched user id
 	 * @param searchedUserId
@@ -1103,17 +1104,17 @@ public class DashBoardService {
 	 * @param geography
 	 * @return
 	 */
-	 List<OpportunityT> getOpportunitiesBasedOnSearchedUserId(List<String> searchedUserId,
-				Date fromDate, Date toDate, String geography)
-	 {
-		 logger.debug("Start: Inside getOpportunitiesBasedOnSearchedUserId() of DashBoardService");
-		 List<OpportunityT> opportunitiesBySalesCode = null;
-		 Timestamp fromDateTs = new Timestamp(fromDate.getTime());
-		 Timestamp toDateTs = new Timestamp(toDate.getTime()
-					+ Constants.ONE_DAY_IN_MILLIS - 1);
-		 opportunitiesBySalesCode = opportunityRepository.getAllOpportunitiesBySearchedIdQuery(searchedUserId,fromDateTs,toDateTs);
-		 return opportunitiesBySalesCode;
-	 }
+	List<OpportunityT> getOpportunitiesBasedOnSearchedUserId(List<String> searchedUserId,
+			Date fromDate, Date toDate, String geography)
+			{
+		logger.debug("Start: Inside getOpportunitiesBasedOnSearchedUserId() of DashBoardService");
+		List<OpportunityT> opportunitiesBySalesCode = null;
+		Timestamp fromDateTs = new Timestamp(fromDate.getTime());
+		Timestamp toDateTs = new Timestamp(toDate.getTime()
+				+ Constants.ONE_DAY_IN_MILLIS - 1);
+		opportunitiesBySalesCode = opportunityRepository.getAllOpportunitiesBySearchedIdQuery(searchedUserId,fromDateTs,toDateTs);
+		return opportunitiesBySalesCode;
+			}
 
 	/**
 	 * @param userId
@@ -1174,10 +1175,10 @@ public class DashBoardService {
 
 		if ((opportunitiesBySalesCode != null)
 				&& (!opportunitiesBySalesCode.isEmpty())) {
-			
+
 			if(beaconConverterMap==null){
-	    		beaconConverterMap = beaconConverterService.getCurrencyNameAndRate();
-	    	}
+				beaconConverterMap = beaconConverterService.getCurrencyNameAndRate();
+			}
 
 			opportunitiesProspects = new ArrayList<OpportunityT>();
 			opportunitiesPipeline = new ArrayList<OpportunityT>();
@@ -1188,73 +1189,73 @@ public class DashBoardService {
 			leadershipOpportunitiesDTO = new LeadershipOpportunitiesDTO();
 
 			for (OpportunityT opp : opportunitiesBySalesCode) {
-					if (opp.getSalesStageCode() < 4) { // For Prospects 0-3
-						opportunitiesProspects.add(opp);
-						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueProspects = sumOfDealValueProspects +
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
-						}
-					} else if ((opp.getSalesStageCode() >= 4)
-							&& (opp.getSalesStageCode() <= 8)) { // For Pipeline
-
-						opportunitiesPipeline.add(opp);
-						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValuePipeline = sumOfDealValuePipeline + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
-						}
-					} else if (opp.getSalesStageCode() == 9) { // For Won
-
-						opportunitiesWon.add(opp);
-						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueWon = sumOfDealValueWon + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
-						}
-					} else if ((opp.getSalesStageCode() == 10)
-							|| (opp.getSalesStageCode() == 11)
-							|| (opp.getSalesStageCode() == 13)) { // For Lost
-																	// 10,11,13
-						opportunitiesLost.add(opp);
-						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueLost = sumOfDealValueLost + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
-						}
-					} else if (opp.getSalesStageCode() == 12) { // For Shelved
-
-						opportunitiesShelved.add(opp);
-						if (opp.getDigitalDealValue() != null) {
-							sumOfDealValueShelved = sumOfDealValueShelved + 
-									beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
-						}
+				if (opp.getSalesStageCode() < 4) { // For Prospects 0-3
+					opportunitiesProspects.add(opp);
+					if (opp.getDigitalDealValue() != null) {
+						sumOfDealValueProspects = sumOfDealValueProspects +
+								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
 					}
+				} else if ((opp.getSalesStageCode() >= 4)
+						&& (opp.getSalesStageCode() <= 8)) { // For Pipeline
+
+					opportunitiesPipeline.add(opp);
+					if (opp.getDigitalDealValue() != null) {
+						sumOfDealValuePipeline = sumOfDealValuePipeline + 
+								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+					}
+				} else if (opp.getSalesStageCode() == 9) { // For Won
+
+					opportunitiesWon.add(opp);
+					if (opp.getDigitalDealValue() != null) {
+						sumOfDealValueWon = sumOfDealValueWon + 
+								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+					}
+				} else if ((opp.getSalesStageCode() == 10)
+						|| (opp.getSalesStageCode() == 11)
+						|| (opp.getSalesStageCode() == 13)) { // For Lost
+					// 10,11,13
+					opportunitiesLost.add(opp);
+					if (opp.getDigitalDealValue() != null) {
+						sumOfDealValueLost = sumOfDealValueLost + 
+								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+					}
+				} else if (opp.getSalesStageCode() == 12) { // For Shelved
+
+					opportunitiesShelved.add(opp);
+					if (opp.getDigitalDealValue() != null) {
+						sumOfDealValueShelved = sumOfDealValueShelved + 
+								beaconConverterService.convertCurrencyRateUsingBeaconConverterMap(opp.getDealCurrency(), "USD", opp.getDigitalDealValue(), beaconConverterMap).doubleValue();
+					}
+				}
 			}
 			if (!opportunitiesProspects.isEmpty()) {
 				leadershipOpportunitiesDTO
-						.setOppProspects(getLeadershipOpportunityObjectBySalesStageCode(
-								opportunitiesProspects, sumOfDealValueProspects, userId));
+				.setOppProspects(getLeadershipOpportunityObjectBySalesStageCode(
+						opportunitiesProspects, sumOfDealValueProspects, userId));
 				checkOppExists = true;
 			}
 			if (!opportunitiesPipeline.isEmpty()) {
 				leadershipOpportunitiesDTO
-						.setOppPipeline(getLeadershipOpportunityObjectBySalesStageCode(
-								opportunitiesPipeline, sumOfDealValuePipeline, userId));
+				.setOppPipeline(getLeadershipOpportunityObjectBySalesStageCode(
+						opportunitiesPipeline, sumOfDealValuePipeline, userId));
 				checkOppExists = true;
 			}
 			if (!opportunitiesWon.isEmpty()) {
 				leadershipOpportunitiesDTO
-						.setOppWon(getLeadershipOpportunityObjectBySalesStageCode(
-								opportunitiesWon, sumOfDealValueWon, userId));
+				.setOppWon(getLeadershipOpportunityObjectBySalesStageCode(
+						opportunitiesWon, sumOfDealValueWon, userId));
 				checkOppExists = true;
 			}
 			if (!opportunitiesLost.isEmpty()) {
 				leadershipOpportunitiesDTO
-						.setOppLost(getLeadershipOpportunityObjectBySalesStageCode(
-								opportunitiesLost, sumOfDealValueLost, userId));
+				.setOppLost(getLeadershipOpportunityObjectBySalesStageCode(
+						opportunitiesLost, sumOfDealValueLost, userId));
 				checkOppExists = true;
 			}
 			if (!opportunitiesShelved.isEmpty()) {
 				leadershipOpportunitiesDTO
-						.setOppShelved(getLeadershipOpportunityObjectBySalesStageCode(
-								opportunitiesShelved, sumOfDealValueShelved, userId));
+				.setOppShelved(getLeadershipOpportunityObjectBySalesStageCode(
+						opportunitiesShelved, sumOfDealValueShelved, userId));
 				checkOppExists = true;
 			}
 		}
@@ -1278,7 +1279,7 @@ public class DashBoardService {
 	 */
 	private LeadershipOpportunityBySalesStageCodeDTO getLeadershipOpportunityObjectBySalesStageCode(
 			List<OpportunityT> opportunitTs, Double sumOfDealValue, String userId)
-			throws Exception {
+					throws Exception {
 
 		logger.debug("Start: Inside getLeadershipOpportunityObjectBySalesStageCode() of DashBoardService");
 		LeadershipOpportunityBySalesStageCodeDTO oppBySalesCode = new LeadershipOpportunityBySalesStageCodeDTO();
@@ -1290,7 +1291,7 @@ public class DashBoardService {
 			//TODO: Calculate the sum of digital deal value
 			oppBySalesCode.setSumOfDigitalDealValue(Double
 					.parseDouble((new DecimalFormat("##.##")
-							.format(sumOfDealValue))));
+					.format(sumOfDealValue))));
 		} catch (Exception e) {
 			logger.error(
 					"NOT_FOUND: An Internal Error has occured while processing request for {} : ",
@@ -1345,7 +1346,7 @@ public class DashBoardService {
 	private StringBuffer constructQueryForLeadershipDashboardOpportunitiesWithPrivileges(
 			String userId, String geography, Timestamp fromDateTs,
 			Timestamp toDateTs, String privilegesQueryString) {
-		
+
 		logger.debug("Start: Inside constructQueryForLeadershipDashboardOpportunitiesWithPrivileges() of DashBoardService");
 
 		StringBuffer queryBuffer = new StringBuffer();
@@ -1362,21 +1363,59 @@ public class DashBoardService {
 
 		queryBuffer.append(fromDateTs);
 
-        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
+		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART3);
 
 		queryBuffer.append(toDateTs);
 
-        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
+		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART4);
 
-        queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
+		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_PART5);
 
-	    queryBuffer.append(privilegesQueryString);
+		queryBuffer.append(privilegesQueryString);
 
 		queryBuffer.append(TEAM_OPPORTUNITY_QUERY_SUFFIX);
 
 		logger.debug("End: Inside constructQueryForLeadershipDashboardOpportunitiesWithPrivileges() of DashBoardService");
-		
+
 		return queryBuffer;
 	}
+	/**
+	 * The Service is Used to get the users of the LeaderShipDashBoard By AjaxSearch
+	 * @param nameWith
+	 * @return 
+	 * @throws Exception
+	 */
+	public List<UserT>findUsersAjaxSearch(String nameWith) throws Exception{
+		logger.info("Inside findUsersAjaxSearch() method"); 
+		List<UserT> users=null;
 
+		nameWith = "%" + nameWith + "%";
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
+
+		String userGroup = ( (UserT) user).getUserGroupMappingT().getUserGroup();
+
+		if (UserGroup.contains(userGroup)) {
+			switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+			case STRATEGIC_INITIATIVES:
+				users= userRepository.getUsersByUserNameKeyword(nameWith);
+				break;
+			case GEO_HEADS:
+			case IOU_HEADS:
+				users = userRepository.getSubordinatesIdBySupervisorId(userId, nameWith);
+				break;
+
+			default:
+				logger.error("UNAUTHORIZED : User is not authorized to access this service");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "User is not authorised to access this service");
+			}
+		}
+		if((users == null)||(users.isEmpty())){
+			logger.error("NOT_FOUND : No user found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No user found");
+		}
+		logger.info("End of findUsersAjaxSearch() method");
+		return users;
+
+	}
 }
