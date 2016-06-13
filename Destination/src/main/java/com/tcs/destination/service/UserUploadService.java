@@ -20,6 +20,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -97,6 +98,9 @@ public class UserUploadService {
 	@Autowired
 	UserGoalsRepository userGoalsRepository;
 
+	@Value("${user_default_password.length}")
+	private int defaultPasswordLength;
+	
 	Map<String, HashMap<String, GoalMappingT>> defaultGoalsMap;
 
 	private static final Logger logger = LoggerFactory
@@ -330,7 +334,8 @@ public class UserUploadService {
 					user.setUserId(validateAndRectifyValue(userIdCellModel
 							.getCellValue()));
 					user.setUserName(userNameCellModel.getCellValue());
-					user.setTempPassword(tempPasswordCellModel.getCellValue());
+					user.setTempPassword(StringUtils.generateRandomString(defaultPasswordLength));
+					user.setStatus(0);
 					user.setBaseLocation(baseLocationCellModel.getCellValue());
 					user.setUserEmailId(userEmailIdCellModel.getCellValue());
 					user.setUserTelephone(userTelephoneCellModel.getCellValue());

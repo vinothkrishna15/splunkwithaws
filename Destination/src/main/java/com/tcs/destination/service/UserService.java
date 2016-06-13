@@ -112,6 +112,9 @@ public class UserService {
 
 	@Value("${forgotPassword}")
 	private String forgotPasswordSubject;
+	
+	@Value("${user_default_password.length}")
+	private int defaultPasswordLength;
 
 	@Autowired
 	CustomerService customerService;
@@ -782,6 +785,7 @@ public class UserService {
 		logger.info("Begin:inside insertUserDetails() method");
 		checkIfUserAlreadyExist(user);
 		user.setTempPassword(getTempPassword());
+		user.setStatus(0);
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
@@ -817,16 +821,8 @@ public class UserService {
 	 */
 	private String getTempPassword() {
 		logger.info("Inside getTempPassword() method");
-		String tempPassword=null;
-		if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.UAT)){
-			tempPassword=Constants.TCS_UAT;
-		} else if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.PROD)){
-			tempPassword=Constants.TCS_PROD;
-		}else if(PropertyUtil.getProperty(Constants.ENVIRONMENT_NAME).equals(Constants.SIT)){
-			tempPassword=Constants.TCS_SIT;
-		} else {
-			tempPassword=Constants.TCS_DEV;
-		}
+		String tempPassword=StringUtils.generateRandomString(defaultPasswordLength);
+		
 		return tempPassword;
 	}
 
@@ -911,6 +907,7 @@ public class UserService {
 		logger.info("Begin:inside updateUserDetails() of UserService");
 		UserT userT= userRepository.findByUserId(user.getUserId());
 		user.setTempPassword(userT.getTempPassword());
+		
 		// validate user
 		validateUser(user, true);
 		if (userRepository.save(user) != null) {
