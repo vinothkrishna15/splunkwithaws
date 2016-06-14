@@ -238,6 +238,11 @@ public class OpportunityT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
+	
+	//bi-directional many-to-one association to DeliveryOwnershipT
+	@ManyToOne
+	@JoinColumn(name="delivery_ownership_id")
+	private DeliveryOwnershipT deliveryOwnershipT;
 
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
@@ -1201,6 +1206,12 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.workflowRequest = workflowRequest;
 	}
 	
-	
+	public DeliveryOwnershipT getDeliveryOwnershipT() {
+		return deliveryOwnershipT;
+	}
+
+	public void setDeliveryOwnershipT(DeliveryOwnershipT deliveryOwnershipT) {
+		this.deliveryOwnershipT = deliveryOwnershipT;
+	}
 
 }
