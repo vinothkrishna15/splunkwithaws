@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
@@ -744,17 +745,17 @@ public class DestinationMailUtils {
 				operation = Constants.WORKFLOW_OPERATION_CREATE;
 				recepientIds.add(workflowPartnerT.getCreatedBy());
 				break;
-			case COMPETITOR:
-				entity = Constants.WORKFLOW_COMPETITOR;
-				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-						.findOne(entityId);
-				entityName = workflowCompetitor.getWorkflowCompetitorName();
-				userName = userRepository
-						.findUserNameByUserId(workflowCompetitor
-								.getCreatedBy());
-				operation = Constants.WORKFLOW_OPERATION_CREATE;
-				recepientIds.add(workflowCompetitor.getCreatedBy());
-				break;
+//			case COMPETITOR:
+//				entity = Constants.WORKFLOW_COMPETITOR;
+//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+//						.findOne(entityId);
+//				entityName = workflowCompetitor.getWorkflowCompetitorName();
+//				userName = userRepository
+//						.findUserNameByUserId(workflowCompetitor
+//								.getCreatedBy());
+//				operation = Constants.WORKFLOW_OPERATION_CREATE;
+//				recepientIds.add(workflowCompetitor.getCreatedBy());
+//				break;
 			case OPPORTUNITY:
 				entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 				OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -963,7 +964,7 @@ public class DestinationMailUtils {
 		return emailIds;		
 	}
 	
-	 private String constructUserNamesSplitByComma(List<String> userNames) {
+	 private String splitStringByComma(List<String> userNames) {
 		 logger.debug("Inside constructUserNamesSplitByComma Service");
 		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
 	    }
@@ -1004,6 +1005,11 @@ public class DestinationMailUtils {
 			 List<String> winLossFactors = new ArrayList<String>();
 			 List<String> opportunitySalesSupportOwners = new ArrayList<String>();
 			 List<String> opportunitySubSps = new ArrayList<String>();
+			 List<String> opportunityCompetitors = new ArrayList<String>();
+			 List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
+			 String competitorNames = Constants.NOT_AVAILABLE;
+			 String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
+
 			 String salesSupportOwners = "";
 			 String factorsForWinLoss = "";
 			 String subSpsStr = "";
@@ -1014,7 +1020,7 @@ public class DestinationMailUtils {
 				 opportunitySubSps.add(displaySubSp);
 			 }
 			 if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
-				 subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
+				 subSpsStr = splitStringByComma(opportunitySubSps);
 			 }
 			 
 			 for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
@@ -1029,9 +1035,36 @@ public class DestinationMailUtils {
 			 }
 			 if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
 				 withSupportFrom = Constants.WITH_SUPPORT_FROM;
-				 salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
+				 salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
 				 logger.info("sales support owners : "+salesSupportOwners);
 			 }
+			 
+				// Getting Opportunity Competitors
+				if (CollectionUtils.isNotEmpty(opportunity
+						.getOpportunityCompetitorLinkTs())) {
+					for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+							.getOpportunityCompetitorLinkTs()) {
+						if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
+								Constants.Y)) {
+							opportunityIncumbentCompetitors
+									.add(opportunityCompetitorLinkT
+											.getCompetitorName());
+						} else {
+							opportunityCompetitors.add(opportunityCompetitorLinkT
+									.getCompetitorName());
+						}
+						
+					}
+				}
+				
+				if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
+					competitorNames = splitStringByComma(opportunityCompetitors);
+				}
+
+				if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
+					incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
+				}
+
 
 			 recepientIds.add(opportunityWonLostGroupMailId);
 			 if (opportunity.getSalesStageCode() == 9) {
@@ -1107,6 +1140,10 @@ public class DestinationMailUtils {
 				 map.put("opportunityDescription", opportunityDescription);
 				 map.put("withSupportFrom", withSupportFrom);
 				 map.put("dealClosureDate", dealClosureDateStr);
+					map.put("competitorNames", competitorNames);
+					map.put("incumbentCompetitorNames",
+							incumbentCompetitorNames);
+
 				 String text = mergeTmplWithData(map, templateLoc);
 				 logger.info("framed text for mail :" + text);
 				 message.setMessage(text);
