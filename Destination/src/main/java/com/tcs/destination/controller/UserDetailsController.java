@@ -36,6 +36,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGroupMappingT;
+import com.tcs.destination.bean.UserProfile;
 import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.enums.SmartSearchType;
@@ -772,5 +773,146 @@ public class UserDetailsController {
 					"Backend error while retrieving connects list");
 		}
 		
+	}
+	
+	
+	/**
+	 * This service get the last Login time of the user
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	
+	@RequestMapping(value = "/lastlogin", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getLastLogin(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		logger.info("Start : /user/lastlogin GET");
+		LoginHistoryT loginHistoryT = null;
+		try {
+			loginHistoryT  = userService.getLastLoginDate();
+			logger.info("End : /user/lastlogin GET");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+							loginHistoryT), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while retrieving Last Login Date");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving Last Login Date");
+		}
+	}
+	
+	/**
+	 * This service is used to get the Profile Details of an user
+	 * 
+	 * @param userId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/getProfile", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getLastLogin(
+			@RequestParam("userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		logger.info("Start : /user/getPofile service");
+		UserProfile userProfile = null;
+		try {
+			userProfile = userService.getProfile(userId);
+			logger.info("End : /user/getPofile service");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+							userProfile), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while retrieving Get Profile service");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving Get Profile service");
+		}
+	}
+	
+	/**
+	 * This service helps in updating the user contact numbers 
+	 * and base location of the user
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/editcontactandlocation", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> editContact(
+			@RequestBody UserT user) throws DestinationException {
+		logger.info("Starting UserDetailsController /user/editcontactandlocation POST");
+		try {
+			Status status = userService.editContact(user);
+			logger.info("Ending UserDetailsController /user/editcontactandlocation POST");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while processing Edit Contact And Base Location service");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while processing Edit Contact And Base Location service");
+		}
+	}
+	
+	/**
+	 * This service helps in updating the user contacts of the user
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/escalateUserDetails", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> escalateUserDetails(
+			@RequestBody UserT user) throws DestinationException {
+		logger.info("Starting UserDetailsController /user/escalateUserDetails POST");
+		try {
+			Status status = userService.escalateUserDetails(user);
+			logger.info("Ending UserDetailsController /user/escalateUserDetails POST");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while processing Escalate User Details service");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while processing Escalate User Details service");
+		}
+	}
+	
+	/**
+	 * This service helps in updating the user's photo
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/uploadphoto", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> updatePhoto(
+			@RequestBody UserT user) throws DestinationException {
+		logger.info("Starting UserDetailsController /user/uploadphoto POST");
+		try {
+			Status status = userService.updatePhoto(user);
+			logger.info("Ending UserDetailsController /user/uploadphoto POST");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while processing Upload Photo service");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while processing Upload Photo service");
+		}
 	}
 }

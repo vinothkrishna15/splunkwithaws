@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import com.tcs.destination.bean.LoginHistoryT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
@@ -33,6 +35,7 @@ import com.tcs.destination.bean.UserModule;
 import com.tcs.destination.bean.UserModuleAccess;
 import com.tcs.destination.bean.UserModuleAccessT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserProfile;
 import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
@@ -115,6 +118,9 @@ public class UserService {
 
 	@Autowired
 	CustomerService customerService;
+	
+	@Autowired
+	ThreadPoolTaskExecutor mailTaskExecutor;
 
 	/**
 	 * This method retrieves user details based on user name
@@ -1127,6 +1133,268 @@ public class UserService {
 		conRes.setSearchType(type);
 		conRes.setValues(records);
 		return conRes;
+	}
+	
+	
+	/**
+	 * This method returns the Last Login Date for the user
+	 * 
+	 * @return
+	 */
+	public LoginHistoryT getLastLoginDate() throws Exception {
+		
+		logger.debug("Begin : getLastLogin service");
+		
+		LoginHistoryT loginHistoryT = null;
+		
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		
+		// Get the Last Login Date
+		loginHistoryT = loginHistoryRepository.findLastLoginDateByUserId(userId);
+		
+		logger.debug("End : getLastLogin service");
+		
+		return loginHistoryT;
+		
+	}
+
+	/**
+	 * This method retrieves the User Profile Details of the user
+	 * 
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
+	public UserProfile getProfile(String userId) throws Exception {
+
+		logger.debug("Begin : getProfile service");
+
+		UserProfile userProfile = new UserProfile();
+		UserT userT = null;
+
+		UserT user = userRepository.findOne(userId);
+
+		if ((user != null) && (userId.equals(user.getUserId()))) {
+
+			// Get the User's Details
+			userT = userRepository.findOne(userId);
+			userProfile.setUserT(userT);
+
+			// Get the User's Reportees
+			List<UserT> reporteesList = userRepository
+					.findSubordinatesBySupervisorId(userId);
+			userProfile.setReportees(reporteesList);
+
+			// Get the User's Hierarchy
+			List<UserT> hierarchyList = userRepository
+					.findUserHierarchy(userId);
+			userProfile.setReportingHierarchy(hierarchyList);
+		} else {
+			logger.error("NOT FOUND: user NOT present : {} ",userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND,"user NOT present : "+userId);
+		}
+
+		logger.debug("End : getProfile service");
+
+		return userProfile;
+	}
+	
+	/**
+	 * This service helps in updating the user contacts of the user
+	 * 
+	 * @param userId
+	 * @param userEmailId
+	 * @param userTelephone
+	 * @throws Exception
+	 */
+	public Status editContact(UserT userJSON) throws Exception{
+		
+		logger.debug("Start : Edit Contact And Base Location service");
+		
+		Status status = new Status();
+		boolean flagUserLocation = false;
+		boolean flagUserTelephone = false;
+		boolean flagUserMobile = false;
+		
+		if(StringUtils.isEmpty(userJSON.getUserId())){
+			logger.error("BAD_REQUEST: userId cannot be Empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"userId cannot be Empty");
+		} else {
+			
+			// Get the details of exisiting users
+			UserT userT = userRepository.findOne(DestinationUtils.getCurrentUserDetails().getUserId());	
+			
+			if((userT!=null) && (userJSON.getUserId().equals(userT.getUserId()))){ // If users are the same
+				if(!StringUtils.isEmpty(userJSON.getBaseLocation())){ // If Base Location is empty
+					if(!userJSON.getBaseLocation().equals(userT.getBaseLocation())){ // If Base Location is different
+						userT.setBaseLocation(userJSON.getBaseLocation());
+						flagUserLocation = true;
+					}
+				} else {
+					logger.error("BAD REQUEST : Base Location cannot be empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST,"Base Location cannot be empty");
+				}
+				if(userJSON.getUserTelephone()!=null){ // If User Telephone is null
+					if(!userJSON.getUserTelephone().equals(userT.getUserTelephone())){ // If User Telephone is different
+						userT.setUserTelephone(userJSON.getUserTelephone());
+						flagUserTelephone = true;
+					}
+				} 
+				if(userJSON.getUserMobile()!=null){ // If User Mobile is null
+					if(!userJSON.getUserMobile().equals(userT.getUserMobile())){ // If User Mobile is different
+						userT.setUserMobile(userJSON.getUserMobile());
+						flagUserMobile = true;
+					}
+				} 
+				
+				if(flagUserLocation || flagUserTelephone || flagUserMobile){ // If any of the 3 flags are true
+					userRepository.save(userT);
+					status.setStatus(Status.SUCCESS, "Contact Information and Base Location Saved");
+					logger.info("SUCCESS : Contact Details Saved");
+				} else {
+					status.setStatus(Status.FAILED, "No Contact Information or Base Location Saved");
+					logger.info("FAILED : No Contact Details or Base Location Saved");
+				}
+				
+				
+			} else {
+				logger.error("FORBIDDEN: user forbidden to make this request");
+				throw new DestinationException(HttpStatus.FORBIDDEN,"user forbidden to make this request");
+			}
+		}
+		
+		logger.debug("End : Edit Contact And Base Location service");
+		
+		return status;
+	}
+
+	/**
+	 * This service helps in escalate the supervisor Id and name changes to the 
+	 * admin for veriification and acting upon the mentioned change
+	 * 
+	 * @param userJSON
+	 * @return
+	 * @throws Exception
+	 */
+	public Status escalateUserDetails(UserT userJSON) throws Exception{
+
+		Status status = new Status();
+
+		if (StringUtils.isEmpty(userJSON.getUserId())) {
+			logger.error("BAD_REQUEST: userId cannot be Empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"userId cannot be Empty");
+		} else {
+			
+			UserT userT = userRepository.findOne(DestinationUtils.getCurrentUserDetails().getUserId());
+			
+			if (userT.getUserId().equals(userJSON.getUserId())) { // If logged in user and user specified in JSON are true
+
+				if(StringUtils.isEmpty(userJSON.getSupervisorUserId()) || StringUtils.isEmpty(userJSON.getSupervisorUserName())){
+					logger.error("BAD_REQUEST: Supervisor UserId or Supervisor Username is Empty");
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "Supervisor UserId or Supervisor Username is Empty");
+				} else {
+					StringBuilder existingValue = new StringBuilder();
+					existingValue.append("Supervisor UserId : ");
+					existingValue.append(userT.getSupervisorUserId());
+					existingValue.append(", ");
+					existingValue.append("Supervisor Username : ");
+					existingValue.append(userT.getSupervisorUserName());
+					existingValue.append("<br/>");
+					
+					StringBuilder newValue = new StringBuilder();
+					newValue.append("Supervisor UserId : ");
+					newValue.append(userJSON.getSupervisorUserId());
+					newValue.append(", ");
+					newValue.append("Supervisor Username : ");
+					newValue.append(userJSON.getSupervisorUserName());
+					newValue.append("<br/>");
+	
+					// send email
+					sendEmailNotification(existingValue.toString(),newValue.toString(), userT);
+					status.setStatus(Status.SUCCESS, "Email sent to Admin");
+				}
+				
+			} else {
+				logger.error("FORBIDDEN: userId forbidden to make this request");
+				throw new DestinationException(HttpStatus.FORBIDDEN,"userId forbidden to make this request");
+			}
+		}
+
+		return status;
+	}
+
+	/**
+	 * method to send Email Notification for an request id
+	 * 
+	 * @param requestId
+	 * @param date
+	 * @throws Exception
+	 */
+	private void sendEmailNotification(String existingSupervisorDetails, String newSupervisorDetails, UserT userT) throws Exception {
+		logger.debug("Begin:Inside sendEmailNotification for Escalate User Details to Admin");
+		@Transactional
+		class EscalateUserDetailsRunnable implements Runnable {
+			String existingSupervisorDetails;
+			String newSupervisorDetails;
+			UserT userT;
+
+			EscalateUserDetailsRunnable(String existingSupervisorDetails, String newSupervisorDetails, UserT userT) {
+				this.existingSupervisorDetails = existingSupervisorDetails;
+				this.newSupervisorDetails = newSupervisorDetails;
+				this.userT = userT;
+			}
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					mailUtils.sendEscalateUserDetailsAutomatedEmail(existingSupervisorDetails, newSupervisorDetails, userT);
+				} catch (Exception e) {
+					logger.error("Error sending email for Escalate User Details to Admin"+e.getMessage());
+				}
+			}
+
+		}
+		EscalateUserDetailsRunnable escalateUserDetailsRunnable = new EscalateUserDetailsRunnable(existingSupervisorDetails, newSupervisorDetails, userT);
+		mailTaskExecutor.execute(escalateUserDetailsRunnable);
+		logger.debug("End:Inside sendEmailNotification for Escalate User Details to Admin");
+	}
+
+	public Status updatePhoto(UserT userJSON) throws Exception{
+		
+		logger.debug("Start : Update Photo service");
+		
+		Status status = new Status();
+		
+		if(StringUtils.isEmpty(userJSON.getUserId())){
+			logger.error("BAD_REQUEST: userId cannot be Empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"userId cannot be Empty");
+		} else {
+			
+			UserT userT = userRepository.findOne(DestinationUtils.getCurrentUserDetails().getUserId());	
+			
+			if((userT!=null) && (userJSON.getUserId().equals(userT.getUserId()))){
+				
+				if(userJSON.getUserPhoto()!=null) {
+					userT.setUserPhoto(userJSON.getUserPhoto());
+					userRepository.save(userT);
+					status.setStatus(Status.SUCCESS, "Photo Uploaded Successfully");
+					logger.info("SUCCESS : Photo Uploaded Successfully");
+				} else {
+					status.setStatus(Status.FAILED, "No Photo to upload");
+					logger.info("FAILED : No Photo to upload");
+				}
+				
+			} else {
+				logger.error("FORBIDDEN: userId forbidden to make this request");
+				throw new DestinationException(HttpStatus.FORBIDDEN,"userId forbidden to make this request");
+			}
+		}
+		
+		logger.debug("End : Update Photo service");
+		
+		return status;
 	}
 
 }
