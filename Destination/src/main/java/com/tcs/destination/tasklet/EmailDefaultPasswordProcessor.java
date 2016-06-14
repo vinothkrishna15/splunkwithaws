@@ -36,7 +36,7 @@ public class EmailDefaultPasswordProcessor implements Tasklet{
 		//for each user 
 		 for(UserT user : userList){
 			 //form email
-			 boolean mailSent = destinationMailUtils.sendDefaultPasswordAutomatedEmail("DESTINATION : User Account created ",user);
+			 boolean mailSent = destinationMailUtils.sendDefaultPasswordAutomatedEmail("DESTiNATION : User Account created ",user);
 			 
 			 //update table
 			 if(mailSent) {
