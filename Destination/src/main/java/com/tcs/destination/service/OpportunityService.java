@@ -32,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.DeliveryOwnershipT;
+import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
@@ -53,6 +55,7 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowRequestT;
+import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -65,6 +68,8 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
@@ -267,8 +272,26 @@ public class OpportunityService {
 	@Autowired
 	WorkflowRequestTRepository workflowRequestRepository;
 	
+	@Autowired
+	DeliveryOwnershipRepository deliveryOwnershipRepository;
+	
+	@Autowired
+	DeliveryCentreRepository deliveryCentreRepository;
+	
 	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
-
+    
+	/**
+	 * To fetch opportunities by name
+	 * @param nameWith
+	 * @param customerId
+	 * @param toCurrency
+	 * @param isAjax
+	 * @param userId
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
 			String userId, int page, int count) throws Exception {
@@ -311,13 +334,41 @@ public class OpportunityService {
 			// checking the privilege as it is might reduce te performance.
 			preventSensitiveInfo(opportunityTs);
 		}
-
-		paginatedResponse.setOpportunityTs(opportunityTs);
+        paginatedResponse.setOpportunityTs(opportunityTs);
 		return paginatedResponse;
 	}
 	
+	/**
+	 * To fetch all the delivery centres 
+	 * @return
+	 */
+	public List<DeliveryCentreT> fetchDeliveryCentre()
+	{
+		logger.debug("Inside fetchDeliveryCentre() service");
+		List<DeliveryCentreT> deliveryCentre=new ArrayList<DeliveryCentreT>();
+		deliveryCentre=(List<DeliveryCentreT>) deliveryCentreRepository.findAll();
+		return deliveryCentre;
+	}
 	
-
+	/**
+	 * To fetch all the delivery ownership 
+	 * @return
+	 */
+	public List<DeliveryOwnershipT>  fetchDeliveryOwnershipDetails()
+	{
+		logger.debug("Inside fetchDeliveryOwnershipDetails() service");
+		List<DeliveryOwnershipT> deliveryOwnership=new ArrayList<DeliveryOwnershipT>();
+		deliveryOwnership=(List<DeliveryOwnershipT>)deliveryOwnershipRepository.findAll();
+		return deliveryOwnership;
+	}
+    
+	/**
+	 * This method is used to fetch the recent opportunities
+	 * @param customerId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findRecentOpportunities(String customerId,
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findRecentOpportunities() service");
@@ -345,7 +396,15 @@ public class OpportunityService {
 
 		return opportunities;
 	}
-
+    
+	/**
+	 * This method is used to fetch the opportunities by owner and role
+	 * @param userId
+	 * @param opportunityRole
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
 			String opportunityRole, List<String> toCurrency) throws Exception {
 		List<OpportunityT> opportunities = null;
@@ -390,7 +449,17 @@ public class OpportunityService {
 		return opportunities;
 
 	}
-
+   
+	/**
+	 * To fetch the opportunities by task owner for specific role
+	 * @param opportunityOwner
+	 * @param opportunityRole
+	 * @param fromDate
+	 * @param toDate
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
 			String opportunityRole, Date fromDate, Date toDate,
 			List<String> toCurrency) throws Exception {
@@ -437,7 +506,16 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 	}
-
+    
+	/**
+	 * To fetch the opportunity for primary owner
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForPrimaryOwner(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
@@ -449,6 +527,13 @@ public class OpportunityService {
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
+	/**
+	 * To validate and return the opportunities data
+	 * @param opportunities
+	 * @param validate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> validateAndReturnOpportunitesData(
 			List<OpportunityT> opportunities, boolean validate)
 			throws DestinationException {
@@ -466,7 +551,16 @@ public class OpportunityService {
 			return opportunities;
 		}
 	}
-
+    
+	/**
+	 * To find the opportunities for bid details
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForBidOffice(String userId, boolean isOnly,
 			Date fromDate, Date toDate) throws DestinationException {
 		logger.debug("Inside findForBidOffice() service");
@@ -477,7 +571,16 @@ public class OpportunityService {
 						userId, fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-
+    
+	/**
+	 * To fetch the opportunities for sales support owner
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForSalesSupport(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
@@ -487,7 +590,14 @@ public class OpportunityService {
 						fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-
+    
+	/**
+	 * To fetch opportunities by opportunity id
+	 * @param opportunityId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");	
@@ -533,7 +643,13 @@ public class OpportunityService {
 			}
 		}
 	}
-
+   
+	/**
+     * This method is used to validate whether the given user is owner for the particular opportunity
+     * @param userId
+     * @param opportunity
+     * @return
+     */
 	private boolean isUserOwner(String userId, OpportunityT opportunity) {
 		if (opportunity.getOpportunityOwner().equals(userId))
 			return true;
@@ -564,7 +680,14 @@ public class OpportunityService {
 		return false;
 	}
 
-	// Method called from controller
+   /**
+    * This method is used to create a new opportunity
+    * @param opportunity
+    * @param isBulkDataLoad
+    * @param bidRequestType
+    * @param actualSubmissionDate
+    * @throws Exception
+    */
 	@Transactional
 	public void createOpportunity(OpportunityT opportunity,
 			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {

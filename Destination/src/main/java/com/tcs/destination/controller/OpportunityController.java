@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -880,6 +882,72 @@ public class OpportunityController {
 		}
 		logger.info("Inside OpportunityController: End of /opportunity/list/Id="
 				+ opportunityIds + " GET");
+		return response;
+	}
+	
+	/**
+	 * This Controller used to retrieve the list of delivery centres 
+	 * 
+	 * @param opportunityIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/deliveryownership", method = RequestMethod.GET)
+	public @ResponseBody String fetchDeliveryOwnershipDetails(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside OpportunityController: Start of /opportunity/deliveryownership GET");
+		String response = null;
+		List<DeliveryOwnershipT> deliveryOwnershipDetails;
+		try {
+			deliveryOwnershipDetails = opportunityService.fetchDeliveryOwnershipDetails();
+
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryOwnershipDetails);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery ownership details");
+		}
+		logger.info("Inside OpportunityController: End of/opportunity/deliveryownership GET");
+		return response;
+	}
+	
+	/**
+	 * This Controller used to retrieve the list of delivery ownership options
+	 * 
+	 * @param opportunityIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/deliverycentre", method = RequestMethod.GET)
+	public @ResponseBody String fetchDeliveryCentre(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside OpportunityController: Start of /opportunity/deliverycentre GET");
+		String response = null;
+		List<DeliveryCentreT> deliveryCentres;
+		try {
+			deliveryCentres = opportunityService.fetchDeliveryCentre();
+
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryCentres);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery centre details");
+		}
+		logger.info("Inside OpportunityController: End of/opportunity/deliverycentre GET");
 		return response;
 	}
 
