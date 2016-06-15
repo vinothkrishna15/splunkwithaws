@@ -1256,6 +1256,7 @@ public class OpportunityService {
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
+		baseOpportunityT.setDeliveryOwnershipId(opportunity.getDeliveryOwnershipId());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
