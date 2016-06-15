@@ -595,7 +595,7 @@ public class OpportunityController {
 	 * @param displaySubSp
 	 * @param bidRequestType
 	 * @param newLogo
-	 * @param strategicInitiative
+	 * @param strategicDeal
 	 * @param salesStageCode
 	 * @param searchKeywords
 	 * @param minDigitalDealValue
@@ -623,7 +623,7 @@ public class OpportunityController {
 			@RequestParam(value = "displaySubSp", defaultValue = "") List<String> displaySubSp,
 			@RequestParam(value = "bidRequestType", defaultValue = "") List<String> bidRequestType,
 			@RequestParam(value = "newLogo", defaultValue = "") String newLogo,
-			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
+			@RequestParam(value = "strategicDeal", defaultValue = "") String strategicDeal,
 			@RequestParam(value = "salesStageCode", defaultValue = "") List<Integer> salesStageCode,
 			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
 			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") double minDigitalDealValue,
@@ -643,7 +643,7 @@ public class OpportunityController {
 		PaginatedResponse opportunityResponse;
 		try {
 			opportunityResponse = opportunityService.getByOpportunities(
-					customerIdList, salesStageCode, strategicInitiative,
+					customerIdList, salesStageCode, strategicDeal,
 					newLogo, minDigitalDealValue, maxDigitalDealValue,
 					dealCurrency, digitalFlag, displayIou, country, partnerId,
 					competitorName, searchKeywords, bidRequestType, offering,

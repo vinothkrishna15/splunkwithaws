@@ -1782,7 +1782,7 @@ public class OpportunityService {
 	}
 
 	public PaginatedResponse getByOpportunities(List<String> customerIdList,
-			List<Integer> salesStageCode, String strategicInitiative,
+			List<Integer> salesStageCode, String strategicDeal,
 			String newLogo, double minDigitalDealValue,
 			double maxDigitalDealValue, String dealCurrency,
 			String digitalFlag, List<String> displayIou, List<String> country,
@@ -1845,7 +1845,7 @@ public class OpportunityService {
 			
 			opportunity = opportunityRepository
 					.findByOpportunitiesForCurrentFyIgnoreCaseLike(customerIdList,
-							salesStageCode, strategicInitiative, newLogo,
+							salesStageCode, strategicDeal, newLogo,
 							defaultDealRange, minDigitalDealValue,
 							maxDigitalDealValue, dealCurrency, digitalFlag,
 							displayIou, country, partnerId, competitorName,
@@ -1856,7 +1856,7 @@ public class OpportunityService {
 			{
 				opportunity = opportunityRepository
 						.findByOpportunitiesIgnoreCaseLike(customerIdList,
-								salesStageCode, strategicInitiative, newLogo,
+								salesStageCode, strategicDeal, newLogo,
 								defaultDealRange, minDigitalDealValue,
 								maxDigitalDealValue, dealCurrency, digitalFlag,
 								displayIou, country, partnerId, competitorName,
