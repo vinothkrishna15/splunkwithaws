@@ -23,6 +23,7 @@ public class OpportunityDeliveryOwnerCentreMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="opportunity_delivery_owner_centre_id")
 	private Integer opportunityDeliveryOwnerCentreId;
 
@@ -30,10 +31,13 @@ public class OpportunityDeliveryOwnerCentreMappingT implements Serializable {
 	
 	@Column(name = "opportunity_id")
 	private String opportunityId;
+	
+	@Column(name = "delivery_centre_id")
+	private Integer deliveryCentreId;
 
 	//bi-directional many-to-one association to DeliveryCentreT
 	@ManyToOne
-	@JoinColumn(name="delivery_centre_id")
+	@JoinColumn(name="delivery_centre_id", insertable=false, updatable=false)
 	private DeliveryCentreT deliveryCentreT;
 
 	//bi-directional many-to-one association to OpportunityT
@@ -82,6 +86,14 @@ public class OpportunityDeliveryOwnerCentreMappingT implements Serializable {
 
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
+	}
+
+	public Integer getDeliveryCentreId() {
+		return deliveryCentreId;
+	}
+
+	public void setDeliveryCentreId(Integer deliveryCentreId) {
+		this.deliveryCentreId = deliveryCentreId;
 	}
 
 }

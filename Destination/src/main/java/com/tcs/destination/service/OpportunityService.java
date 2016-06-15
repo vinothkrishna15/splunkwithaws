@@ -39,6 +39,7 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.OpportunityDeliveryOwnerCentreMappingT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
@@ -77,6 +78,7 @@ import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityDeliveryCentreMappingTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -159,6 +161,9 @@ public class OpportunityService {
 
 	@Autowired
 	SearchKeywordsRepository searchKeywordsRepository;
+	
+	@Autowired
+	OpportunityDeliveryCentreMappingTRepository opportunityDeliveryCentreMappingTRepository;
 
 	@Autowired
 	OpportunityTimelineHistoryTRepository opportunityTimelineHistoryTRepository;
@@ -1213,6 +1218,14 @@ public class OpportunityService {
 			}
 		}
 
+		if (opportunity.getOpportunityDeliveryOwnerCentreMappingTs() != null) {
+			for (OpportunityDeliveryOwnerCentreMappingT opportunityDeliveryOwnerCentreMappingT : opportunity
+					.getOpportunityDeliveryOwnerCentreMappingTs()) {
+				opportunityDeliveryOwnerCentreMappingT.setOpportunityId(opportunity
+						.getOpportunityId());
+				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryOwnerCentreMappingT);
+			}
+		}
 		return opportunityRepository.save(opportunity);
 	}
 
