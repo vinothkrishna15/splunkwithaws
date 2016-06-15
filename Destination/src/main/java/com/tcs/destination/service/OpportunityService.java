@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -342,6 +343,7 @@ public class OpportunityService {
 	 * To fetch all the delivery centres 
 	 * @return
 	 */
+	@Cacheable("deliveryCentre")
 	public List<DeliveryCentreT> fetchDeliveryCentre()
 	{
 		logger.debug("Inside fetchDeliveryCentre() service");
@@ -354,6 +356,7 @@ public class OpportunityService {
 	 * To fetch all the delivery ownership 
 	 * @return
 	 */
+	@Cacheable("deliveryOwnershipDetails")
 	public List<DeliveryOwnershipT>  fetchDeliveryOwnershipDetails()
 	{
 		logger.debug("Inside fetchDeliveryOwnershipDetails() service");
