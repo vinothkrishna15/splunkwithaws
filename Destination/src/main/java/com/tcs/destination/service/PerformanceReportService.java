@@ -277,7 +277,7 @@ public class PerformanceReportService {
 			+ "left JOIN sub_sp_mapping_t SSMT on OSSL.sub_sp = SSMT.sub_sp "
 			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
-			+ "where ";
+			+ "where OSSL.subsp_primary=true and ";
 
 	private static final String DIGITAL_DEAL_VALUE_QUERY_COND_SUFFIX = " (GCMT.geography=(:geography) or (:geography) = '')"
 			+ " and (GMT.display_geography=(:displayGeography) or (:displayGeography)='')"
@@ -375,7 +375,8 @@ public class PerformanceReportService {
 			+ "JOIN geography_mapping_t GMT on GCMT.geography = GMT.geography  "
 			+ "JOIN customer_master_t CMT on CMT.customer_id = OPP.customer_id "
 			+ "JOIN iou_customer_mapping_t ICMT on ICMT.iou = CMT.iou "
-			+ "where ";
+			+ "where OSSL.subsp_primary=true and ";
+	
 	private static final String PIPELINE_PERFORMANCE_BY_SERVICE_LINE_COND_SUFFIX = "(GMT.display_geography = (:displayGeography) OR (:displayGeography) = '') "
 			+ "and (GMT.geography = (:geography) OR (:geography) = '') "
 			+ "and (ICMT.display_iou = (:iou) OR (:iou) = '') "
