@@ -401,7 +401,9 @@ public class BDMDetailedReportService {
 				if (subSpFlag) {
 					List<String> oppSubSpList = new ArrayList<String>();
 					String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
-					oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+					if(oppPrimarySubSp!=null){
+						oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+					}
 					oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
 					if(!oppSubSpList.isEmpty()){
 						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
@@ -488,12 +490,15 @@ public class BDMDetailedReportService {
 				//set display_sub_sp
 				List<String> displaySubSpList = new ArrayList<String>();
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
-				displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				if(oppPrimarySubSp!=null){
+					displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				}
 				displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
 				
 				if(!displaySubSpList.isEmpty()){
-					row.createCell(2).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+					row.createCell(columnNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 				}
+				columnNo++;
 				//set display IOU
 				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 				//set display geography
