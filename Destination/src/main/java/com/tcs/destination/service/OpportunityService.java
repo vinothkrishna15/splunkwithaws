@@ -1,5 +1,7 @@
 package com.tcs.destination.service;
 
+import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,13 +35,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
-import com.tcs.destination.bean.OpportunityDeliveryOwnerCentreMappingT;
+import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
@@ -57,7 +59,6 @@ import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -115,8 +116,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
-
-import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
 @Service
 public class OpportunityService {
@@ -1218,12 +1217,12 @@ public class OpportunityService {
 			}
 		}
 
-		if (opportunity.getOpportunityDeliveryOwnerCentreMappingTs() != null) {
-			for (OpportunityDeliveryOwnerCentreMappingT opportunityDeliveryOwnerCentreMappingT : opportunity
-					.getOpportunityDeliveryOwnerCentreMappingTs()) {
-				opportunityDeliveryOwnerCentreMappingT.setOpportunityId(opportunity
+		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunity
+					.getOpportunityDeliveryCentreMappingTs()) {
+				opportunityDeliveryCentreMappingT.setOpportunityId(opportunity
 						.getOpportunityId());
-				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryOwnerCentreMappingT);
+				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
 			}
 		}
 		return opportunityRepository.save(opportunity);
