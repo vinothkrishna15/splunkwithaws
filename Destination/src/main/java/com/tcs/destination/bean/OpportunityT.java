@@ -122,7 +122,7 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	//bi-directional many-to-one association to OpportunityDeliveryOwnerCentreMappingT
 	@OneToMany(mappedBy="opportunityT")
-	private List<OpportunityDeliveryOwnerCentreMappingT> opportunityDeliveryOwnerCentreMappingTs;
+	private List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs;
 
 	// bi-directional many-to-one association to OpportunityWinLossFactorsT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
@@ -504,26 +504,28 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setStrategicInitiative(String strategicInitiative) {
 		this.strategicInitiative = strategicInitiative;
-	public List<OpportunityDeliveryOwnerCentreMappingT> getOpportunityDeliveryOwnerCentreMappingTs() {
-		return this.opportunityDeliveryOwnerCentreMappingTs;
 	}
 
-	public void setOpportunityDeliveryOwnerCentreMappingTs(List<OpportunityDeliveryOwnerCentreMappingT> opportunityDeliveryOwnerCentreMappingTs) {
-		this.opportunityDeliveryOwnerCentreMappingTs = opportunityDeliveryOwnerCentreMappingTs;
+	public List<OpportunityDeliveryCentreMappingT> getOpportunityDeliveryCentreMappingTs() {
+		return this.opportunityDeliveryCentreMappingTs;
 	}
 
-	public OpportunityDeliveryOwnerCentreMappingT addOpportunityDeliveryOwnerCentreMappingT(OpportunityDeliveryOwnerCentreMappingT opportunityDeliveryOwnerCentreMappingT) {
-		getOpportunityDeliveryOwnerCentreMappingTs().add(opportunityDeliveryOwnerCentreMappingT);
-		opportunityDeliveryOwnerCentreMappingT.setOpportunityT(this);
-
-		return opportunityDeliveryOwnerCentreMappingT;
+	public void setOpportunityDeliveryOwnerCentreMappingTs(List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
+		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
 	}
 
-	public OpportunityDeliveryOwnerCentreMappingT removeOpportunityDeliveryOwnerCentreMappingT(OpportunityDeliveryOwnerCentreMappingT opportunityDeliveryOwnerCentreMappingT) {
-		getOpportunityDeliveryOwnerCentreMappingTs().remove(opportunityDeliveryOwnerCentreMappingT);
-		opportunityDeliveryOwnerCentreMappingT.setOpportunityT(null);
+	public OpportunityDeliveryCentreMappingT addOpportunityDeliveryCentreMappingT(OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
+		getOpportunityDeliveryCentreMappingTs().add(opportunityDeliveryCentreMappingT);
+		opportunityDeliveryCentreMappingT.setOpportunityT(this);
 
-		return opportunityDeliveryOwnerCentreMappingT;
+		return opportunityDeliveryCentreMappingT;
+	}
+
+	public OpportunityDeliveryCentreMappingT removeOpportunityDeliveryCentreMappingT(OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
+		getOpportunityDeliveryCentreMappingTs().remove(opportunityDeliveryCentreMappingT);
+		opportunityDeliveryCentreMappingT.setOpportunityT(null);
+
+		return opportunityDeliveryCentreMappingT;
 	}
 
 	public List<BidDetailsT> getBidDetailsTs() {

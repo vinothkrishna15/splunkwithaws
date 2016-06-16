@@ -15,17 +15,16 @@ import com.tcs.destination.utils.Constants;
  * 
  */
 @JsonFilter(Constants.FILTER)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityDeliveryOwnerCentreId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "opportunityDeliveryCentreId")
 @Entity
-@Table(name="opportunity_delivery_owner_centre_mapping_t")
-@NamedQuery(name="OpportunityDeliveryOwnerCentreMappingT.findAll", query="SELECT o FROM OpportunityDeliveryOwnerCentreMappingT o")
-public class OpportunityDeliveryOwnerCentreMappingT implements Serializable {
+@Table(name="opportunity_delivery_centre_mapping_t")
+@NamedQuery(name="OpportunityDeliveryCentreMappingT.findAll", query="SELECT o FROM OpportunityDeliveryCentreMappingT o")
+public class OpportunityDeliveryCentreMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="opportunity_delivery_owner_centre_id")
-	private Integer opportunityDeliveryOwnerCentreId;
+	@Column(name="opportunity_delivery_centre_id")
+	private Integer opportunityDeliveryCentreId;
 
 	private String reason;
 	
@@ -45,15 +44,15 @@ public class OpportunityDeliveryOwnerCentreMappingT implements Serializable {
 	@JoinColumn(name="opportunity_id", insertable = false, updatable = false)
 	private OpportunityT opportunityT;
 
-	public OpportunityDeliveryOwnerCentreMappingT() {
+	public OpportunityDeliveryCentreMappingT() {
 	}
 
-	public Integer getOpportunityDeliveryOwnerCentreId() {
-		return this.opportunityDeliveryOwnerCentreId;
+	public Integer getOpportunityDeliveryCentreId() {
+		return this.opportunityDeliveryCentreId;
 	}
 
-	public void setOpportunityDeliveryOwnerCentreId(Integer opportunityDeliveryOwnerCentreId) {
-		this.opportunityDeliveryOwnerCentreId = opportunityDeliveryOwnerCentreId;
+	public void setOpportunityDeliveryCentreId(Integer opportunityDeliveryCentreId) {
+		this.opportunityDeliveryCentreId = opportunityDeliveryCentreId;
 	}
 
 	public String getReason() {
