@@ -51,6 +51,7 @@ public class FavoritesService {
 		logger.debug("Starting findFavoritesFor FavoritesService");
 		if (EntityType.contains(entityType)) {
 			Pageable pageable = new PageRequest(start, count);
+			
 			Page<UserFavoritesT> userFavorites = userFavRepository
 					.findByUserIdAndEntityTypeIgnoreCaseOrderByCreatedDatetimeDesc(
 							userId, entityType, pageable);
@@ -253,7 +254,7 @@ public class FavoritesService {
 						userFavoritesT.getContactT(), null);
 				userFavoritesT.getContactT().setUserFavoritesTs(null);
 			}
-			if (userFavoritesT.getCustomerMasterT() != null) {
+			if (userFavoritesT.getCustomerMasterT() != null && userFavoritesT.getCustomerMasterT().isActive()==true) {
 				userFavoritesT.getCustomerMasterT().setUserFavoritesTs(null);
 				if (userFavoritesT.getCustomerMasterT().getConnectTs() != null) {
 					for (ConnectT connectT : userFavoritesT
@@ -268,7 +269,7 @@ public class FavoritesService {
 					}
 				}
 			}
-			if (userFavoritesT.getPartnerMasterT() != null) {
+			if (userFavoritesT.getPartnerMasterT() != null   && userFavoritesT.getPartnerMasterT().isActive()==true) {
 				userFavoritesT.getPartnerMasterT().setUserFavoritesTs(null);
 				if (userFavoritesT.getPartnerMasterT().getConnectTs() != null) {
 					for (ConnectT connectT : userFavoritesT.getPartnerMasterT()

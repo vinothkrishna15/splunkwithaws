@@ -272,7 +272,7 @@ public class ActualRevenueDataUploadService {
 			// finance_customer_name and (composite key) has foreign key
 			// existence in revenue_customer_mapping_t
 			revenueCustomerData = revenueCustomerMappingTRepository
-					.checkRevenueMappingPK(listOfCellValues.get(10),
+					.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(listOfCellValues.get(10),
 							listOfCellValues.get(8), listOfCellValues.get(11));
 
 			if ((!revenueCustomerData.isEmpty())

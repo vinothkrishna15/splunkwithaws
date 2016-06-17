@@ -75,7 +75,7 @@ public class PartnerController {
 			@RequestParam(value = "currency", defaultValue = "USD") List<String> currency,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		try {
 			logger.info("Inside PartnerController: Start of /partner/id="
 					+ partnerid + " GET");
@@ -117,7 +117,7 @@ public class PartnerController {
 			@RequestParam(value = "startsWith", defaultValue = "") String startsWith,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside PartnerController: Start of /partner?nameWith="
 				+ nameWith + " GET");
 		PaginatedResponse partners = null;
@@ -161,7 +161,7 @@ public class PartnerController {
 			@RequestParam("file") MultipartFile file,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 		try {
 			logger.info("Inside PartnerController: Start of /partner/upload POST");
 			String userId = DestinationUtils.getCurrentUserDetails()
@@ -179,8 +179,8 @@ public class PartnerController {
 					.getErrorSheet(errorDetailsDTOs);
 			HttpHeaders respHeaders = new HttpHeaders();
 			respHeaders
-					.setContentType(MediaType
-							.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+			.setContentType(MediaType
+					.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 			respHeaders.setContentDispositionFormData("attachment",
 					"upload_error.xlsx");
 			logger.info("Inside PartnerController: End of /partner/upload POST");
@@ -206,7 +206,7 @@ public class PartnerController {
 	@RequestMapping(value = "/download", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartner(
 			@RequestParam("downloadPartners") boolean oppFlag)
-			throws DestinationException {
+					throws DestinationException {
 		try {
 			logger.info("Inside PartnerController: Start of /partner/download GET");
 			InputStreamResource excelFile = partnerDownloadService
@@ -248,7 +248,7 @@ public class PartnerController {
 	@RequestMapping(value = "/contactDownload", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<InputStreamResource> downloadPartnerContacts(
 			@RequestParam("downloadPartnerContacts") boolean oppFlag)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside PartnerController: Start of /partner/contactDownload GET");
 		try {
 			InputStreamResource excelFile = partnerDownloadService
@@ -298,7 +298,7 @@ public class PartnerController {
 			@RequestParam(value = "count", defaultValue = "30") int count,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
+					throws DestinationException {
 
 		logger.info("Inside PartnerController: Start of /partner/search?name="
 				+ name + "&geograph=" + geography + " GET");
@@ -330,7 +330,7 @@ public class PartnerController {
 	@RequestMapping(value = "/edit", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> editPartner(
 			@RequestBody PartnerMasterT partnerMaster)
-			throws DestinationException {
+					throws DestinationException {
 		logger.info("Inside PartnerController: Start of Edit Partner");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");

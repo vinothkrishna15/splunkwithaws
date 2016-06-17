@@ -93,6 +93,7 @@ public class BDMDetailedReportService {
 
 	/**
 	 * This Method used to BDM Performance detailed report in excel format
+	 * 
 	 * @param financialYear
 	 * @param from
 	 * @param to
@@ -126,6 +127,7 @@ public class BDMDetailedReportService {
 
 	/**
 	 * This Method used to set the bdm performance details based on user access privileges
+	 * 
 	 * @param financialYear
 	 * @param from
 	 * @param to
@@ -224,7 +226,6 @@ public class BDMDetailedReportService {
 		}
 	}
 		
-
 		/**
 		 * This Method retrieves the BDM Supervisor performance details
 		 * 
@@ -252,6 +253,8 @@ public class BDMDetailedReportService {
 		
 
 		/**
+		 * This method is used to set BDM opportunities to spreadSheet
+		 * 
 		 * @param opportunityList
 		 * @param currency
 		 * @param workbook
@@ -281,6 +284,8 @@ public class BDMDetailedReportService {
 		}
 			
 		/**
+		 * This method is used to set bdm performance report both mandatory and optional fields to spreadSheet
+		 * 
 		 * @param currentRow
 		 * @param spreadSheet
 		 * @param object
@@ -327,6 +332,7 @@ public class BDMDetailedReportService {
 				}
 				
 				//set project deal value and deal currency
+
 				if (projectDVFlag) {
 					if(opportunity.getDigitalDealValue() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDigitalDealValue());
@@ -336,106 +342,111 @@ public class BDMDetailedReportService {
 					colValue++;
 					if(opportunity.getDealCurrency() != null){
 						row.createCell(colValue).setCellValue(opportunity.getDealCurrency());
+					}
+					colValue++;
+				}
+				
+				BidDetailsT bidDetailsT=bidDetailsTRepository.findLatestBidByOpportunityId(opportunity.getOpportunityId());
+			
+				// set win probability
+				if (winProbFlag) {
+					if (bidDetailsT!=null) {
+						if(bidDetailsT.getWinProbability() != null) {
+							row.createCell(colValue).setCellValue(bidDetailsT.getWinProbability());
 						}
+					}
+					colValue++;
+				}
+			
+				//set target bid submission date
+				if (targetBidSubDtFlag) {
+					if (bidDetailsT!=null) {
+						if(bidDetailsT.getTargetBidSubmissionDate() != null) {
+							row.createCell(colValue).setCellValue(bidDetailsT.getTargetBidSubmissionDate().toString());
+						}
+					}
+					colValue++;
+				}
+				
+				//set opportunity name
+				if (opportunityNameFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
+					colValue++;
+				}
+	
+				//set factors for win loss
+				if (factorForWLFlag) {
+					List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
+					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppFactorsForWinLossList));
+					colValue++;
+				}
+				
+				//set description for win loss
+				if (descForWLFlag) {
+					if(opportunity.getDealClosureComments() != null) {
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
+					}
+					colValue++;
+
+				}
+				
+				// set deal remarks notes
+				if (dealMarkFlag) {
+					List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
+					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppDealRemarksNotesList));
 					colValue++;
 					}
 				
-			BidDetailsT bidDetailsT=bidDetailsTRepository.findLatestBidByOpportunityId(opportunity.getOpportunityId());
-			
-			// set win probability
-			if (winProbFlag) {
-				if (bidDetailsT!=null) {
-					if(bidDetailsT.getWinProbability() != null) {
-						row.createCell(colValue).setCellValue(bidDetailsT.getWinProbability());
+				//Setting SubSp
+				if (subSpFlag) {
+					List<String> oppSubSpList = new ArrayList<String>();
+					String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
+					if(oppPrimarySubSp!=null){
+						oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
 					}
-				}
-				colValue++;
-			}
-			
-			//set target bid submission date
-			if (targetBidSubDtFlag) {
-				if (bidDetailsT!=null) {
-					if(bidDetailsT.getTargetBidSubmissionDate() != null) {
-						row.createCell(colValue).setCellValue(bidDetailsT.getTargetBidSubmissionDate());
-						row.getCell(colValue).setCellStyle(cellStyleDateFormat); 
+					oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
+					if(!oppSubSpList.isEmpty()){
+						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
 					}
-				}
-				colValue++;
-			}
-			
-			//set opportunity name
-			if (opportunityNameFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
-				colValue++;
-			}
-
-			//set factors for win loss
-			if (factorForWLFlag) {
-				List<String> oppFactorsForWinLossList=opportunityWinLossFactorsTRepository.findWinLossFactorByOpportunityId(opportunity.getOpportunityId());
-				row.createCell(colValue).setCellValue(oppFactorsForWinLossList.toString().replace("[", "").replace("]", ""));
-				colValue++;
-			}
-			
-			//set description for win loss
-			if (descForWLFlag) {
-				if(opportunity.getDealClosureComments() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureComments());
-				}
-				colValue++;
-			}
-
-			// set deal remarks notes
-			if (dealMarkFlag) {
-				List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
-				row.createCell(colValue).setCellValue(oppDealRemarksNotesList.toString().replace("[", "").replace("]", ""));;
-				colValue++;
+					colValue++;
 				}
 			
-			//Setting SubSp
-			if (subSpFlag) {
-				List<String> oppSubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
-				if(!oppSubSpList.isEmpty()){
-					row.createCell(colValue).setCellValue(oppSubSpList.toString().replace("]", "").replace("[", ""));
+				//set deal closure date
+				if (dealClosureDateFlag) {
+					if(opportunity.getDealClosureDate() != null) {
+						row.createCell(colValue).setCellValue(opportunity.getDealClosureDate());
+						row.getCell(colValue).setCellStyle(cellStyleDateFormat);
+					}
+					colValue++;
 				}
-				colValue++;
-			}
-
-			//set deal closure date
-			if (dealClosureDateFlag) {
-				if(opportunity.getDealClosureDate() != null) {
-					row.createCell(colValue).setCellValue(opportunity.getDealClosureDate());
-					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
+			
+				//set created by 
+				if (createdByFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
+					colValue++;
 				}
-				colValue++;
-			}
-			
-			//set created by 
-			if (createdByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getCreatedByUser().getUserName());
-				colValue++;
-			}
-			//set created date
-			if (createdDateFlag) {
-				Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
-				Date createdDate = DateUtils.toDate(createdDateTimeStamp);
-				row.createCell(colValue).setCellValue(createdDate);
-				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
-				colValue++;
-			}
-			//set modified by 
-			if (modifiedByFlag) {
-				row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
-				colValue++;
-			}
-			
-			//set modified date 
-			if (modifiedDateFlag) {
-				Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
-				Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
-				row.createCell(colValue).setCellValue(modifiedDate);
-				row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
-				colValue++;
-			}
+				//set created date
+				if (createdDateFlag) {
+					Timestamp createdDateTimeStamp = opportunity.getCreatedDatetime();
+					Date createdDate = DateUtils.toDate(createdDateTimeStamp);
+					row.createCell(colValue).setCellValue(createdDate);
+					row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
+					colValue++;
+				}
+				//set modified by 
+				if (modifiedByFlag) {
+					row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
+					colValue++;
+				}
+				
+				//set modified date 
+				if (modifiedDateFlag) {
+					Timestamp modifiedDateTimeStamp = opportunity.getModifiedDatetime();
+					Date modifiedDate = DateUtils.toDate(modifiedDateTimeStamp);
+					row.createCell(colValue).setCellValue(modifiedDate);
+					row.getCell(colValue).setCellStyle(cellStyleDateTimeFormat);
+					colValue++;
+				}
 			}
 		}
 			
@@ -460,8 +471,8 @@ public class BDMDetailedReportService {
 					salesSupportOwnerList.add(user.getUserName());
 					supervisorList.add(user.getSupervisorUserName());
 				}
-				String salesOwner = salesSupportOwnerList.toString().replace("[", "").replace("]", "");
-				String salesOwnerSupervisor = supervisorList.toString().replace("[", "").replace("]", "");
+				String salesOwner = ExcelUtils.removeSquareBracesAndAppendListElementsAsString(salesSupportOwnerList);
+				String salesOwnerSupervisor = ExcelUtils.removeSquareBracesAndAppendListElementsAsString(supervisorList);
 				
 				//set BDM
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName()+", "+salesOwner);
@@ -470,16 +481,24 @@ public class BDMDetailedReportService {
 				if(isIncludingSupervisor){
 					row.createCell(columnNo++).setCellValue(oppOwner.getSupervisorUserName()+", "+salesOwnerSupervisor);
 				}
-				
 				//set opportunity owner name
 				row.createCell(columnNo++).setCellValue(oppOwner.getUserName());
+				
 				//set sales support owners
 				row.createCell(columnNo++).setCellValue(salesOwner);
+				
 				//set display_sub_sp
-				List<String> oppDisplaySubSpList = opportunitySubSpLinkTRepository.findSubSpByOpportunityId(opportunity.getOpportunityId());
-				if(!oppDisplaySubSpList.isEmpty()){
-					row.createCell(columnNo++).setCellValue(oppDisplaySubSpList.toString().replace("]", "").replace("[", ""));
+				List<String> displaySubSpList = new ArrayList<String>();
+				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
+				if(oppPrimarySubSp!=null){
+					displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
 				}
+				displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
+				
+				if(!displaySubSpList.isEmpty()){
+					row.createCell(columnNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				}
+				columnNo++;
 				//set display IOU
 				row.createCell(columnNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
 				//set display geography
@@ -514,7 +533,6 @@ public class BDMDetailedReportService {
 				}
 			}
 			
-
 		/**
 		 * This Method used to set bdm supervisor mandatory fields to excel 
 		 * @param row 

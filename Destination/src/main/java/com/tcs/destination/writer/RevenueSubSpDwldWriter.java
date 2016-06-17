@@ -154,7 +154,7 @@ StepExecutionListener {
 				cellSpCode.setCellValue(spCode);
 
 				Cell cellActive = row.createCell(4);
-				cellActive.setCellValue(subSp.getActive().trim());
+				cellActive.setCellValue(subSp.isActive());
 
 				// Increment row counter
 				rowCount++;

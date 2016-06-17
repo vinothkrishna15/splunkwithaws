@@ -1,6 +1,6 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +36,12 @@ public class SubSpController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String findAll(
+	public @ResponseBody String findAllActive(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
 		logger.info("Inside SubSpController / Start of retrieving the subSps");
 		try {
-		ArrayList<SubSpMappingT> subSpMapping = (ArrayList<SubSpMappingT>) subSpService
-				.findAll();
+		List<SubSpMappingT> subSpMapping = subSpService.findAllActive();
 		logger.info("Inside SubSpController / End of retrieving the subSps");
 		return ResponseConstructors.filterJsonForFieldAndViews(fields, view, subSpMapping);
 		} catch (DestinationException e) {

@@ -1,6 +1,7 @@
 package com.tcs.destination.controller;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +41,14 @@ public class CountryController {
 	 * @throws DestinationException
 	 */
 	@RequestMapping(method = RequestMethod.GET)
-	public @ResponseBody String findAll(
+	public @ResponseBody String findAllAcive(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 		logger.info("Inside CountryController: Start of retrieving the Geography Country Mapping");
-		ArrayList<GeographyCountryMappingT> geographyCountryMapping = new ArrayList<GeographyCountryMappingT>();
+		List<GeographyCountryMappingT> geographyCountryMapping = new ArrayList<GeographyCountryMappingT>();
 		try {
-			geographyCountryMapping = (ArrayList<GeographyCountryMappingT>) countryService
-					.findAll();
+			geographyCountryMapping = countryService.findAllActive();
 			logger.info("Inside CountryController: End of retrieving the Geography Country Mapping");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, geographyCountryMapping);

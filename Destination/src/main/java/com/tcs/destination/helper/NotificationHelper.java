@@ -1210,8 +1210,8 @@ public class NotificationHelper implements Runnable {
 			OpportunityT opportunity) throws Exception {
 		int eventId = 16;
 		int fieldId = 201;
-		if (opportunity.getStrategicInitiative() != null)
-			if (opportunity.getStrategicInitiative().equals("YES")) {
+		if (opportunity.getStrategicDeal() != null)
+			if (opportunity.getStrategicDeal().equals("YES")) {
 				List<String> userIds = userRepository
 						.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
 								.toString());
@@ -1704,10 +1704,10 @@ public class NotificationHelper implements Runnable {
 		String newSIFlag = null;
 		String oldSIFlag = null;
 		if (oldObject != null) {
-			if (opportunity.getStrategicInitiative() != null) {
+			if (opportunity.getStrategicDeal() != null) {
 				OpportunityT oldOpportunity = (OpportunityT) oldObject;
-				newSIFlag = opportunity.getStrategicInitiative();
-				oldSIFlag = oldOpportunity.getStrategicInitiative();
+				newSIFlag = opportunity.getStrategicDeal();
+				oldSIFlag = oldOpportunity.getStrategicDeal();
 				if (!newSIFlag.equalsIgnoreCase(oldSIFlag)) {
 					int eventId = 16;
 					int fieldId = 201;
@@ -1718,14 +1718,14 @@ public class NotificationHelper implements Runnable {
 							.getAllOwners(entityId);
 					String messageTemplate = notificationEventGroupMappingTRepository
 							.findByEventId(eventId).get(0).getMessageTemplate();
-					if (((opportunity.getStrategicInitiative() != null) && (opportunity
-							.getStrategicInitiative().equals("YES")))) {
+					if (((opportunity.getStrategicDeal() != null) && (opportunity
+							.getStrategicDeal().equals("YES")))) {
 						notifyForNewOpportunities(opportunity,
 								new HashSet<String>(userIds),
 								opportunityOwners, eventId, fieldId,
 								messageTemplate, "added");
-					} else if (((opportunity.getStrategicInitiative() != null) && (opportunity
-							.getStrategicInitiative().equals("NO")))) {
+					} else if (((opportunity.getStrategicDeal() != null) && (opportunity
+							.getStrategicDeal().equals("NO")))) {
 						notifyForNewOpportunities(opportunity,
 								new HashSet<String>(userIds),
 								opportunityOwners, eventId, fieldId,

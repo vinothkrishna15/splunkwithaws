@@ -186,9 +186,9 @@ public class OpportunityDownloadHelper {
 			}
 
 			// strategic initiative
-			if (opportunity.getStrategicInitiative() != null) {
+			if (opportunity.getStrategicDeal() != null) {
 				Cell cellSI = row.createCell(13);
-				cellSI.setCellValue(opportunity.getStrategicInitiative().trim());
+				cellSI.setCellValue(opportunity.getStrategicDeal().trim());
 			}
 
 			// Digital Flag
@@ -665,9 +665,7 @@ public class OpportunityDownloadHelper {
 			}
 
 			Cell cellActive = row.createCell(4);
-			if (ssmt.getActive() != null) {
-				cellActive.setCellValue(ssmt.getActive().trim());
-			}
+			cellActive.setCellValue(ssmt.isActive());
 
 			// Increment row counter
 			rowCount++;

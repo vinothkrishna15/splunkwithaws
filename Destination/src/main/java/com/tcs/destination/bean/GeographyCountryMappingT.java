@@ -14,9 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 
@@ -41,6 +39,8 @@ public class GeographyCountryMappingT implements Serializable {
 	private String latitude;
 
 	private String longitude;
+	
+	private boolean active;
 
 	//bi-directional many-to-one association to ConnectT
 	@JsonIgnore
@@ -144,5 +144,15 @@ public class GeographyCountryMappingT implements Serializable {
 	public void setGeographyMappingT(GeographyMappingT geographyMappingT) {
 		this.geographyMappingT = geographyMappingT;
 	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+	
 	
 }

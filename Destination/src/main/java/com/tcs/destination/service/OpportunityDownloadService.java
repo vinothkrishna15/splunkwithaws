@@ -239,9 +239,9 @@ public class OpportunityDownloadService {
 	    }
 	    
 	    //strategic initiative
-	    if(opp.getStrategicInitiative()!=null){
+	    if(opp.getStrategicDeal()!=null){
 		Cell cellSI = row.createCell(13);
-		cellSI.setCellValue(opp.getStrategicInitiative().trim());
+		cellSI.setCellValue(opp.getStrategicDeal().trim());
 	    }
 	    
 	    //Digital Flag
@@ -461,7 +461,9 @@ public class OpportunityDownloadService {
      * @return
      * @throws Exception
      */
+
     public BigDecimal convertCurrencyToUSD(String dealCurrency,Integer overallDealSize) throws Exception{
+
     	logger.debug("Inside convertCurrencyToUSD of OpportunityDownloadService");
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD", overallDealSize.doubleValue());
 	}
@@ -706,9 +708,7 @@ public class OpportunityDownloadService {
 	    } 
 	    
 	    Cell cellActive = row.createCell(4);
-	    if(ssmt.getActive()!=null){
-		cellActive.setCellValue(ssmt.getActive().trim());
-	    }
+	    cellActive.setCellValue(ssmt.isActive());
 
 	    // Increment row counter
 	    rowCount++;

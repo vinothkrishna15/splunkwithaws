@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.CityMapping;
 import com.tcs.destination.bean.CommentsT;
 import com.tcs.destination.bean.ConnectCustomerContactLinkT;
@@ -40,9 +42,11 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
@@ -52,19 +56,23 @@ import com.tcs.destination.data.repository.CityMappingRepository;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.CommentsTRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
-import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.ConnectOfferingLinkRepository;
 import com.tcs.destination.data.repository.ConnectOpportunityLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ConnectSecondaryOwnerRepository;
 import com.tcs.destination.data.repository.ConnectSubSpLinkRepository;
 import com.tcs.destination.data.repository.ConnectTcsAccountContactLinkTRepository;
+import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CountryRepository;
+import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.DocumentRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
+import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
+import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TaskRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
@@ -76,6 +84,7 @@ import com.tcs.destination.enums.ConnectStatusType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.AutoCommentsHelper;
@@ -86,7 +95,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
-import com.tcs.destination.utils.StringUtils;
 
 @Service("connectService")
 public class ConnectService {
@@ -207,12 +215,27 @@ public class ConnectService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
+	
+	@Autowired
+	ContactRepository contactRepository;
+
+	@Autowired
+	OfferingRepository offeringRepository;
+
+	@Autowired
+	SubSpRepository subSpRepository;
+
+	@Autowired
+	CountryRepository countryRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
 		ConnectT connectT = connectRepository.findByConnectId(connectId);
 		if (connectT != null) {
-			prepareConnect(connectT);
+			String userId = DestinationUtils.getCurrentUserId();
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
+			prepareConnect(connectT, userId, userGroup);
 		} else {
 			logger.error("NOT_FOUND: Connect not found: {}", connectId);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -571,7 +594,7 @@ public class ConnectService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"ModifiedBy is requried");
 		}
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId = DestinationUtils.getCurrentUserId();
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
 		if (UserGroup.contains(userGroup)) {
@@ -611,7 +634,7 @@ public class ConnectService {
 					}
 				}
 				if (owners != null) {
-					if (!isOwnersAreBDMorBDMSupervisor(owners)) {
+					if (!isOwnersAreBDMorBDMSupervisorOrGeoHead(owners)) {
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								PropertyUtil.getProperty(ERR_INAC_01));
 					}
@@ -622,6 +645,7 @@ public class ConnectService {
 			}
 		}
 
+		validateInactiveIndicators(connect);
 		validateAndUpdateCityMapping(connect);
 	}
 
@@ -631,7 +655,7 @@ public class ConnectService {
 		// validate only if the location info is set
 		// To remove the mandatory constraint for location and its co-ordinates
 		// while Location API doesn't return value
-		if (!StringUtils.isEmpty(location)) {
+		if (!com.tcs.destination.utils.StringUtils.isEmpty(location)) {
 			CityMapping cityMapping = connect.getCityMapping();
 			if (cityMapping != null) {
 				String city = cityMapping.getCity();
@@ -802,13 +826,11 @@ public class ConnectService {
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
 		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
-		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-
-			if (!validateEditAccessForConnect(connectBeforeEdit, userGroup,
-					userId)) {
-				throw new DestinationException(HttpStatus.FORBIDDEN,
-						"User is not authorized to edit this Connect");
-			}
+		
+		if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
+				userId)) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User is not authorized to edit this Connect");
 		}
 		ConnectT beforeConnect = loadDbConnectWithLazyCollections(connectId);
 		// Copy the db object as the above object is managed by current
@@ -1049,29 +1071,22 @@ public class ConnectService {
 
 	private void prepareConnect(List<ConnectT> connectTs) {
 		logger.debug("Inside prepareConnect(List<>) method");
-		if (connectTs != null) {
+		if (CollectionUtils.isNotEmpty(connectTs)) {
+			String userId = DestinationUtils.getCurrentUserId();
+			String userGroup = userRepository.findByUserId(userId)
+					.getUserGroup();
 			for (ConnectT connectT : connectTs) {
-				prepareConnect(connectT);
+				prepareConnect(connectT, userId, userGroup);
 			}
 		}
 	}
 
-	private void prepareConnect(ConnectT connectT) {
+	private void prepareConnect(ConnectT connectT, String userId, String userGroup) {
 		logger.debug("Inside prepareConnect() method");
 		if (connectT != null) {
 			try {
-				String userId = DestinationUtils.getCurrentUserDetails()
-						.getUserId();
-				String userGroup = userRepository.findByUserId(userId)
-						.getUserGroup();
-				if (userGroup
-						.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
-					connectT.setEnableEditAccess(true);
-				} else {
-					connectT.setEnableEditAccess(validateEditAccessForConnect(
-							connectT, userGroup, userId));
-				}
-
+				connectT.setEnableEditAccess(isEditAccessRequiredForConnect(
+						connectT, userGroup, userId));
 			} catch (Exception e) {
 				throw new DestinationException(
 						HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -1712,25 +1727,26 @@ public class ConnectService {
 	}
 
 	// edit access for connect
-	private boolean validateEditAccessForConnect(ConnectT connect,
+	private boolean isEditAccessRequiredForConnect(ConnectT connect,
 			String userGroup, String userId) {
-		String customerId = null;
-		String partnerId = null;
 		logger.info("Inside validateEditAccessForConnect method");
 		boolean isEditAccessRequired = false;
-		if (isUserOwner(userId, connect)) {
+		if (userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 			isEditAccessRequired = true;
-		} else if (userGroup.equals(UserGroup.BDM.getValue())
-				|| userGroup.equals(UserGroup.PRACTICE_OWNER.getValue())) {
-			isEditAccessRequired = false;
+		} else if (isUserOwner(userId, connect)) {
+			isEditAccessRequired = true;
 		} else {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connect.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
-					|| userGroup.equals(UserGroup.PRACTICE_HEAD.getValue())) {
+			switch (UserGroup.getUserGroup(userGroup)) {
+			case BDM :
 				isEditAccessRequired = false;
-			} else {
+				break;
+			case BDM_SUPERVISOR:
+				isEditAccessRequired = opportunityService.isSubordinateAsOwner(userId, null,
+						connect.getConnectId());
+				break;
+			case GEO_HEADS:
+			case PMO:
+			case IOU_HEADS:
 				if (!StringUtils.isEmpty(connect.getCustomerId())) {
 					isEditAccessRequired = opportunityService
 							.checkEditAccessForGeoAndIou(userGroup, userId,
@@ -1740,25 +1756,36 @@ public class ConnectService {
 					isEditAccessRequired = isEditAccessNotAuthorisedForPartner(
 							userId, userGroup, connect.getPartnerId());
 				}
+				break;
+			default:
+				break;
 			}
 		}
+		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
-
+    
+	/**
+	 * This method is used to check whether the logged in user is one of the
+	 * owner of connect
+	 * 
+	 * @param userId
+	 * @param connect
+	 * @return
+	 */
 	private boolean isUserOwner(String userId, ConnectT connect) {
-		if (connect.getPrimaryOwner().equals(userId))
+		if (StringUtils.equals(connect.getPrimaryOwner(), userId))
 			return true;
-		else {
+		else if(CollectionUtils.isNotEmpty(connect.getConnectSecondaryOwnerLinkTs())) {
 			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
 					.getConnectSecondaryOwnerLinkTs()) {
-				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(
-						userId))
+				if (connectSecondaryOwnerLinkT.getSecondaryOwner().equals(userId))
 					return true;
 			}
 		}
 		return false;
 	}
-
+	
 	public boolean isEditAccessNotAuthorisedForPartner(String userId,
 			String userGroup, String partnerId) {
 		boolean isEditAccessRequired = false;
@@ -1785,80 +1812,246 @@ public class ConnectService {
 		}
 		return isEditAccessRequired;
 	}
-
-	public boolean isOwnersAreBDMorBDMSupervisor(Set<String> owners) {
-		// TODO Auto-generated method stub
-		boolean isBDMOrBDMSupervisor = false;
+    
+	/**
+	 * This method is used to check whether the one of the owners
+	 * of connect is BDM or BDM Supervisor or GEO Head 
+	 * @param owners
+	 * @return
+	 */
+	public boolean isOwnersAreBDMorBDMSupervisorOrGeoHead(Set<String> owners) {
+		logger.info("Inside isOwnersAreBDMorBDMSupervisorOrGeoHead method");
+		boolean isBDMOrBDMSupervisorOrGeoHead = false;
 		List<String> userGroups = userRepository.findUserGroupByUserIds(owners,true);
 		if(CollectionUtils.isNotEmpty(userGroups)){
 			for (String userGroup : userGroups) {
 				if (userGroup.equals(UserGroup.BDM.getValue())
 						|| userGroup.equals(UserGroup.BDM_SUPERVISOR.getValue())
 						|| userGroup.equals(UserGroup.GEO_HEADS.getValue())) {
-					isBDMOrBDMSupervisor = true;
+					isBDMOrBDMSupervisorOrGeoHead = true;
 					break;
 				}
 			}
 		}
 		
-		return isBDMOrBDMSupervisor;
+		return isBDMOrBDMSupervisorOrGeoHead;
 	}
+	
 
-	private boolean isEditAccessRequiredForOpportunity(ConnectT connectT,
-			String userGroup, String userId) {
-		boolean isEditAccessRequired = false;
-		if (isUserOwner(userId, connectT)) {
-			isEditAccessRequired = true;
-
-		} else if (!userGroup.equals(UserGroup.BDM)
-				|| !userGroup.equals(UserGroup.PRACTICE_OWNER)) {
-			if (opportunityService.isSubordinateAsOwner(userId,
-					connectT.getConnectId(), null)) {
-				isEditAccessRequired = true;
-			} else if (!userGroup.equals(UserGroup.BDM_SUPERVISOR)
-					|| !userGroup.equals(UserGroup.PRACTICE_HEAD)) {
-				isEditAccessRequired = checkEditAccessForGeoAndIou(userGroup,
-						userId, connectT.getCustomerId());
-			}
+	/**
+	 * validate the connect for any inactive fields(owners, customer, etc)
+	 * @param connect
+	 */
+	public void validateInactiveIndicators(ConnectT connect) {
+		
+		// createdBy,
+		String createdBy = connect.getCreatedBy();
+		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
 		}
-		return isEditAccessRequired;
-
-		// TODO Auto-generated method stub
-	}
-
-	private boolean checkEditAccessForGeoAndIou(String userGroup,
-			String userId, String customerId) {
-		boolean isEditAccessRequired = false;
-		switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
-		case GEO_HEADS:
-		case PMO:
-			String geography = customerRepository
-					.findGeographyByCustomerId(customerId);
-
-			List<String> geographyList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.GEOGRAPHY.getValue());
-			if (CollectionUtils.isNotEmpty(geographyList)) {
-				if (geographyList.contains(geography)) {
-					isEditAccessRequired = true;
+		
+		// modifiedBy,
+		String modifiedBy = connect.getModifiedBy();
+		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
+		}
+		
+		// primaryOwner,
+		String primaryOwner = connect.getPrimaryOwner();
+		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The primary owner is inactive");
+		}
+		
+		// customerId,
+		String customerId = connect.getCustomerId();
+		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
+		}
+		
+		// partnerId,
+		String partnerId = connect.getPartnerId();
+		if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
+		}
+		
+		//connectCustomerContactLinkTs,
+		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs = connect.getConnectCustomerContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectCustomerContactLinkTs)) {
+			for (ConnectCustomerContactLinkT contact : connectCustomerContactLinkTs) {
+				String contactId = contact.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
 				}
 			}
-			break;
-		case IOU_HEADS:
-			String iou = customerRepository.findIouByCustomerId(customerId);
-			List<String> iouList = userAccessPrivilegesRepository
-					.getPrivilegeValueForUser(userId,
-							PrivilegeType.IOU.getValue());
-			if (CollectionUtils.isNotEmpty(iouList)) {
-				if (iouList.contains(iou)) {
-					isEditAccessRequired = true;
-
+		}
+		
+		// connectOfferingLinkTs,
+		List<ConnectOfferingLinkT> connectOfferingLinkTs = connect.getConnectOfferingLinkTs();
+		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
+			for (ConnectOfferingLinkT offeringLink : connectOfferingLinkTs) {
+				String offering = offeringLink.getOffering();
+				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
 				}
 			}
-			break;
-		default:
-			break;
 		}
-		return isEditAccessRequired;
+		
+		//connectSecondaryOwnerLinkTs,
+		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs = connect.getConnectSecondaryOwnerLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSecondaryOwnerLinkTs)) {
+			for (ConnectSecondaryOwnerLinkT secOwnerLink : connectSecondaryOwnerLinkTs) {
+				String owner = secOwnerLink.getSecondaryOwner();
+				if(StringUtils.isNotBlank(owner) && userRepository.findByActiveTrueAndUserId(owner) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The secondary owner is inactive");
+				}
+			}
+		}
+		
+		//connectSubSpLinkTs,
+		List<ConnectSubSpLinkT> connectSubSpLinkTs = connect.getConnectSubSpLinkTs();
+		if(CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
+			for (ConnectSubSpLinkT subSpLink : connectSubSpLinkTs) {
+				String subSp = subSpLink.getSubSp();
+				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
+				}
+			}
+		}
+		
+		//List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs,
+		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs = connect.getConnectTcsAccountContactLinkTs();
+		if(CollectionUtils.isNotEmpty(connectTcsAccountContactLinkTs)) {
+			for (ConnectTcsAccountContactLinkT contactLink : connectTcsAccountContactLinkTs) {
+				String contactId = contactLink.getContactId();
+				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+				}
+			}
+		}
+		
+		// country
+		String country = connect.getCountry();
+		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
+		}
+		
 	}
+	
+	/**
+	 * Service method to fetch the connect related information based on search type and the search keyword 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll 
+	 * @param count 
+	 * @param page 
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<ConnectT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, int page, int count) {
+		logger.info("ConnectService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<ConnectT>> res = new PageDTO<SearchResultDTO<ConnectT>>();
+		List<SearchResultDTO<ConnectT>> resList = Lists.newArrayList();
+		SearchResultDTO<ConnectT> searchResultDTO = new SearchResultDTO<ConnectT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getConnectsByName(term, getAll));
+				resList.add(getConnectCustomers(term, getAll));
+				resList.add(getConnectPartners(term, getAll));
+				resList.add(getConnectSubSps(term, getAll));
+				break;
+			case CONNECT:
+				searchResultDTO = getConnectsByName(term, getAll);
+				break;
+			case CUSTOMER:
+				searchResultDTO = getConnectCustomers(term, getAll);
+				break;
+			case PARTNER:
+				searchResultDTO = getConnectPartners(term, getAll);
+				break;
+			case SUBSP:
+				searchResultDTO = getConnectSubSps(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<ConnectT> values = searchResultDTO.getValues();
+					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+	
+	/**
+	 * fetch all connects where the subsp contains the provided term
+	 * @param term - search keyword
+	 * @param getAll - number to limit the record, true - to fetch all
+	 * @return
+	 */
+	private SearchResultDTO<ConnectT> getConnectSubSps(String term, boolean getAll) {
+		List<ConnectT> records = connectRepository.searchBySubsp("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP, getAll);
+	}
+
+	/**
+	 * fetch all connects where the partner name contains the provided term
+	 * @param term - search keyword
+	 * @param getAll - number to limit the record, true - to fetch all
+	 * @return
+	 */
+	private SearchResultDTO<ConnectT> getConnectPartners(String term, boolean getAll) {
+		List<ConnectT> records = connectRepository.searchByPartnerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PARTNER, getAll);
+	}
+
+	/**
+	 * fetch all connects where the customer contains the provided term
+	 * @param term - search keyword
+	 * @param getAll - number to limit the record, true - to fetch all
+	 * @return
+	 */
+	private SearchResultDTO<ConnectT> getConnectCustomers(String term, boolean getAll) {
+		List<ConnectT> records = connectRepository.searchByCustomerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
+	}
+
+	/**
+	 * fetch all connects where the connect name contains the provided term
+	 * @param term - search keyword
+	 * @param getAll - number to limit the record, true - to fetch all
+	 * @return
+	 */
+	private SearchResultDTO<ConnectT> getConnectsByName(String term, boolean getAll) {
+		List<ConnectT> records = connectRepository.searchByConnectName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.CONNECT, getAll);
+	}
+	
+	/**
+	 * creates {@link SearchResultDTO} from the list of connects
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<ConnectT> createSearchResultFrom(
+			List<ConnectT> records, SmartSearchType type, boolean getAll) {
+		SearchResultDTO<ConnectT> conRes = new SearchResultDTO<ConnectT>();
+		conRes.setSearchType(type);
+		if(getAll) {
+			prepareConnect(records);
+		}
+		conRes.setValues(records);
+		return conRes;
+	}
+
+
 }

@@ -103,4 +103,30 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct(user_group) from user_t where user_id in (:userIds) and active = (:active)", nativeQuery = true)
 	List<String> findUserGroupByUserIds(@Param("userIds") Set<String> userIds, @Param("active") boolean active);
 
+	@Query(value = "select distinct(user_email_id) from user_t where active='true' and user_email_id in (:userMails)", nativeQuery = true)
+	List<String> findActiveUserMailIds(@Param("userMails") List<String> userMails);
+
+	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds)", nativeQuery = true)
+	List<String> findUserMailIdsFromUserId(@Param("userIds") List<String> userIds);
+	
+	UserT findByActiveTrueAndUserName(String userName);
+	UserT findByActiveTrueAndUserId(String userId);
+	
+	List<UserT> findUsersByStatusAndActive(int status,boolean active);
+
+	
+	/* ------- user smart search repository methods ------- */
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_id) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByUserId(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByUserName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(supervisor_user_name) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchBySupervisor(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(base_location) LIKE UPPER(:term) ORDER BY user_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<UserT> searchByLocation(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	/* ------- END  - user smart search repository methods ------- */
 }

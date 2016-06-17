@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,10 @@ import com.tcs.destination.utils.StringUtils;
 
 @Component("userUploadHelper")
 public class UserUploadHelper {
+	
+	
+	@Value("${user_default_password.length}")
+	private int defaultPasswordLength;
 	
 	@Autowired
 	private CustomerRepository customerRepository;
@@ -131,10 +136,11 @@ public class UserUploadHelper {
 				}
 				
 				// PASSWORD 
-				String password = data[4].trim();
+				String password = StringUtils.generateRandomString(defaultPasswordLength);
 				if(!StringUtils.isEmpty(password))
 				{
 					userT.setTempPassword(password);
+					userT.setStatus(0);
 				}
 				else{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);

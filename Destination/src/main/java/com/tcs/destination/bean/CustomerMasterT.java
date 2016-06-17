@@ -68,7 +68,6 @@ public class CustomerMasterT implements Serializable {
 	@Column(name = "active")
 	private boolean active = true;
 
-
 	// bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy = "customerMasterT")
 	private List<BeaconCustomerMappingT> beaconCustomerMappingTs;

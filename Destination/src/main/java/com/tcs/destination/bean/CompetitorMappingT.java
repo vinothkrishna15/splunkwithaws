@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -29,13 +27,16 @@ import com.tcs.destination.utils.Constants;
 public class CompetitorMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	
+//	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="competitor_name")
 	private String competitorName;
+	
+	@Column(name="active")
+	private boolean active;
 
-	@Column(name="active_flag")
-	private String activeFlag;
+//	private String website;
 
 	//bi-directional many-to-one association to OpportunityCompetitorLinkT
 	@JsonIgnore
@@ -51,14 +52,6 @@ public class CompetitorMappingT implements Serializable {
 
 	public void setCompetitorName(String competitorName) {
 		this.competitorName = competitorName;
-	}
-
-	public String getActiveFlag() {
-		return this.activeFlag;
-	}
-
-	public void setActiveFlag(String activeFlag) {
-		this.activeFlag = activeFlag;
 	}
 
 	public List<OpportunityCompetitorLinkT> getOpportunityCompetitorLinkTs() {
@@ -82,5 +75,21 @@ public class CompetitorMappingT implements Serializable {
 
 		return opportunityCompetitorLinkT;
 	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+//	public String getWebsite() {
+//		return website;
+//	}
+//
+//	public void setWebsite(String website) {
+//		this.website = website;
+//	}
 
 }

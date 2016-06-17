@@ -19,6 +19,7 @@
 	<import resource="/jobs/userRemindersBidAndTaskPostDue-job.xml"/>
 	<import resource="/jobs/userRemindersBidAndTskPstDueSupervisor-job.xml"/>
 	<import resource="/jobs/email-job.xml"/>
+	<import resource="/jobs/emailPassword-job.xml"/>
 	<import resource="/jobs/connectUpload-job.xml"/>	
 	<import resource="/jobs/customerUpload-job.xml"/>
 	<import resource="/jobs/revenueUpload-job.xml"/>
