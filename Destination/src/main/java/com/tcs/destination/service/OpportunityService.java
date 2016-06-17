@@ -29,6 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
@@ -94,6 +95,7 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
@@ -231,9 +233,6 @@ public class OpportunityService {
 	@Autowired
 	FollowedService followService;
 	
-	@Autowired
-	JobLauncherController jobLauncherController;
-
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 	
@@ -2499,9 +2498,13 @@ public class OpportunityService {
 	* This method is used to update the opportunity details and also
 	* send email notification if opportunity won or lost
 	* @param opportunity
+	* @return AsyncJobRequest
 	* @throws Exception
 	*/
-	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
+	@Transactional
+	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity) throws Exception {
+		
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
@@ -2525,11 +2528,15 @@ public class OpportunityService {
 				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
 			logger.info("Opportunity : " + opportunityId
 					+ " is either won or lost");
-			jobLauncherController.asyncJobLaunch(
-					JobName.opportunityWonLostEmailNotification,
-					EntityType.OPPORTUNITY.toString(),
-					opportunity.getOpportunityId());
+			
+			asyncJobRequest.setJobName(JobName.opportunityWonLostEmailNotification);
+			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+			asyncJobRequest.setOn(Switch.ON);
+			
 		}
+		
+		return asyncJobRequest;
 	}
 	
 	/**
