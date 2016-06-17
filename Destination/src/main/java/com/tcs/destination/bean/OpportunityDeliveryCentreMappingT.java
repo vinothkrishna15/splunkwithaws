@@ -23,6 +23,7 @@ public class OpportunityDeliveryCentreMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="opportunity_delivery_centre_id")
 	private Integer opportunityDeliveryCentreId;
 
