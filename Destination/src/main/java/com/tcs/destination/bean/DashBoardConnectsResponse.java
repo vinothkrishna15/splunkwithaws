@@ -1,9 +1,6 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.tcs.destination.utils.Constants;

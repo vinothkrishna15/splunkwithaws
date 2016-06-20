@@ -29,10 +29,17 @@ public enum UserGroup {
 		return false;
 	}
 	
-	public static String getName(String value){
+	public static String getName(String value) {
+		UserGroup userGroup = getUserGroup(value);
+		if(userGroup != null) {
+			return userGroup.name();
+		}
+		return null;
+	}
+	public static UserGroup getUserGroup(String value) {
 		for (UserGroup c : UserGroup.values()) {
-			if (c.getValue().equals(value)) {
-				return c.name();
+			if (c.getValue().equalsIgnoreCase(value)) {
+				return c;
 			}
 		}
 		return null;

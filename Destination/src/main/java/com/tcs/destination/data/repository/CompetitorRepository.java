@@ -12,9 +12,13 @@ import com.tcs.destination.bean.CompetitorMappingT;
 public interface CompetitorRepository extends
 		CrudRepository<CompetitorMappingT, String> {
 
-	 List<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String name);
+	 List<CompetitorMappingT> findByActiveTrueAndCompetitorNameIgnoreCaseLike(String name);
 
 	 @Query(value="select competitor_name from competitor_mapping_t", nativeQuery=true)
 	 List<String> getCompetitorName();
+
+	CompetitorMappingT findByActiveTrueAndCompetitorName(String competitorName);
+	
+	List<CompetitorMappingT> findByCompetitorNameIgnoreCaseLike(String name);
 
 }

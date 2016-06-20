@@ -12,13 +12,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-
-
-
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 /**
@@ -37,7 +32,7 @@ public class GeographyMappingT implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private String geography;
 
-	private String active;
+	private boolean active;
 
 	@Column(name = "display_geography")
 	private String displayGeography;
@@ -89,11 +84,11 @@ public class GeographyMappingT implements Serializable {
 		this.geography = geography;
 	}
 
-	public String getActive() {
-		return this.active;
+	public boolean isActive() {
+		return active;
 	}
 
-	public void setActive(String active) {
+	public void setActive(boolean active) {
 		this.active = active;
 	}
 

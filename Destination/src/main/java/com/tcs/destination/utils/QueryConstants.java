@@ -210,7 +210,7 @@ public static final String TASK_TRGT_DT_POST_SUPERVISOR = "select distinct t.tas
 
 	public static final String CUSTOMER_PENDING_WITH_SI_QUERY = "select WCT.customer_name,WRT.status,WRT.entity_Id,WST.* from workflow_customer_t WCT join workflow_request_t WRT on WCT.workflow_customer_id = WRT.entity_id and WRT.entity_type_id = 0 join workflow_step_t WST on WRT.request_id = WST.request_id where WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
-	public static final String COMPETITOR_PENDING_WITH_USER_QUERY = "select WCMT.partner_name,WRT.status,WRT.entity_Id,WST.* from workflow_competitor_t WPT join workflow_request_t WRT on WPT.workflow_competitor_id = WRT.entity_id and WRT.entity_type_id = 2 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
+	public static final String COMPETITOR_PENDING_WITH_GROUP_QUERY = "select WCMT.workflow_competitor_name,WRT.status,WRT.entity_Id,WST.* from workflow_competitor_t WCMT join workflow_request_t WRT on WCMT.workflow_competitor_id = WRT.entity_id and WRT.entity_type_id = 2 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id IS NULL and (WST.user_role like (:userRole) or WST.user_group like (:userGroup))";
 
 	//public static final String OPPORTUNTIY_REOPEN_PENDING_WITH_USER_QUERY = "select OT.opportunity_name,WRT.status,WST.* from opportunity_t OT join workflow_request_t WRT on OT.opportunity_id = WRT.entity_id and WRT.entity_type_id = 1 join workflow_step_t WST on WST.request_id = WRT.request_id and WST.step_status ='PENDING' and WST.user_id = (:userId)";
 

@@ -126,7 +126,7 @@ public class WorkflowCompetitorT implements Serializable {
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
 	}
-
+	
 	public String getCreatedBy() {
 		return createdBy;
 	}

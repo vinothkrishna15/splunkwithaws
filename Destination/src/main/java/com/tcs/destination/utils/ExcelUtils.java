@@ -506,7 +506,7 @@ public class ExcelUtils {
 		List<String> periodList=new ArrayList<String>();
 		periodList.add(fromMonth);
 		periodList.add(toMonth);
-		period = periodList.toString().replace("[", "").replace("]", "");
+		period = removeSquareBracesAndAppendListElementsAsString(periodList);
 		return period;
 	}
 	
@@ -545,6 +545,17 @@ public class ExcelUtils {
 			appendedString = "\'" + appendedString + "\'";
 		}
 		return appendedString;
+	}
+	
+	/**
+	 * This Method is used to remove the square braces for the list and append list elements as string separated by comma
+	 * 
+	 * @param listEmelemts
+	 * @return
+	 */
+	public static String removeSquareBracesAndAppendListElementsAsString(
+			List<String> listEmelemts) {
+		return listEmelemts.toString().replace("]", "").replace("[", "");
 	}
 	
 	/**

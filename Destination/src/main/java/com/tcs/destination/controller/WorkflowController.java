@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.OpportunityReopenRequestT;
+import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.Status;
@@ -266,6 +268,40 @@ public class WorkflowController {
 					"Backend error in retrieving partner details");
 		}
 	}
+	
+	/**
+	 * This method is used to retrieve requested new competitor details based on request id
+	 * @param requestedCompetitorId
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/competitor/{id}", method = RequestMethod.GET)
+	public @ResponseBody String getRequestedCompetitorById(
+			@PathVariable("id") int requestedCompetitorId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside WorkflowController : Start of retrieving requested competitor details by id");
+		WorkflowCompetitorDetailsDTO workflowCompetitorDetails = null;
+		try {			
+			workflowCompetitorDetails = workflowService
+					.findRequestedCompetitorDetailsById(requestedCompetitorId);
+			logger.info("Inside WorkflowCustomerController : End of retrieving requested competitor details by id");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+				view, workflowCompetitorDetails);
+
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving competitor details");
+		}
+	}
+
+
 
 	
 	/**
@@ -358,6 +394,32 @@ public class WorkflowController {
 					logger.info("Inside WorkflowController: End of requesting opportunity reopen");
 				}
 			}
+				return new ResponseEntity<String>(
+						ResponseConstructors.filterJsonForFieldAndViews("all", "",
+								status), HttpStatus.OK);
+			} catch (DestinationException e) {
+				throw e;
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						"Backend error while requesting opportunity reopen");
+			}
+		}
+	
+				
+				
+	@RequestMapping(value = "/requestCompetitor", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> addCompetitorRequest(
+			@RequestBody WorkflowCompetitorT workflowCompetitorT)
+					throws DestinationException {
+		logger.info("Inside WorkflowController: Start of inserting requested competitor");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowService.insertWorkflowCompetitor(workflowCompetitorT,
+					status)) {
+				logger.info("Inside WorkflowController: End of inserting requested competitor");
+			}
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -402,6 +464,43 @@ public class WorkflowController {
 					"Backend error while approving opportunity reopen");
 		}
 
+	}
+	
+	/**
+	 * To approve the new competitor request
+	 * @param workflowCompetitorT
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/approve/competitor", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approveCompetitors(
+			@RequestBody WorkflowCompetitorT workflowCompetitorT,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of approve competitor");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowService.approveCompetitorWorkflowEntity(workflowCompetitorT)) {
+				status.setStatus(Status.SUCCESS,
+						"The requested competitor entity:" + workflowCompetitorT.getWorkflowCompetitorName() + " is approved!!!");
+				logger.debug("Request approved Successfully");
+			}
+			logger.info("Inside WorkflowController: End of approve competitor");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating competitor");
+		} 
 	}
 
 }

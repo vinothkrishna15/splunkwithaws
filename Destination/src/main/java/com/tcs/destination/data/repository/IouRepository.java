@@ -14,4 +14,6 @@ public interface IouRepository extends CrudRepository<IouCustomerMappingT, Strin
     @Query(value="select distinct display_iou from iou_customer_mapping_t",nativeQuery=true)
     List<String> findDistinctDisplayIou();
 
+	IouCustomerMappingT findByActiveTrueAndIou(String iou);
+
 }

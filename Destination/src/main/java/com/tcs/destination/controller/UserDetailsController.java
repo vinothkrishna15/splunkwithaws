@@ -27,9 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tcs.destination.bean.ApplicationSettingsT;
-import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
@@ -37,6 +38,7 @@ import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGroupMappingT;
 import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ApplicationSettingsService;
 import com.tcs.destination.service.UploadErrorReport;
@@ -47,6 +49,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
+import com.tcs.destination.utils.StringUtils;
 
 import eu.bitwalker.useragentutils.Browser;
 import eu.bitwalker.useragentutils.OperatingSystem;
@@ -348,13 +351,24 @@ public class UserDetailsController {
 				UserT dbUser = userService.findByUserIdAndPassword(userId,
 						currentPassword);
 				if (dbUser != null) {
-					dbUser.setTempPassword(newPassword);
-					userService.updateUser(dbUser);
-					status.setStatus(Status.SUCCESS,
-							"Password has been updated successfully");
-					// invalidate session to force user to re-authenticate with
-					// updated password
-					session.invalidate();
+					if(!StringUtils.isEmpty(newPassword)){
+						if(!newPassword.equals(currentPassword)){
+							dbUser.setTempPassword(newPassword);
+							dbUser.setStatus(2);
+							userService.updateUser(dbUser);
+							status.setStatus(Status.SUCCESS,
+									"Password has been updated successfully");
+							// invalidate session to force user to re-authenticate with
+							// updated password
+							session.invalidate();
+						} else {
+							throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Current password and New password cannot be same");
+						}
+					} else {
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"New password cannot be empty");
+					}
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND,
 							"User not found");
@@ -724,5 +738,39 @@ public class UserDetailsController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the privilege type details");
 		}
+	}
+	
+	/**
+	 * Service to fetch the connect related information based on search type and the search keyword 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
+	public @ResponseBody String smartSearch(
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside ConnectController: smart search by search term");
+		try {
+			PageDTO<SearchResultDTO<UserT>> res = userService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
+			logger.info("Inside ConnectController: End - smart search by search term");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, res, !getAll);
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving connects list");
+		}
+		
 	}
 }

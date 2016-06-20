@@ -1,6 +1,5 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,9 +21,9 @@ public class GeographyService {
 	@Autowired
 	GeographyRepository geographyRepository;
 
-	public List<GeographyMappingT> findAll() {
+	public List<GeographyMappingT> findAllActive() {
 		logger.debug("Inside findAll() GeographyService");
-		return (ArrayList<GeographyMappingT>) geographyRepository.findAll();
+		return geographyRepository.findByActiveTrue();
 	}
 
 }

@@ -20,9 +20,19 @@ import com.tcs.destination.bean.PartnerMasterT;
 public class ResponseConstructors {
 
 	private static final Logger logger = LoggerFactory.getLogger(ResponseConstructors.class);
-
+	
+	/**
+	 * returns the json string for the given object
+	 * 
+	 * @param fields - fields to filter in json
+	 * @param view
+	 * @param object - object to serialize
+	 * @param allowDuplicateEntity - true to ignore JsonIdentityInfo annotation
+	 * @return
+	 * @throws Exception
+	 */
 	public static String filterJsonForFieldAndViews(String fields, String view,
-			Object object) throws Exception {
+			Object object,  boolean allowDuplicateEntity) throws Exception {
 		StringBuffer viewFields = null;
 		if (!view.equals("")) {
 			viewFields = new StringBuffer();
@@ -40,15 +50,31 @@ public class ResponseConstructors {
 				fields = fields.concat("," + viewFields.toString());
 			}
 		}
-		return filterJsonForFields(fields, object);
-
+		return filterJsonForFields(fields, object, allowDuplicateEntity);
+	}
+	
+	/**
+	 * returns the json string for the given object
+	 * @param fields
+	 * @param view
+	 * @param object
+	 * @return
+	 * @throws Exception
+	 */
+	public static String filterJsonForFieldAndViews(String fields, String view,
+			Object object) throws Exception {
+		return filterJsonForFieldAndViews(fields, view, object, false);
 	}
 
-	public static String filterJsonForFields(String fields, Object object) throws Exception {
+	private static String filterJsonForFields(String fields, Object object, boolean allowDuplicateEntity) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		//For Jackson to understand Hibernate datatypes (e.g .Lazy loading)
 		//mapper.registerModule(new Hibernate4Module());
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		
+		if(allowDuplicateEntity) {
+			mapper.setAnnotationIntrospector(new DestinationAnnotationIntrospector());
+		}
 		
 		if (fields.equals("all")) {
 			try {

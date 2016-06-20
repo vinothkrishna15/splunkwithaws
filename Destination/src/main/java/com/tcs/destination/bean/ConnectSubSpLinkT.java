@@ -65,7 +65,6 @@ public class ConnectSubSpLinkT implements Serializable {
 	@Column(name="sub_sp")
 	private String subSp;
 	
-
 //bi-directional many-to-one association to UserT
 //@ManyToOne
 //@JoinColumn(name="created_modified_by",insertable=false,updatable=false)
@@ -143,59 +142,59 @@ public class ConnectSubSpLinkT implements Serializable {
 		this.subSpMappingT = subSpMappingT;
 	}
 
-//public UserT getCreatedModifiedByUser() {
-//return this.createdModifiedByUser;
-//}
-//
-//public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-//this.createdModifiedByUser = createdModifiedByUser;
-//}
-
-public Timestamp getCreatedDatetime() {
-	return createdDatetime;
-}
-
-public void setCreatedDatetime(Timestamp createdDatetime) {
-	this.createdDatetime = createdDatetime;
-}
-
-public Timestamp getModifiedDatetime() {
-	return modifiedDatetime;
-}
-
-public void setModifiedDatetime(Timestamp modifiedDatetime) {
-	this.modifiedDatetime = modifiedDatetime;
-}
-
-public String getCreatedBy() {
-	return createdBy;
-}
-
-public void setCreatedBy(String createdBy) {
-	this.createdBy = createdBy;
-}
-
-public String getModifiedBy() {
-	return modifiedBy;
-}
-
-public void setModifiedBy(String modifiedBy) {
-	this.modifiedBy = modifiedBy;
-}
-
-public UserT getUserT2() {
-	return userT2;
-}
-
-public void setUserT2(UserT userT2) {
-	this.userT2 = userT2;
-}
-
-public UserT getUserT3() {
-	return userT3;
-}
-
-public void setUserT3(UserT userT3) {
-	this.userT3 = userT3;
-}
+	//public UserT getCreatedModifiedByUser() {
+	//return this.createdModifiedByUser;
+	//}
+	//
+	//public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
+	//this.createdModifiedByUser = createdModifiedByUser;
+	//}
+	
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
+	}
+	
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
+	}
+	
+	public Timestamp getModifiedDatetime() {
+		return modifiedDatetime;
+	}
+	
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+	}
+	
+	public String getCreatedBy() {
+		return createdBy;
+	}
+	
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+	
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+	
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+	
+	public UserT getUserT2() {
+		return userT2;
+	}
+	
+	public void setUserT2(UserT userT2) {
+		this.userT2 = userT2;
+	}
+	
+	public UserT getUserT3() {
+		return userT3;
+	}
+	
+	public void setUserT3(UserT userT3) {
+		this.userT3 = userT3;
+	}
 }

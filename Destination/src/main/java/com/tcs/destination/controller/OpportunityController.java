@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -31,6 +32,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityReopenRequestService;
@@ -69,6 +71,9 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
+	
+	@Autowired
+	private JobLauncherController jobLauncherController;
 	
 	
 
@@ -288,8 +293,13 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: Start of edit opportunity");
 		Status status = new Status();
 		try {
-			opportunityService.updateOpportunityT(opportunity);
+			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			
+			if (asyncJobRequest.getOn().equals(Switch.ON)) {
+				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId());
+			}
+			
 			logger.info("Inside OpportunityController: End of edit opportunity");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -595,7 +605,7 @@ public class OpportunityController {
 	 * @param displaySubSp
 	 * @param bidRequestType
 	 * @param newLogo
-	 * @param strategicInitiative
+	 * @param strategicDeal
 	 * @param salesStageCode
 	 * @param searchKeywords
 	 * @param minDigitalDealValue
@@ -623,7 +633,7 @@ public class OpportunityController {
 			@RequestParam(value = "displaySubSp", defaultValue = "") List<String> displaySubSp,
 			@RequestParam(value = "bidRequestType", defaultValue = "") List<String> bidRequestType,
 			@RequestParam(value = "newLogo", defaultValue = "") String newLogo,
-			@RequestParam(value = "strategicInitiative", defaultValue = "") String strategicInitiative,
+			@RequestParam(value = "strategicDeal", defaultValue = "") String strategicDeal,
 			@RequestParam(value = "salesStageCode", defaultValue = "") List<Integer> salesStageCode,
 			@RequestParam(value = "searchKeywords", defaultValue = "") List<String> searchKeywords,
 			@RequestParam(value = "minDigitalDealValue", defaultValue = "0") double minDigitalDealValue,
@@ -643,7 +653,7 @@ public class OpportunityController {
 		PaginatedResponse opportunityResponse;
 		try {
 			opportunityResponse = opportunityService.getByOpportunities(
-					customerIdList, salesStageCode, strategicInitiative,
+					customerIdList, salesStageCode, strategicDeal,
 					newLogo, minDigitalDealValue, maxDigitalDealValue,
 					dealCurrency, digitalFlag, displayIou, country, partnerId,
 					competitorName, searchKeywords, bidRequestType, offering,

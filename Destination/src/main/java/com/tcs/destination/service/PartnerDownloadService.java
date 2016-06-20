@@ -3,20 +3,12 @@ package com.tcs.destination.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFRow;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,15 +17,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.ConnectCustomerContactLinkT;
-import com.tcs.destination.bean.ConnectOfferingLinkT;
-import com.tcs.destination.bean.ConnectSubSpLinkT;
-import com.tcs.destination.bean.ConnectT;
-import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.ContactT;
-import com.tcs.destination.bean.NotesT;
-import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.ContactType;
@@ -41,7 +25,6 @@ import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
-import com.tcs.destination.utils.PropertyReaderUtil;
 import com.tcs.destination.utils.PropertyUtil;
 
 /**
@@ -201,7 +184,7 @@ public class PartnerDownloadService
 					if(ct.getContactEmailId()!=null) {
 						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
-					
+
 					Cell active = row.createCell(7);//TODO inactive indicator - added a separate column for active flag - done
 					active.setCellValue(ct.isActive());
 
