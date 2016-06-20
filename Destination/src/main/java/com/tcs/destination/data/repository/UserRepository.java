@@ -74,7 +74,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> findByUserRole(String userRole);
 	
 	@Query(value = "select u.user_id,u.user_name,u.temp_password,u.user_group,u.user_role,u.base_location,ug.time_zone_desc,u.user_telephone,"
-			+ "u.user_email_id,u.supervisor_user_id,u.supervisor_user_name from user_t u join user_general_settings_t ug on u.user_id=ug.user_id", nativeQuery = true)
+			+ "u.user_email_id,u.supervisor_user_id,u.supervisor_user_name,u.active from user_t u join user_general_settings_t ug on u.user_id=ug.user_id", nativeQuery = true)
 	List<Object[]> findUserWithTimeZone();
 	
 	@Query( value = "select * from user_t where user_role in (:userRoles)", nativeQuery = true)
