@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -19,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.LoginHistoryT;
+import com.tcs.destination.bean.NotificationTypeEventMappingT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchResultDTO;
@@ -34,20 +37,21 @@ import com.tcs.destination.bean.UserGroupMappingT;
 import com.tcs.destination.bean.UserModule;
 import com.tcs.destination.bean.UserModuleAccess;
 import com.tcs.destination.bean.UserModuleAccessT;
-import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserProfile;
 import com.tcs.destination.bean.UserRoleMappingT;
+import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.GoalGroupMappingRepository;
 import com.tcs.destination.data.repository.GoalMappingRepository;
 import com.tcs.destination.data.repository.LoginHistoryRepository;
+import com.tcs.destination.data.repository.NotificationTypeEventMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.data.repository.UserGoalsRepository;
 import com.tcs.destination.data.repository.UserGroupMappingRepository;
-import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.UserRoleMappingRepository;
+import com.tcs.destination.data.repository.UserSubscriptionsRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
@@ -87,7 +91,7 @@ public class UserService {
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
 	@Autowired
-	UserNotificationSettingsRepository userNotificationSettingsRepository;
+	UserSubscriptionsRepository userSubscriptionsRepository;
 
 	@Autowired
 	UserUploadService userUploadService;
@@ -121,6 +125,9 @@ public class UserService {
 	
 	@Autowired
 	ThreadPoolTaskExecutor mailTaskExecutor;
+
+	@Autowired
+	NotificationTypeEventMappingRepository notificationTypeEventMappingRepository ;
 
 	/**
 	 * This method retrieves user details based on user name
@@ -586,14 +593,31 @@ public class UserService {
 	public void saveNotificationSettings(List<UserT> userList) throws Exception {
 		logger.debug("Inside save notifications method");
 		// saving user notification settings for the user
-		List<UserNotificationSettingsT> userNotificationSettingsList=new ArrayList<UserNotificationSettingsT>();
+		List<UserSubscriptions> userNotificationSettingsList=new ArrayList<UserSubscriptions>();
+		
+		Map<String, NotificationTypeEventMappingT> notifyTypeEventMap = getNotifyTypeEventMappings();
 		for(UserT user:userList)
 		{
-			userNotificationSettingsList = DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user);
+			userNotificationSettingsList.addAll(DestinationUserDefaultObjectsHelper.getUserNotificationSettingsList(user, notifyTypeEventMap));
 		}
-		userNotificationSettingsRepository.save(userNotificationSettingsList);
+		userSubscriptionsRepository.save(userNotificationSettingsList);
 		logger.debug("User Notification Settings : saved");
 
+	}
+
+	public Map<String, NotificationTypeEventMappingT> getNotifyTypeEventMappings() {
+		List<NotificationTypeEventMappingT> notifyTypeEventMappings = (List<NotificationTypeEventMappingT>) notificationTypeEventMappingRepository.findAll();
+		Map<String, NotificationTypeEventMappingT> notifyTypeEventMap = mapNotifyTypeEventMapping(notifyTypeEventMappings);
+		return notifyTypeEventMap;
+	}
+
+	private static Map<String, NotificationTypeEventMappingT> mapNotifyTypeEventMapping(
+			List<NotificationTypeEventMappingT> notifyTypeEventMappings) {
+		Map<String, NotificationTypeEventMappingT> map = Maps.newHashMap();
+		for (NotificationTypeEventMappingT item : notifyTypeEventMappings) {
+			map.put(String.format("%d%d", item.getEventId(),item.getModeId()) , item);
+		}
+		return map;
 	}
 
 	/**
@@ -844,9 +868,9 @@ public class UserService {
 	private void saveDefaultNotificationSettings(UserT user) {
 		logger.info("Inside saveDefaultNotificationSettings() method");
 		//saving user notification settings for the user
-		List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
-				.getUserNotificationSettingsList(user);
-		userNotificationSettingsRepository.save(userNotificationSettingsList);
+		List<UserSubscriptions> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
+				.getUserNotificationSettingsList(user, getNotifyTypeEventMappings());
+		userSubscriptionsRepository.save(userNotificationSettingsList);
 		logger.info("User Notification Settings : saved");
 	}
 
@@ -1347,7 +1371,6 @@ public class UserService {
 
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				try {
 					mailUtils.sendEscalateUserDetailsAutomatedEmail(existingSupervisorDetails, newSupervisorDetails, userT);
 				} catch (Exception e) {

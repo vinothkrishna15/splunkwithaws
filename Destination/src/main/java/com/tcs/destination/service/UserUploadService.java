@@ -35,7 +35,7 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGeneralSettingsT;
 import com.tcs.destination.bean.UserGoalsT;
-import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -46,8 +46,8 @@ import com.tcs.destination.data.repository.TimezoneMappingRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserGeneralSettingsRepository;
 import com.tcs.destination.data.repository.UserGoalsRepository;
-import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserSubscriptionsRepository;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
@@ -71,7 +71,7 @@ public class UserUploadService {
 	UserGeneralSettingsRepository userGenSettingsRepository;
 
 	@Autowired
-	UserNotificationSettingsRepository userNotificationSettingsRepository;
+	UserSubscriptionsRepository userSubscription;
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
@@ -96,6 +96,9 @@ public class UserUploadService {
 
 	@Autowired
 	UserGoalsRepository userGoalsRepository;
+
+	@Autowired
+	UserService userService;
 
 	Map<String, HashMap<String, GoalMappingT>> defaultGoalsMap;
 
@@ -352,9 +355,9 @@ public class UserUploadService {
 					logger.info("User General Settings : saved");
 
 					// saving user notification settings for the user
-					List<UserNotificationSettingsT> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
-							.getUserNotificationSettingsList(user);
-					userNotificationSettingsRepository
+					List<UserSubscriptions> userNotificationSettingsList = DestinationUserDefaultObjectsHelper
+							.getUserNotificationSettingsList(user, userService.getNotifyTypeEventMappings());
+					userSubscription
 							.save(userNotificationSettingsList);
 					logger.info("User Notification Settings : saved");
 
