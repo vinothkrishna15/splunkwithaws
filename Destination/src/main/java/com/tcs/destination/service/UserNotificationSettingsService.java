@@ -14,11 +14,13 @@ import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.NotificationSettingsGroupMappingRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserSubscriptionsRepository;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -39,6 +41,11 @@ public class UserNotificationSettingsService {
 
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
+	
+
+	@Autowired
+	UserSubscriptionsRepository userSubscriptionRepository;
+
 
 	@Autowired
 	NotificationSettingsGroupMappingRepository notificationSettingsGroupMappingRepository;
@@ -75,6 +82,44 @@ public class UserNotificationSettingsService {
 		try {
 			if (userNotificationSettingsRepository
 					.save(userNotificationSettingsList) != null) {
+				logger.debug("End:Inside saveUserNotifications() UserNotificationSettings service");
+				return true;
+			} else {
+				logger.error("Error occurred while adding UserNotificationSettings settings");
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"Error occurred while adding User notification settings");
+			}
+		}
+		catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+	}
+
+	public boolean saveUserNotificationsnew(
+			List<UserSubscriptions> userSubscription)
+			throws DestinationException {
+		logger.debug("Begin:Inside saveUserNotifications() UserNotificationSettings service");
+		// Save notification settings conditions first
+		for ( UserSubscriptions userSubscriptions : userSubscription) {
+			if (userSubscriptions
+					.getUserNotificationSettingsConditionsTs() != null) {
+				try {
+					userNotificationSettingsConditionRepository
+							.save(userSubscriptions
+									.getUserNotificationSettingsConditionsTs());
+				} catch (Exception e) {
+					logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+			}
+		}
+		try {
+			if (userSubscriptionRepository
+					.save(userSubscription) != null) {
 				logger.debug("End:Inside saveUserNotifications() UserNotificationSettings service");
 				return true;
 			} else {
@@ -163,6 +208,9 @@ public class UserNotificationSettingsService {
 		logger.debug("End:Inside getUserNotificationSettings() UserNotificationSettings service");
 		return notificationSettingsGroupMappingTs;
 	}
+	
+	
+
 
 	/**
 	 * This method is used to delete notification settings based on index 
