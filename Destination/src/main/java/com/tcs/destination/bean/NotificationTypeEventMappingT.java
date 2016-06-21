@@ -16,6 +16,7 @@ public class NotificationTypeEventMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="notification_type_event_mapping_id")
 	private Integer notificationTypeEventMappingId;
 	
@@ -24,6 +25,9 @@ public class NotificationTypeEventMappingT implements Serializable {
 	
 	@Column(name="mode_id")
 	private Integer modeId;
+	
+	@Column(name="notification_type")
+	private String notificationType;
 
 	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
@@ -37,7 +41,7 @@ public class NotificationTypeEventMappingT implements Serializable {
 
 	//bi-directional many-to-one association to UserNotificationsTypeT
 	@ManyToOne
-	@JoinColumn(name="notification_type")
+	@JoinColumn(name="notification_type", insertable = false, updatable = false)
 	private UserNotificationsTypeT userNotificationsTypeT;
 
 	//bi-directional many-to-one association to UserSubscription
@@ -87,19 +91,19 @@ public class NotificationTypeEventMappingT implements Serializable {
 		this.userSubscriptions = userSubscriptions;
 	}
 
-	public UserSubscriptions addUserSubscription(UserSubscriptions userSubscription) {
-		getUserSubscriptions().add(userSubscription);
-		userSubscription.setNotificationTypeEventMappingT(this);
-
-		return userSubscription;
-	}
-
-	public UserSubscriptions removeUserSubscription(UserSubscriptions userSubscription) {
-		getUserSubscriptions().remove(userSubscription);
-		userSubscription.setNotificationTypeEventMappingT(null);
-
-		return userSubscription;
-	}
+//	public UserSubscriptions addUserSubscription(UserSubscriptions userSubscription) {
+//		getUserSubscriptions().add(userSubscription);
+//		userSubscription.setNotificationTypeEventMappingT(this);
+//
+//		return userSubscription;
+//	}
+//
+//	public UserSubscriptions removeUserSubscription(UserSubscriptions userSubscription) {
+//		getUserSubscriptions().remove(userSubscription);
+//		userSubscription.setNotificationTypeEventMappingT(null);
+//
+//		return userSubscription;
+//	}
 
 	public Integer getEventId() {
 		return eventId;
@@ -115,6 +119,14 @@ public class NotificationTypeEventMappingT implements Serializable {
 
 	public void setModeId(Integer modeId) {
 		this.modeId = modeId;
+	}
+
+	public String getNotificationType() {
+		return notificationType;
+	}
+
+	public void setNotificationType(String notificationType) {
+		this.notificationType = notificationType;
 	}
 	
 	

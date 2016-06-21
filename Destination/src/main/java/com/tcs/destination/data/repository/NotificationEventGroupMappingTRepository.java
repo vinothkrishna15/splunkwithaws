@@ -2,6 +2,7 @@ package com.tcs.destination.data.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +14,7 @@ public interface NotificationEventGroupMappingTRepository extends
 
 	List<NotificationEventGroupMappingT> findByEventId(int eventId);
 
+	@Query(value="select message_template from notification_event_group_mapping_t where event_id = ?1",nativeQuery=true)
+	String getMessageTemplateByEventId(Integer eventId);
+	
 }

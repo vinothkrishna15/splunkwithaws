@@ -10,7 +10,7 @@ import com.tcs.destination.bean.AuditConnectSecondaryOwnerLinkT;
 @Repository
 public interface AuditConnectSecondaryOwnerLinkTRepository extends CrudRepository<AuditConnectSecondaryOwnerLinkT, Long>{
 
-	/*List<AuditConnectSecondaryOwnerLinkT> findByOldConnectIdAndNotifiedFalseOrderByCreatedModifiedDatetime(
-			String entityId);*/
+	List<AuditConnectSecondaryOwnerLinkT> findByOldConnectIdAndNotifiedFalseOrderByCreatedModifiedDatetimeDesc(
+			String entityId);
 
 }

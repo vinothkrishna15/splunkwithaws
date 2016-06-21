@@ -33,6 +33,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityDownloadService;
 import com.tcs.destination.service.OpportunityReopenRequestService;
@@ -71,6 +72,9 @@ public class OpportunityController {
 
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 	
 	
 
@@ -258,6 +262,7 @@ public class OpportunityController {
 		try {
 			opportunityService.createOpportunity(opportunity, false, null, null);
             status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+            jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_CREATE,opportunity.getModifiedBy());
 			logger.info("Inside OpportunityController: End of create opportunity");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -265,7 +270,7 @@ public class OpportunityController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in creating the opportunity");
 		}
@@ -292,6 +297,7 @@ public class OpportunityController {
 		try {
 			opportunityService.updateOpportunityT(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_EDIT,opportunity.getModifiedBy());
 			logger.info("Inside OpportunityController: End of edit opportunity");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",

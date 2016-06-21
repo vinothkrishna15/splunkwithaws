@@ -710,10 +710,10 @@ public class OpportunityService {
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
 					null);
 			if (!isBulkDataLoad) {
-				// Invoke Asynchronous Auto Comments Thread
-				processAutoComments(opportunity.getOpportunityId(), null);
-				// Invoke Asynchronous Notification Thread
-				processNotifications(opportunity.getOpportunityId(), null);
+//				// Invoke Asynchronous Auto Comments Thread
+//				processAutoComments(opportunity.getOpportunityId(), null);
+//				// Invoke Asynchronous Notification Thread
+//				processNotifications(opportunity.getOpportunityId(), null);
 			} else {
 				// This statement is to update the opportunity timeline history
 				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
@@ -1317,10 +1317,10 @@ public class OpportunityService {
 		if (afterOpp != null) {
 			logger.info("Opportunity has been updated successfully: "
 					+ opportunityId);
-			// Invoke Asynchronous Auto Comments Thread
-			processAutoComments(opportunityId, oldObject);
-			// Invoke Asynchronous Notifications Thread
-			processNotifications(opportunityId, oldObject);
+//			// Invoke Asynchronous Auto Comments Thread
+//			processAutoComments(opportunityId, oldObject);
+//			// Invoke Asynchronous Notifications Thread
+//			processNotifications(opportunityId, oldObject);
 		}
 	}
 
@@ -2668,7 +2668,12 @@ public class OpportunityService {
 					JobName.opportunityWonLostEmailNotification,
 					EntityType.OPPORTUNITY.toString(),
 					opportunity.getOpportunityId());
-		}
+		} 
+//		else {
+//			logger.info("Opportunity Id:{} email notification : ", opportunityId);
+//			jobLauncherController.asyncJobLaunch(JobName.opportunityEmailNotification, EntityType.OPPORTUNITY.toString(),
+//			opportunity.getOpportunityId());
+//		}
 	}
 	
 	/**

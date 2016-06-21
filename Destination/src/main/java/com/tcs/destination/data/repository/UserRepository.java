@@ -157,4 +157,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U1.supervisor_user_id = U2.user_id ) SELECT U1.* FROM U1", nativeQuery = true)
 	List<UserT> findUserHierarchy(String userId);
 	
+	@Query(value = "select supervisor_user_id from user_t where user_id = (:userId)", nativeQuery = true)
+    String getSupervisorUserIdForUser(@Param("userId") String userId);
+	
 }

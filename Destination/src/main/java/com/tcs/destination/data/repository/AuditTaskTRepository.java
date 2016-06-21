@@ -8,4 +8,7 @@ import com.tcs.destination.bean.AuditTaskT;
 @Repository
 public interface AuditTaskTRepository extends CrudRepository<AuditTaskT, Long>{
 
+	AuditTaskT findFirstByTaskIdAndNotifiedFalseOrderByCreatedModifiedDatetimeDesc(
+			String entityId);
+
 }

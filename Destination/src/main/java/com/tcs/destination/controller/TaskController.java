@@ -1,12 +1,11 @@
 package com.tcs.destination.controller;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
@@ -22,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TaskT;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.TaskService;
 import com.tcs.destination.utils.DestinationUtils;
@@ -39,6 +41,9 @@ public class TaskController {
 
 	@Autowired
 	TaskService taskService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	/**
 	 * This method is used to find task details for the given task id.
@@ -252,6 +257,7 @@ public class TaskController {
 				logger.debug("Managed Task and Task Id NOT NULL");
 				status = new Status();
 				status.setStatus(Status.SUCCESS, managedTask.getTaskId());
+				jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.TASK, managedTask.getTaskId(),OperationType.TASK_CREATE,managedTask.getModifiedBy());
 			}
 			logger.info("End of creating a Task");
 			return new ResponseEntity<String>
@@ -283,6 +289,7 @@ public class TaskController {
 			if (managedTask != null)  {
 				status = new Status();
 				status.setStatus(Status.SUCCESS, "Task Successfully Updated with TaskId "+managedTask.getTaskId());
+				jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.TASK, managedTask.getTaskId(),OperationType.TASK_EDIT,managedTask.getModifiedBy());
 			}
 			logger.info("End of editing a Task");
 			return new ResponseEntity<String>

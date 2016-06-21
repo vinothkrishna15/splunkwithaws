@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.UserTaggedFollowedT;
+import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
@@ -23,6 +24,8 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.FollowNotifications;
 import com.tcs.destination.utils.DateUtils;
@@ -62,6 +65,9 @@ public class FollowedService {
 
 	@Autowired
 	NotificationEventGroupMappingTRepository notificationEventGroupMappingTRepository;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -196,7 +202,13 @@ public class FollowedService {
 			try {
 				UserTaggedFollowedT followDBObj = followedRepository
 						.save(followed);
-				processNotification(followDBObj);
+				if(followed.getConnectId()!=null) {
+					jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, followed.getConnectId(),OperationType.CONNECT_FOLLOW,followed.getUserId());
+				}
+				if(followed.getOpportunityId()!=null) {
+					jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, followed.getOpportunityId(),OperationType.OPPORTUNITY_FOLLOW,followed.getUserId());
+				}
+//				processNotification(followDBObj);
 				logger.debug("End: Inside addFollowed Service");
 				return followDBObj != null;
 			} catch (Exception e) {

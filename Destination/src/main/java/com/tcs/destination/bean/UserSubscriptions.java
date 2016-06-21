@@ -39,6 +39,11 @@ public class UserSubscriptions implements Serializable {
 	@JoinColumn(name = "notification_type_event_mapping_id", insertable = false, updatable = false)
 	private NotificationTypeEventMappingT notificationTypeEventMappingT;
 	
+	//bi-directional many-to-one association to UserT
+	@ManyToOne
+	@JoinColumn(name="user_id",insertable=false, updatable=false)
+	private UserT userT;
+	
 	@Transient
 	List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs;
 	
@@ -101,6 +106,14 @@ public class UserSubscriptions implements Serializable {
 
 	public NotificationTypeEventMappingT getNotificationTypeEventMappingT() {
 		return notificationTypeEventMappingT;
+	}
+
+	public UserT getUserT() {
+		return userT;
+	}
+
+	public void setUserT(UserT userT) {
+		this.userT = userT;
 	}
 	
 }

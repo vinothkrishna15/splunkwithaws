@@ -3,14 +3,15 @@ package com.tcs.destination.service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.tcs.destination.bean.CollaborationCommentT;
+import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.FollowedRepository;
@@ -22,8 +23,10 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.CommentType;
-import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.NotificationHelper;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
@@ -75,6 +78,9 @@ public class CollaborationCommentsService {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	/**
 	 * method to insert collaboration comments to comments repository
@@ -99,8 +105,23 @@ public class CollaborationCommentsService {
 			try {
 				CollaborationCommentT collaborationCommentT = commentsRepository
 						.save(comments);
-				processNotifications(collaborationCommentT.getCommentId());
+//				processNotifications(collaborationCommentT.getCommentId());
 				returnVal = collaborationCommentT.getCommentId();
+				if(collaborationCommentT.getCommentType().equals(CommentType.USER.name())) {
+					
+					if(collaborationCommentT.getEntityType().equals(EntityType.CONNECT.name())) {
+						jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, collaborationCommentT.getConnectId(),OperationType.CONNECT_COMMENT,collaborationCommentT.getUserId());
+					}
+					if(collaborationCommentT.getEntityType().equals(EntityType.OPPORTUNITY.name())) {
+						jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, collaborationCommentT.getOpportunityId(),OperationType.OPPORTUNITY_COMMENT,collaborationCommentT.getUserId());
+					}
+					
+					if(collaborationCommentT.getEntityType().equals(EntityType.TASK.name())) {
+						jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.TASK, collaborationCommentT.getTaskId(),OperationType.TASK_COMMENT,collaborationCommentT.getUserId());
+					}
+					
+				}
+				
 				
 			} catch (Exception e) {
 				logger.error("INTERNAL_SERVER_ERROR " + e.getMessage());

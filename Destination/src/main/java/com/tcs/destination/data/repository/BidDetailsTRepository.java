@@ -49,4 +49,9 @@ public interface BidDetailsTRepository extends
 	@Query(value = "select (BID.*) from bid_details_t BID where opportunity_id=(:opportunityId) order by bid_id asc limit 1", nativeQuery = true)
 	BidDetailsT findLatestBidByOpportunityId(@Param("opportunityId") String opportunityId);
 	
+	BidDetailsT findFirstByOpportunityIdOrderByBidIdAsc(String opportunityId);
+
+	BidDetailsT findFirstByOpportunityIdOrderByModifiedDatetimeDesc(
+			String entityId);
+	
 }

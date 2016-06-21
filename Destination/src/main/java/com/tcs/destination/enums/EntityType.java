@@ -30,5 +30,14 @@ public enum EntityType {
 
 		return false;
 	}
+	
+	public static EntityType getByValue(String value) {
+		for (EntityType c : EntityType.values()) {
+			if (c.name().equals(value)) {
+				return c;
+			}
+		}
+		return null;
+	}
 
 }

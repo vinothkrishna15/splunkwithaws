@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+
+
+	<batch:job id="notification">
+          <!-- This step is used to get the audit details and store it in job context -->
+		<batch:step id="getAuditDetailsForNotification" next="sendNotification">
+			<batch:tasklet>
+				<ref bean="notificationPreprocessor" />
+			</batch:tasklet>
+		</batch:step>
+        <!-- This step is used to get the recipients and process the notification details based
+        on the changes occurred in a entity and saves the notification -->
+		<batch:step id="sendNotification">
+			<batch:tasklet>
+				<batch:chunk reader="recepientReader" processor="notificationProcessor"
+					writer="notificationWriter" commit-interval="30" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+
+	</batch:job>
+
+  <!--Reader -->
+	<bean id="recepientReader" class="com.tcs.destination.reader.RecipientReader"
+		scope="step">
+		<property name="entityId" value="#{jobParameters['entityId']}"></property>
+		<property name="entityType" value="#{jobParameters['EntityType']}"></property>
+		<property name="operationType" value="#{jobParameters['operationType']}"></property>
+		<property name="currentUser" value="#{jobParameters['currentUser']}"></property>
+		<property name="notificationBatchHelper" ref="notificationBatchHelper"></property>
+
+	</bean>
+
+ 	<!-- Processor -->	
+	<bean id="notificationProcessor" class="com.tcs.destination.processor.NotificationProcessor"
+		scope="step">
+		<property name="notificationBatchHelper" ref="notificationBatchHelper"></property>
+		<property name="entityId" value="#{jobParameters['entityId']}"></property>
+		<property name="entityType" value="#{jobParameters['EntityType']}"></property>
+		<property name="operationType" value="#{jobParameters['operationType']}"></property>
+		<property name="currentUser" value="#{jobParameters['currentUser']}"></property>
+
+	</bean>
+
+    <!-- Writer  -->
+	<bean id="notificationWriter"
+		class="org.springframework.batch.item.data.RepositoryItemWriter"
+		scope="step">
+		<property name="repository" ref="userNotificationsRepository" />
+		<property name="methodName" value="save" />
+	</bean>
+ 
+    <!-- Tasklet to get the audit details -->
+	<bean id="notificationPreprocessor" class="com.tcs.destination.tasklet.NotificationPreprocessor"
+		scope="step">
+		<property name="entityId" value="#{jobParameters['entityId']}"></property>
+		<property name="operationType" value="#{jobParameters['operationType']}"></property>
+		<property name="auditOpportunityRepository" ref="auditOpportunityRepository"></property>
+		<property name="auditOpportunitySalesSupportLinkTRepository"
+			ref="auditOpportunitySalesSupportLinkTRepository"></property>
+		<property name="auditBidDetailsTRepository" ref="auditBidDetailsTRepository"></property>
+		<property name="auditBidOfficeGroupOwnerLinkTRepository" ref="auditBidOfficeGroupOwnerLinkTRepository"></property>
+		<property name="auditConnectTRepository" ref="auditConnectTRepository"></property>
+		<property name="auditConnectSecondaryOwnerLinkTRepository"
+			ref="auditConnectSecondaryOwnerLinkTRepository"></property>
+		<property name="auditTaskTRepository" ref="auditTaskTRepository"></property>
+		<property name="auditTaskBdmsTaggedLinkTRepository" ref="auditTaskBdmsTaggedLinkTRepository"></property>
+		<property name="bidDetailsTRepository" ref="bidDetailsTRepository"></property>
+	</bean>
+
+
+</beans>	

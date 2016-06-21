@@ -197,6 +197,8 @@ public class Constants {
 	public static final String NOTIFICATION_CUSTOMER = "CUSTOMER";
 	public static final String NOTIFICATION_PRIMARY_OWNER = "(Primary)";
 	public static final String NOTIFICATION_SECONDARY_OWNER = "(Secondary)";
+	public static final String NOTIFICATION_SALES_SUPPORT = "(Sales support)";
+	public static final String NOTIFICATION_BID_OFFICE_GRP_OWNER = "(Bid Office Group Owner)";
 	public static final String PMO_KEYWORD = "pmo";
 	public static final String WORKFLOW_GEO_HEADS_PMO = "GEO Heads,PMO";
 	public static final String WORKFLOW_GEO_HEADS = "GEO Heads";
@@ -232,4 +234,43 @@ public class Constants {
 	public static final String SIT = "SIT";
 	public static final String PROD = "PROD";
 	public static final String USD_PATTERN = "###,###.## USD";
+	
+	//Notification Related
+	public static final String PRIMARY_OWNER_FIELD = "Primary Owner";
+	public static final String SECONDARY_OWNER_FIELD = "Secondary Owner";
+	public static final String START_DATE_TIME_OF_CONNECT_FIELD = "Start Date time of connect";
+	public static final String END_DATE_TIME_OF_CONNECT_FIELD = "End Date time of connect";
+	public static final String DIGITAL_DEAL_VALUE_FIELD = "Digital Deal Value";
+	public static final String SALES_STAGE_FIELD = "Sales Stage";
+	public static final String SALES_SUPPORT_OWNER_FIELD = "Sales Support Owner";
+	public static final String BID_OFFICE_GROUP_OWNER_FIELD = "Bid Office Group Owner";
+	public static final String BID_FIELD = "Bid";
+	public static final String ACTUAL_BID_SUBMISSION_DATE_FIELD = "Actual Bid Submission Date";
+	public static final String TARGET_BID_SUBMISSION_DATE_FIELD = "Target Bid Submission Date";
+	public static final String EXPECTED_DATE_OF_OUTCOME_FIELD = "Expected Date of Outcome";
+	public static final String TASK_STATUS_FIELD = "Task Status";
+	public static final String TARGET_DATE_OF_COMPLETION_FIELD = "Target date for completion";
+	public static final String TASK_OWNER_FIELD = "Task Owner";
+	public static final String FROM_TO_STRING = "of ${entityType} : ${entityName} from ${from} to ${to}";
+	public static final String ENTITY_NAME_STRING = "for ${entityType} : ${entityName}";
+	public static final String WON = "Won";
+	public static final String LOST = "Lost";
+	public static final String UPDATED = "updated";
+	public static final String ADDED = "added";
+	public static final String REMOVED = "removed";
+	public static final String SYSTEM = "SYSTEM";
+	
+	public static final String AUDIT_CONNECT = "Audit Connect";
+	public static final String AUDIT_CONNECT_SEC_OWNERS = "Audit Connect Secondary Owners";
+	public static final String AUDIT_OPPORTUNITY = "Audit Opportunity";
+	public static final String AUDIT_OPP_SALES_SUPPORT = "Audit Opportunity Sales Support Owners";
+	public static final String AUDIT_BID_DETAILS = "Audit Bid Details";
+	public static final String AUDIT_BID_OFFICE_GRP_OWNER = "Audit Bid Office Group Owner";
+	public static final String AUDIT_TASK = "Audit Task";
+	public static final String AUDIT_TASK_BDM_TAGGED = "Audit Task BDM Tagged";
+	
+	
+	
+	
+	
 }
