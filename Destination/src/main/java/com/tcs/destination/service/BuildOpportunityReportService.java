@@ -59,7 +59,9 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.ReportConstants;
-
+/*
+ * This service handles the Opportunity report functionalities
+ */
 @Component
 public class BuildOpportunityReportService {
 	private static final Logger logger = LoggerFactory
@@ -245,6 +247,8 @@ public class BuildOpportunityReportService {
 		row.getCell(colNo++).setCellStyle(cellStyle);
 		row.createCell(colNo).setCellValue(ReportConstants.OPPORTUNITYOWNER);
 		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue("CRM ID");
+		row.getCell(colNo++).setCellStyle(cellStyle);
 		if (currency.size() > 1) {
 			row.createCell(colNo).setCellValue(ReportConstants.DEALVALUEINR);
 			row.getCell(colNo++).setCellStyle(cellStyle);
@@ -279,9 +283,9 @@ public class BuildOpportunityReportService {
 		 */
 		getMandatoryHeaderForOpportunityReport(row, spreadSheet, cellStyle,currency);
 		
-		int colNo = 9;
+		int colNo = 10;
 		if (currency.size() > 1) {
-			colNo = 10;
+			colNo = 11;
 		}
 		createHeaderForOptionalFields(row, spreadSheet, cellStyle,fields, colNo);		
 	}
@@ -339,38 +343,43 @@ public class BuildOpportunityReportService {
 	 */
 	public void getOpportunityReportMandatoryFields(SXSSFSheet spreadSheet,
 			SXSSFRow row, List<String> currencies, OpportunityT opportunity) throws DestinationException {
-		int i = 0;
-		row.createCell(0).setCellValue(opportunity.getOpportunityId());
-		String geography = opportunity.getGeographyCountryMappingT().getGeography();
-		GeographyMappingT geographyMappingT = geographyMappingTRepository.findByGeography(geography);
-		row.createCell(1).setCellValue(geographyMappingT.getDisplayGeography());
-		row.createCell(2);
+		int colNo=0;
+		
+		row.createCell(colNo++).setCellValue(opportunity.getOpportunityId());//set opportunity id
+		
+		row.createCell(colNo++).setCellValue(opportunity.getGeographyCountryMappingT().getGeographyMappingT().getDisplayGeography());//set display geography
+		
 		List<String> displaySubSpList = new ArrayList<String>();
 		String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
-		displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+		if(oppPrimarySubSp!=null){
+			displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+		}
 		displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
 		if(!displaySubSpList.isEmpty()){
-			row.createCell(2).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));//set primary and secondary subsp
 		}
-		row.createCell(3).setCellValue(
-				opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
-		row.createCell(4).setCellValue(
-				opportunity.getCustomerMasterT().getGroupCustomerName());
-		//set sales stage code
-		row.createCell(5).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());
-		row.createCell(6).setCellValue(opportunity.getOpportunityName());
+		colNo++;
 		
-		//set opportunity owner name
+		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou()); //set display iou
+		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());//set group customer
+		row.createCell(colNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());//set sales stage code description
+		row.createCell(colNo++).setCellValue(opportunity.getOpportunityName());//set opportunity name
+		
 		UserT userT = userRepository.findByUserId(opportunity.getOpportunityOwner());
-		row.createCell(7).setCellValue(userT.getUserName());
+		row.createCell(colNo++).setCellValue(userT.getUserName());//set opportunity owner name
 		
+		if(opportunity.getCrmId()!=null){
+			row.createCell(colNo).setCellValue(opportunity.getCrmId());//set CRM ID
+		}
+		colNo++;
+		//set deal value in both INT and USD
 		for(String currency : currencies) {
 			if (opportunity.getDigitalDealValue() != null && opportunity.getDealCurrency() != null) {
-				row.createCell(8 + i).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency,  opportunity.getDigitalDealValue().doubleValue()).doubleValue());
+				row.createCell(colNo).setCellValue(beaconConverterService.convert(opportunity.getDealCurrency(),currency,  opportunity.getDigitalDealValue().doubleValue()).doubleValue());
 			} else {
-				row.createCell(8 + i).setCellValue(0);
+				row.createCell(colNo).setCellValue(0);
 			}
-			i++;
+			colNo++;
 		}
 	}
 
@@ -441,9 +450,9 @@ public class BuildOpportunityReportService {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
 			
-			int colValue = 9;
+			int colValue = 10;
 			if (currency.size() > 1) {
-				colValue = 10;
+				colValue = 11;
 			}
 			
 			if (projectDVFlag) {
@@ -490,7 +499,9 @@ public class BuildOpportunityReportService {
 			if (subFlag) {
 				List<String> oppSubSpList = new ArrayList<String>();
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
-				oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				if(oppPrimarySubSp!=null){
+					oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				}
 				oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
 				if(!oppSubSpList.isEmpty()){
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
