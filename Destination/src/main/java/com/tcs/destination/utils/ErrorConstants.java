@@ -16,6 +16,9 @@ package com.tcs.destination.utils;
  */
 public interface ErrorConstants {
 	
-	public static final String ERR_INAC_01 = "ERR_INAC_01";
+	String ERR_INAC_01 = "ERR_INAC_01";
+	String INVALID_WORKFLOW_ID = "ERR_V_00001";
+	String AUDIT_NOT_AVAILABLE = "ERR_V_00002";
+	String AUDIT_NOT_CAPTURED_PROPERLY = "ERR_V_00003";
 
 }

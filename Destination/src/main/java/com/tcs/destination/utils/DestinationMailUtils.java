@@ -185,6 +185,12 @@ public class DestinationMailUtils {
 
 	@Autowired
 	private DestinationMailSender destMailSender;
+	
+	@Value("${userDetailsApprovalSubject}")
+	private String userDetailsApprovalSubject;
+		
+	@Value("${userDetailsApprovalTemplate}")
+	private String userDetailsApprovalTemplate;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DestinationMailUtils.class);
@@ -1090,6 +1096,42 @@ public class DestinationMailUtils {
 
 
 	 }
+	 
+	 
+	 /**
+	  * This method is used to send email to the System Admins,
+	  * the Details captured for changing the supervisor details  
+	  * 
+	  * @param userDetailsEmailAppendString
+	  * @param userT
+	  * @throws Exception
+	  */
+	 public void sendEscalateUserDetailsAutomatedEmail(String existingSupervisorDetails, String newSupervisorDetails, UserT userT) throws Exception {
+ 
+		 DestinationMailMessage message = new DestinationMailMessage();
+		 List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
+		 message.setRecipients(listMailIdsFromUserIds(recipientIds));
+
+
+		 List<String> ccList = listMailIdsFromUserIds(Lists.newArrayList(userT.getUserId(), userT.getSupervisorUserId()));
+		 message.setCcList(ccList);
+
+		 DateFormat df = new SimpleDateFormat(dateFormatStr);
+		 String dateStr = df.format(new Date());
+		 String subject = formatSubject(userDetailsApprovalSubject); 
+
+		 message.setSubject(subject);
+
+		 Map<String, Object> userDetailsApprovalMap = Maps.newHashMap();
+		 userDetailsApprovalMap.put("username", userT.getUserName());
+		 userDetailsApprovalMap.put("date", dateStr);
+		 userDetailsApprovalMap.put("existingSupervisorDetails", existingSupervisorDetails);
+		 userDetailsApprovalMap.put("newSupervisorDetails", newSupervisorDetails);
+		 String text = mergeTmplWithData(userDetailsApprovalMap, userDetailsApprovalTemplate);
+		 message.setMessage(text);
+		 destMailSender.send(message);
+				
+	}
 
 
 }

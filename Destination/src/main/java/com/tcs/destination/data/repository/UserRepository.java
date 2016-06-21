@@ -74,7 +74,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> findByUserRole(String userRole);
 	
 	@Query(value = "select u.user_id,u.user_name,u.temp_password,u.user_group,u.user_role,u.base_location,ug.time_zone_desc,u.user_telephone,"
-			+ "u.user_email_id,u.supervisor_user_id,u.supervisor_user_name from user_t u join user_general_settings_t ug on u.user_id=ug.user_id", nativeQuery = true)
+			+ "u.user_email_id,u.supervisor_user_id,u.supervisor_user_name,u.active from user_t u join user_general_settings_t ug on u.user_id=ug.user_id", nativeQuery = true)
 	List<Object[]> findUserWithTimeZone();
 	
 	@Query( value = "select * from user_t where user_role in (:userRoles)", nativeQuery = true)
@@ -137,5 +137,24 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	
 	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_name) like UPPER(?1) ORDER BY user_id asc", nativeQuery = true)
 	List<UserT> getUsersByUserNameKeyword(String userName);
+	
+	
+	/**
+	 * Find the userId and username of subordinates of the user
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id ) SELECT U1.* FROM U1 ORDER BY U1.user_id asc", nativeQuery = true)
+	List<UserT> findSubordinatesBySupervisorId(String userId);
+	 
+	/**
+	 * Find the reporting hierarchy of the user
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U1.supervisor_user_id = U2.user_id ) SELECT U1.* FROM U1", nativeQuery = true)
+	List<UserT> findUserHierarchy(String userId);
 	
 }

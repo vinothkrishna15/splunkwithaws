@@ -120,6 +120,10 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "strategic_initiative")
 	private String strategicInitiative;
 
+	//bi-directional many-to-one association to OpportunityDeliveryOwnerCentreMappingT
+	@OneToMany(mappedBy="opportunityT")
+	private List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs;
+
 	// bi-directional many-to-one association to OpportunityWinLossFactorsT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs;
@@ -132,6 +136,9 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	@Column(name = "sales_stage_code")
 	private int salesStageCode;
+	
+	@Column(name = "delivery_ownership_id")
+	private Integer deliveryOwnershipId;
 
 	// bi-directional many-to-one association to BidDetailsT
 	@OneToMany(mappedBy = "opportunityT")
@@ -238,6 +245,11 @@ public class OpportunityT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "opportunityT", cascade = CascadeType.ALL)
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
+	
+	//bi-directional many-to-one association to DeliveryOwnershipT
+	@ManyToOne
+	@JoinColumn(name="delivery_ownership_id", insertable =false, updatable=false)
+	private DeliveryOwnershipT deliveryOwnershipT;
 
 	@Transient
 	private List<SearchKeywordsT> searchKeywordsTs;
@@ -492,6 +504,28 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setStrategicInitiative(String strategicInitiative) {
 		this.strategicInitiative = strategicInitiative;
+	}
+
+	public List<OpportunityDeliveryCentreMappingT> getOpportunityDeliveryCentreMappingTs() {
+		return this.opportunityDeliveryCentreMappingTs;
+	}
+
+	public void setOpportunityDeliveryOwnerCentreMappingTs(List<OpportunityDeliveryCentreMappingT> opportunityDeliveryCentreMappingTs) {
+		this.opportunityDeliveryCentreMappingTs = opportunityDeliveryCentreMappingTs;
+	}
+
+	public OpportunityDeliveryCentreMappingT addOpportunityDeliveryCentreMappingT(OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
+		getOpportunityDeliveryCentreMappingTs().add(opportunityDeliveryCentreMappingT);
+		opportunityDeliveryCentreMappingT.setOpportunityT(this);
+
+		return opportunityDeliveryCentreMappingT;
+	}
+
+	public OpportunityDeliveryCentreMappingT removeOpportunityDeliveryCentreMappingT(OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT) {
+		getOpportunityDeliveryCentreMappingTs().remove(opportunityDeliveryCentreMappingT);
+		opportunityDeliveryCentreMappingT.setOpportunityT(null);
+
+		return opportunityDeliveryCentreMappingT;
 	}
 
 	public List<BidDetailsT> getBidDetailsTs() {
@@ -1201,6 +1235,20 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.workflowRequest = workflowRequest;
 	}
 	
-	
+	public DeliveryOwnershipT getDeliveryOwnershipT() {
+		return deliveryOwnershipT;
+	}
+
+	public void setDeliveryOwnershipT(DeliveryOwnershipT deliveryOwnershipT) {
+		this.deliveryOwnershipT = deliveryOwnershipT;
+	}
+
+	public int getDeliveryOwnershipId() {
+		return deliveryOwnershipId;
+	}
+
+	public void setDeliveryOwnershipId(int deliveryOwnershipId) {
+		this.deliveryOwnershipId = deliveryOwnershipId;
+	}
 
 }

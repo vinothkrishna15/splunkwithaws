@@ -78,6 +78,17 @@ public class UserT implements Serializable {
 	@Column(name = "status")
     private int status; // added to mark whether password is default or notified or changed
 	
+	@Column(name = "user_mobile")
+	private String userMobile;
+	
+	public String getUserMobile() {
+		return userMobile;
+	}
+
+	public void setUserMobile(String userMobile) {
+		this.userMobile = userMobile;
+	}
+
 	public int getStatus() {
 		return status;
 	}

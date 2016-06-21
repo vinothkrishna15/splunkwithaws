@@ -28,5 +28,14 @@ public enum EntityTypeId {
 		}
 		return null;
 	}
+	
+	public static EntityTypeId getFrom(Integer type){
+		for (EntityTypeId c : EntityTypeId.values()) {
+			if (c.getType().equals(type)) {
+				return c;
+			}
+		}
+		return null;
+	}
 
 }
