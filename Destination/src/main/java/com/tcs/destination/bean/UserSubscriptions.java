@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -15,6 +20,8 @@ import java.util.List;
 @Entity
 @Table(name="user_subscriptions")
 @NamedQuery(name="UserSubscriptions.findAll", query="SELECT u FROM UserSubscriptions u")
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "userSubscriptionId")
 public class UserSubscriptions implements Serializable {
 	private static final long serialVersionUID = 1L;
 

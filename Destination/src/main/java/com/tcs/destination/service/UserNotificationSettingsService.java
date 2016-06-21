@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
+import com.tcs.destination.bean.NotificationTypeEventMappingT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
@@ -21,6 +22,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepo
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.UserSubscriptionsRepository;
+import com.tcs.destination.enums.NotificationSettingEvent;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -98,6 +100,7 @@ public class UserNotificationSettingsService {
 		}
 	}
 
+	@Transactional
 	public boolean saveUserNotificationsnew(
 			List<UserSubscriptions> userSubscription)
 			throws DestinationException {
@@ -225,5 +228,37 @@ public class UserNotificationSettingsService {
 			notificationSettingsGroupMappingTs.remove(index);
 		logger.debug("End:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
 
+	}
+
+	/**
+	 * fetch all notification settings of current user 
+	 * @return List of user subscription
+	 */
+	public List<UserSubscriptions> getUserNotificationSettingsNew() {
+		logger.info("Begin-> UserNotificationSettingsService :: getUserNotificationSettingsNew service");
+		
+		String userId = DestinationUtils.getCurrentUserId();
+		List<UserSubscriptions> subscriptions = userSubscriptionRepository.findByUserId(userId);
+		
+		for (UserSubscriptions userSubscription : subscriptions) {//add condition
+			Integer eventId = userSubscription.getNotificationTypeEventMappingT().getEventId();
+			NotificationSettingEvent event = NotificationSettingEvent.getByValue(eventId);
+			if(event != null && event == NotificationSettingEvent.COLLAB_CONDITION) {//fetch conditions only for collab conditions
+				userSubscription.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository.findByUserIdAndEventId(userId, eventId));
+			}
+			
+			prepareSubscriptions(userSubscription.getNotificationTypeEventMappingT());
+			
+		}
+		logger.info("End-> UserNotificationSettingsService :: getUserNotificationSettingsNew service");
+		return subscriptions;
+	}
+
+	/**
+	 * remove the identity object to avoid the looping in json construction
+	 * @param notificationTypeEventMappingT
+	 */
+	private void prepareSubscriptions(NotificationTypeEventMappingT notificationTypeEventMappingT) {
+		notificationTypeEventMappingT.setUserSubscriptions(null);
 	}
 }
