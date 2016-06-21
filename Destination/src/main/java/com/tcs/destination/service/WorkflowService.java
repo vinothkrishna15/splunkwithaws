@@ -2442,10 +2442,10 @@ public class WorkflowService {
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getReasonForReopen() != null) {
 				if (validateOpportunityRequest(opportunity)) {
-					if (workflowRequestRepository
+					if (CollectionUtils.isNotEmpty(workflowRequestRepository
 							.findByEntityTypeIdAndEntityIdAndStatus(
 									entityTypeId, opportunityId,
-									WorkflowStatus.PENDING.getStatus()) != null) {
+									WorkflowStatus.PENDING.getStatus()))) {
 						logger.error("Reopen request already exists for this opportunity.");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"Reopen request already exists for this opportunity.");
@@ -2552,10 +2552,11 @@ public class WorkflowService {
 		OpportunityT opportunity = opportunityRepository.findOne(opportunityId);
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getApprovedRejectedComments() != null) {
-				WorkflowRequestT workflowRequest = workflowRequestRepository
+				List<WorkflowRequestT> workflowRequests = workflowRequestRepository
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
 								opportunityId,
 								WorkflowStatus.PENDING.getStatus());
+				WorkflowRequestT workflowRequest = workflowRequests.get(0);
 				if (workflowRequest != null) {
 					WorkflowStepT workflowStepPending = workflowStepRepository
 							.findByRequestIdAndStepStatus(
