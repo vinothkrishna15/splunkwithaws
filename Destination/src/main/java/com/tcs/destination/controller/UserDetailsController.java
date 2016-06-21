@@ -639,7 +639,7 @@ public class UserDetailsController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error("Backend Error while inserting user");
+			logger.error("Backend Error while inserting user", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend Error while inserting user");
 		}

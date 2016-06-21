@@ -808,6 +808,7 @@ public class UserService {
 	 * @return
 	 * @throws Exception
 	 */
+	@Transactional
 	public boolean insertUserDetails(UserT user) throws Exception {
 		logger.info("Begin:inside insertUserDetails() method");
 		checkIfUserAlreadyExist(user);

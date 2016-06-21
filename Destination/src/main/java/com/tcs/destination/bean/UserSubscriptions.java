@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -37,6 +38,9 @@ public class UserSubscriptions implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "notification_type_event_mapping_id", insertable = false, updatable = false)
 	private NotificationTypeEventMappingT notificationTypeEventMappingT;
+	
+	@Transient
+	List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs;
 	
 	public UserSubscriptions() {
 	}
@@ -86,4 +90,17 @@ public class UserSubscriptions implements Serializable {
 		this.notificationTypeEventMappingT =  notificationTypeEventMappingT;	
 	}
 
+	public List<UserNotificationSettingsConditionsT> getUserNotificationSettingsConditionsTs() {
+		return userNotificationSettingsConditionsTs;
+	}
+
+	public void setUserNotificationSettingsConditionsTs(
+			List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs) {
+		this.userNotificationSettingsConditionsTs = userNotificationSettingsConditionsTs;
+	}
+
+	public NotificationTypeEventMappingT getNotificationTypeEventMappingT() {
+		return notificationTypeEventMappingT;
+	}
+	
 }
