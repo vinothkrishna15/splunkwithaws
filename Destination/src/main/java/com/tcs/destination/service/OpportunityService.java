@@ -79,6 +79,7 @@ import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityDao;
 import com.tcs.destination.data.repository.OpportunityDeliveryCentreMappingTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
@@ -121,18 +122,6 @@ import com.tcs.destination.utils.PropertyUtil;
 public class OpportunityService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
-	
-	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
-			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
-			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
-			+ "LEFT JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou "
-			+ "LEFT JOIN opportunity_sub_sp_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSLT.sub_sp=SSMT.sub_sp where";
-
-	private static final String OPPORTUNITY_GEO_INCLUDE_COND_PREFIX = "GCMT.geography in (";
-	private static final String OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX = "SSMT.display_sub_sp in (";
-	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
 	
 	private String bidId = null;
 
@@ -283,7 +272,9 @@ public class OpportunityService {
 	@Autowired
 	DeliveryCentreRepository deliveryCentreRepository;
 	
-	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
+	@Autowired
+	OpportunityDao opportunityDao;
+	
     
 	/**
 	 * To fetch opportunities by name
@@ -608,8 +599,6 @@ public class OpportunityService {
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");	
-		
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
 		if (opportunity != null) {
@@ -619,6 +608,7 @@ public class OpportunityService {
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
 
+			logger.debug("Search Keywords"+searchKeywords);
 			prepareOpportunity(opportunity, null);
 
 			beaconConverterService.convertOpportunityCurrency(opportunity,
@@ -643,7 +633,7 @@ public class OpportunityService {
 
 	}
 
-	private void restrictOpportunity(List<OpportunityT> opportunities) {
+	public void restrictOpportunity(List<OpportunityT> opportunities) {
 		if (opportunities != null && opportunities.size() > 0) {
 			for (OpportunityT opportunityT : opportunities) {
 				restrictOpportunity(opportunityT);
@@ -1303,7 +1293,7 @@ public class OpportunityService {
 		// hibernate session
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
-
+         logger.debug("oldObject"+oldObject);
 		// deal closure comments is mandatory for sales stage codes (11/12/13) 
 		if(opportunity.getSalesStageCode() == 11 || opportunity.getSalesStageCode() == 12 || opportunity.getSalesStageCode() == 13){
 		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
@@ -1459,7 +1449,7 @@ public class OpportunityService {
 			opportunityIds.add(opportunityT.getOpportunityId());
 		}
 		try {
-			List<String> previledgedOpportuniyies = getPriviledgedOpportunityId(opportunityIds);
+			List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
 
 			if (opportunityTs != null) {
 				for (OpportunityT opportunityT : opportunityTs) {
@@ -1520,7 +1510,7 @@ public class OpportunityService {
 		} else {
 			List<String> opportunityIdList = new ArrayList<String>();
 			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = getPriviledgedOpportunityId(opportunityIdList);
+			previledgedOppIdList =opportunityDao.getPriviledgedOpportunityId(opportunityIdList);
 			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
 					&& (!opportunityT.isEnableEditAccess())) {
 
@@ -1547,52 +1537,7 @@ public class OpportunityService {
 
 	}
 
-    private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
-			throws Exception 
-	{       
-		    logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils.getCurrentUserDetails().getUserId(), opportunityIds);
-		    logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery());
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-				for(int i=1;i<=parameterMap.size();i++)
-				{
-					opportunityQuery.setParameter(i, parameterMap.get(i));
-					
-				}
-			}
-			return opportunityQuery.getResultList();
-   }
-
-
-	private List<String> getPriviledgedOpportunityId(String opportunityId)
-
-			throws Exception {
-		    logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			List<String> opportunityIds = new ArrayList<String>();
-			opportunityIds.add(opportunityId);
-			queryBufferDTO  = getOpportunityPriviledgeString(DestinationUtils
-					.getCurrentUserDetails().getUserId(), opportunityIds);
-			logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery(),
-					OpportunityT.class);
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-			 for(int i=1;i<=parameterMap.size();i++)
-			 {
-				opportunityQuery.setParameter(i, parameterMap.get(i));
-				
-			 }
-			}
-
-			return opportunityQuery.getResultList();
-	}
-	
+  
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
 		logger.debug("Inside removeCyclicForLinkedConnects() method");
 
@@ -1646,7 +1591,7 @@ public class OpportunityService {
 	}
 
 	// This method is used to invoke asynchronous thread for auto comments
-	private void processAutoComments(String opportunitytId, Object oldObject)
+	public void processAutoComments(String opportunitytId, Object oldObject)
 			throws Exception {
 		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
@@ -1671,7 +1616,7 @@ public class OpportunityService {
 	}
 
 	// This method is used to invoke asynchronous thread for notifications
-	private void processNotifications(String opportunitytId, Object oldObject) {
+	public void processNotifications(String opportunitytId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
 		notificationsHelper.setEntityId(opportunitytId);
@@ -2168,20 +2113,27 @@ public class OpportunityService {
 		return pageSpecification;
 	}
     
-	
+	/**
+	 * This method set the priviledge conditions based upon which opportunity details is to fetched 
+	 * @param userId
+	 * @param opportunityIds
+	 * @return
+	 * @throws Exception
+	 */
 
-	private QueryBufferDTO getOpportunityPriviledgeString(String userId,
+	public QueryBufferDTO getOpportunityPriviledgeString(String userId,
 			List<String> opportunityIds) throws Exception {
 		logger.debug("Inside getOpportunityPriviledgeString() method");
-		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
+		QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
+        StringBuffer queryBuffer = new StringBuffer(opportunityDao.OPPORTUNITY_QUERY_PREFIX);
 		
 		// Get user access privilege groups
 
 		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
+				.getQueryPrefixMap(opportunityDao.OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
+						opportunityDao.OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
+						opportunityDao.OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
+						opportunityDao.OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
 
 		// Get WHERE clause string
 		queryBufferDTO= userAccessPrivilegeQueryBuilder
