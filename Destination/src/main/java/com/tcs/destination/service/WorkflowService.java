@@ -1500,6 +1500,7 @@ public class WorkflowService {
 					.toString());
 
 			query1.setParameter("userId", userId);
+			query1.setParameter("userGroup", userGroup);
 			if (resultList == null) {
 				resultList = query1.getResultList();
 			} else {
@@ -1515,7 +1516,7 @@ public class WorkflowService {
 				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
 		Query query2 = entityManager.createNativeQuery(queryBuffer.toString());
 		query2.setParameter("userRole", userRole);
-		query2.setParameter("userGroup", userGroup);
+		//query2.setParameter("userGroup", userGroup);
 		if (resultList == null) {
 			resultList = query2.getResultList();
 		} else {
