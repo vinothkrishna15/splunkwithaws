@@ -659,6 +659,7 @@ public class DestinationMailUtils {
 			workflowMap.put("submittedDate", dateStr);
 			workflowMap.put("userName", userName);
 			workflowMap.put("remarks", remarks);
+			workflowMap.put("geography", geography);
 			workflowMap.put("operation", operation);
 			workflowMap.put("reason", reason);
 			String tmpl;
