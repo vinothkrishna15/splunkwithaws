@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,8 +163,8 @@ public class UserAccessRequestService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"User Email Id is required");
 		} else {
-			UserT user = userRepository.findByUserEmailId(userAccessRequest.getUserEmailId());
-			if (user != null) {
+			List<UserT> users = userRepository.findByUserEmailId(userAccessRequest.getUserEmailId());
+			if (CollectionUtils.isNotEmpty(users)) {
 				logger.error("BAD_REQUEST: EmailId already exists");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"EmailId already exists");
@@ -181,8 +182,8 @@ public class UserAccessRequestService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid Supervisor Id");
 			} else {
-				UserT emailuser = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
-				if(emailuser==null){
+				List<UserT> emailuser = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
+				if(CollectionUtils.isNotEmpty(emailuser)) {
 					logger.error("BAD_REQUEST: Supervisor Id and Email Id mismatch");
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Supervisor Id and Email Id mismatch");
@@ -195,8 +196,8 @@ public class UserAccessRequestService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Supervisor Email Id is required");
 		}else {
-			UserT user = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
-			if(user==null){
+			List<UserT> users = userRepository.findByUserEmailId(userAccessRequest.getSupervisorEmailId());
+			if(CollectionUtils.isNotEmpty(users)){
 				logger.error("BAD_REQUEST: Invalid Supervisor Email Id");
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"Invalid Supervisor Email Id");

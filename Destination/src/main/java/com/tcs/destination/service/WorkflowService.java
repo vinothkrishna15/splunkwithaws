@@ -2556,8 +2556,10 @@ public class WorkflowService {
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
 								opportunityId,
 								WorkflowStatus.PENDING.getStatus());
-				WorkflowRequestT workflowRequest = workflowRequests.get(0);
-				if (workflowRequest != null) {
+				
+				
+				if (CollectionUtils.isNotEmpty(workflowRequests)) {
+					WorkflowRequestT workflowRequest = workflowRequests.get(0);
 					WorkflowStepT workflowStepPending = workflowStepRepository
 							.findByRequestIdAndStepStatus(
 									workflowRequest.getRequestId(),
