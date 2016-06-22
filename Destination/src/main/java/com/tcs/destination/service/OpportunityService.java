@@ -511,7 +511,10 @@ public class OpportunityService {
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
 			
-				opportunity.setWorkflowRequest(workflowRequests.get(0));
+			    if(CollectionUtils.isNotEmpty(workflowRequests)) {
+			    	opportunity.setWorkflowRequest(workflowRequests.get(0));
+			    }
+				
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
