@@ -138,13 +138,9 @@ public class DestinationMailSender {
 		List<String> filteredList = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(mails)) {
 			for (String mail : mails) {
-				List<UserT> users = userRepository.findByUserEmailId(mail);
-				if(CollectionUtils.isNotEmpty(users)) {
-					for (UserT userT : users) {
-						if(userT.isActive()) {
-							filteredList.add(mail);
-						}
-					}
+				UserT user = userRepository.findFirstByUserEmailIdAndActiveTrue(mail);
+				if(user!= null) {
+					filteredList.add(user.getUserEmailId());
 				} else {
 					filteredList.add(mail);
 				}
