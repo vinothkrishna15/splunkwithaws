@@ -851,7 +851,7 @@ public class DestinationMailUtils {
 				workflowMap.put("approvedOrRejectedUserName",
 						approvedOrRejectedUserName);
 				workflowMap.put("comment", comment);
-				workflowMap.put("Remarks", remarks);
+				workflowMap.put("remarks", remarks);
 				workflowMap.put("geography", geography);
 			} else {
 				WorkflowStepT workflowStepRejected = workflowStepRepository
@@ -868,7 +868,7 @@ public class DestinationMailUtils {
 						approvedOrRejectedUserName);
 				workflowMap.put("status", "rejected");
 				workflowMap.put("comment", comment);
-				workflowMap.put("Remarks", remarks);
+				workflowMap.put("remarks", remarks);
 				workflowMap.put("geography", geography);
 			}
 
