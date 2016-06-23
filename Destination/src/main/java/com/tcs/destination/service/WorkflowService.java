@@ -2358,7 +2358,7 @@ public class WorkflowService {
 				+ requestedCompetitor.getWorkflowCompetitorId());
 		if (requestedCompetitor != null) {
 			String entityId = requestedCompetitor.getWorkflowCompetitorId();
-			String comments = requestedCompetitor.getWorkflowCompetitorNotes();
+			String comments = requestedCompetitor.getComments();
 			Integer entityTypeId = EntityTypeId.COMPETITOR.getType();
 			WorkflowRequestT workflowRequest = populateWorkflowRequest(
 					entityId, entityTypeId, userId, comments);
@@ -2777,9 +2777,9 @@ public class WorkflowService {
 									.getStatus());
 							stepRecord.setModifiedBy(userId);
 							if (!StringUtils.isEmpty(workflowCompetitorT
-									.getWorkflowCompetitorNotes())) {
+									.getComments())) {
 								stepRecord.setComments(workflowCompetitorT
-										.getWorkflowCompetitorNotes());
+										.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);

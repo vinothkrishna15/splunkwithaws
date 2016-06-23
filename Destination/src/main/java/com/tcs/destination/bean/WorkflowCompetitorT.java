@@ -43,6 +43,9 @@ public class WorkflowCompetitorT implements Serializable {
 
 	@Column(name="workflow_competitor_website")
 	private String workflowCompetitorWebsite;
+	
+	@Transient
+	private String comments;
 
 	@Column(name="created_by")
 	private String createdBy;
@@ -141,6 +144,14 @@ public class WorkflowCompetitorT implements Serializable {
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 
 }
