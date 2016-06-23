@@ -159,11 +159,19 @@ public class AuditDetailService {
 		int wfId = Integer.parseInt(workflowId);
 		//fetch workflow using id
 		WorkflowRequestT workFlow = workflowRequestRepository.findOne(wfId);
+		if(workFlow == null) {
+			throw new DestinationException(HttpStatus.BAD_REQUEST, PropertyUtil.getProperty(ErrorConstants.INVALID_WORKFLOW_ID));
+		}
 		Integer entityTypeId = workFlow.getEntityTypeId();
 		String entityId = workFlow.getEntityId();
 		
 		//fetch audit entries of workflow step using workflowId 
 		List<AuditEntryDTO> stepEntries = getWorkflowStepEntries(wfId);
+		
+		if(CollectionUtils.isEmpty(stepEntries)) {
+			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.WORKFLOW_AUDIT_NOT_AVAILABLE));
+		}
+		
 		//fetch audit entries of workflow entity(partner, customer, competitor) using entityId
 		List<AuditEntryDTO> entityEntries = getWorkflowEntityEntries(entityTypeId, entityId);
 		
@@ -213,9 +221,9 @@ public class AuditDetailService {
 		List<AuditOpportunityT> salesCodeDateMap = aOpportunityRepository.getSalesCodeChanges(oppId);
 		
 		if(CollectionUtils.isEmpty(salesCodeDateMap)) {
-			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.AUDIT_NOT_AVAILABLE));
+			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.OPP_AUDIT_NOT_AVAILABLE));
 		} else if(salesCodeDateMap.get(0).getOldSalesStageCode() != null) {
-			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.AUDIT_NOT_CAPTURED_PROPERLY));
+			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.OPP_AUDIT_NOT_CAPTURED_PROPERLY));
 		}
 		
 		Date lastSalesChangeDate = null;
