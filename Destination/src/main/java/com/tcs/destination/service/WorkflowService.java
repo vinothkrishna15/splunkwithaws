@@ -1500,6 +1500,7 @@ public class WorkflowService {
 					.toString());
 
 			query1.setParameter("userId", userId);
+			query1.setParameter("userGroup", userGroup);
 			if (resultList == null) {
 				resultList = query1.getResultList();
 			} else {
@@ -1515,7 +1516,7 @@ public class WorkflowService {
 				QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_GROUP_QUERY);
 		Query query2 = entityManager.createNativeQuery(queryBuffer.toString());
 		query2.setParameter("userRole", userRole);
-		query2.setParameter("userGroup", userGroup);
+		//query2.setParameter("userGroup", userGroup);
 		if (resultList == null) {
 			resultList = query2.getResultList();
 		} else {
@@ -2441,10 +2442,10 @@ public class WorkflowService {
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getReasonForReopen() != null) {
 				if (validateOpportunityRequest(opportunity)) {
-					if (workflowRequestRepository
+					if (CollectionUtils.isNotEmpty(workflowRequestRepository
 							.findByEntityTypeIdAndEntityIdAndStatus(
 									entityTypeId, opportunityId,
-									WorkflowStatus.PENDING.getStatus()) != null) {
+									WorkflowStatus.PENDING.getStatus()))) {
 						logger.error("Reopen request already exists for this opportunity.");
 						throw new DestinationException(HttpStatus.BAD_REQUEST,
 								"Reopen request already exists for this opportunity.");
@@ -2551,11 +2552,14 @@ public class WorkflowService {
 		OpportunityT opportunity = opportunityRepository.findOne(opportunityId);
 		if (opportunity != null) {
 			if (opportunityReopenRequestT.getApprovedRejectedComments() != null) {
-				WorkflowRequestT workflowRequest = workflowRequestRepository
+				List<WorkflowRequestT> workflowRequests = workflowRequestRepository
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
 								opportunityId,
 								WorkflowStatus.PENDING.getStatus());
-				if (workflowRequest != null) {
+				
+				
+				if (CollectionUtils.isNotEmpty(workflowRequests)) {
+					WorkflowRequestT workflowRequest = workflowRequests.get(0);
 					WorkflowStepT workflowStepPending = workflowStepRepository
 							.findByRequestIdAndStepStatus(
 									workflowRequest.getRequestId(),

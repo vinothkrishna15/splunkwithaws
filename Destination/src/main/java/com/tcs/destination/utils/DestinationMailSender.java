@@ -129,14 +129,21 @@ public class DestinationMailSender {
 		}
 	}
 	
+	/**
+	 * filter the mail id of users who are all active and the user mail ids who is not in the DB
+	 * @param mails
+	 * @return
+	 */
 	private List<String> findActiveUserMailIds(final List<String> mails) {
 		List<String> filteredList = Lists.newArrayList();
 		if(CollectionUtils.isNotEmpty(mails)) {
 			for (String mail : mails) {
-				UserT user = userRepository.findByUserEmailId(mail);
-				if(user != null) {
-					if(user.isActive()) {
-						filteredList.add(mail);
+				List<UserT> users = userRepository.findByUserEmailId(mail);
+				if(CollectionUtils.isNotEmpty(users)) {
+					for (UserT userT : users) {
+						if(userT.isActive()) {
+							filteredList.add(mail);
+						}
 					}
 				} else {
 					filteredList.add(mail);

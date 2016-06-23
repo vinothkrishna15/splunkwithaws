@@ -506,11 +506,15 @@ public class OpportunityService {
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
 			//Getting the workflow request in order to check whether if the opportunity is placed for reopen request
-			WorkflowRequestT workflowRequestPending = workflowRequestRepository
+			List<WorkflowRequestT> workflowRequests = workflowRequestRepository
 					.findByEntityTypeIdAndEntityIdAndStatus(
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
-				opportunity.setWorkflowRequest(workflowRequestPending);
+			
+			    if(CollectionUtils.isNotEmpty(workflowRequests)) {
+			    	opportunity.setWorkflowRequest(workflowRequests.get(0));
+			    }
+				
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
