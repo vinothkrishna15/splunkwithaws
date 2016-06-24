@@ -313,7 +313,7 @@ public class NotificationBatchHelper {
 		List<Recipient> filteredRecipients = Lists.newArrayList();
 		for (Recipient recipient : recipients) {
 			if (filteredRecipients.contains(recipient)) {
-				mergeRecipientEvents(filteredRecipients, recipient);
+				mergeRecipientEventsAndSubords(filteredRecipients, recipient);
 			} else {
 				filteredRecipients.add(recipient);
 			}
@@ -323,17 +323,19 @@ public class NotificationBatchHelper {
 	}
 
 	/**
-	 * merge the events of recipient with the recipient matched in the list
+	 * merge the events of recipient with the recipient matched in the list and 
+	 * merge the subordinates if supervisors
 	 * 
 	 * @param filteredRecipients
 	 * @param recipient
 	 */
-	private void mergeRecipientEvents(List<Recipient> filteredRecipients,
+	private void mergeRecipientEventsAndSubords(List<Recipient> filteredRecipients,
 			Recipient recipient) {
 		for (Recipient item : filteredRecipients) {
 			if (item.equals(recipient)) {
 				Map<RecipientType, List<Integer>> events = item.getEvents();
 				events.putAll(recipient.getEvents());
+				item.getSubodinates().addAll(recipient.getSubodinates());
 			}
 		}
 	}
@@ -628,24 +630,35 @@ public class NotificationBatchHelper {
 	}
 
 	private Recipient constructRecipient(String recipientId,
-			OwnerType ownerType, String subordinateId,
+			OwnerType subordinateType, String subordinateId,
 			RecipientType recipientType, boolean isRemoved, List<Integer> events) {
 		Recipient recipient = new Recipient();
 		Map<RecipientType, List<Integer>> recipientTypeEventMap = Maps
 				.newHashMap();
 		recipient.setId(recipientId);
-		recipient.setOwnerType(ownerType);
-		recipient.setSubodinateId(subordinateId);
+		recipient.setOwnerType(subordinateType);
+		recipient.getSubodinates().add(getSubordinate(subordinateId, subordinateType));
 		List<Integer> subscribedEvents = notificationTypeEventMappingRepository
-				.getNotificationEventIdsForUser(recipientId); // TODO get the
-																// suscribed
-																// events for
-																// the recipient
+				.getNotificationEventIdsForUser(recipientId); 
 		events.retainAll(subscribedEvents);// retain only the subscribed events
 		recipientTypeEventMap.put(recipientType, events);
 		recipient.setEvents(recipientTypeEventMap);
 		recipient.setRemoved(isRemoved);
 		return recipient;
+	}
+
+	/**
+	 * construct the subordinate in Recipient object 
+	 * @param subordinateId
+	 * @param subordinateType
+	 * @return
+	 */
+	private Recipient getSubordinate(String subordinateId,
+			OwnerType subordinateType) {
+		Recipient subordinate = new Recipient();
+		subordinate.setId(subordinateId);
+		subordinate.setOwnerType(subordinateType);
+		return subordinate;
 	}
 
 	/**
@@ -902,14 +915,14 @@ public class NotificationBatchHelper {
 		case OWNER_CHANGE:
 			userNotificationsTs
 					.add(getNotificationForOwnerChangeAndBdmTaggedToTask(
-							eventIdsMap, recipient, entityType, entityId, null,
-							eventId, recipientMessageTemplateMapping, null));
+							eventIdsMap, recipient, entityType, entityId, 
+							eventId, recipientMessageTemplateMapping));
 			break;
 		case TAG_UPDATES_TASK:
 			userNotificationsTs
 					.add(getNotificationForOwnerChangeAndBdmTaggedToTask(
-							eventIdsMap, recipient, entityType, entityId, null,
-							eventId, recipientMessageTemplateMapping, null));
+							eventIdsMap, recipient, entityType, entityId, 
+							eventId, recipientMessageTemplateMapping));
 			break;
 		case FOLLOW_CONNECT_OPPORTUNITY:
 			userNotificationsTs.add(constructNotification(eventId, recipientId,
@@ -921,11 +934,10 @@ public class NotificationBatchHelper {
 			break;
 		case SUBORDINATES_AS_OWNERS:
 			userNotificationsTs
-					.add(getNotificationForOwnerChangeAndBdmTaggedToTask(
+					.add(getNotificationForOwnerChangeToSupervisor(
 							eventIdsMap, recipient, entityType, entityId,
-							getUserNameForUserId(recipient.getSubodinateId()),
 							eventId, recipientMessageTemplateMapping,
-							recipient.getSubodinateId()));
+							recipient.getSubodinates()));
 			break;
 		case COLLAB_CONDITION:
 			userNotificationsTs.add(constructNotification(eventId, recipientId,
@@ -940,7 +952,7 @@ public class NotificationBatchHelper {
 					.add(getNotificationForDigitalOpportunitiesAndWonLost(
 							eventId, recipientId, entityType, entityId,
 							template,
-							getUserNameForUserId(recipient.getSubodinateId())));
+							recipient.getSubodinates()));
 			break;
 		case STRATEGIC_OPPORTUNITIES:
 			userNotificationsTs
@@ -957,7 +969,7 @@ public class NotificationBatchHelper {
 					.add(getNotificationForDigitalOpportunitiesAndWonLost(
 							eventId, recipientId, entityType, entityId,
 							template,
-							getUserNameForUserId(recipient.getSubodinateId())));
+							recipient.getSubodinates()));
 			break;
 		default:
 			break;
@@ -979,12 +991,30 @@ public class NotificationBatchHelper {
 
 	private UserNotificationsT getNotificationForDigitalOpportunitiesAndWonLost(
 			Integer eventId, String recipientId, String entityType,
-			String entityId, String template, String subordinate)
+			String entityId, String template, List<Recipient> subordinates)
 			throws Exception {
+		
+		String subordinateNames = null;
+		
+		if(CollectionUtils.isNotEmpty(subordinates)) {
+			List<String> nameList = Lists.newArrayList();
+			for (Recipient subordinate : subordinates) {
+				String name = getUserNameForUserId(subordinate.getId());
+				String nameWithType = getNameWithType(subordinate.getOwnerType(), name);
+				nameList.add(nameWithType);
+			}
+			subordinateNames = StringUtils.join(nameList, ", ");
+		}
+		
 		String templateForDigitalOpportunity = constructMessageTemplate(null,
-				null, null, null, null, template, subordinate, null);
+				null, null, null, null, template, subordinateNames, null);
 		return constructNotification(eventId, recipientId, entityType,
 				entityId, templateForDigitalOpportunity);
+	}
+
+	private String getNameWithType(OwnerType ownerType, String name) {
+		String nameWithType = new StringBuffer(name).append("(").append(ownerType.getName()).append(")").toString();
+		return nameWithType;
 	}
 
 	/**
@@ -1348,7 +1378,7 @@ public class NotificationBatchHelper {
 	 */
 	private String constructMessageTemplate(Map<String, String> data,
 			String fromValue, String toValue, String status, String fieldName,
-			String template, String subordinate, String associates)
+			String template, String subordinates, String associates)
 			throws Exception {
 		Map<String, String> dynamicData = Maps.newHashMap();
 		if (data != null) {
@@ -1358,7 +1388,7 @@ public class NotificationBatchHelper {
 		dynamicData.put("from", fromValue);
 		dynamicData.put("to", toValue);
 		dynamicData.put("fieldName", fieldName);
-		dynamicData.put("subordinate", subordinate);
+		dynamicData.put("subordinate", subordinates);
 		dynamicData.put("associates", associates);
 		return replaceTokens(template, dynamicData);
 		// return template + "##";
@@ -2019,25 +2049,21 @@ public class NotificationBatchHelper {
 	 * @param subordinate
 	 * @param eventId
 	 * @param recipientMessageTemplateMapping
-	 * @param subordinateId
 	 * @return
 	 * @throws Exception
 	 */
 	private UserNotificationsT getNotificationForOwnerChangeAndBdmTaggedToTask(
 			Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventIdsMap,
 			Recipient recipient, String entityType, String entityId,
-			String subordinate, Integer eventId,
-			RecipientMessageTemplateMapping recipientMessageTemplateMapping,
-			String subordinateId) throws Exception {
+			Integer eventId,
+			RecipientMessageTemplateMapping recipientMessageTemplateMapping) throws Exception {
 
 		UserNotificationsT userNotificationsT = new UserNotificationsT();
 		List<String> addedOwnersOrBdmsTagged = recipientMessageTemplateMapping
 				.getUsers();
 		List<String> templates = recipientMessageTemplateMapping.getTemplates();
 		String recipientId = recipient.getId();
-		if (StringUtils.isNotEmpty(subordinateId)) {
-			recipientId = subordinateId;
-		}
+		
 		if (addedOwnersOrBdmsTagged.contains(recipientId)) {
 			String status = recipient.isRemoved() ? Constants.REMOVED
 					: Constants.ADDED;
@@ -2049,7 +2075,54 @@ public class NotificationBatchHelper {
 					entityId,
 					constructMessageTemplate(null, null, null, status,
 							recipient.getOwnerType().name(), templates.get(0),
-							subordinate, null));
+							null, null));
+
+		}
+		return userNotificationsT;
+	}
+	
+	
+	/**
+	 * Method used to get the Notification For Owner Change And BdmTaggedToTask
+	 * @param eventIdsMap
+	 * @param recipient
+	 * @param entityType
+	 * @param entityId
+	 * @param subordinate
+	 * @param eventId
+	 * @param recipientMessageTemplateMapping
+	 * @param subordinates
+	 * @return
+	 * @throws Exception
+	 */
+	private UserNotificationsT getNotificationForOwnerChangeToSupervisor(
+			Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventIdsMap,
+			Recipient recipient, String entityType, String entityId,
+			Integer eventId,
+			RecipientMessageTemplateMapping recipientMessageTemplateMapping,
+			List<Recipient> subordinates) throws Exception {
+
+		UserNotificationsT userNotificationsT = new UserNotificationsT();
+		List<String> addedOwnersOrBdmsTagged = recipientMessageTemplateMapping
+				.getUsers();
+		List<String> templates = recipientMessageTemplateMapping.getTemplates();
+		if (CollectionUtils.isNotEmpty(subordinates)) {
+			List<String> addedSubordinates = Lists.newArrayList();
+			for (Recipient subordinate : subordinates) {
+				if (addedOwnersOrBdmsTagged.contains(subordinate.getId())) {
+					addedSubordinates.add(getNameWithType(subordinate.getOwnerType(), getUserNameForUserId(subordinate.getId())));
+				}
+			}
+
+			String subordinateNames = StringUtils.join(addedSubordinates, ", ");
+			userNotificationsT = constructNotification(
+					eventId,
+					recipient.getId(),
+					entityType,
+					entityId,
+					constructMessageTemplate(null, null, null, Constants.ADDED,
+							recipient.getOwnerType().name(), templates.get(0),
+							subordinateNames, null));
 
 		}
 		return userNotificationsT;

@@ -3,7 +3,7 @@ package com.tcs.destination.bean;
 import java.util.List;
 import java.util.Map;
 
-import com.tcs.destination.enums.NotificationSettingEvent;
+import com.google.common.collect.Lists;
 import com.tcs.destination.enums.OwnerType;
 import com.tcs.destination.enums.RecipientType;
 
@@ -16,7 +16,7 @@ public class Recipient {
 
 	private String id;
 	//private RecipientType type;
-	private String SubodinateId;
+	private List<Recipient> subodinates;
 	//private List<NotificationSettingEvent> subscribedEvents;
 	private Map<RecipientType,List<Integer>> events;
 	private OwnerType ownerType;
@@ -29,12 +29,15 @@ public class Recipient {
 		this.id = id;
 	}
 
-	public String getSubodinateId() {
-		return SubodinateId;
+	public List<Recipient> getSubodinates() {
+		if(subodinates == null) {
+			subodinates = Lists.newArrayList();
+		}
+		return subodinates;
 	}
-	public void setSubodinateId(String subodinateId) {
-		SubodinateId = subodinateId;
-	}
+	/*public void setSubodinates(List<Recipient> subodinates) {
+		this.subodinates = subodinates;
+	}*/
 	public Map<RecipientType, List<Integer>> getEvents() {
 		return events;
 	}
