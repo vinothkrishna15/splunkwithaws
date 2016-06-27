@@ -103,24 +103,30 @@ public class UserNotificationSettingsService {
 	@Transactional
 	public boolean saveUserNotificationsnew(
 			List<UserSubscriptions> userSubscription)
-			throws DestinationException {
+					throws DestinationException {
+
 		logger.debug("Begin:Inside saveUserNotifications() UserNotificationSettings service");
+		String userId = DestinationUtils.getCurrentUserId();
 		// Save notification settings conditions first
 		for ( UserSubscriptions userSubscriptions : userSubscription) {
 			if (userSubscriptions
 					.getUserNotificationSettingsConditionsTs() != null) {
 				try {
 					userNotificationSettingsConditionRepository
-							.save(userSubscriptions
-									.getUserNotificationSettingsConditionsTs());
+					.save(userSubscriptions
+							.getUserNotificationSettingsConditionsTs());
 				} catch (Exception e) {
 					logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 					throw new DestinationException(
 							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 				}
 			}
+
+			userSubscriptions.setUserId(userId);
+
 		}
 		try {
+
 			if (userSubscriptionRepository
 					.save(userSubscription) != null) {
 				logger.debug("End:Inside saveUserNotifications() UserNotificationSettings service");
