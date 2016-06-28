@@ -111,13 +111,13 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct(user_email_id) from user_t where active='true' and user_email_id in (:userMails)", nativeQuery = true)
 	List<String> findActiveUserMailIds(@Param("userMails") List<String> userMails);
 
-	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds)", nativeQuery = true)
-	List<String> findUserMailIdsFromUserId(@Param("userIds") List<String> userIds);
+	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds) and active=true", nativeQuery = true)
+	List<String> findUserMailIdsFromActiveUsers(@Param("userIds") List<String> userIds);
 	
 	UserT findByActiveTrueAndUserName(String userName);
 	UserT findByActiveTrueAndUserId(String userId);
 	
-	List<UserT> findUsersByStatusAndActive(int status,boolean active);
+	List<UserT> findByStatusAndActiveTrue(int status);
 
 	
 	/* ------- user smart search repository methods ------- */

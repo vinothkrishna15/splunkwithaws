@@ -18,10 +18,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
 import com.tcs.destination.bean.DestinationMailMessage;
-import com.tcs.destination.bean.UserT;
-import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
 
 /**
@@ -37,9 +34,6 @@ public class DestinationMailSender {
 
 	@Value("${senderEmailId}")
 	private String senderEmailId;
-
-	@Autowired
-	UserRepository userRepository;
 	
 	@Autowired
 	private JavaMailSender mailSender;
@@ -52,7 +46,7 @@ public class DestinationMailSender {
 	public void send(final DestinationMailMessage message) throws Exception {
 
 		//filter the in-active user mail ids 
-		filterInActiveUsers(message);
+		//filterInActiveUsers(message);
 		
 		if(isValidMessage(message)) {
 			try {
@@ -86,11 +80,11 @@ public class DestinationMailSender {
 				logger.info("mail sent, subject : {}", subject);
 				
 			} catch (MessagingException | MailException e) {
-				logger.error("Error sending mail {}", e.getMessage());
+				logger.error("Error sending mail ", e);
 				throw e;
 			}
 		} else {
-			throw new DestinationException("Invalid mail : Check recipients and subject");
+			throw new DestinationException("Invalid mail : Recipients and subject are mandatory");
 		}
 
 
@@ -112,41 +106,6 @@ public class DestinationMailSender {
 	 */
 	private String[] convertToArray(final List<String> list) {
 		return list.toArray(new String[0]);
-	}
-
-	/**
-	 * filter the recipients(to), cc and bcc mail list with only active users mails
-	 * @param message
-	 */
-	private void filterInActiveUsers(DestinationMailMessage message) {
-		if(message != null) {
-				//filter inactive user from recipients
-				message.setRecipients(findActiveUserMailIds(message.getRecipients()));
-				//filter inactive user from cc
-				message.setCcList(findActiveUserMailIds(message.getCcList()));
-				//filter inactive user from bcc
-				message.setBccList(findActiveUserMailIds(message.getBccList()));
-		}
-	}
-	
-	/**
-	 * filter the mail id of users who are all active and the user mail ids who is not in the DB
-	 * @param mails
-	 * @return
-	 */
-	private List<String> findActiveUserMailIds(final List<String> mails) {
-		List<String> filteredList = Lists.newArrayList();
-		if(CollectionUtils.isNotEmpty(mails)) {
-			for (String mail : mails) {
-				UserT user = userRepository.findFirstByUserEmailIdAndActiveTrue(mail);
-				if(user!= null) {
-					filteredList.add(user.getUserEmailId());
-				} else {
-					filteredList.add(mail);
-				}
-			}
-		}
-		return filteredList;
 	}
 
 	/**

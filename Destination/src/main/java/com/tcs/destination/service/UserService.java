@@ -396,7 +396,8 @@ public class UserService {
 	public void forgotPassword(String userId, String userEmailId)
 			throws Exception {
 		logger.debug("Begin:Inside forgotPassword() of Userservice");
-		UserT user = userRepository.findOne(userId);
+		//get active user by id
+		UserT user = userRepository.findByActiveTrueAndUserId(userId);
 		if (user != null) {
 			String retrievedMailId = user.getUserEmailId();
 			if (retrievedMailId.equalsIgnoreCase(userEmailId)) {
@@ -408,9 +409,8 @@ public class UserService {
 						"UserId and E-Mail address do not match");
 			}
 		} else {
-			logger.error("NOT_FOUND: User not found: {}", userId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"User not found: " + userId);
+			logger.error("NOT_FOUND: User not found or inactive: {}", userId);
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User not found or inactive: " + userId);
 		}
 		logger.debug("End:Inside forgotPassword() of Userservice");
 	}

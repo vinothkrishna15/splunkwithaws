@@ -204,10 +204,14 @@ public class DestinationMailUtils {
 	public void sendPasswordAutomatedEmail(String subject, UserT user,
 			Date requestedDateTime) throws Exception {
 		logger.debug("inside sendPasswordAutomatedEmail method");
+		
+		if(user == null || !user.isActive()) {
+			logger.warn("DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive", user.getUserId());
+			return;
+		}
+			
 		DestinationMailMessage message = new DestinationMailMessage();
-
 		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
-
 		message.setSubject(formatSubject(subject));
 
 		Map<String, Object> forgotPasswordTemplateDataModel = Maps.newHashMap();
@@ -225,16 +229,14 @@ public class DestinationMailUtils {
 	public boolean sendDefaultPasswordAutomatedEmail(String subject, UserT user
 			) throws Exception {
 		logger.debug("inside sendDefaultPasswordAutomatedEmail method");
-		DestinationMailMessage message = new DestinationMailMessage();
-
-		List<String> recipientIds = new ArrayList<String>();
-		String userId = user.getUserId();
-		recipientIds.add(userId);
 		
+		if(user != null && !user.isActive()) {
+			logger.warn("DestinationMailUtils :: Can't process the mail - The user {} is inactive", user.getUserId());
+			return false;
+		}
+		
+		DestinationMailMessage message = new DestinationMailMessage();
 		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
-
-		//DateFormat df = new SimpleDateFormat(dateFormatStr);
-		//String dateStr = df.format(requestedDateTime);
 		message.setSubject(formatSubject(subject));
 		
 		Map<String, Object> defaultPasswordTemplateDataModel = Maps.newHashMap();
@@ -268,7 +270,7 @@ public class DestinationMailUtils {
 
 		UserT user = request.getUserT();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
-		if (user != null) {
+		if (user != null && user.isActive()) {
 			dateStr = df.format(request.getSubmittedDatetime());
 			message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
 		}
@@ -400,14 +402,17 @@ public class DestinationMailUtils {
 		DestinationMailMessage message = new DestinationMailMessage();
 
 		//add all system admins in "to address"
-		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
-		message.setRecipients(listMailIdsFromUserIds(recipientIds));
+//		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
+		//message.setRecipients(listMailIdsFromUserIds(recipientIds));
+		message.setRecipients(listMailIdsFromRoles(Lists.newArrayList(Constants.SYSTEM_ADMIN)));
 
 		//cc to the requested user and his supervisor
 		UserAccessRequestT userAccessRequest = userAccessRepo.findOne(reqId);
 		UserT supervisor = userRepository.findOne(userAccessRequest.getSupervisorId());
-		List<String> ccIds = Lists.newArrayList(userAccessRequest.getUserEmailId(), supervisor.getUserEmailId());
-		message.setCcList(ccIds);
+		if(supervisor != null && supervisor.isActive()) {
+			List<String> ccIds = Lists.newArrayList(userAccessRequest.getUserEmailId(), supervisor.getUserEmailId());
+			message.setCcList(ccIds);
+		}
 
 		message.setSubject(formatSubject(subject));
 
@@ -439,12 +444,15 @@ public class DestinationMailUtils {
 		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
 
 		//add all system admins in "to address"
-		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
-		message.setRecipients(listMailIdsFromUserIds(recipientIds));
+//		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
+//		message.setRecipients(listMailIdsFromUserIds(recipientIds));
+		message.setRecipients(listMailIdsFromRoles(Lists.newArrayList(Constants.SYSTEM_ADMIN)));
 
 		//cc to the requested user and his supervisor
-		List<String> ccIds = Lists.newArrayList(user.getUserEmailId(), supervisor.getUserEmailId());
-		message.setCcList(ccIds);
+		if(user != null && user.isActive()) {
+			List<String> ccIds = Lists.newArrayList(user.getUserEmailId(), supervisor.getUserEmailId());
+			message.setCcList(ccIds);
+		}
 
 		String dateStr = formatDate(requestedDateTime);
 		message.setSubject(formatSubject(subject));
@@ -478,6 +486,11 @@ public class DestinationMailUtils {
 		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
 		CustomerMasterT customer = opp.getCustomerMasterT();
 
+		if(user == null || !user.isActive()) {
+			logger.warn("DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive", user.getUserId());
+			return;
+		}
+		
 		List<String> recepientIds = Lists.newArrayList(user.getUserEmailId());
 		message.setRecipients(recepientIds);
 
@@ -921,9 +934,19 @@ public class DestinationMailUtils {
 		List<String> mailIds = new ArrayList<String>();
 		List<UserT> users = userService.getByUserRoles(roles);
 		for (UserT user : users) {
-			mailIds.add(user.getUserEmailId());
+			if(user.isActive()) {
+				mailIds.add(user.getUserEmailId());
+			}
 		}
 		return mailIds;
+	}
+	
+	private List<String> listMailIdsFromUserIds(List<String> recipientIdList) {
+		List<String> emailIds = Lists.newArrayList();
+		if(CollectionUtils.isNotEmpty(recipientIdList)) {
+			emailIds = userRepository.findUserMailIdsFromActiveUsers(recipientIdList);
+		}
+		return emailIds;		
 	}
 
 	/**
@@ -963,18 +986,10 @@ public class DestinationMailUtils {
 		return sub;
 	}
 
-	private List<String> listMailIdsFromUserIds(List<String> recipientIdList) {
-		List<String> emailIds = Lists.newArrayList();
-		if(CollectionUtils.isNotEmpty(recipientIdList)) {
-			emailIds = userRepository.findUserMailIdsFromUserId(recipientIdList);
-		}
-		return emailIds;		
+	private String splitStringByComma(List<String> userNames) {
+		logger.debug("Inside constructUserNamesSplitByComma Service");
+		return org.apache.commons.lang.StringUtils.join(userNames, ", ");
 	}
-	
-	 private String splitStringByComma(List<String> userNames) {
-		 logger.debug("Inside constructUserNamesSplitByComma Service");
-		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
-	    }
 
 	/**
 	 * This method is used to send the email notification to group of users on 

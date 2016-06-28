@@ -31,8 +31,8 @@ public class EmailDefaultPasswordProcessor implements Tasklet{
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
 		
-		//fetch users
-		 List<UserT> userList = userRepo.findUsersByStatusAndActive(0,true);
+		//fetch un-notified active users
+		 List<UserT> userList = userRepo.findByStatusAndActiveTrue(0);
 		//for each user 
 		 for(UserT user : userList){
 			 //form email
