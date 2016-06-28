@@ -136,18 +136,15 @@ public class UserNotificationSettingsController {
 
 	}
 
-	@RequestMapping(value = "/get", method = RequestMethod.POST)
+	@RequestMapping(value = "/get", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getUserNotificationSettingsNew(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view)
 					throws DestinationException {
 		logger.info("UserNotificationSettingsController :: getUserNotificationSettingsNew - Start");
-		Status status = new Status();
 		try {
 			List<UserSubscriptions> userSubscriptions = userNotificationSettingsService
 					.getUserNotificationSettingsNew();
-				status.setStatus(Status.SUCCESS,
-						"User notification settings have been updated successfully");
 			logger.info("UserNotificationSettingsController :: End of getting user notification settings");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
