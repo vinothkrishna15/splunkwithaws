@@ -293,11 +293,11 @@ public class OpportunityUploadService {
 				// STRATEGIC INITIATIVE
 				if (!StringUtils.isEmpty(listOfCellValues.get(13))) {
 				    validateCellByStringLength(listOfCellValues.get(13),OpportunityUploadConstants.STRATEGIC_INIT, 13, OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE);
-				    opp.setStrategicInitiative(listOfCellValues.get(13).toUpperCase());
+				    opp.setStrategicDeal(listOfCellValues.get(13).toUpperCase());
 				}
 				else
 				{
-					opp.setStrategicInitiative("NO");
+					opp.setStrategicDeal("NO");
 				}
               
 				// DIGITAL FLAG

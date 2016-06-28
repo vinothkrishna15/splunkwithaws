@@ -184,7 +184,7 @@ public class BDMService {
 		UserT user = userService.findByUserId(userId);
 		if (user != null) {
 			String userGroup = user.getUserGroupMappingT().getUserGroup();
-			if (userGroup.equals("BDM Supervisor") || userGroup.equals("Practice Head")) {
+			if (userGroup.equals("BDM Supervisor") || userGroup.equals("Practice Head")  || userGroup.equals("PMO")) {
 				userIds = new ArrayList<String>();
 				bdmSupervisorDashboardDetails = new BDMSupervisorDashboardDTO();
 				
@@ -198,8 +198,8 @@ public class BDMService {
 				}
 				bdmSupervisorDashboardDetails = getBDMSupervisorDashboardByUser(userIds, financialYear, isDashboardByYear);
 			} else {
-				logger.error("NOT_FOUND: User is not BDM Supervisor: {}", userId);
-				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Practice Head: " + userId);
+				logger.error("NOT_FOUND: User is not BDM Supervisor/Practice Head/PMO: {}", userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND, "User is not BDM Supervisor/Practice Head/PMO: " + userId);
 			}
 		} else {
 			logger.error("NOT_FOUND: User not found: {}", userId);

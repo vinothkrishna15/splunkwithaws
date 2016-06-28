@@ -26,7 +26,7 @@ public interface ConnectSubSpLinkRepository extends CrudRepository<ConnectSubSpL
 	 * @param connectId
 	 * @return
 	 */
-	@Query(value = "select distinct sub_sp from connect_sub_sp_link_t where subsp_primary=FALSE and connect_id = ?1", nativeQuery = true)
+	@Query(value = "select distinct sub_sp from connect_sub_sp_link_t where connect_id = ?1", nativeQuery = true)
 	List<String> findSubSpByConnectId(String connectId);
 
 }

@@ -387,7 +387,7 @@ public interface OpportunityRepository extends
 			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id "
 			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) " 
 			+ "and (OPP.sales_stage_code in (:salesStageCode) or (-1) in (:salesStageCode)) "
-			+ "and (OPP.strategic_initiative=(:strategicInitiative) or (:strategicInitiative)='' ) "
+			+ "and (OPP.strategic_deal=(:strategicDeal) or (:strategicDeal)='' ) "
 			+ "and (OPP.new_logo = (:newLogo) or (:newLogo) ='' ) " 
 			+ "and (((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:dealCurrency)) between (:minDigitalDealValue) and (:maxDigitalDealValue)) or (:defaultDealRange)='YES') " 
 			+ "and (OPP.digital_flag=(:digitalFlag) or (:digitalFlag)='' ) " 
@@ -408,7 +408,7 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByOpportunitiesForCurrentFyIgnoreCaseLike(
 			@Param("customerIdList") List<String> customerIdList,
 			@Param("salesStageCode") List<Integer> salesStageCode,
-			@Param("strategicInitiative") String strategicInitiative,
+			@Param("strategicDeal") String strategicDeal,
 			@Param("newLogo") String newLogo,
 			@Param("defaultDealRange") String defaultDealRange,
 			@Param("minDigitalDealValue") double minDigitalDealValue,
@@ -437,7 +437,7 @@ public interface OpportunityRepository extends
 			+ "JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id "
 			+ "where (OPP.customer_id in (:customerIdList) or ('') in (:customerIdList)) " 
 			+ "and (OPP.sales_stage_code in (:salesStageCode) or (-1) in (:salesStageCode)) "
-			+ "and (OPP.strategic_initiative=(:strategicInitiative) or (:strategicInitiative)='' ) "
+			+ "and (OPP.strategic_deal=(:strategicDeal) or (:strategicDeal)='' ) "
 			+ "and (OPP.new_logo = (:newLogo) or (:newLogo) ='' ) " 
 			+ "and (((OPP.digital_deal_value * (select conversion_rate from beacon_convertor_mapping_t where currency_name=OPP.deal_currency)) / (select conversion_rate from beacon_convertor_mapping_t where currency_name = (:dealCurrency)) between (:minDigitalDealValue) and (:maxDigitalDealValue)) or (:defaultDealRange)='YES') " 
 			+ "and (OPP.digital_flag=(:digitalFlag) or (:digitalFlag)='' ) " 
@@ -457,7 +457,7 @@ public interface OpportunityRepository extends
 	List<OpportunityT> findByOpportunitiesIgnoreCaseLike(
 			@Param("customerIdList") List<String> customerIdList,
 			@Param("salesStageCode") List<Integer> salesStageCode,
-			@Param("strategicInitiative") String strategicInitiative,
+			@Param("strategicDeal") String strategicDeal,
 			@Param("newLogo") String newLogo,
 			@Param("defaultDealRange") String defaultDealRange,
 			@Param("minDigitalDealValue") double minDigitalDealValue,

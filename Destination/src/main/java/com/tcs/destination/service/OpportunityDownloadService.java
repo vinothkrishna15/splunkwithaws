@@ -239,9 +239,9 @@ public class OpportunityDownloadService {
 	    }
 	    
 	    //strategic initiative
-	    if(opp.getStrategicInitiative()!=null){
+	    if(opp.getStrategicDeal()!=null){
 		Cell cellSI = row.createCell(13);
-		cellSI.setCellValue(opp.getStrategicInitiative().trim());
+		cellSI.setCellValue(opp.getStrategicDeal().trim());
 	    }
 	    
 	    //Digital Flag

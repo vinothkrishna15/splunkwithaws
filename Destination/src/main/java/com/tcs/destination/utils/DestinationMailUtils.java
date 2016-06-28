@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
+import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunitySubSpLinkT;
@@ -664,6 +665,7 @@ public class DestinationMailUtils {
 			workflowMap.put("submittedDate", dateStr);
 			workflowMap.put("userName", userName);
 			workflowMap.put("remarks", remarks);
+			workflowMap.put("geography", geography);
 			workflowMap.put("operation", operation);
 			workflowMap.put("reason", reason);
 			String tmpl;
@@ -750,17 +752,17 @@ public class DestinationMailUtils {
 				operation = Constants.WORKFLOW_OPERATION_CREATE;
 				recepientIds.add(workflowPartnerT.getCreatedBy());
 				break;
-			case COMPETITOR:
-				entity = Constants.WORKFLOW_COMPETITOR;
-				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-						.findOne(entityId);
-				entityName = workflowCompetitor.getWorkflowCompetitorName();
-				userName = userRepository
-						.findUserNameByUserId(workflowCompetitor
-								.getCreatedBy());
-				operation = Constants.WORKFLOW_OPERATION_CREATE;
-				recepientIds.add(workflowCompetitor.getCreatedBy());
-				break;
+//			case COMPETITOR:
+//				entity = Constants.WORKFLOW_COMPETITOR;
+//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+//						.findOne(entityId);
+//				entityName = workflowCompetitor.getWorkflowCompetitorName();
+//				userName = userRepository
+//						.findUserNameByUserId(workflowCompetitor
+//								.getCreatedBy());
+//				operation = Constants.WORKFLOW_OPERATION_CREATE;
+//				recepientIds.add(workflowCompetitor.getCreatedBy());
+//				break;
 			case OPPORTUNITY:
 				entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
 				OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -855,7 +857,7 @@ public class DestinationMailUtils {
 				workflowMap.put("approvedOrRejectedUserName",
 						approvedOrRejectedUserName);
 				workflowMap.put("comment", comment);
-				workflowMap.put("Remarks", remarks);
+				workflowMap.put("remarks", remarks);
 				workflowMap.put("geography", geography);
 			} else {
 				WorkflowStepT workflowStepRejected = workflowStepRepository
@@ -872,7 +874,7 @@ public class DestinationMailUtils {
 						approvedOrRejectedUserName);
 				workflowMap.put("status", "rejected");
 				workflowMap.put("comment", comment);
-				workflowMap.put("Remarks", remarks);
+				workflowMap.put("remarks", remarks);
 				workflowMap.put("geography", geography);
 			}
 
@@ -969,7 +971,7 @@ public class DestinationMailUtils {
 		return emailIds;		
 	}
 	
-	 private String constructUserNamesSplitByComma(List<String> userNames) {
+	 private String splitStringByComma(List<String> userNames) {
 		 logger.debug("Inside constructUserNamesSplitByComma Service");
 		 return org.apache.commons.lang.StringUtils.join(userNames, ", ");
 	    }
@@ -1010,6 +1012,11 @@ public class DestinationMailUtils {
 			 List<String> winLossFactors = new ArrayList<String>();
 			 List<String> opportunitySalesSupportOwners = new ArrayList<String>();
 			 List<String> opportunitySubSps = new ArrayList<String>();
+			 List<String> opportunityCompetitors = new ArrayList<String>();
+			 List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
+			 String competitorNames = Constants.NOT_AVAILABLE;
+			 String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
+
 			 String salesSupportOwners = "";
 			 String factorsForWinLoss = "";
 			 String subSpsStr = "";
@@ -1020,17 +1027,9 @@ public class DestinationMailUtils {
 				 opportunitySubSps.add(displaySubSp);
 			 }
 			 if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
-				 subSpsStr = constructUserNamesSplitByComma(opportunitySubSps);
+				 subSpsStr = splitStringByComma(opportunitySubSps);
 			 }
-			 for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-					 .getOpportunityWinLossFactorsTs()) {
-				 winLossFactors.add(opportunityWinLossFactorsT
-						 .getWinLossFactor());
-			 }
-			 if (CollectionUtils.isNotEmpty(winLossFactors)) {
-				 factorsForWinLoss = constructUserNamesSplitByComma(winLossFactors);
-				 logger.info("factors for win/loss : "+factorsForWinLoss);
-			 }
+			 
 			 for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 					 .getOpportunitySalesSupportLinkTs()) {
 
@@ -1043,30 +1042,96 @@ public class DestinationMailUtils {
 			 }
 			 if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
 				 withSupportFrom = Constants.WITH_SUPPORT_FROM;
-				 salesSupportOwners = constructUserNamesSplitByComma(opportunitySalesSupportOwners);
+				 salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
 				 logger.info("sales support owners : "+salesSupportOwners);
 			 }
+			 
+				// Getting Opportunity Competitors
+				if (CollectionUtils.isNotEmpty(opportunity
+						.getOpportunityCompetitorLinkTs())) {
+					for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+							.getOpportunityCompetitorLinkTs()) {
+						if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
+								Constants.Y)) {
+							opportunityIncumbentCompetitors
+									.add(opportunityCompetitorLinkT
+											.getCompetitorName());
+						} else {
+							opportunityCompetitors.add(opportunityCompetitorLinkT
+									.getCompetitorName());
+						}
+						
+					}
+				}
+				
+				if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
+					competitorNames = splitStringByComma(opportunityCompetitors);
+				}
+
+				if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
+					incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
+				}
+
 
 			 recepientIds.add(opportunityWonLostGroupMailId);
 			 if (opportunity.getSalesStageCode() == 9) {
-				 logger.info("opportunity Won");
-				 subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
-				 .append("Deal Won for").append(" ")
-				 .append(customerName);
-				 logger.info("Subject for opportunity won :"+subject);
-				 templateLoc = opportunityWonTemplateLoc;
+					logger.info("opportunity Won");
+					subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+							.append(" ").append("Deal Won for").append(" ")
+							.append(customerName);
+					logger.info("Subject for opportunity won : {}", subject);
+					templateLoc = opportunityWonTemplateLoc;
+					// Getting Win Loss Factors
+					for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+							.getOpportunityWinLossFactorsTs()) {
+						// if the win/Loss factor is Win-Other,adding the win loss
+						// others description to the factors
+						if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+								Constants.WIN_OTHER)) {
+							if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+									.getWinLossOthersDescription())) {
+								winLossFactors.add(opportunityWinLossFactorsT
+										.getWinLossOthersDescription());
+							}
+						} else {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossFactor());
+						}
+					}
 
-			 }
+				}
+				// If the Opportunity is lost, framing the subject ang getting the
+				// template loc and loss factors
+				if (opportunity.getSalesStageCode() == 10) {
+					logger.info("OpportunityLost");
+					subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+							.append(" ").append("Deal Lost for").append(" ")
+							.append(customerName);
+					logger.info("Subject for opportunity lost :" + subject);
+					templateLoc = opportunityLostTemplateLoc;
 
-			 if(opportunity.getSalesStageCode() == 10) {
-				 logger.info("OpportunityLost");
-				 subject.append("DESTiNATION:").append(" ").append(subSpsStr).append(" ")
-				 .append("Deal Lost for").append(" ")
-				 .append(customerName);
-				 logger.info("Subject for opportunity lost :"+subject);
-				 templateLoc = opportunityLostTemplateLoc;
+					for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+							.getOpportunityWinLossFactorsTs()) {
+						// if the win/Loss factor is Loss-Other,adding the win loss
+						// others description to the factors
+						if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+								Constants.LOSS_OTHER)) {
+							if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+									.getWinLossOthersDescription())) {
+								winLossFactors.add(opportunityWinLossFactorsT
+										.getWinLossOthersDescription());
+							}
+						} else {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossFactor());
+						}
+					}
+				}
 
-			 }
+				if (CollectionUtils.isNotEmpty(winLossFactors)) {
+					factorsForWinLoss = StringUtils.join(winLossFactors, ", ");
+					logger.info("factors for win/loss : " + factorsForWinLoss);
+				}
 			 if(templateLoc!=null) {
 				 DestinationMailMessage message = new DestinationMailMessage();
 				 message.setRecipients(Lists.newArrayList(opportunityWonLostGroupMailId));
@@ -1082,6 +1147,10 @@ public class DestinationMailUtils {
 				 map.put("opportunityDescription", opportunityDescription);
 				 map.put("withSupportFrom", withSupportFrom);
 				 map.put("dealClosureDate", dealClosureDateStr);
+					map.put("competitorNames", competitorNames);
+					map.put("incumbentCompetitorNames",
+							incumbentCompetitorNames);
+
 				 String text = mergeTmplWithData(map, templateLoc);
 				 logger.info("framed text for mail :" + text);
 				 message.setMessage(text);

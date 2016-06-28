@@ -32,6 +32,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
@@ -104,6 +105,7 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
 import com.tcs.destination.exception.DestinationException;
@@ -230,9 +232,6 @@ public class OpportunityService {
 	@Autowired
 	FollowedService followService;
 	
-	@Autowired
-	JobLauncherController jobLauncherController;
-
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
 	
@@ -614,11 +613,15 @@ public class OpportunityService {
 			beaconConverterService.convertOpportunityCurrency(opportunity,
 					toCurrency);
 			//Getting the workflow request in order to check whether if the opportunity is placed for reopen request
-			WorkflowRequestT workflowRequestPending = workflowRequestRepository
+			List<WorkflowRequestT> workflowRequests = workflowRequestRepository
 					.findByEntityTypeIdAndEntityIdAndStatus(
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
-				opportunity.setWorkflowRequest(workflowRequestPending);
+			
+			    if(CollectionUtils.isNotEmpty(workflowRequests)) {
+			    	opportunity.setWorkflowRequest(workflowRequests.get(0));
+			    }
+				
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
@@ -1246,8 +1249,8 @@ public class OpportunityService {
 		baseOpportunityT.setOpportunityRequestReceiveDate(opportunity
 				.getOpportunityRequestReceiveDate());
 		baseOpportunityT.setOverallDealSize(opportunity.getOverallDealSize());
-		baseOpportunityT.setStrategicInitiative(opportunity
-				.getStrategicInitiative());
+		baseOpportunityT.setStrategicDeal(opportunity
+				.getStrategicDeal());
 		baseOpportunityT.setDealType(opportunity.getDealType());
 		baseOpportunityT.setCountry(opportunity.getCountry());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
@@ -1866,7 +1869,7 @@ public class OpportunityService {
 	}
 
 	public PaginatedResponse getByOpportunities(List<String> customerIdList,
-			List<Integer> salesStageCode, String strategicInitiative,
+			List<Integer> salesStageCode, String strategicDeal,
 			String newLogo, double minDigitalDealValue,
 			double maxDigitalDealValue, String dealCurrency,
 			String digitalFlag, List<String> displayIou, List<String> country,
@@ -1929,7 +1932,7 @@ public class OpportunityService {
 			
 			opportunity = opportunityRepository
 					.findByOpportunitiesForCurrentFyIgnoreCaseLike(customerIdList,
-							salesStageCode, strategicInitiative, newLogo,
+							salesStageCode, strategicDeal, newLogo,
 							defaultDealRange, minDigitalDealValue,
 							maxDigitalDealValue, dealCurrency, digitalFlag,
 							displayIou, country, partnerId, competitorName,
@@ -1940,7 +1943,7 @@ public class OpportunityService {
 			{
 				opportunity = opportunityRepository
 						.findByOpportunitiesIgnoreCaseLike(customerIdList,
-								salesStageCode, strategicInitiative, newLogo,
+								salesStageCode, strategicDeal, newLogo,
 								defaultDealRange, minDigitalDealValue,
 								maxDigitalDealValue, dealCurrency, digitalFlag,
 								displayIou, country, partnerId, competitorName,
@@ -2590,9 +2593,13 @@ public class OpportunityService {
 	* This method is used to update the opportunity details and also
 	* send email notification if opportunity won or lost
 	* @param opportunity
+	* @return AsyncJobRequest
 	* @throws Exception
 	*/
-	public void updateOpportunityT(OpportunityT opportunity) throws Exception {
+	@Transactional
+	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity) throws Exception {
+		
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
@@ -2616,16 +2623,14 @@ public class OpportunityService {
 				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
 			logger.info("Opportunity : " + opportunityId
 					+ " is either won or lost");
-			jobLauncherController.asyncJobLaunch(
-					JobName.opportunityWonLostEmailNotification,
-					EntityType.OPPORTUNITY.toString(),
-					opportunity.getOpportunityId());
+			asyncJobRequest.setJobName(JobName.opportunityWonLostEmailNotification);
+			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+			asyncJobRequest.setOn(Switch.ON);
+
 		} 
-//		else {
-//			logger.info("Opportunity Id:{} email notification : ", opportunityId);
-//			jobLauncherController.asyncJobLaunch(JobName.opportunityEmailNotification, EntityType.OPPORTUNITY.toString(),
-//			opportunity.getOpportunityId());
-//		}
+		
+		return asyncJobRequest;
 	}
 	
 	/**

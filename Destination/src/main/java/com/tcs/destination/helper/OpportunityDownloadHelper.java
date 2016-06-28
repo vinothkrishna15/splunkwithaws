@@ -186,9 +186,9 @@ public class OpportunityDownloadHelper {
 			}
 
 			// strategic initiative
-			if (opportunity.getStrategicInitiative() != null) {
+			if (opportunity.getStrategicDeal() != null) {
 				Cell cellSI = row.createCell(13);
-				cellSI.setCellValue(opportunity.getStrategicInitiative().trim());
+				cellSI.setCellValue(opportunity.getStrategicDeal().trim());
 			}
 
 			// Digital Flag

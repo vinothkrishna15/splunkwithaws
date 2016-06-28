@@ -53,7 +53,9 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.ReportConstants;
-
+/*
+ * This service handles the Target Vs Actual, Connect, Bid, Opportunity, BDM Performance Reports functionalities
+ */
 @Service
 public class ReportsService {
 
@@ -128,7 +130,7 @@ private static final String CONNECT_SUMMARY_IOU_REPORT_QUERY_PREFIX =  "select c
 		
 private static final String CONNECT_SUMMARY_SUBSP_REPORT_SUB_QUERY_PREFIX = "select distinct(CON.connect_id) as connectIds,COALESCE(display_sub_sp, 'SubSp Not Defined') as displaySubSp from connect_t CON  JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
 + " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
-+ " LEFT OUTER JOIN connect_sub_sp_link_t CSL ON (CON.connect_id=CSL.connect_id and subsp_primary=tru ) LEFT OUTER JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "; 
++ " LEFT OUTER JOIN connect_sub_sp_link_t CSL ON (CON.connect_id=CSL.connect_id) LEFT OUTER JOIN sub_sp_mapping_t SSM ON CSL.sub_sp=SSM.sub_sp "; 
 
 private static final String CONNECT_SUMMARY_GEO_REPORT_SUB_QUERY_PREFIX = "select distinct(CON.connect_id) as connectIds, GMT.display_geography as displayGeography from connect_t CON  JOIN customer_master_t CMT ON CMT.customer_id=CON.customer_id "
 + " JOIN iou_customer_mapping_t ICMT ON CMT.iou=ICMT.iou JOIN geography_mapping_t GMT ON CMT.geography=GMT.geography "
@@ -2619,7 +2621,6 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 			case PMO:
 				userIds = userRepository.getAllSubordinatesIdBySupervisorId(userId);
 				userIds.add(userId);
-			
 				if(isCustomer(connectCategory)){
 					subSpCustomerConnectCountList = getCustomerConnectSubSpSummaryDetails(userId, fromDate, toDate,geography,iouList,serviceLinesList,countryList,userIds);
 					geographyCustomerConnectCountList = getCustomerConnectGeoSummaryDetails(userId, fromDate, toDate,geography,iouList,serviceLinesList,countryList,userIds);
@@ -2692,7 +2693,7 @@ public InputStreamResource connectSummaryReport(String month, String quarter, St
 private List<Object[]> getCustomerConnectSubSpSummaryDetails(String userId, Date fromDate, Date toDate, String displayGeography, List<String> iouList, List<String> serviceLinesList, List<String> countryList, List<String> userIds) throws Exception {
 	
 	String subSpQueryString = getConnectSubSpSummaryQueryString(userId, fromDate, toDate,displayGeography,iouList,serviceLinesList,countryList,userIds);
-	logger.debug("SUBSP Query string: {}", subSpQueryString);
+	logger.info("SUBSP Query string: {}", subSpQueryString);
 	// Execute the native revenue query string
 	Query connectSubSpSummaryReportQuery = entityManager.createNativeQuery(subSpQueryString);
 	

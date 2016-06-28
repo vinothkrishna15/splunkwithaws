@@ -289,9 +289,9 @@ public class OpportunityUploadHelper {
 		}
 
 		// STRATEGIC INITIATIVE
-		String strategicInitiative = data[14];
-		if (!StringUtils.isEmpty(strategicInitiative)) {
-			if (validateCellByStringLength(strategicInitiative,
+		String strategicDeal = data[14];
+		if (!StringUtils.isEmpty(strategicDeal)) {
+			if (validateCellByStringLength(strategicDeal,
 					OpportunityUploadConstants.STRATEGIC_INIT, 14,
 					OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE)) {
 				error.setRowNumber(rowNumber);
@@ -300,10 +300,10 @@ public class OpportunityUploadHelper {
 						+ OpportunityUploadConstants.STRATEGIC_INIT_MAX_SIZE
 						+ " characters");
 			} else {
-				opportunity.setStrategicInitiative(strategicInitiative);
+				opportunity.setStrategicDeal(strategicDeal);
 			}
 		} else {
-			opportunity.setStrategicInitiative(Constants.NO);
+			opportunity.setStrategicDeal(Constants.NO);
 		}
 
 		// DIGITAL FLAG

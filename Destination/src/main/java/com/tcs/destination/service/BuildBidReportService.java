@@ -2,12 +2,14 @@ package com.tcs.destination.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -35,7 +37,9 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FieldsMap;
 import com.tcs.destination.utils.ReportConstants;
-
+/*
+ * This service handles the Bid Detailed report functionalities
+ */
 @Component
 public class BuildBidReportService {
 	private static final Logger logger = LoggerFactory
@@ -85,19 +89,31 @@ public class BuildBidReportService {
 		logger.debug("Inside getBidDetailsReport() method");
 		SXSSFSheet spreadSheet = (SXSSFSheet) workbook.createSheet("Bid Report");
 		
-//		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
+		CellStyle cellStyle = ExcelUtils.createRowStyle(workbook, ReportConstants.REPORTHEADER);
+		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
+		CreationHelper createHelper = spreadSheet.getWorkbook().getCreationHelper();
+		cellStyleDateFormat.setDataFormat(createHelper.createDataFormat().getFormat("mm/dd/yyyy"));
 		SXSSFRow row = (SXSSFRow) spreadSheet.createRow(0);
 		if (fields.size() == 0 && fields.isEmpty()) {
-			createHeaderBidDetailsReportMandatoryFields(row, spreadSheet,
-					currency);
-			getBidReportWithMandatoryFields(bidDetailsList, spreadSheet, currency);
+			getMandatoryBidReportHeader(row, spreadSheet,currency,cellStyle);
+			getBidReportWithMandatoryFields(bidDetailsList, spreadSheet, currency,cellStyleDateFormat);
 		} else {
-			SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-			createHeaderBidDetailsReportOptionalFields(bidDetailsList, row,
-					row1, fields, spreadSheet, currency);
-			getBidReportWithOptionalFields(bidDetailsList, spreadSheet, fields,
-					currency);
+			createHeaderBidDetailsReportOptionalFields(bidDetailsList, row, fields, spreadSheet, currency);
+			getBidReportWithOptionalFields(bidDetailsList, spreadSheet, fields,	currency, cellStyleDateFormat);
 		}
+		InputStreamResource inputStreamResource = getInputStreamResource(workbook);
+		return inputStreamResource;
+	}
+
+	/**
+	 * This method is used to get input stream resource for the given workbook
+	 * 
+	 * @param workbook
+	 * @return inputStreamResource
+	 * @throws IOException
+	 */
+	private InputStreamResource getInputStreamResource(SXSSFWorkbook workbook)
+			throws IOException {
 		ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 		workbook.write(byteOutPutStream);
 		byteOutPutStream.flush();
@@ -108,60 +124,43 @@ public class BuildBidReportService {
 		return inputStreamResource;
 	}
 
-	/**
-	 * This method is used to set bid detailed report mandatory fields along with deal value in both INR and USD to spreadSheet
-	 * 
-	 * @param row
-	 * @param spreadSheet
-	 * @param currency
-	 */
-	public void createHeaderBidDetailsReportMandatoryFields(SXSSFRow row,
-			SXSSFSheet spreadSheet, List<String> currency) {
-		logger.debug("Inside createHeaderBidDetailsReportMandatoryFields() method");
-		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
-		getMandatoryBidReportHeader(row, spreadSheet);
-		if (currency.size() > 1) {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-			row.getCell(8).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8,
-					8 + currency.size() - 1));
-			SXSSFRow row1 = (SXSSFRow) spreadSheet.createRow(1);
-			for (int i = 0; i < currency.size(); i++) {
-				row1.createCell((8 + i)).setCellValue(currency.get(i));
-				row1.getCell(8+i).setCellStyle(cellStyle);
-			}
-		} else {
-			row.createCell(8).setCellValue(
-					ReportConstants.DIGITALDEALVALUE + " In " + currency.get(0));
-			row.getCell(8).setCellStyle(cellStyle);
-		}
-	}
 
 	/**
 	 * This method is used to set bid detailed report mandatory fields to spreadSheet
 	 * 
 	 * @param row
 	 * @param spreadSheet
+	 * @param currency 
+	 * @param cellStyle 
 	 */
-	public void getMandatoryBidReportHeader(SXSSFRow row, SXSSFSheet spreadSheet) {
+	public void getMandatoryBidReportHeader(SXSSFRow row, SXSSFSheet spreadSheet, List<String> currency, CellStyle cellStyle) {
 		logger.debug("Inside getMandatoryBidReportHeader() method");
-		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
-		row.createCell(0).setCellValue(ReportConstants.OPPORTUNITYID);
-		row.getCell(0).setCellStyle(cellStyle);
-		row.createCell(1).setCellValue(ReportConstants.DISPLAYGEO);
-		row.getCell(1).setCellStyle(cellStyle);
-		row.createCell(2).setCellValue(ReportConstants.DISPLAYSERVICELINE);
-		row.getCell(2).setCellStyle(cellStyle);
-		row.createCell(3).setCellValue(ReportConstants.DISPLAYIOU);
-		row.getCell(3).setCellStyle(cellStyle);
-		row.createCell(4).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
-		row.getCell(4).setCellStyle(cellStyle);
-		row.createCell(5).setCellValue(ReportConstants.SALESSTAGE);
-		row.getCell(5).setCellStyle(cellStyle);
-		row.createCell(6).setCellValue(ReportConstants.BIDREQUESTTYPE);
-		row.getCell(6).setCellStyle(cellStyle);
-		row.createCell(7).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
-		row.getCell(7).setCellStyle(cellStyle);
+		int colNo=0;
+		row.createCell(colNo).setCellValue(ReportConstants.OPPORTUNITYID);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYGEO);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYSERVICELINE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.DISPLAYIOU);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.GROUPCUSTOMERNAME);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.SALESSTAGE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.BIDREQUESTTYPE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		row.createCell(colNo).setCellValue(ReportConstants.BIDREQUESTRECEIVEDDATE);
+		row.getCell(colNo++).setCellStyle(cellStyle);
+		if (currency.size() > 1) {
+			row.createCell(colNo).setCellValue(ReportConstants.DEALVALUEINR);
+			row.getCell(colNo++).setCellStyle(cellStyle);
+			row.createCell(colNo).setCellValue(ReportConstants.DEALVALUEUSD);
+			row.getCell(colNo++).setCellStyle(cellStyle);
+		} else {
+			row.createCell(colNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)	+ ")");
+			row.getCell(colNo++).setCellStyle(cellStyle);
+		}
 	}
 
 	/**
@@ -169,31 +168,16 @@ public class BuildBidReportService {
 	 * 
 	 * @param bidDetailsList
 	 * @param row
-	 * @param row1
 	 * @param fields
 	 * @param spreadSheet
 	 * @param currency
 	 */
 	public void createHeaderBidDetailsReportOptionalFields(
-			List<BidDetailsT> bidDetailsList, SXSSFRow row, SXSSFRow row1,
-			List<String> fields, SXSSFSheet spreadSheet, List<String> currency) {
+			List<BidDetailsT> bidDetailsList, SXSSFRow row, List<String> fields, SXSSFSheet spreadSheet, List<String> currency) {
 		logger.debug("Inside createHeaderBidDetailsReportOptionalFields() method");
-		// This method creates default headers for Bid Report
-		getMandatoryBidReportHeader(row, spreadSheet);
 		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),	ReportConstants.REPORTHEADER);
-		if (currency.size() > 1) {
-			row.createCell(8).setCellValue(ReportConstants.DIGITALDEALVALUE);
-			row.getCell(8).setCellStyle(cellStyle);
-			spreadSheet.addMergedRegion(new CellRangeAddress(0, 0, 8, 8 + currency.size() - 1));
-			for (int i = 0; i < currency.size(); i++) {
-				row1.createCell((8 + i)).setCellValue(currency.get(i));
-				row1.getCell(8 + i).setCellStyle(cellStyle);
-			}
-		} else {
-			row.createCell(8).setCellValue(
-					ReportConstants.DIGITALDEALVALUE + " In " + currency.get(0));
-			row.getCell(8).setCellStyle(cellStyle);
-		}
+		// This method creates default headers for Bid Report
+		getMandatoryBidReportHeader(row, spreadSheet,currency,cellStyle);
 		int colValue = 9;
 		if (currency.size() > 1) {
 			colValue = 10;
@@ -217,19 +201,16 @@ public class BuildBidReportService {
 	 * @param bidDetailsList
 	 * @param spreadSheet
 	 * @param currency
+	 * @param cellStyleDateFormat 
 	 * @return
 	 */
 	public int getBidReportWithMandatoryFields(List<BidDetailsT> bidDetailsList,
-			SXSSFSheet spreadSheet, List<String> currency) {
+			SXSSFSheet spreadSheet, List<String> currency, CellStyle cellStyleDateFormat) {
 		logger.debug("Inside getBidReportWithMandatoryFields() method");
 		int currentRow = 1;
-		if (currency.size() > 1) {
-			currentRow = 2;
-		}
 		for (BidDetailsT bidDetail : bidDetailsList) {
 			SXSSFRow row = (SXSSFRow) spreadSheet.createRow(currentRow);
-			getBidDetailsReportMandatoryFields(spreadSheet, row, currency,
-					bidDetail);
+			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail,cellStyleDateFormat);
 			currentRow++;
 		}
 		return currentRow;
@@ -242,46 +223,47 @@ public class BuildBidReportService {
 	 * @param row
 	 * @param currency
 	 * @param bidDetail
+	 * @param cellStyleDateFormat 
 	 */
 	public void getBidDetailsReportMandatoryFields(SXSSFSheet spreadSheet,
-			SXSSFRow row, List<String> currency, BidDetailsT bidDetail) {
+			SXSSFRow row, List<String> currency, BidDetailsT bidDetail, CellStyle cellStyleDateFormat) {
 		logger.debug("Inside getBidDetailsReportMandatoryFields() method");
-		int i = 0;
-//		CellStyle cellStyle = ExcelUtils.createRowStyle(
-//				spreadSheet.getWorkbook(), ReportConstants.DATAROW);
-		row.createCell(0).setCellValue(bidDetail.getOpportunityId());
-		row.createCell(1).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getGeographyMappingT().getDisplayGeography());
-		
+		int colNo = 0;
+		//set opportunity id
+		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityId());
+		//set display geography
+		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getGeographyMappingT().getDisplayGeography());
+		//set primary and secondary subsp 
 		List<String> displaySubSpList = new ArrayList<String>();
 		String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(bidDetail.getOpportunityId());
-		displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+		if(oppPrimarySubSp!=null){
+			displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+		}
 		displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(bidDetail.getOpportunityId()));
 		if(!displaySubSpList.isEmpty()){
-			row.createCell(2).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
 		}
-		
-		row.createCell(3).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getIouCustomerMappingT().getDisplayIou());
-		row.createCell(4).setCellValue(
-				bidDetail.getOpportunityT().getCustomerMasterT()
-						.getGroupCustomerName());
+		colNo++;
+		//set display iou
+		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getDisplayIou());
+		//set group customer name
+		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getGroupCustomerName());
 		//set sales stage code
-		row.createCell(5).setCellValue(bidDetail.getOpportunityT().getSalesStageMappingT().getSalesStageDescription());
-		row.createCell(6).setCellValue(bidDetail.getBidRequestType());
-		row.createCell(7).setCellValue(
-				bidDetail.getBidRequestReceiveDate().toString());
+		row.createCell(colNo++).setCellValue(bidDetail.getOpportunityT().getSalesStageMappingT().getSalesStageDescription());
+		//set bid type
+		row.createCell(colNo++).setCellValue(bidDetail.getBidRequestType());
+		//Set Request Received Date
+		row.createCell(colNo).setCellValue(bidDetail.getBidRequestReceiveDate());
+		row.getCell(colNo++).setCellStyle(cellStyleDateFormat);
+		//set deal value in both INR and USD
 		for (OpportunityDealValue opportunityDealValue : bidDetail.getOpportunityT().getOpportunityDealValues()) {
 			BigDecimal dealValue = opportunityDealValue.getDigitalDealValue();
 			if (dealValue != null) {
-				row.createCell(8 + i).setCellValue(opportunityDealValue.getDigitalDealValue().doubleValue());
-				i++;
+				row.createCell(colNo).setCellValue(opportunityDealValue.getDigitalDealValue().doubleValue());
 			}else{
-				row.createCell(8 + i).setCellValue(0.00);
-				i++;
+				row.createCell(colNo).setCellValue(0.00);
 			}
+			colNo++;
 		}
 	}
 
@@ -292,17 +274,14 @@ public class BuildBidReportService {
 	 * @param spreadSheet
 	 * @param fields
 	 * @param currency
+	 * @param cellStyleDateFormat 
 	 * @return
 	 */
 	public int getBidReportWithOptionalFields(List<BidDetailsT> bidDetailsList,
-			SXSSFSheet spreadSheet, List<String> fields, List<String> currency) {
+			SXSSFSheet spreadSheet, List<String> fields, List<String> currency, CellStyle cellStyleDateFormat) {
 		logger.debug("Inside getBidReportWithOptionalFields() method");
-//		CellStyle cellStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(), ReportConstants.DATAROW);
 		int currentRow = 1;
 		SXSSFRow row = null;
-		if (currency.size() > 1) {
-			currentRow = 2;
-		}
 		boolean iouFlag = fields.contains(ReportConstants.IOU);
 		boolean geographyFlag = fields.contains(ReportConstants.GEOGRAPHY);
 		boolean subFlag = fields.contains(ReportConstants.SUBSP);
@@ -322,7 +301,7 @@ public class BuildBidReportService {
 		for (BidDetailsT bidDetail : bidDetailsList) {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			//to set mandatory fields to spreadSheet
-			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail);
+			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail,cellStyleDateFormat);
 			int colValue = 9;
 			if (currency.size() > 1) {
 				colValue = 10;
@@ -340,7 +319,9 @@ public class BuildBidReportService {
 			if(subFlag){
 				List<String> oppSubSpList = new ArrayList<String>();
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(bidDetail.getOpportunityId());
-				oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				if(oppPrimarySubSp!=null){
+					oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+				}
 				oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(bidDetail.getOpportunityId()));
 				if(!oppSubSpList.isEmpty()){
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
@@ -407,21 +388,24 @@ public class BuildBidReportService {
 				
 			if(targetBidSubDtFlag){
 				if(bidDetail.getTargetBidSubmissionDate()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getTargetBidSubmissionDate().toString());
+					row.createCell(colValue).setCellValue(bidDetail.getTargetBidSubmissionDate());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
 				}
 				colValue++;
 			}
 			
 			if(actualBidSubDtFlag){
 				if(bidDetail.getActualBidSubmissionDate()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate().toString());
+					row.createCell(colValue).setCellValue(bidDetail.getActualBidSubmissionDate());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
 				}
 				colValue++;
 			}
 				
 			if(expDtOfOutcomeFlag){
 				if(bidDetail.getExpectedDateOfOutcome()!=null){
-					row.createCell(colValue).setCellValue(bidDetail.getExpectedDateOfOutcome().toString());
+					row.createCell(colValue).setCellValue(bidDetail.getExpectedDateOfOutcome());
+					row.getCell(colValue).setCellStyle(cellStyleDateFormat);
 				}
 				colValue++;
 			}

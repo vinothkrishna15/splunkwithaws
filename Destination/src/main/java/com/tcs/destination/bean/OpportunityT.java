@@ -117,8 +117,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Column(name = "overall_deal_size")
 	private Integer overallDealSize;
 
-	@Column(name = "strategic_initiative")
-	private String strategicInitiative;
+	@Column(name = "strategic_deal")
+	private String strategicDeal;
 
 	//bi-directional many-to-one association to OpportunityDeliveryOwnerCentreMappingT
 	@OneToMany(mappedBy="opportunityT")
@@ -498,12 +498,12 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.overallDealSize = overallDealSize;
 	}
 
-	public String getStrategicInitiative() {
-		return this.strategicInitiative;
+	public String getStrategicDeal() {
+		return this.strategicDeal;
 	}
 
-	public void setStrategicInitiative(String strategicInitiative) {
-		this.strategicInitiative = strategicInitiative;
+	public void setStrategicDeal(String strategicDeal) {
+		this.strategicDeal = strategicDeal;
 	}
 
 	public List<OpportunityDeliveryCentreMappingT> getOpportunityDeliveryCentreMappingTs() {
