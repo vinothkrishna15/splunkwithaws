@@ -34,6 +34,9 @@ public class IouBeaconMappingT implements Serializable {
 
 	@Column(name="display_iou")
 	private String displayIou;
+	
+	@Column(name="active")
+	private boolean active;
 
 	//bi-directional many-to-one association to BeaconCustomerMappingT
 	@OneToMany(mappedBy="iouBeaconMappingT")
@@ -79,5 +82,15 @@ public class IouBeaconMappingT implements Serializable {
 
 		return beaconCustomerMappingT;
 	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
+	
 
 }

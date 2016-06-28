@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.IOUService;
@@ -60,5 +61,34 @@ public class IOUController {
 					"Backend Error while retrieving iou details");
 		}
 	}
+	
+	/**
+	 * This method retrieves all the IOU Customer mappings (Display IOU and IOU)
+	 * 
+	 * @param fields
+	 * @param view
+	 * @return iouCustomerMappingTs
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/beacon", method = RequestMethod.GET)
+	public @ResponseBody String findAllIouBeacon(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside IOUController/beacon: Start of GET");
+		try {
+			List<IouBeaconMappingT> iouBeaconMappingTs = iouService.findAllBeaconIouActive();
+			logger.info("Inside IOUController/beacon: End of GET");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, iouBeaconMappingTs);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while retrieving beacon iou details");
+		}
+	}
+
 
 }
