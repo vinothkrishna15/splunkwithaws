@@ -375,55 +375,50 @@ public class OpportunityDownloadHelper {
 			}
 
 			// BID Details - Bid Req Type
-			List<BidDetailsT> bidDetails = bidDetailsTRepository
-					.findByOpportunityId(opportunity.getOpportunityId());
-			if ((bidDetails != null) && (!bidDetails.isEmpty())) {
+//			List<BidDetailsT> bidDetails = bidDetailsTRepository
+//					.findByOpportunityId(opportunity.getOpportunityId());
+			BidDetailsT bidDetails = bidDetailsTRepository.findLatestBidByOpportunityId(opportunity.getOpportunityId());
+
+			if (bidDetails != null) {
 
 				// Req Type
 				Cell cellBidReqType = row.createCell(27);
-				cellBidReqType.setCellValue(bidDetails.get(0)
-						.getBidRequestType());
+				cellBidReqType.setCellValue(bidDetails.getBidRequestType());
 
 				// Req Receive Date
 				Cell cellBidReqReceiveDate = row.createCell(29);
-				cellBidReqReceiveDate.setCellValue(getFormattedDate(bidDetails
-						.get(0).getBidRequestReceiveDate().toString(),
+				cellBidReqReceiveDate.setCellValue(getFormattedDate(bidDetails.getBidRequestReceiveDate().toString(),
 						actualFormat, desiredFormat));
 
 				// Target Date
 				Cell cellTargetDate = row.createCell(30);
-				cellTargetDate.setCellValue(getFormattedDate(bidDetails.get(0)
-						.getTargetBidSubmissionDate().toString(), actualFormat,
+				cellTargetDate.setCellValue(getFormattedDate(bidDetails.getTargetBidSubmissionDate().toString(), actualFormat,
 						desiredFormat));
 
 				// Actual Date
-				if (bidDetails.get(0).getActualBidSubmissionDate() != null) {
+				if (bidDetails.getActualBidSubmissionDate() != null) {
 					Cell cellActualDate = row.createCell(31);
-					cellActualDate.setCellValue(getFormattedDate(bidDetails
-							.get(0).getActualBidSubmissionDate().toString(),
+					cellActualDate.setCellValue(getFormattedDate(bidDetails.getActualBidSubmissionDate().toString(),
 							actualFormat, desiredFormat));
 				}
 
 				// Expected Date
-				if (bidDetails.get(0).getExpectedDateOfOutcome() != null) {
+				if (bidDetails.getExpectedDateOfOutcome() != null) {
 					Cell cellExpDate = row.createCell(32);
-					cellExpDate.setCellValue(getFormattedDate(bidDetails.get(0)
-							.getExpectedDateOfOutcome().toString(),
+					cellExpDate.setCellValue(getFormattedDate(bidDetails.getExpectedDateOfOutcome().toString(),
 							actualFormat, desiredFormat));
 				}
 
 				// Win probability
-				if (bidDetails.get(0).getWinProbability() != null) {
+				if (bidDetails.getWinProbability() != null) {
 					Cell cellWinProb = row.createCell(33);
-					cellWinProb.setCellValue(bidDetails.get(0)
-							.getWinProbability().trim());
+					cellWinProb.setCellValue(bidDetails.getWinProbability().trim());
 				}
 
 				// Core Attributes
-				if (bidDetails.get(0).getCoreAttributesUsedForWinning() != null) {
+				if (bidDetails.getCoreAttributesUsedForWinning() != null) {
 					Cell cellWinProb = row.createCell(34);
-					cellWinProb.setCellValue(bidDetails.get(0)
-							.getCoreAttributesUsedForWinning().trim());
+					cellWinProb.setCellValue(bidDetails.getCoreAttributesUsedForWinning().trim());
 				}
 
 			}
