@@ -14,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.QueryBufferDTO;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.service.CustomerService;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
 @Repository
@@ -44,6 +47,9 @@ public class CustomerDao
 	public  final String GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.group_customer_name like ";
 
 	public  final String ORDERBY_SUFFIX = " order by CMT.group_customer_name";
+	
+	@Autowired
+	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
  
 	/**
 	 * This method is used to fetch the customer name based upon priviledge
@@ -59,7 +65,7 @@ public class CustomerDao
 		logger.debug("Inside getPreviledgedCustomerName() method");
 		HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
 	    QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
-        queryBufferDTO = customerService.getCustomerPrevilegeQueryString(userId,
+        queryBufferDTO = getCustomerPrevilegeQueryString(userId,
 				customerNameList, considerGeoIou);
 		logger.info("Query string: {}", queryBufferDTO.getQuery());
 		Query customerQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery());
@@ -110,5 +116,74 @@ public class CustomerDao
 		return resultList;
 	}
  
- 
+	/**
+	 * This method returns the query string with user access privilege
+	 * restrictions added
+	 * 
+	 * @param count
+	 * @param financialYear
+	 * @param privileges
+	 * @return
+	 * @throws DestinationException
+	 */
+	public QueryBufferDTO getCustomerPrevilegeQueryString(String userId,
+			List<String> customerNameList, boolean considerGeoIou)
+					throws Exception {
+		logger.debug("Inside getRevenueQueryString() method");
+		QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
+        StringBuffer queryBuffer = new StringBuffer(CUSTOMER_NAME_QUERY_PREFIX);
+         
+		HashMap<String, String> queryPrefixMap;
+
+		if (considerGeoIou) {
+			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+					CUSTOMER_GEO_COND_SUFFIX, null,CUSTOMER_IOU_COND_SUFFIX,
+					CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+		} else {
+			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
+					null, null, null, CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+		}
+
+		// Get WHERE clause string
+		queryBufferDTO = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereCondition(userId,
+						queryPrefixMap);
+		
+		
+			queryBuffer.append(" where ");
+		
+
+		if (customerNameList != null && customerNameList.size() > 0) {
+			String customerNameQueryList = "(";
+			{
+				for (String customerName : customerNameList)
+					customerNameQueryList += "'"
+							+ customerName.replace("\'", "\'\'") + "',";
+			}
+			customerNameQueryList = customerNameQueryList.substring(0,
+					customerNameQueryList.length() - 1);
+			customerNameQueryList += ")";
+
+			queryBuffer
+			.append(" CMT.customer_name in " + customerNameQueryList);
+		}
+
+		if(queryBufferDTO!=null)
+        {
+		 if(queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty()) 
+		 {
+			queryBuffer.append(Constants.AND_CLAUSE);
+			queryBuffer.append(queryBufferDTO.getQuery());
+		 }
+		  queryBufferDTO.setQuery(queryBuffer.toString());
+		}
+        else
+		{
+			queryBufferDTO=new QueryBufferDTO();
+			queryBufferDTO.setQuery(queryBuffer.toString());
+			queryBufferDTO.setParameterMap(null);
+		}
+	    return queryBufferDTO;
+	}
+
 }

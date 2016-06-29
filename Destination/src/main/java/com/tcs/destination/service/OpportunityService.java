@@ -2119,61 +2119,7 @@ public class OpportunityService {
 		return pageSpecification;
 	}
     
-	/**
-	 * This method set the priviledge conditions based upon which opportunity details is to fetched 
-	 * @param userId
-	 * @param opportunityIds
-	 * @return
-	 * @throws Exception
-	 */
 
-	public QueryBufferDTO getOpportunityPriviledgeString(String userId,
-			List<String> opportunityIds) throws Exception {
-		logger.debug("Inside getOpportunityPriviledgeString() method");
-		QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
-        StringBuffer queryBuffer = new StringBuffer(opportunityDao.OPPORTUNITY_QUERY_PREFIX);
-		
-		// Get user access privilege groups
-
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(opportunityDao.OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
-						opportunityDao.OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
-						opportunityDao.OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
-						opportunityDao.OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
-
-		// Get WHERE clause string
-		queryBufferDTO= userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereCondition(userId, queryPrefixMap);
-
-		if (opportunityIds.size() > 0) {
-			String oppIdList = "(";
-			{
-				for (String opportunityId : opportunityIds)
-					oppIdList += "'" + opportunityId + "',";
-			}
-			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
-			oppIdList += ")";
-
-
-				queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
-			}
-
-               if(queryBufferDTO!=null)
-               {
-			    if (queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty()) 
-			    {
-				 queryBuffer.append(Constants.AND_CLAUSE + queryBufferDTO.getQuery());
-				}
-			    queryBufferDTO.setQuery(queryBuffer.toString());
-               }
-               else
-			   {
-				queryBufferDTO=new QueryBufferDTO();
-				queryBufferDTO.setQuery(queryBuffer.toString());
-				queryBufferDTO.setParameterMap(null);
-			   }
-			   return queryBufferDTO;
-	}
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
 			String name, String keyword) {
