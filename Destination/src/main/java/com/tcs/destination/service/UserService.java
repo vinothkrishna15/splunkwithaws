@@ -1300,6 +1300,8 @@ public class UserService {
 	 */
 	public Status escalateUserDetails(UserT userJSON) throws Exception{
 
+		logger.debug("Start : escalate User Details service");
+		
 		Status status = new Status();
 
 		if (StringUtils.isEmpty(userJSON.getUserId())) {
@@ -1343,6 +1345,7 @@ public class UserService {
 			}
 		}
 
+		logger.debug("End : escalate User Details service");
 		return status;
 	}
 
@@ -1382,6 +1385,13 @@ public class UserService {
 		logger.debug("End:Inside sendEmailNotification for Escalate User Details to Admin");
 	}
 
+	/**
+	 * Update Photo service in User Profile
+	 * 
+	 * @param userJSON
+	 * @return
+	 * @throws Exception
+	 */
 	public Status updatePhoto(UserT userJSON) throws Exception{
 		
 		logger.debug("Start : Update Photo service");
@@ -1397,12 +1407,12 @@ public class UserService {
 			
 			if((userT!=null) && (userJSON.getUserId().equals(userT.getUserId()))){
 				
-				if(userJSON.getUserPhoto()!=null) {
+				if(userJSON.getUserPhoto()!=null) { // to save photo if exists
 					userT.setUserPhoto(userJSON.getUserPhoto());
 					userRepository.save(userT);
 					status.setStatus(Status.SUCCESS, "Photo Uploaded Successfully");
 					logger.info("SUCCESS : Photo Uploaded Successfully");
-				} else {
+				} else { // No photo found to upload
 					status.setStatus(Status.FAILED, "No Photo to upload");
 					logger.info("FAILED : No Photo to upload");
 				}
