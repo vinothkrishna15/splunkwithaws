@@ -293,12 +293,12 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: Start of edit opportunity");
 		Status status = new Status();
 		try {
-			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity);
+			opportunityService.updateOpportunityT(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
-			
-			if (asyncJobRequest.getOn().equals(Switch.ON)) {
-				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId());
-			}
+			//disabled win/loss mail
+//			if (asyncJobRequest.getOn().equals(Switch.ON)) {
+//				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId());
+//			}
 			
 			logger.info("Inside OpportunityController: End of edit opportunity");
 			return new ResponseEntity<String>(
