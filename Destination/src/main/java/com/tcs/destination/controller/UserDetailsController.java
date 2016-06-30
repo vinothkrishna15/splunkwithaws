@@ -36,7 +36,6 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserGroupMappingT;
-import com.tcs.destination.bean.UserProfile;
 import com.tcs.destination.bean.UserRoleMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.enums.SmartSearchType;
