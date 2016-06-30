@@ -1732,12 +1732,12 @@ public class WorkflowService {
 						String s = MyWorklistDTOArray[5].toString();
 						workflowStep.setStep(Integer.parseInt(s));
 					}
-					if (MyWorklistDTOArray[9] != null) {
+					if (MyWorklistDTOArray[6] != null) {
 						workflowStep
-						.setUserId(MyWorklistDTOArray[9].toString());
+						.setUserId(MyWorklistDTOArray[6].toString());
 						workflowStep
 						.setUser(userRepository
-								.findByUserId(MyWorklistDTOArray[9]
+								.findByUserId(MyWorklistDTOArray[6]
 										.toString()));
 					}
 					if (MyWorklistDTOArray[1] != null) {

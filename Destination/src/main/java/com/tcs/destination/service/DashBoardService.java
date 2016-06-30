@@ -18,6 +18,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -323,29 +325,32 @@ public class DashBoardService {
 			throws Exception {
 		
 		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
-
+		boolean upComingConnects = false;
 		String privilegesQuery = "";
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
 
 		Timestamp fromDateTs = new Timestamp(startDate.getTime());
 		Timestamp toDateTs = new Timestamp(endDate.getTime()
-				+ Constants.ONE_DAY_IN_MILLIS - 1);
+				+ Constants.ONE_DAY_IN_MILLIS-1);
 		Date now = new Date(); // Get current DateTime
-		Timestamp nowTs = new Timestamp(now.getTime()); // Get the current
-														// timestamp
-		Timestamp nowNextMsTs = new Timestamp(now.getTime() + 1); // Get the
-																	// next
-																	// millisecond's
-																	// timestamp
-																	// w.r.t now
+		Date endDateTime= new DateTime(endDate.getTime()).plusDays(1).toDate();
+		Timestamp nowTs = new Timestamp(endDateTime.getTime()-1);
+		Timestamp nowNextMsTs = new Timestamp(now.getTime()+1); // Get the next millisecond's timestamp w.r.t now
+		
+		if(toDateTs.after(new Timestamp(now.getTime()))){
+			nowTs = new Timestamp(now.getTime()); // Get the current timestamp
+			upComingConnects = true;
+		}
 
 		// Get the Past connects
 		List<ConnectT> listOfPastConnects = getLeadershipDashboardTeamConnects(
 				supervisorId, geography, fromDateTs, nowTs, connectCategory);
-
+		List<ConnectT> listOfUpcomingConnects = new ArrayList<ConnectT>();
+		if(upComingConnects) {
 		// Get the Future Connects using the constructed query
-		List<ConnectT> listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
+		 listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
 				supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
+		}
 
 		// Throw Exception if both list are null else populate the bean
 		if ((listOfPastConnects == null) && (listOfUpcomingConnects == null)) {
@@ -360,7 +365,7 @@ public class DashBoardService {
 				leadershipConnectsDTO.setSizeOfPastConnects(listOfPastConnects
 						.size());
 			}
-			if (listOfUpcomingConnects != null) {
+			if (CollectionUtils.isNotEmpty(listOfUpcomingConnects)) {
 				leadershipConnectsDTO
 						.setUpcomingConnects(listOfUpcomingConnects);
 				leadershipConnectsDTO
