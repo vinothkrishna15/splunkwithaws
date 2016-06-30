@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AuditBidDetailsT;
 import com.tcs.destination.bean.AuditBidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.AuditConnectSecondaryOwnerLinkT;
@@ -458,16 +461,9 @@ public class NotificationBatchHelper {
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
 		List<Recipient> recipients = new ArrayList<Recipient>();
-		if (isRecipientRequired(opType, RecipientType.BDM_TAGGED)) { // fetch
-																		// only
-																		// if
-																		// the
-																		// bdm
-																		// tagged
-																		// required
-																		// for
-																		// the
-																		// opType
+
+		// fetch only if the bdm tagged required for the opType
+		if (isRecipientRequired(opType, RecipientType.BDM_TAGGED)) { 
 			List<Integer> bdmTaggedEvents = recipientEventMap
 					.get(RecipientType.BDM_TAGGED);
 			if (CollectionUtils.isNotEmpty(task.getTaskBdmsTaggedLinkTs())) {
@@ -883,15 +879,74 @@ public class NotificationBatchHelper {
 				}
 
 			}
-			// List<Integer> eventIds = removeDuplicateEvents(
-			// recipient.getEvents(), eventIdsMap);
-			// for (Integer eventId : eventIds) {
-			// userNotifications.addAll(getNotificationForEventId(eventId,
-			// eventIdsMap, recipient, entityType, entityId));
-			// }
+			 List<Integer> eventIds = removeDuplicateEvents(recipient, eventIdsMap);
+//			 for (Integer eventId : eventIds) {
+//			 userNotifications.addAll(getNotificationForEventId(eventId,
+//			 eventIdsMap, recipient, entityType, entityId));
+//			 }
 		}
 
 		return userNotifications;
+	}
+
+	/**
+	 * 
+	 * Remove duplicate events with following scenarios
+	 *   <li>if 1, remove 9, 10, 11 </li>
+	 *   <li>if 8, remove 13 </li>
+	 *   <li>if 9 and tmpl string(salesCode-WIN/LOSS), remove 14 </li>
+	 *   refer {@link NotificationSettingEvent} for the event code
+	 *   
+	 * @param recipient
+	 * @param eventIdsMap
+	 * @return
+	 */
+	private List<Integer> removeDuplicateEvents(
+			Recipient recipient,
+			Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventIdsMap) {
+		
+		Set<Integer> filteredEvents = Sets.newHashSet(); 
+		
+		for (Entry<RecipientType, List<Integer>> entry : recipient.getEvents().entrySet()) {
+			filteredEvents.addAll(entry.getValue());
+		}
+		
+		if(eventIdsMap.containsKey(NotificationSettingEvent.OWNER_CHANGE)) { 
+			//if he is a newly added or removed owner, suppress supervisor notification(if supervisor), key changes, and collab conditions
+			if(filteredEvents.contains(NotificationSettingEvent.OWNER_CHANGE.getEventId())) {
+				filteredEvents.remove(NotificationSettingEvent.SUBORDINATES_AS_OWNERS.getEventId());
+				filteredEvents.remove(NotificationSettingEvent.KEY_CHANGES.getEventId());
+				filteredEvents.remove(NotificationSettingEvent.COLLAB_CONDITION.getEventId());
+			} else  if(filteredEvents.contains(NotificationSettingEvent.KEY_CHANGES.getEventId())) {
+				filteredEvents.remove(NotificationSettingEvent.SUBORDINATES_AS_OWNERS.getEventId());
+			}
+		}
+
+		if(eventIdsMap.containsKey(NotificationSettingEvent.COMMENT)) {
+			//suppress comment for supervisor
+			if(filteredEvents.contains(NotificationSettingEvent.COMMENT.getEventId())) {
+				filteredEvents.remove(NotificationSettingEvent.COMMENT_ON_SUBORDINATES_ENTITY.getEventId());
+			}
+		}
+
+		if(eventIdsMap.containsKey(NotificationSettingEvent.KEY_CHANGES) && filteredEvents.contains(NotificationSettingEvent.KEY_CHANGES.getEventId())) {
+			// If Key changes having sales stage changes either to win or lost, Supervisor notification for win/loss to be suppressed
+			RecipientMessageTemplateMapping templMsg = eventIdsMap.get(NotificationSettingEvent.KEY_CHANGES);
+			List<String> templates = templMsg.getTemplates();
+			if(CollectionUtils.isNotEmpty(templates)) {
+				String winDescription = SalesStageCode.WIN.getDescription();
+				String lostDescription = SalesStageCode.LOST.getDescription();
+				for (String template : templates) {
+					if(template.contains(winDescription) || template.contains(lostDescription)) { 
+						filteredEvents.remove(NotificationSettingEvent.SUBORDINATES_OPPORTUNITIES_WL.getEventId());
+						break;
+					}
+				}
+			}
+			
+		}
+		
+		return Lists.newArrayList(filteredEvents);
 	}
 
 	private List<UserNotificationsT> getNotificationForEventId(
@@ -1667,11 +1722,12 @@ public class NotificationBatchHelper {
 			}
 			template = new StringBuffer(Constants.FROM_TO_STRING).toString();
 			// sales stage code
-			if (auditOpportunityT.getOldSalesStageCode() != auditOpportunityT
-					.getNewSalesStageCode()) {
-				templates.add(constructMessageTemplate(data, auditOpportunityT
-						.getOldSalesStageCode().toString(), auditOpportunityT
-						.getNewSalesStageCode().toString(), Constants.UPDATED,
+			SalesStageCode oldSalesStageCode = SalesStageCode.valueOf(auditOpportunityT
+					.getOldSalesStageCode());
+			SalesStageCode newSalesStageCode = SalesStageCode.valueOf(auditOpportunityT
+					.getNewSalesStageCode());
+			if (oldSalesStageCode != newSalesStageCode) {
+				templates.add(constructMessageTemplate(data, oldSalesStageCode.getDescription(), newSalesStageCode.getDescription(), Constants.UPDATED,
 						Constants.SALES_STAGE_FIELD, template, null, null));
 			}
 			// Opportunity owner

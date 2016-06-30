@@ -3,16 +3,17 @@ package com.tcs.destination.enums;
 
 public enum SalesStageCode {
 	
-	WIN(9),
-	LOST(10);
+	WIN(9,"09 - Closed & Won"),
+	LOST(10,"10 - Closed & Lost");
 
 	private final int code;
-
-	private SalesStageCode(int code) {
-		this.code = code;
-	}
-
 	
+	private final String description;
+
+	private SalesStageCode(int code, String description) {
+		this.code = code;
+		this.description = 	description;
+	}
 
 	public static boolean contains(String val) {
 
@@ -42,6 +43,10 @@ public enum SalesStageCode {
 	
 	public Integer getCode() {
 		return new Integer(code);
+	}
+
+	public String getDescription() {
+		return description;
 	}
 	
 }
