@@ -1915,7 +1915,8 @@ public class WorkflowService {
 	private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
 		// TODO Auto-generated method stub
 		PartnerMasterT partnerMaster = new PartnerMasterT();
-		partnerMaster.setCreatedModifiedBy(requestedPartner.getCreatedBy());
+		partnerMaster.setCreatedBy(requestedPartner.getCreatedBy());
+		partnerMaster.setModifiedBy(requestedPartner.getModifiedBy());
 		partnerMaster.setCorporateHqAddress(requestedPartner
 				.getCorporateHqAddress());
 		partnerMaster.setDocumentsAttached(requestedPartner
@@ -2226,7 +2227,7 @@ public class WorkflowService {
 		oldPartnerMaster.setLogo(workflowPartnerT.getLogo());
 		oldPartnerMaster.setDocumentsAttached(workflowPartnerT
 				.getDocumentsAttached());
-		oldPartnerMaster.setCreatedModifiedBy(userId);
+		oldPartnerMaster.setModifiedBy(userId);
 		partnerRepository.save(oldPartnerMaster);
 	}
 
