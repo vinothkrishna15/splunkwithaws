@@ -89,6 +89,22 @@ public class CollaborationCommentT implements Serializable {
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "collaborationCommentT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
+	
+	// added for partner changes - (customer, partner ids)
+	@Column(name = "customer_id")
+	private String customerId;
+	
+	@ManyToOne
+	@JoinColumn(name="customer_id", insertable = false, updatable = false)
+	private CustomerMasterT customerMasterT;
+	
+	@Column(name = "partner_id")
+	private String partnerId;
+
+	//bi-directional many-to-one association to PartnerMasterT
+	@ManyToOne
+	@JoinColumn(name="partner_id", insertable = false, updatable = false)
+	private PartnerMasterT partnerMasterT;
 
 	public CollaborationCommentT() {
 	}
@@ -236,6 +252,38 @@ public class CollaborationCommentT implements Serializable {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getCustomerId() {
+		return customerId;
+	}
+
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
+	}
+
+	public CustomerMasterT getCustomerMasterT() {
+		return customerMasterT;
+	}
+
+	public void setCustomerMasterT(CustomerMasterT customerMasterT) {
+		this.customerMasterT = customerMasterT;
+	}
+
+	public String getPartnerId() {
+		return partnerId;
+	}
+
+	public void setPartnerId(String partnerId) {
+		this.partnerId = partnerId;
+	}
+
+	public PartnerMasterT getPartnerMasterT() {
+		return partnerMasterT;
+	}
+
+	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
+		this.partnerMasterT = partnerMasterT;
 	}
 
 }

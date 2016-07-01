@@ -57,6 +57,8 @@ public class GeographyCountryMappingT implements Serializable {
 	@JoinColumn(name="geography", updatable = false, insertable = false)
 	private GeographyMappingT geographyMappingT;
 
+	@OneToMany(mappedBy="geographyCountryMappingT")
+	private List<PartnerMasterT> partnerMasterTs;
 
 	public GeographyCountryMappingT() {
 	}
@@ -152,7 +154,13 @@ public class GeographyCountryMappingT implements Serializable {
 	public void setActive(boolean active) {
 		this.active = active;
 	}
-	
-	
+
+	public List<PartnerMasterT> getPartnerMasterTs() {
+		return partnerMasterTs;
+	}
+
+	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
+		this.partnerMasterTs = partnerMasterTs;
+	}
 	
 }

@@ -41,12 +41,6 @@ public class PartnerMasterT implements Serializable {
 	@Column(name = "corporate_hq_address")
 	private String corporateHqAddress;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
-
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
-
 	@Column(name = "documents_attached")
 	private String documentsAttached;
 
@@ -75,11 +69,6 @@ public class PartnerMasterT implements Serializable {
 	@OrderBy("start_datetime_of_connect DESC")
 	private List<ConnectT> connectTs;
 
-	// bi-directional many-to-one association to ContactT
-	@OneToMany(mappedBy = "partnerMasterT")
-	@OrderBy("contact_name ASC")
-	private List<ContactT> contactTs;
-
 	// bi-directional many-to-one association to DocumentRepositoryT
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<DocumentRepositoryT> documentRepositoryTs;
@@ -97,15 +86,73 @@ public class PartnerMasterT implements Serializable {
 	@JoinColumn(name = "geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
 
-	// bi-directional many-to-one association to UserT
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
+	
 
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
+	
+	//added for partner changes - city, country, text1,text2,text3,group partner name,hqpqrtner link id
+	private String city;
+	
+	private String text1;
 
+	private String text2;
+
+	private String text3;
+	
+	@Column(name="group_partner_name")
+	private String groupPartnerName;
+	
+	private String country;
+	
+	//bi-directional many-to-one association to GeographyCountryMappingT
+	@ManyToOne
+	@JoinColumn(name="country")
+	private GeographyCountryMappingT geographyCountryMappingT;
+
+	@Column(name="hq_partner_link_id")
+	private String hqPartnerLinkId;
+	
+	//bi-directional many-to-one association to PartnerMasterT
+	@ManyToOne
+	@JoinColumn(name="hq_partner_link_id", insertable = false, updatable = false)
+	private PartnerMasterT partnerMasterT;
+
+	//bi-directional many-to-one association to PartnerMasterT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<PartnerMasterT> partnerMasterTs;
+
+	//bi-directional many-to-one association to PartnerSubSpMappingT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
+	
+	//bi-directional many-to-one association to CollaborationCommentT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<CollaborationCommentT> collaborationCommentTs;
+
+	
+	//added for partner changes - split createdmodifiedby and createdmodifieddatetime
+	@Column(name="created_by")
+	private String createdBy;
+	
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name="created_datetime")
+	private Timestamp createdDatetime;
+	
+	@Column(name="modified_by")
+	private String modifiedBy;
+	
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
+
+	@Column(name="modified_datetime")
+	private Timestamp modifiedDatetime;
+	
 	public PartnerMasterT() {
 	}
 
@@ -123,22 +170,6 @@ public class PartnerMasterT implements Serializable {
 
 	public void setCorporateHqAddress(String corporateHqAddress) {
 		this.corporateHqAddress = corporateHqAddress;
-	}
-
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
-	}
-
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
-	}
-
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
-	}
-
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
 	}
 
 	public String getDocumentsAttached() {
@@ -225,28 +256,6 @@ public class PartnerMasterT implements Serializable {
 		return connectT;
 	}
 
-	public List<ContactT> getContactTs() {
-		return this.contactTs;
-	}
-
-	public void setContactTs(List<ContactT> contactTs) {
-		this.contactTs = contactTs;
-	}
-
-	public ContactT addContactT(ContactT contactT) {
-		getContactTs().add(contactT);
-		contactT.setPartnerMasterT(this);
-
-		return contactT;
-	}
-
-	public ContactT removeContactT(ContactT contactT) {
-		getContactTs().remove(contactT);
-		contactT.setPartnerMasterT(null);
-
-		return contactT;
-	}
-
 	public List<DocumentRepositoryT> getDocumentRepositoryTs() {
 		return this.documentRepositoryTs;
 	}
@@ -327,13 +336,7 @@ public class PartnerMasterT implements Serializable {
 		this.geographyMappingT = geographyMappingT;
 	}
 
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
-	}
+	
 
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
@@ -381,4 +384,127 @@ public class PartnerMasterT implements Serializable {
 		this.notes = notes;
 	}
 
+	//partner changes - upto modifiedbyuser
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getText1() {
+		return text1;
+	}
+
+	public void setText1(String text1) {
+		this.text1 = text1;
+	}
+
+	public String getText2() {
+		return text2;
+	}
+
+	public void setText2(String text2) {
+		this.text2 = text2;
+	}
+
+	public String getText3() {
+		return text3;
+	}
+
+	public void setText3(String text3) {
+		this.text3 = text3;
+	}
+
+	public GeographyCountryMappingT getGeographyCountryMappingT() {
+		return geographyCountryMappingT;
+	}
+
+	public void setGeographyCountryMappingT(
+			GeographyCountryMappingT geographyCountryMappingT) {
+		this.geographyCountryMappingT = geographyCountryMappingT;
+	}
+
+	public PartnerMasterT getPartnerMasterT() {
+		return partnerMasterT;
+	}
+
+	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
+		this.partnerMasterT = partnerMasterT;
+	}
+
+	public List<PartnerMasterT> getPartnerMasterTs() {
+		return partnerMasterTs;
+	}
+
+	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
+		this.partnerMasterTs = partnerMasterTs;
+	}
+	
+	public String getCountry(){
+		return country;
+	}
+	
+	public void setCountry(String country){
+		this.country = country;
+	}
+	
+	public String getHqPartnerLinkId(){
+		return hqPartnerLinkId;
+	}
+	
+	public void setHqPartnerLinkId(String hqPartnerLinkId){
+		this.hqPartnerLinkId = hqPartnerLinkId;
+	}
+	
+	
+	public String getCreatedBy() {
+		return this.createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Timestamp getCreatedDatetime() {
+		return this.createdDatetime;
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
+	}
+
+	public String getModifiedBy() {
+		return this.modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return this.modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+	}
+
+	public UserT getCreatedByUser() {
+		return this.createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return this.modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
+	
 }
