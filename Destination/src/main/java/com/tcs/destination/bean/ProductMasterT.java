@@ -38,10 +38,15 @@ public class ProductMasterT implements Serializable {
 	@OneToMany(mappedBy="productMasterT")
 	private List<ProductContactLinkT> productContactLinkTs;
 
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="productMasterT")
+	private List<PartnerSubspProductMappingT> partnerSubspProductMappingTs;
+
+
 	//partner changes added
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_by", insertable = false, updatable = false)
@@ -49,12 +54,12 @@ public class ProductMasterT implements Serializable {
 
 	@Column(name="modified_by")
 	private String modifiedBy;
-	
+
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
-	
+
 	public ProductMasterT() {
 	}
 
@@ -150,6 +155,15 @@ public class ProductMasterT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+
+	public List<PartnerSubspProductMappingT> getPartnerSubspProductMappingTs() {
+		return partnerSubspProductMappingTs;
+	}
+
+	public void setPartnerSubspProductMappingTs(
+			List<PartnerSubspProductMappingT> partnerSubspProductMappingTs) {
+		this.partnerSubspProductMappingTs = partnerSubspProductMappingTs;
 	}
 
 }

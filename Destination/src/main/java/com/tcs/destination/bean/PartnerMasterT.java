@@ -86,8 +86,6 @@ public class PartnerMasterT implements Serializable {
 	@JoinColumn(name = "geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
 
-	
-
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
@@ -122,7 +120,8 @@ public class PartnerMasterT implements Serializable {
 	//bi-directional many-to-one association to PartnerMasterT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerMasterT> partnerMasterTs;
-
+	
+	//added for partner changes - split createdmodifiedby and createdmodifieddatetime
 	//bi-directional many-to-one association to PartnerSubSpMappingT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
@@ -130,9 +129,7 @@ public class PartnerMasterT implements Serializable {
 	//bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<CollaborationCommentT> collaborationCommentTs;
-
 	
-	//added for partner changes - split createdmodifiedby and createdmodifieddatetime
 	@Column(name="created_by")
 	private String createdBy;
 	
@@ -505,6 +502,32 @@ public class PartnerMasterT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+
+	public String getGroupPartnerName() {
+		return groupPartnerName;
+	}
+
+	public void setGroupPartnerName(String groupPartnerName) {
+		this.groupPartnerName = groupPartnerName;
+	}
+
+	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs() {
+		return partnerSubSpMappingTs;
+	}
+
+	public void setPartnerSubSpMappingTs(
+			List<PartnerSubSpMappingT> partnerSubSpMappingTs) {
+		this.partnerSubSpMappingTs = partnerSubSpMappingTs;
+	}
+
+	public List<CollaborationCommentT> getCollaborationCommentTs() {
+		return collaborationCommentTs;
+	}
+
+	public void setCollaborationCommentTs(
+			List<CollaborationCommentT> collaborationCommentTs) {
+		this.collaborationCommentTs = collaborationCommentTs;
 	}
 	
 }
