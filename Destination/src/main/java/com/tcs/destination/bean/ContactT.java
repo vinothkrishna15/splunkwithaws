@@ -68,7 +68,7 @@ public class ContactT implements Serializable, Cloneable {
 
 	@Column(name = "other_role")
 	private String otherRole;
-	
+
 	@Column(name = "active")
 	private boolean active = true;
 
@@ -103,44 +103,57 @@ public class ContactT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "contactT")
 	private List<UserFavoritesT> userFavoritesTs;
-	
+
 	@Transient
 	private ConnectsSplitDTO tcsAccountContactConnectsDTO; // added for 360 changes
-	
+
 	@Transient
 	private ConnectsSplitDTO customerContactConnectsDTO; // added for 360 changes
-	
+
 	@Transient
 	private OpportunitiesSplitDTO tcsAccountContactOpportunitiesDTO; // added for 360 changes
-	
+
 	@Transient
 	private OpportunitiesSplitDTO customerContactOpportunitiesDTO; // added for 360 changes
-	
+
 	//added for partner changes - split of creation and modification
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "created_by", insertable = false, updatable = false)
 	private UserT createdByUser;
-	
+
 	@Column(name="modified_by")
 	private String modifiedBy;
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
-	
+
 	//bi-directional many-to-one association to ProductContactLinkT
 	@OneToMany(mappedBy="contactT")
 	private List<ProductContactLinkT> productContactLinkTs;
-	
+
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="contactT")
+	private List<PartnerContactLinkT> partnerContactLinkTs;
+
+	public List<PartnerContactLinkT> getPartnerContactLinkTs() {
+		return partnerContactLinkTs;
+	}
+
+	public void setPartnerContactLinkTs(
+			List<PartnerContactLinkT> partnerContactLinkTs) {
+		this.partnerContactLinkTs = partnerContactLinkTs;
+	}
+
 	public ConnectsSplitDTO getTcsAccountContactConnectsDTO() {
 		return tcsAccountContactConnectsDTO;
 	}
@@ -244,7 +257,7 @@ public class ContactT implements Serializable, Cloneable {
 		this.contactType = contactType;
 	}
 
-	
+
 	public String getEmployeeNumber() {
 		return this.employeeNumber;
 	}
