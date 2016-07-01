@@ -197,11 +197,6 @@ public class UserT implements Serializable {
 	// private List<ConnectTcsAccountContactLinkT>
 	// connectTcsAccountContactLinkTs;
 
-	// bi-directional many-to-one association to ContactT
-	@JsonIgnore
-	@OneToMany(mappedBy = "createdModifiedByUser")
-	private List<ContactT> contactTs;
-
 	// bi-directional many-to-one association to CustomerMasterT
 	@OneToMany(mappedBy = "createdModifiedByUser")
 	private List<CustomerMasterT> customerMasterTs;

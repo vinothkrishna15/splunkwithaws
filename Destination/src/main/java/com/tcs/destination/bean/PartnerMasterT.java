@@ -45,7 +45,7 @@ public class PartnerMasterT implements Serializable {
 	private String documentsAttached;
 
 	private String facebook;
-	
+
 	@Column(name = "active")
 	private boolean active = true;
 
@@ -57,7 +57,7 @@ public class PartnerMasterT implements Serializable {
 	private String partnerName;
 
 	private String website;
-	
+
 	private String notes;
 
 	// bi-directional many-to-one association to CommentsT
@@ -89,21 +89,21 @@ public class PartnerMasterT implements Serializable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<UserFavoritesT> userFavoritesTs;
-	
+
 	//added for partner changes - city, country, text1,text2,text3,group partner name,hqpqrtner link id
 	private String city;
-	
+
 	private String text1;
 
 	private String text2;
 
 	private String text3;
-	
+
 	@Column(name="group_partner_name")
 	private String groupPartnerName;
-	
+
 	private String country;
-	
+
 	//bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
 	@JoinColumn(name="country")
@@ -111,7 +111,7 @@ public class PartnerMasterT implements Serializable {
 
 	@Column(name="hq_partner_link_id")
 	private String hqPartnerLinkId;
-	
+
 	//bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
 	@JoinColumn(name="hq_partner_link_id", insertable = false, updatable = false)
@@ -120,36 +120,40 @@ public class PartnerMasterT implements Serializable {
 	//bi-directional many-to-one association to PartnerMasterT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerMasterT> partnerMasterTs;
-	
+
 	//added for partner changes - split createdmodifiedby and createdmodifieddatetime
 	//bi-directional many-to-one association to PartnerSubSpMappingT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
-	
+
 	//bi-directional many-to-one association to CollaborationCommentT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<CollaborationCommentT> collaborationCommentTs;
-	
+
+	// bi-directional many-to-one association to PartnerContactLinkT
+	@OneToMany(mappedBy = "partnerMasterT")
+	private List<PartnerContactLinkT> partnerContactLinkTs;
+
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "created_by", insertable = false, updatable = false)
 	private UserT createdByUser;
 
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
-	
+
 	@Column(name="modified_by")
 	private String modifiedBy;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
 
 	@Column(name="modified_datetime")
 	private Timestamp modifiedDatetime;
-	
+
 	public PartnerMasterT() {
 	}
 
@@ -333,7 +337,7 @@ public class PartnerMasterT implements Serializable {
 		this.geographyMappingT = geographyMappingT;
 	}
 
-	
+
 
 	public List<UserFavoritesT> getUserFavoritesTs() {
 		return this.userFavoritesTs;
@@ -438,24 +442,24 @@ public class PartnerMasterT implements Serializable {
 	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
 		this.partnerMasterTs = partnerMasterTs;
 	}
-	
+
 	public String getCountry(){
 		return country;
 	}
-	
+
 	public void setCountry(String country){
 		this.country = country;
 	}
-	
+
 	public String getHqPartnerLinkId(){
 		return hqPartnerLinkId;
 	}
-	
+
 	public void setHqPartnerLinkId(String hqPartnerLinkId){
 		this.hqPartnerLinkId = hqPartnerLinkId;
 	}
-	
-	
+
+
 	public String getCreatedBy() {
 		return this.createdBy;
 	}
@@ -529,5 +533,14 @@ public class PartnerMasterT implements Serializable {
 			List<CollaborationCommentT> collaborationCommentTs) {
 		this.collaborationCommentTs = collaborationCommentTs;
 	}
-	
+
+	public List<PartnerContactLinkT> getPartnerContactLinkTs() {
+		return partnerContactLinkTs;
+	}
+
+	public void setPartnerContactLinkTs(
+			List<PartnerContactLinkT> partnerContactLinkTs) {
+		this.partnerContactLinkTs = partnerContactLinkTs;
+	}
+
 }
