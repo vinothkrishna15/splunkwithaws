@@ -328,7 +328,7 @@ public class DestinationMailUtils {
 		StringBuffer subject = new StringBuffer(environmentName)
 				.append(" Admin: ");
 
-		String userName = user.getUserName();
+		String userName = null;
 		String entity = null;
 		String uploadedFileName = null;
 		String attachmentFileName = null;
@@ -343,6 +343,8 @@ public class DestinationMailUtils {
 					.toLowerCase());
 			if (reqType == RequestType.OPPORTUNITY_DAILY_DOWNLOAD) {
 				userName = "System Admin/Strategic Group Admin";
+			} else if(user != null) {
+				userName = user.getUserName();
 			}
 		}
 
