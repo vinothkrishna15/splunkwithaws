@@ -110,8 +110,11 @@ public class PartnerUploadHelper {
 					partnerMasterT.setCorporateHqAddress(corporate_hq_address);
 				}
 				
-				// CREATED_MODIFIED_BY
-				partnerMasterT.setCreatedModifiedBy(userId);
+				// CREATED_BY
+				partnerMasterT.setCreatedBy(userId);
+				
+				// MODIFIED_BY
+				partnerMasterT.setModifiedBy(userId);
 					
 				//DOCUMENTS_ATTACHED
 				partnerMasterT.setDocumentsAttached(Constants.NO);
@@ -207,7 +210,7 @@ public class PartnerUploadHelper {
 		}
 		
 		// CREATED_MODIFIED_BY
-		partner.setCreatedModifiedBy(userId);
+		partner.setModifiedBy(userId);
 			
 		//DOCUMENTS_ATTACHED
 		partner.setDocumentsAttached(Constants.NO);

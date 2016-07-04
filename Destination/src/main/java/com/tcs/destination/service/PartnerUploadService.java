@@ -128,8 +128,11 @@ public class PartnerUploadService {
 			partnerMasterT = new PartnerMasterT();
 
 
-			// CREATED_MODIFIED_BY
-			partnerMasterT.setCreatedModifiedBy(userId);
+			// CREATED_BY
+			partnerMasterT.setCreatedBy(userId);
+			
+			// MODIFIED_BY
+			partnerMasterT.setModifiedBy(userId);
 
 			//DOCUMENTS_ATTACHED
 			partnerMasterT.setDocumentsAttached("NO");

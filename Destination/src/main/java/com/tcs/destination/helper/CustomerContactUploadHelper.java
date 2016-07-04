@@ -64,8 +64,11 @@ public class CustomerContactUploadHelper {
 		// Contact Category
 		contact.setContactCategory("CUSTOMER");
 
-		// CreatedModifiedBy
-		contact.setCreatedModifiedBy(userId);
+		// CreatedBy
+		contact.setCreatedBy(userId);
+		
+		//ModifiedBy
+		contact.setModifiedBy(userId);
 
 		// Customer Names
 		String customerName = data[3];

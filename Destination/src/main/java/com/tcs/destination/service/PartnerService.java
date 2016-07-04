@@ -193,8 +193,9 @@ public class PartnerService {
 					.getPartnerName());
 			partnerMasterT.setCorporateHqAddress(partnerToInsert
 					.getCorporateHqAddress());
-			partnerMasterT.setCreatedModifiedBy(partnerToInsert
-					.getCreatedModifiedBy());
+			partnerMasterT.setCreatedBy(partnerToInsert.getCreatedBy());
+			partnerMasterT.setModifiedBy(partnerToInsert.getModifiedBy());
+			
 			if (partners.isEmpty()) {
 				partnerMasterT.setPartnerName(partnerToInsert.getPartnerName());
 			} else {
@@ -225,7 +226,7 @@ public class PartnerService {
 	public void validateInactiveIndicators(PartnerMasterT partner) {
 
 		//createdModifiedBy, 
-		String createdBy = partner.getCreatedModifiedBy();
+		String createdBy = partner.getCreatedBy();
 		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
 		}
@@ -542,7 +543,7 @@ public class PartnerService {
 			isUpdate=true;
 		}
 
-		partner.setCreatedModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		partner.setModifiedBy(DestinationUtils.getCurrentUserId());
 
 		if(isUpdate)
 		{

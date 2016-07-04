@@ -716,8 +716,7 @@ public class OpportunityDownloadHelper {
 				// Create new Cell and set cell value
 				Cell cellPartnerName = row.createCell(0);
 				try {
-					cellPartnerName.setCellValue(ct.getPartnerMasterT()
-							.getPartnerName().trim());
+					cellPartnerName.setCellValue(ct.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerName().trim());
 				} catch (NullPointerException npe) {
 					throw new DestinationException(
 							HttpStatus.INTERNAL_SERVER_ERROR,

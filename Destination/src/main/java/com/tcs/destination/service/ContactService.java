@@ -434,7 +434,7 @@ public class ContactService {
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		contact.setCreatedModifiedBy(userId);
+		
 		if (isUpdate) {
 			if (contact.getContactId() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -448,11 +448,14 @@ public class ContactService {
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
 			}
+			contact.setModifiedBy(userId);
 		} else {
 			if (contact.getContactId() != null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"ContactId should not be passed");
 			}
+			contact.setCreatedBy(userId);
+			contact.setModifiedBy(userId);
 		}
 
 		// Validate input parameters
@@ -478,11 +481,12 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"CustomerId is required");
 				}
-				contact.setPartnerId(null);
-			} else if (contact.getContactCategory().equals(
+				contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().setPartnerId(null);
+			 } else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
-				if (contact.getPartnerId() == null
-						|| contact.getPartnerId().isEmpty()) {
+				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId();
+				if (partnerId == null
+						|| partnerId.isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"PartnerId is required");
 				}
@@ -504,8 +508,9 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				if (contact.getPartnerId() != null
-						&& !(contact.getPartnerId().isEmpty())) {
+				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId();
+				if (partnerId != null
+						&& !(partnerId.isEmpty())) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact cannot be added to Partner");
 				}
@@ -792,8 +797,8 @@ public class ContactService {
 			contactT = new ContactT();
 
 			contactT.setContactCategory(contactToInsert.getContactCategory());
-			contactT.setCreatedModifiedBy(contactToInsert
-					.getCreatedModifiedBy());
+			contactT.setCreatedBy(contactToInsert.getCreatedBy());
+			contactT.setModifiedBy(contactToInsert.getModifiedBy());
 			contactT.setContactType(contactToInsert.getContactType());
 			contactT.setEmployeeNumber(contactToInsert.getEmployeeNumber());
 			contactT.setContactName(contactToInsert.getContactName());
@@ -803,8 +808,7 @@ public class ContactService {
 			contactT.setContactTelephone(contactToInsert.getContactTelephone());
 			contactT.setContactLinkedinProfile(contactToInsert
 					.getContactLinkedinProfile());
-			contactT.setPartnerId(contactToInsert.getPartnerId());
-
+			contactT.getPartnerContactLinkTs().get(0).setPartnerId(contactToInsert.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId());
 			contactT = contactRepository.save(contactT);
 			logger.debug("Contact Saved .... " + contactT.getContactId());
 
@@ -1024,9 +1028,9 @@ public class ContactService {
 			
 			if(contactTs!=null){
 				for(ContactT contactT : contactTs){
-					if(contactT.getPartnerMasterT()!=null){
-						if(contactT.getPartnerMasterT().getContactTs()!=null){
-							contactT.getPartnerMasterT().setContactTs(null);
+					if(contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT()!=null){
+						if(contactT.getPartnerContactLinkTs().get(0).getContactT()!=null){
+							contactT.getPartnerContactLinkTs().get(0).setContactT(null);
 						}
 					}
 				}

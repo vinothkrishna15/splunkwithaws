@@ -137,7 +137,8 @@ public class PartnerContactUploadHelper {
 				if(!StringUtils.isEmpty(partnerName)){
 					String partnerId = getMapValuesForKey(mapOfPartnerMasterT, partnerName);
 					if(!StringUtils.isEmpty(partnerId)){
-						partnerContactT.setPartnerId(partnerId);
+						partnerContactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
+						
 					} else {
 						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
 					}
@@ -149,7 +150,9 @@ public class PartnerContactUploadHelper {
 				
 				partnerContactT.setContactType("EXTERNAL");
 				
-				partnerContactT.setCreatedModifiedBy(userId);
+				partnerContactT.setCreatedBy(userId);
+				
+				partnerContactT.setModifiedBy(userId);
 				
 				//ACTIVE
 				String active=data[8];
@@ -255,7 +258,8 @@ public class PartnerContactUploadHelper {
 		if(!StringUtils.isEmpty(partnerName)){
 			String partnerId = getMapValuesForKey(mapOfPartnerMasterT, partnerName);
 			if(!StringUtils.isEmpty(partnerId)){
-				partnerContactT.setPartnerId(partnerId);
+				partnerContactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
+				
 			} else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
 			}
@@ -267,7 +271,7 @@ public class PartnerContactUploadHelper {
 		
 		partnerContactT.setContactType("EXTERNAL");
 		
-		partnerContactT.setCreatedModifiedBy(userId);
+		partnerContactT.setModifiedBy(userId);
 		
 		//ACTIVE
 		String active=data[8];

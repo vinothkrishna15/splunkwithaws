@@ -106,7 +106,7 @@ public class PartnerMasterT implements Serializable {
 
 	//bi-directional many-to-one association to GeographyCountryMappingT
 	@ManyToOne
-	@JoinColumn(name="country")
+	@JoinColumn(name="country", insertable = false, updatable = false)
 	private GeographyCountryMappingT geographyCountryMappingT;
 
 	@Column(name="hq_partner_link_id")
