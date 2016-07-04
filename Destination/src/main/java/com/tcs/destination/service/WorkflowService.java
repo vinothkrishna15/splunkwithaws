@@ -1040,14 +1040,6 @@ public class WorkflowService {
 		return workflowStep;
 	}
 
-	private boolean isUserPMO(String userId) {
-		boolean flag = false;
-		if (userId.contains("pmo")) {
-			flag = true;
-		}
-		return flag;
-	}
-
 	/**
 	 * validates the workflow customer details
 	 * 
@@ -1491,7 +1483,7 @@ public class WorkflowService {
 		userGroup = "%" + userGroup + "%";
 		// Query to get pending partner requests for specific user's
 		// approval/rejection
-		if (userId.contains(pmoValue)) {
+		if (userGroup.equals(UserGroup.PMO.getValue())){ 
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
 			Query query1 = entityManager.createNativeQuery(queryBuffer
@@ -1828,7 +1820,7 @@ public class WorkflowService {
 			break;
 		}
 		}
-		if (userId.contains("pmo")) {
+		 if (userGroup.equals(UserGroup.PMO.getValue())){
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());

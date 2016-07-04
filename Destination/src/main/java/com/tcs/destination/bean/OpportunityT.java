@@ -1243,11 +1243,11 @@ public class OpportunityT implements Serializable, Cloneable {
 		this.deliveryOwnershipT = deliveryOwnershipT;
 	}
 
-	public int getDeliveryOwnershipId() {
+	public Integer getDeliveryOwnershipId() {
 		return deliveryOwnershipId;
 	}
 
-	public void setDeliveryOwnershipId(int deliveryOwnershipId) {
+	public void setDeliveryOwnershipId(Integer deliveryOwnershipId) {
 		this.deliveryOwnershipId = deliveryOwnershipId;
 	}
 
