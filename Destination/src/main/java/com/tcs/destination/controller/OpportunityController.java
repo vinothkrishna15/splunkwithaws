@@ -305,7 +305,7 @@ public class OpportunityController {
 
 			
 			if (asyncJobRequest.getOn().equals(Switch.ON)) {
-				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId());
+				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
 			}
 			
 			jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_EDIT,opportunity.getModifiedBy());

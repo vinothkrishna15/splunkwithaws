@@ -1,5 +1,6 @@
 package com.tcs.destination.utils;
 
+import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -26,6 +27,7 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
@@ -42,9 +44,12 @@ import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
+import com.tcs.destination.data.repository.BidDetailsTRepository;
+import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySalesSupportLinkTRepository;
+import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserAccessRequestRepository;
@@ -57,6 +62,7 @@ import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.RequestType;
+import com.tcs.destination.enums.SalesStageCode;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.enums.WorkflowStatus;
@@ -71,7 +77,7 @@ public class DestinationMailUtils {
 
 	@Value("${senderEmailId}")
 	private String senderEmailId;
-	
+
 	@Value("${opportunityWonLostGroupMailId}")
 	private String opportunityWonLostGroupMailId;
 
@@ -96,7 +102,6 @@ public class DestinationMailUtils {
 	@Value("${workflowCustomerPendingTemplateLoc}")
 	private String workflowCustomerPendingTemplateLoc;
 
-
 	@Value("${workflowApproveOrRejectTemplateLoc}")
 	private String workflowApproveOrRejectTemplateLoc;
 
@@ -114,24 +119,48 @@ public class DestinationMailUtils {
 
 	@Value("${daily.download.template}")
 	private String dailyDownloadTemplateLoc;
-	
+
+	@Value("${opportunityRFPSubmittedTemplate}")
+	private String opportunityRFPSubmittedTemplateLoc;
+
+	@Value("${opportunityShortlistedTemplate}")
+	private String opportunityShortlistedTemplateLoc;
+
+	@Value("${opportunitySelectedTemplate}")
+	private String opportunitySelectedTemplateLoc;
+
+	@Value("${opportunityContractNegotiationTemplate}")
+	private String opportunityContractNegotiationTemplateLoc;
+
 	@Value("${opportunityWonTemplate}")
 	private String opportunityWonTemplateLoc;
-	
+
 	@Value("${opportunityLostTemplate}")
 	private String opportunityLostTemplateLoc;
 
 	@Value("${environment.name}")
 	private String environmentName;
-	
+
 	@Value("${destinationUrl}")
 	private String destinationUrl;
-	
+
 	@Value("${defaultPasswordTemplateLoc}")
 	private String defaultPasswordTemplateLoc;
-	
+
 	@Value("${mail.environment.name}")
 	private String mailSubjectAppendEnvName;
+
+	@Value("${rfp.mail.subject.highvalue}")
+	private String rfpHighValueMailSub;
+
+	@Value("${shortlisted.mail.subject.highvalue}")
+	private String shortlistedHighValueMailSub;
+
+	@Value("${selected.mail.subject.highvalue}")
+	private String selectedHighValueMailSub;
+
+	@Value("${contractNegotiation.mail.subject.highvalue}")
+	private String contractNegotiationHighValueMailSub;
 
 	@Autowired
 	private UserService userService;
@@ -170,26 +199,35 @@ public class DestinationMailUtils {
 	WorkflowPartnerRepository workflowPartnerRepository;
 
 	@Autowired
-	WorkflowCompetitorTRepository workflowCompetitorRepository; 
+	WorkflowCompetitorTRepository workflowCompetitorRepository;
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
+
+	@Autowired
+	BidDetailsTRepository bidDetailsTRepository;
+
+	@Autowired
+	ContactRepository contactRepository;
+
+	@Autowired
+	private OpportunitySubSpLinkTRepository opportunitySubSpLinkTRepository;
 
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
 
 	@Autowired
 	private OpportunityService oppService;
-	
+
 	@Autowired
 	SubSpRepository subSpRepository;
 
 	@Autowired
 	private DestinationMailSender destMailSender;
-	
+
 	@Value("${userDetailsApprovalSubject}")
 	private String userDetailsApprovalSubject;
-		
+
 	@Value("${userDetailsApprovalTemplate}")
 	private String userDetailsApprovalTemplate;
 
@@ -204,20 +242,24 @@ public class DestinationMailUtils {
 	public void sendPasswordAutomatedEmail(String subject, UserT user,
 			Date requestedDateTime) throws Exception {
 		logger.debug("inside sendPasswordAutomatedEmail method");
-		
-		if(user == null || !user.isActive()) {
-			logger.warn("DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive", user.getUserId());
+
+		if (user == null || !user.isActive()) {
+			logger.warn(
+					"DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive",
+					user.getUserId());
 			return;
 		}
-			
+
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
 		message.setSubject(formatSubject(subject));
 
 		Map<String, Object> forgotPasswordTemplateDataModel = Maps.newHashMap();
 		forgotPasswordTemplateDataModel.put("user", user);
-		forgotPasswordTemplateDataModel.put("date", formatDate(requestedDateTime));
-		String text = mergeTmplWithData(forgotPasswordTemplateDataModel, forgotPasswordTemplateLoc);
+		forgotPasswordTemplateDataModel.put("date",
+				formatDate(requestedDateTime));
+		String text = mergeTmplWithData(forgotPasswordTemplateDataModel,
+				forgotPasswordTemplateLoc);
 
 		message.setMessage(text);
 		destMailSender.send(message);
@@ -225,33 +267,36 @@ public class DestinationMailUtils {
 
 	}
 
-	
-	public boolean sendDefaultPasswordAutomatedEmail(String subject, UserT user
-			) throws Exception {
+	public boolean sendDefaultPasswordAutomatedEmail(String subject, UserT user)
+			throws Exception {
 		logger.debug("inside sendDefaultPasswordAutomatedEmail method");
-		
-		if(user != null && !user.isActive()) {
-			logger.warn("DestinationMailUtils :: Can't process the mail - The user {} is inactive", user.getUserId());
+
+		if (user != null && !user.isActive()) {
+			logger.warn(
+					"DestinationMailUtils :: Can't process the mail - The user {} is inactive",
+					user.getUserId());
 			return false;
 		}
-		
+
 		DestinationMailMessage message = new DestinationMailMessage();
 		message.setRecipients(Lists.newArrayList(user.getUserEmailId()));
 		message.setSubject(formatSubject(subject));
-		
-		Map<String, Object> defaultPasswordTemplateDataModel = Maps.newHashMap();
+
+		Map<String, Object> defaultPasswordTemplateDataModel = Maps
+				.newHashMap();
 		defaultPasswordTemplateDataModel.put("user", user);
 		defaultPasswordTemplateDataModel.put("destinationUrl", destinationUrl);
-		String text = mergeTmplWithData(defaultPasswordTemplateDataModel, defaultPasswordTemplateLoc);
+		String text = mergeTmplWithData(defaultPasswordTemplateDataModel,
+				defaultPasswordTemplateLoc);
 		message.setMessage(text);
-		try{
+		try {
 			destMailSender.send(message);
-		} catch (Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	/**
 	 * @param request
 	 * @param subject
@@ -281,7 +326,7 @@ public class DestinationMailUtils {
 
 		String template = null;
 		StringBuffer subject = new StringBuffer(environmentName)
-		.append(" Admin: ");
+				.append(" Admin: ");
 
 		String userName = user.getUserName();
 		String entity = null;
@@ -292,31 +337,29 @@ public class DestinationMailUtils {
 
 		int requestType = request.getRequestType();
 		RequestType reqType = RequestType.getByType(requestType);
-		if(reqType != null) {
+		if (reqType != null) {
 			subject.append(reqType.getMailSubject());
 			entity = WordUtils.capitalize(reqType.getEntityType().name()
 					.toLowerCase());
-			if(reqType == RequestType.OPPORTUNITY_DAILY_DOWNLOAD) {
+			if (reqType == RequestType.OPPORTUNITY_DAILY_DOWNLOAD) {
 				userName = "System Admin/Strategic Group Admin";
 			}
 		}
 
-		if (requestType > 0 && requestType < 10) { //upload
+		if (requestType > 0 && requestType < 10) { // upload
 			template = uploadTemplateLoc;
 			requestId = request.getProcessRequestId().toString();
 			uploadedFileName = request.getFileName();
 			attachmentFilePath = request.getErrorFilePath()
 					+ request.getErrorFileName();
 			attachmentFileName = request.getErrorFileName();
-		} else if (requestType > 9 && requestType < 19) { //download
+		} else if (requestType > 9 && requestType < 19) { // download
 			template = downloadTemplateLoc;
-			attachmentFilePath = request.getFilePath()
-					+ request.getFileName();
+			attachmentFilePath = request.getFilePath() + request.getFileName();
 			attachmentFileName = request.getFileName();
 		} else {
 			template = dailyDownloadTemplateLoc;
-			attachmentFilePath = request.getFilePath()
-					+ request.getFileName();
+			attachmentFilePath = request.getFilePath() + request.getFileName();
 			attachmentFileName = request.getFileName();
 		}
 
@@ -355,19 +398,20 @@ public class DestinationMailUtils {
 		UserT user = request.getUserT();
 		DateFormat df = new SimpleDateFormat(dateFormatStr);
 		String dateStr = df.format(request.getSubmittedDatetime());
-		List<String> recipientMailIds = listMailIdsFromRoles(Lists.newArrayList(user.getUserRole()));
+		List<String> recipientMailIds = listMailIdsFromRoles(Lists
+				.newArrayList(user.getUserRole()));
 
 		message.setRecipients(recipientMailIds);
 
 		StringBuffer subject = new StringBuffer(environmentName)
-		.append(" Admin: ");
+				.append(" Admin: ");
 
 		String userName = user.getUserName();
 		String entity = null;
 		String fileName = request.getFileName();
 
 		RequestType reqType = RequestType.getByType(request.getRequestType());
-		if(reqType != null) {
+		if (reqType != null) {
 			subject.append(reqType.getNotifySubject());
 			entity = WordUtils.capitalize(reqType.getEntityType().name()
 					.toLowerCase());
@@ -391,9 +435,13 @@ public class DestinationMailUtils {
 
 	/**
 	 * send a mail to the system admin, when a user request for access
-	 * @param subject - subject of the mail to be sent
-	 * @param reqId - request id for new user access
-	 * @param requestedDateTime - requested timestamp
+	 * 
+	 * @param subject
+	 *            - subject of the mail to be sent
+	 * @param reqId
+	 *            - request id for new user access
+	 * @param requestedDateTime
+	 *            - requested timestamp
 	 * @throws Exception
 	 */
 	public void sendUserAccessAutomatedEmail(String subject, String reqId,
@@ -401,16 +449,21 @@ public class DestinationMailUtils {
 		logger.debug("inside sendUserAccessAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 
-		//add all system admins in "to address"
-//		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
-		//message.setRecipients(listMailIdsFromUserIds(recipientIds));
-		message.setRecipients(listMailIdsFromRoles(Lists.newArrayList(Constants.SYSTEM_ADMIN)));
+		// add all system admins in "to address"
+		// List<String> recipientIds =
+		// userService.findByUserRole(Constants.SYSTEM_ADMIN);
+		// message.setRecipients(listMailIdsFromUserIds(recipientIds));
+		message.setRecipients(listMailIdsFromRoles(Lists
+				.newArrayList(Constants.SYSTEM_ADMIN)));
 
-		//cc to the requested user and his supervisor
+		// cc to the requested user and his supervisor
 		UserAccessRequestT userAccessRequest = userAccessRepo.findOne(reqId);
-		UserT supervisor = userRepository.findOne(userAccessRequest.getSupervisorId());
-		if(supervisor != null && supervisor.isActive()) {
-			List<String> ccIds = Lists.newArrayList(userAccessRequest.getUserEmailId(), supervisor.getUserEmailId());
+		UserT supervisor = userRepository.findOne(userAccessRequest
+				.getSupervisorId());
+		if (supervisor != null && supervisor.isActive()) {
+			List<String> ccIds = Lists.newArrayList(
+					userAccessRequest.getUserEmailId(),
+					supervisor.getUserEmailId());
 			message.setCcList(ccIds);
 		}
 
@@ -421,7 +474,8 @@ public class DestinationMailUtils {
 		Map<String, Object> userAccessTemplateDataModel = Maps.newHashMap();
 		userAccessTemplateDataModel.put("request", userAccessRequest);
 		userAccessTemplateDataModel.put("date", requestedDateStr);
-		String text = mergeTmplWithData(userAccessTemplateDataModel, userAccessTemplateLoc);
+		String text = mergeTmplWithData(userAccessTemplateDataModel,
+				userAccessTemplateLoc);
 		message.setMessage(text);
 
 		destMailSender.send(message);
@@ -438,19 +492,25 @@ public class DestinationMailUtils {
 		logger.debug("inside sendUserAccessAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 
-		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo.findOne(reqId);
-		UserT user = userService.findByUserId(oppReopenRequest.getRequestedBy());
+		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo
+				.findOne(reqId);
+		UserT user = userService
+				.findByUserId(oppReopenRequest.getRequestedBy());
 		UserT supervisor = userService.findByUserId(user.getSupervisorUserId());
-		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
+		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest
+				.getOpportunityId());
 
-		//add all system admins in "to address"
-//		List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
-//		message.setRecipients(listMailIdsFromUserIds(recipientIds));
-		message.setRecipients(listMailIdsFromRoles(Lists.newArrayList(Constants.SYSTEM_ADMIN)));
+		// add all system admins in "to address"
+		// List<String> recipientIds =
+		// userService.findByUserRole(Constants.SYSTEM_ADMIN);
+		// message.setRecipients(listMailIdsFromUserIds(recipientIds));
+		message.setRecipients(listMailIdsFromRoles(Lists
+				.newArrayList(Constants.SYSTEM_ADMIN)));
 
-		//cc to the requested user and his supervisor
-		if(user != null && user.isActive()) {
-			List<String> ccIds = Lists.newArrayList(user.getUserEmailId(), supervisor.getUserEmailId());
+		// cc to the requested user and his supervisor
+		if (user != null && user.isActive()) {
+			List<String> ccIds = Lists.newArrayList(user.getUserEmailId(),
+					supervisor.getUserEmailId());
 			message.setCcList(ccIds);
 		}
 
@@ -462,7 +522,8 @@ public class DestinationMailUtils {
 		reopenOppTemplateDataModel.put("user", user);
 		reopenOppTemplateDataModel.put("opportunity", opp);
 		reopenOppTemplateDataModel.put("date", dateStr);
-		String text = mergeTmplWithData(reopenOppTemplateDataModel, reopenOpportunityTemplateLoc);
+		String text = mergeTmplWithData(reopenOppTemplateDataModel,
+				reopenOpportunityTemplateLoc);
 		message.setMessage(text);
 
 		destMailSender.send(message);
@@ -481,16 +542,21 @@ public class DestinationMailUtils {
 		logger.debug("inside sendOpportunityReopenProcessedAutomatedEmail method");
 		DestinationMailMessage message = new DestinationMailMessage();
 
-		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo.findOne(requestId);
-		UserT user = userService.findByUserId(oppReopenRequest.getRequestedBy());
-		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest.getOpportunityId());
+		OpportunityReopenRequestT oppReopenRequest = oppReopenRepo
+				.findOne(requestId);
+		UserT user = userService
+				.findByUserId(oppReopenRequest.getRequestedBy());
+		OpportunityT opp = oppService.findOpportunityById(oppReopenRequest
+				.getOpportunityId());
 		CustomerMasterT customer = opp.getCustomerMasterT();
 
-		if(user == null || !user.isActive()) {
-			logger.warn("DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive", user.getUserId());
+		if (user == null || !user.isActive()) {
+			logger.warn(
+					"DestinationMailUtils :: Cann't process the mail - The user {} is not found or inactive",
+					user.getUserId());
 			return;
 		}
-		
+
 		List<String> recepientIds = Lists.newArrayList(user.getUserEmailId());
 		message.setRecipients(recepientIds);
 
@@ -505,7 +571,8 @@ public class DestinationMailUtils {
 
 		}
 		ccUserIds.add(primaryOwner);
-		ccUserIds.remove(user.getUserId());//remove the user whether he is already added in 'to' address
+		ccUserIds.remove(user.getUserId());// remove the user whether he is
+											// already added in 'to' address
 		message.setCcList(listMailIdsFromUserIds(ccUserIds));
 
 		String dateStr = formatDate(date);
@@ -515,10 +582,13 @@ public class DestinationMailUtils {
 		logger.info("Opportuity Reopen - Sender : " + senderEmailId);
 		Map<String, Object> oppReopenRequestProcessedMap = new HashMap<String, Object>();
 		oppReopenRequestProcessedMap.put("userName", user.getUserName());
-		oppReopenRequestProcessedMap.put("opportunityName",	opp.getOpportunityName());
-		oppReopenRequestProcessedMap.put("customerName", customer.getCustomerName());
+		oppReopenRequestProcessedMap.put("opportunityName",
+				opp.getOpportunityName());
+		oppReopenRequestProcessedMap.put("customerName",
+				customer.getCustomerName());
 		oppReopenRequestProcessedMap.put("submittedDate", dateStr);
-		String text = mergeTmplWithData(oppReopenRequestProcessedMap, reopenOpportunityProcessedTemplateLoc);
+		String text = mergeTmplWithData(oppReopenRequestProcessedMap,
+				reopenOpportunityProcessedTemplateLoc);
 		message.setMessage(text);
 
 		destMailSender.send(message);
@@ -550,31 +620,30 @@ public class DestinationMailUtils {
 		String remarks = "NA";
 		String operation = null;
 		String reason = "";
-		String pmoValue = "%" + Constants.PMO_KEYWORD + "%";
 		String dateStr = formatDate(date);
 		StringBuffer subject = new StringBuffer(environmentName);
-		logger.info("sendWorkflowPendingMail :: RequestId" +requestId);
+		logger.info("sendWorkflowPendingMail :: RequestId" + requestId);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
-		if(workflowRequestT != null) {
+		if (workflowRequestT != null) {
 			String entityId = workflowRequestT.getEntityId();
 			logger.debug("Request fetched:");
-			logger.debug("EntityId:" +entityId );
+			logger.debug("EntityId:" + entityId);
 			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
 			case CUSTOMER:
 				workflowEntity = Constants.WORKFLOW_CUSTOMER;
 				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 						.findOne(entityId);
-				if(!StringUtils.isEmpty(workflowCustomerT.getRemarks())){
+				if (!StringUtils.isEmpty(workflowCustomerT.getRemarks())) {
 					remarks = workflowCustomerT.getRemarks();
 				}
 				workflowEntityName = workflowCustomerT.getCustomerName();
 				geography = workflowCustomerT.getGeography();
-				userName = userRepository.findUserNameByUserId(workflowCustomerT
-						.getCreatedBy());
+				userName = userRepository
+						.findUserNameByUserId(workflowCustomerT.getCreatedBy());
 				subject.append(Constants.WORKFLOW_CUSTOMER_PENDING_SUBJECT)
-				.append(" ").append(Constants.FROM).append(" ")
-				.append(userName);
+						.append(" ").append(Constants.FROM).append(" ")
+						.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
 			case PARTNER:
@@ -586,25 +655,27 @@ public class DestinationMailUtils {
 				userName = userRepository.findUserNameByUserId(workflowPartnerT
 						.getCreatedBy());
 				subject.append(Constants.WORKFLOW_PARTNER_PENDING_SUBJECT)
-				.append(" ").append(Constants.FROM).append(" ")
-				.append(userName);
+						.append(" ").append(Constants.FROM).append(" ")
+						.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
 			case COMPETITOR:
 				workflowEntity = Constants.WORKFLOW_COMPETITOR;
 				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
 						.findOne(entityId);
-				workflowEntityName = workflowCompetitor.getWorkflowCompetitorName();
-				userName = userRepository.findUserNameByUserId(workflowCompetitor
-						.getCreatedBy());
+				workflowEntityName = workflowCompetitor
+						.getWorkflowCompetitorName();
+				userName = userRepository
+						.findUserNameByUserId(workflowCompetitor.getCreatedBy());
 				subject.append(Constants.WORKFLOW_COMPETITOR_PENDING_SUBJECT)
-				.append(" ").append(Constants.FROM).append(" ")
-				.append(userName);
+						.append(" ").append(Constants.FROM).append(" ")
+						.append(userName);
 				operation = Constants.WORKFLOW_OPERATION_CREATION_TEMPLATE;
 				break;
 			case OPPORTUNITY:
 				workflowEntity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
-				OpportunityT opportunity = opportunityRepository.findOne(entityId);
+				OpportunityT opportunity = opportunityRepository
+						.findOne(entityId);
 				workflowEntityName = opportunity.getOpportunityName();
 				geography = opportunity.getCustomerMasterT().getGeography();
 				userName = userRepository.findUserNameByUserId(workflowRequestT
@@ -618,9 +689,9 @@ public class DestinationMailUtils {
 						.findByRequestIdAndStepStatus(requestId,
 								WorkflowStatus.SUBMITTED.getStatus());
 				reason = new StringBuffer(Constants.WORKFLOW_REOPEN_PREFIX)
-				.append(" ").append(workflowSubmittedStep.getComments())
-				.toString();
-				logger.info("Subject :"+subject);
+						.append(" ")
+						.append(workflowSubmittedStep.getComments()).toString();
+				logger.info("Subject :" + subject);
 				break;
 			default:
 				break;
@@ -631,31 +702,33 @@ public class DestinationMailUtils {
 			if (workflowStepPending.getUserGroup() != null) {
 				switch (workflowStepPending.getUserGroup()) {
 				case Constants.WORKFLOW_GEO_HEADS:
-					recepientIds.addAll(userAccessPrivilegesRepository
-							.findUserIdsForWorkflowUserGroup(geography,
-									Constants.Y,
-									UserGroup.GEO_HEADS.getValue()));
-					logger.debug("recepient Ids for GEO Heads :" +recepientIds);
+					recepientIds
+							.addAll(userAccessPrivilegesRepository
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y,
+											UserGroup.GEO_HEADS.getValue()));
+					logger.debug("recepient Ids for GEO Heads :" + recepientIds);
 					userGroupOrUserRoleOrUserId = Constants.WORKFLOW_GEO_HEADS;
 					ccIds.addAll(userAccessPrivilegesRepository
-							.findUserIdsForWorkflowPMO(geography,
-									Constants.Y, pmoValue));
-					logger.debug("CCIds for PMO :"+ccIds);
+							.findUserIdsForWorkflowUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
+					logger.debug("CCIds for PMO :" + ccIds);
 					break;
 				case Constants.WORKFLOW_PMO:
 					recepientIds.addAll(userAccessPrivilegesRepository
-							.findUserIdsForWorkflowPMO(geography,
-									Constants.Y, pmoValue));
+							.findUserIdsForWorkflowUserGroup(geography,
+									Constants.Y, UserGroup.PMO.getValue()));
 					userGroupOrUserRoleOrUserId = Constants.WORKFLOW_PMO;
 				default:
+					break;
 				}
 			}
 			if (workflowStepPending.getUserRole() != null) {
-				recepientIds.addAll(userRepository
-						.findUserIdByUserRole(workflowStepPending
-								.getUserRole()));
-				userGroupOrUserRoleOrUserId = workflowStepPending
-						.getUserRole();
+				recepientIds
+						.addAll(userRepository
+								.findUserIdByUserRole(workflowStepPending
+										.getUserRole()));
+				userGroupOrUserRoleOrUserId = workflowStepPending.getUserRole();
 
 			}
 			if (workflowStepPending.getUserId() != null) {
@@ -682,10 +755,10 @@ public class DestinationMailUtils {
 			workflowMap.put("operation", operation);
 			workflowMap.put("reason", reason);
 			String tmpl;
-			if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals(EntityTypeId.CUSTOMER)){
+			if (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))
+					.equals(EntityTypeId.CUSTOMER)) {
 				tmpl = workflowCustomerPendingTemplateLoc;
-			}
-			else{
+			} else {
 				tmpl = workflowPendingTemplateLoc;
 			}
 			String text = mergeTmplWithData(workflowMap, tmpl);
@@ -695,16 +768,17 @@ public class DestinationMailUtils {
 			message.setMessage(text);
 
 			destMailSender.send(message);
-			logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
 
 		} else {
 			logger.error("request not fetched");
 		}
 	}
 
-
 	/**
 	 * This method is used to send the mail on approval of a workflow entity
+	 * 
 	 * @param workflowCustomerApprovedOrRejectSubject
 	 * @param requestId
 	 * @param date
@@ -726,8 +800,6 @@ public class DestinationMailUtils {
 		String entityName = null;
 		String userName = null;
 		String geography = null;
-		String pmoValue = "%"
-				+ Constants.PMO_KEYWORD + "%";
 		String subject = formatSubject(workflowCustomerApprovedOrRejectSubject);
 		WorkflowRequestT workflowRequestT = workflowRequestRepository
 				.findOne(requestId);
@@ -738,18 +810,17 @@ public class DestinationMailUtils {
 						WorkflowStatus.SUBMITTED.getStatus());
 		if (workflowStepSubmitted != null) {
 			switch (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))) {
-			case CUSTOMER :
+			case CUSTOMER:
 				entity = Constants.WORKFLOW_CUSTOMER;
 				WorkflowCustomerT workflowCustomerT = workflowCustomerRepository
 						.findOne(entityId);
-				if(!StringUtils.isEmpty(workflowCustomerT.getRemarks())){
+				if (!StringUtils.isEmpty(workflowCustomerT.getRemarks())) {
 					remarks = workflowCustomerT.getRemarks();
 				}
 				entityName = workflowCustomerT.getCustomerName();
 				geography = workflowCustomerT.getGeography();
 				userName = userRepository
-						.findUserNameByUserId(workflowCustomerT
-								.getCreatedBy());
+						.findUserNameByUserId(workflowCustomerT.getCreatedBy());
 				operation = Constants.WORKFLOW_OPERATION_CREATE;
 				recepientIds.add(workflowCustomerT.getCreatedBy());
 				break;
@@ -759,29 +830,29 @@ public class DestinationMailUtils {
 						.findOne(entityId);
 				entityName = workflowPartnerT.getPartnerName();
 				geography = workflowPartnerT.getGeography();
-				userName = userRepository
-						.findUserNameByUserId(workflowPartnerT
-								.getCreatedBy());
+				userName = userRepository.findUserNameByUserId(workflowPartnerT
+						.getCreatedBy());
 				operation = Constants.WORKFLOW_OPERATION_CREATE;
 				recepientIds.add(workflowPartnerT.getCreatedBy());
 				break;
-//			case COMPETITOR:
-//				entity = Constants.WORKFLOW_COMPETITOR;
-//				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
-//						.findOne(entityId);
-//				entityName = workflowCompetitor.getWorkflowCompetitorName();
-//				userName = userRepository
-//						.findUserNameByUserId(workflowCompetitor
-//								.getCreatedBy());
-//				operation = Constants.WORKFLOW_OPERATION_CREATE;
-//				recepientIds.add(workflowCompetitor.getCreatedBy());
-//				break;
+			case COMPETITOR:
+				entity = Constants.WORKFLOW_COMPETITOR;
+				WorkflowCompetitorT workflowCompetitor = workflowCompetitorRepository
+						.findOne(entityId);
+				entityName = workflowCompetitor.getWorkflowCompetitorName();
+				userName = userRepository
+						.findUserNameByUserId(workflowCompetitor.getCreatedBy());
+				operation = Constants.WORKFLOW_OPERATION_CREATE;
+				recepientIds.add(workflowCompetitor.getCreatedBy());
+				break;
 			case OPPORTUNITY:
 				entity = Constants.WORKFLOW_OPPORTUNITY_REOPEN;
-				OpportunityT opportunity = opportunityRepository.findOne(entityId);
+				OpportunityT opportunity = opportunityRepository
+						.findOne(entityId);
 				geography = opportunity.getCustomerMasterT().getGeography();
 				entityName = opportunity.getOpportunityName();
-				userName = userRepository.findUserNameByUserId(workflowRequestT.getCreatedBy());
+				userName = userRepository.findUserNameByUserId(workflowRequestT
+						.getCreatedBy());
 				operation = Constants.WORKFLOW_OPERATION_REOPEN;
 				recepientIds.add(workflowRequestT.getCreatedBy());
 			default:
@@ -807,19 +878,22 @@ public class DestinationMailUtils {
 						case Constants.WORKFLOW_GEO_HEADS:
 
 							ccIds.addAll(userAccessPrivilegesRepository
-									.findUserIdsForWorkflowUserGroup(
-											geography, Constants.Y,
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y,
 											UserGroup.GEO_HEADS.getValue()));
 							ccIds.addAll(userAccessPrivilegesRepository
-									.findUserIdsForWorkflowPMO(
-											geography, Constants.Y,
-											pmoValue));
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y,
+											UserGroup.PMO.getValue()));
+							break;
 						case Constants.WORKFLOW_PMO:
 							ccIds.addAll(userAccessPrivilegesRepository
-									.findUserIdsForWorkflowPMO(
-											geography, Constants.Y,
-											pmoValue));
+									.findUserIdsForWorkflowUserGroup(geography,
+											Constants.Y,
+											UserGroup.PMO.getValue()));
+							break;
 						default:
+							break;
 
 						}
 					}
@@ -829,8 +903,8 @@ public class DestinationMailUtils {
 										.getUserRole()));
 					}
 					if (workflowStep.getUserId() != null) {
-						String[] workflowUserIds = workflowStep
-								.getUserId().split(",");
+						String[] workflowUserIds = workflowStep.getUserId()
+								.split(",");
 						List<String> workflowUserIdList = Arrays
 								.asList(workflowUserIds);
 						ccIds.addAll(workflowUserIdList);
@@ -841,7 +915,8 @@ public class DestinationMailUtils {
 			message.setRecipients(listMailIdsFromUserIds(recepientIds));
 
 			if (CollectionUtils.isNotEmpty(ccIds)) {
-				message.setCcList(listMailIdsFromUserIds(Lists.newArrayList(ccIds)));
+				message.setCcList(listMailIdsFromUserIds(Lists
+						.newArrayList(ccIds)));
 			}
 
 			message.setSubject(subject);
@@ -859,9 +934,9 @@ public class DestinationMailUtils {
 						.findWorkflowStepForFinalApproval(requestId);
 				if (workflowStepForFinalApproval.getComments() != null) {
 					comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
-					.append(" ")
-					.append(workflowStepForFinalApproval
-							.getComments()).toString();
+							.append(" ")
+							.append(workflowStepForFinalApproval.getComments())
+							.toString();
 				}
 				approvedOrRejectedUserName = userRepository
 						.findUserNameByUserId(workflowStepForFinalApproval
@@ -877,12 +952,10 @@ public class DestinationMailUtils {
 						.findByRequestIdAndStepStatus(requestId,
 								WorkflowStatus.REJECTED.getStatus());
 				approvedOrRejectedUserName = userRepository
-						.findUserNameByUserId(workflowStepRejected
-								.getUserId());
+						.findUserNameByUserId(workflowStepRejected.getUserId());
 				comment = new StringBuffer(Constants.WORKFLOW_COMMENTS)
-				.append(" ")
-				.append(workflowStepRejected.getComments())
-				.toString();
+						.append(" ").append(workflowStepRejected.getComments())
+						.toString();
 				workflowMap.put("approvedOrRejectedUserName",
 						approvedOrRejectedUserName);
 				workflowMap.put("status", "rejected");
@@ -892,10 +965,10 @@ public class DestinationMailUtils {
 			}
 
 			String tmpl;
-			if(EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId)).equals(EntityTypeId.CUSTOMER)){
+			if (EntityTypeId.valueOf(EntityTypeId.getName(entityTypeId))
+					.equals(EntityTypeId.CUSTOMER)) {
 				tmpl = workflowCustomerApproveOrRejectTemplateLoc;
-			}
-			else{
+			} else {
 				tmpl = workflowApproveOrRejectTemplateLoc;
 			}
 			text = mergeTmplWithData(workflowMap, tmpl);
@@ -903,11 +976,11 @@ public class DestinationMailUtils {
 			message.setMessage(text);
 			logger.info("before sending mail");
 			destMailSender.send(message);
-			logger.info("Mail Sent for request" +workflowRequestT.getRequestId());
+			logger.info("Mail Sent for request"
+					+ workflowRequestT.getRequestId());
 		}
 
 	}
-
 
 	/**
 	 * @param roles
@@ -934,37 +1007,37 @@ public class DestinationMailUtils {
 		List<String> mailIds = new ArrayList<String>();
 		List<UserT> users = userService.getByUserRoles(roles);
 		for (UserT user : users) {
-			if(user.isActive()) {
+			if (user.isActive()) {
 				mailIds.add(user.getUserEmailId());
 			}
 		}
 		return mailIds;
 	}
-	
+
 	private List<String> listMailIdsFromUserIds(List<String> recipientIdList) {
 		List<String> emailIds = Lists.newArrayList();
-		if(CollectionUtils.isNotEmpty(recipientIdList)) {
-			emailIds = userRepository.findUserMailIdsFromActiveUsers(recipientIdList);
+		if (CollectionUtils.isNotEmpty(recipientIdList)) {
+			emailIds = userRepository
+					.findUserMailIdsFromActiveUsers(recipientIdList);
 		}
-		return emailIds;		
+		return emailIds;
 	}
 
 	/**
 	 * merge the data in the given template
+	 * 
 	 * @param data
 	 * @param tmpl
 	 * @return
 	 */
-	private String mergeTmplWithData(
-			Map<String, Object> data, String tmpl) {
-		return VelocityEngineUtils.mergeTemplateIntoString(
-				velocityEngine, tmpl,
-				Constants.UTF8, data);
+	private String mergeTmplWithData(Map<String, Object> data, String tmpl) {
+		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
+				tmpl, Constants.UTF8, data);
 	}
-
 
 	/**
 	 * format the given date to predefined destination date-format
+	 * 
 	 * @param requestedDateTime
 	 * @return
 	 */
@@ -974,9 +1047,9 @@ public class DestinationMailUtils {
 		return dateStr;
 	}
 
-
 	/**
 	 * format the subject with environment name
+	 * 
 	 * @param subject
 	 * @return
 	 */
@@ -992,230 +1065,494 @@ public class DestinationMailUtils {
 	}
 
 	/**
-	 * This method is used to send the email notification to group of users on 
-	 * opportunity won or lost 
+	 * This method is used to send the email notification to group of users on
+	 * opportunity won or lost
+	 * 
 	 * @param entityId
 	 */
-	 public void sendOpportunityWonLostNotification(String entityId) throws Exception {
-		 logger.info("Inside sendOpportunityWonLostNotification method");
-		 OpportunityT opportunity = opportunityRepository.findOne(entityId);
-		 List<String> recepientIds = new ArrayList<String>();
-		 String templateLoc = null;
-		 StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
-		 if (opportunity != null) {
-			 String opportunityName = opportunity.getOpportunityName();
-			 logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
-					 + opportunityName);
-			 String customerName = opportunity.getCustomerMasterT()
-					 .getCustomerName();
-			 String opportunityOwner = userRepository
-					 .findUserNameByUserId(opportunity.getOpportunityOwner());
-			 Integer digitalBidValue = opportunity.getDigitalDealValue();
-			 logger.info("digital Bid Value : "+digitalBidValue);
-			 String currencyType = opportunity.getDealCurrency();
-			 //Converting deal value to USD
-			 BigDecimal digitalBidValueUSD = opportunityDownloadService.convertCurrencyToUSD(currencyType, digitalBidValue);
-			 logger.info("digitalBidValueUSD : "+digitalBidValueUSD);
-			 //Converting the USD value in number scale
-			 String dealValueUSDInNumberScale = NumericUtil.toUSDinNumberScale(digitalBidValueUSD);
-			 logger.info("dealValueUSDInNumberScale : "+dealValueUSDInNumberScale);
-			 DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
-			 Date dealClosureDate = opportunity.getDealClosureDate();
-			 String dealClosureDateStr = df.format(dealClosureDate);
-			 String opportunityDescription = opportunity
-					 .getOpportunityDescription();
-			 List<String> winLossFactors = new ArrayList<String>();
-			 List<String> opportunitySalesSupportOwners = new ArrayList<String>();
-			 List<String> opportunitySubSps = new ArrayList<String>();
-			 List<String> opportunityCompetitors = new ArrayList<String>();
-			 List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
-			 String competitorNames = Constants.NOT_AVAILABLE;
-			 String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
+	public void sendOpportunityWonLostNotification(String entityId)
+			throws Exception {
+		logger.info("Inside sendOpportunityWonLostNotification method");
+		OpportunityT opportunity = opportunityRepository.findOne(entityId);
+		List<String> recepientIds = new ArrayList<String>();
+		String templateLoc = null;
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
+		if (opportunity != null) {
+			String opportunityName = opportunity.getOpportunityName();
+			logger.info("OpportunityId :" + entityId + ", Opportunity Name : "
+					+ opportunityName);
+			String customerName = opportunity.getCustomerMasterT()
+					.getCustomerName();
+			String opportunityOwner = userRepository
+					.findUserNameByUserId(opportunity.getOpportunityOwner());
+			Integer digitalBidValue = opportunity.getDigitalDealValue();
+			logger.info("digital Bid Value : " + digitalBidValue);
+			String currencyType = opportunity.getDealCurrency();
+			// Converting deal value to USD
+			BigDecimal digitalBidValueUSD = opportunityDownloadService
+					.convertCurrencyToUSD(currencyType, digitalBidValue);
+			logger.info("digitalBidValueUSD : " + digitalBidValueUSD);
+			// Converting the USD value in number scale
+			String dealValueUSDInNumberScale = NumericUtil
+					.toUSDinNumberScale(digitalBidValueUSD);
+			logger.info("dealValueUSDInNumberScale : "
+					+ dealValueUSDInNumberScale);
+			DateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+			Date dealClosureDate = opportunity.getDealClosureDate();
+			String dealClosureDateStr = df.format(dealClosureDate);
+			String opportunityDescription = opportunity
+					.getOpportunityDescription();
+			List<String> winLossFactors = new ArrayList<String>();
+			List<String> opportunitySalesSupportOwners = new ArrayList<String>();
+			List<String> opportunitySubSps = new ArrayList<String>();
+			List<String> opportunityCompetitors = new ArrayList<String>();
+			List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
+			String competitorNames = Constants.NOT_AVAILABLE;
+			String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
 
-			 String salesSupportOwners = "";
-			 String factorsForWinLoss = "";
-			 String subSpsStr = "";
-			 String withSupportFrom = "";
-			 String displaySubSp = null;
-			 for(OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity.getOpportunitySubSpLinkTs()) {
-				 displaySubSp = subSpRepository.findOne(opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
-				 opportunitySubSps.add(displaySubSp);
-			 }
-			 if(CollectionUtils.isNotEmpty(opportunitySubSps)) {
-				 subSpsStr = splitStringByComma(opportunitySubSps);
-			 }
-			 
-			 for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
-					 .getOpportunitySalesSupportLinkTs()) {
+			String salesSupportOwners = "";
+			String factorsForWinLoss = "";
+			String subSpsStr = "";
+			String withSupportFrom = "";
+			String displaySubSp = null;
+			for (OpportunitySubSpLinkT opportunitySubSpLinkT : opportunity
+					.getOpportunitySubSpLinkTs()) {
+				displaySubSp = subSpRepository.findOne(
+						opportunitySubSpLinkT.getSubSp()).getDisplaySubSp();
+				opportunitySubSps.add(displaySubSp);
+			}
+			if (CollectionUtils.isNotEmpty(opportunitySubSps)) {
+				subSpsStr = splitStringByComma(opportunitySubSps);
+			}
 
-				 if(!opportunitySalesSupportLinkT.getSalesSupportOwner().contains("pmo")) {
-					 opportunitySalesSupportOwners.add(userRepository
-							 .findUserNameByUserId(opportunitySalesSupportLinkT
-									 .getSalesSupportOwner()));
-				 }
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+					.getOpportunitySalesSupportLinkTs()) {
 
-			 }
-			 if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
-				 withSupportFrom = Constants.WITH_SUPPORT_FROM;
-				 salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
-				 logger.info("sales support owners : "+salesSupportOwners);
-			 }
-			 
-				// Getting Opportunity Competitors
-				if (CollectionUtils.isNotEmpty(opportunity
-						.getOpportunityCompetitorLinkTs())) {
-					for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
-							.getOpportunityCompetitorLinkTs()) {
-						if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
-								Constants.Y)) {
-							opportunityIncumbentCompetitors
-									.add(opportunityCompetitorLinkT
-											.getCompetitorName());
-						} else {
-							opportunityCompetitors.add(opportunityCompetitorLinkT
-									.getCompetitorName());
-						}
-						
+				if (!opportunitySalesSupportLinkT.getSalesSupportOwner()
+						.contains("pmo")) {
+					opportunitySalesSupportOwners.add(userRepository
+							.findUserNameByUserId(opportunitySalesSupportLinkT
+									.getSalesSupportOwner()));
+				}
+
+			}
+			if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
+				withSupportFrom = Constants.WITH_SUPPORT_FROM;
+				salesSupportOwners = splitStringByComma(opportunitySalesSupportOwners);
+				logger.info("sales support owners : " + salesSupportOwners);
+			}
+
+			// Getting Opportunity Competitors
+			if (CollectionUtils.isNotEmpty(opportunity
+					.getOpportunityCompetitorLinkTs())) {
+				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+						.getOpportunityCompetitorLinkTs()) {
+					if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
+							Constants.Y)) {
+						opportunityIncumbentCompetitors
+								.add(opportunityCompetitorLinkT
+										.getCompetitorName());
+					} else {
+						opportunityCompetitors.add(opportunityCompetitorLinkT
+								.getCompetitorName());
 					}
-				}
-				
-				if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
-					competitorNames = splitStringByComma(opportunityCompetitors);
-				}
 
-				if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
-					incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
 				}
+			}
 
+			if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
+				competitorNames = splitStringByComma(opportunityCompetitors);
+			}
 
-			 recepientIds.add(opportunityWonLostGroupMailId);
-			 if (opportunity.getSalesStageCode() == 9) {
-					logger.info("opportunity Won");
-					subject.append("DESTiNATION:").append(" ").append(subSpsStr)
-							.append(" ").append("Deal Won for").append(" ")
-							.append(customerName);
-					logger.info("Subject for opportunity won : {}", subject);
-					templateLoc = opportunityWonTemplateLoc;
-					// Getting Win Loss Factors
-					for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-							.getOpportunityWinLossFactorsTs()) {
-						// if the win/Loss factor is Win-Other,adding the win loss
-						// others description to the factors
-						if (opportunityWinLossFactorsT.getWinLossFactor().equals(
-								Constants.WIN_OTHER)) {
-							if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
-									.getWinLossOthersDescription())) {
-								winLossFactors.add(opportunityWinLossFactorsT
-										.getWinLossOthersDescription());
-							}
-						} else {
+			if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
+				incumbentCompetitorNames = splitStringByComma(opportunityIncumbentCompetitors);
+			}
+
+			recepientIds.add(opportunityWonLostGroupMailId);
+			if (opportunity.getSalesStageCode() == 9) {
+				logger.info("opportunity Won");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Won for").append(" ")
+						.append(customerName);
+				logger.info("Subject for opportunity won : {}", subject);
+				templateLoc = opportunityWonTemplateLoc;
+				// Getting Win Loss Factors
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Win-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.WIN_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
 							winLossFactors.add(opportunityWinLossFactorsT
-									.getWinLossFactor());
+									.getWinLossOthersDescription());
 						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
 					}
-
 				}
-				// If the Opportunity is lost, framing the subject ang getting the
-				// template loc and loss factors
-				if (opportunity.getSalesStageCode() == 10) {
-					logger.info("OpportunityLost");
-					subject.append("DESTiNATION:").append(" ").append(subSpsStr)
-							.append(" ").append("Deal Lost for").append(" ")
-							.append(customerName);
-					logger.info("Subject for opportunity lost :" + subject);
-					templateLoc = opportunityLostTemplateLoc;
 
-					for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
-							.getOpportunityWinLossFactorsTs()) {
-						// if the win/Loss factor is Loss-Other,adding the win loss
-						// others description to the factors
-						if (opportunityWinLossFactorsT.getWinLossFactor().equals(
-								Constants.LOSS_OTHER)) {
-							if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
-									.getWinLossOthersDescription())) {
-								winLossFactors.add(opportunityWinLossFactorsT
-										.getWinLossOthersDescription());
-							}
-						} else {
+			}
+			// If the Opportunity is lost, framing the subject ang getting the
+			// template loc and loss factors
+			if (opportunity.getSalesStageCode() == 10) {
+				logger.info("OpportunityLost");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Lost for").append(" ")
+						.append(customerName);
+				logger.info("Subject for opportunity lost :" + subject);
+				templateLoc = opportunityLostTemplateLoc;
+
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Loss-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.LOSS_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
 							winLossFactors.add(opportunityWinLossFactorsT
-									.getWinLossFactor());
+									.getWinLossOthersDescription());
 						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
 					}
 				}
+			}
 
-				if (CollectionUtils.isNotEmpty(winLossFactors)) {
-					factorsForWinLoss = StringUtils.join(winLossFactors, ", ");
-					logger.info("factors for win/loss : " + factorsForWinLoss);
-				}
-			 if(templateLoc!=null) {
-				 DestinationMailMessage message = new DestinationMailMessage();
-				 message.setRecipients(Lists.newArrayList(opportunityWonLostGroupMailId));
-				 logger.info("To email address : "+opportunityWonLostGroupMailId);
-				 message.setSubject(subject.toString());
-				 Map<String, Object> map = new HashMap<String, Object>();
-				 map.put("opportunityName", opportunityName);
-				 map.put("customerName", customerName);
-				 map.put("factorsForWinLoss", factorsForWinLoss);
-				 map.put("opportunityOwner", opportunityOwner);
-				 map.put("salesSupportOwners", salesSupportOwners);
-				 map.put("digitalBidValue", dealValueUSDInNumberScale);
-				 map.put("opportunityDescription", opportunityDescription);
-				 map.put("withSupportFrom", withSupportFrom);
-				 map.put("dealClosureDate", dealClosureDateStr);
-					map.put("competitorNames", competitorNames);
-					map.put("incumbentCompetitorNames",
-							incumbentCompetitorNames);
+			if (CollectionUtils.isNotEmpty(winLossFactors)) {
+				factorsForWinLoss = StringUtils.join(winLossFactors, ", ");
+				logger.info("factors for win/loss : " + factorsForWinLoss);
+			}
+			if (templateLoc != null) {
+				DestinationMailMessage message = new DestinationMailMessage();
+				message.setRecipients(Lists
+						.newArrayList(opportunityWonLostGroupMailId));
+				logger.info("To email address : "
+						+ opportunityWonLostGroupMailId);
+				message.setSubject(subject.toString());
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("opportunityName", opportunityName);
+				map.put("customerName", customerName);
+				map.put("factorsForWinLoss", factorsForWinLoss);
+				map.put("opportunityOwner", opportunityOwner);
+				map.put("salesSupportOwners", salesSupportOwners);
+				map.put("digitalBidValue", dealValueUSDInNumberScale);
+				map.put("opportunityDescription", opportunityDescription);
+				map.put("withSupportFrom", withSupportFrom);
+				map.put("dealClosureDate", dealClosureDateStr);
+				map.put("competitorNames", competitorNames);
+				map.put("incumbentCompetitorNames", incumbentCompetitorNames);
 
-				 String text = mergeTmplWithData(map, templateLoc);
-				 logger.info("framed text for mail :" + text);
-				 message.setMessage(text);
-				 logger.info("before sending mail");
-				 destMailSender.send(message);
-				 logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "+entityId);
-			 }
+				String text = mergeTmplWithData(map, templateLoc);
+				logger.info("framed text for mail :" + text);
+				message.setMessage(text);
+				logger.info("before sending mail");
+				destMailSender.send(message);
+				logger.info("Mail Sent for opportunity win/loss, Opportunity Id : "
+						+ entityId);
+			}
 
-		 } else {
-			 throw new DestinationException("Opportunity not found : "+entityId);
-		 }
+		} else {
+			throw new DestinationException("Opportunity not found : "
+					+ entityId);
+		}
 
-
-	 }
-	 
-	 
-	 /**
-	  * This method is used to send email to the System Admins,
-	  * the Details captured for changing the supervisor details  
-	  * 
-	  * @param userDetailsEmailAppendString
-	  * @param userT
-	  * @throws Exception
-	  */
-	 public void sendEscalateUserDetailsAutomatedEmail(String existingSupervisorDetails, String newSupervisorDetails, UserT userT) throws Exception {
- 
-		 DestinationMailMessage message = new DestinationMailMessage();
-		 List<String> recipientIds = userService.findByUserRole(Constants.SYSTEM_ADMIN);
-		 message.setRecipients(listMailIdsFromUserIds(recipientIds));
-
-
-		 List<String> ccList = listMailIdsFromUserIds(Lists.newArrayList(userT.getUserId(), userT.getSupervisorUserId()));
-		 message.setCcList(ccList);
-
-		 DateFormat df = new SimpleDateFormat(dateFormatStr);
-		 String dateStr = df.format(new Date());
-		 String subject = formatSubject(userDetailsApprovalSubject); 
-
-		 message.setSubject(subject);
-
-		 Map<String, Object> userDetailsApprovalMap = Maps.newHashMap();
-		 userDetailsApprovalMap.put("username", userT.getUserName());
-		 userDetailsApprovalMap.put("date", dateStr);
-		 userDetailsApprovalMap.put("existingSupervisorDetails", existingSupervisorDetails);
-		 userDetailsApprovalMap.put("newSupervisorDetails", newSupervisorDetails);
-		 String text = mergeTmplWithData(userDetailsApprovalMap, userDetailsApprovalTemplate);
-		 message.setMessage(text);
-		 destMailSender.send(message);
-				
 	}
 
+	/**
+	 * This method is used to send email to the System Admins, the Details
+	 * captured for changing the supervisor details
+	 * 
+	 * @param userDetailsEmailAppendString
+	 * @param userT
+	 * @throws Exception
+	 */
+	public void sendEscalateUserDetailsAutomatedEmail(
+			String existingSupervisorDetails, String newSupervisorDetails,
+			UserT userT) throws Exception {
+
+		DestinationMailMessage message = new DestinationMailMessage();
+		List<String> recipientIds = userService
+				.findByUserRole(Constants.SYSTEM_ADMIN);
+		message.setRecipients(listMailIdsFromUserIds(recipientIds));
+
+		List<String> ccList = listMailIdsFromUserIds(Lists.newArrayList(
+				userT.getUserId(), userT.getSupervisorUserId()));
+		message.setCcList(ccList);
+
+		DateFormat df = new SimpleDateFormat(dateFormatStr);
+		String dateStr = df.format(new Date());
+		String subject = formatSubject(userDetailsApprovalSubject);
+
+		message.setSubject(subject);
+
+		Map<String, Object> userDetailsApprovalMap = Maps.newHashMap();
+		userDetailsApprovalMap.put("username", userT.getUserName());
+		userDetailsApprovalMap.put("date", dateStr);
+		userDetailsApprovalMap.put("existingSupervisorDetails",
+				existingSupervisorDetails);
+		userDetailsApprovalMap
+				.put("newSupervisorDetails", newSupervisorDetails);
+		String text = mergeTmplWithData(userDetailsApprovalMap,
+				userDetailsApprovalTemplate);
+		message.setMessage(text);
+		destMailSender.send(message);
+
+	}
+
+	/**
+	 * This method is used to send the email notification to group of users for
+	 * opportunity updates
+	 * 
+	 * @param entityId
+	 * @param dealValue
+	 */
+	public void sendOpportunityEmailNotification(String entityId,
+			Double dealValue) throws Exception {
+
+		logger.info("Inside sendOpportunityEmailNotification method");
+
+		String templateLoc = null;
+		StringBuffer subject = new StringBuffer(mailSubjectAppendEnvName);
+		Map<String, Object> data = new HashMap<String, Object>();
+		List<String> opportunitySalesSupportOwners = new ArrayList<String>();
+		List<String> winLossFactors = new ArrayList<String>();
+		String factorsForWinLoss = "";
+		String salesSupportOwners = "";
+		String withSupportFrom = "";
+		String subSpsStr = "";
+		List<String> opportunityCompetitors = new ArrayList<String>();
+		List<String> opportunityIncumbentCompetitors = new ArrayList<String>();
+		List<String> customerContact = new ArrayList<String>();
+		String customerContacts = Constants.NOT_AVAILABLE;
+		String competitorNames = Constants.NOT_AVAILABLE;
+		String incumbentCompetitorNames = Constants.NOT_AVAILABLE;
+		String dealClosureDateStr = "";
+		BigDecimal dealValueUSD = new BigDecimal(dealValue);
+		OpportunityT opportunity = opportunityRepository.findOne(entityId);
+		if (opportunity != null) {
+			String customerName = opportunity.getCustomerMasterT()
+					.getCustomerName();
+			String iou = opportunity.getCustomerMasterT().getIou();
+			String opportunityName = opportunity.getOpportunityName();
+			String dealValueInNumberScale = NumericUtil
+					.toUSDinNumberScale(dealValueUSD);
+			logger.info("OpportunityId: {}, Opportunity Name: {}", entityId,
+					opportunityName);
+
+			String opportunityDescription = opportunity
+					.getOpportunityDescription();
+
+			String primaryOwner = userRepository
+					.findUserNameByUserId(opportunity.getOpportunityOwner());
+
+			// getting sales support owners
+			if (CollectionUtils.isNotEmpty(opportunity
+					.getOpportunitySalesSupportLinkTs())) {
+				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
+						.getOpportunitySalesSupportLinkTs()) {
+					UserT salesSupportOwner = userRepository
+							.findOne(opportunitySalesSupportLinkT
+									.getSalesSupportOwner());
+					if (!StringUtils.equals(salesSupportOwner.getUserGroup(),
+							UserGroup.PMO.getValue())) {
+						opportunitySalesSupportOwners.add(salesSupportOwner
+								.getUserName());
+					}
+
+				}
+				if (CollectionUtils.isNotEmpty(opportunitySalesSupportOwners)) {
+					withSupportFrom = Constants.WITH_SUPPORT_FROM;
+					salesSupportOwners = StringUtils.join(
+							opportunitySalesSupportOwners, ", ");
+					logger.info("sales support owners : " + salesSupportOwners);
+				}
+			}
+
+			// getting competitors
+
+			// Getting Opportunity Competitors
+			if (CollectionUtils.isNotEmpty(opportunity
+					.getOpportunityCompetitorLinkTs())) {
+				for (OpportunityCompetitorLinkT opportunityCompetitorLinkT : opportunity
+						.getOpportunityCompetitorLinkTs()) {
+					if (opportunityCompetitorLinkT.getIncumbentFlag().equals(
+							Constants.Y)) {
+						opportunityIncumbentCompetitors
+								.add(opportunityCompetitorLinkT
+										.getCompetitorName());
+					} else {
+						opportunityCompetitors.add(opportunityCompetitorLinkT
+								.getCompetitorName());
+					}
+
+				}
+			}
+
+			if (CollectionUtils.isNotEmpty(opportunityCompetitors)) {
+				competitorNames = StringUtils
+						.join(opportunityCompetitors, ", ");
+			}
+
+			if (CollectionUtils.isNotEmpty(opportunityIncumbentCompetitors)) {
+				incumbentCompetitorNames = StringUtils.join(
+						opportunityIncumbentCompetitors, ", ");
+			}
+
+			// getting primary display subsp
+			String primaryDisplaySubSp = opportunitySubSpLinkTRepository
+					.findPrimaryDisplaySubSpByOpportunityId(entityId);
+			if (StringUtils.isNotEmpty(primaryDisplaySubSp)) {
+				subSpsStr = primaryDisplaySubSp;
+			}
+
+			// getting opportunity customer contacts
+			customerContact = contactRepository
+					.findCustomerContactNamesByOpportinityId(entityId);
+			if (CollectionUtils.isNotEmpty(customerContact)) {
+				customerContacts = StringUtils.join(customerContact, ", ");
+			}
+
+			// Getting bid details
+			BidDetailsT bidDetailsT = bidDetailsTRepository
+					.findFirstByOpportunityIdOrderByModifiedDatetimeDesc(opportunity
+							.getOpportunityId());
+			if (bidDetailsT != null) {
+				data.put("actualSubmissionDate", ACTUAL_FORMAT
+						.format(bidDetailsT.getActualBidSubmissionDate()));
+				data.put("winProbbility", bidDetailsT.getWinProbability());
+				data.put("expectedOutcomeDate", ACTUAL_FORMAT
+						.format(bidDetailsT.getExpectedDateOfOutcome()));
+			}
+			if(opportunity.getDealClosureDate()!=null) {
+				dealClosureDateStr = ACTUAL_FORMAT.format(opportunity.getDealClosureDate());
+			}
+			String[] searchList = { "<digitalBidValue>", "<masterCustomerName>" };
+			String[] replacementList = { dealValueInNumberScale, customerName };
+			switch (SalesStageCode.valueOf(opportunity.getSalesStageCode())) {
+
+			case RFP_SUBMITTED: // RFP Submitted
+				logger.info("Sales Stage : RFP Submitted");
+				subject.append(StringUtils.replaceEach(rfpHighValueMailSub,
+						searchList, replacementList));
+				templateLoc = opportunityRFPSubmittedTemplateLoc;
+				break;
+			case SHORTLISTED:
+				logger.info("Sales Stage : Shortlisted");
+				subject.append(StringUtils.replaceEach(
+						shortlistedHighValueMailSub, searchList,
+						replacementList));
+				templateLoc = opportunityShortlistedTemplateLoc;
+				break;
+			case SELECTED:
+				logger.info("Sales Stage : Selected");
+				subject.append(StringUtils.replaceEach(
+						selectedHighValueMailSub, searchList, replacementList));
+				templateLoc = opportunitySelectedTemplateLoc;
+				break;
+			case CONTRACT_NEGOTIATION:
+				logger.info("Sales Stage : Contract Negotiation");
+				subject.append(StringUtils.replaceEach(
+						contractNegotiationHighValueMailSub, searchList,
+						replacementList));
+				templateLoc = opportunityContractNegotiationTemplateLoc;
+				break;
+			case WIN:
+				logger.info("Sales Stage : Win");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Won for").append(" ")
+						.append(customerName);
+				templateLoc = opportunityWonTemplateLoc;
+				// Getting Win Loss Factors
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Win-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.WIN_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossOthersDescription());
+						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
+					}
+				}
+				break;
+			case LOST:
+				logger.info("Sales Stage : Lost");
+				subject.append("DESTiNATION:").append(" ").append(subSpsStr)
+						.append(" ").append("Deal Lost for").append(" ")
+						.append(customerName);
+				templateLoc = opportunityLostTemplateLoc;
+				for (OpportunityWinLossFactorsT opportunityWinLossFactorsT : opportunity
+						.getOpportunityWinLossFactorsTs()) {
+					// if the win/Loss factor is Loss-Other,adding the win loss
+					// others description to the factors
+					if (opportunityWinLossFactorsT.getWinLossFactor().equals(
+							Constants.LOSS_OTHER)) {
+						if (StringUtils.isNotEmpty(opportunityWinLossFactorsT
+								.getWinLossOthersDescription())) {
+							winLossFactors.add(opportunityWinLossFactorsT
+									.getWinLossOthersDescription());
+						}
+					} else {
+						winLossFactors.add(opportunityWinLossFactorsT
+								.getWinLossFactor());
+					}
+				}
+				break;
+			default:
+				break;
+
+			}
+
+			if (CollectionUtils.isNotEmpty(winLossFactors)) {
+				factorsForWinLoss = StringUtils.join(winLossFactors, ", ");
+				logger.info("factors for win/loss : " + factorsForWinLoss);
+			}
+
+			data.put("customerName", customerName);
+			data.put("opportunityName", opportunity.getOpportunityName());
+			data.put("salesStage", opportunity.getSalesStageCode());
+			data.put("subSp", subSpsStr);
+			data.put("iou", iou);
+			data.put("opportunityDescription", opportunityDescription);
+			data.put("primaryOwner", primaryOwner);
+			data.put("salesSupportOwners", salesSupportOwners);
+			data.put("withSupportFrom", withSupportFrom);
+
+			data.put("digitalBidValue", dealValueInNumberScale);
+			data.put("competitorNames", competitorNames);
+			data.put("incumbentCompetitorNames", incumbentCompetitorNames);
+			data.put("factorsForWinLoss", factorsForWinLoss);
+			data.put(
+					"crmId",
+					StringUtils.isNotEmpty(opportunity.getCrmId()) ? opportunity
+							.getCrmId() : Constants.NOT_AVAILABLE);
+			data.put("clientContact", customerContacts);
+			data.put("dealClosureDate", dealClosureDateStr);
+			DestinationMailMessage message = new DestinationMailMessage();
+			message.setRecipients(Lists
+					.newArrayList(opportunityWonLostGroupMailId));
+			logger.info("To email address : " + opportunityWonLostGroupMailId);
+			message.setSubject(subject.toString());
+			logger.info("Subject : " + subject.toString());
+			String text = mergeTmplWithData(data, templateLoc);
+			logger.info("framed text : " + text);
+			message.setMessage(text);
+			destMailSender.send(message);
+			logger.info("Opportunity Mail Sent, Opportunity Id : " + entityId);
+		} else {
+			throw new DestinationException("Opportunity not found : "
+					+ entityId);
+		}
+	}
 
 }

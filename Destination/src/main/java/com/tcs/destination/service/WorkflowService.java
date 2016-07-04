@@ -915,9 +915,7 @@ public class WorkflowService {
 			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
 					|| wfpt.getUserId() != null) {
 				if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-					if (wfpt.getUserGroup().contains(userGroup)
-							|| (isUserPMO(userId) && wfpt.getUserGroup()
-									.contains("PMO"))) {
+					if (wfpt.getUserGroup().contains(userGroup)) {
 						// if (wfpt.getUserGroup().contains(userGroup)) {
 						templateStep = wfpt.getStep();
 					}
@@ -2699,9 +2697,7 @@ public class WorkflowService {
 		logger.info("Inside checkUserAccess method");
 		boolean flag = false;
 		if (workflowStep.getUserGroup() != null) {
-			if (workflowStep.getUserGroup().contains(userGroup)
-					|| (isUserPMO(userId) && workflowStep.getUserGroup()
-							.contains("PMO"))) {
+			if (workflowStep.getUserGroup().contains(userGroup)) {
 				flag = true;
 			}
 		}

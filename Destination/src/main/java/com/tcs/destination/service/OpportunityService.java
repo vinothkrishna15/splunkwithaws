@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,13 +55,11 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -105,6 +104,7 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SalesStageCode;
 import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
@@ -273,6 +273,9 @@ public class OpportunityService {
 	
 	@Autowired
 	OpportunityDao opportunityDao;
+	
+	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
 	
     
 	/**
@@ -2546,9 +2549,9 @@ public class OpportunityService {
 	* @throws Exception
 	*/
 	@Transactional
-	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity) throws Exception {
-		
-		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity)
+			throws Exception {
+
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
@@ -2565,25 +2568,17 @@ public class OpportunityService {
 		OpportunityT opportunityBeforeEdit = opportunityRepository
 				.findOne(opportunityId);
 		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
+		Integer oldDealValue = opportunityBeforeEdit.getDigitalDealValue();
+		String oldDealCurrency = opportunityBeforeEdit.getDealCurrency();
 		updateOpportunity(opportunity, opportunityBeforeEdit);
-		// If won or lost, sending email notification to group of users using
-		// asynchronous job
-		if ((oldSalesStageCode != 9 && opportunity.getSalesStageCode() == 9)
-				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
-			logger.info("Opportunity : " + opportunityId
-					+ " is either won or lost");
-			asyncJobRequest.setJobName(JobName.opportunityWonLostEmailNotification);
-			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
-			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
-			asyncJobRequest.setOn(Switch.ON);
-
-		} 
-		
-		return asyncJobRequest;
+		// If deal value becomes more than 5 million USD or the opportunity won
+		// or lost, Email notification to be triggered
+		return sendEmailNotification(opportunity, oldSalesStageCode,
+				oldDealValue, oldDealCurrency);
 	}
 	
 	/**
-	 * This method is used to check wheteher the logged in user has edit access
+	 * This method is used to check whether the logged in user has edit access
 	 * for an opportunity
 	 * 
 	 * @param opportunity
@@ -2623,6 +2618,69 @@ public class OpportunityService {
 		
 		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
+	}
+	
+	/**
+	 * method used to send  the email if required for an opportunity
+	 * @param opportunity
+	 * @param oldSalesStageCode
+	 * @param oldDealValue
+	 * @param oldDealCurrency
+	 * @return 
+	 * @throws Exception 
+	 */
+	private AsyncJobRequest sendEmailNotification(OpportunityT opportunity,
+			int oldSalesStageCode, Integer oldDealValue, String oldDealCurrency)
+			throws Exception {
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+		logger.info("Inside sendEmailNotification method");
+		boolean emailJobRequired = false;
+		String newDealCurrency = opportunity.getDealCurrency();
+		Integer newDealValue = opportunity.getDigitalDealValue();
+		int newSalesStageCode = opportunity.getSalesStageCode();
+		BigDecimal newDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(newDealCurrency, newDealValue);
+
+		BigDecimal oldDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(oldDealCurrency, oldDealValue);
+
+		if ((oldSalesStageCode != SalesStageCode.WIN.getCodeValue() && newSalesStageCode == SalesStageCode.WIN
+				.getCodeValue())
+				|| (oldSalesStageCode != SalesStageCode.LOST.getCodeValue() && newSalesStageCode == SalesStageCode.LOST
+						.getCodeValue())) {
+			emailJobRequired = true;
+		} else if (newDealValue != null
+				&& newSalesStageCode >= SalesStageCode.RFP_SUBMITTED
+						.getCodeValue()
+				&& newSalesStageCode <= SalesStageCode.CONTRACT_NEGOTIATION
+						.getCodeValue()) {
+			if (isAboveOrEqualHighDeal(newDealValueInUSD)
+					&& (!isAboveOrEqualHighDeal(oldDealValueInUSD) || oldSalesStageCode != newSalesStageCode)) {
+				emailJobRequired = true;
+			}
+		}
+
+		if (emailJobRequired) {
+			asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
+			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+			asyncJobRequest.setOn(Switch.ON);
+			asyncJobRequest.setDealValue(newDealValueInUSD.doubleValue());
+		}
+
+		logger.info("email Job Trigger Required For Opportunity {}");
+		return asyncJobRequest;
+
+	}
+	
+	/**
+	 * Method used to check whether the given deal value is greater than or equal to 5 million  
+	 * @param value
+	 * @return
+	 */
+	private boolean isAboveOrEqualHighDeal(final BigDecimal value) {
+		BigDecimal fiveMillion = new BigDecimal(Constants.FIVE_MILLION);
+		return (value != null && value.compareTo(fiveMillion) >= 0); 
 	}
 }
 
