@@ -40,6 +40,8 @@ import com.tcs.destination.bean.AuditWorkflowCompetitorT;
 import com.tcs.destination.bean.AuditWorkflowCustomerT;
 import com.tcs.destination.bean.AuditWorkflowPartnerT;
 import com.tcs.destination.bean.AuditWorkflowStepT;
+import com.tcs.destination.bean.BidDetailsT;
+import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.data.repository.AuditBidDetailsTRepository;
 import com.tcs.destination.data.repository.AuditBidOfficeGroupOwnerLinkTRepository;
@@ -57,6 +59,7 @@ import com.tcs.destination.data.repository.AuditWorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.AuditWorkflowPartnerTRepository;
 import com.tcs.destination.data.repository.AuditWorkflowStepTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.OpportunityTimelineHistoryTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
@@ -145,6 +148,9 @@ public class AuditDetailService {
 	@Autowired
 	private PartnerRepository partnerRepository;
 	
+	@Autowired
+	private OpportunityTimelineHistoryTRepository timelineHistoryRepo;
+	
 	/**
 	 * service method to retrieve the workflow history 
 	 * @param workflowId
@@ -192,17 +198,16 @@ public class AuditDetailService {
 	public AuditHistoryResponseDTO<AuditOpportunityHistoryDTO> getOpportunityHistory(String oppId) {
 		logger.info("Entering AuditDetailService :: getOpportunityHistory");
 		List<AuditOpportunityHistoryDTO> histories = Lists.newArrayList();
-		//TODO any validation??
+		List<OpportunityTimelineHistoryT> timeLineHistories = timelineHistoryRepo.findByOpportunityIdOrderByUpdatedDatetimeAsc(oppId);
 		
-		List<Map<String, Object>> salesCodeSequenceMap = getSalesCodeSequenceMap(oppId);
+		List<Map<String, Object>> salesCodeSequenceMap = getSalesCodeSequenceMap(oppId, timeLineHistories);
 		List<AuditEntryDTO> entries = getOpportunityAudits(oppId);
 		
 		//group entries by sales stage code and date
 		Map<String, List<AuditEntryDTO>> salesCodeHistoryMap = groupBySalesCode(entries, salesCodeSequenceMap);
 		
 		for (Entry<String, List<AuditEntryDTO>> mapEntry : salesCodeHistoryMap.entrySet()) {
-			
-			AuditOpportunityHistoryDTO aOppHistory = getAuditOpportunityHistoryDTO(mapEntry, EntityTypeId.OPPORTUNITY.getType());
+			AuditOpportunityHistoryDTO aOppHistory = getAuditOpportunityHistoryDTO(mapEntry, EntityTypeId.OPPORTUNITY.getType(), timeLineHistories);
 			histories.add(aOppHistory);
 		}
 		Collections.sort(histories);
@@ -215,34 +220,25 @@ public class AuditDetailService {
 	 * @param oppId
 	 * @return
 	 */
-	private List<Map<String, Object>> getSalesCodeSequenceMap(String oppId) {
-		
+	private List<Map<String, Object>> getSalesCodeSequenceMap(String oppId, List<OpportunityTimelineHistoryT> timeLineHistories) {
 		List<Map<String, Object>> salesCodeSequenceMap = Lists.newArrayList();
-		List<AuditOpportunityT> salesCodeDateMap = aOpportunityRepository.getSalesCodeChanges(oppId);
-		
-		if(CollectionUtils.isEmpty(salesCodeDateMap)) {
-			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.OPP_AUDIT_NOT_AVAILABLE));
-		} else if(salesCodeDateMap.get(0).getOldSalesStageCode() != null) {
-			throw new DestinationException(HttpStatus.NOT_FOUND, PropertyUtil.getProperty(ErrorConstants.OPP_AUDIT_NOT_CAPTURED_PROPERLY));
+		List<OpportunityTimelineHistoryT> timeLineHistoriesclone = Lists.newArrayList(timeLineHistories);
+//		OpportunityTimelineHistoryT previousHistory = timeLineHistoriesclone.get(0);
+		OpportunityTimelineHistoryT previousHistory = timeLineHistoriesclone.remove(0);
+		for (OpportunityTimelineHistoryT timeLineHistory : timeLineHistoriesclone) {
+			Date toDate = truncateSeconds(timeLineHistory.getUpdatedDatetime());
+			Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
+			
+			Map<String, Object> map = createMapWith(fromDate,
+					previousHistory.getSalesStageCode(), toDate, timeLineHistory.getSalesStageCode());
+			salesCodeSequenceMap.add(map);
+			
+			previousHistory = timeLineHistory;
 		}
 		
-		Date lastSalesChangeDate = null;
-		Integer oldSalesCode = null;
-		for (AuditOpportunityT auditOpportunityT : salesCodeDateMap) {
-
-			Date modifiedDate = DateUtils.truncateSeconds(new Date(auditOpportunityT.getNewModifiedDatetime().getTime()));
-			Integer salesCode = auditOpportunityT.getNewSalesStageCode();
-			if(auditOpportunityT.getOldSalesStageCode() != null) {
-				Map<String, Object> map = createMapWith(lastSalesChangeDate,
-						oldSalesCode, modifiedDate, salesCode);
-				salesCodeSequenceMap.add(map);
-			}
-			lastSalesChangeDate = modifiedDate;
-			oldSalesCode = salesCode;
-		}
-
 		//add current sales stage code also 
-		salesCodeSequenceMap.add(createMapWith(lastSalesChangeDate, oldSalesCode, null, null));
+		Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
+		salesCodeSequenceMap.add(createMapWith(fromDate, previousHistory.getSalesStageCode(), null, null));
 		
 		return salesCodeSequenceMap;
 	}
@@ -271,20 +267,70 @@ public class AuditDetailService {
 	 * sort and construct the {@link AuditOpportunityHistoryDTO} 
 	 * @param mapEntry
 	 * @param type
+	 * @param timeLineHistories 
 	 * @return
 	 */
 	private AuditOpportunityHistoryDTO getAuditOpportunityHistoryDTO(
-			Entry<String, List<AuditEntryDTO>> mapEntry, Integer type) {
+			Entry<String, List<AuditEntryDTO>> mapEntry, Integer type, List<OpportunityTimelineHistoryT> timeLineHistories) {
 		AuditOpportunityHistoryDTO dto = new AuditOpportunityHistoryDTO();
 		//salesCode
-		dto.setSalesStageCode(getSalesCode(mapEntry.getKey()));
+		int salesCode = getSalesCode(mapEntry.getKey());
 		//startDate
-		dto.setStartDate(getDate(mapEntry.getKey()));
-		List<AuditHistoryDTO> auditHistories = groupAuditHistory(mapEntry.getValue(), EntityTypeId.OPPORTUNITY.getType());
+		Date startDate = getDate(mapEntry.getKey());
+
+		dto.setSalesStageCode(salesCode);
+		dto.setStartDate(startDate);
+		List<AuditHistoryDTO> auditHistories;
+		List<AuditEntryDTO> entries = mapEntry.getValue();
+		if(CollectionUtils.isEmpty(entries)) {
+			//get entries from timeline for old opportunities
+			entries = getHistoryFromTimeLine(timeLineHistories, salesCode, startDate);
+		} 
+		auditHistories = groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
 		return dto;
 	}
+
+	private List<AuditEntryDTO> getHistoryFromTimeLine(
+			List<OpportunityTimelineHistoryT> timeLineHistories, int salesCode, Date startDate) {
+		
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		OpportunityTimelineHistoryT preTimeLineHistory = null;
+		OpportunityTimelineHistoryT timeLineHistory = null;
+		BidDetailsT preBid = null;
+		BidDetailsT currentBid = null;
+		for (OpportunityTimelineHistoryT item : timeLineHistories) {
+			if(item.getSalesStageCode() == salesCode && startDate.equals(truncateSeconds(item.getUpdatedDatetime()))) {
+				timeLineHistory = item;
+				break;
+			}
+			preTimeLineHistory = item;
+		}
+		
+		String user = timeLineHistory.getUserUpdated();
+		Date date = new Date(timeLineHistory.getUpdatedDatetime().getTime());
+		if(preTimeLineHistory != null) {
+			preBid = preTimeLineHistory.getBidDetailsT();
+			entries.add(getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
+		} else {
+			entries.add(getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
+			currentBid = timeLineHistory.getBidDetailsT();
+		}
+		
+		if(currentBid != null) {
+			List<String> fieldArray = Lists.newArrayList("BidRequestReceiveDate", "TargetBidSubmissionDate", 
+					"ActualBidSubmissionDate", "ExpectedDateOfOutcome", "WinProbability", 
+					"CoreAttributesUsedForWinning", "BidRequestType");
+			if(preBid == null) {
+				preBid = new BidDetailsT();
+			}
+			entries.addAll(getEntry(preBid, currentBid, fieldArray, user, date));
+		}
+		
+		return entries;
+	}
+
 
 	/**
 	 * grouping the entries by sales stage code and date.
@@ -294,9 +340,9 @@ public class AuditDetailService {
 	 */
 	private Map<String, List<AuditEntryDTO>> groupBySalesCode(
 			List<AuditEntryDTO> entries, List<Map<String, Object>> salesCodeSequenceMap) {
-		Map<String, List<AuditEntryDTO>> groupedEntriesMap = Maps.newHashMap();
+		Map<String, List<AuditEntryDTO>> groupedEntriesMap = mapBySalesCode(salesCodeSequenceMap);
+
 		// groupBySalesCode in order date range
-		
 		for (AuditEntryDTO entry : entries) {
 			Date date = entry.getDate();
 			//generate key in the format "currentSalesCode-NextSalesCode-Date"
@@ -313,6 +359,19 @@ public class AuditDetailService {
 	}
 
 
+	private Map<String, List<AuditEntryDTO>> mapBySalesCode(
+			List<Map<String, Object>> salesCodeSequenceMap) {
+		
+		Map<String, List<AuditEntryDTO>> groupedEntriesMap = Maps.newLinkedHashMap();
+		for (Map<String, Object> map : salesCodeSequenceMap) {
+			List<AuditEntryDTO> newArrayList = Lists.newArrayList();
+			groupedEntriesMap.put(getKey(map), newArrayList);
+		}
+		
+		return groupedEntriesMap;
+	}
+
+
 	/**
 	 * generate the key by comparing sales stage code level and date
 	 * @param date
@@ -322,20 +381,26 @@ public class AuditDetailService {
 	private String generateKey(Date date,
 			List<Map<String, Object>> salesCodeSequenceMap) {
 		//generate key in the format "currentSalesCode-NextSalesCode-StartDate"
-		StringBuffer sb = new StringBuffer();
+		String key = "";
 		for (Map<String, Object> map : salesCodeSequenceMap) {
 			Date fromDate = (Date) map.get(KEY_FROM_DATE);
 			Object toDate = map.get(KEY_TO_DATE);
 			if(date.equals(fromDate) || (date.after(fromDate) && (toDate == null || date.before((Date)toDate)))) {
-				sb.append(map.get(KEY_SALES_CODE));
-				sb.append("-");
-				sb.append(map.get(KEY_NEXT_SALES_CODE));
-				sb.append("-");
-				String dateStr = DateUtils.format(fromDate, DateUtils.AUDIT_HISTORY_FORMAT);//remove time from date
-				sb.append(dateStr);
+				key = getKey(map);
 				break;
 			}
 		}
+		return key;
+	}
+	
+	private String getKey(Map<String, Object> map) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(map.get(KEY_SALES_CODE));
+		sb.append("-");
+		sb.append(map.get(KEY_NEXT_SALES_CODE));
+		sb.append("-");
+		String dateStr = DateUtils.format((Date) map.get(KEY_FROM_DATE), DateUtils.AUDIT_HISTORY_FORMAT);//remove time from date
+		sb.append(dateStr);
 		return sb.toString();
 	}
 
@@ -571,7 +636,7 @@ public class AuditDetailService {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		if(operationType == Operation.ADD) {
 			entries.add(getAuditEntry(fieldName, null, subSp, user, date));
-			if(aSubSpTs.getNewSubspPrimary()) {
+			if(aSubSpTs.getNewSubspPrimary() != null && aSubSpTs.getNewSubspPrimary().booleanValue()) {
 				entries.add( getAuditEntry("Sub SP Primary", null, subSp, user, date));
 			}
 		} else if(operationType == Operation.UPDATE) {
@@ -971,14 +1036,16 @@ public class AuditDetailService {
 	private Map<String, List<AuditEntryDTO>> groupEntries(
 			List<AuditEntryDTO> entries) {
 		Map<String, List<AuditEntryDTO>> map = Maps.newHashMap();
-		for (AuditEntryDTO auditEntryDTO : entries) {
-			String code = String.valueOf(auditEntryDTO.hashCode());
-			if (!map.containsKey(code)) {
-			    List<AuditEntryDTO> list = Lists.newArrayList();
-			    list.add(auditEntryDTO);
-			    map.put(code, list);
-			} else {
-			    map.get(code).add(auditEntryDTO);
+		if(CollectionUtils.isNotEmpty(entries)) {
+			for (AuditEntryDTO auditEntryDTO : entries) {
+				String code = String.valueOf(auditEntryDTO.hashCode());
+				if (!map.containsKey(code)) {
+					List<AuditEntryDTO> list = Lists.newArrayList();
+					list.add(auditEntryDTO);
+					map.put(code, list);
+				} else {
+					map.get(code).add(auditEntryDTO);
+				}
 			}
 		}
 		return map;
@@ -1142,6 +1209,38 @@ public class AuditDetailService {
 
 		return null;
 	}
+	
+	/**
+	 * 
+	 * compares the old and new objects and returns the list of entries
+	 * @param oldObj
+	 * @param newObj
+	 * @param fieldNames
+	 * @param user
+	 * @param date
+	 * @return
+	 */
+	private List<AuditEntryDTO> getEntry(Object oldObj, Object newObj, List<String> fieldNames, String user, Date date) {
+
+		List<AuditEntryDTO> entries = Lists.newArrayList();
+		for (String fieldName : fieldNames) {
+
+			try {
+				Method oldGetter = oldObj.getClass().getDeclaredMethod("get"+fieldName);
+				Method newGetter = newObj.getClass().getDeclaredMethod("get"+fieldName);
+				Object oldVal = oldGetter.invoke(oldObj);
+				Object newVal = newGetter.invoke(newObj);
+				if(!ObjectUtils.equals(oldVal, newVal)) {
+					entries.add(getAuditEntry(fieldName, (oldVal != null )? String.valueOf(oldVal): null, 
+							(newVal != null )? String.valueOf(newVal): null, user, date));
+				}
+
+			} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException e) {
+				logger.error("AuditDetailService :: error on getter method reflection -> {}", e.getMessage());
+			}
+		}
+		return entries;
+	}
 
 	/**
 	 * get all audits in workflow steps
@@ -1262,4 +1361,7 @@ public class AuditDetailService {
 		return FieldNameMapper.getFieldLabel(fieldName);
 	}
 	
+	private Date truncateSeconds(Timestamp timestamps) {
+		return DateUtils.truncateSeconds(new Date(timestamps.getTime()));
+	}
 }
