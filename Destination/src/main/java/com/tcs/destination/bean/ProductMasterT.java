@@ -59,6 +59,9 @@ public class ProductMasterT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
+	
+	@Column(name = "active")
+	private boolean active = true;
 
 	public ProductMasterT() {
 	}
@@ -164,6 +167,14 @@ public class ProductMasterT implements Serializable {
 	public void setPartnerSubspProductMappingTs(
 			List<PartnerSubspProductMappingT> partnerSubspProductMappingTs) {
 		this.partnerSubspProductMappingTs = partnerSubspProductMappingTs;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 }
