@@ -28,6 +28,9 @@ public class NotificationTypeEventMappingT implements Serializable {
 	
 	@Column(name="notification_type")
 	private String notificationType;
+	
+	@Column(name="group_id")
+	private Integer groupId;
 
 	//bi-directional many-to-one association to NotificationSettingsEventMappingT
 	@ManyToOne
@@ -47,6 +50,12 @@ public class NotificationTypeEventMappingT implements Serializable {
 	//bi-directional many-to-one association to UserSubscription
 	@OneToMany(mappedBy="notificationTypeEventMappingT")
 	private List<UserSubscriptions> userSubscriptions;
+	
+	// bi-directional many-to-one association to
+	// NotificationSettingsGroupMappingT
+	@ManyToOne
+	@JoinColumn(name = "group_id", insertable = false, updatable = false)
+	private NotificationSettingsGroupMappingT notificationSettingsGroupMappingT;
 
 	public NotificationTypeEventMappingT() {
 	}
@@ -129,6 +138,21 @@ public class NotificationTypeEventMappingT implements Serializable {
 		this.notificationType = notificationType;
 	}
 	
+	public NotificationSettingsGroupMappingT getNotificationSettingsGroupMappingT() {
+		return this.notificationSettingsGroupMappingT;
+	}
+
+	public void setNotificationSettingsGroupMappingT(NotificationSettingsGroupMappingT notificationSettingsGroupMappingT) {
+		this.notificationSettingsGroupMappingT = notificationSettingsGroupMappingT;
+	}
+
+	public Integer getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(Integer groupId) {
+		this.groupId = groupId;
+	}
 	
 
 }

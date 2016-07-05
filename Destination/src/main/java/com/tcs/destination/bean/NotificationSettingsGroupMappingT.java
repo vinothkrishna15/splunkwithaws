@@ -46,6 +46,10 @@ public class NotificationSettingsGroupMappingT implements Serializable {
 	@OrderBy("event_group_mapping_id ASC")
 	@OneToMany(mappedBy="notificationSettingsGroupMappingT")
 	private List<NotificationEventGroupMappingT> notificationEventGroupMappingTs;
+	
+	// bi-directional many-to-one association to NotificationTypeEventMappingT
+	@OneToMany(mappedBy = "notificationSettingsGroupMappingT")
+	private List<NotificationTypeEventMappingT> notificationTypeEventMappingTs;
 
 	public NotificationSettingsGroupMappingT() {
 	}
@@ -94,6 +98,28 @@ public class NotificationSettingsGroupMappingT implements Serializable {
 		notificationEventGroupMappingT.setNotificationSettingsGroupMappingT(null);
 
 		return notificationEventGroupMappingT;
+	}
+	
+	public List<NotificationTypeEventMappingT> getNotificationTypeEventMappingTs() {
+		return this.notificationTypeEventMappingTs;
+	}
+
+	public void setNotificationTypeEventMappingTs(List<NotificationTypeEventMappingT> notificationTypeEventMappingTs) {
+		this.notificationTypeEventMappingTs = notificationTypeEventMappingTs;
+	}
+
+	public NotificationTypeEventMappingT addNotificationTypeEventMappingT(NotificationTypeEventMappingT notificationTypeEventMappingT) {
+		getNotificationTypeEventMappingTs().add(notificationTypeEventMappingT);
+		notificationTypeEventMappingT.setNotificationSettingsGroupMappingT(this);
+
+		return notificationTypeEventMappingT;
+	}
+
+	public NotificationTypeEventMappingT removeNotificationTypeEventMappingT(NotificationTypeEventMappingT notificationTypeEventMappingT) {
+		getNotificationTypeEventMappingTs().remove(notificationTypeEventMappingT);
+		notificationTypeEventMappingT.setNotificationSettingsGroupMappingT(null);
+
+		return notificationTypeEventMappingT;
 	}
 
 }
