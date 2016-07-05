@@ -59,6 +59,9 @@ public class GeographyCountryMappingT implements Serializable {
 
 	@OneToMany(mappedBy="geographyCountryMappingT")
 	private List<PartnerMasterT> partnerMasterTs;
+	
+	@OneToMany(mappedBy="geographyCountryMappingT")
+	private List<WorkflowPartnerT> workflowPartnerTs;
 
 	public GeographyCountryMappingT() {
 	}
@@ -161,6 +164,14 @@ public class GeographyCountryMappingT implements Serializable {
 
 	public void setPartnerMasterTs(List<PartnerMasterT> partnerMasterTs) {
 		this.partnerMasterTs = partnerMasterTs;
+	}
+
+	public List<WorkflowPartnerT> getWorkflowPartnerTs() {
+		return workflowPartnerTs;
+	}
+
+	public void setWorkflowPartnerTs(List<WorkflowPartnerT> workflowPartnerTs) {
+		this.workflowPartnerTs = workflowPartnerTs;
 	}
 	
 }

@@ -1926,6 +1926,14 @@ public class WorkflowService {
 		partnerMaster.setLogo(requestedPartner.getLogo());
 		partnerMaster.setPartnerName(requestedPartner.getPartnerName());
 		partnerMaster.setWebsite(requestedPartner.getWebsite());
+		// partner changes
+		partnerMaster.setGroupPartnerName(requestedPartner.getGroupPartnerName());
+		partnerMaster.setCountry(requestedPartner.getCountry());
+		partnerMaster.setCity(requestedPartner.getCity());
+		partnerMaster.setText1(requestedPartner.getText1());
+		partnerMaster.setText2(requestedPartner.getText2());
+		partnerMaster.setText3(requestedPartner.getText3());
+		//	partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
 		partnerRepository.save(partnerMaster);
 
 	}
@@ -1962,6 +1970,30 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Geography Should not be empty");
 		}
+
+		//validation for partner group name, country, city => partner changes
+		//		String groupPartnerName = reqPartner.getGroupPartnerName();
+		//		if (StringUtils.isEmpty(groupPartnerName)) {
+		//			logger.error("Group Partner Name should not be empty");
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"Group Partner Name Should not be empty");
+		//
+		//		} 
+		//
+		//		String country = reqPartner.getCountry();
+		//		if (StringUtils.isEmpty(country)) {
+		//			logger.error("Country should not be empty");
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"Country Should not be empty");
+		//		} 
+		//
+		//		String city = reqPartner.getCity();
+		//		if (StringUtils.isEmpty(city)) {
+		//			logger.error("city should not be empty");
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"city Should not be empty");
+		//
+		//		} 
 	}
 
 	/**
@@ -2151,6 +2183,10 @@ public class WorkflowService {
 		String website = "";
 		String facebook = "";
 		String notes = "";
+		String country = "";
+		String city = "";
+		String groupPartnerName = "";
+
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		if (!workflowPartnerT.getPartnerName().equals(
@@ -2199,6 +2235,32 @@ public class WorkflowService {
 			isPartnerModifiedFlag = true;
 		}
 		oldObject.setModifiedBy(userId);
+
+		//partner changes - need to check whether text1,2 and 3 also to be validated
+		// country
+//		if (!StringUtils.isEmpty(oldObject.getCountry())) {
+//			country = oldObject.getCountry();
+//		}
+//		if (!workflowPartnerT.getCountry().equals(country)) {
+//			oldObject.setCountry(workflowPartnerT.getCountry());
+//			isPartnerModifiedFlag = true;
+//		}
+		// city
+//		if (!StringUtils.isEmpty(oldObject.getCity())) {
+//			city = oldObject.getCity();
+//		}
+//		if (!workflowPartnerT.getCity().equals(city)) {
+//			oldObject.setCountry(workflowPartnerT.getCity());
+//			isPartnerModifiedFlag = true;
+//		}
+		// group Partner name
+//		if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
+//			groupPartnerName = oldObject.getGroupPartnerName();
+//		}
+//		if (!workflowPartnerT.getGroupPartnerName().equals(groupPartnerName)) {
+//			oldObject.setCountry(workflowPartnerT.getGroupPartnerName());
+//			isPartnerModifiedFlag = true;
+//		}
 		return isPartnerModifiedFlag;
 	}
 
@@ -2228,6 +2290,14 @@ public class WorkflowService {
 		oldPartnerMaster.setDocumentsAttached(workflowPartnerT
 				.getDocumentsAttached());
 		oldPartnerMaster.setModifiedBy(userId);
+		//partner changes
+		oldPartnerMaster.setGroupPartnerName(workflowPartnerT.getGroupPartnerName());
+		oldPartnerMaster.setCountry(workflowPartnerT.getCountry());
+		oldPartnerMaster.setCity(workflowPartnerT.getCity());
+		oldPartnerMaster.setText1(workflowPartnerT.getText1());
+		oldPartnerMaster.setText2(workflowPartnerT.getText2());
+		oldPartnerMaster.setText3(workflowPartnerT.getText3());
+		oldPartnerMaster.setHqPartnerLinkId(workflowPartnerT.getHqPartnerLinkId());
 		partnerRepository.save(oldPartnerMaster);
 	}
 
@@ -2273,6 +2343,31 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Documents should not be empty");
 		}
+
+		// validation for groupPartnerName, country, city - partner changes
+		// Group Partner name should not be empty
+		//		if (StringUtils.isEmpty(requestedPartner.getGroupPartnerName())) {
+		//			logger.error("Group Partner Name should not be empty");
+		//			validated = false;
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"Group Partner Name should not be empty");
+		//		}
+
+		// country should not be empty
+		//		if (StringUtils.isEmpty(requestedPartner.getCountry())) {
+		//			logger.error("Country should not be empty");
+		//			validated = false;
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"Country should not be empty");
+		//		}
+
+		// city should not be empty
+		//		if (StringUtils.isEmpty(requestedPartner.getCity())) {
+		//			logger.error("City should not be empty");
+		//			validated = false;
+		//			throw new DestinationException(HttpStatus.BAD_REQUEST,
+		//					"City should not be empty");
+		//		}
 		return validated;
 	}
 

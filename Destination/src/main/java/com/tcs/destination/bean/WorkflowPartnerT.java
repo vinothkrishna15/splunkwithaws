@@ -77,6 +77,36 @@ public class WorkflowPartnerT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", updatable = false, insertable = false)
 	private UserT modifiedByUser;
+	
+	//partner related changes
+	
+	//added for partner changes - city, country, text1,text2,text3,group partner name,hqpqrtner link id
+		private String city;
+
+		private String text1;
+
+		private String text2;
+
+		private String text3;
+
+		@Column(name="group_partner_name")
+		private String groupPartnerName;
+
+		private String country;
+
+		//bi-directional many-to-one association to GeographyCountryMappingT
+		@ManyToOne
+		@JoinColumn(name="country", insertable = false, updatable = false)
+		private GeographyCountryMappingT geographyCountryMappingT;
+
+		@Column(name="hq_partner_link_id")
+		private String hqPartnerLinkId;
+
+		//bi-directional many-to-one association to PartnerMasterT
+		/*@ManyToOne
+		@JoinColumn(name="hq_partner_link_id", insertable = false, updatable = false)
+		private PartnerMasterT partnerMasterT;*/
+
 
 	public WorkflowPartnerT() {
 	}
@@ -217,6 +247,68 @@ public class WorkflowPartnerT implements Serializable {
 		this.comments = comments;
 	}
 
-	
+	public String getCity() {
+		return city;
+	}
 
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getText1() {
+		return text1;
+	}
+
+	public void setText1(String text1) {
+		this.text1 = text1;
+	}
+
+	public String getText2() {
+		return text2;
+	}
+
+	public void setText2(String text2) {
+		this.text2 = text2;
+	}
+
+	public String getText3() {
+		return text3;
+	}
+
+	public void setText3(String text3) {
+		this.text3 = text3;
+	}
+
+	public String getGroupPartnerName() {
+		return groupPartnerName;
+	}
+
+	public void setGroupPartnerName(String groupPartnerName) {
+		this.groupPartnerName = groupPartnerName;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public GeographyCountryMappingT getGeographyCountryMappingT() {
+		return geographyCountryMappingT;
+	}
+
+	public void setGeographyCountryMappingT(
+			GeographyCountryMappingT geographyCountryMappingT) {
+		this.geographyCountryMappingT = geographyCountryMappingT;
+	}
+
+	public String getHqPartnerLinkId() {
+		return hqPartnerLinkId;
+	}
+
+	public void setHqPartnerLinkId(String hqPartnerLinkId) {
+		this.hqPartnerLinkId = hqPartnerLinkId;
+	}
 }
