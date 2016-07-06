@@ -34,25 +34,25 @@
 	</batch:job>
 
 	<!-- Readers -->
-	<bean id="partnerMasterDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="partnerMasterDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="partnerRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 	
-	<bean id="partnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="partnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="contactRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 
 	<!-- Writers -->
-	<bean id="partnerContactDwldWriter" class="com.tcs.destination.writer.PartnerContactDwldWriter">
+	<bean id="partnerContactDwldWriter" class="com.tcs.destination.writer.PartnerContactDwldWriter" scope="step">
 		<property name="template" value="${partnerContactSheetTemplate}" />
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 		<property name="fileServerPath" value="${fileserver.path}" />
 	</bean>
 	
-		<bean id="partnerMasterDwldWriter" class="com.tcs.destination.writer.PartnerMasterRefDwldWriter">
+		<bean id="partnerMasterDwldWriter" class="com.tcs.destination.writer.PartnerMasterRefDwldWriter" scope="step">
 		 <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		</bean>
 
