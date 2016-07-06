@@ -302,8 +302,6 @@ public class OpportunityController {
 		try {
 			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
-
-			
 			if (asyncJobRequest.getOn().equals(Switch.ON)) {
 				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
 			}

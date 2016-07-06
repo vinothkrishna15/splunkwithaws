@@ -4,6 +4,7 @@
 		<p>
      
               We regret to inform you that TCS Digital Enterprise has Lost the opportunity.<br/><br/>
+              CRM ID : <b>${crmId}</b><br/>
               Opportunity : <b>${opportunityName}</b><br/>
               Customer : <b>${customerName}</b><br/>
               Deal Closed On : <b>${dealClosureDate}</b><br/><br/>
@@ -15,6 +16,7 @@
 
               This opportunity was led by <b>${opportunityOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
               Deal size recorded is <b>${digitalBidValue}</b>.<br/>
+              Client Contact : <b>${clientContact}</b><br/>
               Opportunity Description: <b>${opportunityDescription}</b><br/>		
         </p>		
 		<p>
