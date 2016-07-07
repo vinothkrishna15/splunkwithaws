@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.enums.ContactType;
@@ -131,15 +132,15 @@ public class PartnerDownloadService
 		logger.debug("Begin:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
-		List<Object[]> partnerMasterNamesList=partnerRepository.getPartnerNameAndGeography();
-		for(Object[] partnerName:partnerMasterNamesList){
+		List<PartnerMasterT> partnerMasterNamesList=(List<PartnerMasterT>) partnerRepository.findAll();
+		for(PartnerMasterT partner:partnerMasterNamesList){
 
 			Row row = partnerSheet.createRow(currentRow);
 
 			// Get Cell and set cell value
-			row.createCell(2).setCellValue(partnerName[0].toString());
-			row.createCell(3).setCellValue(partnerName[1].toString());
-			row.createCell(7).setCellValue(partnerName[2].toString());//TODO inactive indicator - adding a separate column in template with data - done 
+			row.createCell(2).setCellValue(partner.getPartnerName().toString());
+			row.createCell(3).setCellValue(partner.getGeography().toString());
+			row.createCell(7).setCellValue(partner.isActive());//TODO inactive indicator - adding a separate column in template with data - done 
 			// Increment row counter
 			currentRow++;
 		}
