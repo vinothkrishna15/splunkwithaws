@@ -352,7 +352,7 @@ public class TaskService {
 		// Invoke Asynchronous Auto Comments Thread
 		processAutoComments(managedTask.getTaskId(), null);
 		// Invoke Asynchronous Notifications Thread
-		processNotifications(managedTask.getTaskId(), null);
+//		processNotifications(managedTask.getTaskId(), null);
 		logger.debug("End: Inside createTask() of TaskService");
 		return managedTask;
 	}
@@ -453,7 +453,7 @@ public class TaskService {
 			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(dbTask.getTaskId(), oldObject);
 			// Invoke Asynchronous Notifications Thread
-			processNotifications(dbTask.getTaskId(), oldObject);
+//			processNotifications(dbTask.getTaskId(), oldObject);
 		} else {
 			logger.error("NOT_FOUND: Task not found for update: {}",
 					task.getTaskId());

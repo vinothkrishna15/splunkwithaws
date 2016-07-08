@@ -17,7 +17,15 @@ public interface NotificationTypeEventMappingRepository extends
 	@Query(value = "select distinct(ntemt.event_id) from notification_type_event_mapping_t ntemt "
 			+ "join user_subscriptions us on "
 			+ "ntemt.notification_type_event_mapping_id = us.notification_type_event_mapping_id "
-			+ "where us.user_id = (:userId) ", nativeQuery = true)
+			+ "where us.user_id = (:userId) and ntemt.mode_id = 1", nativeQuery = true)
 	List<Integer> getNotificationEventIdsForUser(
 			@Param("userId") String userId);
+
+	
+//	@Query(value = "select distinct ntemt.* from notification_type_event_mapping_t ntemt "
+//			+ "join user_subscriptions us on "
+//			+ "ntemt.notification_type_event_mapping_id = us.notification_type_event_mapping_id "
+//			+ "where us.user_id = (:userId) ", nativeQuery = true)
+//	List<NotificationTypeEventMappingT> getNotificationEventTypeMapping(
+//			String recipientId);
 }

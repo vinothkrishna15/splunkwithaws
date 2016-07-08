@@ -490,7 +490,7 @@ public class ConnectService {
 				logger.info("Connect has been added successfully");
 				if (!isBulkDataLoad) {
 //					// Invoke Asynchronous Auto Comments Thread
-//					processAutoComments(connect.getConnectId(), null);
+					processAutoComments(connect.getConnectId(), null);
 //					// Invoke Asynchronous Notifications Thread
 //					processNotifications(connect.getConnectId(), null);
 				}
@@ -843,7 +843,7 @@ public class ConnectService {
 		if (afterConnect != null) {
 			logger.info("Connect has been updated successfully: " + connectId);
 //			// Invoke Asynchronous Auto Comments Thread
-//			processAutoComments(connectId, oldObject);
+			processAutoComments(connectId, oldObject);
 //			// Invoke Asynchronous Notifications Thread
 //			processNotifications(connectId, oldObject);
 			return true;

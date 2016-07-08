@@ -707,7 +707,7 @@ public class OpportunityService {
 					null);
 			if (!isBulkDataLoad) {
 //				// Invoke Asynchronous Auto Comments Thread
-//				processAutoComments(opportunity.getOpportunityId(), null);
+				processAutoComments(opportunity.getOpportunityId(), null);
 //				// Invoke Asynchronous Notification Thread
 //				processNotifications(opportunity.getOpportunityId(), null);
 			} else {
@@ -1317,7 +1317,7 @@ public class OpportunityService {
 			logger.info("Opportunity has been updated successfully: "
 					+ opportunityId);
 //			// Invoke Asynchronous Auto Comments Thread
-//			processAutoComments(opportunityId, oldObject);
+			processAutoComments(opportunityId, oldObject);
 //			// Invoke Asynchronous Notifications Thread
 //			processNotifications(opportunityId, oldObject);
 		}

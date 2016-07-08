@@ -273,7 +273,7 @@ public class CollaborationCommentsService {
 			try {
 				CollaborationCommentT collaborationCommentT = commentsRepository
 						.save(comments);
-				processNotifications(collaborationCommentT.getCommentId());
+//				processNotifications(collaborationCommentT.getCommentId());
 				statusFlag = true;
 				
 			} catch (Exception e) {
