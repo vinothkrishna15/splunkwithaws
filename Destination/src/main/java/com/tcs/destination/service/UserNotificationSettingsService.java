@@ -257,6 +257,7 @@ public class UserNotificationSettingsService {
 			Integer eventId = userSubscription.getNotificationTypeEventMappingT().getEventId();
 			NotificationSettingEvent event = NotificationSettingEvent.getByValue(eventId);
 			if(event != null && event == NotificationSettingEvent.COLLAB_CONDITION) {//fetch conditions only for collab conditions
+				userSubscription.getNotificationTypeEventMappingT().getNotificationSettingsEventMappingT().setUserNotificationSettingsConditionsTs(null);
 				userSubscription.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository.findByUserIdAndEventId(userId, eventId));
 			}
 			
