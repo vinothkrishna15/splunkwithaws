@@ -15,10 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
@@ -29,6 +32,7 @@ import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -195,7 +199,7 @@ public class PartnerService {
 					.getCorporateHqAddress());
 			partnerMasterT.setCreatedBy(partnerToInsert.getCreatedBy());
 			partnerMasterT.setModifiedBy(partnerToInsert.getModifiedBy());
-			
+
 			if (partners.isEmpty()) {
 				partnerMasterT.setPartnerName(partnerToInsert.getPartnerName());
 			} else {
@@ -552,5 +556,73 @@ public class PartnerService {
 		}
 		return isUpdate;
 
+	}
+
+	public PageDTO<SearchResultDTO<PartnerMasterT>> smartSearch(
+			SmartSearchType smartSearchType, String term, boolean getAll,
+			int page, int count) {
+		logger.info("PartnerService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<PartnerMasterT>> res = new PageDTO<SearchResultDTO<PartnerMasterT>>();
+		List<SearchResultDTO<PartnerMasterT>> resList = Lists.newArrayList();
+		SearchResultDTO<PartnerMasterT> searchResultDTO = new SearchResultDTO<PartnerMasterT>();
+		if(smartSearchType != null) {
+
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getPartnersByPartnerName(term, getAll));
+				resList.add(getPartnersByGroupPartnerName(term, getAll));
+				resList.add(getPartnersByGeography(term, getAll));
+				break;
+			case PARTNER:
+				searchResultDTO = getPartnersByPartnerName(term, getAll);
+				break;
+			case GROUP_PARTNER_NAME:
+				searchResultDTO = getPartnersByGroupPartnerName(term, getAll);
+				break;
+			case GEOGRAPHY:
+				searchResultDTO = getPartnersByGeography(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<PartnerMasterT> values = searchResultDTO.getValues();
+					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+	private SearchResultDTO<PartnerMasterT> getPartnersByPartnerName(String term,
+			boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByPartnerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PARTNER);
+	}
+
+	private SearchResultDTO<PartnerMasterT> getPartnersByGroupPartnerName(
+			String term, boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByGroupPartnerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.GROUP_PARTNER_NAME);
+	}
+
+	private SearchResultDTO<PartnerMasterT> getPartnersByGeography(
+			String term, boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByGeography("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.GEOGRAPHY);
+	}
+
+	private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
+			List<PartnerMasterT> records, SmartSearchType type) {
+		SearchResultDTO<PartnerMasterT> conRes = new SearchResultDTO<PartnerMasterT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
 	}
 }
