@@ -1475,12 +1475,11 @@ public class WorkflowService {
 	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
-		String pmoValue = "pmo";
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
 		userRole = "%" + userRole + "%";
-		userGroup = "%" + userGroup + "%";
+
 		// Query to get pending partner requests for specific user's
 		// approval/rejection
 		if (userGroup.equals(UserGroup.PMO.getValue())){ 
@@ -1488,9 +1487,9 @@ public class WorkflowService {
 					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
 			Query query1 = entityManager.createNativeQuery(queryBuffer
 					.toString());
-
+			String userGroupParam = "%" + userGroup + "%";
 			query1.setParameter("userId", userId);
-			query1.setParameter("userGroup", userGroup);
+			query1.setParameter("userGroup", userGroupParam);
 			if (resultList == null) {
 				resultList = query1.getResultList();
 			} else {
@@ -1820,7 +1819,7 @@ public class WorkflowService {
 			break;
 		}
 		}
-		 if (userGroup.equals(UserGroup.PMO.getValue())){
+		if (userGroup.equals(UserGroup.PMO.getValue())){
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
@@ -2381,8 +2380,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-//		competitorMappingT.setWebsite(requestedCompetitor
-//				.getWorkflowCompetitorWebsite());
+		//		competitorMappingT.setWebsite(requestedCompetitor
+		//				.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -2546,8 +2545,8 @@ public class WorkflowService {
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
 								opportunityId,
 								WorkflowStatus.PENDING.getStatus());
-				
-				
+
+
 				if (CollectionUtils.isNotEmpty(workflowRequests)) {
 					WorkflowRequestT workflowRequest = workflowRequests.get(0);
 					WorkflowStepT workflowStepPending = workflowStepRepository
@@ -2829,8 +2828,8 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-//			oldCompetitorMaster.setWebsite(workflowCompetitorT
-//					.getWorkflowCompetitorWebsite());
+			//			oldCompetitorMaster.setWebsite(workflowCompetitorT
+			//					.getWorkflowCompetitorWebsite());
 		}
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
