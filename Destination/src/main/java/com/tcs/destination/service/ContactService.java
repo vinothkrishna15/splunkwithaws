@@ -36,6 +36,7 @@ import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -473,7 +474,9 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
-
+		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+		PartnerContactLinkT pclt=new PartnerContactLinkT();
+		
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 				if (contact.getContactCustomerLinkTs() == null
@@ -481,7 +484,10 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"CustomerId is required");
 				}
-				contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().setPartnerId(null);
+				
+				pclt.setPartnerId(null);
+				partnerContactList.add(pclt);
+				contact.setPartnerContactLinkTs(partnerContactList);
 			 } else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
 				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId();
