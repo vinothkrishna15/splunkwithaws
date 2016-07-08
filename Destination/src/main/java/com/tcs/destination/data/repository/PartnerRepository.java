@@ -28,7 +28,7 @@ public interface PartnerRepository extends
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
 			String partnername, Pageable page, boolean active);
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
 			String startsWith, Pageable pageable,boolean active);
 
 	@Query(value = "select * from partner_master_t p where p.active=TRUE ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
