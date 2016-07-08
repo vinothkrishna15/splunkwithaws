@@ -54,6 +54,9 @@ public class UserSubscriptions implements Serializable {
 	@Transient
 	List<UserNotificationSettingsConditionsT> userNotificationSettingsConditionsTs;
 	
+	@Transient
+	private List<UserNotificationSettingsConditionsT> deleteUserNotificationSettingsConditionsTs;
+	
 	public UserSubscriptions() {
 	}
 
@@ -122,5 +125,16 @@ public class UserSubscriptions implements Serializable {
 	public void setUserT(UserT userT) {
 		this.userT = userT;
 	}
+
+	public List<UserNotificationSettingsConditionsT> getDeleteUserNotificationSettingsConditionsTs() {
+		return deleteUserNotificationSettingsConditionsTs;
+	}
+
+	public void setDeleteUserNotificationSettingsConditionsTs(
+			List<UserNotificationSettingsConditionsT> deleteUserNotificationSettingsConditionsTs) {
+		this.deleteUserNotificationSettingsConditionsTs = deleteUserNotificationSettingsConditionsTs;
+	}
+	
+	
 	
 }

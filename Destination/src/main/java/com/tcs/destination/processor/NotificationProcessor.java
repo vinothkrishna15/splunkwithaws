@@ -84,6 +84,7 @@ public class NotificationProcessor implements ItemProcessor<List<Recipient>,List
 					getUserNotifications(items,entityId,entityType,operationTypeE,currentUserName,auditConnectT,auditConnectSecondaryOwnerLinkTs,
 							auditOpportunityT,auditOpportunitySalesSupportLinkTs,auditBidDetailsT,auditBidOfficeGroupOwnerLinkTs,
 							auditTaskT,auditTaskBdmsTaggedLinkTs);
+			logger.info("notifications processed");
 		}
 		
 		

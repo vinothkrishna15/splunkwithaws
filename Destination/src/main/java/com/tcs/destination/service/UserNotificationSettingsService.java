@@ -121,6 +121,13 @@ public class UserNotificationSettingsService {
 							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 				}
 			}
+			
+			if (userSubscriptions
+					.getDeleteUserNotificationSettingsConditionsTs() != null)
+				userNotificationSettingsConditionRepository
+						.delete(userSubscriptions
+								.getDeleteUserNotificationSettingsConditionsTs());
+			
 
 			userSubscriptions.setUserId(userId);
 

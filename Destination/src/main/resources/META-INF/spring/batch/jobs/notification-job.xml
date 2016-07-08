@@ -23,7 +23,7 @@
 		<batch:step id="sendNotification">
 			<batch:tasklet>
 				<batch:chunk reader="recepientReader" processor="notificationProcessor"
-					writer="notificationWriter" commit-interval="30" skip-policy="alwaysSkip"
+					writer="notificationWriter" commit-interval="10" skip-policy="alwaysSkip"
 					retry-limit="0" />
 			</batch:tasklet>
 		</batch:step>

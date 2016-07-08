@@ -10,7 +10,8 @@ public enum RecipientType {
 	FOLLOWER,
 	BDM_TAGGED,
 	SUBSCRIBER,
-	STRATEGIC_INITIATIVE;
+	STRATEGIC_INITIATIVE,
+	REMOVED_USER;
 
 	public static boolean contains(String value) {
 		return (getByValue(value) != null);

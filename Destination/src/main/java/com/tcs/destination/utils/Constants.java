@@ -249,7 +249,7 @@ public class Constants {
 	public static final String END_DATE_TIME_OF_CONNECT_FIELD = "End Date time of connect";
 	public static final String DIGITAL_DEAL_VALUE_FIELD = "Digital Deal Value";
 	public static final String SALES_STAGE_FIELD = "Sales Stage";
-	public static final String SALES_SUPPORT_OWNER_FIELD = "Sales Support Owner";
+	public static final String SALES_SUPPORT_OWNER_FIELD = "Sales Support Owners";
 	public static final String BID_OFFICE_GROUP_OWNER_FIELD = "Bid Office Group Owner";
 	public static final String BID_FIELD = "Bid";
 	public static final String ACTUAL_BID_SUBMISSION_DATE_FIELD = "Actual Bid Submission Date";
@@ -258,8 +258,8 @@ public class Constants {
 	public static final String TASK_STATUS_FIELD = "Task Status";
 	public static final String TARGET_DATE_OF_COMPLETION_FIELD = "Target date for completion";
 	public static final String TASK_OWNER_FIELD = "Task Owner";
-	public static final String FROM_TO_STRING = "of ${entityType} : ${entityName} from ${from} to ${to}";
-	public static final String ENTITY_NAME_STRING = "for ${entityType} : ${entityName}";
+	public static final String FROM_TO_STRING = " of <entityType> : <entityName> from <from> to <to>";
+	public static final String ENTITY_NAME_STRING = " : <to> for <entityType> : <entityName>";
 	public static final String WON = "Won";
 	public static final String LOST = "Lost";
 	public static final String UPDATED = "updated";
