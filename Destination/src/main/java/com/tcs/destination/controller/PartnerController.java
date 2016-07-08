@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import com.tcs.destination.bean.PageDTO;
+import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.enums.SmartSearchType;
 
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
@@ -357,5 +360,39 @@ public class PartnerController {
 					"Backend error while editing partner");
 		}
 
+	}
+	
+	/**
+	 * Service to fetch the partner related information based on search type and the search keyword 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
+	public @ResponseBody String smartSearch(
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("Inside PartnerController: smart search by search term");
+		try {
+			PageDTO<SearchResultDTO<PartnerMasterT>> res = partnerService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
+			logger.info("Inside PartnerController: End - smart search by search term");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, res, !getAll);
+		} catch (Exception e) {
+			logger.error("Error on Partner smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving Partners list");
+		}
+		
 	}
 }
