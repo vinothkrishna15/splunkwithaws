@@ -209,9 +209,16 @@ public class PartnerService {
 			}
 			partnerMasterT.setWebsite(partnerToInsert.getWebsite());
 			partnerMasterT.setFacebook(partnerToInsert.getFacebook());
-			partnerMasterT.setGeographyMappingT(partnerToInsert
-					.getGeographyMappingT());
+			partnerMasterT.setGeography(partnerToInsert.getGeography());
 			partnerMasterT.setDocumentsAttached("NO");
+			partnerMasterT.setCountry(partnerToInsert.getCountry());
+			partnerMasterT.setCity(partnerToInsert.getCity());
+			partnerMasterT.setText1(partnerToInsert.getText1());
+			partnerMasterT.setText2(partnerToInsert.getText2());
+			partnerMasterT.setText3(partnerToInsert.getText3());
+			partnerMasterT.setGroupPartnerName(partnerToInsert.getGroupPartnerName());
+            partnerMasterT.setNotes(partnerToInsert.getNotes());
+            partnerMasterT.setHqPartnerLinkId(partnerToInsert.getHqPartnerLinkId());
 
 			validateInactiveIndicators(partnerMasterT);
 

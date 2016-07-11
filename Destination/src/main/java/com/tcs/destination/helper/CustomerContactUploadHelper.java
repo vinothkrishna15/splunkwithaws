@@ -135,11 +135,13 @@ public class CustomerContactUploadHelper {
 
 		// Contact Telephone
 		String contactTelephone = data[9];
+		if((contactTelephone!=null)&&(!StringUtils.isEmpty(contactTelephone)))
+		{
 		Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
 		if (telephoneNumber!=null) {
 			contact.setContactTelephone(telephoneNumber.toString());
 		}
-
+		}
 		// Contact LinkedIn profile
 		String contactLinkedInProfile = data[10];
 		if (!StringUtils.isEmpty(contactLinkedInProfile)) {

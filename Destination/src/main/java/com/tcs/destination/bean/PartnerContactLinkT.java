@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -13,11 +16,13 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name="partner_contact_link_t")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerContactId")
 @NamedQuery(name="PartnerContactLinkT.findAll", query="SELECT p FROM PartnerContactLinkT p")
 public class PartnerContactLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="partner_contact_id")
 	private String partnerContactId;
 

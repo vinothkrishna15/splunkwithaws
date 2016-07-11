@@ -121,7 +121,7 @@ public class PartnerMasterT implements Serializable {
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerMasterT> partnerMasterTs;
 
-	//added for partner changes - split createdmodifiedby and createdmodifieddatetime
+	//added for partner changes -
 	//bi-directional many-to-one association to PartnerSubSpMappingT
 	@OneToMany(mappedBy="partnerMasterT")
 	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
@@ -134,6 +134,7 @@ public class PartnerMasterT implements Serializable {
 	@OneToMany(mappedBy = "partnerMasterT")
 	private List<PartnerContactLinkT> partnerContactLinkTs;
 
+	// split createdmodifiedby and createdmodifieddatetime for partner change
 	@Column(name="created_by")
 	private String createdBy;
 

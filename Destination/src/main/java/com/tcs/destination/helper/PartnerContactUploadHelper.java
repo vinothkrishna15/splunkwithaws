@@ -1,5 +1,6 @@
 package com.tcs.destination.helper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
@@ -120,12 +123,14 @@ public class PartnerContactUploadHelper {
 				
 				//contact telephone (Optional)
 				String contactTelephone = data[6];
-				Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
-				if(telephoneNumber!=null)
+				if((contactTelephone!=null)&&(!StringUtils.isEmpty(contactTelephone)))
 				{
+				 Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
+				 if(telephoneNumber!=null)
+				 {
 					partnerContactT.setContactTelephone(telephoneNumber.toString());
+				 }
 				}
-				
 				//contact linkedin (Optional)
 				String contactLinkedIn = data[7];
 				if(!StringUtils.isEmpty(contactLinkedIn))
@@ -133,11 +138,15 @@ public class PartnerContactUploadHelper {
 					partnerContactT.setContactLinkedinProfile(contactLinkedIn);
 				}
 				
-				// PARTNER ID
+				// PARTNER NAMES
 				if(!StringUtils.isEmpty(partnerName)){
 					String partnerId = getMapValuesForKey(mapOfPartnerMasterT, partnerName);
-					if(!StringUtils.isEmpty(partnerId)){
-						partnerContactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
+					if(!StringUtils.isEmpty(partnerId)&&(partnerId!=null)){
+						String contactId=data[9];
+						List<PartnerContactLinkT> pclt = constructPartnerContactLinkT(
+								partnerId, userId,contactId);
+						
+						partnerContactT.setPartnerContactLinkTs(pclt);
 						
 					} else {
 						throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
@@ -146,7 +155,7 @@ public class PartnerContactUploadHelper {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Partner Name NOT Found");
 				}
 				
-				partnerContactT.setContactCategory("PARTNER");
+			    partnerContactT.setContactCategory("PARTNER");
 				
 				partnerContactT.setContactType("EXTERNAL");
 				
@@ -373,5 +382,35 @@ public class PartnerContactUploadHelper {
 		}
 
 		return mapOfCMT;
+	}
+	
+	/**
+	 * This method is used to get the list of customer contact link for the list
+	 * of customer ids
+	 * 
+	 * @param listOfCustomerId
+	 * @param userId
+	 * @return
+	 * @throws Exception
+	 */
+	private List<PartnerContactLinkT> constructPartnerContactLinkT(
+			String listOfPartnerId, String userId,String contactId) throws Exception {
+		List<PartnerContactLinkT> listOfPartnerContactLinkT = null;
+		if ((listOfPartnerId != null) && (!listOfPartnerId.isEmpty())) {
+			listOfPartnerContactLinkT = new ArrayList<PartnerContactLinkT>();
+			
+				PartnerContactLinkT cclt = new PartnerContactLinkT();
+				cclt.setCreatedBy(userId);
+				cclt.setPartnerId(listOfPartnerId);
+				cclt.setModifiedBy(userId);
+				if(contactId!=null)
+				{
+					cclt.setContactId(contactId);
+				}
+			
+				listOfPartnerContactLinkT.add(cclt);
+			
+		}
+		return listOfPartnerContactLinkT;
 	}
 }

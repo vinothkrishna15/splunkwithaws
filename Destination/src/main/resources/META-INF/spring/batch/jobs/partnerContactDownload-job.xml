@@ -40,7 +40,7 @@
 	</bean>
 	
 	<bean id="partnerContactDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
-		<property name="repository" ref="contactRepository" />
+		<property name="repository" ref="partnerContactLinkTRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
 
@@ -60,7 +60,7 @@
 	<bean id="partnerFlowdecider" class="com.tcs.destination.decider.PartnerDecider" />
 
    <!-- scheduler  -->
-	<bean id="partnerContactDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+	<bean id="partnerContactDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler" >
 		<property name="job" ref="partnerContactDownload"/>
 	</bean>
 	

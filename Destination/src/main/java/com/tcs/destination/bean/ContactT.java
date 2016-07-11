@@ -138,11 +138,11 @@ public class ContactT implements Serializable, Cloneable {
 	private UserT modifiedByUser;
 
 	//bi-directional many-to-one association to ProductContactLinkT
-	@OneToMany(mappedBy="contactT")
+	@OneToMany(mappedBy="contactT", cascade = CascadeType.ALL)
 	private List<ProductContactLinkT> productContactLinkTs;
 
 	//bi-directional many-to-one association to ProductContactLinkT
-	@OneToMany(mappedBy="contactT")
+	@OneToMany(mappedBy="contactT", cascade = CascadeType.ALL)
 	private List<PartnerContactLinkT> partnerContactLinkTs;
 
 	public List<PartnerContactLinkT> getPartnerContactLinkTs() {
@@ -290,7 +290,23 @@ public class ContactT implements Serializable, Cloneable {
 
 		return connectCustomerContactLinkT;
 	}
+    
+	public PartnerContactLinkT addPartnerContactLinkT(
+			PartnerContactLinkT partnerContactLinkT) {
+		getPartnerContactLinkTs().add(partnerContactLinkT);
+		partnerContactLinkT.setContactT(this);
 
+		return partnerContactLinkT;
+	}
+	
+	public PartnerContactLinkT removePartnerContactLinkT(
+			PartnerContactLinkT partnerContactLinkT) {
+		getPartnerContactLinkTs().remove(partnerContactLinkT);
+		partnerContactLinkT.setContactT(null);
+
+		return partnerContactLinkT;
+	}
+	
 	public List<ContactCustomerLinkT> getContactCustomerLinkTs() {
 		return this.contactCustomerLinkTs;
 	}
@@ -328,6 +344,8 @@ public class ContactT implements Serializable, Cloneable {
 		return contactCustomerLinkT;
 	}
 
+	
+	
 	public void setConnectTcsAccountContactLinkTs(
 			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
 		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;

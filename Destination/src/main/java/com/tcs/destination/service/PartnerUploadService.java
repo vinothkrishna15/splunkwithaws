@@ -70,15 +70,17 @@ public class PartnerUploadService {
 				int rowCount = 0;
 				List<String> listOfCellValues = null;
 				Iterator<Row> rowIterator = sheet.iterator();
+				int columnSize=rowIterator.next().getLastCellNum();
 				while (rowIterator.hasNext()&& rowCount <= sheet.getLastRowNum()) {
 					Row row = rowIterator.next();
+				
 					if (rowCount > 0) {
 						String actionCellValue = getIndividualCellValue(row.getCell(0));
 						listOfCellValues = new ArrayList<String>();
 						try {
 							if (actionCellValue.equalsIgnoreCase(DocumentActionType.ADD.name())) 
 							{
-								listOfCellValues = iterateRow(row);
+								listOfCellValues = iterateRow(row,columnSize);
 								partnerService.addPartner(constructPartnerTForPartner(listOfCellValues, userId, DocumentActionType.ADD.name()));
 							} 
 						} catch (Exception e) {
@@ -136,9 +138,12 @@ public class PartnerUploadService {
 
 			//DOCUMENTS_ATTACHED
 			partnerMasterT.setDocumentsAttached("NO");
+			
+			
+			
 
 			// PARTNER_NAME
-			if(!StringUtils.isEmpty(listOfCellValues.get(2)))
+			if(!StringUtils.isEmpty(listOfCellValues.get(2))&&(listOfCellValues.get(2)!=null))
 			{
 
 				partnerMasterT.setPartnerName(listOfCellValues.get(2));
@@ -149,32 +154,92 @@ public class PartnerUploadService {
 			}
 
 			// GEOGRAPHY 
-			if(!StringUtils.isEmpty(listOfCellValues.get(3)))
+			if(!StringUtils.isEmpty(listOfCellValues.get(3))&&(listOfCellValues.get(3)!=null))
 			{
-				GeographyMappingT geography=new GeographyMappingT();
-				geography.setGeography(listOfCellValues.get(3));
-				partnerMasterT.setGeographyMappingT(geography);
+			partnerMasterT.setGeography(listOfCellValues.get(3));
 			}
 
 			//WEBSITE (Optional)
-			if(!StringUtils.isEmpty(listOfCellValues.get(4)))
+			if(!StringUtils.isEmpty(listOfCellValues.get(4))&&(listOfCellValues.get(4)!=null))
 			{
 				partnerMasterT.setWebsite(listOfCellValues.get(4));
 			}
 
 			//FACEBOOK (Optional)
-			if(!StringUtils.isEmpty(listOfCellValues.get(5)))
+			if(!StringUtils.isEmpty(listOfCellValues.get(5))&&(listOfCellValues.get(5)!=null))
 			{
 				partnerMasterT.setFacebook(listOfCellValues.get(5));
 			}
 
 			//CORPORATE_HQ_ADDRESS (Optional)
-			if(!StringUtils.isEmpty(listOfCellValues.get(6)))
+			if(!StringUtils.isEmpty(listOfCellValues.get(6))&&(listOfCellValues.get(6)!=null))
 			{
 				partnerMasterT.setCorporateHqAddress(listOfCellValues.get(6));
 			}
-
-
+            
+			//ACTIVE
+           boolean activeFlag;
+           if(!StringUtils.isEmpty(listOfCellValues.get(7))&&(listOfCellValues.get(7)!=null))
+		   {
+		    String active=listOfCellValues.get(7);
+            if (active.equalsIgnoreCase("TRUE"))
+            {
+        	   activeFlag=true;
+            }
+            else
+            {
+        	   activeFlag=false;
+            }
+			 partnerMasterT.setActive(activeFlag);
+		   }
+			//COUNTRY
+           if(!StringUtils.isEmpty(listOfCellValues.get(8))&&(listOfCellValues.get(8)!=null))
+		   {
+            partnerMasterT.setCountry(listOfCellValues.get(8));
+		   }
+			
+           //CITY
+           if(!StringUtils.isEmpty(listOfCellValues.get(9))&&(listOfCellValues.get(9)!=null))
+		   {
+            partnerMasterT.setCity(listOfCellValues.get(9));
+		   }
+           
+           //TEXT1
+           if(!StringUtils.isEmpty(listOfCellValues.get(10))&&(listOfCellValues.get(10)!=null))
+		   {
+			partnerMasterT.setText1(listOfCellValues.get(10));
+		   }
+           
+           //TEXT2
+           if(!StringUtils.isEmpty(listOfCellValues.get(11))&&(listOfCellValues.get(11)!=null))
+		   {
+			partnerMasterT.setText2(listOfCellValues.get(11));
+		   }
+           
+           //TEXT3
+           if(!StringUtils.isEmpty(listOfCellValues.get(12))&&(listOfCellValues.get(12)!=null))
+		   {
+			partnerMasterT.setText3(listOfCellValues.get(12));
+		   }
+           
+           //GROUP_PARTNER_NAME
+           if(!StringUtils.isEmpty(listOfCellValues.get(13))&&(listOfCellValues.get(13)!=null))
+		   {
+			partnerMasterT.setGroupPartnerName(listOfCellValues.get(13));
+		   }
+           
+           //NOTES
+           if(!StringUtils.isEmpty(listOfCellValues.get(14))&&(listOfCellValues.get(14)!=null))
+		   {
+			partnerMasterT.setNotes(listOfCellValues.get(14));
+		   }
+           
+          //HQ_PARTNER_LINK_ID
+           if(!StringUtils.isEmpty(listOfCellValues.get(15))&&(listOfCellValues.get(15)!=null))
+		   {
+			partnerMasterT.setHqPartnerLinkId(listOfCellValues.get(15));
+		   }
+			
 		}
 		logger.debug("End: constructPartnerTForPartner() of PartnerUploadService");
 		return partnerMasterT;
@@ -187,10 +252,10 @@ public class PartnerUploadService {
 	 * @return
 	 * @throws Exception
 	 */
-	private List<String> iterateRow(Row row) throws Exception{
+	private List<String> iterateRow(Row row,int columnSize) throws Exception{
 		List<String> listOfCellValues = new ArrayList<String>();
 
-		for (int cellCount = 0; cellCount < 11; cellCount++) {
+		for (int cellCount = 0; cellCount < columnSize; cellCount++) {
 
 			Cell cell = row.getCell(cellCount);
 

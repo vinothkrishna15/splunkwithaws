@@ -58,7 +58,7 @@ public class PartnerDownloadService
 		InputStreamResource inputStreamResource = null;
 		try 
 		{
-			workbook =(XSSFWorkbook) ExcelUtils.getWorkBook(new File
+			workbook =ExcelUtils.getWorkBook(new File
 					(PropertyUtil.getProperty
 							(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
@@ -133,16 +133,75 @@ public class PartnerDownloadService
 		int currentRow = 1; // Excluding the header, header starts with index 0
 
 		List<PartnerMasterT> partnerMasterNamesList=(List<PartnerMasterT>) partnerRepository.findAll();
+		if(!(partnerMasterNamesList.isEmpty())&&(partnerMasterNamesList!=null))
+		{
 		for(PartnerMasterT partner:partnerMasterNamesList){
 
 			Row row = partnerSheet.createRow(currentRow);
 
 			// Get Cell and set cell value
+		    if(partner.getPartnerId()!=null)
+		    {
+			row.createCell(1).setCellValue(partner.getPartnerId().toString());
+		    }
+		    if(partner.getPartnerName()!=null)
+		    {
 			row.createCell(2).setCellValue(partner.getPartnerName().toString());
+		    }
+		    if(partner.getGeography()!=null)
+		    {
 			row.createCell(3).setCellValue(partner.getGeography().toString());
+		    }
+		    if(partner.getWebsite()!=null)
+		    {
+			row.createCell(4).setCellValue(partner.getWebsite().toString());
+		    }
+		    if(partner.getFacebook()!=null)
+		    {
+			row.createCell(5).setCellValue(partner.getFacebook().toString());
+		    }
+		    if(partner.getCorporateHqAddress()!=null)
+		    {
+			row.createCell(6).setCellValue(partner.getCorporateHqAddress().toString());
+		    }
+		    
 			row.createCell(7).setCellValue(partner.isActive());//TODO inactive indicator - adding a separate column in template with data - done 
+		    
+			if(partner.getCountry()!=null)
+		    {
+			row.createCell(8).setCellValue(partner.getCountry().toString());
+		    }
+			if(partner.getCity()!=null)
+		    {
+			row.createCell(9).setCellValue(partner.getCity().toString());
+		    }
+			if(partner.getText1()!=null)
+			{
+			row.createCell(10).setCellValue(partner.getText1().toString());
+			}
+			if(partner.getText2()!=null)
+			{
+			row.createCell(11).setCellValue(partner.getText2().toString());
+			}
+			if(partner.getText3()!=null)
+			{
+			row.createCell(12).setCellValue(partner.getText3().toString());
+			}
+			if(partner.getGroupPartnerName()!=null)
+			{
+			row.createCell(13).setCellValue(partner.getGroupPartnerName().toString());
+			}
+			if(partner.getNotes()!=null)
+			{
+			row.createCell(14).setCellValue(partner.getNotes().toString());
+			}
+			if(partner.getHqPartnerLinkId()!=null)
+			{
+			row.createCell(15).setCellValue(partner.getHqPartnerLinkId().toString());
+			}
 			// Increment row counter
 			currentRow++;
+		 }
 		}
 		logger.debug("End:Inside populatePartnerMasterSheet() method of PartnerDownloadService"); 
 	}

@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
@@ -44,7 +45,7 @@ import com.tcs.destination.utils.FileManager;
  * from database into an excel 
  * using batch processing
  */
-public class PartnerContactDwldWriter implements ItemWriter<ContactT>,
+public class PartnerContactDwldWriter implements ItemWriter<PartnerContactLinkT>,
 StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
@@ -134,7 +135,7 @@ StepExecutionListener {
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends ContactT> items) throws Exception {
+	public void write(List<? extends PartnerContactLinkT> items) throws Exception {     
 		logger.info("Begin: Inside write method  of PartnerContactDwldWriter:");
 
 		if (rowCount == 1) {
@@ -157,10 +158,8 @@ StepExecutionListener {
 		}
 
 		if(items!=null) {
-			for (ContactT ct : items) {
-
-				if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
-						(ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Partner Contact
+			
+			for (PartnerContactLinkT ct : items) {
 
 					// Create row with rowCount
 					Row row = sheet.createRow(rowCount);
@@ -168,48 +167,46 @@ StepExecutionListener {
 					// Create new Cell and set cell value
 					Cell cellPartnerName = row.createCell(1);
 					try {
-						cellPartnerName.setCellValue(ct.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerName().trim());
-					} catch(NullPointerException npe){
+						 cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
+                        } 
+					    catch(NullPointerException npe){
 						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
 					}
 
 					Cell cellPartnerContactName = row.createCell(2);
-					cellPartnerContactName.setCellValue(ct.getContactName());
+					cellPartnerContactName.setCellValue(ct.getContactT().getContactName());
+
 
 					Cell cellPartnerContactRole = row.createCell(3);
-					cellPartnerContactRole.setCellValue(ct.getContactRole());
+					cellPartnerContactRole.setCellValue(ct.getContactT().getContactRole());
 
 					Cell cellPartnerContactEmailId = row.createCell(4);
-					if(ct.getContactEmailId()!=null) {
-						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
+					if(ct.getContactT().getContactEmailId()!=null) {
+						cellPartnerContactEmailId.setCellValue(ct.getContactT().getContactEmailId());
 					}
 
-					Cell cellPartnerContatcTelephone = row.createCell(5);
-					if(ct.getContactEmailId()!=null) {
-						cellPartnerContatcTelephone.setCellValue(ct.getContactEmailId());
+					Cell cellPartnerContactTelephone = row.createCell(5);
+					if(ct.getContactT().getContactTelephone()!=null) {
+						cellPartnerContactTelephone.setCellValue(ct.getContactT().getContactTelephone());
 					}
 					Cell cellPartnerContactLinkedIn = row.createCell(6);
-					if(ct.getContactEmailId()!=null) {
-						cellPartnerContactLinkedIn.setCellValue(ct.getContactEmailId());
+					if(ct.getContactT().getContactLinkedinProfile()!=null) {
+						cellPartnerContactLinkedIn.setCellValue(ct.getContactT().getContactLinkedinProfile());
 					}
 					
 					Cell active = row.createCell(7);//TODO inactive indicator - added a separate column for active flag - done
-					active.setCellValue(ct.isActive());
+					active.setCellValue(ct.getContactT().isActive());
 
 					Cell partnerId=row.createCell(8);
 					partnerId.setCellValue(ct.getContactId());
 					
 					// Increment row counter for partner contact sheet
 					rowCount++;
-				}
-				else{
-					logger.info("partner conatcts doesnot exists for this user");
-				}
-			}
+				
 		}
-		logger.info("Exit: Inside write method  of PartnerContactDwldWriter:");
+			logger.info("Exit: Inside write method  of PartnerContactDwldWriter:");
+	   }
 	}
-
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}
