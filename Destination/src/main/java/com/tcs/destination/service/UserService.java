@@ -1440,14 +1440,14 @@ public class UserService {
 		
 		UserT userT = userRepository.findByUserId(userId);
 	
-		if(StringUtils.isEmpty(userId)){
+		if(StringUtils.isEmpty(userId)){ // If userId is empty
 			logger.error("BAD_REQUEST: userId cannot be Empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"userId cannot be Empty");
 		} else {
 			// Hiding the password
 			if(userT!=null){
 				userT.setTempPassword("");
-			} else {
+			} else { // If NO user matches the userId
 				logger.error("NOT FOUND: user details NOT found : {} ",userId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,"user NOT found : "+userId);
 			}
