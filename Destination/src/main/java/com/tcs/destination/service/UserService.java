@@ -1428,4 +1428,33 @@ public class UserService {
 		return status;
 	}
 
+
+	/**
+	 * This service retrieves the user details based on the fields provided
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	
+	public UserT getUserDetailsById(String userId) {
+		
+		UserT userT = userRepository.findByUserId(userId);
+	
+		if(StringUtils.isEmpty(userId)){
+			logger.error("BAD_REQUEST: userId cannot be Empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,"userId cannot be Empty");
+		} else {
+			// Hiding the password
+			if(userT!=null){
+				userT.setTempPassword("");
+			} else {
+				logger.error("NOT FOUND: user details NOT found : {} ",userId);
+				throw new DestinationException(HttpStatus.NOT_FOUND,"user NOT found : "+userId);
+			}
+		}
+		
+		return userT;
+		
+	}
+
 }
