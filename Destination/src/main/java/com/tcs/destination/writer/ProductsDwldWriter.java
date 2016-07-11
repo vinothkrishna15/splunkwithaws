@@ -36,7 +36,7 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.PropertyUtil;
 /**
- * This CustomerContactDwldWriter class contains the functionality to writes Contact 
+ * This ProductsDwldWriter class contains the functionality to write Product 
  * data into the workbook
  * 
  */
@@ -241,11 +241,6 @@ public class ProductsDwldWriter implements ItemWriter<ProductMasterT>,
 
 			filePath = request.getFilePath() + request.getFileName();
 			
-			
-			String fileName = request.getFileName();
-
-			
-
 			sheet = workbook.getSheet(Constants.PRODUCT_MASTER_SHEET);
 		}
 
