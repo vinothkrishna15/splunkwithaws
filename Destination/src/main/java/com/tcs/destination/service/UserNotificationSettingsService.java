@@ -2,6 +2,7 @@ package com.tcs.destination.service;
 
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
 import com.tcs.destination.bean.NotificationTypeEventMappingT;
+import com.tcs.destination.bean.UserNotificationSettingsConditionsT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
@@ -99,44 +101,86 @@ public class UserNotificationSettingsService {
 					e.getMessage());
 		}
 	}
-
+	
+	/**
+	 * Used to save the user subscription details
+	 * @param userSubscription
+	 * @return
+	 * @throws DestinationException
+	 */
 	@Transactional
 	public boolean saveUserNotificationsnew(
 			List<UserSubscriptions> userSubscription)
-					throws DestinationException {
+			throws DestinationException {
 
 		logger.debug("Begin:Inside saveUserNotifications() UserNotificationSettings service");
 		String userId = DestinationUtils.getCurrentUserId();
 		// Save notification settings conditions first
-		for ( UserSubscriptions userSubscriptions : userSubscription) {
-			if (userSubscriptions
-					.getUserNotificationSettingsConditionsTs() != null) {
+		for (UserSubscriptions userSubscriptions : userSubscription) {
+			// Validations
+			if (userSubscriptions.getUserSubscriptionId() == null) {
+				logger.error("user subscription id is empty");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User subscription id is required for update");
+			}
+			if (!userSubscriptionRepository.exists(userSubscriptions
+					.getUserSubscriptionId())) {
+				logger.error("user subscription id not found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"User Subsciption details not available for id : "
+								+ userSubscriptions.getUserSubscriptionId());
+			}
+			if (userSubscriptions.getNotificationTypeEventMappingId() == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Notification type event mapping id should not be empty");
+			}
+			if (CollectionUtils.isNotEmpty(userSubscriptions
+					.getUserNotificationSettingsConditionsTs())) {
 				try {
+					for (UserNotificationSettingsConditionsT userNotificationSettingsConditionsT : userSubscriptions
+							.getUserNotificationSettingsConditionsTs()) {
+						if (userNotificationSettingsConditionsT
+								.getConditionId() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Condition Id should not be empty");
+						}
+						if (userNotificationSettingsConditionsT
+								.getConditionValue() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Condition value should not be empty");
+						}
+						if (userNotificationSettingsConditionsT.getEventId() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Event Id should not be empty");
+						}
+						userNotificationSettingsConditionsT.setUserId(userId);
+					}
 					userNotificationSettingsConditionRepository
-					.save(userSubscriptions
-							.getUserNotificationSettingsConditionsTs());
+							.save(userSubscriptions
+									.getUserNotificationSettingsConditionsTs());
 				} catch (Exception e) {
 					logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 					throw new DestinationException(
 							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
 				}
 			}
-			
+
 			if (userSubscriptions
 					.getDeleteUserNotificationSettingsConditionsTs() != null)
 				userNotificationSettingsConditionRepository
 						.delete(userSubscriptions
 								.getDeleteUserNotificationSettingsConditionsTs());
-			
 
 			userSubscriptions.setUserId(userId);
 
 		}
 		try {
 
-			if (userSubscriptionRepository
-					.save(userSubscription) != null) {
-				logger.debug("End:Inside saveUserNotifications() UserNotificationSettings service");
+			if (userSubscriptionRepository.save(userSubscription) != null) {
+				logger.info("End:Inside saveUserNotifications() UserNotificationSettings service");
 				return true;
 			} else {
 				logger.error("Error occurred while adding UserNotificationSettings settings");
@@ -144,8 +188,7 @@ public class UserNotificationSettingsService {
 						HttpStatus.INTERNAL_SERVER_ERROR,
 						"Error occurred while adding User notification settings");
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
