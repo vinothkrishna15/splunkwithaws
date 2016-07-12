@@ -10,7 +10,6 @@ import javax.persistence.Query;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
-import com.tcs.destination.service.OpportunityService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 
@@ -30,9 +29,6 @@ public class OpportunityDao
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	@Autowired
-	OpportunityService opportunityService;
-	
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
