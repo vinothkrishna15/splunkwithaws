@@ -104,7 +104,7 @@ public class PartnerService {
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
-	
+
 	/**
 	 * Retrieve partner details based on partner id
 	 * @param partnerId
@@ -218,8 +218,8 @@ public class PartnerService {
 			partnerMasterT.setText2(partnerToInsert.getText2());
 			partnerMasterT.setText3(partnerToInsert.getText3());
 			partnerMasterT.setGroupPartnerName(partnerToInsert.getGroupPartnerName());
-            partnerMasterT.setNotes(partnerToInsert.getNotes());
-            partnerMasterT.setHqPartnerLinkId(partnerToInsert.getHqPartnerLinkId());
+			partnerMasterT.setNotes(partnerToInsert.getNotes());
+			partnerMasterT.setHqPartnerLinkId(partnerToInsert.getHqPartnerLinkId());
 
 			validateInactiveIndicators(partnerMasterT);
 
@@ -554,6 +554,51 @@ public class PartnerService {
 			partner.setLogo(logo);
 			isUpdate=true;
 		}
+
+		// added for partne rdata model chnages
+		//text1,text2 and text3
+		String text1 = partnerMaster.getText1();
+		if (!StringUtils.isEmpty(text1)) {
+			partner.setText1(text1);
+			isUpdate=true;
+		}
+		String text2 = partnerMaster.getText2();
+		if (!StringUtils.isEmpty(text2)) {
+			partner.setText2(text2);
+			isUpdate=true;
+		}
+		String text3 = partnerMaster.getText3();
+		if (!StringUtils.isEmpty(text3)) {
+			partner.setText3(text3);
+			isUpdate=true;
+		}
+		// hq partner link Id
+		String hqPartnerLinkId = partnerMaster.getHqPartnerLinkId();
+		if (!StringUtils.isEmpty(hqPartnerLinkId)) {
+			partner.setHqPartnerLinkId(hqPartnerLinkId);
+			isUpdate=true;
+		}
+
+		// city
+		String city = partnerMaster.getCity();
+		if (!StringUtils.isEmpty(city)) {
+			partner.setCity(city);
+			isUpdate=true;
+		}
+
+		//country
+		String country = partnerMaster.getCountry();
+		if (!StringUtils.isEmpty(country)) {
+			partner.setCountry(country);
+			isUpdate=true;
+		}
+		//groupPartnerName
+		String groupPartnerName = partnerMaster.getGroupPartnerName();
+		if (!StringUtils.isEmpty(groupPartnerName)) {
+			partner.setGroupPartnerName(groupPartnerName);
+			isUpdate=true;
+		}
+
 
 		partner.setModifiedBy(DestinationUtils.getCurrentUserId());
 

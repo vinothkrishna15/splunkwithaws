@@ -16,7 +16,7 @@ import java.util.List;
  * 
  */
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "productId")
 @Table(name="product_master_t")
 @NamedQuery(name="ProductMasterT.findAll", query="SELECT p FROM ProductMasterT p")
 public class ProductMasterT implements Serializable {
