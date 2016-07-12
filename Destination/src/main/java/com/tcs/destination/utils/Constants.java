@@ -153,6 +153,13 @@ public class Constants {
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
 	public static final String OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT = "Opportunity daily download";
 	
+	//added as part of partner changes 
+	public static final String PRODUCT_UPLOAD_SUBJECT = "Product upload request processed.";
+	public static final String PRODUCT_DOWNLOAD_SUBJECT = "Product download request processed.";
+	public static final String PRODUCT_MASTER_SHEET = "Product Master";
+	public static final String XLS = ".xls";
+	public static final String PRODUCT_TEMPLATE_LOCATION_PROPERTY_NAME = "productSheetTemplate";
+	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";

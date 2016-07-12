@@ -298,7 +298,7 @@ public class ContactUploadService {
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				String partnerId = getMapValuesForKey(mapOfPartnerMasterT, listOfCellValues.get(2));
 				if(!StringUtils.isEmpty(partnerId)){
-					contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT().setPartnerId(partnerId);
+					contactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
 					//contactT.setPartnerId(partnerId);
 				} else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");

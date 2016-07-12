@@ -13,7 +13,7 @@ import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface PartnerRepository extends
-		CrudRepository<PartnerMasterT, String> {
+CrudRepository<PartnerMasterT, String> {
 
 	/**
 	 * Finds the partner details for the given partner name.
@@ -23,7 +23,7 @@ public interface PartnerRepository extends
 	 * @return partner details.
 	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
-	
+
 
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
 			String partnername, Pageable page, boolean active);
@@ -66,23 +66,34 @@ public interface PartnerRepository extends
 	 * @return partner details.
 	 */
 	PartnerMasterT findByPartnerId(String partnerid);
-	
+
 	@Query(value = "select * from partner_master_t where partner_name in (:names)", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNames(@Param("names") String[] Name);
-	
+
 	@Query(value="select partner_id,partner_name from partner_master_t",nativeQuery=true)
 	List<Object[]> findPartnerIdName();
 
 	@Query(value ="select partner_name from partner_master_t where partner_id in ("
 			+ "select partner_id from opportunity_partner_link_t  where opportunity_id=?1)",nativeQuery = true)
 	List<String> findPartnerNameByOpportunityId(String opportunityId);
-	
-	
+
+
 	@Query(value ="select partner_name from partner_master_t where partner_name = (:partnerName)",nativeQuery=true)
 	String findPartnerName(@Param("partnerName") String partnerName);
-	
+
 	@Query(value = "select geography from partner_master_t where partner_id = ?1", nativeQuery = true)			
 	String findGeographyByPartnerId(String partnerId);
 
 	PartnerMasterT findByActiveTrueAndPartnerId(String partnerId);	
+
+	// partner smart search
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(geography) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByGeography(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(partner_name) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(group_partner_name) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByGroupPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);	
 }

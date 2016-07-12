@@ -2290,6 +2290,7 @@ public class WorkflowService {
 		oldPartnerMaster.setDocumentsAttached(workflowPartnerT
 				.getDocumentsAttached());
 		oldPartnerMaster.setModifiedBy(userId);
+		oldPartnerMaster.setCreatedBy(userId);
 		//partner changes
 		oldPartnerMaster.setGroupPartnerName(workflowPartnerT.getGroupPartnerName());
 		oldPartnerMaster.setCountry(workflowPartnerT.getCountry());

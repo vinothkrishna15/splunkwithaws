@@ -36,6 +36,7 @@ import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -473,7 +474,9 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
-
+		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+		PartnerContactLinkT pclt=new PartnerContactLinkT();
+		
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
 				if (contact.getContactCustomerLinkTs() == null
@@ -481,10 +484,13 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"CustomerId is required");
 				}
-				contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().setPartnerId(null);
+				
+				pclt.setPartnerId(null);
+				partnerContactList.add(pclt);
+				contact.setPartnerContactLinkTs(partnerContactList);
 			 } else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
-				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId();
+				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
 				if (partnerId == null
 						|| partnerId.isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -508,7 +514,7 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId();
+				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
 				if (partnerId != null
 						&& !(partnerId.isEmpty())) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -808,7 +814,7 @@ public class ContactService {
 			contactT.setContactTelephone(contactToInsert.getContactTelephone());
 			contactT.setContactLinkedinProfile(contactToInsert
 					.getContactLinkedinProfile());
-			contactT.getPartnerContactLinkTs().get(0).setPartnerId(contactToInsert.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerId());
+			contactT.getPartnerContactLinkTs().get(0).setPartnerId(contactToInsert.getPartnerContactLinkTs().get(0).getPartnerId());
 			contactT = contactRepository.save(contactT);
 			logger.debug("Contact Saved .... " + contactT.getContactId());
 
@@ -940,12 +946,18 @@ public class ContactService {
 	 */
 	public boolean validateCreateContactRequest(ContactT contact) {
 		List<ContactT> contactList = new ArrayList<ContactT>(); 
-		if(contact.getContactType().equals("EXTERNAL")){
+		if(contact.getContactType().equals("EXTERNAL") && contact.getContactCategory().equals("CUSTOMER")){
 			for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
 				String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
-				contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+				contactList = contactRepository.findDuplicateCustomerContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
 			}
-		} else {
+		} 
+		if(contact.getContactType().equals("EXTERNAL") && contact.getContactCategory().equals("PARTNER")){
+			for(int i=0; i<contact.getPartnerContactLinkTs().size();i++){
+				String partnerId = contact.getPartnerContactLinkTs().get(i).getPartnerId();
+				contactList = contactRepository.findDuplicatePartnerContacts(partnerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			}
+		}else {
 			contactList = contactRepository.findDuplicateInternalContacts(contact.getEmployeeNumber(), contact.getContactType(), contact.getContactName());
 		}
 		if(contactList.size()>0){
