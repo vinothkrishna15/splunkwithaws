@@ -200,6 +200,9 @@ StepExecutionListener {
 					Cell partnerId=row.createCell(8);
 					partnerId.setCellValue(ct.getContactId());
 					
+					Cell partnerContactId=row.createCell(9);
+					partnerContactId.setCellValue(ct.getPartnerContactId());
+					
 					// Increment row counter for partner contact sheet
 					rowCount++;
 				

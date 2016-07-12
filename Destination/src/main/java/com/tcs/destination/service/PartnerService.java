@@ -98,12 +98,13 @@ public class PartnerService {
 	 * @param keyword
 	 * @throws Exception
 	 */
-	public void save(List<PartnerMasterT> insertList) throws Exception {
+	public void save(List<PartnerMasterT> partnerList) throws Exception {
 		logger.debug("Begin:Inside save method of PartnerService");
-		partnerRepository.save(insertList);
+		partnerRepository.save(partnerList);
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
+	
 	/**
 	 * Retrieve partner details based on partner id
 	 * @param partnerId

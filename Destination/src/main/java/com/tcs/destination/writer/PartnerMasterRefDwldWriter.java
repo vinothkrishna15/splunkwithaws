@@ -153,6 +153,43 @@ public class PartnerMasterRefDwldWriter implements ItemWriter<PartnerMasterT>,
 				Cell cellCorporateHqAddress = row.createCell(6);
 				if(partnerMaster.getCorporateHqAddress()!=null)
 					cellCorporateHqAddress.setCellValue(partnerMaster.getCorporateHqAddress().trim());
+				
+				Cell cellActive = row.createCell(7);
+				cellActive.setCellValue(partnerMaster.isActive());
+				
+				Cell cellCountry = row.createCell(8);
+				if(partnerMaster.getCountry()!=null)
+					cellCountry.setCellValue(partnerMaster.getCountry().trim());
+				
+				Cell cellCity = row.createCell(9);
+				if(partnerMaster.getCity()!=null)
+					cellCity.setCellValue(partnerMaster.getCity().trim());
+				
+				Cell cellText1 = row.createCell(10);
+				if(partnerMaster.getText1()!=null)
+					cellText1.setCellValue(partnerMaster.getText1().trim());
+				
+				Cell cellText2 = row.createCell(11);
+				if(partnerMaster.getText2()!=null)
+					cellText2.setCellValue(partnerMaster.getText2().trim());
+				
+				Cell cellText3 = row.createCell(12);
+				if(partnerMaster.getText3()!=null)
+					cellText3.setCellValue(partnerMaster.getText3().trim());
+				
+				Cell cellGroupPartnerName = row.createCell(13);
+				if(partnerMaster.getGroupPartnerName()!=null)
+					cellGroupPartnerName.setCellValue(partnerMaster.getGroupPartnerName().trim());
+				
+				Cell cellNotes = row.createCell(14);
+				if(partnerMaster.getNotes()!=null)
+					cellNotes.setCellValue(partnerMaster.getNotes().trim());
+				
+				Cell cellHqPartnerLinkId = row.createCell(15);
+				if(partnerMaster.getHqPartnerLinkId()!=null)
+					cellHqPartnerLinkId.setCellValue(partnerMaster.getHqPartnerLinkId().trim());
+				
+				
 				// Increment row counter
 				rowCount++;
 			}

@@ -1,5 +1,8 @@
 package com.tcs.destination.helper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,11 +57,12 @@ public class PartnerUploadHelper {
 	private PartnerService partnerService;
 	
 	
-	public UploadServiceErrorDetailsDTO validatePartnerData(String[] data, String userId, PartnerMasterT partnerMasterT) throws Exception 
+	public UploadServiceErrorDetailsDTO validatePartnerData(String[] data, String userId, PartnerMasterT partnerMasterT,List<PartnerMasterT> childList,List<PartnerMasterT> parentList) throws Exception 
 	{
 		
 			
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+		
 		
 		        // PARTNER_NAME 
 				String partnername = data[3];
@@ -67,7 +71,7 @@ public class PartnerUploadHelper {
 				{
 					
 					partnerMasterT.setPartnerName(partnername);
-					//List<PartnerMasterT> partners = partnerRepository.findByPartnerName(partnername);
+					
 				}
 				else
 				{
@@ -79,9 +83,9 @@ public class PartnerUploadHelper {
 				String geography = data[4];
 				if(!StringUtils.isEmpty(geography))
 				{
-					GeographyMappingT geographyMappingT=new GeographyMappingT();
-					geographyMappingT.setGeography(geography);
-					partnerMasterT.setGeographyMappingT(geographyMappingT);
+					
+					partnerMasterT.setGeography(geography);
+
 				}
 				else{
 					error.setRowNumber(rowNumber);
@@ -120,7 +124,80 @@ public class PartnerUploadHelper {
 				partnerMasterT.setDocumentsAttached(Constants.NO);
 				
 				//ACTIVE
-				partnerMasterT.setActive(true);
+				String active = data[8];
+				if(!StringUtils.isEmpty(active))
+				{
+					boolean activeFlag=false;
+					if(active.equalsIgnoreCase("true"))
+					{
+						activeFlag=true;
+					}
+					
+				partnerMasterT.setActive(activeFlag);
+				}
+				
+				//COUNTRY (Optional)
+				String country = data[9];
+				if(!StringUtils.isEmpty(country))
+				{
+					partnerMasterT.setCountry(country);
+				}
+				
+				//CITY (Optional)
+				String city=data[10];
+				if(!StringUtils.isEmpty(city))
+				{
+					partnerMasterT.setCity(city);
+				}
+				
+				//TEXT1 (Optional)
+				String text1 = data[11];
+				if(!StringUtils.isEmpty(text1))
+				{
+					partnerMasterT.setText1(text1);
+				}
+				
+				//TEXT2 (Optional)
+				String text2 = data[12];
+				if(!StringUtils.isEmpty(text2))
+				{
+					partnerMasterT.setText2(text2);
+				}
+				
+				//TEXT3 (Optional)
+				String text3 = data[13];
+				if(!StringUtils.isEmpty(text3))
+				{
+					partnerMasterT.setText3(text3);
+				}
+				
+				//GROUP PARTNER NAME (Optional)
+				String groupPartnerName = data[14];
+				if(!StringUtils.isEmpty(groupPartnerName))
+				{
+					partnerMasterT.setGroupPartnerName(groupPartnerName);
+				}
+				
+				//NOTES (Optional)
+				String notes = data[15];
+				if(!StringUtils.isEmpty(notes))
+				{
+					partnerMasterT.setNotes(notes);
+				}
+				
+				//HQ_PARTNER_LINK_NAME
+				String hqPartnerLinkName = data[16];
+				if(!StringUtils.isEmpty(hqPartnerLinkName))
+				{
+					String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
+					partnerMasterT.setHqPartnerLinkId(hqPartnerLinkId);
+					childList.add(partnerMasterT);
+					
+				}
+				else
+				{
+					parentList.add(partnerMasterT);
+				}
 				
 				//check for inactive records and log 
 				try {
@@ -134,7 +211,7 @@ public class PartnerUploadHelper {
 	}
 
 	public UploadServiceErrorDetailsDTO validatePartnerDataUpdate(
-			String[] data, String userId, PartnerMasterT partner) throws Exception 
+			String[] data, String userId, PartnerMasterT partner,List<PartnerMasterT> childList,List<PartnerMasterT> parentList) throws Exception 
 	{
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		
@@ -217,6 +294,69 @@ public class PartnerUploadHelper {
 		
 		//ACTIVE
 		partner.setActive(true);
+		
+		//COUNTRY (Optional)
+		String country = data[9];
+		if(!StringUtils.isEmpty(country))
+		{
+			partner.setCountry(country);
+		}
+		
+		//CITY (Optional)
+		String city=data[10];
+		if(!StringUtils.isEmpty(city))
+		{
+			partner.setCity(city);
+		}
+		
+		//TEXT1 (Optional)
+		String text1 = data[11];
+		if(!StringUtils.isEmpty(text1))
+		{
+			partner.setText1(text1);
+		}
+		
+		//TEXT2 (Optional)
+		String text2 = data[12];
+		if(!StringUtils.isEmpty(text2))
+		{
+			partner.setText2(text2);
+		}
+		
+		//TEXT3 (Optional)
+		String text3 = data[13];
+		if(!StringUtils.isEmpty(text3))
+		{
+			partner.setText3(text3);
+		}
+		
+		//GROUP PARTNER NAME (Optional)
+		String groupPartnerName = data[14];
+		if(!StringUtils.isEmpty(groupPartnerName))
+		{
+			partner.setGroupPartnerName(groupPartnerName);
+		}
+		
+		//NOTES (Optional)
+		String notes = data[15];
+		if(!StringUtils.isEmpty(notes))
+		{
+			partner.setNotes(notes);
+		}
+		
+		//HQ_PARTNER_LINK_NAME
+		String hqPartnerLinkName = data[16];
+		if(!StringUtils.isEmpty(hqPartnerLinkName))
+		{
+			String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
+			partner.setHqPartnerLinkId(hqPartnerLinkId);
+			childList.add(partner);
+			
+		}
+		else
+		{
+			parentList.add(partner);
+		}
 		
 		//check for inactive records and log 
 		try {

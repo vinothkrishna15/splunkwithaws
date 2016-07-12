@@ -35,6 +35,7 @@ import com.tcs.destination.helper.PartnerUploadHelper;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.StringUtils;
 
 public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
 	
@@ -56,25 +57,33 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	private PartnerService partnerService;
 	
     private PartnerRepository partnerRepository;
+    
+    
+	
 	
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
-		logger.debug("Inside write:");
 		
+		logger.debug("Inside write:");
 		List<PartnerMasterT> insertList = new ArrayList<PartnerMasterT>();
 		List<PartnerMasterT> updateList = new ArrayList<PartnerMasterT>();
 		List<PartnerMasterT> deleteList = new ArrayList<PartnerMasterT>();
+		List<PartnerMasterT> childList = new ArrayList<PartnerMasterT>();
+		List<PartnerMasterT> parentList = new ArrayList<PartnerMasterT>();
+		
 		String operation = null; 
 		
 		for (String[] data: items) {
 			operation = (String) data[1];
+			parentList.clear();
+			childList.clear();
 			if(operation!=null)
 			{
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 				
 				logger.debug("***PARTNER ADD***");
 				PartnerMasterT partner =  new PartnerMasterT();
-				UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerData(data, request.getUserT().getUserId() ,partner);
+				UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerData(data, request.getUserT().getUserId() ,partner,childList,parentList);
 				if (errorDTO.getMessage() != null) {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
@@ -88,12 +97,12 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				logger.debug("***PARTNER UPDATE***");
 				String partnerId =data[2];
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				if (!partnerId.isEmpty()) {
+				if ((!StringUtils.isEmpty(partnerId))&&(partnerId!=null)) {
 					try{
 						
 						 PartnerMasterT partner= partnerRepository.findByPartnerId(partnerId);
 					    if (partner != null) {
-						errorDTO = helper.validatePartnerDataUpdate(data, request.getUserT().getUserId() ,partner);
+						errorDTO = helper.validatePartnerDataUpdate(data, request.getUserT().getUserId() ,partner,childList,parentList);
 						if (errorDTO.getMessage() != null) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
@@ -131,13 +140,29 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				}
 			
 			}
-			if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
+			if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) 
+			{
 			
 			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-				partnerService.save(insertList);
+				
+				if(CollectionUtils.isNotEmpty(parentList))
+				{
+				 partnerService.save(parentList);
+				}
+				else if(CollectionUtils.isNotEmpty(childList))
+				{
+				 partnerService.save(childList);
+				}
 			} 
 			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-				partnerService.updatePartner(updateList);
+				if(CollectionUtils.isNotEmpty(parentList))
+				{
+				 partnerService.updatePartner(parentList);
+				}
+				else if(CollectionUtils.isNotEmpty(childList))
+				{
+				 partnerService.updatePartner(childList);
+				}
 			}
 			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
 				partnerService.deletePartner(deleteList);
@@ -240,7 +265,8 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
 			
 			dataProcessingRequestRepository.save(request);
-			jobContext.remove(REQUEST);
+			
+            jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);
 			
 		} catch (Exception e) {

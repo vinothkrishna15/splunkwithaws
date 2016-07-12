@@ -23,8 +23,12 @@ CrudRepository<PartnerMasterT, String> {
 	 * @return partner details.
 	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
+	
 
-
+	@Query(value = "select partner_id from partner_master_t p where p.partner_name=?1", nativeQuery = true)
+	String findPartnerIdByName(String partnername);
+	
+	
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
 			String partnername, Pageable page, boolean active);
 
