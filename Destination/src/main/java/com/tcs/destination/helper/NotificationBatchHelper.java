@@ -1980,13 +1980,13 @@ public class NotificationBatchHelper {
 						Constants.ADDED, Constants.DIGITAL_DEAL_VALUE_FIELD,
 						templateForAdd, null, null));
 			}
-			if (compareIntegerValueForUpdate(
-					auditOpportunityT.getOldDigitalDealValue(),
-					auditOpportunityT.getNewDigitalDealValue())) {
-				templates.add(constructMessageTemplate(data, null, "",
-						Constants.UPDATED, Constants.DIGITAL_DEAL_VALUE_FIELD,
-						templateForUpdate, null, null));
-			}
+//			if (compareIntegerValueForUpdate(
+//					auditOpportunityT.getOldDigitalDealValue(),
+//					auditOpportunityT.getNewDigitalDealValue())) {
+//				templates.add(constructMessageTemplate(data, null, "",
+//						Constants.UPDATED, Constants.DIGITAL_DEAL_VALUE_FIELD,
+//						templateForUpdate, null, null));
+//			}
 			// sales stage code
 			SalesStageCode oldSalesStageCode = SalesStageCode
 					.valueOf(auditOpportunityT.getOldSalesStageCode());
