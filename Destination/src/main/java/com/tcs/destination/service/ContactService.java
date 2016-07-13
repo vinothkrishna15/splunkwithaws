@@ -449,12 +449,17 @@ public class ContactService {
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
 			}
+			// created by and modified by spitted for partner data model changes
 			contact.setModifiedBy(userId);
+			ContactT contactObj = contactRepository.findByContactId(contact.getContactId());
+			contact.setCreatedBy(contactObj.getCreatedBy());
+			contact.setCreatedDatetime(contactObj.getCreatedDatetime());
 		} else {
 			if (contact.getContactId() != null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"ContactId should not be passed");
 			}
+			// created by and modified by spitted for partner data model changes
 			contact.setCreatedBy(userId);
 			contact.setModifiedBy(userId);
 		}

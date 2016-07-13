@@ -1,3 +1,4 @@
+
 package com.tcs.destination.service;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PageDTO;
@@ -88,6 +90,8 @@ public class PartnerService {
 	private GeographyRepository geoRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
+	
+	private Map<String, GeographyCountryMappingT> geographyCountryMapping = null;
 
 
 
@@ -517,6 +521,58 @@ public class PartnerService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Geography should not be empty");
 		}
+
+		// mandatory validations for group partner name
+
+		// group Partner Name
+		String groupPartnerName = partnerMaster.getGroupPartnerName();
+		if (!StringUtils.isEmpty(groupPartnerName)) {
+			if(!isBdmWithAccess)
+			{
+				partner.setGroupPartnerName(groupPartnerName);
+				isUpdate=true;
+			}
+			else
+			{
+				logger.error("NOT_AUTHORISED: user is not authorised to update the group Partner name");
+				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the partner name" );
+			}
+		}
+		else {
+			logger.error("group Partner nameshould not be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"group Partner name should not be empty");
+		}
+		// country
+		String countryStr = partnerMaster.getCountry();
+		if (!StringUtils.isEmpty(countryStr)) {
+			geographyCountryMapping = commonHelper.getGeographyCountryMappingT();
+			if (geographyCountryMapping.containsKey(partnerMaster.getCountry())) {
+				if(!(partner.getCountry().equals(partnerMaster.getCountry())))
+				{
+					if(!isBdmWithAccess)
+					{
+						partner.setCountry(countryStr);
+						isUpdate=true;
+					}
+					else
+					{
+						logger.error("NOT_AUTHORISED: user is not authorised to update the country");
+						throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the country" );
+					}
+				}
+			} else {
+				logger.error("Invalid country");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"Country :" + partnerMaster.getCountry()
+						+ "is not found");
+			}
+		} else {
+			logger.error("Country should not be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Country should not be empty");
+		}
+
 		// Website
 		String website = partnerMaster.getWebsite();
 		if (!StringUtils.isEmpty(website)) {
@@ -593,12 +649,11 @@ public class PartnerService {
 			isUpdate=true;
 		}
 		//groupPartnerName
-		String groupPartnerName = partnerMaster.getGroupPartnerName();
-		if (!StringUtils.isEmpty(groupPartnerName)) {
-			partner.setGroupPartnerName(groupPartnerName);
+		String groupPartnerNamestr = partnerMaster.getGroupPartnerName();
+		if (!StringUtils.isEmpty(groupPartnerNamestr)) {
+			partner.setGroupPartnerName(groupPartnerNamestr);
 			isUpdate=true;
 		}
-
 
 		partner.setModifiedBy(DestinationUtils.getCurrentUserId());
 
@@ -608,7 +663,6 @@ public class PartnerService {
 			logger.info(partner.getPartnerId() + " Partner details updated");
 		}
 		return isUpdate;
-
 	}
 
 	public PageDTO<SearchResultDTO<PartnerMasterT>> smartSearch(
