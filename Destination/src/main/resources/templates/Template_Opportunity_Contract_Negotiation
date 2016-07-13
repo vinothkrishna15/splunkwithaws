@@ -3,7 +3,7 @@
 		Dear User,
 		<p>
      
-              Please be informed that there is a high value deal movement (Contract Negotiation in Progress)-<br/>
+              Please be informed that there is a high value deal movement (Contract Negotiation in Progress)-<br/><br/>
               CRM ID: <b>${crmId}</b><br/>
               Customer: <b>${customerName}</b><br/>
               Outcome Expected Date: <b>${expectedOutcomeDate}</b><br/>

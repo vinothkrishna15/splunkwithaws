@@ -3,7 +3,7 @@
 		Dear User,
 		<p>
      
-              Please be informed that there is a high value deal movement (RFP has been submitted)-<br/>
+              Please be informed that there is a high value deal movement (RFP has been submitted)-<br/><br/>
               CRM ID: <b>${crmId}</b><br/>
               Customer: <b>${customerName}</b><br/>
               RFP Submission Date: <b>${actualSubmissionDate}</b><br/>
