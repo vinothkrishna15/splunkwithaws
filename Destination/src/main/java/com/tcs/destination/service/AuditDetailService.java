@@ -223,23 +223,24 @@ public class AuditDetailService {
 	private List<Map<String, Object>> getSalesCodeSequenceMap(String oppId, List<OpportunityTimelineHistoryT> timeLineHistories) {
 		List<Map<String, Object>> salesCodeSequenceMap = Lists.newArrayList();
 		List<OpportunityTimelineHistoryT> timeLineHistoriesclone = Lists.newArrayList(timeLineHistories);
-//		OpportunityTimelineHistoryT previousHistory = timeLineHistoriesclone.get(0);
-		OpportunityTimelineHistoryT previousHistory = timeLineHistoriesclone.remove(0);
-		for (OpportunityTimelineHistoryT timeLineHistory : timeLineHistoriesclone) {
-			Date toDate = truncateSeconds(timeLineHistory.getUpdatedDatetime());
+
+		if(CollectionUtils.isNotEmpty(timeLineHistoriesclone)) {
+			OpportunityTimelineHistoryT previousHistory = timeLineHistoriesclone.remove(0);
+
+			for (OpportunityTimelineHistoryT timeLineHistory : timeLineHistoriesclone) {
+				Date toDate = truncateSeconds(timeLineHistory.getUpdatedDatetime());
+				Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
+
+				Map<String, Object> map = createMapWith(fromDate,
+						previousHistory.getSalesStageCode(), toDate, timeLineHistory.getSalesStageCode());
+				salesCodeSequenceMap.add(map);
+
+				previousHistory = timeLineHistory;
+			}
+			//add current sales stage code also 
 			Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
-			
-			Map<String, Object> map = createMapWith(fromDate,
-					previousHistory.getSalesStageCode(), toDate, timeLineHistory.getSalesStageCode());
-			salesCodeSequenceMap.add(map);
-			
-			previousHistory = timeLineHistory;
+			salesCodeSequenceMap.add(createMapWith(fromDate, previousHistory.getSalesStageCode(), null, null));
 		}
-		
-		//add current sales stage code also 
-		Date fromDate = truncateSeconds(previousHistory.getUpdatedDatetime());
-		salesCodeSequenceMap.add(createMapWith(fromDate, previousHistory.getSalesStageCode(), null, null));
-		
 		return salesCodeSequenceMap;
 	}
 
@@ -308,14 +309,14 @@ public class AuditDetailService {
 			preTimeLineHistory = item;
 		}
 		
-		String user = timeLineHistory.getUserUpdated();
+		String user = userRepository.findUserNameByUserId(timeLineHistory.getUserUpdated());
 		Date date = new Date(timeLineHistory.getUpdatedDatetime().getTime());
+		currentBid = timeLineHistory.getBidDetailsT();
 		if(preTimeLineHistory != null) {
 			preBid = preTimeLineHistory.getBidDetailsT();
 			entries.add(getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
 		} else {
 			entries.add(getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
-			currentBid = timeLineHistory.getBidDetailsT();
 		}
 		
 		if(currentBid != null) {
@@ -1008,7 +1009,7 @@ public class AuditDetailService {
 	 */
 	private String getRemoveMessage(String fieldName, String fromVal) {//TODO form with template
 		StringBuffer sb = new StringBuffer("Removed ");
-		sb.append(fieldName).append(" ").append(fromVal);
+		sb.append(fieldName).append(" : ").append(fromVal);
 		
 		return sb.toString();
 	}

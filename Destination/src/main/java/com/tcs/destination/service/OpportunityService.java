@@ -1009,7 +1009,7 @@ public class OpportunityService {
 			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
 				String wlFactor = oppWLFactor.getWinLossFactor();
 				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The win loss factor is inactive");
 				}
 			}
 		}
