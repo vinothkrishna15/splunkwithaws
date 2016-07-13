@@ -265,8 +265,11 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.createOpportunity(opportunity, false, null, null);
+			AsyncJobRequest asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null);
             status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+            if (asyncJobRequest.getOn().equals(Switch.ON)) {
+				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
+			}
             jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_CREATE,opportunity.getModifiedBy());
 			logger.info("Inside OpportunityController: End of create opportunity");
 			return new ResponseEntity<String>(

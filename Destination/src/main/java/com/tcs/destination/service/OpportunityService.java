@@ -693,9 +693,10 @@ public class OpportunityService {
     * @throws Exception
     */
 	@Transactional
-	public void createOpportunity(OpportunityT opportunity,
+	public AsyncJobRequest createOpportunity(OpportunityT opportunity,
 			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {
 		logger.debug("Inside createOpportunity() service");
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
@@ -706,6 +707,19 @@ public class OpportunityService {
 			String userGroup = user.getUserGroup();
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
 					null);
+			if(createdOpportunity.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUSD = opportunityDownloadService.convertCurrencyToUSD(createdOpportunity.getDealCurrency(), createdOpportunity.getDigitalDealValue());
+				if((createdOpportunity.getSalesStageCode() >= SalesStageCode.RFP_SUBMITTED
+						.getCodeValue()
+				&& createdOpportunity.getSalesStageCode() <= SalesStageCode.CONTRACT_NEGOTIATION
+						.getCodeValue()) && isAboveOrEqualHighDeal(dealValueInUSD)) {
+					asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
+					asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+					asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+					asyncJobRequest.setOn(Switch.ON);
+					asyncJobRequest.setDealValue(dealValueInUSD.doubleValue());
+				}
+			}
 			if (!isBulkDataLoad) {
 //				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
@@ -716,6 +730,7 @@ public class OpportunityService {
 				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
 			}
 		}
+		return asyncJobRequest;
 	}
 
 	/**
