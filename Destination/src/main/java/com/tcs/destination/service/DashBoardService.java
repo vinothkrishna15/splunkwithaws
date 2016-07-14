@@ -290,7 +290,7 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+//				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:	
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
@@ -650,7 +650,7 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+//				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
@@ -1031,7 +1031,7 @@ public class DashBoardService {
 				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
 				case BDM:
 				case BDM_SUPERVISOR:
-				case PRACTICE_HEAD:
+//				case PRACTICE_HEAD:
 				case PRACTICE_OWNER:
 					logger.error("User is not authorized to access this service");
 					throw new DestinationException(HttpStatus.UNAUTHORIZED,
@@ -1412,6 +1412,7 @@ public class DashBoardService {
 				break;
 			case GEO_HEADS:
 			case IOU_HEADS:
+			case PRACTICE_HEAD:
 				users = userRepository.getSubordinatesIdBySupervisorId(userId, nameWith);
 				break;
 
