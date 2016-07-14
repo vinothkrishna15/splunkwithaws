@@ -90,7 +90,7 @@ public class PartnerService {
 	private GeographyRepository geoRepository;
 
 	private Map<String, GeographyMappingT> geographyMapping = null;
-	
+
 	private Map<String, GeographyCountryMappingT> geographyCountryMapping = null;
 
 
@@ -470,9 +470,11 @@ public class PartnerService {
 			if(findPartnerName!=null && !findPartnerName.isEmpty()){
 				PartnerMasterT partnerExistingByName = findPartnerName.get(0);
 				if(!partnerExistingByName.getPartnerId().equals(partner.getPartnerId())){
-					logger.error("Partner Name already exists");
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Partner Name already exists");
+					if(partnerExistingByName.getPartnerName().equals(partner.getPartnerName())){
+						logger.error("Partner Name already exists");
+						throw new DestinationException(HttpStatus.BAD_REQUEST,
+								"Partner Name already exists");
+					}
 				}
 			} else {
 				if(!isBdmWithAccess)
@@ -527,19 +529,22 @@ public class PartnerService {
 		// group Partner Name
 		String groupPartnerName = partnerMaster.getGroupPartnerName();
 		if (!StringUtils.isEmpty(groupPartnerName)) {
-			if(!isBdmWithAccess)
-			{
-				partner.setGroupPartnerName(groupPartnerName);
-				isUpdate=true;
-			}
-			else
-			{
-				logger.error("NOT_AUTHORISED: user is not authorised to update the group Partner name");
-				throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the partner name" );
+			if(!(partner.getGroupPartnerName().equals(partnerMaster.getGroupPartnerName()))){
+
+				if(!isBdmWithAccess)
+				{
+					partner.setGroupPartnerName(groupPartnerName);
+					isUpdate=true;
+				}
+				else
+				{
+					logger.error("NOT_AUTHORISED: user is not authorised to update the group Partner name");
+					throw new DestinationException(HttpStatus.UNAUTHORIZED, "user is not authorised to update the partner name" );
+				}
 			}
 		}
 		else {
-			logger.error("group Partner nameshould not be empty");
+			logger.error("group Partner name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"group Partner name should not be empty");
 		}
@@ -573,12 +578,31 @@ public class PartnerService {
 					"Country should not be empty");
 		}
 
+		////notes edited
+		//		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){
+		//			notes = oldCustomerObj.getNotes();
+		//		}
+		//		if (!customerMaster.getNotes().equals(notes)) {
+		//			oldCustomerObj.setNotes(customerMaster.getNotes());
+		//			isCustomerModifiedFlag = true;
+		//		}
+
 		// Website
-		String website = partnerMaster.getWebsite();
-		if (!StringUtils.isEmpty(website)) {
-			partner.setWebsite(website);
+		String website = "";
+		if (!StringUtils.isEmpty(partner.getWebsite())) {
+			website = partner.getWebsite();
+		}
+		if (!partnerMaster.getWebsite().equals(website)) {
+			partner.setWebsite(partnerMaster.getWebsite());
 			isUpdate=true;
 		}
+
+		// Website
+		//		String website = partnerMaster.getWebsite();
+		//		if (!StringUtils.isEmpty(website)) {
+		//			partner.setWebsite(website);
+		//			isUpdate=true;
+		//		}
 
 		// notes
 		String notes = partnerMaster.getNotes();
