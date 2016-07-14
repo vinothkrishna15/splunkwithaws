@@ -14,6 +14,7 @@ public class DestinationMailMessage {
 	
 	private String atchFileName;
 	private String atchFilePath;
+	private String contentId;
 	
 	public List<String> getRecipients() {
 		return recipientIdList;
@@ -74,6 +75,12 @@ public class DestinationMailMessage {
 	}
 	public void setAtchFilePath(String atchFilePath) {
 		this.atchFilePath = atchFilePath;
+	}
+	public String getContentId() {
+		return contentId;
+	}
+	public void setContentId(String contentId) {
+		this.contentId = contentId;
 	}
 	
 }

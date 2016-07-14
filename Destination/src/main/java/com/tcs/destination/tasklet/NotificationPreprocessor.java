@@ -148,7 +148,7 @@ public class NotificationPreprocessor implements Tasklet {
 		jobContext.put(AUDIT_OPPORTUNITY, auditOpportunityT);
 		jobContext.put(AUDIT_TASK, auditTaskT);
 		jobContext.put(AUDIT_TASK_BDM_TAGGED, auditTaskBdmsTaggedLinkTs);
-
+		logger.info("End of getting audit details");
 		return RepeatStatus.FINISHED;
 	}
 

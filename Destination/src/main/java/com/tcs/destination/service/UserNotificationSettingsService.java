@@ -290,24 +290,30 @@ public class UserNotificationSettingsService {
 	 * fetch all notification settings of current user 
 	 * @return List of user subscription
 	 */
-	public List<UserSubscriptions> getUserNotificationSettingsNew() {
-		logger.info("Begin-> UserNotificationSettingsService :: getUserNotificationSettingsNew service");
+	public List<UserSubscriptions> getUserSubsriptions() throws Exception {
+		logger.info("Begin-> getUserSubsriptions Method");
 		
 		String userId = DestinationUtils.getCurrentUserId();
 		List<UserSubscriptions> subscriptions = userSubscriptionRepository.findByUserId(userId);
-		
-		for (UserSubscriptions userSubscription : subscriptions) {//add condition
-			Integer eventId = userSubscription.getNotificationTypeEventMappingT().getEventId();
-			NotificationSettingEvent event = NotificationSettingEvent.getByValue(eventId);
-			if(event != null && event == NotificationSettingEvent.COLLAB_CONDITION) {//fetch conditions only for collab conditions
-				userSubscription.getNotificationTypeEventMappingT().getNotificationSettingsEventMappingT().setUserNotificationSettingsConditionsTs(null);
-				userSubscription.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository.findByUserIdAndEventId(userId, eventId));
+		if(CollectionUtils.isNotEmpty(subscriptions)) {
+			for (UserSubscriptions userSubscription : subscriptions) {//add condition
+				if(userSubscription.getNotificationTypeEventMappingT()==null) {
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Event Details for notification not available for user subscription Id : " +userSubscription.getUserSubscriptionId());
+				}
+				Integer eventId = userSubscription.getNotificationTypeEventMappingT().getEventId();
+				NotificationSettingEvent event = NotificationSettingEvent.getByValue(eventId);
+				if(event != null && event == NotificationSettingEvent.COLLAB_CONDITION) {//fetch conditions only for collab conditions
+					userSubscription.getNotificationTypeEventMappingT().getNotificationSettingsEventMappingT().setUserNotificationSettingsConditionsTs(null);
+					userSubscription.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository.findByUserIdAndEventId(userId, eventId));
+				}
+				
+				prepareSubscriptions(userSubscription.getNotificationTypeEventMappingT());
 			}
-			
-			prepareSubscriptions(userSubscription.getNotificationTypeEventMappingT());
-			
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "User Subscriptions not found for user : " +userId );
 		}
-		logger.info("End-> UserNotificationSettingsService :: getUserNotificationSettingsNew service");
+		
+		logger.info("End-> getUserSubsriptions Method");
 		return subscriptions;
 	}
 

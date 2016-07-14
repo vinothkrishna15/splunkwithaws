@@ -361,10 +361,18 @@ public class NotificationBatchHelper {
 		return recipients;
 	}
 
+	/**
+	 * Retrives the list of removed secondary owners
+	 * @param auditOpportunitySalesSupportLinkTs
+	 * @param auditBidOfficeGroupOwnerLinkTs
+	 * @param auditConnectSecondaryOwnerLinkTs
+	 * @return
+	 */
 	private List<Recipient> getRemovedSecondaryOwners(
 			List<AuditOpportunitySalesSupportLinkT> auditOpportunitySalesSupportLinkTs,
 			List<AuditBidOfficeGroupOwnerLinkT> auditBidOfficeGroupOwnerLinkTs,
 			List<AuditConnectSecondaryOwnerLinkT> auditConnectSecondaryOwnerLinkTs) {
+		logger.info("Inside getRemovedSecondaryOwners method");
 		List<Recipient> recipients = Lists.newArrayList();
 		if (CollectionUtils.isNotEmpty(auditOpportunitySalesSupportLinkTs)) {
 			for (AuditOpportunitySalesSupportLinkT auditOpportunitySalesSupportLinkT : auditOpportunitySalesSupportLinkTs) {
@@ -412,9 +420,17 @@ public class NotificationBatchHelper {
 				}
 			}
 		}
+		logger.info("End of getRemovedSecondaryOwners method");
 		return recipients;
 	}
 
+	/**
+	 * Retrieves the removed primary owner
+	 * @param oldOwner
+	 * @param newOwner
+	 * @param ownerType
+	 * @return
+	 */
 	private Recipient getRemovedOwner(String oldOwner, String newOwner,
 			OwnerType ownerType) {
 		Recipient recipient = new Recipient();
@@ -459,22 +475,24 @@ public class NotificationBatchHelper {
 	private List<Recipient> getStrategicInitiatives(
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
+		logger.info("Inside getStrategicInitiatives Method");
 		List<Recipient> recipients = Lists.newArrayList();
 		if (isRecipientRequired(opType, RecipientType.STRATEGIC_INITIATIVE)) {
 			List<Integer> strategicInitiativeEvents = recipientEventMap
 					.get(RecipientType.STRATEGIC_INITIATIVE);
 			List<String> strategicIniatives = userRepository
-					.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES
-							.name());
+					.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES.getValue());
 			if (CollectionUtils.isNotEmpty(strategicIniatives)) {
 				for (String strategicInitiative : strategicIniatives) {
 					recipients.add(constructRecipient(strategicInitiative,
 							null, null, RecipientType.STRATEGIC_INITIATIVE,
 							false, strategicInitiativeEvents));
 				}
+				logger.info("Retrieved Strategic Initiatives");
 			}
 
 		}
+		logger.info("End of getStrategicInitiatives Method");
 		return recipients;
 	}
 
@@ -526,14 +544,15 @@ public class NotificationBatchHelper {
 	 */
 	private List<Recipient> getOwners(OpportunityT opportunity,
 			Map<RecipientType, List<Integer>> recipientEventMap) {
+		logger.info("Inside getOwners method for Opportunity");
 		List<Recipient> recipients = new ArrayList<Recipient>();
 
 		List<Integer> ownerEvents = recipientEventMap.get(RecipientType.OWNER);
-
+        //Getting primary owner
 		recipients.add(constructRecipient(opportunity.getOpportunityOwner(),
 				OwnerType.PRIMARY_OWNER, null, RecipientType.OWNER, false,
 				ownerEvents));
-
+       //Getting sales support owner
 		if (CollectionUtils.isNotEmpty(opportunity
 				.getOpportunitySalesSupportLinkTs())) {
 			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
@@ -544,6 +563,7 @@ public class NotificationBatchHelper {
 						RecipientType.OWNER, false, ownerEvents));
 			}
 		}
+		//Getting bid office group owner
 		if (CollectionUtils.isNotEmpty(opportunity.getBidDetailsTs())) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				if (CollectionUtils.isNotEmpty(bidDetailsT
@@ -559,6 +579,7 @@ public class NotificationBatchHelper {
 				}
 			}
 		}
+		logger.info("End getOwners method for Opportunity");
 		return recipients;
 	}
 
@@ -571,14 +592,15 @@ public class NotificationBatchHelper {
 	 */
 	private List<Recipient> getOwners(ConnectT connect,
 			Map<RecipientType, List<Integer>> recipientEventMap) {
+		logger.info("End getOwners method for Connect");
 		List<Recipient> recipients = new ArrayList<Recipient>();
 
 		List<Integer> ownerEvents = recipientEventMap.get(RecipientType.OWNER);
-
+        //Getting primary owner
 		recipients.add(constructRecipient(connect.getPrimaryOwner(),
 				OwnerType.PRIMARY_OWNER, null, RecipientType.OWNER, false,
 				ownerEvents));
-
+        //Getting Secondary owner
 		if (CollectionUtils
 				.isNotEmpty(connect.getConnectSecondaryOwnerLinkTs())) {
 			for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
@@ -589,16 +611,25 @@ public class NotificationBatchHelper {
 						false, ownerEvents));
 			}
 		}
+		logger.info("End getOwners method for Connect");
 		return recipients;
 	}
 
+	/**
+	 * Retrives the owner of task
+	 * @param task
+	 * @param recipientEventMap
+	 * @return
+	 */
 	private List<Recipient> getOwners(TaskT task,
 			Map<RecipientType, List<Integer>> recipientEventMap) {
+		logger.info("Inside getOwners method for Task");
 		List<Recipient> recipients = new ArrayList<Recipient>();
 		List<Integer> ownerEvents = recipientEventMap.get(RecipientType.OWNER);
 		recipients.add(constructRecipient(task.getTaskOwner(),
 				OwnerType.PRIMARY_OWNER, null, RecipientType.OWNER, false,
 				ownerEvents));
+		logger.info("End getOwners method for Opportunity");
 		return recipients;
 	}
 
@@ -613,6 +644,7 @@ public class NotificationBatchHelper {
 	private List<Recipient> getSupervisor(List<Recipient> owners,
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
+		logger.info("Inside getSupervisor method");
 		List<Recipient> recipients = Lists.newArrayList();
 		// Check if supervisor is required in the recipient
 		if (isRecipientRequired(opType, RecipientType.SUPERVISOR)) {
@@ -628,12 +660,21 @@ public class NotificationBatchHelper {
 						RecipientType.SUPERVISOR, false, supervisorEvents));
 			}
 		}
+		logger.info("End of getSupervisor method");
 		return recipients;
 	}
 
+	/**
+	 * Retrieves BDM Tagged for task
+	 * @param task
+	 * @param recipientEventMap
+	 * @param opType
+	 * @return
+	 */
 	private List<Recipient> getBDMTagged(TaskT task,
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
+		logger.info("Inside getBDMTagged method");
 		List<Recipient> recipients = new ArrayList<Recipient>();
 
 		// fetch only if the bdm tagged required for the opType
@@ -650,6 +691,7 @@ public class NotificationBatchHelper {
 				}
 			}
 		}
+		logger.info("End of getBDMTagged method");
 		return recipients;
 	}
 
@@ -669,11 +711,13 @@ public class NotificationBatchHelper {
 			Integer digitalDealValue, List<SearchKeywordsT> searchKeywords,
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
+		logger.info("Inside getConditionSubscribers method");
 		List<Recipient> recipients = Lists.newArrayList();
 		if (isRecipientRequired(opType, RecipientType.SUBSCRIBER)) {
 			List<String> conditionSubscribers = Lists.newArrayList();
 			List<Integer> conditionSubscriberEvents = recipientEventMap
 					.get(RecipientType.SUBSCRIBER);
+			//Customer name
 			conditionSubscribers
 					.addAll(userNotificationSettingsConditionRepository
 							.findUserIdByConditionIdAndConditionValue(1,
@@ -712,6 +756,7 @@ public class NotificationBatchHelper {
 				}
 			}
 		}
+		logger.info("End of getConditionSubscribers method");
 		return recipients;
 	}
 
@@ -727,6 +772,7 @@ public class NotificationBatchHelper {
 			Map<RecipientType, List<Integer>> recipientEventMap,
 			OperationType opType) {
 		List<Recipient> recipients = Lists.newArrayList();
+		logger.info("Inside getFollowers method");
 		// Check if the Follower is required in the recipient
 		if (isRecipientRequired(opType, RecipientType.FOLLOWER)) {
 
@@ -751,8 +797,10 @@ public class NotificationBatchHelper {
 					recipients.add(constructRecipient(follower, null, null,
 							RecipientType.FOLLOWER, false, followerEvents));
 				}
+				logger.info("Retrieved followers");
 			}
 		}
+		logger.info("End of getFollowers method");
 		return recipients;
 	}
 
@@ -980,6 +1028,7 @@ public class NotificationBatchHelper {
 			userNotificationList = getNotifications(eventIdsMap, recipients,
 					EntityType.CONNECT.name(), entityId, data,
 					notificationEventGroupMappingTs);
+			logger.info("End of getting notifications for connect");
 			break;
 		case OPPORTUNITY:
 			OpportunityT opportunity = opportunityRepository.findOne(entityId);
@@ -998,6 +1047,7 @@ public class NotificationBatchHelper {
 			userNotificationList = getNotifications(eventIdsMap, recipients,
 					EntityType.OPPORTUNITY.name(), entityId, data,
 					notificationEventGroupMappingTs);
+			logger.info("End of getting notifications for Opportunity");
 			break;
 		case TASK:
 			TaskT task = taskRepository.findOne(entityId);
@@ -1041,6 +1091,7 @@ public class NotificationBatchHelper {
 			userNotificationList = getNotifications(eventIdsMap, recipients,
 					EntityType.TASK.name(), entityId, data,
 					notificationEventGroupMappingTs);
+			logger.info("End of getting notifications for Task");
 			break;
 		default:
 			break;
@@ -1048,13 +1099,25 @@ public class NotificationBatchHelper {
 
 		return userNotificationList;
 	}
-
+	
+	/**
+	 * Method used to retrieve the notifications
+	 * @param eventIdsMap
+	 * @param recipients
+	 * @param entityType
+	 * @param entityId
+	 * @param data
+	 * @param notificationEventGroupMappingTs
+	 * @return
+	 * @throws Exception
+	 */
 	private List<UserNotificationsT> getNotifications(
 			Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventIdsMap,
 			List<Recipient> recipients, String entityType, String entityId,
 			Map<String, String> data,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
+		logger.info("Inside getNotifications method");
 		List<UserNotificationsT> userNotifications = Lists.newArrayList();
 		if (eventIdsMap != null) {
 			String templateForRemoveduser = getMessageTemplateByEventId(
@@ -1065,10 +1128,6 @@ public class NotificationBatchHelper {
 					if (!recipient.isRemoved()) {
 						List<Integer> eventIds = removeDuplicateEvents(
 								recipient, eventIdsMap);
-
-						// for (RecipientType rt :
-						// recipient.getEvents().keySet()) {
-						// List<Integer> events = recipient.getEvents().get(rt);
 						if (CollectionUtils.isNotEmpty(eventIds)) {
 							for (Integer eventId : eventIds) {
 								List<UserNotificationsT> notifications = getNotificationForEventId(
@@ -1085,20 +1144,24 @@ public class NotificationBatchHelper {
 								entityType, entityId);
 						userNotifications.add(notificationForRemovedOwners);
 					}
-
-					// }
-					// for (Integer eventId : eventIds) {
-					// userNotifications.addAll(getNotificationForEventId(eventId,
-					// eventIdsMap, recipient, entityType, entityId));
-					// }
 				}
 			}
 
 		}
-
+		logger.info("End of getNotifications method");
 		return userNotifications;
 	}
-
+	
+	/**
+	 * Constructs notification for removed owners
+	 * @param recipient
+	 * @param data
+	 * @param templateForRemoveduser
+	 * @param entityType
+	 * @param entityId
+	 * @return
+	 * @throws Exception
+	 */
 	private UserNotificationsT constructNotificationsForRemovedOwners(
 			Recipient recipient, Map<String, String> data,
 			String templateForRemoveduser, String entityType, String entityId)
@@ -1201,12 +1264,23 @@ public class NotificationBatchHelper {
 
 		return Lists.newArrayList(filteredEvents);
 	}
-
+	
+	/**
+	 * constructs the notification for the event id given 
+	 * @param eventId
+	 * @param eventIdsMap
+	 * @param recipient
+	 * @param entityType
+	 * @param entityId
+	 * @return
+	 * @throws Exception
+	 */
 	private List<UserNotificationsT> getNotificationForEventId(
 			Integer eventId,
 			Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventIdsMap,
 			Recipient recipient, String entityType, String entityId)
 			throws Exception {
+		logger.info("Inside getNotificationForEventId method");
 		NotificationSettingEvent settingEvent = NotificationSettingEvent
 				.getByValue(eventId);
 		List<UserNotificationsT> userNotificationsTs = Lists.newArrayList();
@@ -1294,7 +1368,7 @@ public class NotificationBatchHelper {
 				break;
 			}
 		}
-
+		logger.info("End of getNotificationForEventId method");
 		return userNotificationsTs;
 
 	}
@@ -1398,6 +1472,7 @@ public class NotificationBatchHelper {
 			List<AuditTaskBdmsTaggedLinkT> auditTaskBdmsTaggedLinkTs,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
+		logger.info("Inside getEventIdsForTask method");
 		Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventsMap = Maps
 				.newHashMap();
 		if (operationType == OperationType.TASK_COMMENT) {
@@ -1438,6 +1513,7 @@ public class NotificationBatchHelper {
 				}
 			}
 		}
+		logger.info("End of getEventIdsForTask method");
 		return eventsMap;
 	}
 
@@ -1472,6 +1548,7 @@ public class NotificationBatchHelper {
 			AuditTaskT auditTaskT, Map<String, String> data,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
+		logger.info("Inside getMessageTemplatesForKeyChangesForTask method");
 		List<String> templates = Lists.newArrayList();
 		if (auditTaskT != null) {
 			String template = getMessageTemplateByEventId(
@@ -1504,7 +1581,7 @@ public class NotificationBatchHelper {
 						null, null));
 			}
 		}
-
+		logger.info("End of getMessageTemplatesForKeyChangesForTask method");
 		return templates;
 	}
 
@@ -1549,6 +1626,7 @@ public class NotificationBatchHelper {
 			List<AuditConnectSecondaryOwnerLinkT> auditConnectSecondaryOwnerLinkTs,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
+		logger.info("Inside getEventIdsForConnect Method");
 		Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventsMap = Maps
 				.newHashMap();
 		if (operationType == OperationType.CONNECT_FOLLOW) {
@@ -1575,6 +1653,7 @@ public class NotificationBatchHelper {
 					auditConnectSecondaryOwnerLinkTs);
 			// Owner addition /Updation
 			if (CollectionUtils.isNotEmpty(addedOwners)) {
+				logger.info("fetched added owners to connect");
 				eventsMap.putAll(getMapForOwnerChange(data, addedOwners));
 			}
 			// Get message templates for key changes of connect
@@ -1599,7 +1678,7 @@ public class NotificationBatchHelper {
 			}
 
 		}
-
+        logger.info("End of getEventIdsForConnect method");
 		return eventsMap;
 	}
 
@@ -1644,14 +1723,14 @@ public class NotificationBatchHelper {
 			Map<String, String> data,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
-
+		logger.info("Inside getMessageTemplatesForKeyChangesOfConnect Method");
 		List<String> templates = Lists.newArrayList();
 		String template = getMessageTemplateByEventId(
 				notificationEventGroupMappingTs, 9);
 		String templateForUpdate = new StringBuffer(template).append(
 				Constants.FROM_TO_STRING).toString();
 		String templateForAdd = new StringBuffer(template).append(
-				Constants.ENTITY_NAME_STRING).toString();
+				Constants.ENTITY_NAME_TO_STRING).toString();
 		if (auditConnectT != null) {
 			// Primary Owner
 			if (!StringUtils.equals(auditConnectT.getOldPrimaryOwner(),
@@ -1693,6 +1772,7 @@ public class NotificationBatchHelper {
 			templates.addAll(getTemplatesForAddRemoveConnectSecondaryOwners(
 					auditConnectSecondaryOwnerLinkTs, templateForAdd, data));
 		}
+		logger.info("End of getMessageTemplatesForKeyChangesOfConnect Method");
 		return templates;
 	}
 
@@ -1732,7 +1812,13 @@ public class NotificationBatchHelper {
 		String userName = userRepository.findUserNameByUserId(userId);
 		return userName;
 	}
-
+	
+	/**
+	 * Used to get the added owners of connect
+	 * @param auditConnectT
+	 * @param auditConnectSecondaryOwnerLinkTs
+	 * @return
+	 */
 	private List<String> getAddedOwnersOfConnect(
 			AuditConnectT auditConnectT,
 			List<AuditConnectSecondaryOwnerLinkT> auditConnectSecondaryOwnerLinkTs) {
@@ -1794,6 +1880,7 @@ public class NotificationBatchHelper {
 			List<AuditBidOfficeGroupOwnerLinkT> auditBidOfficeGroupOwnerLinkTs,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs,
 			OpportunityT opportunity) throws Exception {
+		logger.info("Inside getEventIdsForOpportunity method");
 		Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventsMap = Maps
 				.newHashMap();
 		if (operationType == OperationType.OPPORTUNITY_FOLLOW) {
@@ -1905,7 +1992,7 @@ public class NotificationBatchHelper {
 			}
 
 		}
-
+		logger.info("End of getEventIdsForOpportunity method");
 		return eventsMap;
 	}
 
@@ -1955,7 +2042,17 @@ public class NotificationBatchHelper {
 
 		return ownerBuffer.toString();
 	}
-
+	/**
+	 * used to get the templates for key changes of opportunity
+	 * @param auditOpportunityT
+	 * @param auditOpportunitySalesSupportLinkTs
+	 * @param auditBidOfficeGroupOwnerLinkTs
+	 * @param auditBidDetailsT
+	 * @param data
+	 * @param notificationEventGroupMappingTs
+	 * @return
+	 * @throws Exception
+	 */
 	private List<String> getMessageTemplatesForKeyChangesOfOpportunity(
 			AuditOpportunityT auditOpportunityT,
 			List<AuditOpportunitySalesSupportLinkT> auditOpportunitySalesSupportLinkTs,
@@ -1963,12 +2060,15 @@ public class NotificationBatchHelper {
 			AuditBidDetailsT auditBidDetailsT, Map<String, String> data,
 			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs)
 			throws Exception {
+		logger.info("Inside getMessageTemplatesForKeyChangesOfOpportunity method");
 		List<String> templates = Lists.newArrayList();
 		String template = getMessageTemplateByEventId(
 				notificationEventGroupMappingTs, 9);
 		String templateForUpdate = new StringBuffer(template).append(
 				Constants.FROM_TO_STRING).toString();
 		String templateForAdd = new StringBuffer(template).append(
+				Constants.ENTITY_NAME_TO_STRING).toString();
+		String templateEntity = new StringBuffer(template).append(
 				Constants.ENTITY_NAME_STRING).toString();
 		// Digital deal value
 
@@ -1980,13 +2080,13 @@ public class NotificationBatchHelper {
 						Constants.ADDED, Constants.DIGITAL_DEAL_VALUE_FIELD,
 						templateForAdd, null, null));
 			}
-//			if (compareIntegerValueForUpdate(
-//					auditOpportunityT.getOldDigitalDealValue(),
-//					auditOpportunityT.getNewDigitalDealValue())) {
-//				templates.add(constructMessageTemplate(data, null, "",
-//						Constants.UPDATED, Constants.DIGITAL_DEAL_VALUE_FIELD,
-//						templateForUpdate, null, null));
-//			}
+			if (compareIntegerValueForUpdate(
+					auditOpportunityT.getOldDigitalDealValue(),
+					auditOpportunityT.getNewDigitalDealValue())) {
+				templates.add(constructMessageTemplate(data, null, "",
+						Constants.UPDATED, Constants.DIGITAL_DEAL_VALUE_FIELD,
+						templateEntity, null, null));
+			}
 			// sales stage code
 			SalesStageCode oldSalesStageCode = SalesStageCode
 					.valueOf(auditOpportunityT.getOldSalesStageCode());
@@ -2028,7 +2128,7 @@ public class NotificationBatchHelper {
 			templates.addAll(getTemplatesForBidDetailChanges(auditBidDetailsT,
 					templateForAdd, templateForUpdate, data));
 		}
-
+		logger.info("End of getMessageTemplatesForKeyChangesOfOpportunity method");
 		return templates;
 
 	}

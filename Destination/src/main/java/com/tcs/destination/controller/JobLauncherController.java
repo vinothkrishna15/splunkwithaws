@@ -211,12 +211,16 @@ public class JobLauncherController {
 	 * @param job
 	 * @return JobParameters
 	 */
-	private JobParameters getJobParameter(Job job, String entityType, String entityId, Double dealValue) {
+	private JobParameters getJobParameter(Job job, String entityType,
+			String entityId, Double dealValue) {
 		String dateParam = DateUtils.getCurrentDateForBatch();
 		logger.info("Job: {} starting with parameters: {}.", job.getName(),
 				dateParam);
-		return new JobParametersBuilder().addString("date", dateParam).addString("EntityType", entityType).addString("entityId", entityId).addDouble("dealValue", dealValue)
-				.toJobParameters();
+		return new JobParametersBuilder().addString("date", dateParam)
+				.addString("EntityType", entityType)
+				.addString("entityId", entityId)
+				.addDouble("dealValue", dealValue)
+				.addLong("time", System.currentTimeMillis()).toJobParameters();
 	}
 	
 	
@@ -303,7 +307,7 @@ public class JobLauncherController {
 				addString("EntityType", entityType.name()).
 				addString("entityId", entityId).
 				addString("operationType", operationType.name()).
-				addString("currentUser", currentUser)
+				addString("currentUser", currentUser).addLong("time",System.currentTimeMillis())
 				.toJobParameters();
 	}
 

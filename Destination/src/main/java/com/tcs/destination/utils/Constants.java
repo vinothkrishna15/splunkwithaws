@@ -259,7 +259,8 @@ public class Constants {
 	public static final String TARGET_DATE_OF_COMPLETION_FIELD = "Target date for completion";
 	public static final String TASK_OWNER_FIELD = "Task Owner";
 	public static final String FROM_TO_STRING = " of <entityType> : <entityName> from <from> to <to>";
-	public static final String ENTITY_NAME_STRING = " : <to> for <entityType> : <entityName>";
+	public static final String ENTITY_NAME_TO_STRING = " : <to> for <entityType> : <entityName>";
+	public static final String ENTITY_NAME_STRING = " of <entityType> : <entityName>";
 	public static final String WON = "Won";
 	public static final String LOST = "Lost";
 	public static final String UPDATED = "updated";

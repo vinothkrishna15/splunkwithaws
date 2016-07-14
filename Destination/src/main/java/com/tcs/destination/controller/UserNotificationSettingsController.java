@@ -19,6 +19,7 @@ import com.tcs.destination.bean.UserNotificationSettingsT;
 import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.UserNotificationSettingsService;
+import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.ResponseConstructors;
 
 /**
@@ -34,6 +35,9 @@ public class UserNotificationSettingsController {
 
 	@Autowired
 	UserNotificationSettingsService userNotificationSettingsService;
+	
+	@Autowired
+	DestinationMailUtils destinationMailUtils;
 
 	/**
 	 * @param userNotificationSettings
@@ -106,7 +110,15 @@ public class UserNotificationSettingsController {
 		}
 
 	}
-
+	
+	/**
+	 * used to update the user subscriptions
+	 * @param userSubscription
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/updateseetingsnew", method = RequestMethod.POST)
 	public @ResponseBody ResponseEntity<String> updateUserNotificationSettingsnew(
 			@RequestBody List<UserSubscriptions> userSubscription,
@@ -135,7 +147,14 @@ public class UserNotificationSettingsController {
 		}
 
 	}
-
+	
+	/**
+	 * Retrieves the User subscriptions for a user
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
 	@RequestMapping(value = "/get", method = RequestMethod.GET)
 	public @ResponseBody ResponseEntity<String> getUserNotificationSettingsNew(
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
@@ -144,7 +163,7 @@ public class UserNotificationSettingsController {
 		logger.info("UserNotificationSettingsController :: getUserNotificationSettingsNew - Start");
 		try {
 			List<UserSubscriptions> userSubscriptions = userNotificationSettingsService
-					.getUserNotificationSettingsNew();
+					.getUserSubsriptions();
 			logger.info("UserNotificationSettingsController :: End of getting user notification settings");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
@@ -157,6 +176,68 @@ public class UserNotificationSettingsController {
 					"Backend error while getting user notification settings");
 		}
 		
+	}
+	
+	/**
+	 * Sends mail with image cid
+	 * @param userSubscription
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/mailWithImageCid", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> mailWithImage(
+			@RequestBody List<UserSubscriptions> userSubscription,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Start of update user notification settings");
+		Status status = new Status();
+		try {
+			destinationMailUtils.sendSampleEmail();
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating user notification settings");
+		}
+
+	}
+	
+	/**
+	 * Sends mail with image base 64
+	 * @param userSubscription
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/mailWithImageBase", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> mailWithImageBase64(
+			@RequestBody List<UserSubscriptions> userSubscription,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Start of update user notification settings");
+		Status status = new Status();
+		try {
+			destinationMailUtils.sendSampleEmail2();
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while updating user notification settings");
+		}
+
 	}
 
 }

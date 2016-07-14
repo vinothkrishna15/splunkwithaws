@@ -73,6 +73,10 @@ public class DestinationMailSender {
 					msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
 				}
 				
+				if(StringUtils.isNotEmpty(message.getContentId())) {
+					mimeMessage.setContentID(message.getContentId());
+				}
+				
 				//log the mail details
 				logMailDetails(recipients, ccList, bccList, subject, mailBody);
 				
@@ -88,6 +92,58 @@ public class DestinationMailSender {
 		}
 
 
+	}
+
+	/**
+	 * send a mail with the given message
+	 * @param message
+	 * @throws Exception
+	 */
+	public void sendMultiPart(final DestinationMailMessage message) throws Exception {
+		
+		//filter the in-active user mail ids 
+		//filterInActiveUsers(message);
+		
+		if(isValidMessage(message)) {
+			try {
+				MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true, Constants.UTF8);
+				
+				List<String> recipients = message.getRecipients();
+				List<String> ccList = message.getCcList();
+				List<String> bccList = message.getBccList();
+				String subject = message.getSubject();
+				String mailBody = message.getMessage();
+				
+				msgHelper.setFrom(senderEmailId);
+				msgHelper.setTo(convertToArray(recipients));
+				if(CollectionUtils.isNotEmpty(ccList)) {
+					msgHelper.setCc(convertToArray(ccList));
+				}
+				if(CollectionUtils.isNotEmpty(bccList)) {
+					msgHelper.setBcc(convertToArray(bccList));
+				}
+				msgHelper.setSubject(subject);
+				msgHelper.setText(mailBody, true);
+				if(hasAttachment(message)) {
+					msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
+				}
+				
+				//log the mail details
+				logMailDetails(recipients, ccList, bccList, subject, mailBody);
+				
+				mailSender.send(mimeMessage);
+				logger.info("mail sent, subject : {}", subject);
+				
+			} catch (MessagingException | MailException e) {
+				logger.error("Error sending mail ", e);
+				throw e;
+			}
+		} else {
+			throw new DestinationException("Invalid mail : Recipients and subject are mandatory");
+		}
+		
+		
 	}
 
 	/**

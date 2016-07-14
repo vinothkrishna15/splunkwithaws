@@ -2,7 +2,10 @@ package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 
+import java.io.File;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
@@ -137,6 +142,9 @@ public class DestinationMailUtils {
 
 	@Value("${opportunityLostTemplate}")
 	private String opportunityLostTemplateLoc;
+	
+	@Value("${sampleEmailTemplate}")
+	private String sampleEmailTemplateLoc;
 
 	@Value("${environment.name}")
 	private String environmentName;
@@ -1777,5 +1785,52 @@ public class DestinationMailUtils {
 
 
 	 }
+
+	public void sendSampleEmail() throws Exception {
+		DestinationMailMessage message = new DestinationMailMessage();
+		message.setRecipients(Lists.newArrayList("manikandan.5@tcs.com"));
+		message.setSubject("cid email");
+		
+		String cid = generateCID();
+		message.setContentId(cid);
+		message.setAtchFileName("MountView.png");
+		message.setAtchFilePath(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
+		
+		
+		 Map<String, Object> map = new HashMap<String, Object>();
+		 map.put("userNotifications", "You are added as a owner of opportunity : test");
+		 map.put("reminderNotifications", "connect owned by mani passed due date");
+		 map.put("collaborationNotifications", "Abi commented on your opportunity : test");
+		 map.put("imgSrc", "cid:<" + cid + ">");
+		 String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
+		 logger.info("mail for image with cid " + text);
+		 message.setMessage(text);
+		 destMailSender.send(message); 
+	}
+
+	public void sendSampleEmail2() throws Exception {
+		DestinationMailMessage message = new DestinationMailMessage();
+		message.setRecipients(Lists.newArrayList("manikandan.5@tcs.com"));
+		message.setSubject("data email");
+		
+		
+		File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
+		byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userNotifications", "You are added as a owner of opportunity : test");
+		map.put("reminderNotifications", "connect owned by mani passed due date");
+		map.put("collaborationNotifications", "Abi commented on your opportunity : test");
+		String imgData = Base64.encodeBase64String(fileBinary);
+		map.put("imgSrc", "data:image/png;base64," + imgData );
+		String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
+		logger.info("mail for image base 64 " + text);
+		message.setMessage(text);
+		destMailSender.send(message); 
+	}
+
+	private String generateCID() {
+		return new BigInteger(130, new SecureRandom()).toString(32);
+	}
 
 }
