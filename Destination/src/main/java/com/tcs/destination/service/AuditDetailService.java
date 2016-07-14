@@ -88,6 +88,10 @@ public class AuditDetailService {
 	private static final String KEY_SALES_CODE = "SALES_CODE";
 	private static final String KEY_NEXT_SALES_CODE = "NEXT_SALES_CODE";
 	
+	private static final String SPAN_START_TAG ="<span class=\"span-closed-won\">";
+	private static final String SPAN_END_TAG ="</span>";
+	
+	
 	private static final Integer OPERATION_ADD = new Integer(1);
 	private static final Integer OPERATION_UPDATE = new Integer(2);
 
@@ -996,7 +1000,7 @@ public class AuditDetailService {
 	 */
 	private String getAddionMessage(String fieldName, String toVal) {//TODO form with template
 		StringBuffer sb = new StringBuffer("Added ");
-		sb.append(fieldName).append(": ").append(toVal);
+		sb.append(fieldName).append(": ").append(SPAN_START_TAG).append(toVal).append(SPAN_END_TAG);
 		
 		return sb.toString();
 	}
@@ -1009,7 +1013,7 @@ public class AuditDetailService {
 	 */
 	private String getRemoveMessage(String fieldName, String fromVal) {//TODO form with template
 		StringBuffer sb = new StringBuffer("Removed ");
-		sb.append(fieldName).append(" : ").append(fromVal);
+		sb.append(fieldName).append(" : ").append(SPAN_START_TAG).append(fromVal).append(SPAN_END_TAG);
 		
 		return sb.toString();
 	}
@@ -1024,7 +1028,7 @@ public class AuditDetailService {
 	private String getUpdateMessage(String fieldName, String fromVal,
 			String toVal) {//TODO form with template
 		StringBuffer sb = new StringBuffer("Updated ");
-		sb.append(fieldName).append(" from ").append(fromVal).append(" to ").append(toVal);
+		sb.append(fieldName).append(" from ").append(SPAN_START_TAG).append(fromVal).append(SPAN_END_TAG).append(" to ").append(SPAN_START_TAG).append(toVal).append(SPAN_END_TAG);
 		
 		return sb.toString();
 	}
