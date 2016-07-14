@@ -329,7 +329,6 @@ public class DashBoardService {
 
 		logger.debug("Start:Inside  getTeamConnectsBasedOnUserPrivileges() of DashBoardService");
 		boolean upComingConnects = false;
-		String privilegesQuery = "";
 		LeadershipConnectsDTO leadershipConnectsDTO = null;
 		List<ConnectT> listOfPastConnects = null;
 		List<ConnectT> listOfUpcomingConnects = null;
@@ -346,14 +345,31 @@ public class DashBoardService {
 			upComingConnects = true;
 		}
 
-		// Get the Past connects
-		 listOfPastConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, fromDateTs, nowTs, connectCategory);
-		 listOfUpcomingConnects = new ArrayList<ConnectT>();
-		if(upComingConnects) {
-		// Get the Future Connects using the constructed query
-		 listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
-				supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
+		// If user to search is empty, get the Dashboard details for Sales Heads/SI
+		if(!StringUtils.isEmpty(searchedUserId)) {
+		
+			// Get the Past connects for the searched user
+			listOfPastConnects = getLeadershipDashboardConnectsForUsers
+					(searchedUserId, teamFlag, fromDateTs, nowTs, connectCategory);
+			// Get the Upcoming Connects for the searched user
+			listOfUpcomingConnects = new ArrayList<ConnectT>();
+			if(upComingConnects) {
+				listOfUpcomingConnects = getLeadershipDashboardConnectsForUsers
+						(searchedUserId, teamFlag, nowNextMsTs, toDateTs, connectCategory);
+			}
+
+			
+		} else {
+
+			// Get the Past connects
+			listOfPastConnects = getLeadershipDashboardTeamConnects(
+					supervisorId, geography, fromDateTs, nowTs, connectCategory);
+			listOfUpcomingConnects = new ArrayList<ConnectT>();
+			if(upComingConnects) {
+			// Get the Future Connects using the constructed query
+				listOfUpcomingConnects = getLeadershipDashboardTeamConnects(
+						supervisorId, geography, nowNextMsTs, toDateTs, connectCategory);
+			}
 		}
 
 		// Throw Exception if both list are null else populate the bean
