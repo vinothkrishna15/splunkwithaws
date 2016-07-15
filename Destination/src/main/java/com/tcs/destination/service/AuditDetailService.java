@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.tcs.destination.bean.AuditBidDetailsT;
 import com.tcs.destination.bean.AuditBidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.AuditEntryDTO;
@@ -461,9 +463,15 @@ public class AuditDetailService {
 	private List<AuditEntryDTO> getBidDetailsAudit(String oppId) {
 		List<AuditEntryDTO> entries = Lists.newArrayList();
 		List<AuditBidDetailsT> bidDetail = aBidDetailRepo.findByOldOpportunityId(oppId);
+		Set<String> bidIds = Sets.newHashSet();
 		if(CollectionUtils.isNotEmpty(bidDetail)) {
 			for (AuditBidDetailsT aBidDetailT : bidDetail) {
 				entries.addAll(getBidDetailsAudit(aBidDetailT));
+				bidIds.add(aBidDetailT.getBidId());
+			}
+			
+			for (String bidId : bidIds) {
+				entries.addAll(getBidOfficeGrpOwnerAudit(bidId));
 			}
 		}
 		return entries;
@@ -491,7 +499,6 @@ public class AuditDetailService {
 				entryDTOs.add(entry);
 			}
 		}
-		entryDTOs.addAll(getBidOfficeGrpOwnerAudit(bidId));
 		
 		return entryDTOs;
 	}
