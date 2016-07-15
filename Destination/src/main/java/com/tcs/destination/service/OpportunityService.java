@@ -946,7 +946,7 @@ public class OpportunityService {
 		// opportunityOwner,
 		String opportunityOwner = opportunity.getOpportunityOwner();
 		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The opportunity owner is inactive");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
 		
 		// opportunityCompetitorLinkTs,
