@@ -447,6 +447,14 @@ public class OpportunityDownloadHelper {
 			Cell cellModifiedBy = row.createCell(45);
 			cellModifiedBy.setCellValue(opportunity.getModifiedByUser().getUserName());
 			
+			//deal closure comments
+			Cell dealclosureComments = row.createCell(46);
+			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
+			
+			//delivery ownership
+			Cell deliveryOwnershipId = row.createCell(47);
+			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
+			
 			rowCount++;
 		}
 		return rowCount;
