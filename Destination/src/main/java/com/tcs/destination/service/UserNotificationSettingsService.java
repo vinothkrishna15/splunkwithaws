@@ -3,6 +3,7 @@ package com.tcs.destination.service;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
@@ -25,6 +27,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.UserSubscriptionsRepository;
 import com.tcs.destination.enums.NotificationSettingEvent;
+import com.tcs.destination.enums.NotificationSettingGroup;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -292,29 +295,68 @@ public class UserNotificationSettingsService {
 	 */
 	public List<UserSubscriptions> getUserSubsriptions() throws Exception {
 		logger.info("Begin-> getUserSubsriptions Method");
-		
+		List<UserSubscriptions> userSubscriptions = Lists.newArrayList();
 		String userId = DestinationUtils.getCurrentUserId();
-		List<UserSubscriptions> subscriptions = userSubscriptionRepository.findByUserId(userId);
-		if(CollectionUtils.isNotEmpty(subscriptions)) {
-			for (UserSubscriptions userSubscription : subscriptions) {//add condition
-				if(userSubscription.getNotificationTypeEventMappingT()==null) {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "Event Details for notification not available for user subscription Id : " +userSubscription.getUserSubscriptionId());
+		UserT user = userRepository.findByUserId(userId);
+		String userGroup = user.getUserGroup();
+		List<UserSubscriptions> subscriptions = userSubscriptionRepository
+				.findByUserId(userId);
+		if (CollectionUtils.isNotEmpty(subscriptions)) {
+			for (UserSubscriptions userSubscription : subscriptions) {// add
+																		// condition
+				NotificationTypeEventMappingT notificationTypeEventMappingT = userSubscription
+						.getNotificationTypeEventMappingT();
+				if (notificationTypeEventMappingT == null) {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"Event Details for notification not available for user subscription Id : "
+									+ userSubscription.getUserSubscriptionId());
 				}
-				Integer eventId = userSubscription.getNotificationTypeEventMappingT().getEventId();
-				NotificationSettingEvent event = NotificationSettingEvent.getByValue(eventId);
-				if(event != null && event == NotificationSettingEvent.COLLAB_CONDITION) {//fetch conditions only for collab conditions
-					userSubscription.getNotificationTypeEventMappingT().getNotificationSettingsEventMappingT().setUserNotificationSettingsConditionsTs(null);
-					userSubscription.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository.findByUserIdAndEventId(userId, eventId));
+
+				Integer eventId = notificationTypeEventMappingT.getEventId();
+				NotificationSettingEvent event = NotificationSettingEvent
+						.getByValue(eventId);
+				if (event != null
+						&& event == NotificationSettingEvent.COLLAB_CONDITION) {
+					notificationTypeEventMappingT
+							.getNotificationSettingsEventMappingT()
+							.setUserNotificationSettingsConditionsTs(null);
+					userSubscription
+							.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository
+									.findByUserIdAndEventId(userId, eventId));
 				}
-				
-				prepareSubscriptions(userSubscription.getNotificationTypeEventMappingT());
-			}
+				boolean flag = true;
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM :
+				case PRACTICE_OWNER:	
+					if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.SUPERVISOR.getGroupId() || notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
+						flag = false;
+					}
+					break;
+				case BDM_SUPERVISOR:
+				case GEO_HEADS:
+				case IOU_HEADS:
+				case PRACTICE_HEAD:
+				case PMO:
+				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
+					  flag = false;
+				  }
+				  break;
+				 default :
+					 break;
+				}
+
+					if(flag) {
+						prepareSubscriptions(notificationTypeEventMappingT);
+						userSubscriptions.add(userSubscription);
+					}
+				}
 		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "User Subscriptions not found for user : " +userId );
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User Subscriptions not found for user : " + userId);
 		}
-		
+
 		logger.info("End-> getUserSubsriptions Method");
-		return subscriptions;
+		return userSubscriptions;
 	}
 
 	/**
