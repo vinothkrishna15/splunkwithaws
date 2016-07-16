@@ -51,10 +51,6 @@
     <bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
-	
-	<bean id="customerPreprocessor" class="com.tcs.destination.tasklet.CustomerPreprocessor" scope="step">
-	<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"></property>
-	</bean>
 
 </beans>
 	
