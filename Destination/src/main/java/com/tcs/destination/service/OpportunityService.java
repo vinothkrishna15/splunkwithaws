@@ -880,8 +880,10 @@ public class OpportunityService {
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
-		saveBaseObject(opportunity);
-		return saveChildObject(opportunity);
+		OpportunityT baseOpportunity = saveBaseObject(opportunity);
+		saveChildObject(opportunity);
+		opportunity.setOpportunityId(baseOpportunity.getOpportunityId());
+		return opportunity;
 
 	}
 
@@ -1073,6 +1075,7 @@ public class OpportunityService {
 						.setOpportunityId(opportunity.getOpportunityId());
 				customerContact.setCreatedBy(userId);
 				customerContact.setModifiedBy(userId);
+				opportunityCustomerContactLinkTRepository.save(customerContact);
 			}
 		}
 
@@ -1082,6 +1085,7 @@ public class OpportunityService {
 				tcsContact.setOpportunityId(opportunity.getOpportunityId());
 				tcsContact.setCreatedBy(userId);
 				tcsContact.setModifiedBy(userId);
+				opportunityTcsAccountContactLinkTRepository.save(tcsContact);
 			}
 		}
 
@@ -1092,6 +1096,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityPartnerLinkT.setCreatedBy(userId);
 				opportunityPartnerLinkT.setModifiedBy(userId);
+				opportunityPartnerLinkTRepository.save(opportunityPartnerLinkT);
 			}
 		}
 
@@ -1102,6 +1107,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityCompetitorLinkT.setCreatedBy(userId);
 				opportunityCompetitorLinkT.setModifiedBy(userId);
+				opportunityCompetitorLinkTRepository.save(opportunityCompetitorLinkT);
 			}
 		}
 
@@ -1112,6 +1118,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunitySubSpLinkT.setCreatedBy(userId);
 				opportunitySubSpLinkT.setModifiedBy(userId);
+				opportunitySubSpLinkTRepository.save(opportunitySubSpLinkT);
 			}
 		}
 
@@ -1122,6 +1129,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityOfferingLinkT.setCreatedBy(userId);
 				opportunityOfferingLinkT.setModifiedBy(userId);
+				opportunityOfferingLinkTRepository.save(opportunityOfferingLinkT);
 			}
 		}
 
@@ -1132,6 +1140,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				connectOpportunityLinkIdT.setCreatedBy(userId);
 				connectOpportunityLinkIdT.setModifiedBy(userId);
+				connectOpportunityLinkTRepository.save(connectOpportunityLinkIdT);
 			}
 		}
 
@@ -1142,6 +1151,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunitySalesSupportLinkT.setCreatedBy(userId);
 				opportunitySalesSupportLinkT.setModifiedBy(userId);
+				opportunitySalesSupportLinkTRepository.save(opportunitySalesSupportLinkT);
 			}
 		}
 
@@ -1149,6 +1159,7 @@ public class OpportunityService {
 			for (NotesT notesT : opportunity.getNotesTs()) {
 				notesT.setOpportunityId(opportunity.getOpportunityId());
 				notesT.setUserUpdated(userId);
+				notesTRepository.save(notesT);
 			}
 		}
 		
@@ -1211,6 +1222,7 @@ public class OpportunityService {
 								.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
 						opportunity.setCreatedBy(userId);
 						opportunity.setModifiedBy(userId);
+						opportunityTimelineHistoryTRepository.save(savedOpportunityTimelineHistoryTs);
 					}
 				}
 			}
@@ -1233,6 +1245,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityWinLossFactorsT.setCreatedBy(userId);
 				opportunityWinLossFactorsT.setModifiedBy(userId);
+				opportunityWinLossFactorsTRepository.save(opportunityWinLossFactorsT);
 			}
 		}
 
@@ -1244,10 +1257,11 @@ public class OpportunityService {
 				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
 			}
 		}
-		return opportunityRepository.save(opportunity);
+//		return opportunityRepository.save(opportunity);
+		return opportunity;
 	}
 
-	private void saveBaseObject(OpportunityT opportunity) throws Exception {
+	private OpportunityT saveBaseObject(OpportunityT opportunity) throws Exception {
 		logger.debug("Inside saveBaseObject() method");
 		OpportunityT baseOpportunityT = new OpportunityT();
 		baseOpportunityT.setCreatedBy(opportunity.getCreatedBy());
@@ -1255,8 +1269,9 @@ public class OpportunityService {
 
 		baseOpportunityT.setModifiedBy(opportunity.getModifiedBy());
 		baseOpportunityT.setModifiedDatetime(opportunity.getModifiedDatetime());
-
-		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
+		baseOpportunityT.setDealCurrency(opportunity.getDealCurrency());
+		baseOpportunityT.setDigitalFlag(opportunity.getDigitalFlag());
+		baseOpportunityT.setCrmId(opportunity.getCrmId());
 		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
 		baseOpportunityT.setDealClosureComments(opportunity
@@ -1279,7 +1294,6 @@ public class OpportunityService {
 				.getStrategicDeal());
 		baseOpportunityT.setDealType(opportunity.getDealType());
 		baseOpportunityT.setCountry(opportunity.getCountry());
-		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
 		baseOpportunityT.setEngagementStartDate(opportunity
 				.getEngagementStartDate());
 		baseOpportunityT.setEngagementDuration(opportunity
@@ -1294,6 +1308,7 @@ public class OpportunityService {
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
+		return baseOpportunityT;
 
 	}
 
