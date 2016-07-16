@@ -1859,7 +1859,7 @@ public class ConnectService {
 		// primaryOwner,
 		String primaryOwner = connect.getPrimaryOwner();
 		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The primary owner is inactive");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
 		
 		// customerId,
