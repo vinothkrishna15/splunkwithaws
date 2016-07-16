@@ -765,7 +765,7 @@ public class DateUtils {
 	
 
 	public static Date truncateSeconds(Date date) {
-		Date truncatedDate = org.apache.commons.lang.time.DateUtils.truncate(date, Calendar.MINUTE);
+		Date truncatedDate = org.apache.commons.lang.time.DateUtils.truncate(date, Calendar.SECOND);
 		return truncatedDate;
 	}
 	
