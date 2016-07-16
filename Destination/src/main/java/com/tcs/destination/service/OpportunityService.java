@@ -1176,33 +1176,54 @@ public class OpportunityService {
 							bidDetailsT.getBidOfficeGroupOwnerLinkTs());
 					bidDetailsT.setBidOfficeGroupOwnerLinkTs(null);
 				}
-				if (bidOfficeOwnerLinkTs != null
-						&& bidOfficeOwnerLinkTs.size() > 0) {
-					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
-				}
-				
-				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() == null) {
-					BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT = bidOfficeGroupOwnerLinkTRepository.findFirstByBidId(bidDetailsT.getBidId());
-					if(bidOfficeGroupOwnerLinkT != null ){
-					bidOfficeGroupOwnerLinkTRepository.delete(bidOfficeGroupOwnerLinkT);
-					}
-				}
 				bidDetailsTRepository.save(bidDetailsT);
 				bidId = bidDetailsT.getBidId();
 				
 				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
-				bidOfficeGroupOwnerLinkTRepository.deleteByBidId(bidDetailsT.getBidId());
-				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
-					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
-							.getBidOfficeGroupOwnerLinkTs()) {
-						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
-						bidOfficeOwnerLinkT.setCreatedBy(userId);
-						bidOfficeOwnerLinkT.setModifiedBy(userId);
-					}
-					
-					bidOfficeGroupOwnerLinkTRepository
-							.save(bidOfficeOwnerLinkTs);
+				if (bidOfficeOwnerLinkTs != null
+						&& bidOfficeOwnerLinkTs.size() > 0) {
+					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
 				}
+				BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT = bidOfficeGroupOwnerLinkTRepository.findFirstByBidId(bidDetailsT.getBidId());
+				if (CollectionUtils.isNotEmpty(bidDetailsT
+						.getBidOfficeGroupOwnerLinkTs())) {
+					BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLink = bidDetailsT
+							.getBidOfficeGroupOwnerLinkTs().get(0);
+					if (bidOfficeGroupOwnerLinkT != null) {
+
+						if (!StringUtils.equals(bidOfficeGroupOwnerLink
+								.getBidOfficeGroupOwner(),
+								bidOfficeGroupOwnerLinkT
+										.getBidOfficeGroupOwner())) {
+							bidOfficeGroupOwnerLinkTRepository
+									.delete(bidOfficeGroupOwnerLinkT);
+							bidOfficeGroupOwnerLink.setBidId(bidDetailsT
+									.getBidId());
+							bidOfficeGroupOwnerLink.setCreatedBy(userId);
+							bidOfficeGroupOwnerLink.setModifiedBy(userId);
+							bidOfficeGroupOwnerLinkTRepository
+									.save(bidOfficeGroupOwnerLink);
+						}
+					} else {
+						if (StringUtils.isEmpty(bidOfficeGroupOwnerLink
+								.getBidId())) {
+							bidOfficeGroupOwnerLink.setBidId(bidDetailsT
+									.getBidId());
+							bidOfficeGroupOwnerLink.setCreatedBy(userId);
+							bidOfficeGroupOwnerLink.setModifiedBy(userId);
+							bidOfficeGroupOwnerLinkTRepository
+									.save(bidOfficeGroupOwnerLink);
+						}
+
+					}
+
+				}
+					else {
+						if(bidOfficeGroupOwnerLinkT!=null) {
+							bidOfficeGroupOwnerLinkTRepository.delete(bidOfficeGroupOwnerLinkT);
+						}
+						
+					}
 				
 				// As Bid details are already saved,
 				opportunity.setBidDetailsTs(null);
