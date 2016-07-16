@@ -1519,12 +1519,13 @@ public class NotificationBatchHelper {
 
 	private Map<NotificationSettingEvent, RecipientMessageTemplateMapping> getMapForBdmTAgged(
 			Map<String, String> data, List<String> bdmsTagged,
-			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs) {
+			List<NotificationEventGroupMappingT> notificationEventGroupMappingTs) throws Exception {
 		Map<NotificationSettingEvent, RecipientMessageTemplateMapping> eventsMap = Maps
 				.newHashMap();
 		List<String> templates = Lists.newArrayList();
-		templates.add(getMessageTemplateByEventId(
-				notificationEventGroupMappingTs, 2));
+		String templateForBDMTagged = getMessageTemplateByEventId(
+				notificationEventGroupMappingTs, 2);
+		templates.add(constructMessageTemplate(data, null, null, null, null, templateForBDMTagged, null, null));
 		RecipientMessageTemplateMapping recipientMessageTemplateMapping = constructRecipientMessageTemplateMapping(
 				templates, bdmsTagged);
 		eventsMap.put(NotificationSettingEvent.TAG_UPDATES_TASK,
@@ -1553,21 +1554,22 @@ public class NotificationBatchHelper {
 		if (auditTaskT != null) {
 			String template = getMessageTemplateByEventId(
 					notificationEventGroupMappingTs, 9);
-			template = new StringBuffer(Constants.FROM_TO_STRING).toString();
+			String templateForUpdate = new StringBuffer(template).append(
+					Constants.FROM_TO_STRING).toString();
 			if (compareStringValueForUpdate(auditTaskT.getOldTaskOwner(),
 					auditTaskT.getNewTaskOwner())) {
 				templates.add(constructMessageTemplate(data,
 						getUserNameForUserId(auditTaskT.getOldTaskOwner()),
 						getUserNameForUserId(auditTaskT.getNewTaskOwner()),
 						Constants.UPDATED, Constants.TASK_OWNER_FIELD,
-						template, null, null));
+						templateForUpdate, null, null));
 			}
 			if (compareStringValueForUpdate(auditTaskT.getOldTaskStatus(),
 					auditTaskT.getNewTaskStatus())) {
 				templates.add(constructMessageTemplate(data,
 						auditTaskT.getOldTaskStatus(),
 						auditTaskT.getNewTaskStatus(), Constants.UPDATED,
-						Constants.TASK_STATUS_FIELD, template, null, null));
+						Constants.TASK_STATUS_FIELD, templateForUpdate, null, null));
 			}
 			if (compareDateValueForUpdate(
 					auditTaskT.getOldTargetDateForCompletion(),
@@ -1577,7 +1579,7 @@ public class NotificationBatchHelper {
 						ACTUAL_FORMAT.format(auditTaskT
 								.getNewTargetDateForCompletion()),
 						Constants.UPDATED,
-						Constants.TARGET_DATE_OF_COMPLETION_FIELD, template,
+						Constants.TARGET_DATE_OF_COMPLETION_FIELD, templateForUpdate,
 						null, null));
 			}
 		}
