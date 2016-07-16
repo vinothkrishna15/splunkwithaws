@@ -1191,6 +1191,7 @@ public class OpportunityService {
 				bidId = bidDetailsT.getBidId();
 				
 				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
+				bidOfficeGroupOwnerLinkTRepository.deleteByBidId(bidDetailsT.getBidId());
 				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
 					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
 							.getBidOfficeGroupOwnerLinkTs()) {
@@ -1198,6 +1199,7 @@ public class OpportunityService {
 						bidOfficeOwnerLinkT.setCreatedBy(userId);
 						bidOfficeOwnerLinkT.setModifiedBy(userId);
 					}
+					
 					bidOfficeGroupOwnerLinkTRepository
 							.save(bidOfficeOwnerLinkTs);
 				}

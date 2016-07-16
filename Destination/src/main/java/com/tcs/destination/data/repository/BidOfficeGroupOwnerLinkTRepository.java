@@ -23,5 +23,7 @@ public interface BidOfficeGroupOwnerLinkTRepository extends
 	//BidOfficeGroupOwnerLinkT findFirst(String bidId);
 	
 	BidOfficeGroupOwnerLinkT findFirstByBidId(String bidId);
+	
+	void deleteByBidId(String bidId);
 
 }
