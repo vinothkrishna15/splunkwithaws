@@ -19,4 +19,9 @@ public interface BidOfficeGroupOwnerLinkTRepository extends
 	
 	List<BidOfficeGroupOwnerLinkT> findByBidId(String bidId);
 
+	//@Query(value = "select * from bid_office_group_owner_link_t where bid_id = ?1", nativeQuery = true)
+	//BidOfficeGroupOwnerLinkT findFirst(String bidId);
+	
+	BidOfficeGroupOwnerLinkT findFirstByBidId(String bidId);
+
 }

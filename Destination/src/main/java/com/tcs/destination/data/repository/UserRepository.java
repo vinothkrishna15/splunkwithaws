@@ -36,6 +36,11 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 			+ " ) SELECT U1.user_id FROM U1 ORDER BY U1.user_id asc", nativeQuery = true)
 	List<String> getAllSubordinatesIdBySupervisorId(String supervisorId);
 
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t"
+			+ " WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id"
+			+ " ) SELECT U1.* FROM U1 WHERE UPPER(user_name) like UPPER(?2) ORDER BY U1.user_id asc ", nativeQuery = true)
+	List<UserT> getSubordinatesIdBySupervisorId(String supervisorId, String userName);
+	
 	@Query(value = "select user_id from user_t where user_role=?1", nativeQuery = true)
 	List<String> findUserIdByUserRole(String userRole);
 
@@ -106,13 +111,13 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	@Query(value = "select distinct(user_email_id) from user_t where active='true' and user_email_id in (:userMails)", nativeQuery = true)
 	List<String> findActiveUserMailIds(@Param("userMails") List<String> userMails);
 
-	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds)", nativeQuery = true)
-	List<String> findUserMailIdsFromUserId(@Param("userIds") List<String> userIds);
+	@Query(value = "select distinct(user_email_id) from user_t where user_id in (:userIds) and active=true", nativeQuery = true)
+	List<String> findUserMailIdsFromActiveUsers(@Param("userIds") List<String> userIds);
 	
 	UserT findByActiveTrueAndUserName(String userName);
 	UserT findByActiveTrueAndUserId(String userId);
 	
-	List<UserT> findUsersByStatusAndActive(int status,boolean active);
+	List<UserT> findByStatusAndActiveTrue(int status);
 
 	
 	/* ------- user smart search repository methods ------- */
@@ -129,4 +134,30 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 	List<UserT> searchByLocation(@Param("term") String term, @Param("getAll") boolean getAll);
 	
 	/* ------- END  - user smart search repository methods ------- */
+	
+	@Query(value = "SELECT * FROM user_t WHERE UPPER(user_name) like UPPER(?1) ORDER BY user_id asc", nativeQuery = true)
+	List<UserT> getUsersByUserNameKeyword(String userName);
+	
+	
+	/**
+	 * Find the userId and username of subordinates of the user
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE supervisor_user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U2.supervisor_user_id = U1.user_id ) SELECT U1.* FROM U1 ORDER BY U1.user_id asc", nativeQuery = true)
+	List<UserT> findSubordinatesBySupervisorId(String userId);
+	 
+	/**
+	 * Find the reporting hierarchy of the user
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	@Query(value = "WITH RECURSIVE U1 AS (SELECT * FROM user_t WHERE user_id = ?1 UNION ALL SELECT U2.* FROM user_t U2 JOIN U1 ON U1.supervisor_user_id = U2.user_id ) SELECT U1.* FROM U1", nativeQuery = true)
+	List<UserT> findUserHierarchy(String userId);
+	
+	@Query(value = "select supervisor_user_id from user_t where user_id = (:userId)", nativeQuery = true)
+    String getSupervisorUserIdForUser(@Param("userId") String userId);
+	
 }

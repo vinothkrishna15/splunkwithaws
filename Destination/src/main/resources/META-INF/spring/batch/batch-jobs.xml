@@ -42,6 +42,8 @@
     <import resource="/jobs/userUpload-job.xml"/>
     <import resource="/jobs/customerContactUpload-job.xml"/>
     <import resource="/jobs/opportunityWonLostEmailNotification-job.xml"/>
-
+    <import resource="/jobs/notification-job.xml"/>
+    <import resource="/jobs/opportunityEmailNotification-job.xml"/>
+    
 </beans>
 	

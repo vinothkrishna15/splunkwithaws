@@ -30,6 +30,9 @@ import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ConnectDownloadService;
@@ -63,6 +66,9 @@ public class ConnectController {
 
 	@Autowired
 	ConnectDownloadService connectDownloadService;
+	
+	@Autowired
+	JobLauncherController jobLauncherController;
 
 	/**
 	 * This Method is used to find connection details for the given connection
@@ -211,8 +217,11 @@ public class ConnectController {
 			if (connectService.createConnect(connect, false)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
 				logger.debug("CONNECT CREATED SUCCESS" + connect.getConnectId());
+				
+				jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_CREATE,connect.getModifiedBy());
 			}
 			logger.info("End of creating Connect");
+			
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -242,8 +251,10 @@ public class ConnectController {
 		try {
 			if (connectService.updateConnect(connect)) {
 				status.setStatus(Status.SUCCESS, connect.getConnectId());
+				jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.CONNECT, connect.getConnectId(),OperationType.CONNECT_EDIT,connect.getModifiedBy());
 			}
 			logger.info("Inside ConnectController: End of Edit Connect");
+			
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);

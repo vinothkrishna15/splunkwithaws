@@ -157,14 +157,13 @@ StepExecutionListener {
 		}
 
 		if(items!=null) {
-			int rowCountPartnerSheet = 1; // Excluding the header, header starts with index 0
 			for (ContactT ct : items) {
 
 				if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
 						(ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Partner Contact
 
 					// Create row with rowCount
-					Row row = sheet.createRow(rowCountPartnerSheet);
+					Row row = sheet.createRow(rowCount);
 
 					// Create new Cell and set cell value
 					Cell cellPartnerName = row.createCell(1);
@@ -201,7 +200,7 @@ StepExecutionListener {
 					partnerId.setCellValue(ct.getContactId());
 					
 					// Increment row counter for partner contact sheet
-					rowCountPartnerSheet++;
+					rowCount++;
 				}
 				else{
 					logger.info("partner conatcts doesnot exists for this user");

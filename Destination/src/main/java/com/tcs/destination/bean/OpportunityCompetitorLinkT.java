@@ -73,6 +73,9 @@ public class OpportunityCompetitorLinkT implements Serializable {
 
 	@Column(name = "incumbent_flag")
 	private String incumbentFlag;
+	
+	@Column(name="is_lost_competitor")
+	private Boolean isLostCompetitor;
 
 	public OpportunityCompetitorLinkT() {
 	}
@@ -186,5 +189,13 @@ public class OpportunityCompetitorLinkT implements Serializable {
 
 	public void setIncumbentFlag(String incumbentFlag) {
 		this.incumbentFlag = incumbentFlag;
+	}
+	
+	public Boolean getIsLostCompetitor() {
+		return isLostCompetitor;
+	}
+
+	public void setIsLostCompetitor(Boolean isLostCompetitor) {
+		this.isLostCompetitor = isLostCompetitor;
 	}
 }

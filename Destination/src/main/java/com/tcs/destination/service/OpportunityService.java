@@ -1,5 +1,8 @@
 package com.tcs.destination.service;
 
+import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
+
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -20,6 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,10 +38,13 @@ import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityCompetitorLinkT;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
+import com.tcs.destination.bean.OpportunityDeliveryCentreMappingT;
 import com.tcs.destination.bean.OpportunityDetailsDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityOfferingLinkT;
@@ -48,13 +56,11 @@ import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
 import com.tcs.destination.bean.PaginatedResponse;
-import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowRequestT;
-import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
@@ -66,12 +72,16 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CountryRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.DeliveryCentreRepository;
+import com.tcs.destination.data.repository.DeliveryOwnershipRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
 import com.tcs.destination.data.repository.NotificationEventGroupMappingTRepository;
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityCustomerContactLinkTRepository;
+import com.tcs.destination.data.repository.OpportunityDao;
+import com.tcs.destination.data.repository.OpportunityDeliveryCentreMappingTRepository;
 import com.tcs.destination.data.repository.OpportunityOfferingLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -95,6 +105,7 @@ import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SalesStageCode;
 import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
@@ -110,24 +121,10 @@ import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.PropertyUtil;
 
-import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
-
 @Service
 public class OpportunityService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
-	
-	private static final String OPPORTUNITY_QUERY_PREFIX = "select distinct(OPP.opportunity_id) from opportunity_t OPP "
-			+ "LEFT JOIN geography_country_mapping_t GCMT on OPP.country =GCMT.country "
-			+ "LEFT JOIN customer_master_t CMT on OPP.customer_id = CMT.customer_id  "
-			+ "LEFT JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou "
-			+ "LEFT JOIN opportunity_sub_sp_link_t OSSLT on OSSLT.opportunity_id=OPP.opportunity_id "
-			+ "LEFT JOIN sub_sp_mapping_t SSMT on OSSLT.sub_sp=SSMT.sub_sp where";
-
-	private static final String OPPORTUNITY_GEO_INCLUDE_COND_PREFIX = "GCMT.geography in (";
-	private static final String OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX = "SSMT.display_sub_sp in (";
-	private static final String OPPORTUNITY_IOU_INCLUDE_COND_PREFIX = "ICMT.display_iou in (";
-	private static final String OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX = "CMT.customer_name in (";
 	
 	private String bidId = null;
 
@@ -155,6 +152,9 @@ public class OpportunityService {
 
 	@Autowired
 	SearchKeywordsRepository searchKeywordsRepository;
+	
+	@Autowired
+	OpportunityDeliveryCentreMappingTRepository opportunityDeliveryCentreMappingTRepository;
 
 	@Autowired
 	OpportunityTimelineHistoryTRepository opportunityTimelineHistoryTRepository;
@@ -266,8 +266,31 @@ public class OpportunityService {
 	@Autowired
 	WorkflowRequestTRepository workflowRequestRepository;
 	
-	QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
-
+	@Autowired
+	DeliveryOwnershipRepository deliveryOwnershipRepository;
+	
+	@Autowired
+	DeliveryCentreRepository deliveryCentreRepository;
+	
+	@Autowired @Lazy
+	OpportunityDao opportunityDao;
+	
+	@Autowired
+	OpportunityDownloadService opportunityDownloadService;
+	
+    
+	/**
+	 * To fetch opportunities by name
+	 * @param nameWith
+	 * @param customerId
+	 * @param toCurrency
+	 * @param isAjax
+	 * @param userId
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
 	public PaginatedResponse findByOpportunityName(String nameWith,
 			String customerId, List<String> toCurrency, boolean isAjax,
 			String userId, int page, int count) throws Exception {
@@ -310,13 +333,43 @@ public class OpportunityService {
 			// checking the privilege as it is might reduce te performance.
 			preventSensitiveInfo(opportunityTs);
 		}
-
-		paginatedResponse.setOpportunityTs(opportunityTs);
+        paginatedResponse.setOpportunityTs(opportunityTs);
 		return paginatedResponse;
 	}
 	
+	/**
+	 * To fetch all the delivery centres 
+	 * @return
+	 */
+	@Cacheable("deliveryCentre")
+	public List<DeliveryCentreT> fetchDeliveryCentre()
+	{
+		logger.debug("Inside fetchDeliveryCentre() service");
+		List<DeliveryCentreT> deliveryCentre=new ArrayList<DeliveryCentreT>();
+		deliveryCentre=(List<DeliveryCentreT>) deliveryCentreRepository.findAll();
+		return deliveryCentre;
+	}
 	
-
+	/**
+	 * To fetch all the delivery ownership 
+	 * @return
+	 */
+	@Cacheable("deliveryOwnershipDetails")
+	public List<DeliveryOwnershipT>  fetchDeliveryOwnershipDetails()
+	{
+		logger.debug("Inside fetchDeliveryOwnershipDetails() service");
+		List<DeliveryOwnershipT> deliveryOwnership=new ArrayList<DeliveryOwnershipT>();
+		deliveryOwnership=(List<DeliveryOwnershipT>)deliveryOwnershipRepository.findAll();
+		return deliveryOwnership;
+	}
+    
+	/**
+	 * This method is used to fetch the recent opportunities
+	 * @param customerId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findRecentOpportunities(String customerId,
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findRecentOpportunities() service");
@@ -344,7 +397,15 @@ public class OpportunityService {
 
 		return opportunities;
 	}
-
+    
+	/**
+	 * This method is used to fetch the opportunities by owner and role
+	 * @param userId
+	 * @param opportunityRole
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findOpportunitiesByOwnerAndRole(String userId,
 			String opportunityRole, List<String> toCurrency) throws Exception {
 		List<OpportunityT> opportunities = null;
@@ -389,7 +450,17 @@ public class OpportunityService {
 		return opportunities;
 
 	}
-
+   
+	/**
+	 * To fetch the opportunities by task owner for specific role
+	 * @param opportunityOwner
+	 * @param opportunityRole
+	 * @param fromDate
+	 * @param toDate
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public List<OpportunityT> findByTaskOwnerForRole(String opportunityOwner,
 			String opportunityRole, Date fromDate, Date toDate,
 			List<String> toCurrency) throws Exception {
@@ -436,7 +507,16 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 	}
-
+    
+	/**
+	 * To fetch the opportunity for primary owner
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForPrimaryOwner(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
@@ -448,6 +528,13 @@ public class OpportunityService {
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
 
+	/**
+	 * To validate and return the opportunities data
+	 * @param opportunities
+	 * @param validate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> validateAndReturnOpportunitesData(
 			List<OpportunityT> opportunities, boolean validate)
 			throws DestinationException {
@@ -465,7 +552,16 @@ public class OpportunityService {
 			return opportunities;
 		}
 	}
-
+    
+	/**
+	 * To find the opportunities for bid details
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForBidOffice(String userId, boolean isOnly,
 			Date fromDate, Date toDate) throws DestinationException {
 		logger.debug("Inside findForBidOffice() service");
@@ -476,7 +572,16 @@ public class OpportunityService {
 						userId, fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-
+    
+	/**
+	 * To fetch the opportunities for sales support owner
+	 * @param userId
+	 * @param isOnly
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 * @throws DestinationException
+	 */
 	private List<OpportunityT> findForSalesSupport(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
 			throws DestinationException {
@@ -486,12 +591,17 @@ public class OpportunityService {
 						fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-
+    
+	/**
+	 * To fetch opportunities by opportunity id
+	 * @param opportunityId
+	 * @param toCurrency
+	 * @return
+	 * @throws Exception
+	 */
 	public OpportunityT findByOpportunityId(String opportunityId,
 			List<String> toCurrency) throws Exception {
 		logger.debug("Inside findByOpportunityId() service");	
-		
-		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 		OpportunityT opportunity = opportunityRepository
 				.findByOpportunityId(opportunityId);
 		if (opportunity != null) {
@@ -501,6 +611,7 @@ public class OpportunityService {
 							EntityType.OPPORTUNITY.toString(),
 							opportunity.getOpportunityId());
 
+			logger.debug("Search Keywords"+searchKeywords);
 			prepareOpportunity(opportunity, null);
 
 			beaconConverterService.convertOpportunityCurrency(opportunity,
@@ -529,14 +640,20 @@ public class OpportunityService {
 
 	}
 
-	private void restrictOpportunity(List<OpportunityT> opportunities) {
+	public void restrictOpportunity(List<OpportunityT> opportunities) {
 		if (opportunities != null && opportunities.size() > 0) {
 			for (OpportunityT opportunityT : opportunities) {
 				restrictOpportunity(opportunityT);
 			}
 		}
 	}
-
+   
+	/**
+     * This method is used to validate whether the given user is owner for the particular opportunity
+     * @param userId
+     * @param opportunity
+     * @return
+     */
 	private boolean isUserOwner(String userId, OpportunityT opportunity) {
 		if (opportunity.getOpportunityOwner().equals(userId))
 			return true;
@@ -567,11 +684,19 @@ public class OpportunityService {
 		return false;
 	}
 
-	// Method called from controller
+   /**
+    * This method is used to create a new opportunity
+    * @param opportunity
+    * @param isBulkDataLoad
+    * @param bidRequestType
+    * @param actualSubmissionDate
+    * @throws Exception
+    */
 	@Transactional
-	public void createOpportunity(OpportunityT opportunity,
+	public AsyncJobRequest createOpportunity(OpportunityT opportunity,
 			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {
 		logger.debug("Inside createOpportunity() service");
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		OpportunityT createdOpportunity = null;
 		if (opportunity != null) {
 			opportunity.setOpportunityId(null);
@@ -582,16 +707,30 @@ public class OpportunityService {
 			String userGroup = user.getUserGroup();
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
 					null);
+			if(createdOpportunity.getDigitalDealValue()!=null) {
+				BigDecimal dealValueInUSD = opportunityDownloadService.convertCurrencyToUSD(createdOpportunity.getDealCurrency(), createdOpportunity.getDigitalDealValue());
+				if((createdOpportunity.getSalesStageCode() >= SalesStageCode.RFP_SUBMITTED
+						.getCodeValue()
+				&& createdOpportunity.getSalesStageCode() <= SalesStageCode.CONTRACT_NEGOTIATION
+						.getCodeValue()) && isAboveOrEqualHighDeal(dealValueInUSD)) {
+					asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
+					asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+					asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+					asyncJobRequest.setOn(Switch.ON);
+					asyncJobRequest.setDealValue(dealValueInUSD.doubleValue());
+				}
+			}
 			if (!isBulkDataLoad) {
-				// Invoke Asynchronous Auto Comments Thread
+//				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
-				// Invoke Asynchronous Notification Thread
-				processNotifications(opportunity.getOpportunityId(), null);
+//				// Invoke Asynchronous Notification Thread
+//				processNotifications(opportunity.getOpportunityId(), null);
 			} else {
 				// This statement is to update the opportunity timeline history
 				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
 			}
 		}
+		return asyncJobRequest;
 	}
 
 	/**
@@ -741,8 +880,10 @@ public class OpportunityService {
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
-		saveBaseObject(opportunity);
-		return saveChildObject(opportunity);
+		OpportunityT baseOpportunity = saveBaseObject(opportunity);
+		saveChildObject(opportunity);
+		opportunity.setOpportunityId(baseOpportunity.getOpportunityId());
+		return opportunity;
 
 	}
 
@@ -807,7 +948,7 @@ public class OpportunityService {
 		// opportunityOwner,
 		String opportunityOwner = opportunity.getOpportunityOwner();
 		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The opportunity owner is inactive");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
 		
 		// opportunityCompetitorLinkTs,
@@ -885,7 +1026,7 @@ public class OpportunityService {
 			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
 				String wlFactor = oppWLFactor.getWinLossFactor();
 				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The win loss factor is inactive");
 				}
 			}
 		}
@@ -934,6 +1075,7 @@ public class OpportunityService {
 						.setOpportunityId(opportunity.getOpportunityId());
 				customerContact.setCreatedBy(userId);
 				customerContact.setModifiedBy(userId);
+				opportunityCustomerContactLinkTRepository.save(customerContact);
 			}
 		}
 
@@ -943,6 +1085,7 @@ public class OpportunityService {
 				tcsContact.setOpportunityId(opportunity.getOpportunityId());
 				tcsContact.setCreatedBy(userId);
 				tcsContact.setModifiedBy(userId);
+				opportunityTcsAccountContactLinkTRepository.save(tcsContact);
 			}
 		}
 
@@ -953,6 +1096,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityPartnerLinkT.setCreatedBy(userId);
 				opportunityPartnerLinkT.setModifiedBy(userId);
+				opportunityPartnerLinkTRepository.save(opportunityPartnerLinkT);
 			}
 		}
 
@@ -963,6 +1107,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityCompetitorLinkT.setCreatedBy(userId);
 				opportunityCompetitorLinkT.setModifiedBy(userId);
+				opportunityCompetitorLinkTRepository.save(opportunityCompetitorLinkT);
 			}
 		}
 
@@ -973,6 +1118,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunitySubSpLinkT.setCreatedBy(userId);
 				opportunitySubSpLinkT.setModifiedBy(userId);
+				opportunitySubSpLinkTRepository.save(opportunitySubSpLinkT);
 			}
 		}
 
@@ -983,6 +1129,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityOfferingLinkT.setCreatedBy(userId);
 				opportunityOfferingLinkT.setModifiedBy(userId);
+				opportunityOfferingLinkTRepository.save(opportunityOfferingLinkT);
 			}
 		}
 
@@ -993,6 +1140,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				connectOpportunityLinkIdT.setCreatedBy(userId);
 				connectOpportunityLinkIdT.setModifiedBy(userId);
+				connectOpportunityLinkTRepository.save(connectOpportunityLinkIdT);
 			}
 		}
 
@@ -1003,6 +1151,7 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunitySalesSupportLinkT.setCreatedBy(userId);
 				opportunitySalesSupportLinkT.setModifiedBy(userId);
+				opportunitySalesSupportLinkTRepository.save(opportunitySalesSupportLinkT);
 			}
 		}
 
@@ -1010,6 +1159,7 @@ public class OpportunityService {
 			for (NotesT notesT : opportunity.getNotesTs()) {
 				notesT.setOpportunityId(opportunity.getOpportunityId());
 				notesT.setUserUpdated(userId);
+				notesTRepository.save(notesT);
 			}
 		}
 		
@@ -1028,22 +1178,52 @@ public class OpportunityService {
 				}
 				bidDetailsTRepository.save(bidDetailsT);
 				bidId = bidDetailsT.getBidId();
+				
+				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
 				if (bidOfficeOwnerLinkTs != null
 						&& bidOfficeOwnerLinkTs.size() > 0) {
-					bidDetailsT
-							.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
+					bidDetailsT.setBidOfficeGroupOwnerLinkTs(bidOfficeOwnerLinkTs);
 				}
-				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
-				if (bidDetailsT.getBidOfficeGroupOwnerLinkTs() != null) {
-					for (BidOfficeGroupOwnerLinkT bidOfficeOwnerLinkT : bidDetailsT
-							.getBidOfficeGroupOwnerLinkTs()) {
-						bidOfficeOwnerLinkT.setBidId(bidDetailsT.getBidId());
-						bidOfficeOwnerLinkT.setCreatedBy(userId);
-						bidOfficeOwnerLinkT.setModifiedBy(userId);
+				BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLinkT = bidOfficeGroupOwnerLinkTRepository.findFirstByBidId(bidDetailsT.getBidId());
+				if (CollectionUtils.isNotEmpty(bidDetailsT
+						.getBidOfficeGroupOwnerLinkTs())) {
+					BidOfficeGroupOwnerLinkT bidOfficeGroupOwnerLink = bidDetailsT
+							.getBidOfficeGroupOwnerLinkTs().get(0);
+					if (bidOfficeGroupOwnerLinkT != null) {
+
+						if (!StringUtils.equals(bidOfficeGroupOwnerLink
+								.getBidOfficeGroupOwner(),
+								bidOfficeGroupOwnerLinkT
+										.getBidOfficeGroupOwner())) {
+							bidOfficeGroupOwnerLinkTRepository
+									.delete(bidOfficeGroupOwnerLinkT);
+							bidOfficeGroupOwnerLink.setBidId(bidDetailsT
+									.getBidId());
+							bidOfficeGroupOwnerLink.setCreatedBy(userId);
+							bidOfficeGroupOwnerLink.setModifiedBy(userId);
+							bidOfficeGroupOwnerLinkTRepository
+									.save(bidOfficeGroupOwnerLink);
+						}
+					} else {
+						if (StringUtils.isEmpty(bidOfficeGroupOwnerLink
+								.getBidId())) {
+							bidOfficeGroupOwnerLink.setBidId(bidDetailsT
+									.getBidId());
+							bidOfficeGroupOwnerLink.setCreatedBy(userId);
+							bidOfficeGroupOwnerLink.setModifiedBy(userId);
+							bidOfficeGroupOwnerLinkTRepository
+									.save(bidOfficeGroupOwnerLink);
+						}
+
 					}
-					bidOfficeGroupOwnerLinkTRepository
-							.save(bidOfficeOwnerLinkTs);
+
 				}
+					else {
+						if(bidOfficeGroupOwnerLinkT!=null) {
+							bidOfficeGroupOwnerLinkTRepository.delete(bidOfficeGroupOwnerLinkT);
+						}
+						
+					}
 				
 				// As Bid details are already saved,
 				opportunity.setBidDetailsTs(null);
@@ -1065,6 +1245,7 @@ public class OpportunityService {
 								.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
 						opportunity.setCreatedBy(userId);
 						opportunity.setModifiedBy(userId);
+						opportunityTimelineHistoryTRepository.save(savedOpportunityTimelineHistoryTs);
 					}
 				}
 			}
@@ -1087,13 +1268,23 @@ public class OpportunityService {
 						.getOpportunityId());
 				opportunityWinLossFactorsT.setCreatedBy(userId);
 				opportunityWinLossFactorsT.setModifiedBy(userId);
+				opportunityWinLossFactorsTRepository.save(opportunityWinLossFactorsT);
 			}
 		}
 
-		return opportunityRepository.save(opportunity);
+		if (opportunity.getOpportunityDeliveryCentreMappingTs() != null) {
+			for (OpportunityDeliveryCentreMappingT opportunityDeliveryCentreMappingT : opportunity
+					.getOpportunityDeliveryCentreMappingTs()) {
+				opportunityDeliveryCentreMappingT.setOpportunityId(opportunity
+						.getOpportunityId());
+				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
+			}
+		}
+//		return opportunityRepository.save(opportunity);
+		return opportunity;
 	}
 
-	private void saveBaseObject(OpportunityT opportunity) throws Exception {
+	private OpportunityT saveBaseObject(OpportunityT opportunity) throws Exception {
 		logger.debug("Inside saveBaseObject() method");
 		OpportunityT baseOpportunityT = new OpportunityT();
 		baseOpportunityT.setCreatedBy(opportunity.getCreatedBy());
@@ -1101,8 +1292,9 @@ public class OpportunityService {
 
 		baseOpportunityT.setModifiedBy(opportunity.getModifiedBy());
 		baseOpportunityT.setModifiedDatetime(opportunity.getModifiedDatetime());
-
-		baseOpportunityT.setCrmId(baseOpportunityT.getCrmId());
+		baseOpportunityT.setDealCurrency(opportunity.getDealCurrency());
+		baseOpportunityT.setDigitalFlag(opportunity.getDigitalFlag());
+		baseOpportunityT.setCrmId(opportunity.getCrmId());
 		baseOpportunityT.setCustomerId(opportunity.getCustomerId());
 		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
 		baseOpportunityT.setDealClosureComments(opportunity
@@ -1125,17 +1317,21 @@ public class OpportunityService {
 				.getStrategicDeal());
 		baseOpportunityT.setDealType(opportunity.getDealType());
 		baseOpportunityT.setCountry(opportunity.getCountry());
-		baseOpportunityT.setDealClosureDate(opportunity.getDealClosureDate());
 		baseOpportunityT.setEngagementStartDate(opportunity
 				.getEngagementStartDate());
 		baseOpportunityT.setEngagementDuration(opportunity
 				.getEngagementDuration());
 		baseOpportunityT.setOpportunityId(opportunity.getOpportunityId());
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
+		int salesStageCode = opportunity.getSalesStageCode();
+		if (salesStageCode == Constants.CONSTANT_NINE){
+		baseOpportunityT.setDeliveryOwnershipId(opportunity.getDeliveryOwnershipId());
+		}
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
 		opportunity.setOpportunityId(opportunityRepository.save(
 				baseOpportunityT).getOpportunityId());
 		logger.debug("ID " + baseOpportunityT.getOpportunityId());
+		return baseOpportunityT;
 
 	}
 
@@ -1167,7 +1363,7 @@ public class OpportunityService {
 		// hibernate session
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
-
+         logger.debug("oldObject"+oldObject);
 		// deal closure comments is mandatory for sales stage codes (11/12/13) 
 		if(opportunity.getSalesStageCode() == 11 || opportunity.getSalesStageCode() == 12 || opportunity.getSalesStageCode() == 13){
 		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
@@ -1181,10 +1377,10 @@ public class OpportunityService {
 		if (afterOpp != null) {
 			logger.info("Opportunity has been updated successfully: "
 					+ opportunityId);
-			// Invoke Asynchronous Auto Comments Thread
+//			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(opportunityId, oldObject);
-			// Invoke Asynchronous Notifications Thread
-			processNotifications(opportunityId, oldObject);
+//			// Invoke Asynchronous Notifications Thread
+//			processNotifications(opportunityId, oldObject);
 		}
 	}
 
@@ -1323,7 +1519,7 @@ public class OpportunityService {
 			opportunityIds.add(opportunityT.getOpportunityId());
 		}
 		try {
-			List<String> previledgedOpportuniyies = getPriviledgedOpportunityId(opportunityIds);
+			List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
 
 			if (opportunityTs != null) {
 				for (OpportunityT opportunityT : opportunityTs) {
@@ -1384,7 +1580,7 @@ public class OpportunityService {
 		} else {
 			List<String> opportunityIdList = new ArrayList<String>();
 			opportunityIdList.add(opportunityT.getOpportunityId());
-			previledgedOppIdList = getPriviledgedOpportunityId(opportunityIdList);
+			previledgedOppIdList =opportunityDao.getPriviledgedOpportunityId(opportunityIdList);
 			if ((previledgedOppIdList == null || previledgedOppIdList.size() == 0)
 					&& (!opportunityT.isEnableEditAccess())) {
 
@@ -1411,52 +1607,7 @@ public class OpportunityService {
 
 	}
 
-    private List<String> getPriviledgedOpportunityId(List<String> opportunityIds)
-			throws Exception 
-	{       
-		    logger.debug("Inside setPreviledgeConstraints(opportunityIds) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			queryBufferDTO = getOpportunityPriviledgeString(DestinationUtils.getCurrentUserDetails().getUserId(), opportunityIds);
-		    logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery());
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-				for(int i=1;i<=parameterMap.size();i++)
-				{
-					opportunityQuery.setParameter(i, parameterMap.get(i));
-					
-				}
-			}
-			return opportunityQuery.getResultList();
-   }
-
-
-	private List<String> getPriviledgedOpportunityId(String opportunityId)
-
-			throws Exception {
-		    logger.debug("Inside setPreviledgeConstraints(opportunityId) method");
-		    HashMap<Integer, String> parameterMap = new HashMap<Integer,String>();
-			List<String> opportunityIds = new ArrayList<String>();
-			opportunityIds.add(opportunityId);
-			queryBufferDTO  = getOpportunityPriviledgeString(DestinationUtils
-					.getCurrentUserDetails().getUserId(), opportunityIds);
-			logger.info("Query string: {}", queryBufferDTO.getQuery());
-			Query opportunityQuery = entityManager.createNativeQuery(queryBufferDTO.getQuery(),
-					OpportunityT.class);
-			parameterMap=queryBufferDTO.getParameterMap();
-			if(parameterMap!=null)
-			{
-			 for(int i=1;i<=parameterMap.size();i++)
-			 {
-				opportunityQuery.setParameter(i, parameterMap.get(i));
-				
-			 }
-			}
-
-			return opportunityQuery.getResultList();
-	}
-	
+  
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
 		logger.debug("Inside removeCyclicForLinkedConnects() method");
 
@@ -1510,7 +1661,7 @@ public class OpportunityService {
 	}
 
 	// This method is used to invoke asynchronous thread for auto comments
-	private void processAutoComments(String opportunitytId, Object oldObject)
+	public void processAutoComments(String opportunitytId, Object oldObject)
 			throws Exception {
 		logger.debug("Calling processAutoComments() method");
 		AutoCommentsHelper autoCommentsHelper = new AutoCommentsHelper();
@@ -1535,7 +1686,7 @@ public class OpportunityService {
 	}
 
 	// This method is used to invoke asynchronous thread for notifications
-	private void processNotifications(String opportunitytId, Object oldObject) {
+	public void processNotifications(String opportunitytId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
 		notificationsHelper.setEntityId(opportunitytId);
@@ -2032,54 +2183,7 @@ public class OpportunityService {
 		return pageSpecification;
 	}
     
-	
 
-	private QueryBufferDTO getOpportunityPriviledgeString(String userId,
-			List<String> opportunityIds) throws Exception {
-		logger.debug("Inside getOpportunityPriviledgeString() method");
-		StringBuffer queryBuffer = new StringBuffer(OPPORTUNITY_QUERY_PREFIX);
-		
-		// Get user access privilege groups
-
-		HashMap<String, String> queryPrefixMap = userAccessPrivilegeQueryBuilder
-				.getQueryPrefixMap(OPPORTUNITY_GEO_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_SUBSP_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_IOU_INCLUDE_COND_PREFIX,
-						OPPORTUNITY_CUSTOMER_INCLUDE_COND_PREFIX);
-
-		// Get WHERE clause string
-		queryBufferDTO= userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereCondition(userId, queryPrefixMap);
-
-		if (opportunityIds.size() > 0) {
-			String oppIdList = "(";
-			{
-				for (String opportunityId : opportunityIds)
-					oppIdList += "'" + opportunityId + "',";
-			}
-			oppIdList = oppIdList.substring(0, oppIdList.length() - 1);
-			oppIdList += ")";
-
-
-				queryBuffer.append(" OPP.opportunity_id in " + oppIdList);
-			}
-
-               if(queryBufferDTO!=null)
-               {
-			    if (queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty()) 
-			    {
-				 queryBuffer.append(Constants.AND_CLAUSE + queryBufferDTO.getQuery());
-				}
-			    queryBufferDTO.setQuery(queryBuffer.toString());
-               }
-               else
-			   {
-				queryBufferDTO=new QueryBufferDTO();
-				queryBufferDTO.setQuery(queryBuffer.toString());
-				queryBufferDTO.setParameterMap(null);
-			   }
-			   return queryBufferDTO;
-	}
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
 			String name, String keyword) {
@@ -2506,9 +2610,9 @@ public class OpportunityService {
 	* @throws Exception
 	*/
 	@Transactional
-	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity) throws Exception {
-		
-		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity)
+			throws Exception {
+
 		String opportunityId = opportunity.getOpportunityId();
 		if (opportunityId == null) {
 			logger.error("OpportunityId is required for update");
@@ -2525,26 +2629,17 @@ public class OpportunityService {
 		OpportunityT opportunityBeforeEdit = opportunityRepository
 				.findOne(opportunityId);
 		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
+		Integer oldDealValue = opportunityBeforeEdit.getDigitalDealValue();
+		String oldDealCurrency = opportunityBeforeEdit.getDealCurrency();
 		updateOpportunity(opportunity, opportunityBeforeEdit);
-		// If won or lost, sending email notification to group of users using
-		// asynchronous job
-		if ((oldSalesStageCode != 9 && opportunity.getSalesStageCode() == 9)
-				|| (oldSalesStageCode != 10 && opportunity.getSalesStageCode() == 10)) {
-			logger.info("Opportunity : " + opportunityId
-					+ " is either won or lost");
-			
-			asyncJobRequest.setJobName(JobName.opportunityWonLostEmailNotification);
-			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
-			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
-			asyncJobRequest.setOn(Switch.ON);
-			
-		}
-		
-		return asyncJobRequest;
+		// If deal value becomes more than 5 million USD or the opportunity won
+		// or lost, Email notification to be triggered
+		return sendEmailNotification(opportunity, oldSalesStageCode,
+				oldDealValue, oldDealCurrency);
 	}
 	
 	/**
-	 * This method is used to check wheteher the logged in user has edit access
+	 * This method is used to check whether the logged in user has edit access
 	 * for an opportunity
 	 * 
 	 * @param opportunity
@@ -2584,6 +2679,69 @@ public class OpportunityService {
 		
 		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
+	}
+	
+	/**
+	 * method used to send  the email if required for an opportunity
+	 * @param opportunity
+	 * @param oldSalesStageCode
+	 * @param oldDealValue
+	 * @param oldDealCurrency
+	 * @return 
+	 * @throws Exception 
+	 */
+	private AsyncJobRequest sendEmailNotification(OpportunityT opportunity,
+			int oldSalesStageCode, Integer oldDealValue, String oldDealCurrency)
+			throws Exception {
+		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
+		logger.info("Inside sendEmailNotification method");
+		boolean emailJobRequired = false;
+		String newDealCurrency = opportunity.getDealCurrency();
+		Integer newDealValue = opportunity.getDigitalDealValue();
+		int newSalesStageCode = opportunity.getSalesStageCode();
+		BigDecimal newDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(newDealCurrency, newDealValue);
+
+		BigDecimal oldDealValueInUSD = opportunityDownloadService
+				.convertCurrencyToUSD(oldDealCurrency, oldDealValue);
+
+		if ((oldSalesStageCode != SalesStageCode.WIN.getCodeValue() && newSalesStageCode == SalesStageCode.WIN
+				.getCodeValue())
+				|| (oldSalesStageCode != SalesStageCode.LOST.getCodeValue() && newSalesStageCode == SalesStageCode.LOST
+						.getCodeValue())) {
+			emailJobRequired = true;
+		} else if (newDealValue != null
+				&& newSalesStageCode >= SalesStageCode.RFP_SUBMITTED
+						.getCodeValue()
+				&& newSalesStageCode <= SalesStageCode.CONTRACT_NEGOTIATION
+						.getCodeValue()) {
+			if (isAboveOrEqualHighDeal(newDealValueInUSD)
+					&& (!isAboveOrEqualHighDeal(oldDealValueInUSD) || oldSalesStageCode != newSalesStageCode)) {
+				emailJobRequired = true;
+			}
+		}
+
+		if (emailJobRequired) {
+			asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
+			asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
+			asyncJobRequest.setEntityId(opportunity.getOpportunityId());
+			asyncJobRequest.setOn(Switch.ON);
+			asyncJobRequest.setDealValue(newDealValueInUSD.doubleValue());
+		}
+
+		logger.info("email Job Trigger Required For Opportunity {}");
+		return asyncJobRequest;
+
+	}
+	
+	/**
+	 * Method used to check whether the given deal value is greater than or equal to 5 million  
+	 * @param value
+	 * @return
+	 */
+	private boolean isAboveOrEqualHighDeal(final BigDecimal value) {
+		BigDecimal fiveMillion = new BigDecimal(Constants.FIVE_MILLION);
+		return (value != null && value.compareTo(fiveMillion) >= 0); 
 	}
 }
 

@@ -1,0 +1,29 @@
+<html>
+	<body>
+		Dear User,
+		<p>
+     
+              Please be informed that there is a high value deal movement (Selected for)-<br/><br/>
+              CRM ID: <b>${crmId}</b><br/>
+              Customer: <b>${customerName}</b><br/>
+              Outcome Expected Date: <b>${expectedOutcomeDate}</b><br/>
+              Opportunity: <b>${opportunityName}</b><br/>
+              Opportunity Description: <b>${opportunityDescription}</b><br/>
+              Service Line: <b>${subSp}</b><br/>
+              Deal size anticipated: <b>${digitalBidValue}</b><br/>
+              Competitor(s): <b>${competitorNames}</b><br/>
+              Incumbent Competitor(s): <b>${incumbentCompetitorNames}</b><br/>
+              This opportunity is led by <b>${primaryOwner}</b> ${withSupportFrom} <b>${salesSupportOwners}</b>.<br/>
+              Client Contact: <b>${clientContact}</b><br/>
+              
+        </p>		
+		<p>
+		<b>Thanks,</b><br>
+		<b>Team DESTiNATION</b>
+		</p>
+		<br>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

@@ -20,7 +20,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import com.tcs.destination.bean.DeliveryCentreT;
+import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.AsyncJobRequest;
+
 import com.tcs.destination.bean.OpportunitiesBySupervisorIdDTO;
 import com.tcs.destination.bean.OpportunityNameKeywordSearch;
 import com.tcs.destination.bean.OpportunityReopenRequestT;
@@ -32,6 +36,7 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.enums.Switch;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.OpportunityDownloadService;
@@ -74,6 +79,7 @@ public class OpportunityController {
 	
 	@Autowired
 	private JobLauncherController jobLauncherController;
+
 	
 	
 
@@ -259,8 +265,12 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			opportunityService.createOpportunity(opportunity, false, null, null);
+			AsyncJobRequest asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null);
             status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+            if (asyncJobRequest.getOn().equals(Switch.ON)) {
+				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
+			}
+            jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_CREATE,opportunity.getModifiedBy());
 			logger.info("Inside OpportunityController: End of create opportunity");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
@@ -268,7 +278,7 @@ public class OpportunityController {
 		} catch (DestinationException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in creating the opportunity");
 		}
@@ -296,8 +306,11 @@ public class OpportunityController {
 			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity);
 			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
 			if (asyncJobRequest.getOn().equals(Switch.ON)) {
-				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId());
+				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
 			}
+			
+			jobLauncherController.asyncJobLaunchForNotification(JobName.notification, EntityType.OPPORTUNITY, opportunity.getOpportunityId(),OperationType.OPPORTUNITY_EDIT,opportunity.getModifiedBy());
+
 			
 			logger.info("Inside OpportunityController: End of edit opportunity");
 			return new ResponseEntity<String>(
@@ -889,6 +902,72 @@ public class OpportunityController {
 		}
 		logger.info("Inside OpportunityController: End of /opportunity/list/Id="
 				+ opportunityIds + " GET");
+		return response;
+	}
+	
+	/**
+	 * This Controller used to retrieve the list of delivery centres 
+	 * 
+	 * @param opportunityIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/deliveryownership", method = RequestMethod.GET)
+	public @ResponseBody String fetchDeliveryOwnershipDetails(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside OpportunityController: Start of /opportunity/deliveryownership GET");
+		String response = null;
+		List<DeliveryOwnershipT> deliveryOwnershipDetails;
+		try {
+			deliveryOwnershipDetails = opportunityService.fetchDeliveryOwnershipDetails();
+
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryOwnershipDetails);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery ownership details");
+		}
+		logger.info("Inside OpportunityController: End of/opportunity/deliveryownership GET");
+		return response;
+	}
+	
+	/**
+	 * This Controller used to retrieve the list of delivery ownership options
+	 * 
+	 * @param opportunityIds
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/deliverycentre", method = RequestMethod.GET)
+	public @ResponseBody String fetchDeliveryCentre(
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside OpportunityController: Start of /opportunity/deliverycentre GET");
+		String response = null;
+		List<DeliveryCentreT> deliveryCentres;
+		try {
+			deliveryCentres = opportunityService.fetchDeliveryCentre();
+
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, deliveryCentres);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the delivery centre details");
+		}
+		logger.info("Inside OpportunityController: End of/opportunity/deliverycentre GET");
 		return response;
 	}
 

@@ -30,6 +30,7 @@ public class AsyncJobRequest implements Serializable {
 	private EntityType entityType;
 	private String entityId;
 	private Switch on;
+	private Double dealValue;
 	
 	public AsyncJobRequest() {
 		on = Switch.OFF;
@@ -58,6 +59,14 @@ public class AsyncJobRequest implements Serializable {
 	}
 	public void setOn(Switch on) {
 		this.on = on;
+	}
+
+	public Double getDealValue() {
+		return dealValue;
+	}
+
+	public void setDealValue(Double dealValue) {
+		this.dealValue = dealValue;
 	}
 	
 	

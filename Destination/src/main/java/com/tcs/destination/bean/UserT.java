@@ -78,6 +78,17 @@ public class UserT implements Serializable {
 	@Column(name = "status")
     private int status; // added to mark whether password is default or notified or changed
 	
+	@Column(name = "user_mobile")
+	private String userMobile;
+	
+	public String getUserMobile() {
+		return userMobile;
+	}
+
+	public void setUserMobile(String userMobile) {
+		this.userMobile = userMobile;
+	}
+
 	public int getStatus() {
 		return status;
 	}
@@ -377,6 +388,10 @@ public class UserT implements Serializable {
 	//bi-directional many-to-one association to WorkflowStepT
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<WorkflowStepT> workflowStepTs3;
+	
+	//bi-directional many-to-one association to UserSubscription
+	@OneToMany(mappedBy="userT")
+	private List<UserSubscriptions> userSubscriptions;
 
 	@Transient
 	private String newPassword;
@@ -1727,6 +1742,14 @@ public class UserT implements Serializable {
 		return workflowCompetitorTs2;
 	}
 
+	public List<UserSubscriptions> getUserSubscriptions() {
+		return userSubscriptions;
+	}
+
+	public void setUserSubscriptions(List<UserSubscriptions> userSubscriptions) {
+		this.userSubscriptions = userSubscriptions;
+	}
+
 
 	//	public List<WorkflowCompetitorT> getWorkflowCompetitorTs1() {
 	//		return this.workflowCompetitorTs1;
@@ -1771,4 +1794,6 @@ public class UserT implements Serializable {
 	//
 	//		return workflowCompetitorTs2;
 	//	}
+	
+	
 }

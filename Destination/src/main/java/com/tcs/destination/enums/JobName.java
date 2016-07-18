@@ -31,7 +31,8 @@ public enum JobName {
 		beaconUpload("beaconUpload"),
         userUpload("userUpload"),
         customerContactUpload("customerContactUpload"),
-        opportunityWonLostEmailNotification("opportunityWonLostEmailNotification");
+        opportunityWonLostEmailNotification("opportunityWonLostEmailNotification"),
+        notification("notification"), opportunityEmailNotification("opportunityEmailNotification");
 
 		
 		private String job;

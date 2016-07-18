@@ -1,0 +1,23 @@
+<html>
+	<body>
+		<h3>Dear Admin,</h3>
+		<p>
+			${username} has requested to change his Supervisor User Details on ${date}. Please find more information below and approve/reject in system.
+		</p>
+		<p>
+		<h4>Existing</h4>	
+			${existingSupervisorDetails}
+		</p>
+		<p>
+		<h4>Requested For</h4>
+			${newSupervisorDetails}
+		</p>
+		<p>
+		Regards,<br>
+		Destination Team.
+		</p>
+		<p>
+		Note: This is a system-generated e-mail. Please do not respond to this mail.
+		</p>
+	</body>
+</html>

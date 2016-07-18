@@ -11,4 +11,7 @@ public interface LoginHistoryRepository extends CrudRepository<LoginHistoryT, In
 	LoginHistoryT findLastLoginByUserId(String userId);
 	
 	LoginHistoryT findByUserIdAndSessionId(String userId, String sessionId);
+	
+	@Query(value="select * from login_history_t where login_datetime  = (select max(login_datetime) from login_history_t where login_datetime < (select max(login_datetime) from login_history_t where user_id = ?1) and user_id = ?1) limit 1", nativeQuery=true)
+	LoginHistoryT findLastLoginDateByUserId(String userId);
 }

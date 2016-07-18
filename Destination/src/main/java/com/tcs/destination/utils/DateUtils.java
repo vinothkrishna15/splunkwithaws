@@ -37,6 +37,7 @@ public class DateUtils {
 	private static final Format DT_BATCH_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
 	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
+	public static final DateFormat AUDIT_HISTORY_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
@@ -736,6 +737,36 @@ public class DateUtils {
 	public static String getCurrentDateInDesiredFormat() {
 		return DESIRED_FORMAT.format(new Date());
 	}
+	
+	/**
+	 * format the date in given format
+	 * @param date
+	 * @param auditHistoryFormat
+	 * @return
+	 */
+	public static String format(Date date, DateFormat sdfr) {
+		return sdfr.format( date );
+	}
+	
+	/**
+	 * parse the date from the dateStr with the given format
+	 * @param dateStr
+	 * @param format
+	 * @return
+	 */
+	public static Date parse(String dateStr, DateFormat sdfr) {
+		try {
+			return sdfr.parse(dateStr);
+		} catch (ParseException e) {
+			logger.warn(e.getMessage());
+		}
+		return null;
+	}
+	
 
+	public static Date truncateSeconds(Date date) {
+		Date truncatedDate = org.apache.commons.lang.time.DateUtils.truncate(date, Calendar.SECOND);
+		return truncatedDate;
+	}
 	
 }

@@ -109,7 +109,7 @@ public class WorkflowController {
 			@RequestParam(value = "view", defaultValue = "") String view)
 			throws DestinationException {
 
-		logger.info("Inside WorkflowController: Start of approve Customer");
+		logger.info("Inside WorkflowController: Start of approve partner");
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
@@ -118,7 +118,7 @@ public class WorkflowController {
 						"The requested Partner entity:" + workflowPartnerT.getPartnerName() + " is approved!!!");
 				logger.debug("Request approved Successfully");
 			}
-			logger.info("Inside WorkflowController: End of approve Customer");
+			logger.info("Inside WorkflowController: End of approve Partner");
 			return new ResponseEntity<String>(
 					ResponseConstructors.filterJsonForFieldAndViews("all", "",
 							status), HttpStatus.OK);
@@ -127,7 +127,7 @@ public class WorkflowController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while updating customer");
+					"Backend error while updating Partner");
 		}
 	}
 	
@@ -428,7 +428,7 @@ public class WorkflowController {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error while requesting opportunity reopen");
+					"Backend error while requesting New Competitor");
 		}
 
 	}

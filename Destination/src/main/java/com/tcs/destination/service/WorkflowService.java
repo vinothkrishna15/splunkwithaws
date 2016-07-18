@@ -915,9 +915,7 @@ public class WorkflowService {
 			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
 					|| wfpt.getUserId() != null) {
 				if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-					if (wfpt.getUserGroup().contains(userGroup)
-							|| (isUserPMO(userId) && wfpt.getUserGroup()
-									.contains("PMO"))) {
+					if (wfpt.getUserGroup().contains(userGroup)) {
 						// if (wfpt.getUserGroup().contains(userGroup)) {
 						templateStep = wfpt.getStep();
 					}
@@ -1040,14 +1038,6 @@ public class WorkflowService {
 		workflowStep.setCreatedBy(userId);
 		workflowStep.setModifiedBy(userId);
 		return workflowStep;
-	}
-
-	private boolean isUserPMO(String userId) {
-		boolean flag = false;
-		if (userId.contains("pmo")) {
-			flag = true;
-		}
-		return flag;
 	}
 
 	/**
@@ -1410,7 +1400,7 @@ public class WorkflowService {
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
-			//List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+//			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
@@ -1426,7 +1416,7 @@ public class WorkflowService {
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
 
-			//	List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+//				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
@@ -1436,7 +1426,7 @@ public class WorkflowService {
 				listOfPartnerRequests.add(pendingPartnerRequests);
 
 				// Add all the lists of competitor requests
-				//listOfCompetitorRequests.add(pendingCompetitorRequests);
+//				listOfCompetitorRequests.add(pendingCompetitorRequests);
 
 				// Add all the lists of opportunity re-open requests
 				listOfOpportunityReopenRequests
@@ -1485,22 +1475,21 @@ public class WorkflowService {
 	private List<Object[]> getPendingOpportunityReopenRequests(String userId) {
 		// TODO Auto-generated method stub
 		List<Object[]> resultList = null;
-		String pmoValue = "pmo";
 		UserT user = userRepository.findByUserId(userId);
 		String userRole = user.getUserRole();
 		String userGroup = user.getUserGroup();
 		userRole = "%" + userRole + "%";
-		userGroup = "%" + userGroup + "%";
+
 		// Query to get pending partner requests for specific user's
 		// approval/rejection
-		if (userId.contains(pmoValue)) {
+		if (userGroup.equals(UserGroup.PMO.getValue())){ 
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.OPPORTUNTIY_REOPEN_PENDING_WITH_PMO_QUERY);
 			Query query1 = entityManager.createNativeQuery(queryBuffer
 					.toString());
-
+			String userGroupParam = "%" + userGroup + "%";
 			query1.setParameter("userId", userId);
-			query1.setParameter("userGroup", userGroup);
+			query1.setParameter("userGroup", userGroupParam);
 			if (resultList == null) {
 				resultList = query1.getResultList();
 			} else {
@@ -1615,12 +1604,12 @@ public class WorkflowService {
 							myWorklistDTO.setEntityName(workflowPartnerRepository
 									.findOne(requestT.getEntityId()).getPartnerName());
 							break;
-//						case COMPETITOR:
-//							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
-//							myWorklistDTO.setEntityName(workflowCompetitorRepository
-//									.findOne(requestT.getEntityId())
-//									.getWorkflowCompetitorName());
-//							break;
+						case COMPETITOR:
+							myWorklistDTO.setEntityType(COMPETITOR.getDisplayName());
+							myWorklistDTO.setEntityName(workflowCompetitorRepository
+									.findOne(requestT.getEntityId())
+									.getWorkflowCompetitorName());
+							break;
 						case OPPORTUNITY:
 							myWorklistDTO.setEntityType(EntityTypeId.OPPORTUNITY
 									.getDisplayName());
@@ -1830,7 +1819,7 @@ public class WorkflowService {
 			break;
 		}
 		}
-		if (userId.contains("pmo")) {
+		if (userGroup.equals(UserGroup.PMO.getValue())){
 			StringBuffer queryBuffer = new StringBuffer(
 					QueryConstants.CUSTOMER_PENDING_WITH_GEO_GROUP_QUERY);
 			query = entityManager.createNativeQuery(queryBuffer.toString());
@@ -2358,7 +2347,7 @@ public class WorkflowService {
 				+ requestedCompetitor.getWorkflowCompetitorId());
 		if (requestedCompetitor != null) {
 			String entityId = requestedCompetitor.getWorkflowCompetitorId();
-			String comments = requestedCompetitor.getWorkflowCompetitorNotes();
+			String comments = requestedCompetitor.getComments();
 			Integer entityTypeId = EntityTypeId.COMPETITOR.getType();
 			WorkflowRequestT workflowRequest = populateWorkflowRequest(
 					entityId, entityTypeId, userId, comments);
@@ -2391,8 +2380,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-//		competitorMappingT.setWebsite(requestedCompetitor
-//				.getWorkflowCompetitorWebsite());
+		//		competitorMappingT.setWebsite(requestedCompetitor
+		//				.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -2556,8 +2545,8 @@ public class WorkflowService {
 						.findByEntityTypeIdAndEntityIdAndStatus(entityTypeId,
 								opportunityId,
 								WorkflowStatus.PENDING.getStatus());
-				
-				
+
+
 				if (CollectionUtils.isNotEmpty(workflowRequests)) {
 					WorkflowRequestT workflowRequest = workflowRequests.get(0);
 					WorkflowStepT workflowStepPending = workflowStepRepository
@@ -2699,9 +2688,7 @@ public class WorkflowService {
 		logger.info("Inside checkUserAccess method");
 		boolean flag = false;
 		if (workflowStep.getUserGroup() != null) {
-			if (workflowStep.getUserGroup().contains(userGroup)
-					|| (isUserPMO(userId) && workflowStep.getUserGroup()
-							.contains("PMO"))) {
+			if (workflowStep.getUserGroup().contains(userGroup)) {
 				flag = true;
 			}
 		}
@@ -2780,9 +2767,9 @@ public class WorkflowService {
 									.getStatus());
 							stepRecord.setModifiedBy(userId);
 							if (!StringUtils.isEmpty(workflowCompetitorT
-									.getWorkflowCompetitorNotes())) {
+									.getComments())) {
 								stepRecord.setComments(workflowCompetitorT
-										.getWorkflowCompetitorNotes());
+										.getComments());
 							}
 							// for updating the status in workflow_request_t
 							masterRequest.setModifiedBy(userId);
@@ -2841,8 +2828,8 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-//			oldCompetitorMaster.setWebsite(workflowCompetitorT
-//					.getWorkflowCompetitorWebsite());
+			//			oldCompetitorMaster.setWebsite(workflowCompetitorT
+			//					.getWorkflowCompetitorWebsite());
 		}
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);

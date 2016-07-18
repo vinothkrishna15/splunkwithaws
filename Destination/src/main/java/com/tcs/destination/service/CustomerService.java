@@ -28,6 +28,7 @@ import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
@@ -35,6 +36,7 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -58,22 +60,6 @@ public class CustomerService {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(CustomerService.class);
-
-	private static final String CUSTOMER_NAME_QUERY_PREFIX = "select CMT.customer_name from customer_master_t CMT "
-			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
-
-	private static final String TOP_REVENUE_PROJECTED_PREFIX = "select CMT.* from customer_master_t CMT, (";
-	private static final String TOP_REVENUE_PROJECTED_SUFFIX = ") as TRC where CMT.customer_name = TRC.customer_name and CMT.active =TRUE order by TRC.revenue desc";
-
-	private static final String CUSTOMER_IOU_COND_SUFFIX = "ICMT.display_iou in (";
-	private static final String CUSTOMER_GEO_COND_SUFFIX = "CMT.geography in (";
-	private static final String CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.customer_name in (";
-	private static final String GROUP_CUSTOMER_NAME_QUERY_PREFIX = "select distinct CMT.group_customer_name from customer_master_t CMT "
-			+ "JOIN iou_customer_mapping_t ICMT on CMT.iou=ICMT.iou";
-
-	private static final String GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX = "CMT.group_customer_name like ";
-
-	private static final String ORDERBY_SUFFIX = " order by CMT.group_customer_name";
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -137,11 +123,17 @@ public class CustomerService {
 
 	@Autowired
 	private ContactRepository contactRepository;
+	
+	@Autowired
+	private CustomerDao customerDao;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
 	Map<String, IouBeaconMappingT> mapOfIouBeaconMappingT = null;
 
+
+	
+	
 	/**
 	 * This method is used to fetch customer details using customer id
 	 * @param customerId
@@ -189,7 +181,7 @@ public class CustomerService {
 		else
 		{
 			customerNameList.add(customer.getCustomerName());
-			customerNameList = getPreviledgedCustomerName(userId, customerNameList,
+			customerNameList = customerDao.getPreviledgedCustomerName(userId, customerNameList,
 					true);
 			for(String customerName:customerNameList)
 			{
@@ -327,6 +319,20 @@ public class CustomerService {
 	}
 
 	/**
+	 * This method is used to fetch the customer details using group customer name based on priviledge
+	 * @param nameWith
+	 * @return
+	 * @throws Exception
+	 */
+	
+	public List<String> findByGroupCustomerNameBasedOnPrivilege(String nameWith)
+			throws Exception {
+		List<String> resultList=customerDao.findByGroupCustomerNameBasedOnPrivilege(nameWith);
+		return resultList;
+		
+	}
+	
+	/**
 	 * This method returns the query string with user access privilege
 	 * restrictions added
 	 * 
@@ -340,9 +346,9 @@ public class CustomerService {
 			String financialYear) throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(
-				TOP_REVENUE_PROJECTED_PREFIX);
+				 customerDao.TOP_REVENUE_PROJECTED_PREFIX);
 		queryBuffer.append(reportsService.getTopRevenueCustomersForDashboard(userId, count));
-		queryBuffer.append(TOP_REVENUE_PROJECTED_SUFFIX);
+		queryBuffer.append( customerDao.TOP_REVENUE_PROJECTED_SUFFIX);
 		return queryBuffer.toString();
 	}
 
@@ -354,7 +360,7 @@ public class CustomerService {
 
 		ArrayList<String> customerNameList = new ArrayList<String>();
 		customerNameList.add(customerName);
-		customerNameList = getPreviledgedCustomerName(userId, customerNameList,
+		customerNameList =  customerDao.getPreviledgedCustomerName(userId, customerNameList,
 				true);
 
 		if (customerNameList == null || customerNameList.isEmpty())
@@ -485,89 +491,8 @@ public class CustomerService {
 		}
 	}
 
-	/**
-	 * This method returns the query string with user access privilege
-	 * restrictions added
-	 * 
-	 * @param count
-	 * @param financialYear
-	 * @param privileges
-	 * @return
-	 * @throws DestinationException
-	 */
-	private String getCustomerPrevilegeQueryString(String userId,
-			List<String> customerNameList, boolean considerGeoIou)
-					throws Exception {
-		logger.debug("Inside getRevenueQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(CUSTOMER_NAME_QUERY_PREFIX);
-
-		HashMap<String, String> queryPrefixMap;
-
-		if (considerGeoIou) {
-			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
-					CUSTOMER_GEO_COND_SUFFIX, null, CUSTOMER_IOU_COND_SUFFIX,
-					CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
-		} else {
-			queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
-					null, null, null, CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
-		}
-
-		// Get WHERE clause string
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
-						queryPrefixMap);
-
-		if ((whereClause != null && !whereClause.isEmpty())
-				|| (customerNameList != null && customerNameList.size() > 0)) {
-			queryBuffer.append(" where ");
-		}
-
-		if (customerNameList != null && customerNameList.size() > 0) {
-			String customerNameQueryList = "(";
-			{
-				for (String customerName : customerNameList)
-					customerNameQueryList += "'"
-							+ customerName.replace("\'", "\'\'") + "',";
-			}
-			customerNameQueryList = customerNameQueryList.substring(0,
-					customerNameQueryList.length() - 1);
-			customerNameQueryList += ")";
-
-			queryBuffer
-			.append(" CMT.customer_name in " + customerNameQueryList);
-		}
-
-		if ((whereClause != null && !whereClause.isEmpty())
-				&& (customerNameList != null && customerNameList.size() > 0)) {
-			queryBuffer.append(Constants.AND_CLAUSE);
-		}
-
-		if (whereClause != null && !whereClause.isEmpty()) {
-			queryBuffer.append(whereClause);
-		}
-
-		logger.info("queryString = " + queryBuffer.toString());
-		return queryBuffer.toString();
-	}
-
-	/**
-	 * This method is used to fetch the customer name based upon priviledge
-	 * @param userId
-	 * @param customerNameList
-	 * @param considerGeoIou
-	 * @return
-	 * @throws Exception
-	 */
-	public ArrayList<String> getPreviledgedCustomerName(String userId,
-			ArrayList<String> customerNameList, boolean considerGeoIou)
-					throws Exception {
-		logger.debug("Inside getPreviledgedCustomerName() method");
-		String queryString = getCustomerPrevilegeQueryString(userId,
-				customerNameList, considerGeoIou);
-		logger.info("Query string: {}", queryString);
-		Query opportunityQuery = entityManager.createNativeQuery(queryString);
-		return (ArrayList<String>) opportunityQuery.getResultList();
-	}
+	
+	
 
 	private void prepareCustomerDetails(List<CustomerMasterT> customerMasterList)
 			throws Exception {
@@ -578,7 +503,7 @@ public class CustomerService {
 			for (CustomerMasterT customerMasterT : customerMasterList) {
 				customerNameList.add(customerMasterT.getCustomerName());
 			}
-			customerNameList = getPreviledgedCustomerName(DestinationUtils
+			customerNameList =  customerDao.getPreviledgedCustomerName(DestinationUtils
 					.getCurrentUserDetails().getUserId(), customerNameList,
 					true);
 
@@ -598,7 +523,7 @@ public class CustomerService {
 			if (customerNameList == null) {
 				customerNameList = new ArrayList<String>();
 				customerNameList.add(customerMasterT.getCustomerName());
-				customerNameList = getPreviledgedCustomerName(DestinationUtils
+				customerNameList =  customerDao.getPreviledgedCustomerName(DestinationUtils
 						.getCurrentUserDetails().getUserId(), customerNameList,
 						true);
 			}
@@ -631,31 +556,7 @@ public class CustomerService {
 
 	}
 
-	/**
-	 * This method is used to find based upon group customer name based on privilege 
-	 * @param nameWith
-	 *            - string to be searched
-	 * @param userId
-	 *            - userId for which the privilege restrictions are to be
-	 *            applied
-	 * @return - List of distinct group customer names based on privileges
-	 * @throws Exception
-	 */
-	public List<String> findByGroupCustomerNameBasedOnPrivilege(String nameWith)
-			throws Exception {
-		String queryString = null;
-		List<String> resultList = null;
-		queryString = getGroupCustomerPrivilegeQueryString(DestinationUtils
-				.getCurrentUserDetails().getUserId(), "'%" + nameWith + "%'");
-		logger.info("Query string: {}", queryString);
-		// Execute the native revenue query string
-		Query groupCustomerPrivilegeQuery = entityManager
-				.createNativeQuery(queryString);
-
-		resultList = (ArrayList<String>) groupCustomerPrivilegeQuery.getResultList();
-
-		return resultList;
-	}
+	
 
 	/**
 	 * This method is used to fetch the group customer name with access priviledge restrictions applied
@@ -665,32 +566,43 @@ public class CustomerService {
 	 * @throws Exception
 	 */
 
-	private String getGroupCustomerPrivilegeQueryString(String userId,
+	public QueryBufferDTO getGroupCustomerPrivilegeQueryString(String userId,
 			String nameWith) throws Exception {
 		logger.debug("Inside getGroupCustomerPrivilegeQueryString() method");
-		StringBuffer queryBuffer = new StringBuffer(
-				GROUP_CUSTOMER_NAME_QUERY_PREFIX);
+		QueryBufferDTO queryBufferDTO=new QueryBufferDTO(); //DTO object used to pass query string and parameters for applying access priviledge
+        StringBuffer queryBuffer = new StringBuffer(
+				 customerDao.GROUP_CUSTOMER_NAME_QUERY_PREFIX);
 
 		HashMap<String, String> queryPrefixMap;
 
 		queryPrefixMap = userAccessPrivilegeQueryBuilder.getQueryPrefixMap(
-				CUSTOMER_GEO_COND_SUFFIX, null, CUSTOMER_IOU_COND_SUFFIX,
-				CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
+				 customerDao.CUSTOMER_GEO_COND_SUFFIX, null,  customerDao.CUSTOMER_IOU_COND_SUFFIX,
+				 customerDao.CUSTOMER_NAME_CUSTOMER_COND_SUFFIX);
 
 		// Get WHERE clause string
-		String whereClause = userAccessPrivilegeQueryBuilder
-				.getUserAccessPrivilegeWhereConditionClause(userId,
+		queryBufferDTO = userAccessPrivilegeQueryBuilder
+				.getUserAccessPrivilegeWhereCondition(userId,
 						queryPrefixMap);
 
-		if ((whereClause != null && !whereClause.isEmpty())
+		if(queryBufferDTO!=null)
+        {
+		 if ((queryBufferDTO.getQuery() != null && !queryBufferDTO.getQuery().isEmpty())
 				|| (nameWith != null && !nameWith.isEmpty())) {
 			queryBuffer.append(" and "
-					+ GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX + nameWith
-					+ " and " + whereClause + ORDERBY_SUFFIX);
-		}
-
-		logger.info("queryString = " + queryBuffer.toString());
-		return queryBuffer.toString();
+					+ customerDao.GROUP_CUSTOMER_NAME_CUSTOMER_COND_SUFFIX + nameWith
+					+ " and " + queryBufferDTO.getQuery() +customerDao.ORDERBY_SUFFIX);
+		 }
+		 queryBufferDTO.setQuery(queryBuffer.toString());
+        }
+        else
+		   {
+			queryBufferDTO=new QueryBufferDTO();
+			queryBufferDTO.setQuery(queryBuffer.toString());
+			queryBufferDTO.setParameterMap(null);
+		   }
+        
+		logger.info("queryString = " +queryBufferDTO.getQuery());
+		return queryBufferDTO;
 	}
 
 	/**
@@ -1074,7 +986,6 @@ public class CustomerService {
 	private boolean isRevenueModified(List<RevenueCustomerMappingT> oldRevenueObj,
 			List<RevenueCustomerMappingT> revenueCustomerMappingTs) {
 		List<RevenueCustomerMappingT> financeCustomers = null;
-		List<RevenueCustomerMappingT> financeCustomers1 = null;
 		boolean isRevenueCustomerModifiedFlag = false;
 		boolean isRevenueCustomergeographyModifiedFlag = false;
 		boolean isRevenueCustomeriouModifiedFlag = false;

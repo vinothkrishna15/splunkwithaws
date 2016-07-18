@@ -454,27 +454,19 @@ public class UserUploadHelper {
 		}
 				
 				//USER GROUP 
-				String userGroup = data[5].trim();
-				if(!StringUtils.isEmpty(userGroup))
+				String userGrpData = data[5].trim();
+				if(!StringUtils.isEmpty(userGrpData))
 				{
                    // check if valid user group
-				    boolean validGroup = false;
-					for (UserGroup group : UserGroup.values()) {
-						if (userGroup.equalsIgnoreCase(group.getValue())) {
-							validGroup = true;
-						}
-					}
-					if (!validGroup) {
+					UserGroup userGroup = UserGroup.getUserGroup(userGrpData);
+					if (userGroup == null) {
 		                error.setRowNumber(Integer.parseInt(data[0]) + 1);
     					error.setMessage("User Group Is Invalid ");
 						
+					} else {
+					  userT.setUserGroup(userGrpData);
 					}
-					else
-					{
-					  userT.setUserGroup(userGroup);
-					}
-				}
-				else{
+				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("User Group Is Mandatory; ");
 				}

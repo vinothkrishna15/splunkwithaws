@@ -1169,4 +1169,38 @@ public interface OpportunityRepository extends
 			+ "where opportunity_id=(:opportunityId) ",nativeQuery=true)
 	int reopenOpportunity(@Param("opportunityId") String opportunityId);
 	
+	/**
+	 * Get Opportunities Won by users
+	 * 
+	 * @param users
+	 * @param fromDate
+	 * @param toDate
+	 * @return
+	 */
+	@Query(value ="select * from opportunity_t  OPP where OPP.opportunity_id in "
+			+ "((select opportunity_id from opportunity_t where opportunity_owner in (:users)) "
+			+ "union (select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:users)) "
+			+ "union (select opportunity_id from bid_details_t BDT where BDT.bid_id in "
+			+ "(select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:users)))) "
+			+ "AND ((OPP.sales_stage_code = 9) AND (OPP.deal_closure_date between (:fromDate) AND (:toDate))) "
+			+ "ORDER By OPP.country ASC", nativeQuery=true)
+	List<OpportunityT> getOpportunityWinsForUsers(@Param("users")List<String> users, @Param("fromDate") Timestamp fromDate, @Param("toDate") Timestamp toDate);
+	
+	
+	
+	/**
+	 * To fetch the opportunities based on the specific user and the subordinates of the user
+	 * @param fromDateTs
+	 * @param toDateTs
+	 * @param searchedUserId
+	 * @return
+	 */
+	@Query(value ="select * from opportunity_t  OPP where OPP.opportunity_id in"
+			+"((select opportunity_id from opportunity_t where opportunity_owner in (:searchedUserIdList)) union"
+					+"(select opportunity_id from opportunity_sales_support_link_t where sales_support_owner in (:searchedUserIdList)) union"
+					+"(select opportunity_id from bid_details_t BDT where BDT.bid_id in (select bid_id from bid_office_group_owner_link_t where bid_office_group_owner in (:searchedUserIdList))))"
+					+"AND ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate)))",nativeQuery=true)
+	List<OpportunityT> getAllOpportunitiesBySearchedIdQuery(@Param("searchedUserIdList") List<String> searchedUserId,@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+	
+	
 }

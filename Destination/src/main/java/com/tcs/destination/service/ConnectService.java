@@ -489,10 +489,10 @@ public class ConnectService {
 			if (connectRepository.save(connect) != null) {
 				logger.info("Connect has been added successfully");
 				if (!isBulkDataLoad) {
-					// Invoke Asynchronous Auto Comments Thread
+//					// Invoke Asynchronous Auto Comments Thread
 					processAutoComments(connect.getConnectId(), null);
-					// Invoke Asynchronous Notifications Thread
-					processNotifications(connect.getConnectId(), null);
+//					// Invoke Asynchronous Notifications Thread
+//					processNotifications(connect.getConnectId(), null);
 				}
 				return true;
 			}
@@ -842,10 +842,10 @@ public class ConnectService {
 
 		if (afterConnect != null) {
 			logger.info("Connect has been updated successfully: " + connectId);
-			// Invoke Asynchronous Auto Comments Thread
+//			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(connectId, oldObject);
-			// Invoke Asynchronous Notifications Thread
-			processNotifications(connectId, oldObject);
+//			// Invoke Asynchronous Notifications Thread
+//			processNotifications(connectId, oldObject);
 			return true;
 		}
 		return false;
@@ -1859,7 +1859,7 @@ public class ConnectService {
 		// primaryOwner,
 		String primaryOwner = connect.getPrimaryOwner();
 		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The primary owner is inactive");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
 		
 		// customerId,

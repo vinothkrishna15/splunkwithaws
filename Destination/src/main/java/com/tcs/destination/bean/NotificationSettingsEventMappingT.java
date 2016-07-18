@@ -54,6 +54,10 @@ public class NotificationSettingsEventMappingT implements Serializable {
 	//bi-directional many-to-one association to UserNotificationsT
 	@OneToMany(mappedBy="notificationSettingsEventMappingT")
 	private List<UserNotificationsT> userNotificationsTs;
+	
+	//bi-directional many-to-one association to OperationEventRecipientMappingT
+	@OneToMany(mappedBy="notificationSettingsEventMappingT")
+	private List<OperationEventRecipientMappingT> operationEventRecipientMappingTs;
 
 	public NotificationSettingsEventMappingT() {
 	}
@@ -191,5 +195,16 @@ public class NotificationSettingsEventMappingT implements Serializable {
 
 		return userNotificationsT;
 	}
+
+	public List<OperationEventRecipientMappingT> getOperationEventRecipientMappingTs() {
+		return operationEventRecipientMappingTs;
+	}
+
+	public void setOperationEventRecipientMappingTs(
+			List<OperationEventRecipientMappingT> operationEventRecipientMappingTs) {
+		this.operationEventRecipientMappingTs = operationEventRecipientMappingTs;
+	}
+	
+	
 
 }

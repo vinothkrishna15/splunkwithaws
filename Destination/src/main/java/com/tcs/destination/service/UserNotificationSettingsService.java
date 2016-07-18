@@ -2,6 +2,8 @@ package com.tcs.destination.service;
 
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,15 +12,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.NotificationEventGroupMappingT;
 import com.tcs.destination.bean.NotificationSettingsEventMappingT;
 import com.tcs.destination.bean.NotificationSettingsGroupMappingT;
+import com.tcs.destination.bean.NotificationTypeEventMappingT;
+import com.tcs.destination.bean.UserNotificationSettingsConditionsT;
 import com.tcs.destination.bean.UserNotificationSettingsT;
+import com.tcs.destination.bean.UserSubscriptions;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.NotificationSettingsGroupMappingRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsConditionRepository;
 import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.UserSubscriptionsRepository;
+import com.tcs.destination.enums.NotificationSettingEvent;
+import com.tcs.destination.enums.NotificationSettingGroup;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DestinationUtils;
@@ -39,6 +48,11 @@ public class UserNotificationSettingsService {
 
 	@Autowired
 	UserNotificationSettingsRepository userNotificationSettingsRepository;
+	
+
+	@Autowired
+	UserSubscriptionsRepository userSubscriptionRepository;
+
 
 	@Autowired
 	NotificationSettingsGroupMappingRepository notificationSettingsGroupMappingRepository;
@@ -85,6 +99,99 @@ public class UserNotificationSettingsService {
 			}
 		}
 		catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+	}
+	
+	/**
+	 * Used to save the user subscription details
+	 * @param userSubscription
+	 * @return
+	 * @throws DestinationException
+	 */
+	@Transactional
+	public boolean saveUserNotificationsnew(
+			List<UserSubscriptions> userSubscription)
+			throws DestinationException {
+
+		logger.debug("Begin:Inside saveUserNotifications() UserNotificationSettings service");
+		String userId = DestinationUtils.getCurrentUserId();
+		// Save notification settings conditions first
+		for (UserSubscriptions userSubscriptions : userSubscription) {
+			// Validations
+			if (userSubscriptions.getUserSubscriptionId() == null) {
+				logger.error("user subscription id is empty");
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"User subscription id is required for update");
+			}
+			if (!userSubscriptionRepository.exists(userSubscriptions
+					.getUserSubscriptionId())) {
+				logger.error("user subscription id not found");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"User Subsciption details not available for id : "
+								+ userSubscriptions.getUserSubscriptionId());
+			}
+			if (userSubscriptions.getNotificationTypeEventMappingId() == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST,
+						"Notification type event mapping id should not be empty");
+			}
+			if (CollectionUtils.isNotEmpty(userSubscriptions
+					.getUserNotificationSettingsConditionsTs())) {
+				try {
+					for (UserNotificationSettingsConditionsT userNotificationSettingsConditionsT : userSubscriptions
+							.getUserNotificationSettingsConditionsTs()) {
+						if (userNotificationSettingsConditionsT
+								.getConditionId() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Condition Id should not be empty");
+						}
+						if (userNotificationSettingsConditionsT
+								.getConditionValue() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Condition value should not be empty");
+						}
+						if (userNotificationSettingsConditionsT.getEventId() == null) {
+							throw new DestinationException(
+									HttpStatus.BAD_REQUEST,
+									"Event Id should not be empty");
+						}
+						userNotificationSettingsConditionsT.setUserId(userId);
+					}
+					userNotificationSettingsConditionRepository
+							.save(userSubscriptions
+									.getUserNotificationSettingsConditionsTs());
+				} catch (Exception e) {
+					logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
+					throw new DestinationException(
+							HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+			}
+
+			if (userSubscriptions
+					.getDeleteUserNotificationSettingsConditionsTs() != null)
+				userNotificationSettingsConditionRepository
+						.delete(userSubscriptions
+								.getDeleteUserNotificationSettingsConditionsTs());
+
+			userSubscriptions.setUserId(userId);
+
+		}
+		try {
+
+			if (userSubscriptionRepository.save(userSubscription) != null) {
+				logger.info("End:Inside saveUserNotifications() UserNotificationSettings service");
+				return true;
+			} else {
+				logger.error("Error occurred while adding UserNotificationSettings settings");
+				throw new DestinationException(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						"Error occurred while adding User notification settings");
+			}
+		} catch (Exception e) {
 			logger.error("INTERNAL_SERVER_ERROR: " + e.getMessage());
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					e.getMessage());
@@ -163,6 +270,9 @@ public class UserNotificationSettingsService {
 		logger.debug("End:Inside getUserNotificationSettings() UserNotificationSettings service");
 		return notificationSettingsGroupMappingTs;
 	}
+	
+	
+
 
 	/**
 	 * This method is used to delete notification settings based on index 
@@ -177,5 +287,80 @@ public class UserNotificationSettingsService {
 			notificationSettingsGroupMappingTs.remove(index);
 		logger.debug("End:Inside removeNotificationSettingsFromIndex() UserNotificationSettings service");
 
+	}
+
+	/**
+	 * fetch all notification settings of current user 
+	 * @return List of user subscription
+	 */
+	public List<UserSubscriptions> getUserSubsriptions() throws Exception {
+		logger.info("Begin-> getUserSubsriptions Method");
+		List<UserSubscriptions> userSubscriptions = Lists.newArrayList();
+		String userId = DestinationUtils.getCurrentUserId();
+		UserT user = userRepository.findByUserId(userId);
+		String userGroup = user.getUserGroup();
+		List<UserSubscriptions> subscriptions = userSubscriptionRepository
+				.findByUserId(userId);
+		if (CollectionUtils.isNotEmpty(subscriptions)) {
+			for (UserSubscriptions userSubscription : subscriptions) {// add
+																		// condition
+				NotificationTypeEventMappingT notificationTypeEventMappingT = userSubscription
+						.getNotificationTypeEventMappingT();
+				if (notificationTypeEventMappingT == null) {
+					throw new DestinationException(HttpStatus.NOT_FOUND,
+							"Event Details for notification not available for user subscription Id : "
+									+ userSubscription.getUserSubscriptionId());
+				}
+
+				Integer eventId = notificationTypeEventMappingT.getEventId();
+				NotificationSettingEvent event = NotificationSettingEvent
+						.getByValue(eventId);
+				if (event != null
+						&& event == NotificationSettingEvent.COLLAB_CONDITION) {
+					notificationTypeEventMappingT
+							.getNotificationSettingsEventMappingT()
+							.setUserNotificationSettingsConditionsTs(null);
+					userSubscription
+							.setUserNotificationSettingsConditionsTs(userNotificationSettingsConditionRepository
+									.findByUserIdAndEventId(userId, eventId));
+				}
+				boolean flag = true;
+				switch (UserGroup.valueOf(UserGroup.getName(userGroup))) {
+				case BDM :
+				case PRACTICE_OWNER:	
+					if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.SUPERVISOR.getGroupId() || notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
+						flag = false;
+					}
+					break;
+				case BDM_SUPERVISOR:
+				case PRACTICE_HEAD:
+				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
+					  flag = false;
+				  }
+				  break;
+				 default :
+					 break;
+				}
+
+					if(flag) {
+						prepareSubscriptions(notificationTypeEventMappingT);
+						userSubscriptions.add(userSubscription);
+					}
+				}
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"User Subscriptions not found for user : " + userId);
+		}
+
+		logger.info("End-> getUserSubsriptions Method");
+		return userSubscriptions;
+	}
+
+	/**
+	 * remove the identity object to avoid the looping in json construction
+	 * @param notificationTypeEventMappingT
+	 */
+	private void prepareSubscriptions(NotificationTypeEventMappingT notificationTypeEventMappingT) {
+		notificationTypeEventMappingT.setUserSubscriptions(null);
 	}
 }

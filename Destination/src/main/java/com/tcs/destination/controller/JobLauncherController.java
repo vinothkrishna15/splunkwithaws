@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.JobName;
+import com.tcs.destination.enums.OperationType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -132,7 +133,8 @@ public class JobLauncherController {
 	public ResponseEntity<String> asyncJobLaunch(
 			JobName jobName,
 			String entityType,
-			String entityId)			
+			String entityId,
+			Double dealValue)			
 			throws Exception {
 		
 		logger.info("Inside Job Laucher Controller: Launching job asynchronous"
@@ -144,7 +146,7 @@ public class JobLauncherController {
 		JobExecution execution;
 		try {
 			job = jobRegistry.getJob(jobName.getJob());
-			execution = asyncJobLauncher.run(job, getJobParameter(job, entityType, entityId));
+			execution = asyncJobLauncher.run(job, getJobParameter(job, entityType, entityId, dealValue));
 
 			logger.info("Job: {} exit status:{}.", job.getName(),
 					execution.getStatus());
@@ -209,11 +211,103 @@ public class JobLauncherController {
 	 * @param job
 	 * @return JobParameters
 	 */
-	private JobParameters getJobParameter(Job job, String entityType, String entityId) {
+	private JobParameters getJobParameter(Job job, String entityType,
+			String entityId, Double dealValue) {
 		String dateParam = DateUtils.getCurrentDateForBatch();
 		logger.info("Job: {} starting with parameters: {}.", job.getName(),
 				dateParam);
-		return new JobParametersBuilder().addString("date", dateParam).addString("EntityType", entityType).addString("entityId", entityId)
+		return new JobParametersBuilder().addString("date", dateParam)
+				.addString("EntityType", entityType)
+				.addString("entityId", entityId)
+				.addDouble("dealValue", dealValue)
+				.addLong("time", System.currentTimeMillis()).toJobParameters();
+	}
+	
+	
+	/**
+	 * This method is used to launch a job asynchronously for a particular job name given
+	 * 
+	 * @param jobName
+	 * @param fields
+	 * @param view
+	 * @return status
+	 * @throws Exception
+	 */
+	public ResponseEntity<String> asyncJobLaunchForNotification(
+			JobName jobName,
+			EntityType entityType,
+			String entityId, OperationType operationType, String currentUser)			
+			throws Exception {
+		
+		logger.info("Inside Job Laucher Controller: Launching job asynchronous"
+				+ jobName.getJob());
+		
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		Job job;
+		JobExecution execution;
+		try {
+			job = jobRegistry.getJob(jobName.getJob());
+			execution = asyncJobLauncher.run(job, getJobParameter(job, entityType, entityId, operationType,currentUser));
+
+			logger.info("Job: {} exit status:{}.", job.getName(),
+					execution.getStatus());
+			if (execution.getStatus().equals(BatchStatus.STARTED)) {
+				status.setStatus(Status.SUCCESS, "Job:" + job
+						+ " asynchronously started successfully.");
+			}
+
+		} catch (NoSuchJobException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"No such job available for the job name:"
+							+ jobName.getJob());
+		} catch (JobExecutionAlreadyRunningException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job as an job instance is already running:");
+		} catch (JobRestartException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Unable to restart the job:" + jobName.getJob());
+		} catch (JobInstanceAlreadyCompleteException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job as a job instance is already completed:");
+		} catch (JobParametersInvalidException e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job due to invalid job parameters:"
+							+ jobName.getJob());
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error lauching the job:" + jobName.getJob());
+		}
+
+		logger.info("Inside controller: Asynchronous Job launch complete");
+		return new ResponseEntity<String>(
+				ResponseConstructors.filterJsonForFieldAndViews("","",
+						status), HttpStatus.OK);
+	}
+	
+	/**
+	 * This method is used to get the job parameters for the corresponding job
+	 * given
+	 * 
+	 * @param job
+	 * @return JobParameters
+	 */
+	private JobParameters getJobParameter(Job job, EntityType entityType, String entityId, OperationType operationType, String currentUser) {
+		String dateParam = DateUtils.getCurrentDateForBatch();
+		logger.info("Job: {} starting with parameters: {}.", job.getName(),
+				dateParam);
+		return new JobParametersBuilder().
+				addString("date", dateParam).
+				addString("EntityType", entityType.name()).
+				addString("entityId", entityId).
+				addString("operationType", operationType.name()).
+				addString("currentUser", currentUser).addLong("time",System.currentTimeMillis())
 				.toJobParameters();
 	}
 
