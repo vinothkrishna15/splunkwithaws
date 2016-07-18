@@ -292,7 +292,7 @@ public class AuditDetailService {
 		if(CollectionUtils.isEmpty(entries)) {
 			//get entries from timeline for old opportunities
 			entries = getHistoryFromTimeLine(timeLineHistories, salesCode, startDate);
-		} 
+		}
 		auditHistories = groupAuditHistory(entries, EntityTypeId.OPPORTUNITY.getType());
 		Collections.sort(auditHistories);
 		dto.setHistories(auditHistories);
@@ -314,27 +314,27 @@ public class AuditDetailService {
 			}
 			preTimeLineHistory = item;
 		}
-		
-		String user = userRepository.findUserNameByUserId(timeLineHistory.getUserUpdated());
-		Date date = new Date(timeLineHistory.getUpdatedDatetime().getTime());
-		currentBid = timeLineHistory.getBidDetailsT();
-		if(preTimeLineHistory != null) {
-			preBid = preTimeLineHistory.getBidDetailsT();
-			entries.add(getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
-		} else {
-			entries.add(getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
-		}
-		
-		if(currentBid != null) {
-			List<String> fieldArray = Lists.newArrayList("BidRequestReceiveDate", "TargetBidSubmissionDate", 
-					"ActualBidSubmissionDate", "ExpectedDateOfOutcome", "WinProbability", 
-					"CoreAttributesUsedForWinning", "BidRequestType");
-			if(preBid == null) {
-				preBid = new BidDetailsT();
+		if(timeLineHistory != null) {
+			String user = userRepository.findUserNameByUserId(timeLineHistory.getUserUpdated());
+			Date date = new Date(timeLineHistory.getUpdatedDatetime().getTime());
+			currentBid = timeLineHistory.getBidDetailsT();
+			if(preTimeLineHistory != null) {
+				preBid = preTimeLineHistory.getBidDetailsT();
+				entries.add(getAuditEntry("Sales Stage", String.valueOf(preTimeLineHistory.getSalesStageCode()), String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
+			} else {
+				entries.add(getAuditEntry("Sales Stage", null, String.valueOf(timeLineHistory.getSalesStageCode()), user, date));
 			}
-			entries.addAll(getEntry(preBid, currentBid, fieldArray, user, date));
+
+			if(currentBid != null) {
+				List<String> fieldArray = Lists.newArrayList("BidRequestReceiveDate", "TargetBidSubmissionDate", 
+						"ActualBidSubmissionDate", "ExpectedDateOfOutcome", "WinProbability", 
+						"CoreAttributesUsedForWinning", "BidRequestType");
+				if(preBid == null) {
+					preBid = new BidDetailsT();
+				}
+				entries.addAll(getEntry(preBid, currentBid, fieldArray, user, date));
+			}
 		}
-		
 		return entries;
 	}
 
@@ -488,7 +488,6 @@ public class AuditDetailService {
 		List<AuditEntryDTO> entryDTOs = Lists.newArrayList();
 		String user = userRepository.findUserNameByUserId(aBidDetailT.getCreatedModifiedBy());
 		Date date = new Date(aBidDetailT.getCreatedModifiedDatetime().getTime());
-		String bidId = aBidDetailT.getBidId();
 		List<String> fieldArray = Lists.newArrayList("BidRequestReceiveDate", "TargetBidSubmissionDate", 
 				"ActualBidSubmissionDate", "ExpectedDateOfOutcome", "WinProbability", 
 				"CoreAttributesUsedForWinning", "BidRequestType");

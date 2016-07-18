@@ -37,7 +37,7 @@ public class DateUtils {
 	private static final Format DT_BATCH_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 	public static final DateFormat ACTUAL_FORMAT = new SimpleDateFormat("dd-MMM-yyyy");
 	public static final DateFormat DESIRED_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
-	public static final DateFormat AUDIT_HISTORY_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	public static final DateFormat AUDIT_HISTORY_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
 	
 	private static final Map<String, Integer> monthMap = new HashMap<String, Integer>();
