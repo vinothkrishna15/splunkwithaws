@@ -480,10 +480,11 @@ public class NotificationBatchHelper {
 		if (isRecipientRequired(opType, RecipientType.STRATEGIC_INITIATIVE)) {
 			List<Integer> strategicInitiativeEvents = recipientEventMap
 					.get(RecipientType.STRATEGIC_INITIATIVE);
-			List<String> strategicIniatives = userRepository
+			List<String> users = userRepository
 					.findUserIdByUserGroup(UserGroup.STRATEGIC_INITIATIVES.getValue());
-			if (CollectionUtils.isNotEmpty(strategicIniatives)) {
-				for (String strategicInitiative : strategicIniatives) {
+			users.addAll(userRepository.findUserIdByUserGroup(UserGroup.GEO_HEADS.getValue()));
+			if (CollectionUtils.isNotEmpty(users)) {
+				for (String strategicInitiative : users) {
 					recipients.add(constructRecipient(strategicInitiative,
 							null, null, RecipientType.STRATEGIC_INITIATIVE,
 							false, strategicInitiativeEvents));

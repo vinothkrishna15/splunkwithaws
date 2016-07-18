@@ -333,10 +333,7 @@ public class UserNotificationSettingsService {
 					}
 					break;
 				case BDM_SUPERVISOR:
-				case GEO_HEADS:
-				case IOU_HEADS:
 				case PRACTICE_HEAD:
-				case PMO:
 				  if(notificationTypeEventMappingT.getGroupId() == NotificationSettingGroup.LEADERSHIP.getGroupId()) {
 					  flag = false;
 				  }
