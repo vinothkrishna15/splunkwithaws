@@ -308,7 +308,7 @@ public class CustomerService {
 		// Execute the native revenue query string
 		Query topRevenueQuery = entityManager.createNativeQuery(queryString, CustomerMasterT.class);
 		topRevenueQuery.setParameter("months",months);
-		List<CustomerMasterT> resultList = (ArrayList<CustomerMasterT>)topRevenueQuery.getResultList();
+		List<CustomerMasterT> resultList = (ArrayList<CustomerMasterT>) topRevenueQuery.getResultList();
 		if (resultList == null || resultList.isEmpty()) {
 			logger.error("NOT_FOUND: Top revenue customers not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -1432,5 +1432,35 @@ public class CustomerService {
 			customer.setActive(false);
 			customerRepository.save(customer);
 		}
+	}
+
+	/**
+	 * This method is used to find the user details related to customer
+	 * 
+	 * @param customerId
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PaginatedResponse searchUserDetailsForCustomer(String customerId, int page, int count) {
+		logger.info("Begin:Inside searchUserDetailsForCustomer CustomerService");
+		List<UserT> userTs = new ArrayList<UserT>();
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		
+		userTs = userRepository.findUsersByCustomerId(Constants.CUSTOMER, customerId);
+		
+		paginatedResponse.setTotalCount(userTs.size());
+
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, userTs.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, userTs.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, userTs.size()) + 1;
+			userTs = userTs.subList(fromIndex, toIndex);
+			paginatedResponse.setUserTs(userTs);
+			logger.debug("users after pagination size is " + userTs.size());
+		} else {
+			throw new DestinationException(HttpStatus.NOT_FOUND, "No users available for the specified page");
+		}
+		return paginatedResponse;
 	}
 }
