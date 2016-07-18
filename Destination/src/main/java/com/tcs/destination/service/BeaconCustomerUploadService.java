@@ -26,6 +26,7 @@ import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
@@ -49,6 +50,9 @@ public class BeaconCustomerUploadService {
 	
 	@Autowired
 	IouBeaconMappingTRepository iouBeaconMappingTRepository;
+	
+	@Autowired
+	BeaconCustomerMappingRepository beaconCustomerMappingRepository;
 
 	@Autowired
 	CustomerRepository customerRepository;
@@ -311,6 +315,17 @@ public class BeaconCustomerUploadService {
 				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
 				|| ExcelUtils.isValidWorkbook(workbook,
 						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
+	}
+
+	public void save(List<BeaconCustomerMappingT> insertList) {
+		logger.debug("Inside save method of Beacon Customer Upload Service");
+		beaconCustomerMappingRepository.save(insertList);
+		
+	}
+
+	public void makeInactive(List<BeaconCustomerMappingT> deleteList) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
