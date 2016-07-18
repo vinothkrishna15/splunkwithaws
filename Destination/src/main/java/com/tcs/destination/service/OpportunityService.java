@@ -33,6 +33,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
@@ -54,8 +55,10 @@ import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.OpportunityTimelineHistoryT;
 import com.tcs.destination.bean.OpportunityWinLossFactorsT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchKeywordsT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
@@ -105,6 +108,7 @@ import com.tcs.destination.enums.JobName;
 import com.tcs.destination.enums.OpportunityRole;
 import com.tcs.destination.enums.PrivilegeType;
 import com.tcs.destination.enums.SalesStageCode;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.Switch;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.WorkflowStatus;
@@ -1453,21 +1457,23 @@ public class OpportunityService {
 	private void prepareOpportunity(List<OpportunityT> opportunityTs)
 			throws DestinationException {
 		logger.debug("Inside prepareOpportunity(List<>) method");
-		List<String> opportunityIds = new ArrayList<String>();
-		for (OpportunityT opportunityT : opportunityTs) {
-			opportunityIds.add(opportunityT.getOpportunityId());
-		}
-		try {
-			List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
-
-			if (opportunityTs != null) {
-				for (OpportunityT opportunityT : opportunityTs) {
-					prepareOpportunity(opportunityT, previledgedOpportuniyies);
-				}
+		if(CollectionUtils.isNotEmpty(opportunityTs)) {
+			List<String> opportunityIds = new ArrayList<String>();
+			for (OpportunityT opportunityT : opportunityTs) {
+				opportunityIds.add(opportunityT.getOpportunityId());
 			}
-		} catch (Exception e) {
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					e.getMessage());
+			try {
+				List<String> previledgedOpportuniyies = opportunityDao.getPriviledgedOpportunityId(opportunityIds);
+
+				if (opportunityTs != null) {
+					for (OpportunityT opportunityT : opportunityTs) {
+						prepareOpportunity(opportunityT, previledgedOpportuniyies);
+					}
+				}
+			} catch (Exception e) {
+				throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+						e.getMessage());
+			}
 		}
 	}
 
@@ -2575,6 +2581,115 @@ public class OpportunityService {
 		// or lost, Email notification to be triggered
 		return sendEmailNotification(opportunity, oldSalesStageCode,
 				oldDealValue, oldDealCurrency);
+	}
+	
+	/**
+	 * Service method to fetch the opportunity related information based on search type and the search keyword 
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll 
+	 * @param currency
+	 * @param count 
+	 * @param page 
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<OpportunityT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, List<String> currency, int page, int count) {
+		logger.info("OpportunityService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<OpportunityT>> res = new PageDTO<SearchResultDTO<OpportunityT>>();
+		List<SearchResultDTO<OpportunityT>> resList = Lists.newArrayList();
+		SearchResultDTO<OpportunityT> searchResultDTO = new SearchResultDTO<OpportunityT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getOpportunityById(term, getAll, currency));
+				resList.add(getOpportunityByName(term, getAll, currency));
+				resList.add(getOpportunityByCustomers(term, getAll, currency));
+				resList.add(getOpportunitySubSps(term, getAll, currency));
+				resList.add(getOpportunityByOwner(term, getAll, currency));
+				break;
+			case ID:
+				searchResultDTO = getOpportunityById(term, getAll, currency);
+				break;
+			case NAME:
+				searchResultDTO = getOpportunityByName(term, getAll, currency);
+				break;
+			case CUSTOMER:
+				searchResultDTO = getOpportunityByCustomers(term, getAll, currency);
+				break;
+			case SUBSP:
+				searchResultDTO = getOpportunitySubSps(term, getAll, currency);
+				break;
+			case PRIMARY_OWNER:
+				searchResultDTO = getOpportunityByOwner(term, getAll, currency);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<OpportunityT> values = searchResultDTO.getValues();
+					List<OpportunityT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						prepareOpportunity(records);
+						beaconConverterService.convertOpportunityCurrency(records, currency);
+					}
+					searchResultDTO.setValues(records);
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+	
+	private SearchResultDTO<OpportunityT> getOpportunityById(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchById("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.ID, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByName(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.NAME, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByCustomers(
+			String term, boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByCustomerName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunitySubSps(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchBySubsp("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP, getAll, toCurrency);
+	}
+
+	private SearchResultDTO<OpportunityT> getOpportunityByOwner(String term,
+			boolean getAll, List<String> toCurrency) {
+		List<OpportunityT> records = opportunityRepository.searchByPrimaryOwner("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PRIMARY_OWNER, getAll, toCurrency);
+	}
+
+	/**
+	 * creates {@link SearchResultDTO} from the list of connects
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<OpportunityT> createSearchResultFrom(
+			List<OpportunityT> records, SmartSearchType type, boolean getAll, List<String> toCurrency) {
+		SearchResultDTO<OpportunityT> conRes = new SearchResultDTO<OpportunityT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
 	}
 	
 	/**

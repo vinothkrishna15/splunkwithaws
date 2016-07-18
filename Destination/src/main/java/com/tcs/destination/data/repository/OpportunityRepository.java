@@ -1202,5 +1202,38 @@ public interface OpportunityRepository extends
 					+"AND ((OPP.sales_stage_code between 0 and 8) OR (OPP.deal_closure_date between (:fromDate) AND (:toDate)))",nativeQuery=true)
 	List<OpportunityT> getAllOpportunitiesBySearchedIdQuery(@Param("searchedUserIdList") List<String> searchedUserId,@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 	
+	/* ---------- repository methods for smart search --------- */
+	
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE UPPER(opportunity_id) LIKE UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchById(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE UPPER(opportunity_name) LIKE UPPER(:term) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByCustomerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE opportunity_id IN (SELECT DISTINCT(opportunity_id) FROM opportunity_sub_sp_link_t WHERE UPPER(sub_sp) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchBySubsp(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM opportunity_t "
+			+ "WHERE opportunity_owner IN (SELECT user_id FROM user_t WHERE UPPER(user_name) LIKE UPPER(:term)) "
+			+ "ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<OpportunityT> searchByPrimaryOwner(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	/* ---------- ends - repository methods for smart search --------- */
 	
 }

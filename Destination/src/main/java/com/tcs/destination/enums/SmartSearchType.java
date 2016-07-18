@@ -3,8 +3,8 @@ package com.tcs.destination.enums;
 
 public enum SmartSearchType {
 	ALL, CONNECT, CUSTOMER, PARTNER, SUBSP,
-	EMPNO, EMPNAME,SUPERVISOR,LOCATION,GEOGRAPHY,GROUP_PARTNER_NAME;
-	
+	EMPNO, EMPNAME,SUPERVISOR,LOCATION,GEOGRAPHY,GROUP_PARTNER_NAME,
+	ID, NAME, PRIMARY_OWNER;
 
 	/**
 	 * returns {@link SmartSearchType} of the corresponding val
