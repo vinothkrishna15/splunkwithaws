@@ -213,12 +213,7 @@ public class CustomerUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validateCustomerDelete(String[] data,
 			String userId, CustomerMasterT customerT) {
-		String MasterGroupClient = data[2];
-		String MasterCustomerName = data[3];
-		String MasterIOU = data[4];
-		String MasterGoegraphy = data[5];
 		String custId = data[7];// retrieving customer id for updation/deletion 
-		String status = data[6];
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 		if(!StringUtils.isEmpty(custId)){
 			

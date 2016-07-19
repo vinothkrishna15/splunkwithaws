@@ -35,7 +35,7 @@ import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
 public class CustomerCustomWriter implements ItemWriter<String[]>,
-		StepExecutionListener, WriteListener {
+StepExecutionListener, WriteListener {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(CustomerCustomWriter.class);
@@ -173,7 +173,7 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 		List<CustomerMasterT> updateList = new ArrayList<CustomerMasterT>();
 		for (String[] data : items) {
 			String operation = (String) data[1];
-			
+
 			if ((!StringUtils.isEmpty(operation))) {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
@@ -232,9 +232,8 @@ public class CustomerCustomWriter implements ItemWriter<String[]>,
 			customerService.makeInactive(deleteList);
 		}
 		// for updating the rows which are valid
-				if (CollectionUtils.isNotEmpty(updateList)) {
-					customerService.save(updateList);
-				}
+		if (CollectionUtils.isNotEmpty(updateList)) {
+			customerService.save(updateList);
+		}
 	}
-
 }

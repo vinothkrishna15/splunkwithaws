@@ -22,19 +22,19 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.BeaconCustomerMappingUploadHelper;
-import com.tcs.destination.service.BeaconCustomerUploadService;
+import com.tcs.destination.helper.FinanceCustomerMappingUploadHelper;
+import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
-public class BeaconCustomerMappingWriter implements ItemWriter<String[]>,
+public class RevenueCustomerMappingWriter implements ItemWriter<String[]>,
 StepExecutionListener, WriteListener {
 
 	private static final Logger logger = LoggerFactory
@@ -42,7 +42,7 @@ StepExecutionListener, WriteListener {
 
 	private List<UploadServiceErrorDetailsDTO> errorList = null;
 
-	private BeaconCustomerMappingUploadHelper helper;
+	private FinanceCustomerMappingUploadHelper helper;
 
 	private DataProcessingRequestT request;
 
@@ -50,7 +50,7 @@ StepExecutionListener, WriteListener {
 
 	private UploadErrorReport uploadErrorReport;
 
-	private BeaconCustomerUploadService beaconCustomerUploadService;
+	private RevenueUploadService revenueUploadService;
 
 	@Override
 	public void onWritePossible() throws IOException {
@@ -87,7 +87,7 @@ StepExecutionListener, WriteListener {
 
 				String errorPath = request.getFilePath() + "ERROR"
 						+ FILE_DIR_SEPERATOR;
-				String errorFileName = "beaconCustomerMappingUpload_error.xlsx";
+				String errorFileName = "financeCustomerMappingUpload_error.xlsx";
 
 				File file = FileManager.createFile(errorPath, errorFileName);
 				FileOutputStream outputStream = new FileOutputStream(file);
@@ -102,9 +102,12 @@ StepExecutionListener, WriteListener {
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
 
 			dataProcessingRequestRepository.save(request);
+			jobContext.remove(REQUEST);
+			jobContext.remove(FILE_PATH);
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
+
 		return ExitStatus.COMPLETED;
 	}
 
@@ -113,79 +116,73 @@ StepExecutionListener, WriteListener {
 
 		logger.info("Inside write:");
 
-		List<BeaconCustomerMappingT> insertList = new ArrayList<BeaconCustomerMappingT>();
-		List<BeaconCustomerMappingT> deleteList = new ArrayList<BeaconCustomerMappingT>();
-		List<BeaconCustomerMappingT> updateList = new ArrayList<BeaconCustomerMappingT>();
+		List<RevenueCustomerMappingT> insertList = new ArrayList<RevenueCustomerMappingT>();
+		List<RevenueCustomerMappingT> deleteList = new ArrayList<RevenueCustomerMappingT>();
+		List<RevenueCustomerMappingT> updateList = new ArrayList<RevenueCustomerMappingT>();
 		for (String[] data : items) {
 			String operation = (String) data[1];
 
 			if ((!StringUtils.isEmpty(operation))) {
 				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
 					logger.info("executing " + operation + " operation");
-					BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
+					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
 					for (String a : data)//for testing
 						logger.info(a);
 					UploadServiceErrorDetailsDTO errorDTO = helper
-							.validateBeaconCustomerAdd(data, request.getUserT()
-									.getUserId(), beacon);
+							.validateFinanceCustomerAdd(data, request.getUserT()
+									.getUserId(), finance);
 					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						insertList.add(beacon);
+						insertList.add(finance);
 					}
 
 				} else if (operation.equalsIgnoreCase(Operation.DELETE.name())) {
 					logger.info("executing " + operation + " operation");
-					BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
+					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
 					UploadServiceErrorDetailsDTO errorDTO = helper
-							.validateBeaconCustomerDelete(data, request.getUserT()
-									.getUserId(), beacon);
+							.validateFinanceCustomerDelete(data, request.getUserT()
+									.getUserId(), finance);
 					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						deleteList.add(beacon);
+						deleteList.add(finance);
 					}
+
 				} else if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
 					logger.info("executing " + operation + " operation");
-					BeaconCustomerMappingT beacon = new BeaconCustomerMappingT();
+					RevenueCustomerMappingT finance = new RevenueCustomerMappingT();
 					UploadServiceErrorDetailsDTO errorDTO = helper
-							.validateBeaconCustomerUpdate(data, request.getUserT()
-									.getUserId(), beacon);
+							.validateFinanceCustomerUpdate(data, request.getUserT()
+									.getUserId(), finance);
 					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>()
 								: errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
-						updateList.add(beacon);
+						updateList.add(finance);
 					}
+
 				}
+
 			}
 		}
 		// for saving the rows which are valid
 		if (CollectionUtils.isNotEmpty(insertList)) {
-			beaconCustomerUploadService.save(insertList);
+			revenueUploadService.save(insertList);
 		}
 		// for deleting the rows which are valid
 		if (CollectionUtils.isNotEmpty(deleteList)) {
-			beaconCustomerUploadService.makeInactive(deleteList);
+			revenueUploadService.makeInactive(deleteList);
 		}
 		// for updating the rows which are valid
 		if (CollectionUtils.isNotEmpty(updateList)) {
-			beaconCustomerUploadService.save(updateList);
+			revenueUploadService.save(updateList);
 		}
-	}
-
-	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
-		return dataProcessingRequestRepository;
-	}
-
-	public void setDataProcessingRequestRepository(
-			DataProcessingRequestRepository dataProcessingRequestRepository) {
-		this.dataProcessingRequestRepository = dataProcessingRequestRepository;
 	}
 
 	public List<UploadServiceErrorDetailsDTO> getErrorList() {
@@ -196,11 +193,11 @@ StepExecutionListener, WriteListener {
 		this.errorList = errorList;
 	}
 
-	public BeaconCustomerMappingUploadHelper getHelper() {
+	public FinanceCustomerMappingUploadHelper getHelper() {
 		return helper;
 	}
 
-	public void setHelper(BeaconCustomerMappingUploadHelper helper) {
+	public void setHelper(FinanceCustomerMappingUploadHelper helper) {
 		this.helper = helper;
 	}
 
@@ -212,6 +209,15 @@ StepExecutionListener, WriteListener {
 		this.request = request;
 	}
 
+	public DataProcessingRequestRepository getDataProcessingRequestRepository() {
+		return dataProcessingRequestRepository;
+	}
+
+	public void setDataProcessingRequestRepository(
+			DataProcessingRequestRepository dataProcessingRequestRepository) {
+		this.dataProcessingRequestRepository = dataProcessingRequestRepository;
+	}
+
 	public UploadErrorReport getUploadErrorReport() {
 		return uploadErrorReport;
 	}
@@ -220,14 +226,12 @@ StepExecutionListener, WriteListener {
 		this.uploadErrorReport = uploadErrorReport;
 	}
 
-	public BeaconCustomerUploadService getBeaconCustomerUploadService() {
-		return beaconCustomerUploadService;
+	public RevenueUploadService getRevenueUploadService() {
+		return revenueUploadService;
 	}
 
-	public void setBeaconCustomerUploadService(
-			BeaconCustomerUploadService beaconCustomerUploadService) {
-		this.beaconCustomerUploadService = beaconCustomerUploadService;
+	public void setRevenueUploadService(RevenueUploadService revenueUploadService) {
+		this.revenueUploadService = revenueUploadService;
 	}
-
 
 }

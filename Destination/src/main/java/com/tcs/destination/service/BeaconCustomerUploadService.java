@@ -324,8 +324,10 @@ public class BeaconCustomerUploadService {
 	}
 
 	public void makeInactive(List<BeaconCustomerMappingT> deleteList) {
-		// TODO Auto-generated method stub
-		
+		for(BeaconCustomerMappingT beaconCustomer : deleteList){
+			beaconCustomer.setActive(false);
+			beaconCustomerMappingRepository.save(beaconCustomer);
+		}
 	}
 
 }

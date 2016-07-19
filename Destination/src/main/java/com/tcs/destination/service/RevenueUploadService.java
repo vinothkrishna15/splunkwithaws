@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
@@ -29,6 +30,7 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
@@ -58,6 +60,9 @@ public class RevenueUploadService {
 
 	@Autowired
 	GeographyRepository geographyRepository;
+	
+	@Autowired
+	RevenueCustomerMappingTRepository revenueCustomerMappingTRepository;
 
 	Map<String, String> mapOfCustomerNamesT = null;
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
@@ -325,4 +330,16 @@ public class RevenueUploadService {
 							OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
 		}
 
+		public void save(List<RevenueCustomerMappingT> insertList) {
+			logger.debug("Inside save method of  Revenue Upload Service");
+			revenueCustomerMappingTRepository.save(insertList);
+			
+		}
+
+		public void makeInactive(List<RevenueCustomerMappingT> deleteList) {
+			for(RevenueCustomerMappingT financeCustomer : deleteList){
+				financeCustomer.setActive(false);
+				revenueCustomerMappingTRepository.save(financeCustomer);
+		}
 	}
+}

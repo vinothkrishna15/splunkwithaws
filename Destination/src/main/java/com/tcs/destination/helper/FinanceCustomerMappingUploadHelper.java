@@ -7,18 +7,18 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
-import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.utils.StringUtils;
 
-@Component("beaconCustomerMappingUploadHelper")
-public class BeaconCustomerMappingUploadHelper {
+@Component("financeCustomerMappingUploadHelper")
+public class FinanceCustomerMappingUploadHelper {
 
 	@Autowired
 	BeaconRepository beaconRepository;
@@ -27,8 +27,8 @@ public class BeaconCustomerMappingUploadHelper {
 	CommonHelper commonHelper;
 
 	@Autowired
-	BeaconCustomerMappingRepository beaconCustomerMappingRepository;
-	
+	RevenueCustomerMappingTRepository revenueRepository;
+
 	@Autowired
 	CustomerRepository customerRepository;
 
@@ -36,23 +36,24 @@ public class BeaconCustomerMappingUploadHelper {
 	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
 
 
-	public UploadServiceErrorDetailsDTO validateBeaconCustomerAdd(
-			String[] data, String userId, BeaconCustomerMappingT beacon) {
+	public UploadServiceErrorDetailsDTO validateFinanceCustomerAdd(
+			String[] data, String userId, RevenueCustomerMappingT financeCustomer) {
 		String masterCustomerName = data[3];
-		String beaconCustomerName = data[6];
-		String beaconIou = data[7];
-		String beaconGeography = data[8];
+		String financeCustomerName = data[6];
+		String financeIou = data[7];
+		String financeGeography = data[8];
 		String active = data[9];
-		String beaconcustomerMapId = data[10];
+		String revenuecustomerMapId = data[10];
 
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
-		if(StringUtils.isEmpty(beaconcustomerMapId)){
+		if(StringUtils.isEmpty(revenuecustomerMapId)){
 			// to find the uniqueness of the primary key (here composite key)
-			List<BeaconCustomerMappingT> beaconCustomers = beaconRepository.findbeaconDuplicates(beaconCustomerName, beaconIou, beaconGeography);
+			List<RevenueCustomerMappingT> financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName,financeGeography,financeIou);
+
 			int rowNumber = Integer.parseInt(data[0]) + 1;
 
-			if (beaconCustomers.isEmpty()) {
+			if (financeCustomers.isEmpty()) {
 				// Get List of geographies from DB for validating the geographies
 				// which
 				// comes from the sheet
@@ -67,67 +68,65 @@ public class BeaconCustomerMappingUploadHelper {
 
 				CustomerMasterT customerObj = customerRepository.findByCustomerName(masterCustomerName);
 
-				beacon.setCustomerId(customerObj.getCustomerId());
-				beacon.setActive(Boolean.parseBoolean(active));
+				financeCustomer.setCustomerId(customerObj.getCustomerId());
+				financeCustomer.setActive( Boolean.parseBoolean(active));
 
-				if (!StringUtils.isEmpty(beaconCustomerName)) {
-					beacon.setBeaconCustomerName(beaconCustomerName);
+				if (!StringUtils.isEmpty(financeCustomerName)) {
+					financeCustomer.setFinanceCustomerName(financeCustomerName);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconCustomerName Is Mandatory; ");
+					error.setMessage("financeCustomerName Is Mandatory; ");
 				}
 
 
-				if (!StringUtils.isEmpty(beaconIou)
-						&& mapOfIouMappingT.containsKey(beaconIou)) {
-					beacon.setBeaconIou(beaconIou);
+				if (!StringUtils.isEmpty(financeIou)
+						&& mapOfIouMappingT.containsKey(financeIou)) {
+					financeCustomer.setFinanceIou(financeIou);
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconIou Is Mandatory; ");
+					error.setMessage("financeIou Is Mandatory; ");
 
 				}
-				if (!StringUtils.isEmpty(beaconGeography)
-						&& mapOfGeographyMappingT.containsKey(beaconGeography)) {
-					beacon.setCustomerGeography(beaconGeography);
+				if (!StringUtils.isEmpty(financeGeography)
+						&& mapOfGeographyMappingT.containsKey(financeGeography)) {
+					financeCustomer.setCustomerGeography(financeGeography);
 
 				} else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("beaconGeography Is Mandatory; ");
-
+					error.setMessage("financeGeography Is Mandatory; ");
 				}
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Beacon Customer Name already exist ");
-
+				error.setMessage("Finance Customer Name already exists");
 			}
 		}
 		return error;
 	}
 
-	public UploadServiceErrorDetailsDTO validateBeaconCustomerDelete(
-			String[] data, String userId, BeaconCustomerMappingT beacon) {
-//		String beaconCustomerName = data[6];
-//		String beaconIou = data[7];
-//		String beaconGeography = data[8];
-		String beaconCustomerMapId = validateAndRectifyValue(data[10]);// retrieving beacon customer id for updation/deletion 
-		
+	public UploadServiceErrorDetailsDTO validateFinanceCustomerDelete(
+			String[] data, String userId, RevenueCustomerMappingT finance) {
+
+//		String financeCustomerName = data[6];
+//		String financeIou = data[7];
+//		String financeGeography = data[8];
+		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
-		//List<BeaconCustomerMappingT> beaconCustomer = beaconRepository.findbeaconDuplicates(beaconCustomerName, beaconIou, beaconGeography);
-		 BeaconCustomerMappingT beaconCustomer = beaconCustomerMappingRepository.findOne(Long.parseLong(beaconCustomerMapId));
-		if (beaconCustomer != null) {
-			if(beacon!=null){
+		//List<RevenueCustomerMappingT> financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName,financeGeography,financeIou);
+		RevenueCustomerMappingT financeCustomers = revenueRepository.findOne(Long.parseLong(revenueCustomerMapId));
+		if (financeCustomers != null) {
+			if(finance!=null){
 				try {
-					BeanUtils.copyProperties(beacon, beaconCustomer);
+					BeanUtils.copyProperties(finance, financeCustomers);
 				} catch (Exception e) {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Backend Error while cloning");
 				}
 			} else {
 				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Beacon Customer Mapping not found");
+				error.setMessage("Finance Customer Mapping not found");
 			}
-		} 
+		}
 		return error;
 	}
 
@@ -142,8 +141,8 @@ public class BeaconCustomerMappingUploadHelper {
 		return val;
 	}
 
-	public UploadServiceErrorDetailsDTO validateBeaconCustomerUpdate(
-			String[] data, String userId, BeaconCustomerMappingT beacon) {
+	public UploadServiceErrorDetailsDTO validateFinanceCustomerUpdate(
+			String[] data, String userId, RevenueCustomerMappingT finance) {
 		// TODO Auto-generated method stub
 		return null;
 	}
