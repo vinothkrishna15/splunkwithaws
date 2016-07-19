@@ -26,11 +26,11 @@ import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 
 
 
-@Component("connectPreprocessor")
-public class ConnectPreprocessor implements Tasklet{
+@Component("connectUploadPreprocessor")
+public class ConnectUploadPreprocessor implements Tasklet{
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(ConnectPreprocessor.class);
+			.getLogger(ConnectUploadPreprocessor.class);
 	
 	private List<DataProcessingRequestT> requestList = null;
 	

@@ -13,20 +13,22 @@
 	<batch:job id="connectUpload">
 
 		<batch:step id="connectUploadPreprocess" next="connectDecider">
-          <batch:tasklet ref="connectPreprocessor"/>
+          <batch:tasklet>
+           <ref bean="connectUploadPreprocessor"/>
+          </batch:tasklet>
 		</batch:step>
 		
-		<batch:step id="connectProcessing" next="connectUploadPreprocess">
+		<batch:step id="connectUploadProcessing" next="connectUploadPreprocess">
 			<batch:tasklet>
-				<batch:chunk reader="connectSpreadSheetReader" writer="connectWriter" 
+				<batch:chunk reader="connectSpreadSheetReader" writer="connectUploadWriter" 
 				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
 			</batch:tasklet>
 		</batch:step>
 		
 
-		 <batch:decision id="connectDecider" decider="connectFlowdecider">
+		 <batch:decision id="connectDecider" decider="connectUploadDecider">
               <batch:next on="PREPROCESS" to="connectUploadPreprocess" />
-              <batch:next on="CONNECT_PROCESSING" to="connectProcessing" />
+              <batch:next on="CONNECT_PROCESSING" to="connectUploadProcessing" />
               <batch:end on="END"/>
          </batch:decision>
 	</batch:job>
@@ -39,7 +41,7 @@
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="connectWriter" class="com.tcs.destination.writer.ConnectCustomWriter" scope="step">
+	<bean id="connectUploadWriter" class="com.tcs.destination.writer.ConnectCustomWriter" scope="step">
 		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
 		<property name="helper" ref="connectUploadHelper"/>
 		<property name="connectService" ref="connectService"/>
@@ -48,8 +50,10 @@
 		<property name="connectRepository" ref="connectRepository"/>
 	</bean>
 	
+	<!-- Preprocessor -->
+	<bean id="connectUploadPreprocessor" class="com.tcs.destination.tasklet.ConnectUploadPreprocessor" scope="step"></bean>
 	<!-- Decider -->
-    <bean id="connectFlowdecider" class="com.tcs.destination.decider.ConnectDecider" />
+    <bean id="connectUploadDecider" class="com.tcs.destination.decider.ConnectDecider" />
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	

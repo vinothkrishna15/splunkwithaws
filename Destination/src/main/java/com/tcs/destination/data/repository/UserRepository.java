@@ -171,4 +171,7 @@ public interface UserRepository extends CrudRepository<UserT, String> {
 			+ " JOIN customer_master_t CMT ON UAP.privilege_value=CMT.customer_name where UAP.privilege_type =?1 and CMT.customer_id=?2 ", nativeQuery = true)
 	List<UserT> findUsersByCustomerId(String privilegeType, String customerId);
 	
+	@Query(value = "select user_id from user_t where user_name = ?1",nativeQuery = true)
+	String findUserIdByUserName(String secondaryOwner);
+	
 }
