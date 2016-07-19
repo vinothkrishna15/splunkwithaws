@@ -25,7 +25,7 @@
 		</batch:step>
 
 
-		<batch:step id="beaconMappingProcessing" next="customerUploadPreprocess">
+		<batch:step id="beaconMappingProcessing" next="financeProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="beaconCustomerMappingSpreadSheetReader"
 					writer="beaconCustomerMappingWriter" commit-interval="${upload.commit.interval}"
@@ -33,10 +33,13 @@
 			</batch:tasklet>
 		</batch:step>
 
-		<!-- <batch:step id="financeProcessing" next="customerUploadPreprocess"> 
-			<batch:tasklet> <batch:chunk reader="financeSpreadSheetReader" writer="financeWriter" 
-			commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/> 
-			</batch:tasklet> </batch:step> -->
+		<batch:step id="financeProcessing" next="customerUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="financeSpreadSheetReader" writer="financeCustomerMappingWriter"
+					commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
 
 		<batch:decision id="customerStepDecider" decider="customerFlowdecider">
 			<batch:next on="PREPROCESS" to="customerUploadPreprocess" />
@@ -61,10 +64,13 @@
 		<property name="rowsToSkip" value="1" />
 	</bean>
 
-	<!-- Readers <bean id="financeSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" 
-		scope="step"> <property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/> 
-		<property name="sheetName" value="Finance Mappping"/> <property name="rowsToSkip" 
-		value = "1" /> </bean> -->
+	<!-- Readers -->
+	<bean id="financeSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader"
+		scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}" />
+		<property name="sheetName" value="Finance Mappping" />
+		<property name="rowsToSkip" value="1" />
+	</bean>
 
 	<!-- Writers -->
 	<bean id="customerWriter" class="com.tcs.destination.writer.CustomerCustomWriter"
@@ -86,12 +92,15 @@
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
 
-	<!-- Writers <bean id="financeCustomerMappingWriter" class="com.tcs.destination.writer.RevenueCustomerMappingWriter" 
-		scope="step"> <property name="request" value="#{jobExecutionContext['REQUEST']}"/> 
-		<property name="helper" ref="revenueCustomerMappingUploadHelper"/> <property 
-		name="revenueService" ref="revenueService"/> <property name="dataProcessingRequestRepository" 
-		ref="dataProcessingRequestRepository"/> <property name="uploadErrorReport" 
-		ref="uploadErrorReport" /> </bean> -->
+	<!-- Writers -->
+	<bean id="financeCustomerMappingWriter" class="com.tcs.destination.writer.RevenueCustomerMappingWriter"
+		scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}" />
+		<property name="helper" ref="financeCustomerMappingUploadHelper" />
+		<property name="RevenueUploadService" ref="revenueUploadService" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
 
 	<!-- Decider -->
 	<bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
