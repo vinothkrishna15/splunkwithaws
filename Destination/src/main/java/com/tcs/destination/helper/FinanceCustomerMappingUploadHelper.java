@@ -7,6 +7,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
@@ -15,6 +16,9 @@ import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
+import com.tcs.destination.exception.DestinationException;
+import com.tcs.destination.service.BeaconCustomerUploadService;
+import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.utils.StringUtils;
 
 @Component("financeCustomerMappingUploadHelper")
@@ -31,6 +35,9 @@ public class FinanceCustomerMappingUploadHelper {
 
 	@Autowired
 	CustomerRepository customerRepository;
+	
+	@Autowired
+	RevenueUploadService revenueUploadService;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouMappingT = null;
@@ -104,15 +111,11 @@ public class FinanceCustomerMappingUploadHelper {
 	}
 
 	public UploadServiceErrorDetailsDTO validateFinanceCustomerDelete(
-			String[] data, String userId, RevenueCustomerMappingT finance) {
+		String[] data, String userId, RevenueCustomerMappingT finance) {
 
-//		String financeCustomerName = data[6];
-//		String financeIou = data[7];
-//		String financeGeography = data[8];
 		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
 
-		//List<RevenueCustomerMappingT> financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName,financeGeography,financeIou);
 		RevenueCustomerMappingT financeCustomers = revenueRepository.findOne(Long.parseLong(revenueCustomerMapId));
 		if (financeCustomers != null) {
 			if(finance!=null){
@@ -143,8 +146,80 @@ public class FinanceCustomerMappingUploadHelper {
 
 	public UploadServiceErrorDetailsDTO validateFinanceCustomerUpdate(
 			String[] data, String userId, RevenueCustomerMappingT finance) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		// Get List of geographies from DB for validating the geographies which
+		// comes from the sheet
+		mapOfGeographyMappingT = mapOfGeographyMappingT != null ? mapOfGeographyMappingT
+				: commonHelper.getGeographyMappingT();
 
+		// Get List of IOU from DB for validating the IOU which comes from the
+		// sheet
+		mapOfIouMappingT = mapOfIouMappingT != null ? mapOfIouMappingT
+				: commonHelper.getIouMappingT();
+
+		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
+
+		String masterCustomerName = data[3];
+		String financeCustomerName = data[6];
+		String financeIou = data[7];
+		String financeGeography = data[8];
+		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
+
+		int rowNumber = Integer.parseInt(data[0]) + 1;		
+		CustomerMasterT customer = customerRepository.findByCustomerName(masterCustomerName);
+
+		if(!StringUtils.isEmpty(revenueCustomerMapId)){
+			RevenueCustomerMappingT financeCustomer = revenueRepository
+					.findOne(Long.parseLong(revenueCustomerMapId));
+			if (financeCustomer == null) {
+				error.setRowNumber(rowNumber);
+				error.setMessage("Finance customer not found,hence it cannot be updated");
+
+			} else {
+				if(financeCustomer.isActive()){
+					finance.setCustomerId(customer.getCustomerId());
+					finance.setRevenueCustomerMapId(Long.parseLong(revenueCustomerMapId));
+					if (!StringUtils.isEmpty(financeCustomerName)) {
+						finance.setFinanceCustomerName(financeCustomerName);
+					} else {
+						error.setRowNumber(rowNumber);
+						error.setMessage("financeCustomerName Is Mandatory; ");
+					}
+
+
+					if (!StringUtils.isEmpty(financeIou)
+							&& mapOfIouMappingT.containsKey(financeIou)) {
+						finance.setFinanceIou(financeIou);;
+					} else {
+						error.setRowNumber(rowNumber);
+						error.setMessage("financeIou Is Mandatory; ");
+
+					}
+					if (!StringUtils.isEmpty(financeGeography)
+							&& mapOfGeographyMappingT.containsKey(financeGeography)) {
+						finance.setCustomerGeography(financeGeography);
+
+					} else {
+						error.setRowNumber(rowNumber);
+						error.setMessage("financeGeography Is Mandatory; ");
+
+					}
+					//check for inactive records and log 
+					try {
+						revenueUploadService.validateInactiveIndicators(finance);
+					} catch(DestinationException e) {
+						error.setRowNumber(rowNumber);
+						error.setMessage(e.getMessage());
+					}
+
+				} else {
+					error.setRowNumber(rowNumber);
+					error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
+				}
+			}
+		} else {
+			error.setRowNumber(rowNumber);
+			error.setMessage("Revenue Customer Map Id cannot be empty for Update");
+		}
+		return error;
+	}
 }

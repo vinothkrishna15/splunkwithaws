@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
@@ -14,6 +15,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,7 @@ import com.tcs.destination.bean.UploadStatusDTO;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
+import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
@@ -37,7 +40,6 @@ import com.tcs.destination.utils.ContactsUploadConstants;
 import com.tcs.destination.utils.CustomerUploadConstants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
-import com.tcs.destination.utils.StringUtils;
 
 /**
  *This service handles the revenue upload operations
@@ -62,6 +64,12 @@ public class RevenueUploadService {
 	GeographyRepository geographyRepository;
 	
 	@Autowired
+	private IouRepository iouRepository;
+
+	@Autowired
+	private GeographyRepository geoRepository;
+
+	@Autowired
 	RevenueCustomerMappingTRepository revenueCustomerMappingTRepository;
 
 	Map<String, String> mapOfCustomerNamesT = null;
@@ -76,7 +84,7 @@ public class RevenueUploadService {
 
 	public UploadStatusDTO upload(MultipartFile file, String userId)
 			throws Exception {
-		 logger.debug("Begin: inside upload() of RevenueUploadService");
+		logger.debug("Begin: inside upload() of RevenueUploadService");
 		Workbook workbook = ExcelUtils.getWorkBook(file);
 		UploadStatusDTO uploadStatus = new UploadStatusDTO();
 		uploadStatus.setStatusFlag(true);
@@ -135,7 +143,7 @@ public class RevenueUploadService {
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
-		 logger.debug("End: inside upload() of RevenueUploadService");
+		logger.debug("End: inside upload() of RevenueUploadService");
 		return uploadStatus;
 
 	}
@@ -145,14 +153,14 @@ public class RevenueUploadService {
 	 * @return
 	 */
 	private Map<String, String> getCustomerNamesTMappingT() {
-		 logger.debug("Begin: inside getCustomerNamesTMappingT() of RevenueUploadService");
+		logger.debug("Begin: inside getCustomerNamesTMappingT() of RevenueUploadService");
 		List<CustomerMasterT> listOfCustomerMappingT = null;
 		listOfCustomerMappingT = (List<CustomerMasterT>) customerRepository.findAll();
 		Map<String, String> customerMap = new HashMap<String, String>();
 		for (CustomerMasterT customerMasterT : listOfCustomerMappingT) {
 			customerMap.put(customerMasterT.getCustomerName(),customerMasterT.getGroupCustomerName());
 		}
-		 logger.debug("End: inside getCustomerNamesTMappingT() of RevenueUploadService");
+		logger.debug("End: inside getCustomerNamesTMappingT() of RevenueUploadService");
 		return customerMap;
 	}
 
@@ -162,7 +170,7 @@ public class RevenueUploadService {
 	 * @return
 	 */
 	private Map<String, IouCustomerMappingT> getIouCustomerMappingT() {
-		 logger.debug("Begin: inside getIouCustomerMappingT() of RevenueUploadService");
+		logger.debug("Begin: inside getIouCustomerMappingT() of RevenueUploadService");
 
 		List<IouCustomerMappingT> listOfIouCustomerMappingT = null;
 		listOfIouCustomerMappingT = (List<IouCustomerMappingT>) iouCustomerMappingRepository.findAll();
@@ -170,7 +178,7 @@ public class RevenueUploadService {
 		for (IouCustomerMappingT iouCustomerMappingT : listOfIouCustomerMappingT) {
 			iouMap.put(iouCustomerMappingT.getIou(), iouCustomerMappingT);
 		}
-		 logger.debug("End: inside getIouCustomerMappingT() of RevenueUploadService");
+		logger.debug("End: inside getIouCustomerMappingT() of RevenueUploadService");
 		return iouMap;
 	}
 
@@ -179,14 +187,14 @@ public class RevenueUploadService {
 	 * @return geographyMap
 	 */
 	private Map<String, GeographyMappingT> getGeographyMappingT() {
-		 logger.debug("Begin: inside getGeographyMappingT() of RevenueUploadService");
+		logger.debug("Begin: inside getGeographyMappingT() of RevenueUploadService");
 		List<GeographyMappingT> listOfGeographyMappingT = null;
 		listOfGeographyMappingT = (List<GeographyMappingT>) geographyRepository.findAll();
 		Map<String, GeographyMappingT> geographyMap = new HashMap<String, GeographyMappingT>();
 		for (GeographyMappingT geographyMappingT : listOfGeographyMappingT) {
 			geographyMap.put(geographyMappingT.getGeography(), geographyMappingT);
 		}
-		 logger.debug("End: inside getGeographyMappingT() of RevenueUploadService");
+		logger.debug("End: inside getGeographyMappingT() of RevenueUploadService");
 		return geographyMap;
 	}
 
@@ -200,7 +208,7 @@ public class RevenueUploadService {
 	 */
 	private RevenueCustomerMappingT constructRevenueCustomerMappingT(List<String> listOfCellValues,String userId, String action) throws Exception {
 		RevenueCustomerMappingT revenueT = null;
-		 logger.debug("Begin: inside constructRevenueCustomerMappingT() of RevenueUploadService");
+		logger.debug("Begin: inside constructRevenueCustomerMappingT() of RevenueUploadService");
 		if ((listOfCellValues.size() > 0)) {
 			revenueT = new RevenueCustomerMappingT();
 
@@ -253,93 +261,107 @@ public class RevenueUploadService {
 			else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Finanace Geography NOT Found");
 			}
-			} 
-		 logger.debug("End: inside constructRevenueCustomerMappingT() of RevenueUploadService");
-			return revenueT;
-		}
+		} 
+		logger.debug("End: inside constructRevenueCustomerMappingT() of RevenueUploadService");
+		return revenueT;
+	}
 
-		/**
-		 * This method iterates the given row for values
-		 * 
-		 * @param row
-		 * @return
-		 * @throws Exception
-		 */
-		private List<String> iterateRow(Row row, int columnnCount) throws Exception{
-			List<String> listOfCellValues = new ArrayList<String>();
-			 logger.debug("Begin: inside iterateRow() of RevenueUploadService");
-			for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
+	/**
+	 * This method iterates the given row for values
+	 * 
+	 * @param row
+	 * @return
+	 * @throws Exception
+	 */
+	private List<String> iterateRow(Row row, int columnnCount) throws Exception{
+		List<String> listOfCellValues = new ArrayList<String>();
+		logger.debug("Begin: inside iterateRow() of RevenueUploadService");
+		for (int cellCount = 0; cellCount < columnnCount; cellCount++) {
 
-				Cell cell = row.getCell(cellCount);
+			Cell cell = row.getCell(cellCount);
 
-				String value = getIndividualCellValue(cell);
+			String value = getIndividualCellValue(cell);
 
-				if (value != null) {
-					listOfCellValues.add(value.trim());
-				}
+			if (value != null) {
+				listOfCellValues.add(value.trim());
 			}
-			 logger.debug("End: inside iterateRow() of RevenueUploadService");
-			return listOfCellValues;
 		}
+		logger.debug("End: inside iterateRow() of RevenueUploadService");
+		return listOfCellValues;
+	}
 
-		/**
-		 * This method accepts a cell, checks the value and returns the response.
-		 * The default value sent is an empty string
-		 * @param cell
-		 * @return String
-		 */
-		private String getIndividualCellValue(Cell cell) {
+	/**
+	 * This method accepts a cell, checks the value and returns the response.
+	 * The default value sent is an empty string
+	 * @param cell
+	 * @return String
+	 */
+	private String getIndividualCellValue(Cell cell) {
 
-			String val = "";
-			if (cell != null) {
-				switch (cell.getCellType()) {
-				case Cell.CELL_TYPE_NUMERIC:
-					if (DateUtil.isCellDateFormatted(cell)) {
-						Date date = DateUtil
-								.getJavaDate(cell.getNumericCellValue());
-						String dateFmt = cell.getCellStyle().getDataFormatString();
-						val = new CellDateFormatter(dateFmt).format(date);
-					} else {
-						val = String.valueOf(cell.getNumericCellValue()).trim();
-					}
-					break;
-				case Cell.CELL_TYPE_STRING:
-					val = String.valueOf(cell.getStringCellValue());
-					break;
-				case Cell.CELL_TYPE_BLANK:
-					val = "";
-					break;
+		String val = "";
+		if (cell != null) {
+			switch (cell.getCellType()) {
+			case Cell.CELL_TYPE_NUMERIC:
+				if (DateUtil.isCellDateFormatted(cell)) {
+					Date date = DateUtil
+							.getJavaDate(cell.getNumericCellValue());
+					String dateFmt = cell.getCellStyle().getDataFormatString();
+					val = new CellDateFormatter(dateFmt).format(date);
+				} else {
+					val = String.valueOf(cell.getNumericCellValue()).trim();
 				}
-			} else {
+				break;
+			case Cell.CELL_TYPE_STRING:
+				val = String.valueOf(cell.getStringCellValue());
+				break;
+			case Cell.CELL_TYPE_BLANK:
 				val = "";
+				break;
 			}
-			return val;
-
+		} else {
+			val = "";
 		}
+		return val;
 
-		/**
-		 * This method validates Customer Master Sheet
-		 * @param workbook
-		 * @return boolean
-		 * @throws Exception
-		 */
-		private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
-			return ExcelUtils.isValidWorkbook(workbook,
-					OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
-					|| ExcelUtils.isValidWorkbook(workbook,
-							OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
+	}
+
+	/**
+	 * This method validates Customer Master Sheet
+	 * @param workbook
+	 * @return boolean
+	 * @throws Exception
+	 */
+	private boolean validateSheetForCustomer(Workbook workbook) throws Exception {
+		return ExcelUtils.isValidWorkbook(workbook,
+				OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 1)
+				|| ExcelUtils.isValidWorkbook(workbook,
+						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
+	}
+
+	public void save(List<RevenueCustomerMappingT> insertList) {
+		logger.debug("Inside save method of  Revenue Upload Service");
+		revenueCustomerMappingTRepository.save(insertList);
+
+	}
+
+	public void makeInactive(List<RevenueCustomerMappingT> deleteList) {
+		for(RevenueCustomerMappingT financeCustomer : deleteList){
+			financeCustomer.setActive(false);
+			revenueCustomerMappingTRepository.save(financeCustomer);
 		}
+	}
 
-		public void save(List<RevenueCustomerMappingT> insertList) {
-			logger.debug("Inside save method of  Revenue Upload Service");
-			revenueCustomerMappingTRepository.save(insertList);
-			
-		}
+	public void validateInactiveIndicators(RevenueCustomerMappingT finance) {
+		if(finance != null) {
+				String financeIou = finance.getFinanceIou();
+				if(StringUtils.isNotBlank(financeIou) && iouRepository.findByActiveTrueAndIou(financeIou) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue iou is inactive");
+				}
 
-		public void makeInactive(List<RevenueCustomerMappingT> deleteList) {
-			for(RevenueCustomerMappingT financeCustomer : deleteList){
-				financeCustomer.setActive(false);
-				revenueCustomerMappingTRepository.save(financeCustomer);
+				String geo = finance.getCustomerGeography();
+				if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue geography is inactive");
+				}
 		}
 	}
 }

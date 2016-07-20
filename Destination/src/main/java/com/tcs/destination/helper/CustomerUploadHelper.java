@@ -186,9 +186,7 @@ public class CustomerUploadHelper {
 				} else {
 					error.setRowNumber(rowNumber);
 					error.setMessage("MasterGoegraphy not found");
-
 				}
-
 			}
 			
 			//check for inactive records and log 

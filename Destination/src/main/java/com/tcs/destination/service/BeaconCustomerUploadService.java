@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.Cell;
@@ -31,6 +32,7 @@ import com.tcs.destination.data.repository.BeaconRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
+import com.tcs.destination.data.repository.IouRepository;
 import com.tcs.destination.enums.DocumentActionType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.ContactsUploadConstants;
@@ -38,7 +40,6 @@ import com.tcs.destination.utils.CustomerUploadConstants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.OpportunityUploadConstants;
-import com.tcs.destination.utils.StringUtils;
 
 @Service
 public class BeaconCustomerUploadService {
@@ -47,15 +48,21 @@ public class BeaconCustomerUploadService {
 
 	@Autowired
 	BeaconRepository beaconRepository;
-	
+
 	@Autowired
 	IouBeaconMappingTRepository iouBeaconMappingTRepository;
-	
+
 	@Autowired
 	BeaconCustomerMappingRepository beaconCustomerMappingRepository;
 
 	@Autowired
 	CustomerRepository customerRepository;
+
+	@Autowired
+	private IouRepository iouRepository;
+
+	@Autowired
+	private GeographyRepository geoRepository;
 
 	@Autowired
 	GeographyRepository geographyRepository;
@@ -101,7 +108,6 @@ public class BeaconCustomerUploadService {
 
 			int rowCount = 0;
 			List<String> listOfCellValues = null;
-
 			Iterator<Row> rowIterator = sheet.iterator();
 
 			while (rowIterator.hasNext()&& rowCount <= sheet.getLastRowNum()) {
@@ -123,24 +129,18 @@ public class BeaconCustomerUploadService {
 						if (uploadStatus.isStatusFlag()) {
 							uploadStatus.setStatusFlag(false);
 						}
-
 						UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
 						error.setRowNumber(rowCount + 1);
 						error.setMessage(e.getMessage());
-
 						uploadStatus.getListOfErrors().add(error);
 					}
-
 				}
 				rowCount++;
 			}
 		} else {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, ContactsUploadConstants.VALIDATION_ERROR_MESSAGE);
 		}
-
 		return uploadStatus;
-
 	}
 
 	private Map<String, String> getCustomerNamesTMappingT() {
@@ -186,7 +186,6 @@ public class BeaconCustomerUploadService {
 	 * @throws Exception
 	 */
 	private BeaconCustomerMappingT constructBeaconMappingTForCustomer(List<String> listOfCellValues,String userId, String action) throws Exception {
-		//CustomerMasterT customerT = null; 
 		BeaconCustomerMappingT beaconT = null;
 		if ((listOfCellValues.size() > 0)) {
 			beaconT = new BeaconCustomerMappingT();
@@ -195,7 +194,7 @@ public class BeaconCustomerUploadService {
 			if(!StringUtils.isEmpty(listOfCellValues.get(2))){
 				if(mapOfCustomerNamesT.containsKey(listOfCellValues.get(2))){
 					CustomerMasterT customerMasterT=customerRepository.findByCustomerName(listOfCellValues.get(2));
-				    beaconT.setCustomerId(customerMasterT.getCustomerId());
+					beaconT.setCustomerId(customerMasterT.getCustomerId());
 				}
 				else {
 					throw new DestinationException(HttpStatus.NOT_FOUND, "Customer Name NOT Found in master table");
@@ -207,8 +206,8 @@ public class BeaconCustomerUploadService {
 
 			// BEACON_CUSTOMER_NAME
 			if(!StringUtils.isEmpty(listOfCellValues.get(5))){
-					beaconT.setBeaconCustomerName(listOfCellValues.get(5));
-					logger.info("BEACON_CUSTOMER_NAME"+listOfCellValues.get(5));
+				beaconT.setBeaconCustomerName(listOfCellValues.get(5));
+				logger.info("BEACON_CUSTOMER_NAME"+listOfCellValues.get(5));
 			}
 			else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Beacon Customer Name NOT Found in master table");
@@ -320,7 +319,7 @@ public class BeaconCustomerUploadService {
 	public void save(List<BeaconCustomerMappingT> insertList) {
 		logger.debug("Inside save method of Beacon Customer Upload Service");
 		beaconCustomerMappingRepository.save(insertList);
-		
+
 	}
 
 	public void makeInactive(List<BeaconCustomerMappingT> deleteList) {
@@ -330,4 +329,17 @@ public class BeaconCustomerUploadService {
 		}
 	}
 
+	public void validateInactiveIndicators(BeaconCustomerMappingT beacon) {
+		if(beacon != null) {
+			String beaconIou = beacon.getBeaconIou();
+			if(StringUtils.isNotBlank(beaconIou) && iouRepository.findByActiveTrueAndIou(beaconIou) == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon iou is inactive");
+			}
+
+			String geo = beacon.getCustomerGeography();
+			if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon geography is inactive");
+			}
+		}
+	}
 }
