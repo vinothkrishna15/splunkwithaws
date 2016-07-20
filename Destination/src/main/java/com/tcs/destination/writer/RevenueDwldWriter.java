@@ -142,6 +142,9 @@ public class RevenueDwldWriter implements ItemWriter<RevenueCustomerMappingT>,
 				
 				Cell active = row.createCell(8);//TODO inactive indicator - adding a column for active flag - done
 				active.setCellValue(finance.isActive());
+				
+				Cell revenueCustomerMapId = row.createCell(9);
+				revenueCustomerMapId.setCellValue(finance.getRevenueCustomerMapId());
 
 				// Increment row counter
 				rowCount++;
