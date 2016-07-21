@@ -62,7 +62,6 @@ import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
-import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -718,8 +717,7 @@ public class UserService {
 				UserGoalsT goalG5 = goalG5List.get(0);
 				goalG5.setTargetValue(targetValueInExcel.multiply(new BigDecimal(5)));
 				UserGoalsT savedGoal = userGoalsRepository.save(goalG5);
-				logger.info(userIdGoalSheet + " - g5 - multiplied value : " + savedGoal.getTargetValue().toString());
-				
+				logger.info("{}  - g5 - multiplied value :  {}",userIdGoalSheet , savedGoal.getTargetValue().toString());
 				}
 			}
 		}
@@ -753,7 +751,6 @@ public class UserService {
 				userGoalT.setCreatedModifiedBy(createdModifiedBy);
 				userGoalsRepository.save(userGoalT);
 			}
-
 		}
 		}
 	}

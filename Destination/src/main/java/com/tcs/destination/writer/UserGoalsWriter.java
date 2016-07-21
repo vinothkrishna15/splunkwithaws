@@ -5,21 +5,15 @@ import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.WriteListener;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
@@ -29,9 +23,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.GoalMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
-import com.tcs.destination.bean.UserAccessPrivilegeDTO;
 import com.tcs.destination.bean.UserGoalsT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
@@ -43,7 +35,6 @@ import com.tcs.destination.helper.UserUploadHelper;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
-import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
 
@@ -230,6 +221,7 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 			this.stepExecution = stepExecution;
 			ExecutionContext jobContext = stepExecution.getJobExecution().getExecutionContext();
 			usersList=(List<UserT>)jobContext.get("UsersList");
+			
             userService.insertDefaultGoals(usersList,request.getUserT().getUserId());
          }
 		catch(Exception e)
@@ -282,7 +274,6 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 	@Override
 	public void onWritePossible() throws IOException 
 	{
-		// TODO Auto-generated method stub
 
 	}
 
