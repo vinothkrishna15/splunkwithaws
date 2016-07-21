@@ -109,7 +109,7 @@ public class FinanceCustomerMappingUploadHelper {
 				}
 			} else {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Finance Customer Name already exists");
+				error.setMessage("Finance Customer details already exists");
 			}
 		}
 		return error;
@@ -177,6 +177,8 @@ public class FinanceCustomerMappingUploadHelper {
 
 		int rowNumber = Integer.parseInt(data[0]) + 1;		
 		CustomerMasterT customer = customerRepository.findByCustomerName(masterCustomerName);
+		// to find the uniqueness of the primary key (here composite key)
+		List<RevenueCustomerMappingT> financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(financeCustomerName,financeGeography,financeIou);
 
 		if(!StringUtils.isEmpty(revenueCustomerMapId)){
 			RevenueCustomerMappingT financeCustomer = revenueRepository
@@ -186,50 +188,56 @@ public class FinanceCustomerMappingUploadHelper {
 				error.setMessage("Finance customer details not found for the given map id ,hence it cannot be updated");
 
 			} else {
-				if(financeCustomer.isActive()){
-					finance.setCustomerId(customer.getCustomerId());
-					finance.setRevenueCustomerMapId(Long.parseLong(revenueCustomerMapId));
-					if (!StringUtils.isEmpty(financeCustomerName)) {
-						finance.setFinanceCustomerName(financeCustomerName);
+				if (financeCustomers.isEmpty()) {
+					if(financeCustomer.isActive()){
+						finance.setCustomerId(customer.getCustomerId());
+						finance.setRevenueCustomerMapId(Long.parseLong(revenueCustomerMapId));
+						if (!StringUtils.isEmpty(financeCustomerName)) {
+							finance.setFinanceCustomerName(financeCustomerName);
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("financeCustomerName Is Mandatory; ");
+						}
+
+
+						if (!StringUtils.isEmpty(financeIou)
+								&& mapOfIouMappingT.containsKey(financeIou)) {
+							finance.setFinanceIou(financeIou);;
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("financeIou Is Mandatory; ");
+						}
+
+						if (!StringUtils.isEmpty(financeGeography)
+								&& mapOfGeographyMappingT.containsKey(financeGeography)) {
+							finance.setCustomerGeography(financeGeography);
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("financeGeography Is Mandatory; ");
+						}
+
+						if (!StringUtils.isEmpty(active)) {
+							finance.setActive(Boolean.parseBoolean(active));
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("active Is Mandatory; ");
+						}
+						//check for inactive records and log 
+						try {
+							revenueUploadService.validateInactiveIndicators(finance);
+						} catch(DestinationException e) {
+							error.setRowNumber(rowNumber);
+							error.setMessage(e.getMessage());
+						}
+
 					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage("financeCustomerName Is Mandatory; ");
+						error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
 					}
-
-
-					if (!StringUtils.isEmpty(financeIou)
-							&& mapOfIouMappingT.containsKey(financeIou)) {
-						finance.setFinanceIou(financeIou);;
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("financeIou Is Mandatory; ");
-					}
-
-					if (!StringUtils.isEmpty(financeGeography)
-							&& mapOfGeographyMappingT.containsKey(financeGeography)) {
-						finance.setCustomerGeography(financeGeography);
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("financeGeography Is Mandatory; ");
-					}
-
-					if (!StringUtils.isEmpty(active)) {
-						finance.setActive(Boolean.parseBoolean(active));
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("active Is Mandatory; ");
-					}
-					//check for inactive records and log 
-					try {
-						revenueUploadService.validateInactiveIndicators(finance);
-					} catch(DestinationException e) {
-						error.setRowNumber(rowNumber);
-						error.setMessage(e.getMessage());
-					}
-
-				} else {
+				}
+				else {
 					error.setRowNumber(rowNumber);
-					error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
+					error.setMessage("Finance Customer details already exists");
 				}
 			}
 		} else {

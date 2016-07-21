@@ -200,6 +200,8 @@ public class BeaconCustomerMappingUploadHelper {
 
 		int rowNumber = Integer.parseInt(data[0]) + 1;		
 		CustomerMasterT customer = customerRepository.findByCustomerName(masterCustomerName);
+		// to find the uniqueness of the primary key (here composite key)
+		List<BeaconCustomerMappingT> beaconCustomers = beaconCustomerMappingRepository.checkBeaconMappingPK(beaconCustomerName, beaconGeography, beaconIou);
 
 		if(!StringUtils.isEmpty(beaconcustomerMapId)){
 			BeaconCustomerMappingT beaconCustomer = beaconCustomerMappingRepository
@@ -209,50 +211,56 @@ public class BeaconCustomerMappingUploadHelper {
 				error.setMessage("Beacon customer not found for the beacon map id ,hence it cannot be updated");
 
 			} else {
-				if(beaconCustomer.isActive()){
-					beacon.setCustomerId(customer.getCustomerId());
-					beacon.setBeaconCustomerMapId(Long.parseLong(beaconcustomerMapId));
-					if (!StringUtils.isEmpty(beaconCustomerName)) {
-						beacon.setBeaconCustomerName(beaconCustomerName);
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("beaconCustomerName Is Mandatory; ");
-					}
+				if (beaconCustomers.isEmpty()) {
+					if(beaconCustomer.isActive()){
+						beacon.setCustomerId(customer.getCustomerId());
+						beacon.setBeaconCustomerMapId(Long.parseLong(beaconcustomerMapId));
+						if (!StringUtils.isEmpty(beaconCustomerName)) {
+							beacon.setBeaconCustomerName(beaconCustomerName);
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("beaconCustomerName Is Mandatory; ");
+						}
 
-					if (!StringUtils.isEmpty(beaconIou)
-							&& mapOfIouMappingT.containsKey(beaconIou)) {
-						beacon.setBeaconIou(beaconIou);
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("beaconIou Is Mandatory; ");
-					}
-					if (!StringUtils.isEmpty(beaconGeography)
-							&& mapOfGeographyMappingT.containsKey(beaconGeography)) {
-						beacon.setCustomerGeography(beaconGeography);
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("beaconGeography Is Mandatory; ");
-					}
-					if (!StringUtils.isEmpty(active)){
-						beacon.setActive(Boolean.parseBoolean(active));
-					} else {
-						error.setRowNumber(rowNumber);
-						error.setMessage("active Is Mandatory; ");
-					}
-					//check for inactive records and log 
-					try {
-						beaconCustomerUploadService.validateInactiveIndicators(beacon);
-					} catch(DestinationException e) {
-						error.setRowNumber(rowNumber);
-						error.setMessage(e.getMessage());
-					}
+						if (!StringUtils.isEmpty(beaconIou)
+								&& mapOfIouMappingT.containsKey(beaconIou)) {
+							beacon.setBeaconIou(beaconIou);
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("beaconIou Is Mandatory; ");
+						}
+						if (!StringUtils.isEmpty(beaconGeography)
+								&& mapOfGeographyMappingT.containsKey(beaconGeography)) {
+							beacon.setCustomerGeography(beaconGeography);
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("beaconGeography Is Mandatory; ");
+						}
+						if (!StringUtils.isEmpty(active)){
+							beacon.setActive(Boolean.parseBoolean(active));
+						} else {
+							error.setRowNumber(rowNumber);
+							error.setMessage("active Is Mandatory; ");
+						}
+						//check for inactive records and log 
+						try {
+							beaconCustomerUploadService.validateInactiveIndicators(beacon);
+						} catch(DestinationException e) {
+							error.setRowNumber(rowNumber);
+							error.setMessage(e.getMessage());
+						}
 
-				} else {
+					} else {
+						error.setRowNumber(rowNumber);
+						error.setMessage("Beacon Customer is inactive and cannot be updated");
+					}
+				}
+				else{
 					error.setRowNumber(rowNumber);
-					error.setMessage("Beacon Customer is inactive and cannot be updated");
+					error.setMessage("Beacon Customer details already exists");
 				}
 			}
-		} else {
+		}else {
 			error.setRowNumber(rowNumber);
 			error.setMessage("Beacon Customer map Id cannot be empty for update");
 		}
