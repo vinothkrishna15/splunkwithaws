@@ -21,6 +21,11 @@ import com.tcs.destination.service.BeaconCustomerUploadService;
 import com.tcs.destination.service.RevenueUploadService;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * Class to validate the finance details before inserting / deleting / updating into DB
+ * @author tcs2
+ * 2016
+ */
 @Component("financeCustomerMappingUploadHelper")
 public class FinanceCustomerMappingUploadHelper {
 
@@ -35,7 +40,7 @@ public class FinanceCustomerMappingUploadHelper {
 
 	@Autowired
 	CustomerRepository customerRepository;
-	
+
 	@Autowired
 	RevenueUploadService revenueUploadService;
 
@@ -111,24 +116,29 @@ public class FinanceCustomerMappingUploadHelper {
 	}
 
 	public UploadServiceErrorDetailsDTO validateFinanceCustomerDelete(
-		String[] data, String userId, RevenueCustomerMappingT finance) {
+			String[] data, String userId, RevenueCustomerMappingT finance) {
 
 		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-
-		RevenueCustomerMappingT financeCustomers = revenueRepository.findOne(Long.parseLong(revenueCustomerMapId));
-		if (financeCustomers != null) {
-			if(finance!=null){
-				try {
-					BeanUtils.copyProperties(finance, financeCustomers);
-				} catch (Exception e) {
-					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("Backend Error while cloning");
-				}
-			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Finance Customer Mapping not found");
+		if(!StringUtils.isEmpty(revenueCustomerMapId)){
+			RevenueCustomerMappingT financeCustomers = revenueRepository.findOne(Long.parseLong(revenueCustomerMapId));
+			if (financeCustomers != null) {
+				if(finance!=null){
+					try {
+						BeanUtils.copyProperties(finance, financeCustomers);
+					} catch (Exception e) {
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Backend Error while cloning");
+					}
+				} 
 			}
+			else{
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Finance Customer details not found for the given map id for deletion");
+			}
+		}else{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Finance Customer map id cannot be empty for deletion");
 		}
 		return error;
 	}
@@ -162,6 +172,7 @@ public class FinanceCustomerMappingUploadHelper {
 		String financeCustomerName = data[6];
 		String financeIou = data[7];
 		String financeGeography = data[8];
+		String active = data[9];
 		String revenueCustomerMapId = validateAndRectifyValue(data[10]);
 
 		int rowNumber = Integer.parseInt(data[0]) + 1;		
@@ -172,7 +183,7 @@ public class FinanceCustomerMappingUploadHelper {
 					.findOne(Long.parseLong(revenueCustomerMapId));
 			if (financeCustomer == null) {
 				error.setRowNumber(rowNumber);
-				error.setMessage("Finance customer not found,hence it cannot be updated");
+				error.setMessage("Finance customer details not found for the given map id ,hence it cannot be updated");
 
 			} else {
 				if(financeCustomer.isActive()){
@@ -192,16 +203,21 @@ public class FinanceCustomerMappingUploadHelper {
 					} else {
 						error.setRowNumber(rowNumber);
 						error.setMessage("financeIou Is Mandatory; ");
-
 					}
+
 					if (!StringUtils.isEmpty(financeGeography)
 							&& mapOfGeographyMappingT.containsKey(financeGeography)) {
 						finance.setCustomerGeography(financeGeography);
-
 					} else {
 						error.setRowNumber(rowNumber);
 						error.setMessage("financeGeography Is Mandatory; ");
+					}
 
+					if (!StringUtils.isEmpty(active)) {
+						finance.setActive(Boolean.parseBoolean(active));
+					} else {
+						error.setRowNumber(rowNumber);
+						error.setMessage("active Is Mandatory; ");
 					}
 					//check for inactive records and log 
 					try {

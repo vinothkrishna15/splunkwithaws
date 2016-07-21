@@ -25,11 +25,6 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 
-	
-	
-	
-	
-	
 		  <batch:step id="connectDwldCustomerProcessing" next="connectDwldPartnerProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="connectDwldCustomerReader" writer="connectDwldCustomerWriter"
@@ -92,8 +87,6 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 			</batch:tasklet>
 		</batch:step>
 		
-		
-		
 		<batch:step id="connectDwldConnectTypeProcessing" next="connectDwldTimeZoneDwldProcessing">
 			<batch:tasklet>
 				<batch:chunk reader="connectDwldConnectTypeDwldReader" writer="connectDwldConnectTypeDwldWriter"
@@ -101,7 +94,6 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 					retry-limit="0" />
 			</batch:tasklet>
 		</batch:step>
-		
 		
 		 <batch:step id="connectDwldTimeZoneDwldProcessing" next="connectDownloadPreprocess">
 			<batch:tasklet>
@@ -166,7 +158,6 @@ http://www.springframework.org/schema/task http://www.springframework.org/schema
 		<property name="repository" ref="connectTypeRepository" />
 		<property name="methodName" value="findAll" />
 	</bean>
-		
 		
 	<bean id="connectDwldTimeZoneDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="timezoneMappingRepository" />

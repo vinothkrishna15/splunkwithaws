@@ -12,7 +12,7 @@
 	<batch:job id="customerUpload">
 		<batch:step id="customerUploadPreprocess" next="customerStepDecider">
 			<batch:tasklet>
-				<ref bean="customerPreprocessor" />
+				<ref bean="customerUploadPreprocessor" />
 			</batch:tasklet>
 		</batch:step>
 
@@ -41,7 +41,7 @@
 			</batch:tasklet>
 		</batch:step>
 
-		<batch:decision id="customerStepDecider" decider="customerFlowdecider">
+		<batch:decision id="customerStepDecider" decider="customerUploadDecider">
 			<batch:next on="PREPROCESS" to="customerUploadPreprocess" />
 			<batch:next on="CUSTOMER_PROCESSING" to="customerProcessing" />
 			<batch:end on="END" />
@@ -101,9 +101,12 @@
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
 		<property name="uploadErrorReport" ref="uploadErrorReport" />
 	</bean>
+	
+	<!-- Preprocessor -->
+	<bean id = "customerUploadPreprocessor" class="com.tcs.destination.tasklet.CustomerUploadPreprocessor" scope="step"></bean>
 
 	<!-- Decider -->
-	<bean id="customerFlowdecider" class="com.tcs.destination.decider.CustomerDecider" />
+	<bean id="customerUploadDecider" class="com.tcs.destination.decider.CustomerDecider" />
 
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport" />
 

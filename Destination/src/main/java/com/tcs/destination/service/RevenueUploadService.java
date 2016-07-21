@@ -338,12 +338,20 @@ public class RevenueUploadService {
 						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
 	}
 
+	/**
+	 * to insert a list of revenue details
+	 * @param insertList
+	 */
 	public void save(List<RevenueCustomerMappingT> insertList) {
 		logger.debug("Inside save method of  Revenue Upload Service");
 		revenueCustomerMappingTRepository.save(insertList);
 
 	}
 
+	/**
+	 * To delete a list of revenue details
+	 * @param deleteList
+	 */
 	public void makeInactive(List<RevenueCustomerMappingT> deleteList) {
 		for(RevenueCustomerMappingT financeCustomer : deleteList){
 			financeCustomer.setActive(false);
@@ -351,6 +359,10 @@ public class RevenueUploadService {
 		}
 	}
 
+	/**
+	 * To validate whether finance iou and finance geography are inactive
+	 * @param finance
+	 */
 	public void validateInactiveIndicators(RevenueCustomerMappingT finance) {
 		if(finance != null) {
 				String financeIou = finance.getFinanceIou();

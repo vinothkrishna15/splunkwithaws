@@ -1,7 +1,6 @@
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;

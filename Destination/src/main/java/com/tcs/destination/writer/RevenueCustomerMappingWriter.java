@@ -34,6 +34,11 @@ import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.StringUtils;
 
+/**
+ * Writer class which actually aids in writing into DB 
+ * @author tcs2
+ *
+ */
 public class RevenueCustomerMappingWriter implements ItemWriter<String[]>,
 StepExecutionListener, WriteListener {
 
@@ -55,19 +60,16 @@ StepExecutionListener, WriteListener {
 	@Override
 	public void onWritePossible() throws IOException {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onError(Throwable throwable) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -107,7 +109,6 @@ StepExecutionListener, WriteListener {
 		} catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
-
 		return ExitStatus.COMPLETED;
 	}
 

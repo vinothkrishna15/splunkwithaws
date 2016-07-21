@@ -316,12 +316,20 @@ public class BeaconCustomerUploadService {
 						OpportunityUploadConstants.VALIDATOR_SHEET_NAME, 4, 2);
 	}
 
+	/**
+	 * method to insert a list of beacon customers
+	 * @param insertList
+	 */
 	public void save(List<BeaconCustomerMappingT> insertList) {
 		logger.debug("Inside save method of Beacon Customer Upload Service");
 		beaconCustomerMappingRepository.save(insertList);
 
 	}
 
+	/**
+	 * method to delete a list of beacon customers
+	 * @param deleteList
+	 */
 	public void makeInactive(List<BeaconCustomerMappingT> deleteList) {
 		for(BeaconCustomerMappingT beaconCustomer : deleteList){
 			beaconCustomer.setActive(false);
@@ -329,6 +337,10 @@ public class BeaconCustomerUploadService {
 		}
 	}
 
+	/**
+	 * to check if beacon iou and beacon geography are inactive
+	 * @param beacon
+	 */
 	public void validateInactiveIndicators(BeaconCustomerMappingT beacon) {
 		if(beacon != null) {
 			String beaconIou = beacon.getBeaconIou();
