@@ -1,7 +1,6 @@
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;
@@ -23,19 +22,14 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
-import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
-import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.Operation;
 import com.tcs.destination.enums.RequestStatus;
-import com.tcs.destination.helper.PartnerUploadHelper;
 import com.tcs.destination.helper.UserUploadHelper;
-import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.service.UserService;
 import com.tcs.destination.utils.Constants;
@@ -268,7 +262,6 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 	@Override
 	public void onWritePossible() throws IOException 
 	{
-		// TODO Auto-generated method stub
 
 	}
 

@@ -196,7 +196,6 @@ public class UserNotificationSettingsWriter implements ItemWriter<String[]>, Ste
 	@Override
 	public void onWritePossible() throws IOException 
 	{
-		// TODO Auto-generated method stub
 		
 	}
 
