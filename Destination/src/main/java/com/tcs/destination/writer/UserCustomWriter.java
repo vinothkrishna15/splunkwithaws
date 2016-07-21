@@ -62,14 +62,16 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 
 	private UserRepository userRepository;
 
-	List<UserT> insertList = new ArrayList<UserT>();
-	List<UserT> updateList = new ArrayList<UserT>();
-	List<UserT> deleteList = new ArrayList<UserT>();
+	List<UserT> insertList;
+	List<UserT> updateList;
+	List<UserT> deleteList;
 
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
-
+		insertList = new ArrayList<UserT>();
+		updateList = new ArrayList<UserT>();
+		deleteList = new ArrayList<UserT>();
 
 		String operation = null; 
 		
@@ -143,20 +145,22 @@ public class UserCustomWriter implements ItemWriter<String[]>, StepExecutionList
 				
 					
 				}
-				if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-
-					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-						userService.save(insertList);
-					} 
-					else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-						userService.updateUser(updateList);
-					}
-					else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
-						userService.deleteUser(deleteList);
-					}
-
-				}
+				
 			}
+		}
+		
+		if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
+
+			if (CollectionUtils.isNotEmpty(insertList)) {
+				userService.save(insertList);
+			} 
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
+				userService.updateUser(updateList);
+			}
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
+				userService.deleteUser(deleteList);
+			}
+
 		}
 	}
 

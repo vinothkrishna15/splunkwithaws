@@ -77,8 +77,9 @@ public class UserAccessPriviledgeSettingsWriter implements ItemWriter<String[]>,
 
         String operation = null; 
 
+        List<UserAccessPrivilegeDTO> insertList = new ArrayList<UserAccessPrivilegeDTO>();
     	for (String[] data: items) {
-    		List<UserAccessPrivilegeDTO> insertList = new ArrayList<UserAccessPrivilegeDTO>();
+    		
     		operation = (String) data[1];
     		if(operation!=null)
     		{
@@ -96,15 +97,17 @@ public class UserAccessPriviledgeSettingsWriter implements ItemWriter<String[]>,
     				}
 
     			}
-    			if (CollectionUtils.isNotEmpty(insertList)) {
-
-    				if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-    					userService.saveAccessPriviledgeSettings(insertList,usersList);
-    				} 
-
-    			}
+    			
     		}
     	}
+    	
+    	
+
+			if (CollectionUtils.isNotEmpty(insertList)) {
+				userService.saveAccessPriviledgeSettings(insertList,usersList);
+			} 
+
+		
     }
 
 
@@ -174,7 +177,7 @@ public class UserAccessPriviledgeSettingsWriter implements ItemWriter<String[]>,
     	}
     	catch(Exception e)
     	{
-    		System.out.println("Exception"+e);
+    		System.out.println("Exception" + e);
     	}
 
     }

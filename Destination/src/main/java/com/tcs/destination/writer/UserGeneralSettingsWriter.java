@@ -93,15 +93,17 @@ public class UserGeneralSettingsWriter implements ItemWriter<String[]>, StepExec
 					}
 
 				}
-				if (CollectionUtils.isNotEmpty(insertList)) {
-
-					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-						userService.saveGeneralSettings(insertList);
-					} 
-
-				}
+				
 			}
 		}
+		
+		
+
+			if (CollectionUtils.isNotEmpty(insertList)) {
+				userService.saveGeneralSettings(insertList);
+			} 
+
+		
 	}
 
 

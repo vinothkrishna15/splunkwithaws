@@ -78,6 +78,7 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
 		logger.debug("Inside write:");
+		
 
 		List<UserGoalsT> goalList = new ArrayList<UserGoalsT>();
 		List<UserGoalsT> goalUpdateList = new ArrayList<UserGoalsT>();
@@ -138,18 +139,20 @@ public class UserGoalsWriter implements ItemWriter<String[]>, StepExecutionListe
 					
 					}
 		    
-				if ((CollectionUtils.isNotEmpty(goalList)) || (CollectionUtils.isNotEmpty(goalUpdateList))) {
-
-					if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-						userService.saveUserGoalsData(goalList,usersList,request.getUserT().getUserId(),errorList);
-					} 
-
-					if (operation.equalsIgnoreCase(Operation.UPDATE.name())) {
-						userService.saveUserGoalsData(goalUpdateList,usersList,request.getUserT().getUserId(),errorList);
-					}
-
-				}
+				
 			}
+		}
+		
+		if ((CollectionUtils.isNotEmpty(goalList)) || (CollectionUtils.isNotEmpty(goalUpdateList))) {
+
+			if (CollectionUtils.isNotEmpty(goalList)) {
+				userService.saveUserGoalsData(goalList,usersList,request.getUserT().getUserId(),errorList);
+			} 
+
+			if (CollectionUtils.isNotEmpty(goalUpdateList)) {
+				userService.saveUserGoalsData(goalUpdateList,usersList,request.getUserT().getUserId(),errorList);
+			}
+
 		}
 	}
 
