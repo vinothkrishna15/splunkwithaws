@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -13,11 +16,13 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name="product_contact_link_t")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "productContactId")
 @NamedQuery(name="ProductContactLinkT.findAll", query="SELECT p FROM ProductContactLinkT p")
 public class ProductContactLinkT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="product_contact_id")
 	private String productContactId;
 
@@ -39,6 +44,8 @@ public class ProductContactLinkT implements Serializable {
 	@Column(name="product_id")
 	private String productId;
 	
+	
+
 	//bi-directional many-to-one association to ProductMasterT
 	@ManyToOne
 	@JoinColumn(name="product_id", insertable = false, updatable = false)
@@ -142,6 +149,14 @@ public class ProductContactLinkT implements Serializable {
 
 	public void setModifiedByUser(UserT modifiedByUser) {
 		this.modifiedByUser = modifiedByUser;
+	}
+	
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 
 }

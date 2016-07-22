@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,9 +29,14 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.http.HttpStatus;
 
+import com.tcs.destination.bean.ConnectSubSpLinkT;
+import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerContactLinkT;
+import com.tcs.destination.bean.SubSpMappingT;
+import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
@@ -41,6 +47,7 @@ import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.FileManager;
 import com.tcs.destination.utils.PropertyUtil;
+import com.tcs.destination.utils.StringUtils;
 /**
  * This CustomerContactDwldWriter class contains the functionality to writes Contact 
  * data into the workbook
@@ -62,7 +69,10 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 	private String filePath;
 	private FileInputStream fileInputStream;
 	private Map<String,CustomerMasterT> mapOfContactCustomerLinkT;
-	
+    private ContactCustomerLinkTRepository contactCustomerLinkTRepository;
+
+    private Map<String,List<ContactCustomerLinkT>> customerMap;
+    
 	public int getRowCount() {
 		return rowCount;
 	}
@@ -255,21 +265,23 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 					Row row = sheet.createRow(rowCount);
 
 					// Create new Cell and set cell value
-					Cell cellCustomerId = row.createCell(1);
-					cellCustomerId.setCellValue(ct.getContactId());
+					Cell cellContactId = row.createCell(1);
+					cellContactId.setCellValue(ct.getContactId());
 					
-					// Create new Cell and set cell value saturday modified
+					//Customer Name
+					String customerName = getCustomerName(ct.getContactId());
 					Cell cellCustomerName = row.createCell(2);
-					if(mapOfContactCustomerLinkT.containsKey(ct.getContactId())){
-					CustomerMasterT customerObj = mapOfContactCustomerLinkT.get(ct.getContactId());
-					cellCustomerName.setCellValue(customerObj.getCustomerName());
-					}
-					else {
-						throw new DestinationException(HttpStatus.NOT_FOUND, "customername NOT Found");
-					}
-				
-                    Cell cellCustomerContactType = row.createCell(3);
+					cellCustomerName.setCellValue(customerName);
+					
+					Cell cellCustomerContactType = row.createCell(3);
 					cellCustomerContactType.setCellValue(ct.getContactType());
+					
+					Cell cellEmployeeNumber = row.createCell(4);
+					if(ct.getEmployeeNumber()!=null)
+					{
+						cellEmployeeNumber.setCellValue(ct.getEmployeeNumber());
+					}
+					
 
 					Cell cellCustomerContactName = row.createCell(5);
 					cellCustomerContactName.setCellValue(ct.getContactName());
@@ -281,7 +293,17 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 					if(ct.getContactEmailId()!=null) {
 						cellCustomerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
-
+					
+					Cell cellCustomerContactTelephone = row.createCell(8);
+					if(ct.getContactTelephone()!=null) {
+						cellCustomerContactTelephone.setCellValue(ct.getContactTelephone());
+					}
+					
+					Cell cellCustomerContactLinkedIn = row.createCell(9);
+					if(ct.getContactLinkedinProfile()!=null) {
+						cellCustomerContactLinkedIn.setCellValue(ct.getContactLinkedinProfile());
+					}
+					
 					Cell active = row.createCell(10);//TODO inactive indicator - added a separate column for active flag - done
 					active.setCellValue(ct.isActive());
 					
@@ -293,6 +315,30 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 			}
 		}
 		
+	}
+	
+	private String getCustomerName(String contactId) {
+		StringBuffer customerBuffer = new StringBuffer("");
+		List<ContactCustomerLinkT> contactCustomerList = customerMap.get(contactId);	
+		if(contactCustomerList!=null){
+			for(ContactCustomerLinkT contactCustomerLinkT: contactCustomerList){
+				if(StringUtils.isEmpty(customerBuffer.toString())){
+					customerBuffer.append(contactCustomerLinkT.getCustomerMasterT().getCustomerName());
+				} else {
+					customerBuffer.append("," + contactCustomerLinkT.getCustomerMasterT().getCustomerName());
+				}
+			}
+		}
+		return customerBuffer.toString();
+	}
+
+	public ContactCustomerLinkTRepository getContactCustomerLinkTRepository() {
+		return contactCustomerLinkTRepository;
+	}
+
+	public void setContactCustomerLinkTRepository(
+			ContactCustomerLinkTRepository contactCustomerLinkTRepository) {
+		this.contactCustomerLinkTRepository = contactCustomerLinkTRepository;
 	}
 
 }

@@ -122,7 +122,7 @@ public class DataProcessingController {
 	//added for product master batch
 	private boolean isUploadRequestType(int type) {
 		boolean isUploadRequest = false;
-		if((type > 0 && type < 10) || type==20)   {
+		if((type > 0 && type < 25) || type==25)   {
 			isUploadRequest = true;
 		}
 		return isUploadRequest;
@@ -130,7 +130,7 @@ public class DataProcessingController {
 	
 	private boolean isDownloadRequestType(int type) {
 		boolean isDownloadRequest = false;
-		if((type > 9 && type < 19) || type==21)   {
+		if((type > 9 && type < 25) || type==25)   {
 			isDownloadRequest = true;
 		}
 		return isDownloadRequest;

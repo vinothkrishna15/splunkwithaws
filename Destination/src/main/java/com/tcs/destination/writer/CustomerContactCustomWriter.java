@@ -219,17 +219,17 @@ public class CustomerContactCustomWriter implements ItemWriter<String[]>,
 			
 			}
 		}
-		if ((CollectionUtils.isNotEmpty(contactList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-				contactService.save(contactList);
-			} 
-			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
+		   //for saving customer contact details
+			if (CollectionUtils.isNotEmpty(contactList)) {
+				contactService.saveContacts(contactList);
+			} //for updating customer contact details
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
 				contactService.updateContact(updateList);
-			}
-			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+			}//for deleting customer contact details
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
 				contactService.deleteContact(deleteList);
 			}
-		}
+		
 
 	}
 

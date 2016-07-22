@@ -156,13 +156,26 @@ public class Constants {
 	//added as part of partner changes 
 	public static final String PRODUCT_UPLOAD_SUBJECT = "Product upload request processed.";
 	public static final String PRODUCT_DOWNLOAD_SUBJECT = "Product download request processed.";
+	public static final String PRODUCT_CONTACT_UPLOAD_SUBJECT = "Product contact upload request processed.";
+	public static final String PRODUCT_CONTACT_DOWNLOAD_SUBJECT = "Product contact download request processed.";
 	public static final String PRODUCT_MASTER_SHEET = "Product Master";
+	public static final String PRODUCT_MASTER_REF_SHEET = "Product Master(Ref)";
 	public static final String XLS = ".xls";
 	public static final String PRODUCT_TEMPLATE_LOCATION_PROPERTY_NAME = "productSheetTemplate";
+	
+	
+	public static final String PARTNER_MASTER_UPLOAD_SUBJECT = "Partner upload request processed.";
+	public static final String PARTNER_MASTER_DOWNLOAD_SUBJECT = "Partner download request processed.";
+	public static final String PRODUCT_CONTACT_SHEET = "Product Contacts";
+    public static final String PRODUCT_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "productContactSheetTemplate";
+	
+	
 	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
+	public static final String PARTNER_SUBSP_TEMPLATE_SHEET_NAME = "Partner SubSp";
+	public static final String PARTNER_SUBSP_PRODUCT_TEMPLATE_SHEET_NAME = "Partner subsp Product";
 	public static final String PARTNER_MASTER_REF_PARTNER_SHEET_NAME = "Partner Master(Ref)";
 	public static final String PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contacts";
 	

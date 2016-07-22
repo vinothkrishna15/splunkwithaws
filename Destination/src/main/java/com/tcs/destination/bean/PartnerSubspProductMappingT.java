@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 
 
@@ -13,6 +16,7 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name="partner_subsp_product_mapping_t")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerSubspProductMappingId")
 @NamedQuery(name="PartnerSubspProductMappingT.findAll", query="SELECT p FROM PartnerSubspProductMappingT p")
 public class PartnerSubspProductMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -33,12 +37,12 @@ public class PartnerSubspProductMappingT implements Serializable {
 
 	@Column(name="partner_subsp_mapping_id")
 	private String partnerSubspMappingId;
-
+	
 	//bi-directional many-to-one association to PartnerSubSpMappingT
 	@ManyToOne
 	@JoinColumn(name="partner_subsp_mapping_id", insertable = false, updatable = false)
 	private PartnerSubSpMappingT partnerSubSpMappingT;
-
+	
 	// bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
 	@JoinColumn(name = "product_id", insertable = false, updatable = false)
@@ -46,7 +50,7 @@ public class PartnerSubspProductMappingT implements Serializable {
 
 	@Column(name="created_by")
 	private String createdBy;
-
+	
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_by", insertable = false, updatable = false)
@@ -54,7 +58,7 @@ public class PartnerSubspProductMappingT implements Serializable {
 
 	@Column(name="modified_by")
 	private String modifiedBy;
-
+	
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)

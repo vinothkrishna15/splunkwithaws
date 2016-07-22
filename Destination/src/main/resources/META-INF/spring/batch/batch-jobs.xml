@@ -47,6 +47,9 @@
     
     <import resource="/jobs/productsUpload-job.xml"/>
     <import resource="/jobs/productsDownload-job.xml"/>
-
+    <import resource="/jobs/partnerMasterUpload-job.xml" />
+    <import resource="/jobs/partnerMasterDownload-job.xml" />
+    <import resource="/jobs/productContactUpload-job.xml" />
+    <import resource="/jobs/productContactDownload-job.xml" />
 </beans>
 	

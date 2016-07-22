@@ -1,7 +1,12 @@
 package com.tcs.destination.bean;
 
 import java.io.Serializable;
+
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -12,6 +17,7 @@ import java.util.List;
  */
 @Entity
 @Table(name="partner_sub_sp_mapping_t")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerSubspMappingId")
 @NamedQuery(name="PartnerSubSpMappingT.findAll", query="SELECT p FROM PartnerSubSpMappingT p")
 public class PartnerSubSpMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -32,12 +38,12 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="partner_id")
 	private String partnerId;
-
+	
 	//bi-directional many-to-one association to PartnerMasterT
-	@ManyToOne
-	@JoinColumn(name="sub_sp_id", insertable = false, updatable = false)
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="sub_sp_id",insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
-
+	
 	//bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
 	@JoinColumn(name="partner_id", insertable = false, updatable = false)
@@ -45,7 +51,7 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="created_by")
 	private String createdBy;
-
+	
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_by", insertable = false, updatable = false)
@@ -53,15 +59,20 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="modified_by")
 	private String modifiedBy;
-
+	
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
 	private UserT modifiedByUser;
 
 	//bi-directional many-to-one association to PartnerSubspProductMappingT
-	@OneToMany(mappedBy="partnerSubSpMappingT")
+	@OneToMany(mappedBy="partnerSubSpMappingT", cascade = CascadeType.ALL)
 	private List<PartnerSubspProductMappingT> partnerSubspProductMappingTs;
+	
+	@Transient
+	private List<PartnerSubspProductMappingT> deletePartnerSubspProductMappingTs;
+
+	
 
 	public PartnerSubSpMappingT() {
 	}
@@ -72,6 +83,15 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	public void setPartnerSubspMappingId(String partnerSubspMappingId) {
 		this.partnerSubspMappingId = partnerSubspMappingId;
+	}
+
+	public List<PartnerSubspProductMappingT> getDeletePartnerSubspProductMappingTs() {
+		return deletePartnerSubspProductMappingTs;
+	}
+
+	public void setDeletePartnerSubspProductMappingTs(
+			List<PartnerSubspProductMappingT> deletePartnerSubspProductMappingTs) {
+		this.deletePartnerSubspProductMappingTs = deletePartnerSubspProductMappingTs;
 	}
 
 	public Timestamp getCreatedDatetime() {

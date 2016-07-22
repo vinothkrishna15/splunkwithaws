@@ -24,6 +24,9 @@ CrudRepository<PartnerMasterT, String> {
 	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
 	
+	@Query(value = "select partner_id,partner_name from partner_master_t", nativeQuery=true)
+    List<Object[]> findAllPartnerIdName();
+	
 
 	@Query(value = "select partner_id from partner_master_t p where p.partner_name=?1", nativeQuery = true)
 	String findPartnerIdByName(String partnername);
@@ -89,6 +92,9 @@ CrudRepository<PartnerMasterT, String> {
 	String findGeographyByPartnerId(String partnerId);
 
 	PartnerMasterT findByActiveTrueAndPartnerId(String partnerId);	
+	
+	@Query(value ="select * from partner_master_t where partner_name =?1",nativeQuery=true)
+    PartnerMasterT findPartnerByName(String partnerName);
 
 	// partner smart search
 

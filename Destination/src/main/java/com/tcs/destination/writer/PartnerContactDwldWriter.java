@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -27,9 +28,11 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.http.HttpStatus;
 
+import com.tcs.destination.bean.ConnectSubSpLinkT;
 import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.PartnerContactLinkT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
@@ -38,14 +41,16 @@ import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.DataProcessingService;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DateUtils;
+import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.StringUtils;
 
 /*
  * This class deals with writing the Partner contacts table data 
  * from database into an excel 
  * using batch processing
  */
-public class PartnerContactDwldWriter implements ItemWriter<PartnerContactLinkT>,
+public class PartnerContactDwldWriter implements ItemWriter<ContactT>,
 StepExecutionListener {
 
 	private static final Logger logger = LoggerFactory
@@ -70,6 +75,8 @@ StepExecutionListener {
 	private String fileServerPath;
 
 	private String template;
+	
+	private Map<String,List<PartnerContactLinkT>> partnerMap;
 
 
 	@Override
@@ -99,6 +106,7 @@ StepExecutionListener {
 			this.stepExecution = stepExecution;
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
+			partnerMap = (Map<String,List<PartnerContactLinkT>>) jobContext.get("partnerMap");
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 			String entity = dataProcessingService.getEntity(request
@@ -120,8 +128,8 @@ StepExecutionListener {
 			request.setFileName(fileName.toString());
 			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 			dataProcessingRequestRepository.save(request);
-
-			jobContext.put(REQUEST, request);
+            jobContext.put(REQUEST, request);
+			jobContext.remove("contactIdContactMap");
 			logger.info("End:inside beforeStep() of PartnerContactDwldWriter:");
 
 		} catch (Exception e) {
@@ -135,7 +143,7 @@ StepExecutionListener {
 	 * @see org.springframework.batch.item.ItemWriter#write(java.util.List)
 	 */
 	@Override
-	public void write(List<? extends PartnerContactLinkT> items) throws Exception {     
+	public void write(List<? extends ContactT> items) throws Exception {     
 		logger.info("Begin: Inside write method  of PartnerContactDwldWriter:");
 
 		if (rowCount == 1) {
@@ -151,7 +159,7 @@ StepExecutionListener {
 			} else if(fileExtension.equalsIgnoreCase("xlsx")){
 				workbook = new XSSFWorkbook(fileInputStream);
 			} else if(fileExtension.equalsIgnoreCase("xlsm")){
-				workbook = new XSSFWorkbook(fileInputStream);
+   				workbook = new XSSFWorkbook(fileInputStream);
 			}
 
 			sheet = workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME);
@@ -159,57 +167,74 @@ StepExecutionListener {
 
 		if(items!=null) {
 			
-			for (PartnerContactLinkT ct : items) {
+			for (ContactT ct : items) {
+				
+				if ((ct.getContactCategory().equals(EntityType.PARTNER.toString()) && 
+						(ct.getContactType().equals(ContactType.EXTERNAL.toString())))) { // For Customer Contact
+
 
 					// Create row with rowCount
 					Row row = sheet.createRow(rowCount);
+					
+					//Contact id
+					Cell contactId=row.createCell(1);
+					contactId.setCellValue(ct.getContactId());
+					
+					
+					//Partner Name
+					String partnerName = getPartnerName(ct.getContactId());
+					Cell cellPartnerName = row.createCell(2);
+					cellPartnerName.setCellValue(partnerName);
+					
 
-					// Create new Cell and set cell value
-					Cell cellPartnerName = row.createCell(1);
-					try {
-						 cellPartnerName.setCellValue(ct.getPartnerMasterT().getPartnerName().trim());
-                        } 
-					    catch(NullPointerException npe){
-						throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Partner Contact cannot exist without Partner");
+					Cell cellPartnerContactName = row.createCell(3);
+					cellPartnerContactName.setCellValue(ct.getContactName());
+
+
+					Cell cellPartnerContactRole = row.createCell(4);
+					cellPartnerContactRole.setCellValue(ct.getContactRole());
+
+					Cell cellPartnerContactEmailId = row.createCell(5);
+					if(ct.getContactEmailId()!=null) {
+						cellPartnerContactEmailId.setCellValue(ct.getContactEmailId());
 					}
 
-					Cell cellPartnerContactName = row.createCell(2);
-					cellPartnerContactName.setCellValue(ct.getContactT().getContactName());
-
-
-					Cell cellPartnerContactRole = row.createCell(3);
-					cellPartnerContactRole.setCellValue(ct.getContactT().getContactRole());
-
-					Cell cellPartnerContactEmailId = row.createCell(4);
-					if(ct.getContactT().getContactEmailId()!=null) {
-						cellPartnerContactEmailId.setCellValue(ct.getContactT().getContactEmailId());
+					Cell cellPartnerContactTelephone = row.createCell(6);
+					if(ct.getContactTelephone()!=null) {
+						cellPartnerContactTelephone.setCellValue(ct.getContactTelephone());
 					}
-
-					Cell cellPartnerContactTelephone = row.createCell(5);
-					if(ct.getContactT().getContactTelephone()!=null) {
-						cellPartnerContactTelephone.setCellValue(ct.getContactT().getContactTelephone());
-					}
-					Cell cellPartnerContactLinkedIn = row.createCell(6);
-					if(ct.getContactT().getContactLinkedinProfile()!=null) {
-						cellPartnerContactLinkedIn.setCellValue(ct.getContactT().getContactLinkedinProfile());
+					Cell cellPartnerContactLinkedIn = row.createCell(7);
+					if(ct.getContactLinkedinProfile()!=null) {
+						cellPartnerContactLinkedIn.setCellValue(ct.getContactLinkedinProfile());
 					}
 					
-					Cell active = row.createCell(7);//TODO inactive indicator - added a separate column for active flag - done
-					active.setCellValue(ct.getContactT().isActive());
-
-					Cell partnerId=row.createCell(8);
-					partnerId.setCellValue(ct.getContactId());
-					
-					Cell partnerContactId=row.createCell(9);
-					partnerContactId.setCellValue(ct.getPartnerContactId());
+					Cell active = row.createCell(8);//TODO inactive indicator - added a separate column for active flag - done
+					active.setCellValue(ct.isActive());
 					
 					// Increment row counter for partner contact sheet
 					rowCount++;
 				
 		}
 			logger.info("Exit: Inside write method  of PartnerContactDwldWriter:");
+			}
 	   }
 	}
+	
+	private String getPartnerName(String contactId) {
+		StringBuffer partnerBuffer = new StringBuffer("");
+		List<PartnerContactLinkT> partnerContactList = partnerMap.get(contactId);	
+		if(partnerContactList!=null){
+			for(PartnerContactLinkT partnerContactLinkT: partnerContactList){
+				if(StringUtils.isEmpty(partnerBuffer.toString())){
+					partnerBuffer.append(partnerContactLinkT.getPartnerMasterT().getPartnerName());
+				} else {
+					partnerBuffer.append("," + partnerContactLinkT.getPartnerMasterT().getPartnerName());
+				}
+			}
+		}
+		return partnerBuffer.toString();
+	}
+	
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}

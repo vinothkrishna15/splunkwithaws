@@ -23,6 +23,8 @@ import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerSubSpMappingT;
+import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BeaconConvertorRepository;
@@ -32,6 +34,8 @@ import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.SmartSearchType;
@@ -82,6 +86,12 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
+	
+	@Autowired 
+	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
+	
+	@Autowired 
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingTRepository;
 
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
@@ -108,6 +118,26 @@ public class PartnerService {
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
+	/**
+	 * 
+	 * @param childList
+	 * @param mapOfPartnerAndHqLink
+	 */
+	public void saveChild(List<PartnerMasterT>childList,Map<String, String> mapOfPartnerAndHqLink)
+	{
+		logger.debug("Begin:Inside save method of PartnerService");
+		List<PartnerMasterT> childPartnerList=new ArrayList<PartnerMasterT>();
+		for(PartnerMasterT partner:childList)
+		{
+			String hqPartnerLinkName=mapOfPartnerAndHqLink.get(partner.getPartnerName());
+			String hqPartnerLinkId=partnerRepository.findPartnerIdByName(hqPartnerLinkName);
+			partner.setHqPartnerLinkId(hqPartnerLinkId);
+ 			childPartnerList.add(partner);
+		}
+	partnerRepository.save(childPartnerList);
+	logger.debug("End:Inside save method of PartnerService");
+		
+	}
 
 	/**
 	 * Retrieve partner details based on partner id
@@ -756,4 +786,29 @@ public class PartnerService {
 		conRes.setValues(records);
 		return conRes;
 	}
+	
+	/**
+	 * This service saves partner supsp details into partner_sub_sp_mapping_t
+	 * 
+	 * @param insertList
+	 * @param keyword
+	 * @throws Exception
+	 */
+	public void savePartnerSubsp(List<PartnerSubSpMappingT> partnerList) throws Exception {
+		logger.debug("Begin:Inside save method of PartnerService");
+		partnerSubSpMappingTRepository.save(partnerList);
+		logger.debug("End:Inside save method of PartnerService");
+	}
+	
+	/**
+	 * 
+	 * @param partnerList
+	 * @throws Exception
+	 */
+	public void savePartnerSubSpProduct(List<PartnerSubspProductMappingT> partnerList) throws Exception {
+		logger.debug("Begin:Inside save method of PartnerService");
+		partnerSubSpProductMappingTRepository.save(partnerList);
+		logger.debug("End:Inside save method of PartnerService");
+	}
+
 }

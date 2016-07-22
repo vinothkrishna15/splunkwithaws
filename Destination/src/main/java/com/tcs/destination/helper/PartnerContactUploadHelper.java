@@ -1,6 +1,7 @@
 package com.tcs.destination.helper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,13 +15,16 @@ import org.springframework.stereotype.Component;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PartnerContactLinkT;
+import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TimezoneMappingRepository;
@@ -62,8 +66,12 @@ public class PartnerContactUploadHelper {
 	@Autowired
 	ContactRoleMappingTRepository contactRoleMappingTRepository;
 	
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+	
 	private Map<String, String> mapOfPartnerMasterT = null;
 	private List<ContactRoleMappingT> listOfContactRole = null;
+	private Map<String, PartnerMasterT> mapOfPartnerT = null;
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(PartnerContactUploadHelper.class);
@@ -80,7 +88,7 @@ public class PartnerContactUploadHelper {
 		listOfContactRole = (List<ContactRoleMappingT>) contactRoleMappingTRepository.findAll();
 
 		        // PARTNER NAME
-				String partnerName = data[2];
+				String partnerName = data[3];
 				if(!StringUtils.isEmpty(partnerName))
 				{
 					logger.info("partner name is",partnerName);
@@ -92,18 +100,18 @@ public class PartnerContactUploadHelper {
 				}
 				
 				// CONTACT NAME 
-				String contactName = data[3];
+				String contactName = data[4];
 				if(!StringUtils.isEmpty(contactName)){
 					partnerContactT.setContactName(contactName);
 				}
 				 else {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Role NOT Found");
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Name NOT Found");
 				}
 				
 				//CONTACT ROLE (Optional)
-				String contactRole = data[4];
+				String contactRole = data[5];
 				if(!StringUtils.isEmpty(contactRole)){
-					if(validateContactRole(data[4])){
+					if(validateContactRole(data[5])){
 						partnerContactT.setContactRole(contactRole);
 					}
 						else {
@@ -115,14 +123,14 @@ public class PartnerContactUploadHelper {
 					}
 					
 				//contact email id (Optional)
-				String contactEmailid = data[5];
+				String contactEmailid = data[6];
 				if(!StringUtils.isEmpty(contactEmailid))
 				{
 					partnerContactT.setContactEmailId(contactEmailid);
 				}
 				
 				//contact telephone (Optional)
-				String contactTelephone = data[6];
+				String contactTelephone = data[7];
 				if((contactTelephone!=null)&&(!StringUtils.isEmpty(contactTelephone)))
 				{
 				 Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
@@ -132,7 +140,7 @@ public class PartnerContactUploadHelper {
 				 }
 				}
 				//contact linkedin (Optional)
-				String contactLinkedIn = data[7];
+				String contactLinkedIn = data[8];
 				if(!StringUtils.isEmpty(contactLinkedIn))
 				{
 					partnerContactT.setContactLinkedinProfile(contactLinkedIn);
@@ -142,9 +150,8 @@ public class PartnerContactUploadHelper {
 				if(!StringUtils.isEmpty(partnerName)){
 					String partnerId = getMapValuesForKey(mapOfPartnerMasterT, partnerName);
 					if(!StringUtils.isEmpty(partnerId)&&(partnerId!=null)){
-						String contactId=data[9];
-						List<PartnerContactLinkT> pclt = constructPartnerContactLinkT(
-								partnerId, userId,contactId);
+						String contactId=data[2];
+						List<PartnerContactLinkT> pclt = constructPartnerContactLinkT(partnerId, userId,contactId);
 						
 						partnerContactT.setPartnerContactLinkTs(pclt);
 						
@@ -164,7 +171,7 @@ public class PartnerContactUploadHelper {
 				partnerContactT.setModifiedBy(userId);
 				
 				//ACTIVE
-				String active=data[8];
+				String active=data[9];
 				boolean activeFlag=false;
 				if (!StringUtils.isEmpty(active)) {
 				 if(active.equalsIgnoreCase("true"))
@@ -188,7 +195,7 @@ public class PartnerContactUploadHelper {
 		mapOfPartnerMasterT = getNameAndIdFromPartnerMasterT();
 		listOfContactRole = (List<ContactRoleMappingT>) contactRoleMappingTRepository.findAll();
 		
-		String contactId=data[9];
+		String contactId=data[2];
 		
 		if (!StringUtils.isEmpty(contactId)) {
 
@@ -206,31 +213,59 @@ public class PartnerContactUploadHelper {
 			error.setMessage("Contact id is mandatory");
 		}
 		
-		// PARTNER NAME
-		String partnerName = data[2];
-		if(!StringUtils.isEmpty(partnerName))
-		{
-			logger.info("partner name is",partnerName);
+		// PARTNER NAMES
+		String partnerName = data[3];
+		if (!StringUtils.isEmpty(partnerName)) {
+			if (mapOfPartnerT == null) {
+				mapOfPartnerT = getPartnerMasterT();
+			}
+			List<PartnerContactLinkT> deleteList = new ArrayList<PartnerContactLinkT>();
+			List<PartnerContactLinkT> updateList = new ArrayList<PartnerContactLinkT>();
+			List<String> partnerNamesFromExcel = new ArrayList<String>();
+			partnerNamesFromExcel.addAll(Arrays.asList(partnerName.split(",")));
+			List<PartnerContactLinkT> partnerContactLinkTs = partnerContactT.getPartnerContactLinkTs();
+			for (PartnerContactLinkT partnerContactLinkT : partnerContactLinkTs) {
+				if(partnerContactLinkT.getPartnerMasterT().isActive())
+				{
+				 if (!partnerNamesFromExcel.contains(partnerContactLinkT.getPartnerMasterT().getPartnerName())) {
+					deleteList.add(partnerContactLinkT);
+				 } else {
+					updateList.add(partnerContactLinkT);
+					partnerNamesFromExcel.remove(partnerContactLinkT.getPartnerMasterT().getPartnerName());
+				 }
+				}
+			}
+			if (!partnerNamesFromExcel.isEmpty()) {
+				for (String parName : partnerNamesFromExcel) {
+
+					if (mapOfPartnerT.containsKey(parName)) {
+						PartnerContactLinkT partnerContactLinkT = constructPartnerContactLinkUpdate(parName, userId, mapOfPartnerT,partnerContactT);
+						updateList.add(partnerContactLinkT);
+					} else {
+						error.setRowNumber(Integer.parseInt(data[0]) + 1);
+						error.setMessage("Invalid Partner Name ");
+					}
+				}
+			}
+
+			partnerContactLinkTRepository.delete(deleteList);
+			partnerContactT.setPartnerContactLinkTs(updateList);
 		}
-		else
-		{
-			error.setRowNumber(Integer.parseInt(data[0]) + 1);
-			error.setMessage("partner name Is Mandatory; ");
-		}
+
 		
 		// CONTACT NAME 
-		String contactName = data[3];
+		String contactName = data[4];
 		if(!StringUtils.isEmpty(contactName)){
 			partnerContactT.setContactName(contactName);
 		}
 		 else {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Role NOT Found");
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Name NOT Found");
 		}
 		
 		//CONTACT ROLE (Optional)
-		String contactRole = data[4];
+		String contactRole = data[5];
 		if(!StringUtils.isEmpty(contactRole)){
-			if(validateContactRole(data[4])){
+			if(validateContactRole(data[5])){
 				partnerContactT.setContactRole(contactRole);
 			}
 				else {
@@ -242,14 +277,14 @@ public class PartnerContactUploadHelper {
 			}
 			
 		//contact email id (Optional)
-		String contactEmailid = data[5];
+		String contactEmailid = data[6];
 		if(!StringUtils.isEmpty(contactEmailid))
 		{
 			partnerContactT.setContactEmailId(contactEmailid);
 		}
 		
 		//contact telephone (Optional)
-		String contactTelephone = data[6];
+		String contactTelephone = data[7];
 		Long telephoneNumber=Double.valueOf(contactTelephone).longValue();
 		if(telephoneNumber!=null)
 		{
@@ -257,23 +292,10 @@ public class PartnerContactUploadHelper {
 		}
 		
 		//contact linkedin (Optional)
-		String contactLinkedIn = data[7];
+		String contactLinkedIn = data[8];
 		if(!StringUtils.isEmpty(contactLinkedIn))
 		{
 			partnerContactT.setContactLinkedinProfile(contactLinkedIn);
-		}
-		
-		// PARTNER ID
-		if(!StringUtils.isEmpty(partnerName)){
-			String partnerId = getMapValuesForKey(mapOfPartnerMasterT, partnerName);
-			if(!StringUtils.isEmpty(partnerId)){
-				partnerContactT.getPartnerContactLinkTs().get(0).setPartnerId(partnerId);
-				
-			} else {
-				throw new DestinationException(HttpStatus.NOT_FOUND, "Invalid Partner Name");
-			}
-		} else {
-			throw new DestinationException(HttpStatus.NOT_FOUND, "Partner Name NOT Found");
 		}
 		
 		partnerContactT.setContactCategory("PARTNER");
@@ -283,7 +305,7 @@ public class PartnerContactUploadHelper {
 		partnerContactT.setModifiedBy(userId);
 		
 		//ACTIVE
-		String active=data[8];
+		String active=data[9];
 		boolean activeFlag=false;
 		if (!StringUtils.isEmpty(active)) {
 		 if(active.equalsIgnoreCase("true"))
@@ -305,7 +327,7 @@ public class PartnerContactUploadHelper {
 			ContactT contact) {
 		// TODO Auto-generated method stub
 		UploadServiceErrorDetailsDTO error = new UploadServiceErrorDetailsDTO();
-		String contactId = data[9];
+		String contactId = data[2];
 
 		if (StringUtils.isEmpty(contactId)) {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -413,4 +435,46 @@ public class PartnerContactUploadHelper {
 		}
 		return listOfPartnerContactLinkT;
 	}
+	
+	/**
+	 * Method to return partner details as map
+	 * @return  Map<String, PartnerMasterT>
+	 */
+	public Map<String, PartnerMasterT> getPartnerMasterT() {
+		List<PartnerMasterT> listOfPartnerMasterT = null;
+		listOfPartnerMasterT = (List<PartnerMasterT>) partnerRepository.findAll();
+		Map<String, PartnerMasterT> partnerMap = new HashMap<String, PartnerMasterT>();
+		for (PartnerMasterT partnerT : listOfPartnerMasterT) {
+			partnerMap.put(partnerT.getPartnerName(), partnerT);
+		}
+		return partnerMap;
+	}
+	
+
+	private PartnerContactLinkT constructPartnerContactLinkUpdate(String partnerName,
+			String userId,  Map<String, PartnerMasterT> mapOfPartner,
+			ContactT contact) {
+		// TODO Auto-generated method stub
+		
+		PartnerContactLinkT pslt = new PartnerContactLinkT();
+
+		PartnerMasterT partnerMasterT = getPartnerMasterTMapValuesForKey(mapOfPartner, partnerName);
+		pslt.setPartnerMasterT(partnerMasterT);
+		pslt.setPartnerId(partnerMasterT.getPartnerId());
+		pslt.setContactId(contact.getContactId());
+		pslt.setCreatedBy(userId);
+		pslt.setModifiedBy(userId);
+		return pslt;
+		
+	}
+	
+	private PartnerMasterT getPartnerMasterTMapValuesForKey(
+			Map<String, PartnerMasterT> mapOfPartner, String key) {
+		PartnerMasterT partner = null;
+		if (mapOfPartner.containsKey(key)) {
+			partner = mapOfPartner.get(key);
+		}
+		return partner;
+	}
+	
 }
