@@ -62,7 +62,7 @@ public class RevenueUploadService {
 
 	@Autowired
 	GeographyRepository geographyRepository;
-	
+
 	@Autowired
 	private IouRepository iouRepository;
 
@@ -365,15 +365,19 @@ public class RevenueUploadService {
 	 */
 	public void validateInactiveIndicators(RevenueCustomerMappingT finance) {
 		if(finance != null) {
-				String financeIou = finance.getFinanceIou();
-				if(StringUtils.isNotBlank(financeIou) && iouRepository.findByActiveTrueAndIou(financeIou) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue iou is inactive");
-				}
+			String financeIou = finance.getFinanceIou();
+			if(StringUtils.isNotBlank(financeIou) && iouRepository.findByActiveTrueAndIou(financeIou) == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue iou is inactive");
+			}
 
-				String geo = finance.getCustomerGeography();
-				if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue geography is inactive");
-				}
+			String geo = finance.getCustomerGeography();
+			if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The revenue geography is inactive");
+			}
+			CustomerMasterT customerMasterObj = customerRepository.findOne(finance.getCustomerId());
+			if(customerMasterObj.isActive() == false) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The Customer Master is inactive");
+			}
 		}
 	}
 }

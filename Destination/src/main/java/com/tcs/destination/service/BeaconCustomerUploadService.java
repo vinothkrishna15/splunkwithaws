@@ -352,6 +352,10 @@ public class BeaconCustomerUploadService {
 			if(StringUtils.isNotBlank(geo) && geoRepository.findByActiveTrueAndGeography(geo) == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon geography is inactive");
 			}
+			CustomerMasterT customerMasterObj = customerRepository.findOne(beacon.getCustomerId());
+			if(customerMasterObj.isActive() == false) {
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "The Customer Master is inactive");
+			}
 		}
 	}
 }
