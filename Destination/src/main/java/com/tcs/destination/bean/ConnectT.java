@@ -93,7 +93,7 @@ public class ConnectT implements Serializable {
 	private String timeZone;
 
 	private String location;
-	
+
 	@ManyToOne
 	@JoinColumn(name="location", insertable=false, updatable=false)
 	private CityMapping cityMapping;
@@ -189,6 +189,11 @@ public class ConnectT implements Serializable {
 	@OneToMany(mappedBy = "connectT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
 
+	//added for partner changes -
+	//bi-directional many-to-one association to PartnerSubSpMappingT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
+
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
 
@@ -209,10 +214,10 @@ public class ConnectT implements Serializable {
 
 	@Transient
 	private List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs;
-	
+
 	@Transient
 	private List<SearchKeywordsT> deleteSearchKeywordsTs;
-	
+
 	@Transient	
 	private boolean enableEditAccess;	
 
@@ -833,21 +838,30 @@ public class ConnectT implements Serializable {
 			List<ConnectOpportunityLinkIdT> deleteConnectOpportunityLinkIdTs) {
 		this.deleteConnectOpportunityLinkIdTs = deleteConnectOpportunityLinkIdTs;
 	}
-	
+
 	public List<SearchKeywordsT> getDeleteSearchKeywordsTs() {
 		return deleteSearchKeywordsTs;
 	}
-	
+
 	public void setDeleteSearchKeywordsTs(
 			List<SearchKeywordsT> deleteSearchKeywordsTs) {
 		this.deleteSearchKeywordsTs = deleteSearchKeywordsTs;
 	}
-	
+
 	public boolean isEnableEditAccess() {
 		return enableEditAccess;
 	}
 
 	public void setEnableEditAccess(boolean enableEditAccess) {
 		this.enableEditAccess = enableEditAccess;
+	}
+
+	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs() {
+		return partnerSubSpMappingTs;
+	}
+
+	public void setPartnerSubSpMappingTs(
+			List<PartnerSubSpMappingT> partnerSubSpMappingTs) {
+		this.partnerSubSpMappingTs = partnerSubSpMappingTs;
 	}
 }

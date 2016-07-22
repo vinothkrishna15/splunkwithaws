@@ -45,6 +45,8 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerSubSpMappingT;
+import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -71,6 +73,8 @@ import com.tcs.destination.data.repository.NotificationEventGroupMappingTReposit
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TaskRepository;
@@ -227,6 +231,12 @@ public class ConnectService {
 
 	@Autowired
 	CountryRepository countryRepository;
+	
+	@Autowired
+	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+
+	@Autowired
+	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -473,6 +483,15 @@ public class ConnectService {
 						conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
 			}
+			
+			//partner data model changes
+			if(!connect.getPartnerSubSpMappingTs().isEmpty()){
+				PartnerSubSpMappingT partnerSubsp = connect.getPartnerSubSpMappingTs().get(0);
+				partnerSubsp.setPartnerId(connect.getPartnerId());
+				partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+				partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+				savePartnerSubspAndProduct(partnerSubsp);
+			}
 
 			// Save Search Keywords
 			if (connect.getSearchKeywordsTs() != null) {
@@ -502,6 +521,16 @@ public class ConnectService {
 		return false;
 	}
 
+	private void savePartnerSubspAndProduct(PartnerSubSpMappingT partnerSubSpMappingTs) {
+			PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
+			if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
+				PartnerSubspProductMappingT partnerSubspProductObj = partnerSubSpMappingTs.getPartnerSubspProductMappingTs().get(0);
+				partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
+				partnerSubspProductObj.setCreatedBy(partnerSubSpMappingTs.getCreatedBy());
+				partnerSubspProductObj.setModifiedBy(partnerSubSpMappingTs.getModifiedBy());
+				partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
+			}
+		}
 	private void processNotifications(String connectId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
@@ -630,7 +659,6 @@ public class ConnectService {
 									.findSecondaryOwner(connectSecondaryOwnerLinkT
 											.getConnectSecondaryOwnerLinkId()));
 						}
-
 					}
 				}
 				if (owners != null) {
