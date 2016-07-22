@@ -38,6 +38,7 @@ import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -368,39 +369,158 @@ public class OpportunityService {
     
 	/**
 	 * This method is used to fetch the recent opportunities
+	 * 
+	 * @param fromDate
 	 * @param customerId
 	 * @param toCurrency
+	 * @param smartSearchType 
+	 * @param opportunityNameWith 
+	 * @param count 
+	 * @param page 
 	 * @return
 	 * @throws Exception
 	 */
-	public List<OpportunityT> findRecentOpportunities(String customerId,
-			List<String> toCurrency) throws Exception {
+	public PaginatedResponse findOpportunitiesByCustomerIdAndSearchTerm(Date fromDate, String customerId,
+			List<String> toCurrency, SmartSearchType smartSearchType, String term, int page, int count) throws Exception {
 		logger.debug("Inside findRecentOpportunities() service");
-		// Date date = new Date(); // Or where ever you get it from
-		// Date daysAgo = new DateTime(date).minusDays(300).toDate();
-		Calendar now = Calendar.getInstance();
-		now.set(Calendar.YEAR, now.get(Calendar.YEAR) - 1);
-		Date fromDate = new Date(now.getTimeInMillis());
-		List<OpportunityT> opportunities = opportunityRepository
-				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
-						customerId, fromDate);
-		if (opportunities.isEmpty()) {
-			logger.error(
-					"NOT_FOUND: Recent opportunities not found for CustomerId: {}",
-					customerId);
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Recent opportunities not found for CustomerId: "
-							+ customerId);
-		}
-
-		prepareOpportunity(opportunities);
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		List<OpportunityT> opportunitiesList = new ArrayList<OpportunityT>();
 		
-		beaconConverterService.convertOpportunityCurrency(opportunities,
-				toCurrency);
-
-		return opportunities;
+		Set<OpportunityT> opportunitiesSet = new HashSet<OpportunityT>();
+		
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				opportunitiesSet.addAll(getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesByNameAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesSet.addAll(getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				opportunitiesList.addAll(opportunitiesSet);
+				break;
+			case ID:
+				opportunitiesList = getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case NAME:
+				opportunitiesList = getOpportunitiesByNameAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case PRIMARY_OWNER:
+				opportunitiesList = getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case SUBSP:
+				opportunitiesList = getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			default:
+				break;
+			}
+		} else {
+			opportunitiesList = getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
+					customerId, new Timestamp(fromDate.getTime()));
+		}
+		
+		prepareOpportunity(opportunitiesList);
+		beaconConverterService.convertOpportunityCurrency(opportunitiesList, toCurrency);
+		paginatedResponse.setTotalCount(opportunitiesList.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, opportunitiesList.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, opportunitiesList.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, opportunitiesList.size()) + 1;
+			opportunitiesList = opportunitiesList.subList(fromIndex, toIndex);
+			paginatedResponse.setOpportunityTs(opportunitiesList);
+			logger.debug("Opportunities after pagination size is " + opportunitiesList.size());
+		} else {
+			logger.info(" opportunities not found for CustomerId: {} ");
+			throw new DestinationException(HttpStatus.NOT_FOUND, " opportunities not found for CustomerId: {} ");
+		}
+		return paginatedResponse;
 	}
     
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityId like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(
+			String term, String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityName like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByNameAndCustomerIdAndReceivedDate(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+					.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
+							customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+	
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunityOwner like search
+	 * and after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesByOwnerAndCustomerIdAndReceivedDate(
+			String term, String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;
+	}
+
+	/**
+	 * This method is used to find the opportunities for the customerId, opportunity SubSp like search and 
+	 * after request received date
+	 * @param term
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getOpportunitiesBySubSpsAndCustomerIdAndReceivedDate(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+		return opportunitiesList;	}
+	
+	/**
+	 * This method is used to find the opportunities for the customerId after request received date
+	 * 
+	 * @param customerId
+	 * @param timestamp
+	 * @return
+	 */
+	private List<OpportunityT> getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
+			String customerId, Timestamp fromTimestamp) {
+		List<OpportunityT> opportunitiesList = opportunityRepository
+					.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
+							customerId, fromTimestamp);
+		return opportunitiesList;
+	}
+	
 	/**
 	 * This method is used to fetch the opportunities by owner and role
 	 * @param userId

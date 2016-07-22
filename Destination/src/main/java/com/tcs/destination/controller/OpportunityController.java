@@ -1,12 +1,14 @@
 package com.tcs.destination.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -169,43 +171,6 @@ public class OpportunityController {
 		return response;
 	}
 
-	/**
-	 * This method retrieves the opportunity details by customer id
-	 * 
-	 * @param customerId
-	 * @param currencies
-	 * @param fields
-	 * @param view
-	 * @return opportunities
-	 * @throws DestinationException
-	 */
-	@RequestMapping(value = "/recent", method = RequestMethod.GET)
-	public @ResponseBody String findByCustomerId(
-			@RequestParam("customerId") String customerId,
-			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
-			@RequestParam(value = "fields", defaultValue = "all") String fields,
-			@RequestParam(value = "view", defaultValue = "") String view)
-			throws DestinationException {
-
-		logger.info("Inside OpportunityController: Start of /opportunity/recent GET");
-		String response = null;
-		List<OpportunityT> opportunities;
-		try {
-			opportunities = opportunityService.findRecentOpportunities(
-					customerId, currencies);
-			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
-					view, opportunities);
-		} catch (DestinationException e) {
-			throw e;
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"Backend error in retieving the opportunity detail for the customer id:"
-							+ customerId);
-		}
-		logger.info("Inside OpportunityController End of /opportunity/recent GET");
-		return response;
-	}
 	
 
 	/**
@@ -1005,4 +970,48 @@ public class OpportunityController {
 		
 	}
 
+	/**
+	 * This method retrieves the opportunity details by customer id
+	 * 
+	 * @param customerId
+	 * @param currencies
+	 * @param fields
+	 * @param view
+	 * @return opportunities
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/link", method = RequestMethod.GET)
+	public @ResponseBody String findByCustomerId(
+			@RequestParam(value = "currency", defaultValue = "") List<String> currencies,
+			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "customerId") String customerId,
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term)
+			throws DestinationException {
+
+		logger.info("Inside OpportunityController: Start of /opportunity/recent GET");
+		String response = null;
+		PaginatedResponse paginatedResponse = null;
+		try {
+			paginatedResponse = opportunityService.findOpportunitiesByCustomerIdAndSearchTerm(fromDate, 
+					customerId, currencies, SmartSearchType.get(searchType), term, page, count);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, paginatedResponse);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retieving the opportunity detail for the customer id:"
+							+ customerId);
+		}
+		logger.info("Inside OpportunityController End of /opportunity/recent GET");
+		return response;
+	}
+	
+	
 }

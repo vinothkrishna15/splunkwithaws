@@ -1459,6 +1459,7 @@ public class CustomerService {
 			paginatedResponse.setUserTs(userTs);
 			logger.debug("users after pagination size is " + userTs.size());
 		} else {
+			logger.info("No users available for the specified page");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No users available for the specified page");
 		}
 		return paginatedResponse;

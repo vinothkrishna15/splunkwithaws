@@ -170,6 +170,7 @@ public class ConnectController {
 			@RequestParam(value = "owner", defaultValue = "ALL") String owner,
 			@RequestParam(value = "customerId", defaultValue = "") String customerId,
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "connectName", defaultValue = "") String connectName,
 			@RequestParam(value = "weekStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekStartDate,
 			@RequestParam(value = "weekEndDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date weekEndDate,
 			@RequestParam(value = "monthStartDate", defaultValue = "01011970") @DateTimeFormat(pattern = "ddMMyyyy") Date monthStartDate,
@@ -178,13 +179,12 @@ public class ConnectController {
 		DashBoardConnectsResponse dashboardConnectsResponse = null;
 		try {
 			logger.info("Inside ConnectController: Start of retrieving Connects by Date range");
-			String userId = DestinationUtils.getCurrentUserDetails()
-					.getUserId();
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 			dashboardConnectsResponse = connectService
 					.searchDateRangwWithWeekAndMonthCount(fromDate, toDate,
 							userId, owner, customerId, partnerId,
 							weekStartDate, weekEndDate, monthStartDate,
-							monthEndDate, page, count);
+							monthEndDate, page, count, connectName);
 			logger.info("Inside ConnectController: End of retrieving Connects by Date range");
 			// }
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
@@ -197,7 +197,6 @@ public class ConnectController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving connects details");
 		}
-
 	}
 
 	/**
@@ -562,6 +561,51 @@ public class ConnectController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving connects list");
 		}
+	}
+	
+	/**
+	 * Service to fetch the connect related information based on search type and the search keyword and customerId
+	 * 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param fromDate
+	 * @param toDate
+	 * @param page
+	 * @param count
+	 * @param fields
+	 * @param view
+	 * @param customerId
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/link", method = RequestMethod.GET)
+	public @ResponseBody String customerConnectsSearch(
+			@RequestParam("from") @DateTimeFormat(pattern = "ddMMyyyy") Date fromDate,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view,
+			@RequestParam(value = "customerId") String customerId,
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term)
+			throws DestinationException {
+		PaginatedResponse paginatedResponse = null;
+		try {
+			logger.info("Inside ConnectController: Start of customerConnectsSearch");
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			paginatedResponse = connectService
+					.searchConnectsWithCustomerIdAndConnectName(fromDate, userId, customerId, 
+							page, count, SmartSearchType.get(searchType), term);
+			logger.info("Inside ConnectController: End of customerConnectsSearch");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, paginatedResponse);
 		
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving connects details");
+		}
 	}
 }

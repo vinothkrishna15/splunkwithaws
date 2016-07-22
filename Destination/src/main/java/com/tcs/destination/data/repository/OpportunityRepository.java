@@ -1236,4 +1236,58 @@ public interface OpportunityRepository extends
 
 	/* ---------- ends - repository methods for smart search --------- */
 	
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunity name like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromDate
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
+			+ " AND UPPER(opportunity_name) LIKE ?3 AND active=true ORDER BY modified_datetime DESC ", nativeQuery = true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
+			String customerId, Date fromDate, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunityId like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
+			+ " AND UPPER(opportunity_id) LIKE ?3 AND active=true ORDER BY modified_datetime DESC ", nativeQuery = true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
+			String customerId, Timestamp fromTimestamp, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunityOwner like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN user_t U ON U.user_id=OPP.opportunity_owner "
+			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2  "
+			+ " AND UPPER(U.user_name) LIKE ?3 AND OPP.active=true ORDER BY modified_datetime DESC ",nativeQuery=true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
+			String customerId, Timestamp fromTimestamp, String term);
+
+	/**
+	 * Fetch the opportunities for the for the customerId and opportunitySubSp like
+	 *  and after request received date
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param term
+	 * @return
+	 */
+	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN opportunity_sub_sp_link_t OPPSPL ON OPP.opportunity_id=OPPSPL.opportunity_id "
+			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 AND UPPER(OPPSPL.sub_sp) LIKE ?3 AND OPP.active=true "
+			+ " ORDER BY modified_datetime DESC ",nativeQuery=true)
+	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
+			String customerId, Timestamp fromTimestamp, String term);
+	
 }

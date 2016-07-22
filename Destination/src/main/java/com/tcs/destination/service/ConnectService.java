@@ -42,11 +42,10 @@ import com.tcs.destination.bean.ConnectTcsAccountContactLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DashBoardConnectsResponse;
 import com.tcs.destination.bean.NotesT;
+import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.PartnerSubSpMappingT;
-import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -73,8 +72,6 @@ import com.tcs.destination.data.repository.NotificationEventGroupMappingTReposit
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TaskRepository;
@@ -231,12 +228,6 @@ public class ConnectService {
 
 	@Autowired
 	CountryRepository countryRepository;
-	
-	@Autowired
-	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
-
-	@Autowired
-	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -301,7 +292,7 @@ public class ConnectService {
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, Date weekStartDate,
 			Date weekEndDate, Date monthStartDate, Date monthEndDate, int page,
-			int count) throws Exception {
+			int count, String connectName) throws Exception {
 		logger.debug("Inside searchDateRangwWithWeekAndMonthCount() service");
 		DashBoardConnectsResponse response = new DashBoardConnectsResponse();
 		response.setPaginatedConnectResponse(searchforConnectsBetweenForUserOrCustomerOrPartner(
@@ -370,23 +361,24 @@ public class ConnectService {
 
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner is ALL");
-				connects = connectRepository
-						.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
-								userId, new Timestamp(fromDate.getTime()),
-								toTimestamp, customerId, partnerId);
+					connects = connectRepository
+							.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
+									userId, new Timestamp(fromDate.getTime()),
+									toTimestamp, customerId, partnerId);
 				connectResponse.setTotalCount(connects.size());
 				connects = paginateConnects(page, count, connects);
-
 				connectResponse.setConnectTs(connects);
 
 			}
+			
 			prepareConnect(connects);
 			return connectResponse;
 		}
+		
 		logger.error("BAD_REQUEST: Invalid Owner Type: {}", owner);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Owner Type: " + owner);
-
+		
 	}
 
 	private List<ConnectT> paginateConnects(int page, int count,
@@ -483,15 +475,6 @@ public class ConnectService {
 						conTcsAccConLinkTList);
 				logger.debug("ConnectTcsAccountContact Populated ");
 			}
-			
-			//partner data model changes
-			if(!connect.getPartnerSubSpMappingTs().isEmpty()){
-				PartnerSubSpMappingT partnerSubsp = connect.getPartnerSubSpMappingTs().get(0);
-				partnerSubsp.setPartnerId(connect.getPartnerId());
-				partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-				partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-				savePartnerSubspAndProduct(partnerSubsp);
-			}
 
 			// Save Search Keywords
 			if (connect.getSearchKeywordsTs() != null) {
@@ -521,16 +504,6 @@ public class ConnectService {
 		return false;
 	}
 
-	private void savePartnerSubspAndProduct(PartnerSubSpMappingT partnerSubSpMappingTs) {
-			PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
-			if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
-				PartnerSubspProductMappingT partnerSubspProductObj = partnerSubSpMappingTs.getPartnerSubspProductMappingTs().get(0);
-				partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
-				partnerSubspProductObj.setCreatedBy(partnerSubSpMappingTs.getCreatedBy());
-				partnerSubspProductObj.setModifiedBy(partnerSubSpMappingTs.getModifiedBy());
-				partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
-			}
-		}
 	private void processNotifications(String connectId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
@@ -659,6 +632,7 @@ public class ConnectService {
 									.findSecondaryOwner(connectSecondaryOwnerLinkT
 											.getConnectSecondaryOwnerLinkId()));
 						}
+
 					}
 				}
 				if (owners != null) {
@@ -2081,5 +2055,137 @@ public class ConnectService {
 		return conRes;
 	}
 
+	/**
+	 * This Method is used to find the list of connect for the given customerId and connectName
+	 *  
+	 * @param fromDate
+	 * @param toDate
+	 * @param userId
+	 * @param customerId
+	 * @param page
+	 * @param count
+	 * @param term 
+	 * @param smartSearchType 
+	 * @param connectName
+	 * @param term 
+	 * @return
+	 */
+	public PaginatedResponse searchConnectsWithCustomerIdAndConnectName(
+			Date fromDate, String userId, String customerId,
+			int page, int count, SmartSearchType smartSearchType, String term) {
+		logger.info("Inside searchConnectsWithCustomerIdAndConnectName() service");
+		PaginatedResponse paginatedResponse = new PaginatedResponse();
+		List<ConnectT> connectsList = new ArrayList<ConnectT>();
+		Set<ConnectT> connectsSet = new HashSet<ConnectT>();
+		
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				connectsSet.addAll(getConnectsByNameAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				connectsSet.addAll(getConnectsByOwnerAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				connectsSet.addAll(getConnectsSubSpsAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime())));
+				connectsList.addAll(connectsSet);
+				break;
+			case NAME:
+				connectsList = getConnectsByNameAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case PRIMARY_OWNER:
+				connectsList = getConnectsByOwnerAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			case SUBSP:
+				connectsList = getConnectsSubSpsAndCustomerId(term, customerId,
+						new Timestamp(fromDate.getTime()));
+				break;
+			default:
+				break;
+			}
+		} else {
+			connectsList = getAllConnectsByCustomerIdAndStartDateOfConnectsAfter(
+					customerId, new Timestamp(fromDate.getTime()));
+		}
+			
+		prepareConnect(connectsList);
+		paginatedResponse.setTotalCount(connectsList.size());
+		// Code for pagination
+		if (PaginationUtils.isValidPagination(page, count, connectsList.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count, connectsList.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count, connectsList.size()) + 1;
+			connectsList = connectsList.subList(fromIndex, toIndex);
+			paginatedResponse.setConnectTs(connectsList);
+			logger.debug("connects after pagination size is " + connectsList.size());
+		} else {
+			logger.info(" Connects Not Available For The Customer");
+			throw new DestinationException(HttpStatus.NOT_FOUND, " Connects Not Available For The Customer ");
+		}
+		return paginatedResponse;
+	}
+	
+	
+	/**
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @return
+	 */
+	private List<ConnectT> getAllConnectsByCustomerIdAndStartDateOfConnectsAfter(
+			String customerId, Timestamp fromTimestamp) {
+		List<ConnectT> connects = connectRepository
+				.findByCustomerIdAndStartDatetimeOfConnectAfterOrderByStartDatetimeOfConnectDesc(
+						customerId, fromTimestamp);
+		return connects;
+	}
 
+	/**
+	 * This method is used to find the connects for the customerId and connect name after start date of connect
+ 	 * @param term
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @return
+	 */
+	private List<ConnectT> getConnectsByNameAndCustomerId(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<ConnectT> connects = connectRepository
+				.findConnectsByStartDatetimeOfConnectAfterForCustomerAndConnectNameLike(
+						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
+		return connects;
+	}
+	
+	/**
+	 * This method is used to find the connects for the customerId and primary owner after start date of connect
+	 * @param term
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @return
+	 */
+	private List<ConnectT> getConnectsByOwnerAndCustomerId(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<ConnectT> connects = connectRepository
+				.findConnectsByStartDatetimeOfConnectAfterForCustomerAndPrimaryOwnerLike(
+						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
+		return connects;
+	}
+	
+	/**
+	 * This method is used to find the connects for the customerId and subSp after start date of connect
+	 * @param term
+	 * @param customerId
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @return
+	 */
+	private List<ConnectT> getConnectsSubSpsAndCustomerId(String term,
+			String customerId, Timestamp fromTimestamp) {
+		List<ConnectT> connects = connectRepository
+				.findConnectsByStartDatetimeOfConnectAfterForCustomerAndSubSpLike(
+						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
+		return connects;
+	}
 }
