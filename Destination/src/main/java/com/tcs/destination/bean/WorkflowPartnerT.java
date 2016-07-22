@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -22,6 +23,7 @@ import java.sql.Timestamp;
 @Table(name="workflow_partner_t")
 @NamedQuery(name="WorkflowPartnerT.findAll", query="SELECT r FROM WorkflowPartnerT r")
 public class WorkflowPartnerT implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -46,27 +48,32 @@ public class WorkflowPartnerT implements Serializable {
 	private Timestamp modifiedDatetime;
 
 	private String notes;
-	
+
 	@Transient
 	private String comments;
 
 	@Column(name="partner_name")
 	private String partnerName;
-	
+
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	@Column(name="modified_by")
 	private String modifiedBy;
 
 	private String website;
-	
+
 	private String geography;
 
 	//bi-directional many-to-one association to GeographyMappingT
 	@ManyToOne
 	@JoinColumn(name="geography", insertable = false, updatable = false)
 	private GeographyMappingT geographyMappingT;
+
+	//added for partner changes -
+	//bi-directional many-to-one association to PartnerSubSpMappingT
+	@OneToMany(mappedBy="partnerMasterT")
+	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
 
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
@@ -77,33 +84,33 @@ public class WorkflowPartnerT implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="modified_by", updatable = false, insertable = false)
 	private UserT modifiedByUser;
-	
+
 	//partner related changes
-	
+
 	//added for partner changes - city, country, text1,text2,text3,group partner name,hqpqrtner link id
-		private String city;
+	private String city;
 
-		private String text1;
+	private String text1;
 
-		private String text2;
+	private String text2;
 
-		private String text3;
+	private String text3;
 
-		@Column(name="group_partner_name")
-		private String groupPartnerName;
+	@Column(name="group_partner_name")
+	private String groupPartnerName;
 
-		private String country;
+	private String country;
 
-		//bi-directional many-to-one association to GeographyCountryMappingT
-		@ManyToOne
-		@JoinColumn(name="country", insertable = false, updatable = false)
-		private GeographyCountryMappingT geographyCountryMappingT;
+	//bi-directional many-to-one association to GeographyCountryMappingT
+	@ManyToOne
+	@JoinColumn(name="country", insertable = false, updatable = false)
+	private GeographyCountryMappingT geographyCountryMappingT;
 
-		@Column(name="hq_partner_link_id")
-		private String hqPartnerLinkId;
+	@Column(name="hq_partner_link_id")
+	private String hqPartnerLinkId;
 
-		//bi-directional many-to-one association to PartnerMasterT
-		/*@ManyToOne
+	//bi-directional many-to-one association to PartnerMasterT
+	/*@ManyToOne
 		@JoinColumn(name="hq_partner_link_id", insertable = false, updatable = false)
 		private PartnerMasterT partnerMasterT;*/
 
@@ -310,5 +317,14 @@ public class WorkflowPartnerT implements Serializable {
 
 	public void setHqPartnerLinkId(String hqPartnerLinkId) {
 		this.hqPartnerLinkId = hqPartnerLinkId;
+	}
+	
+	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs() {
+		return partnerSubSpMappingTs;
+	}
+
+	public void setPartnerSubSpMappingTs(
+			List<PartnerSubSpMappingT> partnerSubSpMappingTs) {
+		this.partnerSubSpMappingTs = partnerSubSpMappingTs;
 	}
 }

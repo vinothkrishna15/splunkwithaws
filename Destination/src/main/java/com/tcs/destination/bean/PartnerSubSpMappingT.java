@@ -17,6 +17,7 @@ public class PartnerSubSpMappingT implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="partner_subsp_mapping_id")
 	private String partnerSubspMappingId;
 
@@ -31,12 +32,12 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="partner_id")
 	private String partnerId;
-	
+
 	//bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
 	@JoinColumn(name="sub_sp_id", insertable = false, updatable = false)
 	private SubSpMappingT subSpMappingT;
-	
+
 	//bi-directional many-to-one association to PartnerMasterT
 	@ManyToOne
 	@JoinColumn(name="partner_id", insertable = false, updatable = false)
@@ -44,7 +45,7 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="created_by")
 	private String createdBy;
-	
+
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="created_by", insertable = false, updatable = false)
@@ -52,7 +53,7 @@ public class PartnerSubSpMappingT implements Serializable {
 
 	@Column(name="modified_by")
 	private String modifiedBy;
-	
+
 	//bi-directional many-to-one association to UserT
 	@ManyToOne
 	@JoinColumn(name="modified_by", insertable = false, updatable = false)
