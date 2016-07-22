@@ -50,6 +50,7 @@
 	<bean id="customerContactDwldWriter" class="com.tcs.destination.writer.CustomerContactDwldWriter">
 		<property name="template" value="${customerContactSheetTemplate}"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="contactCustomerLinkTRepository" ref="contactCustomerLinkTRepository"/>
 		<property name="fileServerPath" value="${fileserver.path}" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
