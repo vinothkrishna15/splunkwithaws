@@ -75,4 +75,43 @@ public class ProductController {
 		}
 
 	}
+	
+	/**
+	 * This method is used to download the product contact details in excel
+	 * format
+	 * 
+	 * @param oppFlag
+	 * @return excelFile
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/productContactDownload", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<InputStreamResource> downloadProductContacts(
+			@RequestParam("downloadProductContacts") boolean oppFlag)
+					throws DestinationException {
+		logger.info("Inside ProductController: Start of /product /contactDownload GET");
+		try {
+			InputStreamResource excelFile = productDownloadService.getProductContacts(oppFlag);
+			HttpHeaders respHeaders = new HttpHeaders();
+			String todaysDate_formatted = DateUtils
+					.getCurrentDateInDesiredFormat();
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			String environmentName = PropertyUtil
+					.getProperty("environment.name");
+			String repName = environmentName + "_ProductContactDownload_"
+					+ todaysDate_formatted + ".xlsm";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
+			logger.info("Inside ProductController: End of /product/contactDownload GET");
+			return new ResponseEntity<InputStreamResource>(excelFile,
+					respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			logger.error("Destination Exception" + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR" + e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while downloading product contact details");
+		}
+	}
 }
