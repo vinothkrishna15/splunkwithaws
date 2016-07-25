@@ -59,9 +59,6 @@ public class BeaconCustomerUploadService {
 	CustomerRepository customerRepository;
 
 	@Autowired
-	private IouRepository iouRepository;
-
-	@Autowired
 	private GeographyRepository geoRepository;
 
 	@Autowired
@@ -344,7 +341,7 @@ public class BeaconCustomerUploadService {
 	public void validateInactiveIndicators(BeaconCustomerMappingT beacon) {
 		if(beacon != null) {
 			String beaconIou = beacon.getBeaconIou();
-			if(StringUtils.isNotBlank(beaconIou) && iouRepository.findByActiveTrueAndIou(beaconIou) == null) {
+			if(StringUtils.isNotBlank(beaconIou) && iouBeaconMappingTRepository.findByActiveTrueAndBeaconIou(beaconIou) == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "The beacon iou is inactive");
 			}
 
