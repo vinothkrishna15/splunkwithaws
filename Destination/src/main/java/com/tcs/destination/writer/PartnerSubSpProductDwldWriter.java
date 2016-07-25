@@ -81,24 +81,15 @@ public class PartnerSubSpProductDwldWriter implements ItemWriter<PartnerSubspPro
 	public ExitStatus afterStep(StepExecution stepExecution) {
 
 		try {
-		    if(fileInputStream!=null)
-		    {
-			fileInputStream.close();
-			FileOutputStream outputStream = new FileOutputStream(new File(
+			if(fileInputStream!=null)
+			{
+			  fileInputStream.close();
+			  FileOutputStream outputStream = new FileOutputStream(new File(
 					filePath));
-			workbook.write(outputStream); // write changes
-			outputStream.close(); // close the stream
-		    }
-
-			ExecutionContext jobContext = stepExecution.getJobExecution()
-					.getExecutionContext();
-			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
-					.get(REQUEST);
-
-			request.setStatus(RequestStatus.PROCESSED.getStatus());
-			dataProcessingRequestRepository.save(request);
-
-			jobContext.remove(REQUEST);
+			  workbook.write(outputStream); // write changes
+			  outputStream.close(); // close the stream
+			}
+		
 		} catch (IOException e) {
 			logger.error("Error in after step process: {}", e);
 		}
