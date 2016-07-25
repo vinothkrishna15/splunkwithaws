@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.mail.MessagingException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -22,12 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tcs.destination.bean.BidDetailsT;
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.DestinationMailMessage;
@@ -45,6 +49,7 @@ import com.tcs.destination.bean.WorkflowPartnerT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
+import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.OpportunityReopenRequestRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
@@ -60,6 +65,7 @@ import com.tcs.destination.data.repository.WorkflowPartnerRepository;
 import com.tcs.destination.data.repository.WorkflowProcessTemplateRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.enums.RequestType;
 import com.tcs.destination.enums.SalesStageCode;
@@ -161,7 +167,20 @@ public class DestinationMailUtils {
 
 	@Value("${contractNegotiation.mail.subject.highvalue}")
 	private String contractNegotiationHighValueMailSub;
-
+	
+	//collaboration link share changes
+	@Value("${shareConnectTemplate}")
+	private String shareConnectTemplate;
+	
+	@Value("${shareOpportunityTemplate}")
+	private String shareOpportunityTemplate;
+	
+	@Value("${shareOpportunitySubject}")
+	private String shareOpportunitySubject;
+	
+	@Value("${shareConnectSubject}")
+	private String shareConnectSubject;
+	
 	@Autowired
 	private UserService userService;
 
@@ -221,6 +240,9 @@ public class DestinationMailUtils {
 
 	@Autowired
 	SubSpRepository subSpRepository;
+	
+	@Autowired
+	ConnectRepository connectRepository;
 
 	@Autowired
 	private DestinationMailSender destMailSender;
@@ -1777,5 +1799,72 @@ public class DestinationMailUtils {
 
 
 	 }
+	 
+	 /**
+		 * This method is used to share an entity through email to group of users  
+		 * @param entityId
+		 * @param entityType
+		 * @param recipientIds
+		 * @param sender
+		 * @param url
+		 */
+	 public void sendShareEmail(String entityId, String entityType, String recipientIds,String sender,String url) throws Exception{
+		 recipientIds = recipientIds.substring(1);
+		 String[] recipients = recipientIds.split(",");
+		 for(String recipient : recipients){
+			 UserT recipientUser = userRepository.findOne(recipient);	   
+      	     String recipientName = recipientUser.getUserName();
+      	     String recipientEmailId = recipientUser.getUserEmailId();
+      	     if(!StringUtils.isEmpty(recipientEmailId)){
+      	       UserT senderUser = userRepository.findOne(sender);	   
+          	   String senderName = senderUser.getUserName();
+          	   
+          	   Map<String, Object> map = new HashMap<String, Object>();
+          	   map.put("sender", senderName);
+          	   map.put("recipient", recipientName);
+          	   map.put("url", url);
+          	   
+          	   DestinationMailMessage message = new DestinationMailMessage();
+          	   
+          	   List<String> recipientMailIds = Lists.newArrayList();
+ 	           recipientMailIds.add(recipientEmailId);
+     	       message.setRecipients(recipientMailIds);
+     	       
+          	   switch (EntityType.valueOf(entityType)) {
+          	 	 case CONNECT : 
+          	 		 ConnectT connect = connectRepository.findOne(entityId);
+          	 		 String connectName = connect.getConnectName();
+          	 		 map.put("connectName", connectName);
+          	 		 String textConnect = mergeTmplWithData(map, shareConnectTemplate);
+          	 		 logger.info("framed text for mail :" + textConnect);
+          	 		 message.setMessage(textConnect);
+			         message.setSubject(shareConnectSubject);
+			         break;
+			         
+          	 	 case OPPORTUNITY :   
+          	 		 OpportunityT opportunity = opportunityRepository.findOne(entityId);
+				     String opportunityName = opportunity.getOpportunityName();
+				 	 map.put("opportunityName", opportunityName);
+				 	 String textOpp = mergeTmplWithData(map, shareOpportunityTemplate);
+				   	 logger.info("framed text for mail :" + textOpp);
+				 	 message.setMessage(textOpp);
+				   	 message.setSubject(shareOpportunitySubject);
+				   	 break;
+				  
+				 default :
+				   		 break;
+          	   }
+          	 try{
+          		 destMailSender.send(message);
+          		 logger.info("Mail Sent for {} Id : {} to {}",entityType,entityId,recipientName);
+          	   } catch(Exception e){
+          		 logger.error("Error sending mail : {}", e.getMessage());
+          	   }
+      	     }
+		 }
+		 
+		 
+	 }
+
 
 }

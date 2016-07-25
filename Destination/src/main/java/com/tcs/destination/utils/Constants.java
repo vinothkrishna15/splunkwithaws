@@ -301,8 +301,9 @@ public class Constants {
 	public static final String AUDIT_TASK = "Audit Task";
 	public static final String AUDIT_TASK_BDM_TAGGED = "Audit Task BDM Tagged";
 	
-	
-	
+	//added for share link
+	public static final String shareConnectPortal="<User> has shared Connect: <ConnectName> with you";
+	public static final String shareOpportunityPortal="<User> has shared Opportunity: <OpportunityName> with you";
 	
 	
 }

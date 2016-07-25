@@ -51,5 +51,8 @@
     <import resource="/jobs/partnerMasterDownload-job.xml" />
     <import resource="/jobs/productContactUpload-job.xml" />
     <import resource="/jobs/productContactDownload-job.xml" />
+    
+    <import resource="jobs/ShareEmail-job.xml"/>
+    
 </beans>
 	

@@ -1,8 +1,16 @@
 package com.tcs.destination.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +19,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.tcs.destination.bean.CollaborationCommentT;
+import com.tcs.destination.bean.ConnectT;
+import com.tcs.destination.bean.OpportunityT;
+import com.tcs.destination.bean.ShareLinkDTO;
+import com.tcs.destination.bean.UserNotificationsT;
+import com.tcs.destination.bean.UserT;
 import com.tcs.destination.controller.JobLauncherController;
 import com.tcs.destination.data.repository.CollaborationCommentsRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
@@ -81,6 +94,8 @@ public class CollaborationCommentsService {
 	
 	@Autowired
 	JobLauncherController jobLauncherController;
+	
+	private static final String PATTERN = "\\<(.+?)\\>";
 
 	/**
 	 * method to insert collaboration comments to comments repository
@@ -285,4 +300,173 @@ public class CollaborationCommentsService {
 		
 		return statusFlag;
 	}
+	
+	/**
+	 * This method is used to validate the shareDTO before sharing  
+	 * @param shareDTO
+	 */
+	private void validateShareDTO(ShareLinkDTO shareDTO){
+		
+		String entityType = shareDTO.getEntityType();
+		if(StringUtils.isEmpty(entityType)){
+			logger.error("BAD_REQUEST: entity Type cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "entity Type cannot be empty");
+		} else {
+			if(!EntityType.contains(entityType)){
+				logger.error("Invalid Entity type");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid entity Type");
+			}
+		}
+		
+		String entityId = shareDTO.getEntityId();
+		if(StringUtils.isEmpty(entityId)){
+			logger.error("BAD_REQUEST: entity Id cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "entity Id cannot be empty");
+		} else {
+			if(EntityType.contains(entityType)){
+				switch (EntityType.valueOf(entityType)) {
+				case CONNECT:
+					             ConnectT connect = connectRepository.findOne(entityId);
+					             if(connect==null){
+					            	logger.error("Connect Entity Not found: {}",entityId);
+					 				throw new DestinationException(HttpStatus.NOT_FOUND, "Connect Entity Not found");
+					             }
+							 	 break;
+				case OPPORTUNITY:
+								 OpportunityT opportunity = opportunityRepository.findOne(entityId);
+								 if(opportunity==null){
+						            	logger.error("opportunity Entity Not found: {}",entityId);
+						 				throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunity Entity Not found");
+						             }
+								 break;
+				default:
+					logger.error("BAD_REQUEST: Invalid entity type");
+					throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid entity type");
+				}
+			} else {
+				logger.error("Invalid Entity type");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid entity Type");
+			}
+		}
+		
+		String url = shareDTO.getUrl();
+		if(StringUtils.isEmpty(url)){
+			logger.error("BAD_REQUEST: url cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "url cannot be empty");
+		}
+		
+		List<String> recipientIds = shareDTO.getRecipientIds();
+		if(CollectionUtils.isEmpty(recipientIds)){
+			logger.error("BAD_REQUEST: recipients cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST, "recipients cannot be empty");
+		} else {
+			List<String> validRecipientIds = new ArrayList<String>();
+			for(String id : recipientIds ){
+				UserT user = userRepository.findOne(id);
+			    if(user!=null){
+			    	if(user.isActive()){
+			    		validRecipientIds.add(user.getUserId());
+			    	}
+			    }
+			}
+			shareDTO.setRecipientIds(validRecipientIds);
+		}
+		
+	}
+	
+	/**
+	 * This method is used to share an entity through email or portal to group of users  
+	 * @param shareDTO
+	 */
+	public void share(ShareLinkDTO shareDTO) throws Exception{
+		validateShareDTO(shareDTO);
+		boolean isPortalNotify = shareDTO.getPortalNotify();
+		String entityType = shareDTO.getEntityType();
+		List<String> recipientIds = shareDTO.getRecipientIds();
+		String entityId = shareDTO.getEntityId();
+		UserT currentUser = DestinationUtils.getCurrentUserDetails();
+		
+		//sharing portal notification
+		if(isPortalNotify){
+			for(String userId:recipientIds){
+			UserNotificationsT notification = new UserNotificationsT();
+			
+			notification.setEntityType(entityType);
+			if(EntityType.contains(entityType)){
+				switch (EntityType.valueOf(entityType)) {
+				
+				case CONNECT :
+					String connectId = entityId;
+					notification.setConnectId(connectId);
+					ConnectT connect = connectRepository.findOne(connectId);
+					Map<String, String> tokensForConnect = new HashMap<String,String>();
+					tokensForConnect.put("User", currentUser.getUserName());
+					tokensForConnect.put("ConnectName",connect.getConnectName());
+					notification.setComments(replaceTokens(Constants.shareConnectPortal,tokensForConnect));
+					break;
+					
+				case OPPORTUNITY :
+					String opportunityId = entityId;
+					notification.setOpportunityId(opportunityId);
+					OpportunityT opportunity = opportunityRepository.findOne(opportunityId);
+					Map<String, String> tokensForOpportunity = new HashMap<String,String>();
+					tokensForOpportunity.put("User", currentUser.getUserName());
+					tokensForOpportunity.put("OpportunityName", opportunity.getOpportunityName());
+					notification.setComments(replaceTokens(Constants.shareOpportunityPortal,tokensForOpportunity));
+					break;
+					
+				default:
+					break;
+					
+				}
+			}
+			notification.setRecipient(userId);
+			UserT user = userRepository.findOne(userId); 
+			notification.setUserT(user);
+			notification.setEventId(17);
+			notification.setRead("NO");
+			notification.setUserId(currentUser.getUserId());
+			userNotificationsTRepository.save(notification);
+		 }
+			
+		}
+	
+		//sharing mail notification
+		boolean isEmailNotify = shareDTO.getEmailNotify();
+		if(isEmailNotify){
+			String sender = currentUser.getUserId();
+			StringBuffer recipientIdBuffer = new StringBuffer("");
+			for(String recipientId : recipientIds){
+				recipientIdBuffer.append(",");
+				recipientIdBuffer.append(recipientId);
+			}
+			String url = shareDTO.getUrl();
+			
+			if(!StringUtils.isEmpty(recipientIdBuffer.toString())){
+			 logger.info("launching share email asynchronously");	
+			 jobLauncherController.asyncJobLaunchForShareEmailNotification(JobName.shareEmail, entityType, entityId,recipientIdBuffer.toString(),sender,url);
+			}
+		}
+	}
+	
+	private String replaceTokens(String message, Map<String, String> tokens)
+			throws Exception {
+		logger.debug("Inside replaceTokens() method");
+		Pattern pattern = Pattern.compile(PATTERN);
+		Matcher matcher = pattern.matcher(message);
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		while (matcher.find()) {
+			String replacement = tokens.get(matcher.group(1));
+			builder.append(message.substring(i, matcher.start()));
+			if (replacement == null)
+				builder.append(matcher.group(0));
+			else
+				builder.append(replacement);
+			i = matcher.end();
+		}
+		builder.append(message.substring(i, message.length()));
+		return builder.toString();
+	}
+	
 }
