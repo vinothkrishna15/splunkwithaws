@@ -47,38 +47,52 @@ public class PartnerDownloadService
 
 	/**
 	 * this method downloads the sheet Partner Master
+	 * 
 	 * @param oppFlag
 	 * @return
 	 * @throws Exception
 	 */
-	public InputStreamResource getPartners(boolean oppFlag) throws Exception 
-	{
-		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService"); 
+	public InputStreamResource getPartners(boolean oppFlag) throws Exception {
+		logger.debug("Begin:Inside getPartners() method of PartnerDownloadService");
 		Workbook workbook = null;
 		InputStreamResource inputStreamResource = null;
-		try 
-		{
-			workbook =ExcelUtils.getWorkBook(new File
-					(PropertyUtil.getProperty
-							(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
+		try {
+			workbook = ExcelUtils
+					.getWorkBook(new File(
+							PropertyUtil
+									.getProperty(Constants.PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME)));
 
 			// Populate Partner Master Sheet
-			if(oppFlag)
-				populatePartnerMasterSheet(workbook.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
+			if (oppFlag) {
+				populatePartnerMasterSheet(workbook
+						.getSheet(Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME));
+			}
 
+			// Populate Geography Country Ref
+			commonWorkbookSheets
+					.populateGeographyCountryRef(workbook
+							.getSheet(Constants.PARTNER_TEMPLATE_GEOGRAPHY_REF_SHEET_NAME));
+			// populate SubSp
+			commonWorkbookSheets.populateSubSpSheet(workbook
+					.getSheet(Constants.PARTNER_TEMPLATE_SUBSP_REF_SHEET_NAME));
+
+			// Populate Product
+			commonWorkbookSheets
+					.populateProductSheet(workbook
+							.getSheet(Constants.PARTNER_TEMPLATE_PRODUCT_REF_SHEET_NAME));
 			ByteArrayOutputStream byteOutPutStream = new ByteArrayOutputStream();
 			workbook.write(byteOutPutStream);
 			byteOutPutStream.flush();
 			byteOutPutStream.close();
 			byte[] bytes = byteOutPutStream.toByteArray();
-			inputStreamResource = new InputStreamResource(new ByteArrayInputStream(bytes));
-		} 
-		catch (Exception e) 
-		{
+			inputStreamResource = new InputStreamResource(
+					new ByteArrayInputStream(bytes));
+		} catch (Exception e) {
 			e.printStackTrace();
-			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,"An Internal Exception has occured");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"An Internal Exception has occured");
 		}
-		logger.debug("End:Inside getPartners() method of PartnerDownloadService"); 
+		logger.debug("End:Inside getPartners() method of PartnerDownloadService");
 		return inputStreamResource;
 	}
 

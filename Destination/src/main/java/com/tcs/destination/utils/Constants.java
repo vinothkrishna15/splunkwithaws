@@ -211,6 +211,11 @@ public class Constants {
 	public static final String CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME = "Connect Type(Ref)";
 	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
 	
+	//Partner Data sheet names
+	public static final String PARTNER_TEMPLATE_GEOGRAPHY_REF_SHEET_NAME = "Geography(Ref)";
+	public static final String PARTNER_TEMPLATE_SUBSP_REF_SHEET_NAME = "SubSp(ref)";
+	public static final String PARTNER_TEMPLATE_PRODUCT_REF_SHEET_NAME = "Product(ref)";
+	
 	public static final String DOWNLOADCONSTANT = "Download_";
 	public static final String XLSM = ".xlsm";
 	public static final String PARTNER_MASTER_SHEET_NAME = "Partner Master";
