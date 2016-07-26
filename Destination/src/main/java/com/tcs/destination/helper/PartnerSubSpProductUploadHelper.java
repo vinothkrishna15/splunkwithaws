@@ -87,8 +87,8 @@ public class PartnerSubSpProductUploadHelper {
 					SubSpMappingT subSpMappingT=subSpRepository.findBySubSp(subSp);
 					if(subSpMappingT!=null)
 					{
-						List<PartnerSubSpMappingT> partnerSubSpMappingT=partnerSubSpMappingTRepository.findByPartnerIdAndSubSpId(partner.getPartnerId(),subSpMappingT.getSubSpId());
-						if(partnerSubSpMappingT!=null)
+						partnerSubsp=partnerSubSpMappingTRepository.findByPartnerIdAndSubSpId(partner.getPartnerId(),subSpMappingT.getSubSpId());
+						if(partnerSubsp!=null)
 						{
 							for(PartnerSubSpMappingT partnerSubSpMapping:partnerSubsp)
 							{
