@@ -34,6 +34,7 @@ import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
