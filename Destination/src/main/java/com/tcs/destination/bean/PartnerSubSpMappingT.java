@@ -4,8 +4,10 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
  * The persistent class for the partner_sub_sp_mapping_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
 @Entity
 @Table(name="partner_sub_sp_mapping_t")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partnerSubspMappingId")
