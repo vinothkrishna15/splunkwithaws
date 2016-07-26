@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
@@ -34,6 +35,9 @@ CrudRepository<PartnerMasterT, String> {
 	
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
 			String partnername, Pageable page, boolean active);
+	
+	Page<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndActiveOrderByGroupPartnerNameAsc(
+			String groupPartnername, Pageable page, boolean active);
 
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
 			String startsWith, Pageable pageable,boolean active);
@@ -105,5 +109,8 @@ CrudRepository<PartnerMasterT, String> {
 	List<PartnerMasterT> searchByPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
 
 	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(group_partner_name) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
-	List<PartnerMasterT> searchByGroupPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);	
+	List<PartnerMasterT> searchByGroupPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	List<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+			String groupPartnerName, String unknownPartner, boolean b);	
 }

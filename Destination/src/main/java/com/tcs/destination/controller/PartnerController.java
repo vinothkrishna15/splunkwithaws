@@ -18,10 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.enums.SmartSearchType;
-
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
@@ -151,6 +152,42 @@ public class PartnerController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving partner details");
 		}
+	}
+
+	/**
+	 * This method is used to retrieves the group partner name for the given
+	 * name with.
+	 * 
+	 * @param nameWith
+	 * @param fields
+	 * @param view
+	 * @return customer
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/group", method = RequestMethod.GET)
+	public @ResponseBody String findByGroupCustomerName(
+			@RequestParam("nameWith") String nameWith,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view)
+			throws DestinationException {
+		logger.info("Inside PartnerController: Start of retrieving the Group partner names");
+		String response = null;
+		List<PartnerMasterT> partner;
+		try {
+			partner = (List<PartnerMasterT>) partnerService
+				.findByGroupPartnerName(nameWith);
+			response = ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, partner);
+			logger.info("Inside PartnerController: Start of retrieving the Group partner names");
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in retrieving the Group partner name for "
+							+ nameWith);
+		}
+		return response;
 	}
 
 	/**

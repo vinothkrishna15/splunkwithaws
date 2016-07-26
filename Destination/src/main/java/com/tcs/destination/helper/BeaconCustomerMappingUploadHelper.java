@@ -211,8 +211,9 @@ public class BeaconCustomerMappingUploadHelper {
 				error.setMessage("Beacon customer not found for the beacon map id ,hence it cannot be updated");
 
 			} else {
-				if (beaconCustomers.isEmpty()) {
+				
 					if(beaconCustomer.isActive()){
+						if (beaconCustomers.isEmpty()) {
 						beacon.setCustomerId(customer.getCustomerId());
 						beacon.setBeaconCustomerMapId(Long.parseLong(beaconcustomerMapId));
 						if (!StringUtils.isEmpty(beaconCustomerName)) {
@@ -252,12 +253,12 @@ public class BeaconCustomerMappingUploadHelper {
 
 					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage("Beacon Customer is inactive and cannot be updated");
+						error.setMessage("Beacon Customer details already exists");
 					}
 				}
 				else{
 					error.setRowNumber(rowNumber);
-					error.setMessage("Beacon Customer details already exists");
+					error.setMessage("Beacon Customer is inactive and cannot be updated");
 				}
 			}
 		}else {

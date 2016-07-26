@@ -2324,7 +2324,10 @@ public class WorkflowService {
 		oldPartnerMaster.setText1(workflowPartnerT.getText1());
 		oldPartnerMaster.setText2(workflowPartnerT.getText2());
 		oldPartnerMaster.setText3(workflowPartnerT.getText3());
-		oldPartnerMaster.setHqPartnerLinkId(workflowPartnerT.getHqPartnerLinkId());
+		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
+			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
+			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+		}
 		partnerRepository.save(oldPartnerMaster);
 	}
 

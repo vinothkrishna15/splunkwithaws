@@ -17,11 +17,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.tcs.destination.bean.ContactCustomerLinkT;
+import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
@@ -31,8 +34,10 @@ import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
+import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
+import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
@@ -43,6 +48,7 @@ import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.CommonHelper;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 
@@ -86,6 +92,9 @@ public class PartnerService {
 
 	@Autowired
 	private CommonHelper commonHelper;
+	
+	@Autowired
+	private PartnerDao partnerDao;
 	
 	@Autowired 
 	private PartnerSubSpMappingTRepository partnerSubSpMappingTRepository;
@@ -811,4 +820,80 @@ public class PartnerService {
 		logger.debug("End:Inside save method of PartnerService");
 	}
 
+	/**
+	 * To retrieve the list of partners based on group partner name
+	 * @param nameWith
+	 * @return
+	 */
+	public List<PartnerMasterT> findByGroupPartnerName(String groupPartnerName) {
+		logger.debug("Inside findByGroupPartnerName() service");
+		List<PartnerMasterT> partnerList = partnerRepository
+				.findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
+		if (partnerList.isEmpty()) {
+			logger.error(
+					"NOT_FOUND: Customer not found with given group customer name: {}",
+					groupPartnerName);
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Customer not found with given group customer name: "
+							+ groupPartnerName);
+		}
+		preparePartnerDetails(partnerList);
+		return partnerList;
+	}
+
+	private void preparePartnerDetails(List<PartnerMasterT> partnerList) {
+		logger.debug("Inside preparePartnerDetails() method");
+
+		if (partnerList != null && !partnerList.isEmpty()) {
+			ArrayList<String> partnerNameList = new ArrayList<String>();
+			for (PartnerMasterT partnerMasterT : partnerList) {
+				partnerNameList.add(partnerMasterT.getPartnerName());
+			}
+			partnerNameList =  partnerDao.getPreviledgedPartnerName(DestinationUtils
+					.getCurrentUserDetails().getUserId(), partnerNameList,
+					true);
+
+			for (PartnerMasterT partnerMasterT : partnerList) {
+				preparePartnerDetails(partnerMasterT, partnerNameList);
+			}
+		}
+	}
+
+	private void preparePartnerDetails(PartnerMasterT partnerMasterT,
+			ArrayList<String> partnerNameList) throws DestinationException {
+		logger.debug("Inside preparePartnerDetails() method");
+
+		removeCyclicForLinkedContactTs(partnerMasterT);
+		try {
+			if (partnerNameList == null) {
+				partnerNameList = new ArrayList<String>();
+				partnerNameList.add(partnerMasterT.getPartnerName());
+				partnerNameList =  partnerDao.getPreviledgedPartnerName(DestinationUtils
+						.getCurrentUserDetails().getUserId(), partnerNameList,
+						true);
+			}
+			if (partnerNameList == null
+					|| partnerNameList.isEmpty()
+					|| (!partnerNameList.contains(partnerMasterT
+							.getPartnerName()))) {
+			}
+		} catch (Exception e) {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					e.getMessage());
+		}
+	}
+	
+	private void removeCyclicForLinkedContactTs(PartnerMasterT partnerMasterT) {
+		if (partnerMasterT != null) {
+			if (partnerMasterT.getPartnerContactLinkTs() != null) {
+				for (PartnerContactLinkT partnerContactLinkT : partnerMasterT
+						.getPartnerContactLinkTs()) {
+					partnerContactLinkT.getContactT()
+					.setPartnerContactLinkTs(null);
+				}
+			}
+		}
+	}
+	
 }
