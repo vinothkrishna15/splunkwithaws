@@ -213,6 +213,9 @@ public class PartnerContactUploadHelper {
 			error.setMessage("Contact id is mandatory");
 		}
 		
+		if(partnerContactT.isActive())
+		{
+		
 		// PARTNER NAMES
 		String partnerName = data[3];
 		if (!StringUtils.isEmpty(partnerName)) {
@@ -318,6 +321,12 @@ public class PartnerContactUploadHelper {
 		 {
 			 partnerContactT.setActive(activeFlag);
 		 }
+		}
+	}
+		else
+		{
+			error.setRowNumber(Integer.parseInt(data[0]) + 1);
+			error.setMessage("Contact is not active to be updated! ");
 		}
 		
 		return error;

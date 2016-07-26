@@ -195,6 +195,9 @@ public class ProductContactUploadHelper {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
 					error.setMessage("Contact id is mandatory");
 				}
+				
+				if(contact.isActive())
+				{
 	
 				// Contact Category
 				contact.setContactCategory("PRODUCT");
@@ -308,6 +311,12 @@ public class ProductContactUploadHelper {
 				 {
 					 contact.setActive(activeFlag);
 				 }
+				}
+			}
+				else
+				{
+					error.setRowNumber(Integer.parseInt(data[0]) + 1);
+					error.setMessage("Contact is not active to be updated.");
 				}
 				return error;
 	

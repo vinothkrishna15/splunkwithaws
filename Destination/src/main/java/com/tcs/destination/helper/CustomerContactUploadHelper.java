@@ -208,7 +208,8 @@ public class CustomerContactUploadHelper {
 					error.setMessage("Contact Id is mandatory");
 				}
 	
-				
+				if(contact.isActive())
+				{
 				// CUSTOMER NAMES
 				String customerName = data[3];
 				if (!StringUtils.isEmpty(customerName)) {
@@ -323,7 +324,12 @@ public class CustomerContactUploadHelper {
 					 contact.setActive(activeFlag);
 				 }
 				}
-
+			}
+			else
+			{
+				error.setRowNumber(Integer.parseInt(data[0]) + 1);
+				error.setMessage("Contact is inactive to be updated!");	
+			}
 				return error;
 	
 	}
