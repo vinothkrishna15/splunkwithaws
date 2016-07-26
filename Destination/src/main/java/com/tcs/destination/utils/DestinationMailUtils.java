@@ -2,7 +2,6 @@ package com.tcs.destination.utils;
 
 import static com.tcs.destination.utils.DateUtils.ACTUAL_FORMAT;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -19,7 +18,6 @@ import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.velocity.app.VelocityEngine;
@@ -29,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.velocity.VelocityEngineUtils;
+import org.springframework.util.StreamUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -1814,8 +1813,9 @@ public class DestinationMailUtils {
 		message.setSubject("data email");
 		
 		
-		File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
-		byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
+		//File imgFile = new File(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
+		//byte[] fileBinary = FileUtils.readFileToByteArray(imgFile);
+		byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("userNotifications", "You are added as a owner of opportunity : test");
