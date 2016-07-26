@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.tcs.destination.bean.ContactCustomerLinkT;
-import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.OpportunityPartnerLinkT;
@@ -34,10 +32,8 @@ import com.tcs.destination.data.repository.BeaconConvertorRepository;
 import com.tcs.destination.data.repository.ConnectCustomerContactLinkTRepository;
 import com.tcs.destination.data.repository.ConnectRepository;
 import com.tcs.destination.data.repository.ContactRepository;
-import com.tcs.destination.data.repository.CustomerDao;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.OpportunityPartnerLinkTRepository;
-import com.tcs.destination.data.repository.PartnerDao;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
@@ -198,6 +194,27 @@ public class PartnerService {
 		logger.debug("Begin:Inside deletePartner method of PartnerService");
 		partnerRepository.save(partnerList);
 		logger.debug("End:Inside deletePartner method of PartnerService");
+	}
+	
+	/**
+	 * This service deletes partner subsp details from partner_subsp_mapping_t
+	 * @param deleteList
+	 */
+	public void deletePartnerSubSp(List<PartnerSubSpMappingT> deleteList) {
+		logger.debug("Begin:Inside deletePartnerSubSp method of PartnerService");
+		partnerSubSpMappingTRepository.delete(deleteList);
+		logger.debug("End:Inside deletePartnerSubSp method of PartnerService");
+	}
+	
+	
+	/**
+	 * This service deletes partner subsp details from  partner_subsp_product_mapping_t
+	 * @param deleteList
+	 */
+	public void deletePartnerSubSpProduct(List<PartnerSubspProductMappingT> deleteList) {
+	  logger.debug("Begin:Inside deletePartnerSubSpProduct method of PartnerService");
+	  partnerSubSpProductMappingTRepository.delete(deleteList);
+	  logger.debug("End:Inside deletePartnerSubSpProduct method of PartnerService");
 	}
 
 	/*
