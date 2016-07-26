@@ -76,7 +76,7 @@ public class ProductUploadHelper {
 		String productDescription = data[4];
 		String productId = data[2];
 		ProductMasterT product = productRepository.findOne(productId);
-		if (product != null) {
+		if (product != null && product.isActive()) {
 			if (!StringUtils.isEmpty(productName)) {
 
 				productT.setProductName(productName);
