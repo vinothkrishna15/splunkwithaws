@@ -316,7 +316,9 @@ public class PartnerUploadHelper {
 			error.setRowNumber(rowNumber);
 			error.setMessage("Partner id is mandatory");
 		}
-
+      
+		if(partner.isActive())
+		{
 		// PARTNER_NAME 
 		String partnername = data[3];
 		if(!StringUtils.isEmpty(partnername))
@@ -498,7 +500,12 @@ public class PartnerUploadHelper {
 			error.setRowNumber(rowNumber);
 			error.setMessage(e.getMessage());
 		}
-		
+		}
+		else
+		{
+			error.setRowNumber(rowNumber);
+			error.setMessage("Partner is inactive to be updated.");
+		}
 		return error;
 
 	}
