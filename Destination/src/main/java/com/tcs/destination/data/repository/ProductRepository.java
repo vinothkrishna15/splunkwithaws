@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import com.tcs.destination.bean.ProductMasterT;
+import com.tcs.destination.bean.UserT;
 
 /**
  * 
@@ -21,5 +22,8 @@ public interface ProductRepository extends CrudRepository<ProductMasterT, String
 	    ProductMasterT findByProductName(String product);
 	    
 	    ProductMasterT findByProductId(String productId);
+	    
+	    @Query(value = "SELECT * FROM product_master_t WHERE UPPER(product_name) like UPPER(?1) ORDER BY product_id asc", nativeQuery = true)
+		List<ProductMasterT> getProductsByProductNameKeyword(String productName);
 
 }
