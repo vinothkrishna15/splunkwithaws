@@ -6,7 +6,6 @@ import static com.tcs.destination.utils.Constants.REQUEST;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +34,6 @@ import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
 
 public class PartnerSubspWriter implements ItemWriter<String[]>,
 		StepExecutionListener, WriteListener {
@@ -124,13 +122,11 @@ public class PartnerSubspWriter implements ItemWriter<String[]>,
 		// to save partner subsp details to db
 		if (CollectionUtils.isNotEmpty(insertList)) {
 			partnerService.savePartnerSubsp(insertList);
-        }// to update partner subsp details in db 
-		else if (CollectionUtils.isNotEmpty(updateList)) {
-            partnerService.savePartnerSubsp(updateList);
-        } // to delete partner subsp details from db
-		/*else if (CollectionUtils.isNotEmpty(deleteList)) {
+        }
+		 // to delete partner subsp details from db
+		else if (CollectionUtils.isNotEmpty(deleteList)) {
 			partnerService.deletePartnerSubSp(deleteList);
-		}*/
+		}
 	}
 
 	public PartnerSubSpUploadHelper getHelper() {

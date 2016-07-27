@@ -7,7 +7,6 @@ import static com.tcs.destination.utils.Constants.REQUEST;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,6 @@ import org.springframework.batch.item.ItemWriter;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.enums.Operation;
@@ -37,7 +35,6 @@ import com.tcs.destination.service.UploadErrorReport;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.ExcelUtils;
 import com.tcs.destination.utils.FileManager;
-import com.tcs.destination.utils.StringUtils;
 
 public class PartnerSubspProductWriter implements ItemWriter<String[]>,
 		StepExecutionListener, WriteListener {
@@ -117,13 +114,10 @@ public class PartnerSubspProductWriter implements ItemWriter<String[]>,
                    // to save partner subsp product details to db
 					if (CollectionUtils.isNotEmpty(insertList)) {
 						partnerService.savePartnerSubSpProduct(insertList);
-					} // to update partner subsp product details in db 
-					else if (CollectionUtils.isNotEmpty(updateList)) {
-						partnerService.savePartnerSubSpProduct(updateList);
 					} // to delete partner subsp product details from db 
-					/*else if (CollectionUtils.isNotEmpty(deleteList)){
+					else if (CollectionUtils.isNotEmpty(deleteList)){
 						partnerService.deletePartnerSubSpProduct(deleteList);
-					}*/
+					}
 				
 			}
 		}
