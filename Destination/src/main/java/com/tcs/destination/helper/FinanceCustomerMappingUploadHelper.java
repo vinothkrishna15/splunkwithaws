@@ -188,8 +188,8 @@ public class FinanceCustomerMappingUploadHelper {
 				error.setMessage("Finance customer details not found for the given map id ,hence it cannot be updated");
 
 			} else {
-				if (financeCustomers.isEmpty()) {
-					if(financeCustomer.isActive()){
+				if(financeCustomer.isActive()){
+					if (financeCustomers.isEmpty()) {
 						finance.setCustomerId(customer.getCustomerId());
 						finance.setRevenueCustomerMapId(Long.parseLong(revenueCustomerMapId));
 						if (!StringUtils.isEmpty(financeCustomerName)) {
@@ -232,12 +232,12 @@ public class FinanceCustomerMappingUploadHelper {
 
 					} else {
 						error.setRowNumber(rowNumber);
-						error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
+						error.setMessage("Finance Customer details already exists");
 					}
 				}
 				else {
 					error.setRowNumber(rowNumber);
-					error.setMessage("Finance Customer details already exists");
+					error.setMessage(" Finance / Revenue Customer is inactive and cannot be updated");
 				}
 			}
 		} else {
