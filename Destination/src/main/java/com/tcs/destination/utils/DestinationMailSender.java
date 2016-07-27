@@ -8,7 +8,6 @@ import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -143,6 +142,7 @@ public class DestinationMailSender {
 		         messageBodyPart = new MimeBodyPart();
 		         byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
 		 		
+		         logger.info("file size ################ {}", fileBinary.length);
 		         DataSource fds = new ByteArrayDataSource(fileBinary, "image/png");
 
 		         messageBodyPart.setDataHandler(new DataHandler(fds));
@@ -154,7 +154,7 @@ public class DestinationMailSender {
 		         // put everything together
 		         message.setContent(multipart);
 		         // Send message
-		         Transport.send(message);
+		         mailSender.send(message);
 
 		         System.out.println("Sent message successfully....");
 				
