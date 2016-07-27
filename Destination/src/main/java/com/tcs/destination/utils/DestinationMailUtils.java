@@ -1786,7 +1786,25 @@ public class DestinationMailUtils {
 	 }
 
 	public void sendSampleEmail() throws Exception {
-		 destMailSender.sendMultiPart(null); 
+		DestinationMailMessage message = new DestinationMailMessage();
+		message.setRecipients(Lists.newArrayList("manikandan.5@tcs.com"));
+		message.setSubject("cid email");
+		
+		String cid = generateCID();
+		message.setContentId(cid);
+		message.setAtchFileName("MountView.png");
+		message.setAtchFilePath(DestinationMailUtils.class.getResource("/templates/img/MountView.png").getPath());
+		
+		
+		 Map<String, Object> map = new HashMap<String, Object>();
+		 map.put("userNotifications", "You are added as a owner of opportunity : test");
+		 map.put("reminderNotifications", "connect owned by mani passed due date");
+		 map.put("collaborationNotifications", "Abi commented on your opportunity : test");
+		 map.put("imgSrc", "cid:<" + cid + ">");
+		 String text = mergeTmplWithData(map, sampleEmailTemplateLoc);
+		 logger.info("mail for image with cid " + text);
+		 message.setMessage(text);
+		 destMailSender.sendMultiPart(message); 
 	}
 
 	public void sendSampleEmail2() throws Exception {

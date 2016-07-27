@@ -2,16 +2,9 @@ package com.tcs.destination.utils;
 
 import java.util.List;
 
-import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -109,59 +102,46 @@ public class DestinationMailSender {
 	 * @param message
 	 * @throws Exception
 	 */
-	public void sendMultiPart(final DestinationMailMessage message1) throws Exception {
+	public void sendMultiPart(final DestinationMailMessage message) throws Exception {
 		
 			try {
-				MimeMessage message = ((JavaMailSenderImpl) mailSender).createMimeMessage();
-				
-				
-				 // Set From: header field of the header.
-		         message.setFrom(new InternetAddress(senderEmailId));
+				 MimeMessage mimeMessage = ((JavaMailSenderImpl) mailSender).createMimeMessage();
+				MimeMessageHelper msgHelper = new MimeMessageHelper(mimeMessage, true, Constants.UTF8);
+					
+					List<String> recipients = message.getRecipients();
+					List<String> ccList = message.getCcList();
+					List<String> bccList = message.getBccList();
+					String subject = message.getSubject();
+					String mailBody = message.getMessage();
 
-		         Address[] address = new Address[2];
-		         address[0] = new InternetAddress("manikandan.5@tcs.com");
-		         address[1] = new InternetAddress("s.razeen@tcs.com");
-		        	 
-		         // Set To: header field of the header.
-		         message.setRecipients(Message.RecipientType.TO,address);
+					msgHelper.setFrom(senderEmailId);
+					msgHelper.setTo(convertToArray(recipients));
+					if(CollectionUtils.isNotEmpty(ccList)) {
+						msgHelper.setCc(convertToArray(ccList));
+					}
+					if(CollectionUtils.isNotEmpty(bccList)) {
+						msgHelper.setBcc(convertToArray(bccList));
+					}
+					msgHelper.setSubject(subject);
+					msgHelper.setText("<html><body><h1>hello</h1><img src='cid:identifier1234'></body></html>", true);
+					if(hasAttachment(message)) {
+						msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
+					}
+					
+					//Inline message
+					byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
 
-		         // Set Subject: header field
-		         message.setSubject("Testing digest poc Subject");
+					logger.info("file size ################ {}", fileBinary.length);
+					DataSource fds = new ByteArrayDataSource(fileBinary, "image/png");
+					msgHelper.addInline("identifier1234", fds);
 
-		         // This mail has 2 part, the BODY and the embedded image
-		         MimeMultipart multipart = new MimeMultipart("related");
-
-		         // first part (the html)
-		         BodyPart messageBodyPart = new MimeBodyPart();
-		         String htmlText = "<H1>Hello</H1><img src=\"cid:image\">";
-		         messageBodyPart.setContent(htmlText, "text/html");
-		         // add it
-		         multipart.addBodyPart(messageBodyPart);
-
-		         // second part (the image)
-		         messageBodyPart = new MimeBodyPart();
-		         byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
-		 		
-		         logger.info("file size ################ {}", fileBinary.length);
-		         DataSource fds = new ByteArrayDataSource(fileBinary, "image/png");
-
-		         messageBodyPart.setDataHandler(new DataHandler(fds));
-		         messageBodyPart.setHeader("Content-ID", "<image>");
-
-		         // add image to the multipart
-		         multipart.addBodyPart(messageBodyPart);
-
-		         // put everything together
-		         message.setContent(multipart);
-		         // Send message
-		         mailSender.send(message);
-
-		         System.out.println("Sent message successfully....");
-				
-				
-				
-				
-			} catch (MessagingException | MailException e) {
+					//log the mail details
+					logMailDetails(recipients, ccList, bccList, subject, mailBody);
+					
+					mailSender.send(mimeMessage);
+					logger.info("mail sent, subject : {}", subject);
+								
+			} catch (Exception e ) {
 				logger.error("Error sending mail ", e);
 				throw e;
 			}
