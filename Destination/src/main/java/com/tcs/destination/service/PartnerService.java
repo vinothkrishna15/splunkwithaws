@@ -758,17 +758,17 @@ public class PartnerService {
 			switch(smartSearchType) {
 			case ALL:
 				resList.add(getPartnersByPartnerName(term, getAll));
-				resList.add(getPartnersByGroupPartnerName(term, getAll));
-				resList.add(getPartnersByGeography(term, getAll));
+				resList.add(getPartnersByCountry(term, getAll));
+				resList.add(getPartnersBySubSp(term, getAll));
 				break;
 			case PARTNER:
 				searchResultDTO = getPartnersByPartnerName(term, getAll);
 				break;
-			case GROUP_PARTNER_NAME:
-				searchResultDTO = getPartnersByGroupPartnerName(term, getAll);
+			case COUNTRY:
+				searchResultDTO = getPartnersByCountry(term, getAll);
 				break;
-			case GEOGRAPHY:
-				searchResultDTO = getPartnersByGeography(term, getAll);
+			case SUBSP:
+				searchResultDTO = getPartnersBySubSp(term, getAll);
 				break;
 			default:
 				break;
@@ -794,19 +794,19 @@ public class PartnerService {
 		return createSearchResultFrom(records, SmartSearchType.PARTNER);
 	}
 
-	private SearchResultDTO<PartnerMasterT> getPartnersByGroupPartnerName(
+	private SearchResultDTO<PartnerMasterT> getPartnersBySubSp(
 			String term, boolean getAll) {
-		List<PartnerMasterT> records = partnerRepository.searchByGroupPartnerName("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.GROUP_PARTNER_NAME);
+		List<PartnerMasterT> records = partnerRepository.searchBySubSp("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP);
+	}
+	
+	private SearchResultDTO<PartnerMasterT> getPartnersByCountry(String term, boolean getAll) {
+		List<PartnerMasterT> records = partnerRepository.searchByCountry("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.COUNTRY);
 	}
 
-	private SearchResultDTO<PartnerMasterT> getPartnersByGeography(
-			String term, boolean getAll) {
-		List<PartnerMasterT> records = partnerRepository.searchByGeography("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.GEOGRAPHY);
-	}
-
-	private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
+	
+     private SearchResultDTO<PartnerMasterT> createSearchResultFrom(
 			List<PartnerMasterT> records, SmartSearchType type) {
 		SearchResultDTO<PartnerMasterT> conRes = new SearchResultDTO<PartnerMasterT>();
 		conRes.setSearchType(type);
