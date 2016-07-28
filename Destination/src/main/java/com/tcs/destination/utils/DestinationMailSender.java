@@ -124,9 +124,9 @@ public class DestinationMailSender {
 					}
 					msgHelper.setSubject(subject);
 					msgHelper.setText("<html><body><h1>hello</h1><img src='cid:identifier1234'></body></html>", true);
-					if(hasAttachment(message)) {
-						msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
-					}
+//					if(hasAttachment(message)) {
+//						msgHelper.addAttachment(message.getAtchFileName(), new FileSystemResource(message.getAtchFilePath()));
+//					}
 					
 					//Inline message
 					byte[] fileBinary = StreamUtils.copyToByteArray(getClass().getResourceAsStream("/templates/img/MountView.png"));
