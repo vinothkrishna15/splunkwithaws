@@ -584,7 +584,7 @@ public class PartnerService {
 		// mandatory validations for group partner name
 
 		// group Partner Name
-		/*String groupPartnerName = partnerMaster.getGroupPartnerName();
+		String groupPartnerName = partnerMaster.getGroupPartnerName();
 		if (!StringUtils.isEmpty(groupPartnerName)) {
 			if(!(partner.getGroupPartnerName().equals(partnerMaster.getGroupPartnerName()))){
 
@@ -633,7 +633,7 @@ public class PartnerService {
 			logger.error("Country should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country should not be empty");
-		}*/
+		}
 
 		////notes edited
 		//		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){
@@ -653,13 +653,6 @@ public class PartnerService {
 			partner.setWebsite(partnerMaster.getWebsite());
 			isUpdate=true;
 		}
-
-		// Website
-		//		String website = partnerMaster.getWebsite();
-		//		if (!StringUtils.isEmpty(website)) {
-		//			partner.setWebsite(website);
-		//			isUpdate=true;
-		//		}
 
 		// notes
 		String notes = partnerMaster.getNotes();
@@ -913,5 +906,4 @@ public class PartnerService {
 			}
 		}
 	}
-	
 }
