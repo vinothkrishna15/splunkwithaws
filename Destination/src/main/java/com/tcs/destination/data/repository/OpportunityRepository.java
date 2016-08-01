@@ -1245,7 +1245,7 @@ public interface OpportunityRepository extends
 	 * @return
 	 */
 	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
-			+ " AND UPPER(opportunity_name) LIKE ?3 AND active=true ORDER BY modified_datetime DESC ", nativeQuery = true)
+			+ " AND UPPER(opportunity_name) LIKE ?3 ORDER BY modified_datetime DESC ", nativeQuery = true)
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
 			String customerId, Date fromDate, String term);
 
@@ -1258,7 +1258,7 @@ public interface OpportunityRepository extends
 	 * @return
 	 */
 	@Query(value="SELECT * FROM opportunity_t WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 "
-			+ " AND UPPER(opportunity_id) LIKE ?3 AND active=true ORDER BY modified_datetime DESC ", nativeQuery = true)
+			+ " AND UPPER(opportunity_id) LIKE ?3 ORDER BY modified_datetime DESC ", nativeQuery = true)
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityIdLike(
 			String customerId, Timestamp fromTimestamp, String term);
 
@@ -1272,7 +1272,7 @@ public interface OpportunityRepository extends
 	 */
 	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN user_t U ON U.user_id=OPP.opportunity_owner "
 			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2  "
-			+ " AND UPPER(U.user_name) LIKE ?3 AND OPP.active=true ORDER BY modified_datetime DESC ",nativeQuery=true)
+			+ " AND UPPER(U.user_name) LIKE ?3 ORDER BY modified_datetime DESC ",nativeQuery=true)
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityOwnerLike(
 			String customerId, Timestamp fromTimestamp, String term);
 
@@ -1285,7 +1285,7 @@ public interface OpportunityRepository extends
 	 * @return
 	 */
 	@Query(value="SELECT (OPP.*) FROM opportunity_t OPP JOIN opportunity_sub_sp_link_t OPPSPL ON OPP.opportunity_id=OPPSPL.opportunity_id "
-			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 AND UPPER(OPPSPL.sub_sp) LIKE ?3 AND OPP.active=true "
+			+ " WHERE customer_id =?1 AND opportunity_request_receive_date > ?2 AND UPPER(OPPSPL.sub_sp) LIKE ?3 "
 			+ " ORDER BY modified_datetime DESC ",nativeQuery=true)
 	List<OpportunityT> findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
 			String customerId, Timestamp fromTimestamp, String term);
