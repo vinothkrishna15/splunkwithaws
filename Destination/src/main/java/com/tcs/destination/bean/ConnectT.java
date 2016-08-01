@@ -93,6 +93,9 @@ public class ConnectT implements Serializable {
 	private String timeZone;
 
 	private String location;
+	
+	@Transient
+	private String productId; 
 
 	@ManyToOne
 	@JoinColumn(name="location", insertable=false, updatable=false)
@@ -188,11 +191,6 @@ public class ConnectT implements Serializable {
 	// bi-directional many-to-one association to UserTaggedFollowedT
 	@OneToMany(mappedBy = "connectT")
 	private List<UserTaggedFollowedT> userTaggedFollowedTs;
-
-	//added for partner changes -
-	//bi-directional many-to-one association to PartnerSubSpMappingT
-	@OneToMany(mappedBy="partnerMasterT")
-	private List<PartnerSubSpMappingT> partnerSubSpMappingTs;
 
 	@Transient
 	private List<ConnectSubSpLinkT> connectSubLinkDeletionList;
@@ -856,12 +854,11 @@ public class ConnectT implements Serializable {
 		this.enableEditAccess = enableEditAccess;
 	}
 
-	public List<PartnerSubSpMappingT> getPartnerSubSpMappingTs() {
-		return partnerSubSpMappingTs;
+	public String getProductId() {
+		return productId;
 	}
 
-	public void setPartnerSubSpMappingTs(
-			List<PartnerSubSpMappingT> partnerSubSpMappingTs) {
-		this.partnerSubSpMappingTs = partnerSubSpMappingTs;
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 }

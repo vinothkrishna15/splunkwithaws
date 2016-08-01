@@ -45,6 +45,9 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerSubSpMappingT;
+import com.tcs.destination.bean.PartnerSubspProductMappingT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TaskT;
@@ -71,6 +74,9 @@ import com.tcs.destination.data.repository.NotificationEventGroupMappingTReposit
 import com.tcs.destination.data.repository.NotificationsEventFieldsTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
+import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.SearchKeywordsRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.TaskRepository;
@@ -227,6 +233,16 @@ public class ConnectService {
 
 	@Autowired
 	CountryRepository countryRepository;
+	
+	@Autowired
+	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+
+	@Autowired
+	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+	
+	@Autowired
+	ProductContactLinkTRepository productContactLinkTRepository;
+
 
 	public ConnectT findConnectById(String connectId) throws Exception {
 		logger.debug("Inside findConnectById() service");
@@ -436,7 +452,7 @@ public class ConnectService {
 			List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 					.getConnectCustomerContactLinkTs();
 			if (conCustConLinkTList != null) {
-				populateConnectCustomerContactLinks(connectId,
+				populateConnectCustomerContactLinks(connect,
 						conCustConLinkTList);
 				logger.debug("ConnectCustomerContact Populated ");
 			} else {
@@ -502,7 +518,7 @@ public class ConnectService {
 		logger.debug("Connect not Saved");
 		return false;
 	}
-
+	
 	private void processNotifications(String connectId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
@@ -741,16 +757,26 @@ public class ConnectService {
 
 	}
 
-	private void populateConnectCustomerContactLinks(String connectId,
+	private void populateConnectCustomerContactLinks(ConnectT connect,
 			List<ConnectCustomerContactLinkT> conCustConLinkTList) {
 		logger.debug("Inside populateConnectCustomerContactLinks() method");
 		for (ConnectCustomerContactLinkT conCustConLink : conCustConLinkTList) {
 			// conCustConLink.setCreatedModifiedBy(currentUserId);
-			conCustConLink.setConnectId(connectId);
+			conCustConLink.setConnectId(connect.getConnectId());
 			conCustConLink.setCreatedBy(DestinationUtils
 					.getCurrentUserDetails().getUserId());
 			conCustConLink.setModifiedBy(DestinationUtils
 					.getCurrentUserDetails().getUserId());
+			
+		// for saving into product_contact_link_t
+			ProductContactLinkT productContactLinkT = new ProductContactLinkT();
+			productContactLinkT.setContactId(conCustConLink.getContactId());
+			productContactLinkT.setProductId(connect.getProductId());
+			productContactLinkT.setCreatedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
+			productContactLinkT.setModifiedBy(DestinationUtils
+					.getCurrentUserDetails().getUserId());
+			productContactLinkTRepository.save(productContactLinkT);
 		}
 	}
 
@@ -888,7 +914,7 @@ public class ConnectService {
 		List<ConnectCustomerContactLinkT> conCustConLinkTList = connect
 				.getConnectCustomerContactLinkTs();
 		if (conCustConLinkTList != null)
-			populateConnectCustomerContactLinks(connectId, conCustConLinkTList);
+			populateConnectCustomerContactLinks(connect, conCustConLinkTList);
 		logger.debug("ConnectCustomerContact Populated");
 
 		List<ConnectOfferingLinkT> conOffLinkTList = connect
@@ -1590,7 +1616,7 @@ public class ConnectService {
 			List<ConnectCustomerContactLinkT> custContactList = mapCustomerContact
 					.get(i);
 			if (CollectionUtils.isNotEmpty(custContactList)) {
-				populateConnectCustomerContactLinks(connectT.getConnectId(),
+				populateConnectCustomerContactLinks(connectT,
 						custContactList);
 			}
 

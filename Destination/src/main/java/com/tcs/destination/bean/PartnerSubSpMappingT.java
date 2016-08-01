@@ -69,13 +69,11 @@ public class PartnerSubSpMappingT implements Serializable {
 	private UserT modifiedByUser;
 
 	//bi-directional many-to-one association to PartnerSubspProductMappingT
-	@OneToMany(mappedBy="partnerSubSpMappingT", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy="partnerSubSpMappingT")
 	private List<PartnerSubspProductMappingT> partnerSubspProductMappingTs;
 	
 	@Transient
 	private List<PartnerSubspProductMappingT> deletePartnerSubspProductMappingTs;
-
-	
 
 	public PartnerSubSpMappingT() {
 	}

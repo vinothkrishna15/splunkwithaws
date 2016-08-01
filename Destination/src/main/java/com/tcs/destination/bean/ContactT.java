@@ -71,6 +71,9 @@ public class ContactT implements Serializable, Cloneable {
 
 	@Column(name = "active")
 	private boolean active = true;
+	
+	@Transient
+	private String productId;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "contactT")
@@ -536,6 +539,14 @@ public class ContactT implements Serializable, Cloneable {
 	public void setProductContactLinkTs(
 			List<ProductContactLinkT> productContactLinkTs) {
 		this.productContactLinkTs = productContactLinkTs;
+	}
+
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 
 }

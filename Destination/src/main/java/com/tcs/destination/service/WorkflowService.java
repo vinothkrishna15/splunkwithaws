@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.CompetitorMappingT;
+import com.tcs.destination.bean.ContactT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
@@ -46,6 +47,7 @@ import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
@@ -58,11 +60,13 @@ import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.bean.WorkflowStepT;
 import com.tcs.destination.data.repository.BeaconCustomerMappingRepository;
 import com.tcs.destination.data.repository.CompetitorRepository;
+import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
+import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
@@ -183,6 +187,12 @@ public class WorkflowService {
 
 	@Autowired
 	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+
+	@Autowired
+	ProductContactLinkTRepository productContactLinkTRepository;
+
+	@Autowired
+	ContactRepository contactRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -1944,18 +1954,23 @@ public class WorkflowService {
 		partnerMaster.setText1(requestedPartner.getText1());
 		partnerMaster.setText2(requestedPartner.getText2());
 		partnerMaster.setText3(requestedPartner.getText3());
-		//	partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
-		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
-		if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
-			PartnerSubSpMappingT partnerSubsp = requestedPartner.getPartnerSubSpMappingTs().get(0);
-			partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
-			partnerSubsp.setCreatedBy(requestedPartner.getCreatedBy());
-			partnerSubsp.setModifiedBy(requestedPartner.getModifiedBy());
-			savePartnerSubspAndProduct(partnerSubsp);
+		if(!requestedPartner.getPartnerName().equalsIgnoreCase(requestedPartner.getGroupPartnerName())){
+			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(requestedPartner.getGroupPartnerName());
+			if(!parentPartner.isEmpty())
+				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
 		}
+		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
+		/*if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
+			for(PartnerSubSpMappingT partnerSubsp : requestedPartner.getPartnerSubSpMappingTs()){
+				partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+				partnerSubsp.setCreatedBy(requestedPartner.getCreatedBy());
+				partnerSubsp.setModifiedBy(requestedPartner.getModifiedBy());
+				savePartnerSubspAndProduct(partnerSubsp);
+			}
+		}*/
 	}
 
-	private void savePartnerSubspAndProduct(
+	/*private void savePartnerSubspAndProduct(
 			PartnerSubSpMappingT partnerSubSpMappingTs) {
 		PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
 		if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
@@ -1964,9 +1979,35 @@ public class WorkflowService {
 			partnerSubspProductObj.setCreatedBy(partnerSubSpMappingTs.getCreatedBy());
 			partnerSubspProductObj.setModifiedBy(partnerSubSpMappingTs.getModifiedBy());
 			partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
+			if (!partnerSubspProductObj.getProductContact().isEmpty()){
+				saveProductcontact(partnerSubspProductObj);
+			}
 		}
-	}
+	}*/
 
+
+	/*private void saveProductcontact(PartnerSubspProductMappingT partnerSubspProductObj) {
+		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
+		productcontactLinkT.setProductId(partnerSubspProductObj.getProductId());
+		ContactT productcontactSaved = new ContactT();
+		if (partnerSubspProductObj.getProductContact().get(0).getContactId() == null) {
+			ContactT newProductContact = partnerSubspProductObj.getProductContact().get(0);
+			newProductContact.setContactCategory("PARTNER");
+			newProductContact.setContactType("EXTERNAL");
+			newProductContact.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			newProductContact.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productcontactSaved = contactRepository.save(newProductContact);
+			if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+				productcontactLinkT.setContactId(productcontactSaved.getContactId());
+			}
+		}
+		else if(partnerSubspProductObj.getProductContact().get(0).getContactId() != null){
+			productcontactLinkT.setContactId(partnerSubspProductObj.getProductContact().get(0).getContactId());
+		}			 
+		productcontactLinkT.setCreatedBy(partnerSubspProductObj.getCreatedBy());
+		productcontactLinkT.setModifiedBy(partnerSubspProductObj.getModifiedBy());
+		productContactLinkTRepository.save(productcontactLinkT);
+	}*/
 
 	private void validateRequestedPartner(WorkflowPartnerT reqPartner)
 			throws Exception {
@@ -2000,7 +2041,7 @@ public class WorkflowService {
 		}
 
 		//validation for partner group name, country, city => partner changes
-		String groupPartnerName = reqPartner.getGroupPartnerName();
+		/*String groupPartnerName = reqPartner.getGroupPartnerName();
 		if (StringUtils.isEmpty(groupPartnerName)) {
 			logger.error("Group Partner Name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -2019,7 +2060,7 @@ public class WorkflowService {
 			logger.error("city should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"city Should not be empty");
-		} 
+		} */
 	}
 
 	/**
@@ -2264,29 +2305,29 @@ public class WorkflowService {
 
 		//partner changes - need to check whether text1,2 and 3 also to be validated
 		//country
-		if (!StringUtils.isEmpty(oldObject.getCountry())) {
+		/*if (!StringUtils.isEmpty(oldObject.getCountry())) {
 			country = oldObject.getCountry();
 		}
 		if (!workflowPartnerT.getCountry().equals(country)) {
 			oldObject.setCountry(workflowPartnerT.getCountry());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		//city
-		if (!StringUtils.isEmpty(oldObject.getCity())) {
+		/*if (!StringUtils.isEmpty(oldObject.getCity())) {
 			city = oldObject.getCity();
 		}
 		if (!workflowPartnerT.getCity().equals(city)) {
 			oldObject.setCountry(workflowPartnerT.getCity());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		//group Partner name
-		if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
+		/*if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
 			groupPartnerName = oldObject.getGroupPartnerName();
 		}
 		if (!workflowPartnerT.getGroupPartnerName().equals(groupPartnerName)) {
 			oldObject.setCountry(workflowPartnerT.getGroupPartnerName());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		return isPartnerModifiedFlag;
 	}
 

@@ -582,6 +582,12 @@ public class ContactService {
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
+		ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
+		productcontatcLinkT.setContactId(contact.getContactId());
+		productcontatcLinkT.setProductId(contact.getProductId());
+		productcontatcLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		productcontatcLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		productContactLinkTRepository.save(productcontatcLinkT);
 		return contactRepository.save(contact);
 	}
 

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.tcs.destination.utils.Constants;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 /**
@@ -40,6 +41,9 @@ public class PartnerSubspProductMappingT implements Serializable {
 
 	@Column(name="partner_subsp_mapping_id")
 	private String partnerSubspMappingId;
+	
+	@Transient
+	private List<ContactT> productContact;
 	
 	//bi-directional many-to-one association to PartnerSubSpMappingT
 	@ManyToOne
@@ -156,6 +160,14 @@ public class PartnerSubspProductMappingT implements Serializable {
 
 	public void setPartnerSubspMappingId(String partnerSubspMappingId) {
 		this.partnerSubspMappingId = partnerSubspMappingId;
+	}
+
+	public List<ContactT> getProductContact() {
+		return productContact;
+	}
+
+	public void setProductContact(List<ContactT> productContact) {
+		this.productContact = productContact;
 	}
 
 }
