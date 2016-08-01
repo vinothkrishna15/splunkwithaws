@@ -490,8 +490,8 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
-		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
-		PartnerContactLinkT pclt=new PartnerContactLinkT();
+//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+//		PartnerContactLinkT pclt=new PartnerContactLinkT();
 
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
@@ -501,9 +501,10 @@ public class ContactService {
 							"CustomerId is required");
 				}
 
-				pclt.setPartnerId(null);
-				partnerContactList.add(pclt);
-				contact.setPartnerContactLinkTs(partnerContactList);
+//				pclt.setPartnerId(null);
+//				partnerContactList.add(pclt);
+//				contact.setPartnerContactLinkTs(partnerContactList);
+				contact.setPartnerContactLinkTs(null);
 			} else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
 				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
@@ -530,12 +531,12 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
-				if (partnerId != null
-						&& !(partnerId.isEmpty())) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Internal Contact cannot be added to Partner");
-				}
+//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
+//				if (partnerId != null
+//						&& !(partnerId.isEmpty())) {
+//					throw new DestinationException(HttpStatus.BAD_REQUEST,
+//							"Internal Contact cannot be added to Partner");
+//				}
 			}
 
 			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
