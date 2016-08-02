@@ -221,7 +221,7 @@ public class ConnectService {
 
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
-	
+
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -233,13 +233,13 @@ public class ConnectService {
 
 	@Autowired
 	CountryRepository countryRepository;
-	
+
 	@Autowired
 	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
 
 	@Autowired
 	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
-	
+
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
 
@@ -332,18 +332,18 @@ public class ConnectService {
 		validateDashboardConnectResponse(response,
 				new Timestamp(fromDate.getTime()),
 				new Timestamp(toDate.getTime()), response
-						.getPaginatedConnectResponse().getConnectTs(),
+				.getPaginatedConnectResponse().getConnectTs(),
 				new Timestamp(weekStartDate.getTime()), new Timestamp(
 						weekEndDate.getTime()),
-				new Timestamp(monthStartDate.getTime()), new Timestamp(
-						monthEndDate.getTime()));
+						new Timestamp(monthStartDate.getTime()), new Timestamp(
+								monthEndDate.getTime()));
 		return response;
 	}
 
 	public PaginatedResponse searchforConnectsBetweenForUserOrCustomerOrPartner(
 			Date fromDate, Date toDate, String userId, String owner,
 			String customerId, String partnerId, int page, int count)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside searchforConnectsBetweenForUserOrCustomerOrPartner() service");
 		PaginatedResponse connectResponse = new PaginatedResponse();
 		Timestamp toTimestamp = new Timestamp(toDate.getTime()
@@ -376,24 +376,24 @@ public class ConnectService {
 
 			} else if (owner.equalsIgnoreCase(OwnerType.ALL.toString())) {
 				logger.debug("Owner is ALL");
-					connects = connectRepository
-							.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
-									userId, new Timestamp(fromDate.getTime()),
-									toTimestamp, customerId, partnerId);
+				connects = connectRepository
+						.findForAllOwnersStartDatetimeOfConnectBetweenForCustomerOrPartner(
+								userId, new Timestamp(fromDate.getTime()),
+								toTimestamp, customerId, partnerId);
 				connectResponse.setTotalCount(connects.size());
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 
 			}
-			
+
 			prepareConnect(connects);
 			return connectResponse;
 		}
-		
+
 		logger.error("BAD_REQUEST: Invalid Owner Type: {}", owner);
 		throw new DestinationException(HttpStatus.BAD_REQUEST,
 				"Invalid Owner Type: " + owner);
-		
+
 	}
 
 	private List<ConnectT> paginateConnects(int page, int count,
@@ -506,10 +506,10 @@ public class ConnectService {
 			if (connectRepository.save(connect) != null) {
 				logger.info("Connect has been added successfully");
 				if (!isBulkDataLoad) {
-//					// Invoke Asynchronous Auto Comments Thread
+					//					// Invoke Asynchronous Auto Comments Thread
 					processAutoComments(connect.getConnectId(), null);
-//					// Invoke Asynchronous Notifications Thread
-//					processNotifications(connect.getConnectId(), null);
+					//					// Invoke Asynchronous Notifications Thread
+					//					processNotifications(connect.getConnectId(), null);
 				}
 				return true;
 			}
@@ -518,7 +518,7 @@ public class ConnectService {
 		logger.debug("Connect not Saved");
 		return false;
 	}
-	
+
 	private void processNotifications(String connectId, Object oldObject) {
 		logger.debug("Calling processNotifications() method");
 		NotificationHelper notificationsHelper = new NotificationHelper();
@@ -528,22 +528,22 @@ public class ConnectService {
 			notificationsHelper.setOldObject(oldObject);
 		}
 		notificationsHelper
-				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
 		notificationsHelper
-				.setUserNotificationsTRepository(userNotificationsTRepository);
+		.setUserNotificationsTRepository(userNotificationsTRepository);
 		notificationsHelper
-				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
 		notificationsHelper
-				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setCrudRepository(connectRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
 		notificationsHelper
-				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
 		notificationsHelper
-				.setSearchKeywordsRepository(searchKeywordsRepository);
+		.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking Auto Comments Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -635,7 +635,7 @@ public class ConnectService {
 				}
 				if (connect.getDeleteConnectSecondaryOwnerLinkTs() != null
 						&& connect.getDeleteConnectSecondaryOwnerLinkTs()
-								.size() > 0) {
+						.size() > 0) {
 					for (ConnectSecondaryOwnerLinkT connectSecondaryOwnerLinkT : connect
 							.getDeleteConnectSecondaryOwnerLinkTs()) {
 						if (!connect
@@ -702,7 +702,7 @@ public class ConnectService {
 
 	private void populateConnectTcsAccountContactLinks(String connectId,
 			List<ConnectTcsAccountContactLinkT> conTcsAccConLinkTList)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside populateConnectTcsAccountContactLinks() method");
 		for (ConnectTcsAccountContactLinkT conTcsAccConLink : conTcsAccConLinkTList) {
 			// conTcsAccConLink.setCreatedModifiedBy(currentUserId);
@@ -767,16 +767,18 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 			conCustConLink.setModifiedBy(DestinationUtils
 					.getCurrentUserDetails().getUserId());
-			
-		// for saving into product_contact_link_t
-			ProductContactLinkT productContactLinkT = new ProductContactLinkT();
-			productContactLinkT.setContactId(conCustConLink.getContactId());
-			productContactLinkT.setProductId(connect.getProductId());
-			productContactLinkT.setCreatedBy(DestinationUtils
-					.getCurrentUserDetails().getUserId());
-			productContactLinkT.setModifiedBy(DestinationUtils
-					.getCurrentUserDetails().getUserId());
-			productContactLinkTRepository.save(productContactLinkT);
+
+			// for saving into product_contact_link_t
+			if(connect.getConnectCategory().equals(EntityType.PARTNER)){
+				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
+				productContactLinkT.setContactId(conCustConLink.getContactId());
+				productContactLinkT.setProductId(connect.getProductId());
+				productContactLinkT.setCreatedBy(DestinationUtils
+						.getCurrentUserDetails().getUserId());
+				productContactLinkT.setModifiedBy(DestinationUtils
+						.getCurrentUserDetails().getUserId());
+				productContactLinkTRepository.save(productContactLinkT);
+			}
 		}
 	}
 
@@ -853,7 +855,7 @@ public class ConnectService {
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
 		ConnectT connectBeforeEdit = connectRepository.findOne(connectId);
-		
+
 		if (!isEditAccessRequiredForConnect(connectBeforeEdit, userGroup,
 				userId)) {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -869,10 +871,10 @@ public class ConnectService {
 
 		if (afterConnect != null) {
 			logger.info("Connect has been updated successfully: " + connectId);
-//			// Invoke Asynchronous Auto Comments Thread
+			//			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(connectId, oldObject);
-//			// Invoke Asynchronous Notifications Thread
-//			processNotifications(connectId, oldObject);
+			//			// Invoke Asynchronous Notifications Thread
+			//			processNotifications(connectId, oldObject);
 			return true;
 		}
 		return false;
@@ -1157,7 +1159,7 @@ public class ConnectService {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : connectT
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getOpportunityT()
-							.setConnectOpportunityLinkIdTs(null);
+					.setConnectOpportunityLinkIdTs(null);
 				}
 			}
 		}
@@ -1174,11 +1176,11 @@ public class ConnectService {
 			autoCommentsHelper.setOldObject(oldObject);
 		}
 		autoCommentsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper
-				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper
-				.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(connectRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
@@ -1231,7 +1233,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
+				.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1282,7 +1284,7 @@ public class ConnectService {
 				prepareConnect(connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
+				.setPaginatedConnectResponse(connectResponse);
 			}
 
 			// If ROLE is SECONDARY
@@ -1304,7 +1306,7 @@ public class ConnectService {
 				connects = paginateConnects(page, count, connects);
 				connectResponse.setConnectTs(connects);
 				dashBoardConnectsResponse
-						.setPaginatedConnectResponse(connectResponse);
+				.setPaginatedConnectResponse(connectResponse);
 
 				prepareConnect(connects);
 
@@ -1343,14 +1345,14 @@ public class ConnectService {
 			logger.error(
 					"NOT_FOUND: No Connects found for for days between {} and {}, "
 							+ "days of week between {} and {}, days of month between {} and {}",
-					fromDateTs, toDateTs, weekStartDateTs, weekEndDateTs,
-					monthStartDateTs, monthEndDateTs);
+							fromDateTs, toDateTs, weekStartDateTs, weekEndDateTs,
+							monthStartDateTs, monthEndDateTs);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Connects found for days between " + fromDateTs
-							+ " and " + toDateTs + ", days of week between "
-							+ weekStartDateTs + " and " + weekEndDateTs
-							+ ", days of month between " + monthStartDateTs
-							+ " and " + monthEndDateTs);
+					+ " and " + toDateTs + ", days of week between "
+					+ weekStartDateTs + " and " + weekEndDateTs
+					+ ", days of month between " + monthStartDateTs
+					+ " and " + monthEndDateTs);
 		}
 	}
 
@@ -1791,7 +1793,7 @@ public class ConnectService {
 		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
-    
+
 	/**
 	 * This method is used to check whether the logged in user is one of the
 	 * owner of connect
@@ -1812,7 +1814,7 @@ public class ConnectService {
 		}
 		return false;
 	}
-	
+
 	public boolean isEditAccessNotAuthorisedForPartner(String userId,
 			String userGroup, String partnerId) {
 		boolean isEditAccessRequired = false;
@@ -1820,7 +1822,7 @@ public class ConnectService {
 		case GEO_HEADS:
 		case PMO:
 			String geography = partnerRepository
-					.findGeographyByPartnerId(partnerId);
+			.findGeographyByPartnerId(partnerId);
 
 			List<String> geographyList = userAccessPrivilegesRepository
 					.getPrivilegeValueForUser(userId,
@@ -1839,7 +1841,7 @@ public class ConnectService {
 		}
 		return isEditAccessRequired;
 	}
-    
+
 	/**
 	 * This method is used to check whether the one of the owners
 	 * of connect is BDM or BDM Supervisor or GEO Head 
@@ -1860,47 +1862,47 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		return isBDMOrBDMSupervisorOrGeoHead;
 	}
-	
+
 
 	/**
 	 * validate the connect for any inactive fields(owners, customer, etc)
 	 * @param connect
 	 */
 	public void validateInactiveIndicators(ConnectT connect) {
-		
+
 		// createdBy,
 		String createdBy = connect.getCreatedBy();
 		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
 		}
-		
+
 		// modifiedBy,
 		String modifiedBy = connect.getModifiedBy();
 		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
 		}
-		
+
 		// primaryOwner,
 		String primaryOwner = connect.getPrimaryOwner();
 		if(StringUtils.isNotBlank(primaryOwner) && userRepository.findByActiveTrueAndUserId(primaryOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
-		
+
 		// customerId,
 		String customerId = connect.getCustomerId();
 		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
 		}
-		
+
 		// partnerId,
 		String partnerId = connect.getPartnerId();
 		if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
 		}
-		
+
 		//connectCustomerContactLinkTs,
 		List<ConnectCustomerContactLinkT> connectCustomerContactLinkTs = connect.getConnectCustomerContactLinkTs();
 		if(CollectionUtils.isNotEmpty(connectCustomerContactLinkTs)) {
@@ -1911,7 +1913,7 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		// connectOfferingLinkTs,
 		List<ConnectOfferingLinkT> connectOfferingLinkTs = connect.getConnectOfferingLinkTs();
 		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
@@ -1922,7 +1924,7 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		//connectSecondaryOwnerLinkTs,
 		List<ConnectSecondaryOwnerLinkT> connectSecondaryOwnerLinkTs = connect.getConnectSecondaryOwnerLinkTs();
 		if(CollectionUtils.isNotEmpty(connectSecondaryOwnerLinkTs)) {
@@ -1933,7 +1935,7 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		//connectSubSpLinkTs,
 		List<ConnectSubSpLinkT> connectSubSpLinkTs = connect.getConnectSubSpLinkTs();
 		if(CollectionUtils.isNotEmpty(connectSubSpLinkTs)) {
@@ -1944,7 +1946,7 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		//List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs,
 		List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs = connect.getConnectTcsAccountContactLinkTs();
 		if(CollectionUtils.isNotEmpty(connectTcsAccountContactLinkTs)) {
@@ -1955,15 +1957,15 @@ public class ConnectService {
 				}
 			}
 		}
-		
+
 		// country
 		String country = connect.getCountry();
 		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
 		}
-		
+
 	}
-	
+
 	/**
 	 * Service method to fetch the connect related information based on search type and the search keyword 
 	 * @param smartSearchType
@@ -1980,7 +1982,7 @@ public class ConnectService {
 		List<SearchResultDTO<ConnectT>> resList = Lists.newArrayList();
 		SearchResultDTO<ConnectT> searchResultDTO = new SearchResultDTO<ConnectT>();
 		if(smartSearchType != null) {
-			
+
 			switch(smartSearchType) {
 			case ALL:
 				resList.add(getConnectsByName(term, getAll));
@@ -2004,7 +2006,7 @@ public class ConnectService {
 				break;
 
 			}
-			
+
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<ConnectT> values = searchResultDTO.getValues();
@@ -2017,7 +2019,7 @@ public class ConnectService {
 		res.setContent(resList);
 		return res;
 	}
-	
+
 	/**
 	 * fetch all connects where the subsp contains the provided term
 	 * @param term - search keyword
@@ -2061,7 +2063,7 @@ public class ConnectService {
 		List<ConnectT> records = connectRepository.searchByConnectName("%"+term+"%", getAll);
 		return createSearchResultFrom(records, SmartSearchType.CONNECT, getAll);
 	}
-	
+
 	/**
 	 * creates {@link SearchResultDTO} from the list of connects
 	 * @param records
@@ -2102,9 +2104,9 @@ public class ConnectService {
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<ConnectT> connectsList = new ArrayList<ConnectT>();
 		Set<ConnectT> connectsSet = new HashSet<ConnectT>();
-		
+
 		if(smartSearchType != null) {
-			
+
 			switch(smartSearchType) {
 			case ALL:
 				connectsSet.addAll(getConnectsByNameAndCustomerId(term, customerId,
@@ -2134,7 +2136,7 @@ public class ConnectService {
 			connectsList = getAllConnectsByCustomerIdAndStartDateOfConnectsAfter(
 					customerId, new Timestamp(fromDate.getTime()));
 		}
-			
+
 		prepareConnect(connectsList);
 		paginatedResponse.setTotalCount(connectsList.size());
 		// Code for pagination
@@ -2150,8 +2152,8 @@ public class ConnectService {
 		}
 		return paginatedResponse;
 	}
-	
-	
+
+
 	/**
 	 * @param customerId
 	 * @param fromTimestamp
@@ -2168,7 +2170,7 @@ public class ConnectService {
 
 	/**
 	 * This method is used to find the connects for the customerId and connect name after start date of connect
- 	 * @param term
+	 * @param term
 	 * @param customerId
 	 * @param fromTimestamp
 	 * @param toTimestamp
@@ -2181,7 +2183,7 @@ public class ConnectService {
 						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
 		return connects;
 	}
-	
+
 	/**
 	 * This method is used to find the connects for the customerId and primary owner after start date of connect
 	 * @param term
@@ -2197,7 +2199,7 @@ public class ConnectService {
 						fromTimestamp, customerId, "%"+ term.toUpperCase() +"%");
 		return connects;
 	}
-	
+
 	/**
 	 * This method is used to find the connects for the customerId and subSp after start date of connect
 	 * @param term
