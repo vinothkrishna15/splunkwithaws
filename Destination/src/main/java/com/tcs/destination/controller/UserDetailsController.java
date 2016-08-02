@@ -915,4 +915,32 @@ public class UserDetailsController {
 					"Backend Error while processing Upload Photo service");
 		}
 	}
+	
+	/**
+	 * This service helps in retrieving the user details
+	 * 
+	 * @param user
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/getuserdetails", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<String> getUserDetails(
+			@RequestParam("userId") String userId,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "view", defaultValue = "") String view) throws DestinationException{
+		logger.info("Starting UserDetailsController /user/getuserdetails GET");
+		try {
+			UserT userT = userService.getUserDetailsById(userId);
+			logger.info("Ending UserDetailsController /user/getuserdetails GET");
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews(fields, view,
+							userT), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("Backend Error while processing getuserdetails service");
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend Error while processing getuserdetails service");
+		}
+	}
 }

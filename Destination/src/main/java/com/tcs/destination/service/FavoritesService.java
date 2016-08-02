@@ -291,4 +291,39 @@ public class FavoritesService {
 		}
 		logger.debug("Ending prepareFavorites service");
 	}
+
+	/**
+	 * This service retrieves for the favorites of a users
+	 * 
+	 * @param userId
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PaginatedResponse findFavoritesForUser(String userId, int page, int count) {
+
+		PaginatedResponse favorites = new PaginatedResponse();;
+		Page<UserFavoritesT> userFavorites = null;
+		
+		logger.debug("Starting findFavoritesForUser Favorites Service");
+			Pageable pageable = new PageRequest(page, count);
+			
+			userFavorites = userFavRepository
+					.findByUserIdOrderByCreatedDatetimeDesc(userId, pageable);
+
+			if (userFavorites.getContent().isEmpty()) { // If NO favorites are found
+				logger.error("NOT_FOUND: No Relevent Data Found in the database");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Favorites found");
+			} else { // If favorites exists for the user
+				prepareFavorites(userFavorites); // remove cyclic dependency
+				favorites.setUserFavoritesTs(userFavorites.getContent()); 
+				favorites.setTotalCount(userFavorites.getTotalElements());
+				logger.debug("Ending findFavoritesForUser Favorites Service");
+			}
+			
+			return favorites;
+	
+	}
+ 
 }

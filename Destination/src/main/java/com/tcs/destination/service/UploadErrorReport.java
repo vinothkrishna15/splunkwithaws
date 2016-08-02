@@ -107,7 +107,12 @@ public class UploadErrorReport {
 	
 	private void writeErrorReportIntoExcel(XSSFWorkbook workbook,
 			List<UploadServiceErrorDetailsDTO> errorDetailsDTOs,String sheetName) {
-		XSSFSheet spreadSheet = workbook.createSheet(sheetName);
+		XSSFSheet spreadSheet;
+		if(workbook.getSheet(sheetName)!=null){
+			spreadSheet = workbook.getSheet(sheetName);
+		} else {
+			spreadSheet	= workbook.createSheet(sheetName);
+		}
 		CellStyle headerSyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.REPORTHEADER);
 		CellStyle rowStyle = ExcelUtils.createRowStyle(spreadSheet.getWorkbook(),ReportConstants.DATAROW);
 		int currentRow = 0;

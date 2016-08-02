@@ -700,4 +700,74 @@ public interface ConnectRepository extends CrudRepository<ConnectT, String> {
 			+ "ORDER BY c2.location", nativeQuery = true)
 	List<ConnectT> getConnectsForUsers(@Param("users") List<String> users, @Param("fromDate") Timestamp fromDate, 
 			@Param("toDate") Timestamp toDate, @Param("category") String category);
+
+	
+	/**
+	 * This query performs search of connect_t based on customer id 
+	 * 
+	 * @param customerId
+	 * @param startTimestamp
+	 * @param endTimestamp
+	 * @return
+	 */
+	List<ConnectT> findByCustomerIdAndStartDatetimeOfConnectBetweenOrderByStartDatetimeOfConnectDesc(
+			String customerId, Timestamp startTimestamp, Timestamp endTimestamp);
+	
+	/**
+	 * This query performs search of connect_t based on customer id and start date of connect
+	 * 
+	 * @param customerId
+	 * @param startTimestamp
+	 * @return
+	 */
+	List<ConnectT> findByCustomerIdAndStartDatetimeOfConnectAfterOrderByStartDatetimeOfConnectDesc(
+			String customerId, Timestamp startTimestamp);
+	
+	/**
+	 * Fetch the connects for the customerId and subSp like search and start date of connect after
+	 * 
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @param customerId
+	 * @param connectName
+	 * @return 
+	 */
+	@Query(value = "SELECT (CON.*) FROM connect_t CON WHERE CON.start_datetime_of_connect >= ?1 "
+			+ " AND customer_id=?2 AND UPPER(connect_name) LIKE ?3 ORDER BY start_datetime_of_connect DESC ",nativeQuery=true)
+	List<ConnectT> findConnectsByStartDatetimeOfConnectAfterForCustomerAndConnectNameLike(Timestamp fromTimestamp,
+			String customerId, String connectName);
+
+	/**
+	 * Fetch the connects for the customerId and primary owner like search and start date of connect after
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @param customerId
+	 * @param string
+	 * @return
+	 */
+	@Query(value = "SELECT (CNN.*) FROM connect_t CNN JOIN user_t U ON CNN.primary_owner=U.user_id "
+			+ " WHERE CNN.start_datetime_of_connect >= (:fromTimestamp) AND CNN.customer_id=(:customerId) "
+			+ " AND UPPER(U.user_name) LIKE (:term) ORDER BY start_datetime_of_connect DESC ",nativeQuery=true)
+	List<ConnectT> findConnectsByStartDatetimeOfConnectAfterForCustomerAndPrimaryOwnerLike(
+			@Param("fromTimestamp") Timestamp fromTimestamp, 
+			@Param("customerId") String customerId, 
+			@Param("term") String term);
+
+	/**
+	 * Fetch the connects for the customerId and subSp like search and start date of connect after
+	 * @param fromTimestamp
+	 * @param toTimestamp
+	 * @param customerId
+	 * @param string
+	 * @return
+	 */
+	@Query(value = "SELECT (CNN.*) FROM connect_t CNN JOIN connect_sub_sp_link_t CSSL on CNN.connect_id=CSSL.connect_id "
+			+ " where UPPER(sub_sp) LIKE UPPER(:term) AND start_datetime_of_connect >=(:fromTimestamp) "
+			+ " AND customer_id =(:customerId) ORDER BY start_datetime_of_connect DESC ",nativeQuery=true)
+	List<ConnectT> findConnectsByStartDatetimeOfConnectAfterForCustomerAndSubSpLike(
+			@Param("fromTimestamp") Timestamp fromTimestamp, 
+			@Param("customerId") String customerId, 
+			@Param("term") String term);
+	
+	
 }

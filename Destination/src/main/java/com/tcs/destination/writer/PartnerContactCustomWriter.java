@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.WriteListener;
 
@@ -60,6 +61,8 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 	private ContactService contactService;
 
 	private ContactRepository contactRepository;
+	
+	
 
 	/**
 	 * This method performs insertion if the operation is ADD
@@ -98,7 +101,7 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 				{
 
 					logger.debug("***PARTNER CONTACT UPDATE***");
-					String contactId =data[9];
+					String contactId =data[2];
 	                UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
 					if (!contactId.isEmpty()) {
 						try{
@@ -134,7 +137,7 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 
 					logger.debug("***PARTNER CONTACT DELETE***");
 					ContactT contactT =  new ContactT();
-					contactT = contactRepository.findByContactId(data[9]);
+					contactT = contactRepository.findByContactId(data[2]);
 					 UploadServiceErrorDetailsDTO errorDTO = helper.validateContactId(data, contactT);
 					 
 					 if (errorDTO.getMessage() != null) {
@@ -148,21 +151,22 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 				
 				}
 				
-				if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) 
-				{
-                    if (operation.equalsIgnoreCase(Operation.ADD.name())){
-						contactService.save(insertList);
-						logger.info("contact is saved");
-					} 
-					else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-						contactService.updateContact(updateList);
-					}
-					else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
-						contactService.deleteContact(deleteList);
-					}
-				}
+				
 			}
 		}
+		
+	
+		//for saving partner contact details
+		if (CollectionUtils.isNotEmpty(insertList)) {
+			contactService.saveContacts(insertList);
+		} //for updating partner contact details
+		else if (CollectionUtils.isNotEmpty(updateList)){ 
+			contactService.updateContact(updateList);
+		}//for deleting partner contact details
+		else if (CollectionUtils.isNotEmpty(deleteList)){ 
+			contactService.deleteContact(deleteList);
+		}
+		
 	}
 
 
@@ -241,7 +245,7 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 				workbook.write(outputStream);
 				outputStream.flush();
 				outputStream.close();
-
+              
 				request.setErrorFileName(errorFileName);	
 				request.setErrorFilePath(errorPath);
 
@@ -249,6 +253,7 @@ public class PartnerContactCustomWriter implements ItemWriter<String[]>, StepExe
 			request.setStatus(RequestStatus.PROCESSED.getStatus());
 
 			dataProcessingRequestRepository.save(request);
+			
 			jobContext.remove(REQUEST);
 			jobContext.remove(FILE_PATH);
 

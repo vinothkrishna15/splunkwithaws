@@ -1,9 +1,9 @@
 package com.tcs.destination.tasklet;
 
-import static com.tcs.destination.enums.JobStep.CUSTOMER_PROCESSING;
+import static com.tcs.destination.enums.JobStep.PARTNER_MASTER_PROCESSING;
 import static com.tcs.destination.enums.JobStep.END;
 import static com.tcs.destination.enums.RequestStatus.VERIFIED;
-import static com.tcs.destination.enums.RequestType.CUSTOMER_UPLOAD;
+import static com.tcs.destination.enums.RequestType.PARTNER_MASTER_UPLOAD;
 import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.NEXT_STEP;
 import static com.tcs.destination.utils.Constants.REQUEST;
@@ -26,11 +26,11 @@ import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 
 
 
-@Component("customerPreprocessor")
-public class CustomerPreprocessor implements Tasklet{
+@Component("partnerMasterPreprocessor")
+public class PartnerMasterPreprocessor implements Tasklet{
 	
 	private static final Logger logger = LoggerFactory
-			.getLogger(CustomerPreprocessor.class);
+			.getLogger(PartnerMasterPreprocessor.class);
 	
 	private List<DataProcessingRequestT> requestList = null;
 	
@@ -44,29 +44,23 @@ public class CustomerPreprocessor implements Tasklet{
 		logger.debug("Inside execute method:");
 		
 		if (requestList == null) {
-			logger.info("before retriving data from repository");
-			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(CUSTOMER_UPLOAD.getType(), VERIFIED.getStatus());
+			requestList = dataProcessingRequestRepository.findByRequestTypeAndStatus(PARTNER_MASTER_UPLOAD.getType(), VERIFIED.getStatus());
 		}
 		
 		ExecutionContext jobContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 		
 		if (CollectionUtils.isNotEmpty(requestList)) {
-			logger.info("executing the request list");
+			
 			DataProcessingRequestT request = requestList.remove(0);
 			String filePath = request.getFilePath() + request.getFileName();
-			
-			logger.info("request id"+request.getProcessRequestId());
-			
-			//String userId = request.getUserT().getUserId();
-			//Long requestId = request.getProcessRequestId();
-			
+		   
 		    jobContext.put(FILE_PATH,filePath);
 		    jobContext.put(REQUEST,request);
-		    jobContext.put(NEXT_STEP, CUSTOMER_PROCESSING);
+		    jobContext.put(NEXT_STEP, PARTNER_MASTER_PROCESSING);
 			
 		} else {
-			logger.info("request list is empty");//for testing
 			 jobContext.put(NEXT_STEP, END);
+			 requestList = null;
 		}
 		
 		return RepeatStatus.FINISHED;

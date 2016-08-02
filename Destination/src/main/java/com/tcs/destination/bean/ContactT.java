@@ -63,23 +63,17 @@ public class ContactT implements Serializable, Cloneable {
 	@Column(name = "contact_type")
 	private String contactType;
 
-	@Column(name = "created_modified_by")
-	private String createdModifiedBy;
-
-	@Column(name = "created_modified_datetime")
-	private Timestamp createdModifiedDatetime;
-
 	@Column(name = "employee_number")
 	private String employeeNumber;
 
 	@Column(name = "other_role")
 	private String otherRole;
 
-	@Column(name = "partner_id")
-	private String partnerId;
-	
 	@Column(name = "active")
 	private boolean active = true;
+	
+	@Transient
+	private String productId;
 
 	// bi-directional many-to-one association to ConnectCustomerContactLinkT
 	@OneToMany(mappedBy = "contactT")
@@ -100,15 +94,6 @@ public class ContactT implements Serializable, Cloneable {
 	@JoinColumn(name = "contact_role", insertable = false, updatable = false)
 	private ContactRoleMappingT contactRoleMappingT;
 
-	// bi-directional many-to-one association to PartnerMasterT
-	@ManyToOne
-	@JoinColumn(name = "partner_id", insertable = false, updatable = false)
-	private PartnerMasterT partnerMasterT;
-
-	@ManyToOne
-	@JoinColumn(name = "created_modified_by", insertable = false, updatable = false)
-	private UserT createdModifiedByUser;
-
 	// bi-directional many-to-one association to OpportunityCustomerContactLinkT
 	@OneToMany(mappedBy = "contactT")
 	private List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs;
@@ -121,18 +106,56 @@ public class ContactT implements Serializable, Cloneable {
 	// bi-directional many-to-one association to UserFavoritesT
 	@OneToMany(mappedBy = "contactT")
 	private List<UserFavoritesT> userFavoritesTs;
-	
+
 	@Transient
 	private ConnectsSplitDTO tcsAccountContactConnectsDTO; // added for 360 changes
-	
+
 	@Transient
 	private ConnectsSplitDTO customerContactConnectsDTO; // added for 360 changes
-	
+
 	@Transient
 	private OpportunitiesSplitDTO tcsAccountContactOpportunitiesDTO; // added for 360 changes
-	
+
 	@Transient
 	private OpportunitiesSplitDTO customerContactOpportunitiesDTO; // added for 360 changes
+
+	//added for partner changes - split of creation and modification
+	@Column(name="created_by")
+	private String createdBy;
+
+	@Column(name="created_datetime")
+	private Timestamp createdDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by", insertable = false, updatable = false)
+	private UserT createdByUser;
+
+	@Column(name="modified_by")
+	private String modifiedBy;
+
+	@Column(name="modified_datetime")
+	private Timestamp modifiedDatetime;
+
+	@ManyToOne
+	@JoinColumn(name = "modified_by", insertable = false, updatable = false)
+	private UserT modifiedByUser;
+
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="contactT", cascade = CascadeType.ALL)
+	private List<ProductContactLinkT> productContactLinkTs;
+
+	//bi-directional many-to-one association to ProductContactLinkT
+	@OneToMany(mappedBy="contactT", cascade = CascadeType.ALL)
+	private List<PartnerContactLinkT> partnerContactLinkTs;
+
+	public List<PartnerContactLinkT> getPartnerContactLinkTs() {
+		return partnerContactLinkTs;
+	}
+
+	public void setPartnerContactLinkTs(
+			List<PartnerContactLinkT> partnerContactLinkTs) {
+		this.partnerContactLinkTs = partnerContactLinkTs;
+	}
 
 	public ConnectsSplitDTO getTcsAccountContactConnectsDTO() {
 		return tcsAccountContactConnectsDTO;
@@ -237,21 +260,6 @@ public class ContactT implements Serializable, Cloneable {
 		this.contactType = contactType;
 	}
 
-	public String getCreatedModifiedBy() {
-		return this.createdModifiedBy;
-	}
-
-	public void setCreatedModifiedBy(String createdModifiedBy) {
-		this.createdModifiedBy = createdModifiedBy;
-	}
-
-	public Timestamp getCreatedModifiedDatetime() {
-		return this.createdModifiedDatetime;
-	}
-
-	public void setCreatedModifiedDatetime(Timestamp createdModifiedDatetime) {
-		this.createdModifiedDatetime = createdModifiedDatetime;
-	}
 
 	public String getEmployeeNumber() {
 		return this.employeeNumber;
@@ -285,7 +293,23 @@ public class ContactT implements Serializable, Cloneable {
 
 		return connectCustomerContactLinkT;
 	}
+    
+	public PartnerContactLinkT addPartnerContactLinkT(
+			PartnerContactLinkT partnerContactLinkT) {
+		getPartnerContactLinkTs().add(partnerContactLinkT);
+		partnerContactLinkT.setContactT(this);
 
+		return partnerContactLinkT;
+	}
+	
+	public PartnerContactLinkT removePartnerContactLinkT(
+			PartnerContactLinkT partnerContactLinkT) {
+		getPartnerContactLinkTs().remove(partnerContactLinkT);
+		partnerContactLinkT.setContactT(null);
+
+		return partnerContactLinkT;
+	}
+	
 	public List<ContactCustomerLinkT> getContactCustomerLinkTs() {
 		return this.contactCustomerLinkTs;
 	}
@@ -323,6 +347,8 @@ public class ContactT implements Serializable, Cloneable {
 		return contactCustomerLinkT;
 	}
 
+	
+	
 	public void setConnectTcsAccountContactLinkTs(
 			List<ConnectTcsAccountContactLinkT> connectTcsAccountContactLinkTs) {
 		this.connectTcsAccountContactLinkTs = connectTcsAccountContactLinkTs;
@@ -351,22 +377,6 @@ public class ContactT implements Serializable, Cloneable {
 
 	public void setContactRoleMappingT(ContactRoleMappingT contactRoleMappingT) {
 		this.contactRoleMappingT = contactRoleMappingT;
-	}
-
-	public PartnerMasterT getPartnerMasterT() {
-		return this.partnerMasterT;
-	}
-
-	public void setPartnerMasterT(PartnerMasterT partnerMasterT) {
-		this.partnerMasterT = partnerMasterT;
-	}
-
-	public UserT getCreatedModifiedByUser() {
-		return this.createdModifiedByUser;
-	}
-
-	public void setCreatedModifiedByUser(UserT createdModifiedByUser) {
-		this.createdModifiedByUser = createdModifiedByUser;
 	}
 
 	public List<OpportunityCustomerContactLinkT> getOpportunityCustomerContactLinkTs() {
@@ -445,14 +455,6 @@ public class ContactT implements Serializable, Cloneable {
 		return userFavoritesT;
 	}
 
-	public String getPartnerId() {
-		return partnerId;
-	}
-
-	public void setPartnerId(String partnerId) {
-		this.partnerId = partnerId;
-	}
-
 	public String getContactRole() {
 		return contactRole;
 	}
@@ -480,6 +482,71 @@ public class ContactT implements Serializable, Cloneable {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Timestamp getCreatedDatetime() {
+		return createdDatetime;
+	}
+
+	public void setCreatedDatetime(Timestamp createdDatetime) {
+		this.createdDatetime = createdDatetime;
+	}
+
+	public UserT getCreatedByUser() {
+		return createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Timestamp getModifiedDatetime() {
+		return modifiedDatetime;
+	}
+
+	public void setModifiedDatetime(Timestamp modifiedDatetime) {
+		this.modifiedDatetime = modifiedDatetime;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
+
+	public List<ProductContactLinkT> getProductContactLinkTs() {
+		return productContactLinkTs;
+	}
+
+	public void setProductContactLinkTs(
+			List<ProductContactLinkT> productContactLinkTs) {
+		this.productContactLinkTs = productContactLinkTs;
+	}
+
+	public String getProductId() {
+		return productId;
+	}
+
+	public void setProductId(String productId) {
+		this.productId = productId;
 	}
 
 }

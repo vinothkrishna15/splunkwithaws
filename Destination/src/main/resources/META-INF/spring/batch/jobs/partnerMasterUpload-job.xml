@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:batch="http://www.springframework.org/schema/batch"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+	
+	<batch:job id="partnerMasterUpload">
+	
+	   <batch:step id="partnerMasterUploadPreprocess" next="partnerMasterDecider">
+			<batch:tasklet ref="partnerMasterPreprocessor"/>
+		</batch:step>
+		
+	   <batch:step id="partnerMasterProcessing" next="partnerSubSpProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSpreadSheetReader" writer="partnerWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		<batch:step id="partnerSubSpProcessing" next="partnerSubSpProductProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSubSpSpreadSheetReader" writer="partnerSubSpWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+	
+		<batch:step id="partnerSubSpProductProcessing" next="partnerMasterUploadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSubSpProductSpreadSheetReader" writer="partnerSubSpProductWriter" 
+				commit-interval="${upload.commit.interval}" skip-policy="alwaysSkip" retry-limit="0"/>
+			</batch:tasklet>
+		</batch:step>
+		
+		
+         <batch:decision id="partnerMasterDecider" decider="partnerMasterFlowdecider">
+              <batch:next on="PREPROCESS" to="partnerMasterUploadPreprocess" />
+              <batch:next on="PARTNER_MASTER_PROCESSING" to="partnerMasterProcessing" />
+              <batch:end on="END"/>
+         </batch:decision>
+         
+         
+	</batch:job>
+	
+	
+	<!-- Partner Master Reader And Writer -->
+	<!-- Readers -->
+	<bean id="partnerSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Partner Master"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="partnerWriter" class="com.tcs.destination.writer.PartnerCustomWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="partnerUploadHelper"/>
+		<property name="partnerService" ref="partnerService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="partnerRepository" ref="partnerRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	
+	<!-- Partner SubSp Reader And Writer -->
+	<!-- Readers -->
+	<bean id="partnerSubSpSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Partner SubSp"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="partnerSubSpWriter" class="com.tcs.destination.writer.PartnerSubspWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="partnerSubSpUploadHelper"/>
+		<property name="partnerService" ref="partnerService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="partnerSubSpMappingTRepository" ref="partnerSubSpMappingTRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<!-- Partner SubSp Product Reader And Writer -->
+	<!-- Readers -->
+	<bean id="partnerSubSpProductSpreadSheetReader" class="com.tcs.destination.reader.SpreadSheetReader" scope="step">
+		<property name="filePath" value="#{jobExecutionContext['FILE_PATH']}"/>
+		<property name="sheetName" value="Partner subsp Product"/>
+		<property name="rowsToSkip" value = "1" />
+	</bean>
+	
+	<!-- Writers -->
+	<bean id="partnerSubSpProductWriter" class="com.tcs.destination.writer.PartnerSubspProductWriter" scope="step">
+		<property name="request" value="#{jobExecutionContext['REQUEST']}"/>
+		<property name="helper" ref="partnerSubSpProductUploadHelper"/>
+		<property name="partnerService" ref="partnerService"/>
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
+		<property name="partnerSubSpProductMappingTRepository" ref="partnerSubSpProductMappingTRepository"/>
+		<property name="uploadErrorReport" ref="uploadErrorReport" />
+	</bean>
+	
+	<!-- Decider -->
+    <bean id="partnerMasterFlowdecider" class="com.tcs.destination.decider.PartnerFlowDecider"/>
+	
+	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+	
+</beans>
+	

@@ -447,6 +447,14 @@ public class OpportunityDownloadHelper {
 			Cell cellModifiedBy = row.createCell(45);
 			cellModifiedBy.setCellValue(opportunity.getModifiedByUser().getUserName());
 			
+			//deal closure comments
+			Cell dealclosureComments = row.createCell(46);
+			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
+			
+			//delivery ownership
+			Cell deliveryOwnershipId = row.createCell(47);
+			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
+			
 			rowCount++;
 		}
 		return rowCount;
@@ -716,8 +724,7 @@ public class OpportunityDownloadHelper {
 				// Create new Cell and set cell value
 				Cell cellPartnerName = row.createCell(0);
 				try {
-					cellPartnerName.setCellValue(ct.getPartnerMasterT()
-							.getPartnerName().trim());
+					cellPartnerName.setCellValue(ct.getPartnerContactLinkTs().get(0).getPartnerMasterT().getPartnerName().trim());
 				} catch (NullPointerException npe) {
 					throw new DestinationException(
 							HttpStatus.INTERNAL_SERVER_ERROR,

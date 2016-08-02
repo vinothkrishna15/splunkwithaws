@@ -1,5 +1,6 @@
 package com.tcs.destination.tasklet;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import static com.tcs.destination.utils.Constants.REQUEST;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.DataProcessingRequestT;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.DataProcessingRequestRepository;
 
@@ -42,6 +44,9 @@ public class CustomerContactDwldPreprocessor implements Tasklet {
 	private DataProcessingRequestRepository dataProcessingRequestRepository;
 	
 	private Map<String, CustomerMasterT> contactCustomerMap;
+	
+	// data needed for customer contact sheet
+		private Map<String,List<ContactCustomerLinkT>> customerMap;
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
@@ -67,6 +72,9 @@ public class CustomerContactDwldPreprocessor implements Tasklet {
 
 				jobContext.put(REQUEST, request);
 				jobContext.put(NEXT_STEP, CUSTOMER_CONTACT_DWLD_PROCESSING);
+				
+				populateCustomerMap();
+				jobContext.put("customerMap", customerMap);
 
 			} else {
 				jobContext.put(NEXT_STEP, END);
@@ -84,6 +92,31 @@ public class CustomerContactDwldPreprocessor implements Tasklet {
 			contactCustomerMap.put(contactCustomerMappingT.getContactId(), contactCustomerMappingT.getCustomerMasterT());
 		}
 		return contactCustomerMap;
+	}
+	
+	private void populateCustomerMap() {
+		List<ContactCustomerLinkT> contactCustomerLinkList = (List<ContactCustomerLinkT>) contactCustomerLinkTRepository.findAll();
+		customerMap =new HashMap<String,List<ContactCustomerLinkT>>();
+		if(contactCustomerLinkList!=null && !contactCustomerLinkList.isEmpty()){
+			for(ContactCustomerLinkT contactCustomerLinkT : contactCustomerLinkList){
+				String contactId = contactCustomerLinkT.getContactId();
+				if(!customerMap.isEmpty()){
+					List<ContactCustomerLinkT> contactCustomerList = customerMap.get(contactId);
+					if(contactCustomerList==null){
+						List<ContactCustomerLinkT> contactCusList = new ArrayList<ContactCustomerLinkT>();
+						contactCusList.add(contactCustomerLinkT);
+						customerMap.put(contactId, contactCusList);
+					} else {
+						contactCustomerList.add(contactCustomerLinkT);
+					}
+				} else {
+					List<ContactCustomerLinkT> contactCusList = new ArrayList<ContactCustomerLinkT>();
+					contactCusList.add(contactCustomerLinkT);
+					customerMap.put(contactId, contactCusList);
+				}
+			}
+		}
+		logger.debug("Populated Partner Map : " + customerMap.size());
 	}
 
 }

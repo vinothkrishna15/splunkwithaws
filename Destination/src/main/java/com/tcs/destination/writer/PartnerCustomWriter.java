@@ -1,7 +1,6 @@
 package com.tcs.destination.writer;
 
 import static com.tcs.destination.utils.Constants.FILE_DIR_SEPERATOR;
-import static com.tcs.destination.utils.Constants.FILE_PATH;
 import static com.tcs.destination.utils.Constants.REQUEST;
 
 import java.io.File;
@@ -9,7 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.WriteListener;
 
@@ -23,7 +24,6 @@ import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 
-import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.bean.PartnerMasterT;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
@@ -34,7 +34,9 @@ import com.tcs.destination.enums.RequestStatus;
 import com.tcs.destination.helper.PartnerUploadHelper;
 import com.tcs.destination.service.PartnerService;
 import com.tcs.destination.service.UploadErrorReport;
+import com.tcs.destination.utils.Constants;
 import com.tcs.destination.utils.FileManager;
+import com.tcs.destination.utils.StringUtils;
 
 public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionListener, WriteListener {
 	
@@ -56,14 +58,22 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 	private PartnerService partnerService;
 	
     private PartnerRepository partnerRepository;
+    
+	private Map<String, String> mapOfPartnerAndHqLink = new HashMap<String, String>();
 	
+	List<PartnerMasterT> childList = new ArrayList<PartnerMasterT>();
+	List<PartnerMasterT> parentList = new ArrayList<PartnerMasterT>();
+    
+    
 	@Override
 	public void write(List<? extends String[]> items) throws Exception {
-		logger.debug("Inside write:");
 		
+		logger.debug("Inside write:");
 		List<PartnerMasterT> insertList = new ArrayList<PartnerMasterT>();
 		List<PartnerMasterT> updateList = new ArrayList<PartnerMasterT>();
 		List<PartnerMasterT> deleteList = new ArrayList<PartnerMasterT>();
+		
+		
 		String operation = null; 
 		
 		for (String[] data: items) {
@@ -74,7 +84,7 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				
 				logger.debug("***PARTNER ADD***");
 				PartnerMasterT partner =  new PartnerMasterT();
-				UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerData(data, request.getUserT().getUserId() ,partner);
+				UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerData(data, request.getUserT().getUserId() ,partner,childList,parentList,mapOfPartnerAndHqLink);
 				if (errorDTO.getMessage() != null) {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorList.add(errorDTO);
@@ -88,12 +98,10 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				logger.debug("***PARTNER UPDATE***");
 				String partnerId =data[2];
                 UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
-				if (!partnerId.isEmpty()) {
-					try{
-						
-						 PartnerMasterT partner= partnerRepository.findByPartnerId(partnerId);
+				if ((!StringUtils.isEmpty(partnerId))&&(partnerId!=null)) {
+					    PartnerMasterT partner= partnerRepository.findByPartnerId(partnerId);
 					    if (partner != null) {
-						errorDTO = helper.validatePartnerDataUpdate(data, request.getUserT().getUserId() ,partner);
+						errorDTO = helper.validatePartnerDataUpdate(data, request.getUserT().getUserId() ,partner,childList,parentList);
 						if (errorDTO.getMessage() != null) {
 							errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 							errorList.add(errorDTO);
@@ -107,8 +115,7 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 						errorDTO.setMessage("Partner Id is invalid");
 						errorList.add(errorDTO);
 					}
-				}catch(InvocationTargetException e){System.out.println("Exception Cause:"+e.getCause());}
-					}
+				}
 				else {
 					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 					errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -119,30 +126,60 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				}
 			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){
 				logger.debug("***PARTNER DELETE***");
-				PartnerMasterT partner =  new PartnerMasterT();
-				partner = partnerRepository.findByPartnerId(data[2]);
-				 UploadServiceErrorDetailsDTO errorDTO = helper.validatePartnerId(data, partner);
-				 
-				 if (errorDTO.getMessage() != null) {
+				String partnerId =data[2];
+				UploadServiceErrorDetailsDTO errorDTO = new UploadServiceErrorDetailsDTO();
+				if ((!StringUtils.isEmpty(partnerId))&&(partnerId!=null)) {
+					PartnerMasterT partner =  new PartnerMasterT();
+					partner = partnerRepository.findByPartnerId(partnerId);
+					if(partner!=null)
+					{
+					 errorDTO = helper.validatePartnerId(data, partner);
+					if (errorDTO.getMessage() != null) {
 						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
 						errorList.add(errorDTO);
 					} else if (errorDTO.getMessage() == null) {
 						deleteList.add(partner);
+				      }
+					}
+					else {
+						errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+						errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+						errorDTO.setMessage("Partner Id is invalid");
+						errorList.add(errorDTO);
+					}
+			  }
+			  else 
+			  {
+					errorList = (errorList == null) ? new ArrayList<UploadServiceErrorDetailsDTO>(): errorList;
+					errorDTO.setRowNumber(Integer.parseInt(data[0]) + 1);
+					errorDTO.setMessage("Partner Id is mandatory");
+					errorList.add(errorDTO);
 				}
-			
 			}
-			if ((CollectionUtils.isNotEmpty(insertList)) || (CollectionUtils.isNotEmpty(updateList)) || (CollectionUtils.isNotEmpty(deleteList))) {
-			
-			if (operation.equalsIgnoreCase(Operation.ADD.name())) {
-				partnerService.save(insertList);
-			} 
-			else if (operation.equalsIgnoreCase(Operation.UPDATE.name())){ 
-				partnerService.updatePartner(updateList);
-			}
-			else if (operation.equalsIgnoreCase(Operation.DELETE.name())){ 
+		
+			//to add partner details to db
+			if (CollectionUtils.isNotEmpty(insertList)) {
+				
+				if(CollectionUtils.isNotEmpty(parentList))
+				{
+				 partnerService.save(parentList);
+				}
+				
+			} //to update the partner details in db
+			else if (CollectionUtils.isNotEmpty(updateList)){ 
+				if(CollectionUtils.isNotEmpty(parentList))
+				{
+				 partnerService.updatePartner(parentList);
+				}
+				else if(CollectionUtils.isNotEmpty(childList))
+				{
+				 partnerService.updatePartner(childList);
+				}
+			}// to delete the partner details from db
+			else if (CollectionUtils.isNotEmpty(deleteList)){ 
 				partnerService.deletePartner(deleteList);
 			}
-		}
+		
 			}
 		}
 	}
@@ -221,8 +258,15 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 			
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext.get(REQUEST);
 			
+			if (CollectionUtils.isNotEmpty(childList)) {
+				if (mapOfPartnerAndHqLink != null) {
+					partnerService.saveChild(childList, mapOfPartnerAndHqLink);
+				}
+
+			}
+			
 			if ( errorList != null) {
-				Workbook workbook = uploadErrorReport.writeErrorToWorkbook(errorList);
+				Workbook workbook = uploadErrorReport.writeErrorToWorkbook(errorList,Constants.PARTNER_TEMPLATE_PARTNER_SHEET_NAME);
 				
 				String errorPath = request.getFilePath() + "ERROR" +FILE_DIR_SEPERATOR;
 				String errorFileName = "partnerUpload_error.xlsx";
@@ -237,17 +281,17 @@ public class PartnerCustomWriter implements ItemWriter<String[]>, StepExecutionL
 				request.setErrorFilePath(errorPath);
 				
 			}
-			request.setStatus(RequestStatus.PROCESSED.getStatus());
-			
+			request.setStatus(RequestStatus.INPROGRESS.getStatus());
 			dataProcessingRequestRepository.save(request);
-			jobContext.remove(REQUEST);
-			jobContext.remove(FILE_PATH);
-			
-		} catch (Exception e) {
+			mapOfPartnerAndHqLink.clear();
+			parentList.clear();
+			childList.clear();
+			} 
+		    catch (Exception e) {
 			logger.error("Error while writing the error report: {}", e);
 		}
 		
-		return ExitStatus.COMPLETED;
+		return stepExecution.getExitStatus();
 	}
 
 

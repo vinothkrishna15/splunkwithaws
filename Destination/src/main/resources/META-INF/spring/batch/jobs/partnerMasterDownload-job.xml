@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-3.0.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<batch:job id="partnerMasterDownload">
+		<batch:step id="partnerMasterDownloadPreprocess" next="partnerMasterDecider">
+			<batch:tasklet ref="partnerMasterDwldPreprocessor" />
+		</batch:step>
+		<batch:decision id="partnerMasterDecider" decider="partnerMasterDwldFlowdecider">
+			<batch:next on="PARTNER_MASTER_DWLD_PREPROCESS" to="partnerMasterDownloadPreprocess" />
+			<batch:next on="PARTNER_MASTER_DWLD_PROCESSING" to="partnerMasterDwldProcessing" />
+			<batch:end on="END" />
+		</batch:decision>
+		<batch:step id="partnerMasterDwldProcessing" next="partnerSubSpDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerMasterDwldReader" writer="partnerMasterDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="partnerSubSpDwldProcessing" next="partnerSubSpProductDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSubSpDwldReader" writer="partnerSubSpDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="partnerSubSpProductDwldProcessing" next="partnerProductRefDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSubSpProductDwldReader" writer="partnerSubSpProductDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="partnerProductRefDwldProcessing" next="partnerSubspRefDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerProductRefDwldReader" writer="partnerProductRefDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="partnerSubspRefDwldProcessing" next="partnerGeoRefDwldProcessing">
+			<batch:tasklet>
+				<batch:chunk reader="partnerSubspRefDwldReader" writer="partnerSubspRefDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+		<batch:step id="partnerGeoRefDwldProcessing" next="partnerMasterDownloadPreprocess">
+			<batch:tasklet>
+				<batch:chunk reader="partnerGeoRefDwldReader" writer="partnerGeoRefDwldWriter"
+					commit-interval="${download.commit.interval}" skip-policy="alwaysSkip"
+					retry-limit="0" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+    <!-- Partner Master Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerMasterDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="partnerRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerMasterDwldWriter" class="com.tcs.destination.writer.PartnerDwldWriter" scope="step">
+		<property name="template" value="${partnerSheetTemplate}" />
+		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+		<property name="partnerRepository" ref="partnerRepository" />
+		<property name="dataProcessingService" ref="dataProcessingService" />
+		<property name="fileServerPath" value="${fileserver.path}" />
+	</bean>
+	<!-- Partner SubSp Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerSubSpDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="partnerSubSpMappingTRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerSubSpDwldWriter" class="com.tcs.destination.writer.PartnerSubSpDwldWriter" scope="step">
+	<property name="subSpRepository" ref="subSpRepository" />
+	</bean>
+		
+    <!-- Partner SubSp Product Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerSubSpProductDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="partnerSubSpProductMappingTRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerSubSpProductDwldWriter" class="com.tcs.destination.writer.PartnerSubSpProductDwldWriter" scope="step">
+	 <property name="partnerSubSpMappingTRepository" ref="partnerSubSpMappingTRepository" />
+	 <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+	 <property name="subSpRepository" ref="subSpRepository" />
+	 <property name="productRepository" ref="productRepository" />
+	</bean>
+	
+	<!-- Partner Product Ref Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerProductRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="productRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerProductRefDwldWriter" class="com.tcs.destination.writer.PartnerProductRefDwldWriter" scope="step">
+    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+	</bean>
+	
+	<!-- Partner Subsp Ref Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerSubspRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="subSpRepository" />
+		<property name="methodName" value="findAll" />
+	</bean>
+
+	<!-- Writers -->
+	<bean id="partnerSubspRefDwldWriter" class="com.tcs.destination.writer.SubSpSheetWriter" scope="step">
+    </bean>
+	
+	<!-- Partner Geography Ref Reader and Writer -->
+	<!-- Readers -->
+	<bean id="partnerGeoRefDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
+		<property name="repository" ref="geographyCountryRepository"/>
+	    <property name="methodName" value="getGeographyCountry"/></bean>
+	
+
+	<!-- Writers -->
+	<bean id="partnerGeoRefDwldWriter" class="com.tcs.destination.writer.PartnerGeoSheetWriter" scope="step">
+    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository" />
+	</bean>
+	
+    <!-- Decider -->
+	<bean id="partnerMasterDwldFlowdecider" class="com.tcs.destination.decider.PartnerMasterDecider" />
+
+   <!-- scheduler  -->
+	<bean id="partnerMasterDownloadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="partnerMasterDownload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="partnerMasterDownloadScheduler" method="run" cron="${partner.master.download.job.cron}"/>
+    </task:scheduled-tasks> 
+
+</beans>
+	

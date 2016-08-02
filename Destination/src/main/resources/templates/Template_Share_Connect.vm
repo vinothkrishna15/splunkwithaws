@@ -1,0 +1,17 @@
+<html>
+	<body>
+Dear ${recipient},
+<p>   
+${sender} has shared connect information for ${connectName} with you. <br/></br>
+
+Click the following link or copy paste in your browser.<br/></br>
+
+<a href="${url}">${url}</a><br/></br>
+
+Regards,<br/>
+DESTiNATION Team.<br/></br>
+
+Note: This is a system-generated e-mail. Please do not respond to this mail.
+
+</body>
+</html>

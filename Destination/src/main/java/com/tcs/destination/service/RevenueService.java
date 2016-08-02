@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tcs.destination.bean.ActualRevenuesDataT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
-import com.tcs.destination.bean.RevenueCustomerMappingTPK;
 import com.tcs.destination.data.repository.ActualRevenuesDataTRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
@@ -44,12 +43,10 @@ public class RevenueService {
 	@Transactional
 	public RevenueCustomerMappingT addFinance(RevenueCustomerMappingT revenueCustomerToInsert) throws Exception{
 		RevenueCustomerMappingT revenueT = null;
-		RevenueCustomerMappingTPK revenueTPK = null;
 		 List<RevenueCustomerMappingT> financeCustomers = null;
 		 logger.debug("Begin:Inside addFinance() of RevenueService");
 		if(revenueCustomerToInsert!=null){
 			revenueT = new RevenueCustomerMappingT();
-			revenueTPK = new RevenueCustomerMappingTPK();
 			
 			// to find the uniqueness of the primary key (here composite key)
 			financeCustomers = revenueRepository.findByFinanceCustomerNameAndCustomerGeographyAndFinanceIou(revenueCustomerToInsert.getFinanceCustomerName(),revenueCustomerToInsert.getCustomerGeography(),revenueCustomerToInsert.getFinanceIou());

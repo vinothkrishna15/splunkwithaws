@@ -56,6 +56,7 @@ public class Constants {
 	public static final String ERROR_MESSAGE = "Error Message";
 	public static final String UPLOAD_ERRORS = "upload errors";
 	public static final String UNKNOWN_CUSTOMER = "UNKNOWN%";
+	public static final String UNKNOWN_PARTNER = "UNKNOWN%";
 	public static final String EMPTY_PARANTHESIS = "()";
 	public static final String GEOGRAPHY = "GEOGRAPHY";
 	public static final String IOU = "IOU";
@@ -153,9 +154,29 @@ public class Constants {
 	public static final String BEACON_DOWNLOAD_SUBJECT = "Beacon download request processed.";
 	public static final String OPPORTUNITY_DAILY_DOWNLOAD_SUBJECT = "Opportunity daily download";
 	
+	//added as part of partner changes 
+	public static final String PRODUCT_UPLOAD_SUBJECT = "Product upload request processed.";
+	public static final String PRODUCT_DOWNLOAD_SUBJECT = "Product download request processed.";
+	public static final String PRODUCT_CONTACT_UPLOAD_SUBJECT = "Product contact upload request processed.";
+	public static final String PRODUCT_CONTACT_DOWNLOAD_SUBJECT = "Product contact download request processed.";
+	public static final String PRODUCT_MASTER_SHEET = "Product Master";
+	public static final String PRODUCT_MASTER_REF_SHEET = "Product Master(Ref)";
+	public static final String XLS = ".xls";
+	public static final String PRODUCT_TEMPLATE_LOCATION_PROPERTY_NAME = "productSheetTemplate";
+	
+	
+	public static final String PARTNER_MASTER_UPLOAD_SUBJECT = "Partner upload request processed.";
+	public static final String PARTNER_MASTER_DOWNLOAD_SUBJECT = "Partner download request processed.";
+	public static final String PRODUCT_CONTACT_SHEET = "Product Contacts";
+    public static final String PRODUCT_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "productContactSheetTemplate";
+	
+	
+	
 	public static final String PARTNER_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerSheetTemplate";
 	public static final String PARTNER_CONTACT_TEMPLATE_LOCATION_PROPERTY_NAME = "partnerContactSheetTemplate" ;
 	public static final String PARTNER_TEMPLATE_PARTNER_SHEET_NAME = "Partner Master";
+	public static final String PARTNER_SUBSP_TEMPLATE_SHEET_NAME = "Partner SubSp";
+	public static final String PARTNER_SUBSP_PRODUCT_TEMPLATE_SHEET_NAME = "Partner subsp Product";
 	public static final String PARTNER_MASTER_REF_PARTNER_SHEET_NAME = "Partner Master(Ref)";
 	public static final String PARTNER_TEMPLATE_PARTNER_CONTACT_SHEET_NAME = "Partner Contacts";
 	
@@ -191,6 +212,11 @@ public class Constants {
 	public static final String CONNECT_TEMPLATE_CONNECT_TYPE_SHEET_NAME = "Connect Type(Ref)";
 	public static final String CONNECT_TEMPLATE_TIME_ZONE_SHEET_NAME = "TimeZone(Ref)";
 	
+	//Partner Data sheet names
+	public static final String PARTNER_TEMPLATE_GEOGRAPHY_REF_SHEET_NAME = "Geography(Ref)";
+	public static final String PARTNER_TEMPLATE_SUBSP_REF_SHEET_NAME = "SubSp(ref)";
+	public static final String PARTNER_TEMPLATE_PRODUCT_REF_SHEET_NAME = "Product(ref)";
+	
 	public static final String DOWNLOADCONSTANT = "Download_";
 	public static final String XLSM = ".xlsm";
 	public static final String PARTNER_MASTER_SHEET_NAME = "Partner Master";
@@ -206,8 +232,8 @@ public class Constants {
 	public static final String WORKFLOW_STRATEGIC_ADMIN = "Strategic Group Admin";
 	public static final String WORKFLOW_CUSTOMER = "Customer";
 	public static final String WORKFLOW_PARTNER = "Partner";
-	public static final String WORKFLOW_OPPORTUNITY_REOPEN = "Opportunity";
 	public static final String WORKFLOW_COMPETITOR = "Competitor";
+	public static final String WORKFLOW_OPPORTUNITY_REOPEN = "Opportunity";
 	public static final String WORKFLOW_COMMENTS = "Please find the comment :";
 	public static final String WORKFLOW_OPERATION_CREATION_TEMPLATE = "for creation of";
 	public static final String WORKFLOW_OPERATION_REOPEN_TEMPLATE = "to reopen the";
@@ -277,8 +303,9 @@ public class Constants {
 	public static final String AUDIT_TASK = "Audit Task";
 	public static final String AUDIT_TASK_BDM_TAGGED = "Audit Task BDM Tagged";
 	
-	
-	
+	//added for share link
+	public static final String shareConnectPortal="<User> has shared Connect: <ConnectName> with you";
+	public static final String shareOpportunityPortal="<User> has shared Opportunity: <OpportunityName> with you";
 	
 	
 }

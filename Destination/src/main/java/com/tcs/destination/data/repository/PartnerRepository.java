@@ -9,11 +9,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.PartnerMasterT;
 
 @Repository
 public interface PartnerRepository extends
-		CrudRepository<PartnerMasterT, String> {
+CrudRepository<PartnerMasterT, String> {
 
 	/**
 	 * Finds the partner details for the given partner name.
@@ -24,11 +25,21 @@ public interface PartnerRepository extends
 	 */
 	List<PartnerMasterT> findByPartnerName(String partnername);
 	
+	@Query(value = "select partner_id,partner_name from partner_master_t", nativeQuery=true)
+    List<Object[]> findAllPartnerIdName();
+	
 
+	@Query(value = "select partner_id from partner_master_t p where p.partner_name=?1", nativeQuery = true)
+	String findPartnerIdByName(String partnername);
+	
+	
 	Page<PartnerMasterT> findByPartnerNameIgnoreCaseContainingAndActiveOrderByPartnerNameAsc(
 			String partnername, Pageable page, boolean active);
+	
+	Page<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndActiveOrderByGroupPartnerNameAsc(
+			String groupPartnername, Pageable page, boolean active);
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
 			String startsWith, Pageable pageable,boolean active);
 
 	@Query(value = "select * from partner_master_t p where p.active=TRUE ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
@@ -66,23 +77,47 @@ public interface PartnerRepository extends
 	 * @return partner details.
 	 */
 	PartnerMasterT findByPartnerId(String partnerid);
-	
+
 	@Query(value = "select * from partner_master_t where partner_name in (:names)", nativeQuery = true)
 	List<PartnerMasterT> findByPartnerNames(@Param("names") String[] Name);
-	
+
 	@Query(value="select partner_id,partner_name from partner_master_t",nativeQuery=true)
 	List<Object[]> findPartnerIdName();
 
 	@Query(value ="select partner_name from partner_master_t where partner_id in ("
 			+ "select partner_id from opportunity_partner_link_t  where opportunity_id=?1)",nativeQuery = true)
 	List<String> findPartnerNameByOpportunityId(String opportunityId);
-	
-	
+
+
 	@Query(value ="select partner_name from partner_master_t where partner_name = (:partnerName)",nativeQuery=true)
 	String findPartnerName(@Param("partnerName") String partnerName);
-	
+
 	@Query(value = "select geography from partner_master_t where partner_id = ?1", nativeQuery = true)			
 	String findGeographyByPartnerId(String partnerId);
 
 	PartnerMasterT findByActiveTrueAndPartnerId(String partnerId);	
+	
+	@Query(value ="select * from partner_master_t where partner_name =?1",nativeQuery=true)
+    PartnerMasterT findPartnerByName(String partnerName);
+
+	// partner smart search
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(geography) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByGeography(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(partner_name) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(group_partner_name) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByGroupPartnerName(@Param("term") String term, @Param("getAll") boolean getAll);
+
+	@Query(value = "SELECT * FROM partner_master_t WHERE UPPER(country) LIKE UPPER(:term) ORDER BY partner_name LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchByCountry(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	@Query(value =" SELECT * FROM partner_master_t WHERE partner_id IN (SELECT partner_id FROM partner_sub_sp_mapping_t WHERE sub_sp_id IN (SELECT sub_sp_id FROM sub_sp_mapping_t WHERE UPPER(sub_sp) LIKE UPPER(:term))) ORDER BY modified_datetime DESC "
+			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
+	List<PartnerMasterT> searchBySubSp(@Param("term") String term, @Param("getAll") boolean getAll);
+	
+	List<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndGroupPartnerNameIgnoreCaseNotLikeAndActiveOrderByGroupPartnerNameAsc(
+			String groupPartnerName, String unknownPartner, boolean b);	
 }

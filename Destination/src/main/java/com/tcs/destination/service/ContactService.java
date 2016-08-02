@@ -36,9 +36,13 @@ import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
+import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
+import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
@@ -78,6 +82,14 @@ public class ContactService {
 	@Autowired
 	UserAccessPrivilegeQueryBuilder userAccessPrivilegeQueryBuilder;
 
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+
+	@Autowired
+	ProductContactLinkTRepository productContactLinkTRepository;
+
+
+
 	/**
 	 * This service saves partner details into Contact_t
 	 * 
@@ -89,7 +101,7 @@ public class ContactService {
 		logger.debug("Inside save method");
 		contactRepository.save(insertList);
 	}
-  
+
 	/**
 	 * This service updates contact details in contact_t
 	 * 
@@ -102,7 +114,7 @@ public class ContactService {
 		contactRepository.save(updateList);
 		logger.debug("End:Inside updateContact method of ContactService");
 	}
-	
+
 	/**
 	 * This service deletes contact details from contact_t
 	 * 
@@ -116,7 +128,7 @@ public class ContactService {
 		logger.debug("End:Inside deleteContact method of ContactService");
 
 	}
-	
+
 	/**
 	 * This method is used to find contact details for the given contact id.
 	 * 
@@ -168,45 +180,45 @@ public class ContactService {
 	 */
 	private void handleTcsAccountContactForOpportunities(ContactT contact) {
 		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs
-			= contact.getOpportunityTcsAccountContactLinkTs();
+		= contact.getOpportunityTcsAccountContactLinkTs();
 		OpportunitiesSplitDTO opportunitiesTcsAccountContactSplitDTO
-			= new OpportunitiesSplitDTO();
-		
+		= new OpportunitiesSplitDTO();
+
 		List<OpportunityT> wonOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> lostOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> pipelineOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> anticipatingOpportunitiesList = Lists.newArrayList();
-		
+
 		for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT :
 			opportunityTcsAccountContactLinkTs){
 			OpportunityT opportunity = opportunityTcsAccountContactLinkT.getOpportunityT();
 			int salesStageCode = opportunity.getSalesStageCode();
 			switch(salesStageCode){
-				case 0 :
-				case 1 :
-				case 2 :
-				case 3 :
-						 anticipatingOpportunitiesList.add(opportunity);
-					     break;
-				case 4 :
-				case 5 :
-				case 6 :
-				case 7 :
-				case 8 : 
-						pipelineOpportunitiesList.add(opportunity);
-						break;
-				case 9 :
-						wonOpportunitiesList.add(opportunity);
-						break;
-				case 10 :
-				case 11 :
-				case 12 :
-				case 13 :
-					    lostOpportunitiesList.add(opportunity);
-					    break;
+			case 0 :
+			case 1 :
+			case 2 :
+			case 3 :
+				anticipatingOpportunitiesList.add(opportunity);
+				break;
+			case 4 :
+			case 5 :
+			case 6 :
+			case 7 :
+			case 8 : 
+				pipelineOpportunitiesList.add(opportunity);
+				break;
+			case 9 :
+				wonOpportunitiesList.add(opportunity);
+				break;
+			case 10 :
+			case 11 :
+			case 12 :
+			case 13 :
+				lostOpportunitiesList.add(opportunity);
+				break;
 			}
 		}
-		
+
 		opportunitiesTcsAccountContactSplitDTO.setAnticipatingOpportunitiesDTO(anticipatingOpportunitiesList);
 		opportunitiesTcsAccountContactSplitDTO.setPipelineOpportunitiesDTO(pipelineOpportunitiesList);
 		opportunitiesTcsAccountContactSplitDTO.setWonOpportunitiesDTO(wonOpportunitiesList);
@@ -220,45 +232,45 @@ public class ContactService {
 	 */
 	private void handleCustomerContactForOpportunities(ContactT contact) {
 		List<OpportunityCustomerContactLinkT> opportunityCustomerContactLinkTs
-			= contact.getOpportunityCustomerContactLinkTs();
+		= contact.getOpportunityCustomerContactLinkTs();
 		OpportunitiesSplitDTO opportunitiesCustomerContactSplitDTO
-			= new OpportunitiesSplitDTO();
-		
+		= new OpportunitiesSplitDTO();
+
 		List<OpportunityT> wonOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> lostOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> pipelineOpportunitiesList = Lists.newArrayList();
 		List<OpportunityT> anticipatingOpportunitiesList = Lists.newArrayList();
-		
+
 		for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT :
 			opportunityCustomerContactLinkTs){
 			OpportunityT opportunity = opportunityCustomerContactLinkT.getOpportunityT();
 			int salesStageCode = opportunity.getSalesStageCode();
 			switch(salesStageCode){
-				case 0 :
-				case 1 :
-				case 2 :
-				case 3 :
-						 anticipatingOpportunitiesList.add(opportunity);
-					     break;
-				case 4 :
-				case 5 :
-				case 6 :
-				case 7 :
-				case 8 : 
-						pipelineOpportunitiesList.add(opportunity);
-						break;
-				case 9 :
-						wonOpportunitiesList.add(opportunity);
-						break;
-				case 10 :
-				case 11 :
-				case 12 :
-				case 13 :
-					    lostOpportunitiesList.add(opportunity);
-					    break;
+			case 0 :
+			case 1 :
+			case 2 :
+			case 3 :
+				anticipatingOpportunitiesList.add(opportunity);
+				break;
+			case 4 :
+			case 5 :
+			case 6 :
+			case 7 :
+			case 8 : 
+				pipelineOpportunitiesList.add(opportunity);
+				break;
+			case 9 :
+				wonOpportunitiesList.add(opportunity);
+				break;
+			case 10 :
+			case 11 :
+			case 12 :
+			case 13 :
+				lostOpportunitiesList.add(opportunity);
+				break;
 			}
 		}
-		
+
 		opportunitiesCustomerContactSplitDTO.setAnticipatingOpportunitiesDTO(anticipatingOpportunitiesList);
 		opportunitiesCustomerContactSplitDTO.setPipelineOpportunitiesDTO(pipelineOpportunitiesList);
 		opportunitiesCustomerContactSplitDTO.setWonOpportunitiesDTO(wonOpportunitiesList);
@@ -266,7 +278,7 @@ public class ContactService {
 		contact.setCustomerContactOpportunitiesDTO(opportunitiesCustomerContactSplitDTO);
 	}
 
-	
+
 	/**
 	 * This method is used for handling connects for 360
 	 * @param contact
@@ -338,10 +350,10 @@ public class ContactService {
 			String userId,int page,
 			int count) throws Exception {
 		logger.debug("Inside findContactsWithNameContaining Service");
-        
+
 		PaginatedResponse contactResponse = new PaginatedResponse();
-		
-		
+
+
 		List<ContactT> contactList = contactRepository.findByActiveTrueAndContactName("%"
 				+ contactName + "%", customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
@@ -373,11 +385,11 @@ public class ContactService {
 	public PaginatedResponse findContactsByContactType(String customerId,
 			String partnerId, String contactType, String userId,int page,
 			int count)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside findContactsByContactType Service");
-		
+
 		PaginatedResponse contactResponse = new PaginatedResponse();
-		
+
 		List<ContactT> contactList = contactRepository.findByContactType(
 				customerId, partnerId, contactType);
 		contactResponse.setTotalCount(contactList.size());
@@ -434,7 +446,7 @@ public class ContactService {
 	@Transactional
 	public boolean save(ContactT contact, boolean isUpdate) throws Exception {
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		contact.setCreatedModifiedBy(userId);
+
 		if (isUpdate) {
 			if (contact.getContactId() == null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -448,11 +460,19 @@ public class ContactService {
 					contactCustomerLinkTRepository.delete(contactCustomerLinkT);
 				}
 			}
+			// created by and modified by spitted for partner data model changes
+			contact.setModifiedBy(userId);
+			ContactT contactObj = contactRepository.findByContactId(contact.getContactId());
+			contact.setCreatedBy(contactObj.getCreatedBy());
+			contact.setCreatedDatetime(contactObj.getCreatedDatetime());
 		} else {
 			if (contact.getContactId() != null) {
 				throw new DestinationException(HttpStatus.BAD_REQUEST,
 						"ContactId should not be passed");
 			}
+			// created by and modified by spitted for partner data model changes
+			contact.setCreatedBy(userId);
+			contact.setModifiedBy(userId);
 		}
 
 		// Validate input parameters
@@ -470,6 +490,8 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
+//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+//		PartnerContactLinkT pclt=new PartnerContactLinkT();
 
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
@@ -478,11 +500,16 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"CustomerId is required");
 				}
-				contact.setPartnerId(null);
+
+//				pclt.setPartnerId(null);
+//				partnerContactList.add(pclt);
+//				contact.setPartnerContactLinkTs(partnerContactList);
+				contact.setPartnerContactLinkTs(null);
 			} else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
-				if (contact.getPartnerId() == null
-						|| contact.getPartnerId().isEmpty()) {
+				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
+				if (partnerId == null
+						|| partnerId.isEmpty()) {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"PartnerId is required");
 				}
@@ -504,11 +531,12 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-				if (contact.getPartnerId() != null
-						&& !(contact.getPartnerId().isEmpty())) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST,
-							"Internal Contact cannot be added to Partner");
-				}
+//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
+//				if (partnerId != null
+//						&& !(partnerId.isEmpty())) {
+//					throw new DestinationException(HttpStatus.BAD_REQUEST,
+//							"Internal Contact cannot be added to Partner");
+//				}
 			}
 
 			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
@@ -555,6 +583,14 @@ public class ContactService {
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
+		if(contact.getContactCategory().equals(EntityType.PARTNER)){
+			ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
+			productcontatcLinkT.setContactId(contact.getContactId());
+			productcontatcLinkT.setProductId(contact.getProductId());
+			productcontatcLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productcontatcLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productContactLinkTRepository.save(productcontatcLinkT);
+		}
 		return contactRepository.save(contact);
 	}
 
@@ -567,7 +603,7 @@ public class ContactService {
 	 */
 	public PaginatedResponse findContactRoles(int page,
 			int count)
-			throws DestinationException {
+					throws DestinationException {
 		PaginatedResponse contactResponse = new PaginatedResponse();
 		List<ContactRoleMappingT> contactRoleMappingTs = (List<ContactRoleMappingT>) contactRoleMappingTRepository
 				.findAll();
@@ -614,7 +650,7 @@ public class ContactService {
 				for (ContactCustomerLinkT contactCustomerLinkT : contactT
 						.getContactCustomerLinkTs()) {
 					contactCustomerLinkT.getCustomerMasterT()
-							.setContactCustomerLinkTs(null);
+					.setContactCustomerLinkTs(null);
 				}
 			}
 		}
@@ -671,7 +707,7 @@ public class ContactService {
 					e.getMessage());
 		}
 	}
-	
+
 	/**
 	 * This method is used to get list of contact with privileges
 	 * @param user
@@ -681,7 +717,7 @@ public class ContactService {
 	 */
 	private ArrayList<String> getPreviledgedContactIds(String userId,
 			ArrayList<String> contactIdList, boolean considerGeoIou)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside getPreviledgedCustomerName() method");
 		String queryString = getContactPrevilegeQueryString(userId,
 				contactIdList, considerGeoIou);
@@ -699,7 +735,7 @@ public class ContactService {
 	 */
 	private String getContactPrevilegeQueryString(String userId,
 			ArrayList<String> contactIdList, boolean considerGeoIou)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside getRevenueQueryString() method");
 		StringBuffer queryBuffer = new StringBuffer(CONACT_QUERY_PREFIX);
 
@@ -726,7 +762,7 @@ public class ContactService {
 			{
 				for (String contactId : contactIdList)
 					contactIdQueryList += "'" + contactId.replace("\'", "\'\'")
-							+ "',";
+					+ "',";
 			}
 			contactIdQueryList = contactIdQueryList.substring(0,
 					contactIdQueryList.length() - 1);
@@ -747,7 +783,7 @@ public class ContactService {
 		logger.info("queryString = " + queryBuffer.toString());
 		return queryBuffer.toString();
 	}
-	
+
 	/**
 	 * This method is used to prepare contact object - prevent sensitive info and remove cyclic references
 	 * @param contactList
@@ -792,8 +828,8 @@ public class ContactService {
 			contactT = new ContactT();
 
 			contactT.setContactCategory(contactToInsert.getContactCategory());
-			contactT.setCreatedModifiedBy(contactToInsert
-					.getCreatedModifiedBy());
+			contactT.setCreatedBy(contactToInsert.getCreatedBy());
+			contactT.setModifiedBy(contactToInsert.getModifiedBy());
 			contactT.setContactType(contactToInsert.getContactType());
 			contactT.setEmployeeNumber(contactToInsert.getEmployeeNumber());
 			contactT.setContactName(contactToInsert.getContactName());
@@ -803,8 +839,7 @@ public class ContactService {
 			contactT.setContactTelephone(contactToInsert.getContactTelephone());
 			contactT.setContactLinkedinProfile(contactToInsert
 					.getContactLinkedinProfile());
-			contactT.setPartnerId(contactToInsert.getPartnerId());
-
+			contactT.getPartnerContactLinkTs().get(0).setPartnerId(contactToInsert.getPartnerContactLinkTs().get(0).getPartnerId());
 			contactT = contactRepository.save(contactT);
 			logger.debug("Contact Saved .... " + contactT.getContactId());
 
@@ -903,7 +938,7 @@ public class ContactService {
 			contactCustomerLinkT.setContactId(contactId);
 		}
 	}
-	
+
 
 	/**
 	 * method to validate the contact request to avoid duplicates
@@ -912,21 +947,21 @@ public class ContactService {
 	 */
 	public boolean validateContactRequest(ContactT contact) {
 		BigInteger contactCount = BigInteger.valueOf(0);
-		
+
 		if(contact.getContactType().equals("EXTERNAL")){
-		for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
-			String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
-			contactCount = contactRepository.findDuplicateExternalContacts(contact.getContactName(),contact.getContactCategory(),contact.getContactType(), customerId, contact.getContactId());
-		}
+			for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
+				String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
+				contactCount = contactRepository.findDuplicateExternalContacts(contact.getContactName(),contact.getContactCategory(),contact.getContactType(), customerId, contact.getContactId());
+			}
 		}else {
 			contactCount = contactRepository.findDuplicateInternalContact(contact.getEmployeeNumber(),contact.getContactCategory(), contact.getContactType(), contact.getContactId());
-			
+
 		}
 		if(contactCount.intValue()>0){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"This Contact details already exists for this customer !!!");
 		}
-		 return validateEmail(contact);
+		return validateEmail(contact);
 	}
 
 	/**
@@ -936,21 +971,27 @@ public class ContactService {
 	 */
 	public boolean validateCreateContactRequest(ContactT contact) {
 		List<ContactT> contactList = new ArrayList<ContactT>(); 
-		if(contact.getContactType().equals("EXTERNAL")){
+		if(contact.getContactType().equals("EXTERNAL") && contact.getContactCategory().equals("CUSTOMER")){
 			for(int i=0; i<contact.getContactCustomerLinkTs().size();i++){
 				String customerId = contact.getContactCustomerLinkTs().get(i).getCustomerId();
-				contactList = contactRepository.findDuplicateContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+				contactList = contactRepository.findDuplicateCustomerContacts(customerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
 			}
-		} else {
+		} 
+		if(contact.getContactType().equals("EXTERNAL") && contact.getContactCategory().equals("PARTNER")){
+			for(int i=0; i<contact.getPartnerContactLinkTs().size();i++){
+				String partnerId = contact.getPartnerContactLinkTs().get(i).getPartnerId();
+				contactList = contactRepository.findDuplicatePartnerContacts(partnerId, contact.getContactType(),contact.getContactCategory(), contact.getContactName(), contact.getContactRole());
+			}
+		}else {
 			contactList = contactRepository.findDuplicateInternalContacts(contact.getEmployeeNumber(), contact.getContactType(), contact.getContactName());
 		}
 		if(contactList.size()>0){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"This Contact details already exists !!!");
 		}
-		 return validateEmail(contact);
+		return validateEmail(contact);
 	}
-	
+
 	/**
 	 * Method to validate the internal and external email address
 	 * @param contact
@@ -970,116 +1011,250 @@ public class ContactService {
 		return emailValidated;
 	}
 
-		/**
-		 * Find contacts by name starting with and name containing
-		 * 
-		 * @param contactName
-		 * @param category
-		 * @param type
-		 * @param page
-		 * @param count
-		 * @return
-		 * @throws Exception
-		 */
-		public PaginatedResponse findContactsByName(String contactName,
-				String category, String type, int page, int count) throws Exception{
-			logger.debug("Inside find Contacts With Name Service");
-			PaginatedResponse paginatedResponse = null;
-			List<ContactT> contactList = null;
-			if (contactName.equals("@%")) {
-				contactList = contactRepository.findContactsStartingWithNumbers(category.toUpperCase(), type.toUpperCase());
-			} else {
-				contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
-			}
-			if (contactList == null || contactList.isEmpty()) {
-				// If No Contacts are found for the given search
-				logger.error("NOT_FOUND: Contact information not available");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Contacts found");
-			}
-			paginatedResponse = new PaginatedResponse();
-			paginatedResponse.setTotalCount(contactList.size());
-			
-			List<ContactT> pageContactList = paginateContacts(page, count, contactList);
-			prepareContactDetails(pageContactList);
-			removeCyclicContactForPartner(pageContactList);
-			
-			if (pageContactList == null || pageContactList.isEmpty()) {
-				// If No Contacts are found for the given search and page
-				logger.error("NOT_FOUND: Contact information not available");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Contacts found");
-			}
-			paginatedResponse.setContactTs(pageContactList);
-			
-			return paginatedResponse;
+	/**
+	 * Find contacts by name starting with and name containing
+	 * 
+	 * @param contactName
+	 * @param category
+	 * @param type
+	 * @param page
+	 * @param count
+	 * @return
+	 * @throws Exception
+	 */
+	public PaginatedResponse findContactsByName(String contactName,
+			String category, String type, int page, int count) throws Exception{
+		logger.debug("Inside find Contacts With Name Service");
+		PaginatedResponse paginatedResponse = null;
+		List<ContactT> contactList = null;
+		if (contactName.equals("@%")) {
+			contactList = contactRepository.findContactsStartingWithNumbers(category.toUpperCase(), type.toUpperCase());
+		} else {
+			contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
 		}
-		
-		/**
-		 * Remove Contacts inside Partner Contacts 
-		 * 
-		 * @param contactTs
-		 */
-		private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
-			
-			if(contactTs!=null){
-				for(ContactT contactT : contactTs){
-					if(contactT.getPartnerMasterT()!=null){
-						if(contactT.getPartnerMasterT().getContactTs()!=null){
-							contactT.getPartnerMasterT().setContactTs(null);
-						}
+		if (contactList == null || contactList.isEmpty()) {
+			// If No Contacts are found for the given search
+			logger.error("NOT_FOUND: Contact information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Contacts found");
+		}
+		paginatedResponse = new PaginatedResponse();
+		paginatedResponse.setTotalCount(contactList.size());
+
+		List<ContactT> pageContactList = paginateContacts(page, count, contactList);
+		prepareContactDetails(pageContactList);
+		removeCyclicContactForPartner(pageContactList);
+
+		if (pageContactList == null || pageContactList.isEmpty()) {
+			// If No Contacts are found for the given search and page
+			logger.error("NOT_FOUND: Contact information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Contacts found");
+		}
+		paginatedResponse.setContactTs(pageContactList);
+
+		return paginatedResponse;
+	}
+
+	/**
+	 * Remove Contacts inside Partner Contacts 
+	 * 
+	 * @param contactTs
+	 */
+	private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
+
+		if(contactTs!=null){
+			for(ContactT contactT : contactTs){
+				if(contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT()!=null){
+					if(contactT.getPartnerContactLinkTs().get(0).getContactT()!=null){
+						contactT.getPartnerContactLinkTs().get(0).setContactT(null);
 					}
 				}
 			}
-			
-		}
-		
-		/**
-		 * This method enables pagination of the response for Contacts
-		 * 
-		 * @param page
-		 * @param count
-		 * @param contacts
-		 * @return
-		 */
-		private List<ContactT> paginateContacts(int page, int count,
-				List<ContactT> contacts) throws Exception {
-			if (PaginationUtils.isValidPagination(page, count,
-					contacts.size())) {
-				int fromIndex = PaginationUtils.getStartIndex(page, count,
-						contacts.size());
-				int toIndex = PaginationUtils.getEndIndex(page, count,
-						contacts.size()) + 1;
-				contacts = contacts.subList(fromIndex, toIndex);
-				logger.debug("ConnectT  after pagination size is "
-						+ contacts.size());
-			} else {
-				contacts=null;
-			}
-			return contacts;
 		}
 
-		/**
-		 * Ajax Search for Contacts
-		 * 
-		 * @param string
-		 * @param category
-		 * @param type
-		 * @return
-		 */
-		public List<ContactT> findContactsAjaxSearch(String contactName, String category, String type) throws Exception{
-			
-			List<ContactT> contactList = null;
-			
-			contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
-			
-			if (contactList == null || contactList.isEmpty()) {
-				logger.error("NOT_FOUND: Contact information not available");
-				throw new DestinationException(HttpStatus.NOT_FOUND,
-						"No Contacts found");
-			}
-			
-			return contactList;
+	}
+
+	/**
+	 * This method enables pagination of the response for Contacts
+	 * 
+	 * @param page
+	 * @param count
+	 * @param contacts
+	 * @return
+	 */
+	private List<ContactT> paginateContacts(int page, int count,
+			List<ContactT> contacts) throws Exception {
+		if (PaginationUtils.isValidPagination(page, count,
+				contacts.size())) {
+			int fromIndex = PaginationUtils.getStartIndex(page, count,
+					contacts.size());
+			int toIndex = PaginationUtils.getEndIndex(page, count,
+					contacts.size()) + 1;
+			contacts = contacts.subList(fromIndex, toIndex);
+			logger.debug("ConnectT  after pagination size is "
+					+ contacts.size());
+		} else {
+			contacts=null;
 		}
+		return contacts;
+	}
+
+	/**
+	 * Ajax Search for Contacts
+	 * 
+	 * @param string
+	 * @param category
+	 * @param type
+	 * @return
+	 */
+	public List<ContactT> findContactsAjaxSearch(String contactName, String category, String type) throws Exception{
+
+		List<ContactT> contactList = null;
+
+		contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
+
+		if (contactList == null || contactList.isEmpty()) {
+			logger.error("NOT_FOUND: Contact information not available");
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"No Contacts found");
+		}
+
+		return contactList;
+	}
+
+	/**
+	 * this method saves the contact subtables list.
+	 * 
+	 * @param insertList
+	 */
+	public void saveContacts(List<ContactT> insertList) {
+		logger.debug("Inside save method");
+
+		Map<Integer, List<PartnerContactLinkT>> mapPartnerContact = new HashMap<Integer, List<PartnerContactLinkT>>(
+				insertList.size());
+		Map<Integer, List<ProductContactLinkT>> mapProductContact = new HashMap<Integer, List<ProductContactLinkT>>(
+				insertList.size());
+		Map<Integer, List<ContactCustomerLinkT>> mapCustomerContact = new HashMap<Integer, List<ContactCustomerLinkT>>(
+				insertList.size());
+
+		int i = 0;
+		for (ContactT contactT : insertList) {
+			if ((contactT.getPartnerContactLinkTs() != null)
+					&& (!contactT.getPartnerContactLinkTs().isEmpty()))
+			{
+				mapPartnerContact.put(i, contactT.getPartnerContactLinkTs());
+			}
+
+			if ((contactT.getProductContactLinkTs() != null)
+					&& (!contactT.getProductContactLinkTs().isEmpty()))
+			{
+				mapProductContact.put(i, contactT.getProductContactLinkTs());
+			}
+
+			if ((contactT.getContactCustomerLinkTs() != null)
+					&& (!contactT.getContactCustomerLinkTs().isEmpty()))
+			{
+				mapCustomerContact.put(i, contactT.getContactCustomerLinkTs());
+			}
+			setNullForReferencedObjects(contactT);
+			i++;
+		}
+
+		Iterable<ContactT> savedList = contactRepository.save(insertList);
+		Iterator<ContactT> saveIterator = savedList.iterator();
+		System.out.println("Contacts" + insertList);
+		i = 0;
+		while (saveIterator.hasNext()) {
+			ContactT contact = saveIterator.next();
+			List<PartnerContactLinkT> partnerContactList = mapPartnerContact.get(i);
+			if (CollectionUtils.isNotEmpty(partnerContactList)) {
+				populatePartnerContactLinks(
+						contact.getContactId(), partnerContactList);
+			}
+			List<ProductContactLinkT> productContactList = mapProductContact.get(i);
+			if (CollectionUtils.isNotEmpty(productContactList)) {
+				populateProductContactLinks(
+						contact.getContactId(), productContactList);
+			}
+			List<ContactCustomerLinkT> contactCustomerList = mapCustomerContact.get(i);
+			if (CollectionUtils.isNotEmpty(contactCustomerList)) {
+				populateContactCustomerLinks(
+						contact.getContactId(), contactCustomerList);
+			}
+			i++;
+		}
+
+		List<PartnerContactLinkT> partnerContList = new ArrayList<PartnerContactLinkT>();
+		for (List<PartnerContactLinkT> list : mapPartnerContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				partnerContList.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(partnerContList)) {
+			partnerContactLinkTRepository.save(partnerContList);
+
+		}
+
+		List<ProductContactLinkT> productContList = new ArrayList<ProductContactLinkT>();
+		for (List<ProductContactLinkT> list : mapProductContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				productContList.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(productContList)) {
+			productContactLinkTRepository.save(productContList);
+
+		}
+
+		List<ContactCustomerLinkT> customerContList = new ArrayList<ContactCustomerLinkT>();
+		for (List<ContactCustomerLinkT> list : mapCustomerContact.values()) {
+			if (CollectionUtils.isNotEmpty(list)) {
+				customerContList.addAll(list);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(customerContList)) {
+			contactCustomerLinkTRepository.save(customerContList);
+
+		}
+
+	}
+
+	private void setNullForReferencedObjects(ContactT contactT) {
+		logger.debug("Inside setNullForReferencedObjects() method");
+		if(contactT!=null)
+		{
+			contactT.setPartnerContactLinkTs(null);
+			contactT.setProductContactLinkTs(null);
+			contactT.setContactCustomerLinkTs(null);
+		}
+	}
+
+	private void populatePartnerContactLinks(String contactId,
+			List<PartnerContactLinkT> partnerContactList) {
+		for(PartnerContactLinkT partnerContactLinkT : partnerContactList)
+		{
+			partnerContactLinkT.setContactId(contactId);
+		}
+
+	}
+
+	private void populateProductContactLinks(String contactId,
+			List<ProductContactLinkT> productContactList) {
+		for(ProductContactLinkT productContactLinkT : productContactList)
+		{
+			productContactLinkT.setContactId(contactId);
+		}
+
+	}
+
+	private void populateContactCustomerLinks(String contactId,
+			List<ContactCustomerLinkT> contactCustomerList) {
+		for(ContactCustomerLinkT contactCustomerLinkT : contactCustomerList)
+		{
+			contactCustomerLinkT.setContactId(contactId);
+		}
+
+	}
 
 }

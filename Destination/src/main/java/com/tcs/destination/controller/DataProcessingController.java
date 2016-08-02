@@ -54,7 +54,8 @@ public class DataProcessingController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if(type > 0 && type < 10)   {
+			//updated for product master changes
+			if(isUploadRequestType(type))   {
 				status = service.saveUploadRequest(file, type,deleteFrom,deleteTo);
 				logger.info("UPLOAD SUCCESS - Record Created ");
 			} else {
@@ -95,7 +96,8 @@ public class DataProcessingController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "");
 		try {
-			if (type > 9 && type < 19) {
+			//updated for product master
+			if (isDownloadRequestType(type)) {
 				status = service.saveDownloadRequest(type);
 				logger.debug("DOWNLOAD SUCCESS - Record Created ");
 			} else {
@@ -115,6 +117,23 @@ public class DataProcessingController {
 		return new ResponseEntity<String>(
 				ResponseConstructors.filterJsonForFieldAndViews(fields, view,
 						status), HttpStatus.OK);
+	}
+	
+	//added for product master batch
+	private boolean isUploadRequestType(int type) {
+		boolean isUploadRequest = false;
+		if((type > 0 && type < 25) || type==25)   {
+			isUploadRequest = true;
+		}
+		return isUploadRequest;
+	}
+	
+	private boolean isDownloadRequestType(int type) {
+		boolean isDownloadRequest = false;
+		if((type > 9 && type < 25) || type==25)   {
+			isDownloadRequest = true;
+		}
+		return isDownloadRequest;
 	}
 
 }

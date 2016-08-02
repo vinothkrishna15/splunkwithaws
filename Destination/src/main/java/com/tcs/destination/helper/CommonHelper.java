@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ConnectTypeMappingT;
 import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.GeographyCountryMappingT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
@@ -27,6 +28,7 @@ import com.tcs.destination.bean.TimeZoneMappingT;
 import com.tcs.destination.data.repository.ConnectTypeRepository;
 import com.tcs.destination.data.repository.CustomerIOUMappingRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.data.repository.GeographyCountryRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.IouBeaconMappingTRepository;
 import com.tcs.destination.data.repository.OfferingRepository;
@@ -66,6 +68,8 @@ public class CommonHelper {
 	@Autowired
 	private GeographyRepository geographyRepository;
 
+	@Autowired
+	private GeographyCountryRepository geographyCountryRepository;
 	
 	@Autowired
 	private OfferingRepository offeringRepository;
@@ -159,6 +163,24 @@ public class CommonHelper {
 					geographyMappingT);
 		}
 		return geographyMap;
+	}
+
+
+	/**
+	 * This method creates a country Map
+	 * partner data model changes
+	 * @return countryMap
+	 */
+	public Map<String, GeographyCountryMappingT> getGeographyCountryMappingT() {
+		List<GeographyCountryMappingT> listOfGeographyCountryMappingT = null;
+		listOfGeographyCountryMappingT = (List<GeographyCountryMappingT>) geographyCountryRepository
+				.findAll();
+		Map<String, GeographyCountryMappingT> countryMap = new HashMap<String, GeographyCountryMappingT>();
+		for (GeographyCountryMappingT geographyCountryMappingT : listOfGeographyCountryMappingT) {
+			countryMap.put(geographyCountryMappingT.getCountry(),
+					geographyCountryMappingT);
+		}
+		return countryMap;
 	}
 
 	/**
