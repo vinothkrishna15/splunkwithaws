@@ -27,6 +27,7 @@ import com.tcs.destination.bean.DataProcessingRequestT;
 import com.tcs.destination.utils.Constants;
 import com.tcs.destination.bean.BidRequestTypeMappingT;
 import com.tcs.destination.bean.DealTypeMappingT;
+import com.tcs.destination.bean.SalesStageMappingT;
 
 public class BidAndDealCompositeWriter implements ItemWriter<List<Object>>,
 		StepExecutionListener {
@@ -106,7 +107,8 @@ public class BidAndDealCompositeWriter implements ItemWriter<List<Object>>,
 					.get(0);
 			DealTypeMappingT dealTypeMappingT = (DealTypeMappingT) item
 					.get(1);
-			if (bidRequest != null || dealTypeMappingT != null) {
+			SalesStageMappingT salesStageMappingT = (SalesStageMappingT) item.get(2);
+			if (bidRequest != null || dealTypeMappingT != null || salesStageMappingT!=null) {
 				Row row = sheet.createRow(rowCount);
 				if (bidRequest != null) {
 					Cell cellBid = row.createCell(0);
@@ -117,6 +119,13 @@ public class BidAndDealCompositeWriter implements ItemWriter<List<Object>>,
 					Cell cellDeal = row.createCell(2);
 					cellDeal.setCellValue(dealTypeMappingT.getDealType()
 							.trim());
+				}
+				if(salesStageMappingT!=null) {
+					Cell cellSalesStageCode = row.createCell(4);
+					cellSalesStageCode.setCellValue(salesStageMappingT.getSalesStageCode().toString());
+					
+					Cell cellSalesStageDescription = row.createCell(5);
+					cellSalesStageDescription.setCellValue(salesStageMappingT.getSalesStageDescription());
 				}
 				rowCount++;
 			}

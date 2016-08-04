@@ -11,6 +11,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import com.google.common.collect.Lists;
 
 import com.tcs.destination.bean.BeaconConvertorMappingT;
 import com.tcs.destination.bean.BidDetailsT;
@@ -47,6 +51,7 @@ import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.SubSpRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
+import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.exception.DestinationException;
@@ -114,6 +119,9 @@ public class OpportunityDownloadHelper {
 
 	@Autowired
 	NotesTRepository notesTRepository;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	
 	
@@ -328,6 +336,12 @@ public class OpportunityDownloadHelper {
 			// cellSSOwner.setCellValue(constructSalesSupportOwner(opp.getOpportunitySalesSupportLinkTs()));
 			// }
 			// }
+			
+			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs = opportunitySalesSupportLinkTRepository.findByOpportunityId(opportunity.getOpportunityId());
+			if(CollectionUtils.isNotEmpty(opportunitySalesSupportLinkTs)) {
+			Cell salesSupportOwner = row.createCell(22);
+			salesSupportOwner.setCellValue(constructOpportunitySalesSupportOwner(opportunitySalesSupportLinkTs));
+			}
 
 			// PARTNER NAME
 			List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunityPartnerLinkTRepository
@@ -447,13 +461,13 @@ public class OpportunityDownloadHelper {
 			Cell cellModifiedBy = row.createCell(45);
 			cellModifiedBy.setCellValue(opportunity.getModifiedByUser().getUserName());
 			
-			//deal closure comments
-			Cell dealclosureComments = row.createCell(46);
-			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
-			
-			//delivery ownership
-			Cell deliveryOwnershipId = row.createCell(47);
-			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
+//			//deal closure comments
+//			Cell dealclosureComments = row.createCell(46);
+//			dealclosureComments.setCellValue(opportunity.getDealClosureComments());
+//			
+//			//delivery ownership
+//			Cell deliveryOwnershipId = row.createCell(47);
+//			deliveryOwnershipId.setCellValue(opportunity.getDeliveryOwnershipId());
 			
 			rowCount++;
 		}
@@ -490,6 +504,15 @@ public class OpportunityDownloadHelper {
 		return beaconConverterService.convertCurrencyRate(dealCurrency, "USD",
 				overallDealSize.doubleValue());
 	}
+	
+	     private String constructOpportunitySalesSupportOwner(
+			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs) {
+			List<String> salesSupportOwners = Lists.newArrayList();
+			for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunitySalesSupportLinkTs) {
+			salesSupportOwners.add(userRepository.findUserNameByUserId(opportunitySalesSupportLinkT.getSalesSupportOwner()));
+			}
+			return StringUtils.join(salesSupportOwners, ",");
+			}
 
 	/**
 	 * This method converts the list to subsp names to a string separated by
@@ -579,23 +602,6 @@ public class OpportunityDownloadHelper {
 
 		for (OpportunityPartnerLinkT link : opportunityPartnerLinkTs) {
 			buffer.append(link.getPartnerMasterT().getPartnerName().trim()
-					+ ",");
-		}
-
-		if (buffer.length() > 0) {
-			buffer.deleteCharAt(buffer.length() - 1);
-		}
-
-		return buffer.toString();
-	}
-
-	private String constructSalesSupportOwner(
-			List<OpportunitySalesSupportLinkT> opportunitySalesSupportLinkTs) {
-
-		StringBuilder buffer = new StringBuilder();
-
-		for (OpportunitySalesSupportLinkT link : opportunitySalesSupportLinkTs) {
-			buffer.append(link.getSalesSupportOwnerUser().getUserName().trim()
 					+ ",");
 		}
 
