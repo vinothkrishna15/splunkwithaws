@@ -396,19 +396,24 @@ public class BDMDetailedReportService {
 				if (dealMarkFlag) {
 					List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppDealRemarksNotesList));
+					logger.info("in dealMarkFlag ***** "+ colValue);
 					colValue++;
 					}
-				
+				logger.info("before ***** colValue");
 				//Setting SubSp
 				if (subSpFlag) {
-					List<String> oppSubSpList = new ArrayList<String>();
+					List<String> oppSecondarySubSpList = new ArrayList<String>();
 					String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
 					if(oppPrimarySubSp!=null){
-						oppSubSpList.add(oppPrimarySubSp+ReportConstants.P);
+						row.createCell(colValue).setCellValue(oppPrimarySubSp);
+						logger.info("oppPrimarySubSp"+ oppPrimarySubSp + "col " + colValue);
 					}
-					oppSubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
-					if(!oppSubSpList.isEmpty()){
-						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSubSpList));
+					colValue++;
+					oppSecondarySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
+					if(!oppSecondarySubSpList.isEmpty()){
+						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSecondarySubSpList));
+						
+						logger.info("oppSecondarySubSpList"+ oppSecondarySubSpList + "col " + colValue);
 					}
 					colValue++;
 				}
@@ -491,15 +496,16 @@ public class BDMDetailedReportService {
 				row.createCell(columnNo++).setCellValue(salesOwner);
 				
 				//set display_sub_sp
-				List<String> displaySubSpList = new ArrayList<String>();
+				List<String> displaySecondaeySubSpList = new ArrayList<String>();
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
 				if(oppPrimarySubSp!=null){
-					displaySubSpList.add(oppPrimarySubSp+ReportConstants.P);
+					row.createCell(columnNo).setCellValue(oppPrimarySubSp);
 				}
-				displaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
+				columnNo++;
+				displaySecondaeySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
 				
-				if(!displaySubSpList.isEmpty()){
-					row.createCell(columnNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySubSpList));
+				if(!displaySecondaeySubSpList.isEmpty()){
+					row.createCell(columnNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(displaySecondaeySubSpList));
 				}
 				columnNo++;
 				//set display IOU
@@ -557,7 +563,7 @@ public class BDMDetailedReportService {
 			if(isIncludingSupervisor){
 				headerList.add("Supervisor");
 			}
-			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Service Line");
+			headerList.add("Opportunity Owner");headerList.add("Sales Support Owners");headerList.add("Display Primary Service Line");headerList.add("Display Secondary Service Line");
 			headerList.add("Display Geography");headerList.add("Display IOU");headerList.add("Country");headerList.add("Group Customer Name");
 			headerList.add("Customer Name");headerList.add("Sales Stage");headerList.add("Expected Date Of Outcome");headerList.add("CRM ID");
 			int columnNo = 0;
@@ -591,9 +597,9 @@ public class BDMDetailedReportService {
 			SXSSFRow row = null;
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow);
 			setBDMSupervisorMandatoryHeaderToExcel(row, currentRow, spreadSheet, cellStyle, currency, isIncludingSupervisor);
-			int columnNo = 14;
+			int columnNo = 15;
 			if(isIncludingSupervisor){
-				columnNo=15;
+				columnNo=16;
 			}
 			if(fields.contains("projectDealValue")){
 				row.createCell(columnNo).setCellValue("Project Digital Deal Value");
@@ -606,9 +612,18 @@ public class BDMDetailedReportService {
 			
 			for (String field : orderedFields) {
 				if(fields.contains(field)){
+					if(!field.equals("subSp")){
 				row.createCell(columnNo).setCellValue(FieldsMap.bdmReportFieldMap.get(field));
 				row.getCell(columnNo).setCellStyle(cellStyle);
 				columnNo++;
+					}else{
+						row.createCell(columnNo).setCellValue("Primary Subsp");
+						row.getCell(columnNo).setCellStyle(cellStyle);
+						columnNo++;
+						row.createCell(columnNo).setCellValue("Secondary SubSps");
+						row.getCell(columnNo).setCellStyle(cellStyle);
+						columnNo++;
+					}
 				}
 			}
 		}

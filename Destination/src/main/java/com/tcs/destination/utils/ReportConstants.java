@@ -74,6 +74,8 @@ public class ReportConstants {
 	public static final String CONNECTID = "Connect Id";
 	public static final String DISPLAYGEO = "Display Geography";
 	public static final String DISPLAYSERVICELINE = "Display Service Line";
+	public static final String DISPLAYPRIMARYSERVICELINE = "Display Primary Service Line";
+	public static final String DISPLAYSECONDARYSERVICELINE = "Display Secondary Service Line";
 	public static final String DISPLAYIOU = "Display Iou";
 	public static final String CONNECTNAME = "Connect Name";
 	public static final String GROUPCUSTOMERNAME = "Group Customer Name";
@@ -207,5 +209,6 @@ public class ReportConstants {
 	public static final String ANTICIPATING = "anticipating";
 	public static final String PROJECTDEALVALUE = "projectDealValue";
 	public static final String P = " (P)";
+	public static final String CRM_ID ="CRM ID";
 
 }
