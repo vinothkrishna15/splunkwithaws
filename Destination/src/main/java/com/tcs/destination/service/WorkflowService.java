@@ -2539,8 +2539,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-		//		competitorMappingT.setWebsite(requestedCompetitor
-		//				.getWorkflowCompetitorWebsite());
+				competitorMappingT.setWebsite(requestedCompetitor
+						.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
