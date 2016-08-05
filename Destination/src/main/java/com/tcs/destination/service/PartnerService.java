@@ -357,14 +357,14 @@ public class PartnerService {
 		List<PartnerMasterT> partnerList = new ArrayList<PartnerMasterT>();
 		if (!startsWith.equals("@")) {
 			Page<PartnerMasterT> partnersPage = partnerRepository
-					.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
+					.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
 							startsWith, pageable,true);
 			paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 			partnerList.addAll(partnersPage.getContent());
 		} else {
 			for (int i = 0; i <= 9; i++) {
 				Page<PartnerMasterT> partnersPage = partnerRepository
-						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(i + "",  pageable,true);
+						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(i + "",  pageable,true);
 				paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 				partnerList.addAll(partnersPage.getContent());
 			}		

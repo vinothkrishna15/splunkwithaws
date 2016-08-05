@@ -39,7 +39,7 @@ CrudRepository<PartnerMasterT, String> {
 	Page<PartnerMasterT> findByGroupPartnerNameIgnoreCaseContainingAndActiveOrderByGroupPartnerNameAsc(
 			String groupPartnername, Pageable page, boolean active);
 
-	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
+	Page<PartnerMasterT> findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
 			String startsWith, Pageable pageable,boolean active);
 
 	@Query(value = "select * from partner_master_t p where p.active=TRUE ORDER BY p.created_modified_datetime desc LIMIT ?1", nativeQuery = true)
