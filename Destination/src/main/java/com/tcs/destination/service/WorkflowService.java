@@ -2990,6 +2990,7 @@ public class WorkflowService {
 						oldCompetitorMaster.setWebsite(workflowCompetitorT
 								.getWorkflowCompetitorWebsite());
 		}
+		oldCompetitorMaster.setActive(true);
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
 	}
