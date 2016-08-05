@@ -2987,8 +2987,8 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-			//			oldCompetitorMaster.setWebsite(workflowCompetitorT
-			//					.getWorkflowCompetitorWebsite());
+						oldCompetitorMaster.setWebsite(workflowCompetitorT
+								.getWorkflowCompetitorWebsite());
 		}
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
