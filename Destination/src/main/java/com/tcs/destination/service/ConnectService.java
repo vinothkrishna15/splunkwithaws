@@ -769,7 +769,7 @@ public class ConnectService {
 					.getCurrentUserDetails().getUserId());
 
 			// for saving into product_contact_link_t
-			if(connect.getConnectCategory().equals(EntityType.PARTNER)){
+			/*if(connect.getConnectCategory().equals(EntityType.PARTNER.name())){
 				ProductContactLinkT productContactLinkT = new ProductContactLinkT();
 				productContactLinkT.setContactId(conCustConLink.getContactId());
 				productContactLinkT.setProductId(connect.getProductId());
@@ -778,7 +778,7 @@ public class ConnectService {
 				productContactLinkT.setModifiedBy(DestinationUtils
 						.getCurrentUserDetails().getUserId());
 				productContactLinkTRepository.save(productContactLinkT);
-			}
+			}*/
 		}
 	}
 

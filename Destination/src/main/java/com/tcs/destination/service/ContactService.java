@@ -583,14 +583,14 @@ public class ContactService {
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
-		if(contact.getContactCategory().equals(EntityType.PARTNER)){
+		/*if(contact.getContactCategory().equals(EntityType.PARTNER.name())){
 			ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
 			productcontatcLinkT.setContactId(contact.getContactId());
 			productcontatcLinkT.setProductId(contact.getProductId());
 			productcontatcLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productcontatcLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productContactLinkTRepository.save(productcontatcLinkT);
-		}
+		}*/
 		return contactRepository.save(contact);
 	}
 
