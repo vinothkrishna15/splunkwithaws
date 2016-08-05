@@ -315,9 +315,9 @@ public class BuildBidReportService {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			//to set mandatory fields to spreadSheet
 			getBidDetailsReportMandatoryFields(spreadSheet, row, currency, bidDetail,cellStyleDateFormat);
-			int colValue = 9;
+			int colValue = 10;
 			if (currency.size() > 1) {
-				colValue = 10;
+				colValue = 11;
 			}
 			if(iouFlag){
 				row.createCell(colValue).setCellValue(bidDetail.getOpportunityT().getCustomerMasterT().getIouCustomerMappingT().getIou());

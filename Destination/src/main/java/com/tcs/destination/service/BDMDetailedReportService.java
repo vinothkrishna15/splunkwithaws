@@ -323,9 +323,9 @@ public class BDMDetailedReportService {
 				row = (SXSSFRow) spreadSheet.createRow((short) ++currentRow);
 				setBDMReportMandatoryDetails(row, spreadSheet, currency, isIncludingSupervisor, opportunity,cellStyleDateFormat);
 			
-				int currentCol=13;
+				int currentCol=14;
 				if(isIncludingSupervisor){
-					currentCol=14;
+					currentCol=15;
 				}
 				int colValue = currentCol;
 				if (currency.size() > 1) {
@@ -396,24 +396,19 @@ public class BDMDetailedReportService {
 				if (dealMarkFlag) {
 					List<String> oppDealRemarksNotesList=notesTRepository.findDealRemarksNotesByOpportunityId(opportunity.getOpportunityId());
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppDealRemarksNotesList));
-					logger.info("in dealMarkFlag ***** "+ colValue);
 					colValue++;
 					}
-				logger.info("before ***** colValue");
 				//Setting SubSp
 				if (subSpFlag) {
 					List<String> oppSecondarySubSpList = new ArrayList<String>();
 					String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
 					if(oppPrimarySubSp!=null){
 						row.createCell(colValue).setCellValue(oppPrimarySubSp);
-						logger.info("oppPrimarySubSp"+ oppPrimarySubSp + "col " + colValue);
 					}
 					colValue++;
 					oppSecondarySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
 					if(!oppSecondarySubSpList.isEmpty()){
 						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSecondarySubSpList));
-						
-						logger.info("oppSecondarySubSpList"+ oppSecondarySubSpList + "col " + colValue);
 					}
 					colValue++;
 				}

@@ -364,13 +364,14 @@ public class BuildOpportunityReportService {
 
 		String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
 		if(oppPrimarySubSp!=null){
-			row.createCell(colNo++).setCellValue(oppPrimarySubSp);//set primary subsp
+			row.createCell(colNo).setCellValue(oppPrimarySubSp);//set primary subsp
 		}
+		colNo++;
 		secondaryDisplaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
 		if(!secondaryDisplaySubSpList.isEmpty()){
-			row.createCell(colNo++).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(secondaryDisplaySubSpList));//set secondary subsp
+			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(secondaryDisplaySubSpList));//set secondary subsp
 		}
-
+		colNo++;
 		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou()); //set display iou
 		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());//set group customer
 		row.createCell(colNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());//set sales stage code description
@@ -461,9 +462,9 @@ public class BuildOpportunityReportService {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
 
-			int colValue = 11;
+			int colValue = 12;
 			if (currency.size() > 1) {
-				colValue = 12;
+				colValue = 13;
 			}
 
 			if (projectDVFlag) {
@@ -512,13 +513,13 @@ public class BuildOpportunityReportService {
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
 				if(oppPrimarySubSp!=null){
 					row.createCell(colValue).setCellValue(oppPrimarySubSp);
-					colValue++;
 				}
+				colValue++;
 				oppSecondarysubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
 				if(!oppSecondarysubSpList.isEmpty()){
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSecondarysubSpList));
-					colValue++;
 				}
+				colValue++;
 			}
 
 			//Setting Offering
