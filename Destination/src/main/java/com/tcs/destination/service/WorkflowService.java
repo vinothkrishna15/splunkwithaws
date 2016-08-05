@@ -1417,7 +1417,7 @@ public class WorkflowService {
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
-//			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
@@ -1433,7 +1433,7 @@ public class WorkflowService {
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
 
-//				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
@@ -1443,7 +1443,7 @@ public class WorkflowService {
 				listOfPartnerRequests.add(pendingPartnerRequests);
 
 				// Add all the lists of competitor requests
-//				listOfCompetitorRequests.add(pendingCompetitorRequests);
+				listOfCompetitorRequests.add(pendingCompetitorRequests);
 
 				// Add all the lists of opportunity re-open requests
 				listOfOpportunityReopenRequests
@@ -1455,8 +1455,8 @@ public class WorkflowService {
 					EntityType.CUSTOMER.toString(), myWorklist);
 			populateResponseList(listOfPartnerRequests,
 					EntityType.PARTNER.toString(), myWorklist);
-//			populateResponseList(listOfCompetitorRequests,
-//					EntityType.COMPETITOR.toString(), myWorklist);
+			populateResponseList(listOfCompetitorRequests,
+					EntityType.COMPETITOR.toString(), myWorklist);
 			populateResponseList(listOfOpportunityReopenRequests,
 					EntityType.OPPORTUNITY.toString(), myWorklist);
 
