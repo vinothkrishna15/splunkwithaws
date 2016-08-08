@@ -56,5 +56,14 @@
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
+	<!-- scheduler  -->
+	<bean id="beaconUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="beaconUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="beaconUploadScheduler" method="run" cron="${beacon.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
 </beans>
 	

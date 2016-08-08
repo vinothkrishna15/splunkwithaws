@@ -57,5 +57,14 @@
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
+	<!-- scheduler  -->
+	<bean id="connectUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="connectUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="connectUploadScheduler" method="run" cron="${connect.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
 </beans>
 	

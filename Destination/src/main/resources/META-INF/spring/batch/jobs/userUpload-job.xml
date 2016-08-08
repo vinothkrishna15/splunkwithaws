@@ -135,6 +135,15 @@
     <bean id="userUploaddecider" class="com.tcs.destination.decider.UserUploadDecider" />
     
     <bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
+    
+    <!-- scheduler  -->
+	<bean id="userUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="userUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="userUploadScheduler" method="run" cron="${user.upload.job.cron}"/>
+    </task:scheduled-tasks>
 	
 </beans>
 	

@@ -52,5 +52,14 @@
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
+	<!-- scheduler  -->
+	<bean id="productUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="productUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="productUploadScheduler" method="run" cron="${products.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
 </beans>
 	

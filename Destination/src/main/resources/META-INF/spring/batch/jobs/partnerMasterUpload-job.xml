@@ -109,5 +109,14 @@
 	
 	<bean id="uploadErrorReport" class="com.tcs.destination.service.UploadErrorReport"/>
 	
+	<!-- scheduler  -->
+	<bean id="partnerMasterUploadScheduler" class="com.tcs.destination.scheduler.JobScheduler">
+		<property name="job" ref="partnerMasterUpload"/>
+	</bean>
+	
+	<task:scheduled-tasks>
+        <task:scheduled ref="partnerMasterUploadScheduler" method="run" cron="${partner.master.upload.job.cron}"/>
+    </task:scheduled-tasks>
+	
 </beans>
 	
