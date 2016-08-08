@@ -91,10 +91,13 @@ public class FieldsMap {
 		bdmReportFieldMap.put("projectDealValue", "Project Currency");
 		bdmReportFieldMap.put("opportunityName", "Opportunity Name");
 		bdmReportFieldMap.put("targetBidSubmissionDate", "Target BID Submission Date");
-		bdmReportFieldMap.put("winProbability", "Win probability");
+		bdmReportFieldMap.put("actualBidSubmissionDate", "Actual BID Submission Date");
+        bdmReportFieldMap.put("winProbability", "Win probability");
 		bdmReportFieldMap.put("factorsForWinLoss", "Factors for Win/Loss");
 		bdmReportFieldMap.put("dealClosureComments", "Deal closure comments");
 		bdmReportFieldMap.put("dealRemarksNotes", "Deal Remarks Notes");
+		bdmReportFieldMap.put("competitors", "Competitor Name");
+		bdmReportFieldMap.put("partnershipsInvolved", "Partner Name");
 		bdmReportFieldMap.put("subSp", "SUB SP");
 		bdmReportFieldMap.put("dealClosureDate", "Deal Closure Date");
 		bdmReportFieldMap.put("createdBy", "Created By");

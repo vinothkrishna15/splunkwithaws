@@ -30,9 +30,11 @@ import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.BidDetailsTRepository;
 import com.tcs.destination.data.repository.GeographyRepository;
 import com.tcs.destination.data.repository.NotesTRepository;
+import com.tcs.destination.data.repository.OpportunityCompetitorLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.OpportunitySubSpLinkTRepository;
 import com.tcs.destination.data.repository.OpportunityWinLossFactorsTRepository;
+import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.UserGroup;
@@ -89,6 +91,13 @@ public class BDMDetailedReportService {
 	
 	@Autowired
 	BidDetailsTRepository bidDetailsTRepository;
+	
+	@Autowired
+	OpportunityCompetitorLinkTRepository opportunityCompetitorLinkTRepository;
+	
+	@Autowired
+	PartnerRepository partnerRepository;
+
 
 	/**
 	 * This Method used to BDM Performance detailed report in excel format
@@ -307,11 +316,14 @@ public class BDMDetailedReportService {
 			boolean projectDVFlag = fields.contains(ReportConstants.PROJECTDEALVALUE);
 			boolean opportunityNameFlag = fields.contains(ReportConstants.OPPNAME);
 			boolean targetBidSubDtFlag = fields.contains(ReportConstants.TARGETBIDSUBMISSIONDATE);
+			boolean actualBidSubDtFlag = fields.contains(ReportConstants.ACTUALBIDSUBMISSIONDATE);
 			boolean winProbFlag = fields.contains(ReportConstants.WINPROBABILITY);
 			boolean factorForWLFlag = fields.contains(ReportConstants.FACTORSFORWINLOSS);
 			boolean descForWLFlag = fields.contains(ReportConstants.DEALCLOSURECOMMENTS);
 			boolean dealMarkFlag = fields.contains(ReportConstants.DEALREMARKSNOTES);
 			
+			boolean competitorFlag = fields.contains(ReportConstants.COMPETITORS);
+			boolean partnershipFlag = fields.contains(ReportConstants.PARTNERSHIPSINVOLVED);
 			boolean subSpFlag = fields.contains(ReportConstants.SUBSP);
 			boolean dealClosureDateFlag = fields.contains(ReportConstants.DEALCLOSUREDATE);
 			boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
@@ -370,6 +382,18 @@ public class BDMDetailedReportService {
 					colValue++;
 				}
 				
+				//set actual bid submission date
+				if (actualBidSubDtFlag) {
+					if (bidDetailsT!=null) {
+						if(bidDetailsT.getActualBidSubmissionDate() != null) {
+							row.createCell(colValue).setCellValue(bidDetailsT.getActualBidSubmissionDate());
+							row.getCell(colValue).setCellStyle(cellStyleDateFormat);
+						}
+					}
+					colValue++;
+				}
+				
+				
 				//set opportunity name
 				if (opportunityNameFlag) {
 					row.createCell(colValue).setCellValue(opportunity.getOpportunityName());
@@ -398,6 +422,29 @@ public class BDMDetailedReportService {
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppDealRemarksNotesList));
 					colValue++;
 					}
+				
+				//set competitor
+				if (competitorFlag) {
+					List<String> compList = new ArrayList<String>();
+					compList = opportunityCompetitorLinkTRepository.findCompetitorNamesByOpportunityId(opportunity.getOpportunityId());
+					if(!compList.isEmpty()){
+						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(compList));
+						logger.info("competitorList"+ compList + "col " + colValue);
+					}
+					colValue++;
+				}
+				
+				//set partnership
+				if (partnershipFlag) {
+					List<String> oppPartnerList = new ArrayList<String>();
+					oppPartnerList = partnerRepository.findPartnerNameByOpportunityId(opportunity.getOpportunityId());
+					if(!oppPartnerList.isEmpty()){
+						row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppPartnerList));
+					    logger.info("oppPartnerList"+ oppPartnerList + "col " + colValue);
+					}
+					colValue++;
+				}
+				
 				//Setting SubSp
 				if (subSpFlag) {
 					List<String> oppSecondarySubSpList = new ArrayList<String>();
@@ -602,8 +649,9 @@ public class BDMDetailedReportService {
 				columnNo++;
 			}
 			
-			List<String> orderedFields = Arrays.asList("projectDealValue","winProbability", "targetBidSubmissionDate", "opportunityName", "factorsForWinLoss", 
-					"dealClosureComments", "dealRemarksNotes", "subSp", "dealClosureDate", "createdBy",	"createdDate","modifiedBy","modifiedDate");
+			List<String> orderedFields = Arrays.asList("projectDealValue","winProbability", "targetBidSubmissionDate","actualBidSubmissionDate", "opportunityName", "factorsForWinLoss", 
+					"dealClosureComments", "dealRemarksNotes","competitors","partnershipsInvolved", "subSp", "dealClosureDate", "createdBy",	"createdDate","modifiedBy","modifiedDate");
+
 			
 			for (String field : orderedFields) {
 				if(fields.contains(field)){
