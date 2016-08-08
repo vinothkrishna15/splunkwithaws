@@ -210,5 +210,9 @@ public class ReportConstants {
 	public static final String PROJECTDEALVALUE = "projectDealValue";
 	public static final String P = " (P)";
 	public static final String CRM_ID ="CRM ID";
+	
+	public static final String ENGAGEMENTDURATION = "engagementDuration";
+	public static final String DIGITALFLAG = "digitalFlag";
+	public static final String STRATEGICDEAL = "strategicDeal";
 
 }

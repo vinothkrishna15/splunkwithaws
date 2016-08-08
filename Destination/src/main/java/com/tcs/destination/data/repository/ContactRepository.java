@@ -81,8 +81,8 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param connectId
 	 * @return
 	 */
-	@Query(value = "select contact_name,contact_role from contact_t CONT "
-			+ "join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole from contact_t CONT "
+			+ " join connect_tcs_account_contact_link_t CTACL on CONT.contact_id=CTACL.contact_id where CTACL.connect_id=?1" , nativeQuery = true)
 	List<Object[]> findTcsAccountContactNamesByConnectId(String connectId);
 	
 	/**
@@ -90,10 +90,10 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 	 * @param opportunityId
 	 * @return
 	 */
-	@Query(value = "select contact_name,contact_role from contact_t CONT "
+	@Query(value = "select contact_name,case when contact_role <> 'Other' then contact_role else other_role end as contactRole from contact_t CONT "
 			+ "join connect_customer_contact_link_t CCACL on CONT.contact_id=CCACL.contact_id where CCACL.connect_id=?1" , nativeQuery = true)
 	List<Object[]> findCustomerContactNamesByConnectId(String connectId);
-	
+
 	/**
 	 * This method to find the duplicate contacts for a customer
 	 * @param customerId

@@ -312,7 +312,8 @@ public class BuildOpportunityReportService {
 		List<String> orderedFields = Arrays.asList("projectDealValue","customerName", "country", "iou", "geography", "subSp", "offering", "tcsAccountContact", "custContactName"
 				, "opportunityDescription", "requestReceivedDate", "newLogo", "competitors", "partnershipsInvolved", "dealType", "salesSupportOwner",
 				"dealRemarksNotes", "dealClosureComments", "dealClosureDate", "factorsForWinLoss", "oppLinkId", "bidId", "bidOfficeGroupOwner",  "bidRequestReceiveDate",
-				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy", "modifiedDate","modifiedBy");
+				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy",
+				 "modifiedDate","modifiedBy","engagementDuration", "digitalFlag", "strategicDeal");
 
 		for (String field : orderedFields) {
 			if(fields.contains(field)){
@@ -449,6 +450,11 @@ public class BuildOpportunityReportService {
 		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+		//3 columns added as per suggestions
+		boolean engmtDurationFlag = fields.contains(ReportConstants.ENGAGEMENTDURATION);
+		boolean stratigicFlag = fields.contains(ReportConstants.DIGITALFLAG);
+		boolean digitalReimgFlag = fields.contains(ReportConstants.STRATEGICDEAL);
+
 
 		CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
 		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
@@ -742,7 +748,29 @@ public class BuildOpportunityReportService {
 				row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
 				colValue++;
 			}
+		
+			if (engmtDurationFlag) {
+				if(opportunity.getEngagementDuration()!=null) {
+				row.createCell(colValue).setCellValue(opportunity.getEngagementDuration());
+				}
+				colValue++;
+			}
+			
+			if (stratigicFlag) {
+				if(opportunity.getStrategicDeal()!=null) {
+					row.createCell(colValue).setCellValue(opportunity.getStrategicDeal());
+				}
+				colValue++;
+			}
+			
+			if (digitalReimgFlag) {
+				if(opportunity.getDigitalFlag()!=null){
+					row.createCell(colValue).setCellValue(opportunity.getDigitalFlag());
+				}
+				colValue++;
+			}
 
+			
 		}
 		return currentRow;
 	}
