@@ -19,12 +19,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tcs.destination.bean.ContactRoleMappingT;
 import com.tcs.destination.bean.ContactT;
+import com.tcs.destination.bean.CustomerMasterT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UploadServiceErrorDetailsDTO;
 import com.tcs.destination.bean.UploadStatusDTO;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ContactService;
 import com.tcs.destination.service.ContactUploadService;
@@ -428,6 +431,40 @@ public class ContactController {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error in retrieving the contacts for /contact/ajaxsearch "+ nameWith);
 		}
+	}
+	
+	/**
+	 * Service to fetch the contact related information based on search type and the search keyword 
+	 * @param searchType - category type
+	 * @param term - keyword
+	 * @param getAll - true, to retrieve entire result, false to filter the result to only 3 records.(<b>default:false</b>)
+	 * @param fields
+	 * @param view
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/search/smart", method = RequestMethod.GET)
+	public @ResponseBody String smartSearch(
+			@RequestParam("searchType") String searchType,
+			@RequestParam("term") String term,
+			@RequestParam(value = "getAll", defaultValue = "false") boolean getAll,
+			@RequestParam(value = "fields", defaultValue = "all") String fields,
+			@RequestParam(value = "page", defaultValue = "0") int page,
+			@RequestParam(value = "count", defaultValue = "30") int count,
+			@RequestParam(value = "view", defaultValue = "") String view)
+					throws DestinationException {
+		logger.info("ContactController: smart search by search term");
+		try {
+			PageDTO<SearchResultDTO<ContactT>> res = contactService.smartSearch(SmartSearchType.get(searchType), term, getAll, page, count);
+			logger.info("ContactController: End - smart search by search term");
+			return ResponseConstructors.filterJsonForFieldAndViews(fields,
+					view, res, !getAll);
+		} catch (Exception e) {
+			logger.error("Error on user smartSearch", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while retrieving customer list");
+		}
+		
 	}
 
 }

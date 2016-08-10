@@ -21,15 +21,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.tcs.destination.bean.BeaconCustomerMappingT;
 import com.tcs.destination.bean.ContactCustomerLinkT;
 import com.tcs.destination.bean.CustomerMasterT;
 import com.tcs.destination.bean.GeographyMappingT;
 import com.tcs.destination.bean.IouBeaconMappingT;
 import com.tcs.destination.bean.IouCustomerMappingT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.QueryBufferDTO;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.bean.TargetVsActualResponse;
 import com.tcs.destination.bean.UserAccessPrivilegesT;
 import com.tcs.destination.bean.UserT;
@@ -46,6 +49,7 @@ import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.enums.PrivilegeType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.enums.UserRole;
 import com.tcs.destination.exception.DestinationException;
@@ -1463,5 +1467,106 @@ public class CustomerService {
 			throw new DestinationException(HttpStatus.NOT_FOUND, "No users available for the specified page");
 		}
 		return paginatedResponse;
+	}
+
+	/**
+	 * Service to fetch the customer related information based on search type and the search keyword
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<CustomerMasterT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, int page, int count) {
+		logger.info("CustomerService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<CustomerMasterT>> res = new PageDTO<SearchResultDTO<CustomerMasterT>>();
+		List<SearchResultDTO<CustomerMasterT>> resList = Lists.newArrayList();
+		SearchResultDTO<CustomerMasterT> searchResultDTO = new SearchResultDTO<CustomerMasterT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getCustomersByGrpCustName(term, getAll));
+				resList.add(getCustomersByName(term, getAll));
+				resList.add(getCustomersByGeography(term, getAll));
+				resList.add(getCustomersByIou(term, getAll));
+				break;
+			case GROUP_CUSTOMER_NAME:
+				searchResultDTO = getCustomersByGrpCustName(term, getAll);
+				break;
+			case NAME:
+				searchResultDTO = getCustomersByName(term, getAll);
+				break;
+			case GEOGRAPHY:
+				searchResultDTO = getCustomersByGeography(term, getAll);
+				break;
+			case IOU:
+				searchResultDTO = getCustomersByIou(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<CustomerMasterT> values = searchResultDTO.getValues();
+					List<CustomerMasterT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						try {
+							prepareCustomerDetails(records);
+						} catch (Exception e) {
+							logger.error("error::smartSearch::prepareCustomerDetails",e);
+						}
+					}
+					searchResultDTO.setValues(records);
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+	private SearchResultDTO<CustomerMasterT> getCustomersByGrpCustName(
+			String term, boolean getAll) {
+		List<CustomerMasterT> records = customerRepository.getCustomersByGrpCustName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.GROUP_CUSTOMER_NAME, getAll);
+	}
+
+	private SearchResultDTO<CustomerMasterT> getCustomersByName(String term,
+			boolean getAll) {
+		List<CustomerMasterT> records = customerRepository.getCustomersByName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.NAME, getAll);
+	}
+
+	private SearchResultDTO<CustomerMasterT> getCustomersByGeography(
+			String term, boolean getAll) {
+		List<CustomerMasterT> records = customerRepository.getCustomersByGeography("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.GEOGRAPHY, getAll);
+	}
+
+	private SearchResultDTO<CustomerMasterT> getCustomersByIou(String term,
+			boolean getAll) {
+		List<CustomerMasterT> records = customerRepository.getCustomersByIou("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.IOU, getAll);
+	}
+	
+	/**
+	 * creates {@link SearchResultDTO} from the list of customers
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<CustomerMasterT> createSearchResultFrom(
+			List<CustomerMasterT> records, SmartSearchType type, boolean getAll) {
+		SearchResultDTO<CustomerMasterT> conRes = new SearchResultDTO<CustomerMasterT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
 	}
 }

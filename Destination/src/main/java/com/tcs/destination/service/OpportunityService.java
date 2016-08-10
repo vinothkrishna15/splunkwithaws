@@ -2784,26 +2784,26 @@ public class OpportunityService {
 			
 			switch(smartSearchType) {
 			case ALL:
-				resList.add(getOpportunityById(term, getAll, currency));
-				resList.add(getOpportunityByName(term, getAll, currency));
-				resList.add(getOpportunityByCustomers(term, getAll, currency));
-				resList.add(getOpportunitySubSps(term, getAll, currency));
-				resList.add(getOpportunityByOwner(term, getAll, currency));
+				resList.add(getOpportunityById(term, getAll));
+				resList.add(getOpportunityByName(term, getAll));
+				resList.add(getOpportunityByCustomers(term, getAll));
+				resList.add(getOpportunitySubSps(term, getAll));
+				resList.add(getOpportunityByOwner(term, getAll));
 				break;
 			case ID:
-				searchResultDTO = getOpportunityById(term, getAll, currency);
+				searchResultDTO = getOpportunityById(term, getAll);
 				break;
 			case NAME:
-				searchResultDTO = getOpportunityByName(term, getAll, currency);
+				searchResultDTO = getOpportunityByName(term, getAll);
 				break;
 			case CUSTOMER:
-				searchResultDTO = getOpportunityByCustomers(term, getAll, currency);
+				searchResultDTO = getOpportunityByCustomers(term, getAll);
 				break;
 			case SUBSP:
-				searchResultDTO = getOpportunitySubSps(term, getAll, currency);
+				searchResultDTO = getOpportunitySubSps(term, getAll);
 				break;
 			case PRIMARY_OWNER:
-				searchResultDTO = getOpportunityByOwner(term, getAll, currency);
+				searchResultDTO = getOpportunityByOwner(term, getAll);
 				break;
 			default:
 				break;
@@ -2829,33 +2829,33 @@ public class OpportunityService {
 	}
 	
 	private SearchResultDTO<OpportunityT> getOpportunityById(String term,
-			boolean getAll, List<String> toCurrency) {
+			boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchById("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.ID, getAll, toCurrency);
+		return createSearchResultFrom(records, SmartSearchType.ID, getAll);
 	}
 
 	private SearchResultDTO<OpportunityT> getOpportunityByName(String term,
-			boolean getAll, List<String> toCurrency) {
+			boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchByName("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.NAME, getAll, toCurrency);
+		return createSearchResultFrom(records, SmartSearchType.NAME, getAll);
 	}
 
 	private SearchResultDTO<OpportunityT> getOpportunityByCustomers(
-			String term, boolean getAll, List<String> toCurrency) {
+			String term, boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchByCustomerName("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll, toCurrency);
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
 	}
 
 	private SearchResultDTO<OpportunityT> getOpportunitySubSps(String term,
-			boolean getAll, List<String> toCurrency) {
+			boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchBySubsp("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.SUBSP, getAll, toCurrency);
+		return createSearchResultFrom(records, SmartSearchType.SUBSP, getAll);
 	}
 
 	private SearchResultDTO<OpportunityT> getOpportunityByOwner(String term,
-			boolean getAll, List<String> toCurrency) {
+			boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchByPrimaryOwner("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.PRIMARY_OWNER, getAll, toCurrency);
+		return createSearchResultFrom(records, SmartSearchType.PRIMARY_OWNER, getAll);
 	}
 
 	/**
@@ -2866,7 +2866,7 @@ public class OpportunityService {
 	 * @return
 	 */
 	private SearchResultDTO<OpportunityT> createSearchResultFrom(
-			List<OpportunityT> records, SmartSearchType type, boolean getAll, List<String> toCurrency) {
+			List<OpportunityT> records, SmartSearchType type, boolean getAll) {
 		SearchResultDTO<OpportunityT> conRes = new SearchResultDTO<OpportunityT>();
 		conRes.setSearchType(type);
 		conRes.setValues(records);

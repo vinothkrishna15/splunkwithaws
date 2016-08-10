@@ -35,9 +35,11 @@ import com.tcs.destination.bean.OpportunitiesSplitDTO;
 import com.tcs.destination.bean.OpportunityCustomerContactLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.OpportunityTcsAccountContactLinkT;
+import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.ProductContactLinkT;
+import com.tcs.destination.bean.SearchResultDTO;
 import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
@@ -45,6 +47,7 @@ import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.enums.ContactType;
 import com.tcs.destination.enums.EntityType;
+import com.tcs.destination.enums.SmartSearchType;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.helper.UserAccessPrivilegeQueryBuilder;
 import com.tcs.destination.utils.Constants;
@@ -1255,6 +1258,104 @@ public class ContactService {
 			contactCustomerLinkT.setContactId(contactId);
 		}
 
+	}
+	
+	
+	/**
+	 * Service to fetch the contact related information based on search type and the search keyword
+	 * @param smartSearchType
+	 * @param term
+	 * @param getAll
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PageDTO<SearchResultDTO<ContactT>> smartSearch(SmartSearchType smartSearchType,
+			String term, boolean getAll, int page, int count) {
+		logger.info("ContactService::smartSearch type {}",smartSearchType);
+		PageDTO<SearchResultDTO<ContactT>> res = new PageDTO<SearchResultDTO<ContactT>>();
+		List<SearchResultDTO<ContactT>> resList = Lists.newArrayList();
+		SearchResultDTO<ContactT> searchResultDTO = new SearchResultDTO<ContactT>();
+		if(smartSearchType != null) {
+			
+			switch(smartSearchType) {
+			case ALL:
+				resList.add(getContactsByName(term, getAll));
+				resList.add(getContactsByPartner(term, getAll));
+				resList.add(getContactsByCustomer(term, getAll));
+				resList.add(getContactsByCountry(term, getAll));
+				break;
+			case NAME:
+				searchResultDTO = getContactsByName(term, getAll);
+				break;
+			case PARTNER:
+				searchResultDTO = getContactsByPartner(term, getAll);
+				break;
+			case CUSTOMER:
+				searchResultDTO = getContactsByCustomer(term, getAll);
+				break;
+			case COUNTRY:
+				searchResultDTO = getContactsByCountry(term, getAll);
+				break;
+			default:
+				break;
+
+			}
+			
+			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
+				if(getAll) {
+					List<ContactT> values = searchResultDTO.getValues();
+					List<ContactT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						removeCyclicForLinkedContactTs(records);
+					}
+					searchResultDTO.setValues(records);
+					res.setTotalCount(values.size());
+				}
+				resList.add(searchResultDTO);
+			}
+		}
+		res.setContent(resList);
+		return res;
+	}
+
+	private SearchResultDTO<ContactT> getContactsByName(String term,
+			boolean getAll) {
+		List<ContactT> records = contactRepository.getContactsByName("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.NAME, getAll);
+	}
+
+	private SearchResultDTO<ContactT> getContactsByPartner(String term,
+			boolean getAll) {
+		List<ContactT> records = contactRepository.getContactsByPartner("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.PARTNER, getAll);
+	}
+
+	private SearchResultDTO<ContactT> getContactsByCustomer(String term,
+			boolean getAll) {
+		List<ContactT> records = contactRepository.getContactsByCustomer("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
+	}
+
+	private SearchResultDTO<ContactT> getContactsByCountry(String term,
+			boolean getAll) {
+		List<ContactT> records = contactRepository.getContactsByCountry("%"+term+"%", getAll);
+		return createSearchResultFrom(records, SmartSearchType.COUNTRY, getAll);
+	}
+	
+	/**
+	 * creates {@link SearchResultDTO} from the list of contacts
+	 * @param records
+	 * @param type
+	 * @param getAll
+	 * @return
+	 */
+	private SearchResultDTO<ContactT> createSearchResultFrom(
+			List<ContactT> records, SmartSearchType type, boolean getAll) {
+		SearchResultDTO<ContactT> conRes = new SearchResultDTO<ContactT>();
+		conRes.setSearchType(type);
+		conRes.setValues(records);
+		return conRes;
 	}
 
 }
