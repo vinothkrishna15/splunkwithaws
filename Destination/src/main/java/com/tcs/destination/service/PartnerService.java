@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -90,7 +91,7 @@ public class PartnerService {
 	@Autowired
 	private CommonHelper commonHelper;
 	
-	@Autowired
+	@Autowired @Lazy
 	private PartnerDao partnerDao;
 	
 	@Autowired 
@@ -357,14 +358,14 @@ public class PartnerService {
 		List<PartnerMasterT> partnerList = new ArrayList<PartnerMasterT>();
 		if (!startsWith.equals("@")) {
 			Page<PartnerMasterT> partnersPage = partnerRepository
-					.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(
+					.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(
 							startsWith, pageable,true);
 			paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 			partnerList.addAll(partnersPage.getContent());
 		} else {
 			for (int i = 0; i <= 9; i++) {
 				Page<PartnerMasterT> partnersPage = partnerRepository
-						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByGroupPartnerNameAsc(i + "",  pageable,true);
+						.findByPartnerNameIgnoreCaseStartingWithAndActiveOrderByPartnerNameAsc(i + "",  pageable,true);
 				paginatedResponse.setTotalCount(partnersPage.getTotalElements());
 				partnerList.addAll(partnersPage.getContent());
 			}		
@@ -584,7 +585,7 @@ public class PartnerService {
 		// mandatory validations for group partner name
 
 		// group Partner Name
-		String groupPartnerName = partnerMaster.getGroupPartnerName();
+		/*String groupPartnerName = partnerMaster.getGroupPartnerName();
 		if (!StringUtils.isEmpty(groupPartnerName)) {
 			if(!(partner.getGroupPartnerName().equals(partnerMaster.getGroupPartnerName()))){
 
@@ -604,9 +605,9 @@ public class PartnerService {
 			logger.error("group Partner name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"group Partner name should not be empty");
-		}
+		}*/
 		// country
-		String countryStr = partnerMaster.getCountry();
+		/*String countryStr = partnerMaster.getCountry();
 		if (!StringUtils.isEmpty(countryStr)) {
 			geographyCountryMapping = commonHelper.getGeographyCountryMappingT();
 			if (geographyCountryMapping.containsKey(partnerMaster.getCountry())) {
@@ -633,7 +634,7 @@ public class PartnerService {
 			logger.error("Country should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country should not be empty");
-		}
+		}*/
 
 		////notes edited
 		//		if(!StringUtils.isEmpty(oldCustomerObj.getNotes())){

@@ -490,8 +490,8 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
-//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
-//		PartnerContactLinkT pclt=new PartnerContactLinkT();
+		//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+		//		PartnerContactLinkT pclt=new PartnerContactLinkT();
 
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
@@ -501,9 +501,9 @@ public class ContactService {
 							"CustomerId is required");
 				}
 
-//				pclt.setPartnerId(null);
-//				partnerContactList.add(pclt);
-//				contact.setPartnerContactLinkTs(partnerContactList);
+				//				pclt.setPartnerId(null);
+				//				partnerContactList.add(pclt);
+				//				contact.setPartnerContactLinkTs(partnerContactList);
 				contact.setPartnerContactLinkTs(null);
 			} else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
@@ -531,12 +531,12 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
-//				if (partnerId != null
-//						&& !(partnerId.isEmpty())) {
-//					throw new DestinationException(HttpStatus.BAD_REQUEST,
-//							"Internal Contact cannot be added to Partner");
-//				}
+				//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
+				//				if (partnerId != null
+				//						&& !(partnerId.isEmpty())) {
+				//					throw new DestinationException(HttpStatus.BAD_REQUEST,
+				//							"Internal Contact cannot be added to Partner");
+				//				}
 			}
 
 			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
@@ -583,14 +583,14 @@ public class ContactService {
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
 			}
 		}
-		if(contact.getContactCategory().equals(EntityType.PARTNER)){
+		/*if(contact.getContactCategory().equals(EntityType.PARTNER.name())){
 			ProductContactLinkT productcontatcLinkT = new ProductContactLinkT();
 			productcontatcLinkT.setContactId(contact.getContactId());
 			productcontatcLinkT.setProductId(contact.getProductId());
 			productcontatcLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productcontatcLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
 			productContactLinkTRepository.save(productcontatcLinkT);
-		}
+		}*/
 		return contactRepository.save(contact);
 	}
 
@@ -1061,200 +1061,202 @@ public class ContactService {
 	 * 
 	 * @param contactTs
 	 */
-	private void removeCyclicContactForPartner(List<ContactT> contactTs) throws Exception{
+	private void removeCyclicContactForPartner(List<ContactT> contactTs)
+			throws Exception {
 
-		if(contactTs!=null){
-			for(ContactT contactT : contactTs){
-				if(contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT()!=null){
-					if(contactT.getPartnerContactLinkTs().get(0).getContactT()!=null){
-						contactT.getPartnerContactLinkTs().get(0).setContactT(null);
+		if (contactTs != null) {
+			for (ContactT contactT : contactTs) {
+				if (CollectionUtils.isNotEmpty(contactT.getPartnerContactLinkTs())) {
+					if (contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT() != null) {
+						if (contactT.getPartnerContactLinkTs().get(0).getContactT() != null) {
+							contactT.getPartnerContactLinkTs().get(0).setContactT(null);
+						}
 					}
 				}
 			}
 		}
-
 	}
 
-	/**
-	 * This method enables pagination of the response for Contacts
-	 * 
-	 * @param page
-	 * @param count
-	 * @param contacts
-	 * @return
-	 */
-	private List<ContactT> paginateContacts(int page, int count,
-			List<ContactT> contacts) throws Exception {
-		if (PaginationUtils.isValidPagination(page, count,
-				contacts.size())) {
-			int fromIndex = PaginationUtils.getStartIndex(page, count,
-					contacts.size());
-			int toIndex = PaginationUtils.getEndIndex(page, count,
-					contacts.size()) + 1;
-			contacts = contacts.subList(fromIndex, toIndex);
-			logger.debug("ConnectT  after pagination size is "
-					+ contacts.size());
-		} else {
-			contacts=null;
-		}
-		return contacts;
-	}
-
-	/**
-	 * Ajax Search for Contacts
-	 * 
-	 * @param string
-	 * @param category
-	 * @param type
-	 * @return
-	 */
-	public List<ContactT> findContactsAjaxSearch(String contactName, String category, String type) throws Exception{
-
-		List<ContactT> contactList = null;
-
-		contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
-
-		if (contactList == null || contactList.isEmpty()) {
-			logger.error("NOT_FOUND: Contact information not available");
-			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"No Contacts found");
+		/**
+		 * This method enables pagination of the response for Contacts
+		 * 
+		 * @param page
+		 * @param count
+		 * @param contacts
+		 * @return
+		 */
+		private List<ContactT> paginateContacts(int page, int count,
+				List<ContactT> contacts) throws Exception {
+			if (PaginationUtils.isValidPagination(page, count,
+					contacts.size())) {
+				int fromIndex = PaginationUtils.getStartIndex(page, count,
+						contacts.size());
+				int toIndex = PaginationUtils.getEndIndex(page, count,
+						contacts.size()) + 1;
+				contacts = contacts.subList(fromIndex, toIndex);
+				logger.debug("ConnectT  after pagination size is "
+						+ contacts.size());
+			} else {
+				contacts=null;
+			}
+			return contacts;
 		}
 
-		return contactList;
-	}
+		/**
+		 * Ajax Search for Contacts
+		 * 
+		 * @param string
+		 * @param category
+		 * @param type
+		 * @return
+		 */
+		public List<ContactT> findContactsAjaxSearch(String contactName, String category, String type) throws Exception{
 
-	/**
-	 * this method saves the contact subtables list.
-	 * 
-	 * @param insertList
-	 */
-	public void saveContacts(List<ContactT> insertList) {
-		logger.debug("Inside save method");
+			List<ContactT> contactList = null;
 
-		Map<Integer, List<PartnerContactLinkT>> mapPartnerContact = new HashMap<Integer, List<PartnerContactLinkT>>(
-				insertList.size());
-		Map<Integer, List<ProductContactLinkT>> mapProductContact = new HashMap<Integer, List<ProductContactLinkT>>(
-				insertList.size());
-		Map<Integer, List<ContactCustomerLinkT>> mapCustomerContact = new HashMap<Integer, List<ContactCustomerLinkT>>(
-				insertList.size());
+			contactList = contactRepository.findByContactNameAndCategoryAndType(contactName, category.toUpperCase(), type.toUpperCase());
 
-		int i = 0;
-		for (ContactT contactT : insertList) {
-			if ((contactT.getPartnerContactLinkTs() != null)
-					&& (!contactT.getPartnerContactLinkTs().isEmpty()))
+			if (contactList == null || contactList.isEmpty()) {
+				logger.error("NOT_FOUND: Contact information not available");
+				throw new DestinationException(HttpStatus.NOT_FOUND,
+						"No Contacts found");
+			}
+
+			return contactList;
+		}
+
+		/**
+		 * this method saves the contact subtables list.
+		 * 
+		 * @param insertList
+		 */
+		public void saveContacts(List<ContactT> insertList) {
+			logger.debug("Inside save method");
+
+			Map<Integer, List<PartnerContactLinkT>> mapPartnerContact = new HashMap<Integer, List<PartnerContactLinkT>>(
+					insertList.size());
+			Map<Integer, List<ProductContactLinkT>> mapProductContact = new HashMap<Integer, List<ProductContactLinkT>>(
+					insertList.size());
+			Map<Integer, List<ContactCustomerLinkT>> mapCustomerContact = new HashMap<Integer, List<ContactCustomerLinkT>>(
+					insertList.size());
+
+			int i = 0;
+			for (ContactT contactT : insertList) {
+				if ((contactT.getPartnerContactLinkTs() != null)
+						&& (!contactT.getPartnerContactLinkTs().isEmpty()))
+				{
+					mapPartnerContact.put(i, contactT.getPartnerContactLinkTs());
+				}
+
+				if ((contactT.getProductContactLinkTs() != null)
+						&& (!contactT.getProductContactLinkTs().isEmpty()))
+				{
+					mapProductContact.put(i, contactT.getProductContactLinkTs());
+				}
+
+				if ((contactT.getContactCustomerLinkTs() != null)
+						&& (!contactT.getContactCustomerLinkTs().isEmpty()))
+				{
+					mapCustomerContact.put(i, contactT.getContactCustomerLinkTs());
+				}
+				setNullForReferencedObjects(contactT);
+				i++;
+			}
+
+			Iterable<ContactT> savedList = contactRepository.save(insertList);
+			Iterator<ContactT> saveIterator = savedList.iterator();
+			System.out.println("Contacts" + insertList);
+			i = 0;
+			while (saveIterator.hasNext()) {
+				ContactT contact = saveIterator.next();
+				List<PartnerContactLinkT> partnerContactList = mapPartnerContact.get(i);
+				if (CollectionUtils.isNotEmpty(partnerContactList)) {
+					populatePartnerContactLinks(
+							contact.getContactId(), partnerContactList);
+				}
+				List<ProductContactLinkT> productContactList = mapProductContact.get(i);
+				if (CollectionUtils.isNotEmpty(productContactList)) {
+					populateProductContactLinks(
+							contact.getContactId(), productContactList);
+				}
+				List<ContactCustomerLinkT> contactCustomerList = mapCustomerContact.get(i);
+				if (CollectionUtils.isNotEmpty(contactCustomerList)) {
+					populateContactCustomerLinks(
+							contact.getContactId(), contactCustomerList);
+				}
+				i++;
+			}
+
+			List<PartnerContactLinkT> partnerContList = new ArrayList<PartnerContactLinkT>();
+			for (List<PartnerContactLinkT> list : mapPartnerContact.values()) {
+				if (CollectionUtils.isNotEmpty(list)) {
+					partnerContList.addAll(list);
+				}
+			}
+			if (CollectionUtils.isNotEmpty(partnerContList)) {
+				partnerContactLinkTRepository.save(partnerContList);
+
+			}
+
+			List<ProductContactLinkT> productContList = new ArrayList<ProductContactLinkT>();
+			for (List<ProductContactLinkT> list : mapProductContact.values()) {
+				if (CollectionUtils.isNotEmpty(list)) {
+					productContList.addAll(list);
+				}
+			}
+			if (CollectionUtils.isNotEmpty(productContList)) {
+				productContactLinkTRepository.save(productContList);
+
+			}
+
+			List<ContactCustomerLinkT> customerContList = new ArrayList<ContactCustomerLinkT>();
+			for (List<ContactCustomerLinkT> list : mapCustomerContact.values()) {
+				if (CollectionUtils.isNotEmpty(list)) {
+					customerContList.addAll(list);
+				}
+			}
+			if (CollectionUtils.isNotEmpty(customerContList)) {
+				contactCustomerLinkTRepository.save(customerContList);
+
+			}
+
+		}
+
+		private void setNullForReferencedObjects(ContactT contactT) {
+			logger.debug("Inside setNullForReferencedObjects() method");
+			if(contactT!=null)
 			{
-				mapPartnerContact.put(i, contactT.getPartnerContactLinkTs());
+				contactT.setPartnerContactLinkTs(null);
+				contactT.setProductContactLinkTs(null);
+				contactT.setContactCustomerLinkTs(null);
 			}
+		}
 
-			if ((contactT.getProductContactLinkTs() != null)
-					&& (!contactT.getProductContactLinkTs().isEmpty()))
+		private void populatePartnerContactLinks(String contactId,
+				List<PartnerContactLinkT> partnerContactList) {
+			for(PartnerContactLinkT partnerContactLinkT : partnerContactList)
 			{
-				mapProductContact.put(i, contactT.getProductContactLinkTs());
+				partnerContactLinkT.setContactId(contactId);
 			}
 
-			if ((contactT.getContactCustomerLinkTs() != null)
-					&& (!contactT.getContactCustomerLinkTs().isEmpty()))
+		}
+
+		private void populateProductContactLinks(String contactId,
+				List<ProductContactLinkT> productContactList) {
+			for(ProductContactLinkT productContactLinkT : productContactList)
 			{
-				mapCustomerContact.put(i, contactT.getContactCustomerLinkTs());
+				productContactLinkT.setContactId(contactId);
 			}
-			setNullForReferencedObjects(contactT);
-			i++;
-		}
-
-		Iterable<ContactT> savedList = contactRepository.save(insertList);
-		Iterator<ContactT> saveIterator = savedList.iterator();
-		System.out.println("Contacts" + insertList);
-		i = 0;
-		while (saveIterator.hasNext()) {
-			ContactT contact = saveIterator.next();
-			List<PartnerContactLinkT> partnerContactList = mapPartnerContact.get(i);
-			if (CollectionUtils.isNotEmpty(partnerContactList)) {
-				populatePartnerContactLinks(
-						contact.getContactId(), partnerContactList);
-			}
-			List<ProductContactLinkT> productContactList = mapProductContact.get(i);
-			if (CollectionUtils.isNotEmpty(productContactList)) {
-				populateProductContactLinks(
-						contact.getContactId(), productContactList);
-			}
-			List<ContactCustomerLinkT> contactCustomerList = mapCustomerContact.get(i);
-			if (CollectionUtils.isNotEmpty(contactCustomerList)) {
-				populateContactCustomerLinks(
-						contact.getContactId(), contactCustomerList);
-			}
-			i++;
-		}
-
-		List<PartnerContactLinkT> partnerContList = new ArrayList<PartnerContactLinkT>();
-		for (List<PartnerContactLinkT> list : mapPartnerContact.values()) {
-			if (CollectionUtils.isNotEmpty(list)) {
-				partnerContList.addAll(list);
-			}
-		}
-		if (CollectionUtils.isNotEmpty(partnerContList)) {
-			partnerContactLinkTRepository.save(partnerContList);
 
 		}
 
-		List<ProductContactLinkT> productContList = new ArrayList<ProductContactLinkT>();
-		for (List<ProductContactLinkT> list : mapProductContact.values()) {
-			if (CollectionUtils.isNotEmpty(list)) {
-				productContList.addAll(list);
+		private void populateContactCustomerLinks(String contactId,
+				List<ContactCustomerLinkT> contactCustomerList) {
+			for(ContactCustomerLinkT contactCustomerLinkT : contactCustomerList)
+			{
+				contactCustomerLinkT.setContactId(contactId);
 			}
-		}
-		if (CollectionUtils.isNotEmpty(productContList)) {
-			productContactLinkTRepository.save(productContList);
-
-		}
-
-		List<ContactCustomerLinkT> customerContList = new ArrayList<ContactCustomerLinkT>();
-		for (List<ContactCustomerLinkT> list : mapCustomerContact.values()) {
-			if (CollectionUtils.isNotEmpty(list)) {
-				customerContList.addAll(list);
-			}
-		}
-		if (CollectionUtils.isNotEmpty(customerContList)) {
-			contactCustomerLinkTRepository.save(customerContList);
 
 		}
 
 	}
-
-	private void setNullForReferencedObjects(ContactT contactT) {
-		logger.debug("Inside setNullForReferencedObjects() method");
-		if(contactT!=null)
-		{
-			contactT.setPartnerContactLinkTs(null);
-			contactT.setProductContactLinkTs(null);
-			contactT.setContactCustomerLinkTs(null);
-		}
-	}
-
-	private void populatePartnerContactLinks(String contactId,
-			List<PartnerContactLinkT> partnerContactList) {
-		for(PartnerContactLinkT partnerContactLinkT : partnerContactList)
-		{
-			partnerContactLinkT.setContactId(contactId);
-		}
-
-	}
-
-	private void populateProductContactLinks(String contactId,
-			List<ProductContactLinkT> productContactList) {
-		for(ProductContactLinkT productContactLinkT : productContactList)
-		{
-			productContactLinkT.setContactId(contactId);
-		}
-
-	}
-
-	private void populateContactCustomerLinks(String contactId,
-			List<ContactCustomerLinkT> contactCustomerList) {
-		for(ContactCustomerLinkT contactCustomerLinkT : contactCustomerList)
-		{
-			contactCustomerLinkT.setContactId(contactId);
-		}
-
-	}
-
-}

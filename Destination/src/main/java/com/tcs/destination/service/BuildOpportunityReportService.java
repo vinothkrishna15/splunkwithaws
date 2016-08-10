@@ -312,7 +312,8 @@ public class BuildOpportunityReportService {
 		List<String> orderedFields = Arrays.asList("projectDealValue","customerName", "country", "iou", "geography", "subSp", "offering", "tcsAccountContact", "custContactName"
 				, "opportunityDescription", "requestReceivedDate", "newLogo", "competitors", "partnershipsInvolved", "dealType", "salesSupportOwner",
 				"dealRemarksNotes", "dealClosureComments", "dealClosureDate", "factorsForWinLoss", "oppLinkId", "bidId", "bidOfficeGroupOwner",  "bidRequestReceiveDate",
-				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy", "modifiedDate","modifiedBy");
+				"bidRequestType", "actualBidSubmissionDate", "targetBidSubmissionDate", "winProbability", "coreAttributesUsedForWinning", "expectedDateOfOutcome","createdDate","createdBy",
+				 "modifiedDate","modifiedBy","engagementDuration", "digitalFlag", "strategicDeal");
 
 		for (String field : orderedFields) {
 			if(fields.contains(field)){
@@ -364,13 +365,14 @@ public class BuildOpportunityReportService {
 
 		String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId());
 		if(oppPrimarySubSp!=null){
-			row.createCell(colNo++).setCellValue(oppPrimarySubSp);//set primary subsp
+			row.createCell(colNo).setCellValue(oppPrimarySubSp);//set primary subsp
 		}
+		colNo++;
 		secondaryDisplaySubSpList.addAll(opportunitySubSpLinkTRepository.findSecondaryDisplaySubSpByOpportunityId(opportunity.getOpportunityId()));
 		if(!secondaryDisplaySubSpList.isEmpty()){
-			row.createCell(colNo++).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(secondaryDisplaySubSpList));//set secondary subsp
+			row.createCell(colNo).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(secondaryDisplaySubSpList));//set secondary subsp
 		}
-
+		colNo++;
 		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getIouCustomerMappingT().getDisplayIou()); //set display iou
 		row.createCell(colNo++).setCellValue(opportunity.getCustomerMasterT().getGroupCustomerName());//set group customer
 		row.createCell(colNo++).setCellValue(opportunity.getSalesStageMappingT().getSalesStageDescription());//set sales stage code description
@@ -448,6 +450,11 @@ public class BuildOpportunityReportService {
 		boolean createdByFlag = fields.contains(ReportConstants.CREATEDBY);
 		boolean modifiedDateFlag = fields.contains(ReportConstants.MODIFIEDDATE);
 		boolean modifieddByFlag = fields.contains(ReportConstants.MODIFIEDBY);
+		//3 columns added as per suggestions
+		boolean engmtDurationFlag = fields.contains(ReportConstants.ENGAGEMENTDURATION);
+		boolean stratigicFlag = fields.contains(ReportConstants.DIGITALFLAG);
+		boolean digitalReimgFlag = fields.contains(ReportConstants.STRATEGICDEAL);
+
 
 		CellStyle cellStyleDateTimeFormat = spreadSheet.getWorkbook().createCellStyle(); 
 		CellStyle cellStyleDateFormat = spreadSheet.getWorkbook().createCellStyle(); 
@@ -461,9 +468,9 @@ public class BuildOpportunityReportService {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
 
-			int colValue = 11;
+			int colValue = 12;
 			if (currency.size() > 1) {
-				colValue = 12;
+				colValue = 13;
 			}
 
 			if (projectDVFlag) {
@@ -512,13 +519,13 @@ public class BuildOpportunityReportService {
 				String oppPrimarySubSp = opportunitySubSpLinkTRepository.findPrimarySubSpByOpportunityId(opportunity.getOpportunityId());
 				if(oppPrimarySubSp!=null){
 					row.createCell(colValue).setCellValue(oppPrimarySubSp);
-					colValue++;
 				}
+				colValue++;
 				oppSecondarysubSpList.addAll(opportunitySubSpLinkTRepository.findSecondarySubSpByOpportunityId(opportunity.getOpportunityId()));
 				if(!oppSecondarysubSpList.isEmpty()){
 					row.createCell(colValue).setCellValue(ExcelUtils.removeSquareBracesAndAppendListElementsAsString(oppSecondarysubSpList));
-					colValue++;
 				}
+				colValue++;
 			}
 
 			//Setting Offering
@@ -741,7 +748,29 @@ public class BuildOpportunityReportService {
 				row.createCell(colValue).setCellValue(opportunity.getModifiedByUser().getUserName());
 				colValue++;
 			}
+		
+			if (engmtDurationFlag) {
+				if(opportunity.getEngagementDuration()!=null) {
+				row.createCell(colValue).setCellValue(opportunity.getEngagementDuration());
+				}
+				colValue++;
+			}
+			
+			if (stratigicFlag) {
+				if(opportunity.getStrategicDeal()!=null) {
+					row.createCell(colValue).setCellValue(opportunity.getStrategicDeal());
+				}
+				colValue++;
+			}
+			
+			if (digitalReimgFlag) {
+				if(opportunity.getDigitalFlag()!=null){
+					row.createCell(colValue).setCellValue(opportunity.getDigitalFlag());
+				}
+				colValue++;
+			}
 
+			
 		}
 		return currentRow;
 	}

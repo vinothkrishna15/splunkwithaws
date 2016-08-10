@@ -1956,17 +1956,17 @@ public class WorkflowService {
 				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
-		if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
+		/*if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
 			for(PartnerSubSpMappingT partnerSubsp : requestedPartner.getPartnerSubSpMappingTs()){
 				partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
 				partnerSubsp.setCreatedBy(requestedPartner.getCreatedBy());
 				partnerSubsp.setModifiedBy(requestedPartner.getModifiedBy());
 				savePartnerSubspAndProduct(partnerSubsp);
 			}
-		}
+		}*/
 	}
 
-	private void savePartnerSubspAndProduct(
+	/*private void savePartnerSubspAndProduct(
 			PartnerSubSpMappingT partnerSubSpMappingTs) {
 		PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
 		if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
@@ -1979,10 +1979,10 @@ public class WorkflowService {
 				saveProductcontact(partnerSubspProductObj);
 			}
 		}
-	}
+	}*/
 
 
-	private void saveProductcontact(PartnerSubspProductMappingT partnerSubspProductObj) {
+	/*private void saveProductcontact(PartnerSubspProductMappingT partnerSubspProductObj) {
 		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
 		productcontactLinkT.setProductId(partnerSubspProductObj.getProductId());
 		ContactT productcontactSaved = new ContactT();
@@ -2003,7 +2003,7 @@ public class WorkflowService {
 		productcontactLinkT.setCreatedBy(partnerSubspProductObj.getCreatedBy());
 		productcontactLinkT.setModifiedBy(partnerSubspProductObj.getModifiedBy());
 		productContactLinkTRepository.save(productcontactLinkT);
-	}
+	}*/
 
 	private void validateRequestedPartner(WorkflowPartnerT reqPartner)
 			throws Exception {
@@ -2037,7 +2037,7 @@ public class WorkflowService {
 		}
 
 		//validation for partner group name, country, city => partner changes
-		String groupPartnerName = reqPartner.getGroupPartnerName();
+		/*String groupPartnerName = reqPartner.getGroupPartnerName();
 		if (StringUtils.isEmpty(groupPartnerName)) {
 			logger.error("Group Partner Name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
@@ -2056,7 +2056,7 @@ public class WorkflowService {
 			logger.error("city should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"city Should not be empty");
-		} 
+		} */
 	}
 
 	/**
@@ -2200,11 +2200,6 @@ public class WorkflowService {
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED
 									.getStatus());
-							sendEmailNotificationforApprovedOrRejectMail(
-									workflowPartnerApprovedSubject,
-									masterRequest.getRequestId(),
-									masterRequest.getCreatedDatetime(),
-									masterRequest.getEntityTypeId());
 							step = stepRecord.getStep() + 1;
 							rowIteration++;
 						}
@@ -2227,6 +2222,14 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if (masterRequest.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
+					sendEmailNotificationforApprovedOrRejectMail(
+							workflowPartnerApprovedSubject,
+							masterRequest.getRequestId(),
+							masterRequest.getCreatedDatetime(),
+							masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
@@ -2246,9 +2249,9 @@ public class WorkflowService {
 		String website = "";
 		String facebook = "";
 		String notes = "";
-		String country = "";
-		String city = "";
-		String groupPartnerName = "";
+//		String country = "";
+//		String city = "";
+//		String groupPartnerName = "";
 
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
@@ -2301,29 +2304,29 @@ public class WorkflowService {
 
 		//partner changes - need to check whether text1,2 and 3 also to be validated
 		//country
-		if (!StringUtils.isEmpty(oldObject.getCountry())) {
+		/*if (!StringUtils.isEmpty(oldObject.getCountry())) {
 			country = oldObject.getCountry();
 		}
 		if (!workflowPartnerT.getCountry().equals(country)) {
 			oldObject.setCountry(workflowPartnerT.getCountry());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		//city
-		if (!StringUtils.isEmpty(oldObject.getCity())) {
+		/*if (!StringUtils.isEmpty(oldObject.getCity())) {
 			city = oldObject.getCity();
 		}
 		if (!workflowPartnerT.getCity().equals(city)) {
 			oldObject.setCountry(workflowPartnerT.getCity());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		//group Partner name
-		if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
+		/*if (!StringUtils.isEmpty(oldObject.getGroupPartnerName())) {
 			groupPartnerName = oldObject.getGroupPartnerName();
 		}
 		if (!workflowPartnerT.getGroupPartnerName().equals(groupPartnerName)) {
 			oldObject.setCountry(workflowPartnerT.getGroupPartnerName());
 			isPartnerModifiedFlag = true;
-		}
+		}*/
 		return isPartnerModifiedFlag;
 	}
 
@@ -2361,10 +2364,10 @@ public class WorkflowService {
 		oldPartnerMaster.setText1(workflowPartnerT.getText1());
 		oldPartnerMaster.setText2(workflowPartnerT.getText2());
 		oldPartnerMaster.setText3(workflowPartnerT.getText3());
-		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
-			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
-			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
-		}
+//		if(!workflowPartnerT.getPartnerName().equalsIgnoreCase(workflowPartnerT.getGroupPartnerName())){
+//			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(workflowPartnerT.getGroupPartnerName());
+//			oldPartnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+//		}
 		partnerRepository.save(oldPartnerMaster);
 	}
 
@@ -2413,28 +2416,28 @@ public class WorkflowService {
 
 		// validation for groupPartnerName, country, city - partner changes
 		// Group Partner name should not be empty
-		if (StringUtils.isEmpty(requestedPartner.getGroupPartnerName())) {
+		/*if (StringUtils.isEmpty(requestedPartner.getGroupPartnerName())) {
 			logger.error("Group Partner Name should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Group Partner Name should not be empty");
-		}
+		}*/
 
 		// country should not be empty
-		if (StringUtils.isEmpty(requestedPartner.getCountry())) {
+		/*if (StringUtils.isEmpty(requestedPartner.getCountry())) {
 			logger.error("Country should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Country should not be empty");
-		}
+		}*/
 
 		// city should not be empty
-		if (StringUtils.isEmpty(requestedPartner.getCity())) {
+		/*if (StringUtils.isEmpty(requestedPartner.getCity())) {
 			logger.error("City should not be empty");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"City should not be empty");
-		}
+		}*/
 		return validated;
 	}
 
@@ -2539,8 +2542,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-		//		competitorMappingT.setWebsite(requestedCompetitor
-		//				.getWorkflowCompetitorWebsite());
+				competitorMappingT.setWebsite(requestedCompetitor
+						.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -2934,11 +2937,6 @@ public class WorkflowService {
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED
 									.getStatus());
-							sendEmailNotificationforApprovedOrRejectMail(
-									workflowCompetitorApprovedSubject,
-									masterRequest.getRequestId(),
-									masterRequest.getCreatedDatetime(),
-									masterRequest.getEntityTypeId());
 							step = stepRecord.getStep() + 1;
 							rowIteration++;
 						}
@@ -2961,6 +2959,14 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if (masterRequest.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
+					sendEmailNotificationforApprovedOrRejectMail(
+							workflowCompetitorApprovedSubject,
+							masterRequest.getRequestId(),
+							masterRequest.getCreatedDatetime(),
+							masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
@@ -2987,9 +2993,10 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-			//			oldCompetitorMaster.setWebsite(workflowCompetitorT
-			//					.getWorkflowCompetitorWebsite());
+						oldCompetitorMaster.setWebsite(workflowCompetitorT
+								.getWorkflowCompetitorWebsite());
 		}
+		oldCompetitorMaster.setActive(true);
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
 	}

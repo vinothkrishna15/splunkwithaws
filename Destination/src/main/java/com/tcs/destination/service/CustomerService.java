@@ -14,6 +14,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -124,7 +125,7 @@ public class CustomerService {
 	@Autowired
 	private ContactRepository contactRepository;
 	
-	@Autowired
+	@Autowired @Lazy
 	private CustomerDao customerDao;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
