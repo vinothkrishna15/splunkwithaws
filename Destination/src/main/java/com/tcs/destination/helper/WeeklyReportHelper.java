@@ -89,13 +89,13 @@ public class WeeklyReportHelper {
 
 		logger.info("constructing weekly report for geography : " + geography);
 		String currentDateString = ACTUAL_FORMAT_MONTH.format(currentDate);
-		FontBuilder defaultFont = DynamicReports.stl.fontArial();
+		FontBuilder defaultFont = DynamicReports.stl.font().setFontName(ReportUtil.FONT_MYRIAD_PRO);
 
-		StyleBuilder boldStyle = DynamicReports.stl.style().setFontSize(14)
+		StyleBuilder boldStyle = DynamicReports.stl.style().setFontSize(ReportUtil.FONT_SIZE_TITLE)
 				.bold();
 
 		StyleBuilder reportDateStyle = DynamicReports.stl.style().setFontSize(
-				14);
+				ReportUtil.FONT_SIZE_TITLE);
 		// Opp Wins
 		List<OpportunityWins> opportunityWins = getOpportunityWins(geos,
 				currentDate, previousWeekDate);
