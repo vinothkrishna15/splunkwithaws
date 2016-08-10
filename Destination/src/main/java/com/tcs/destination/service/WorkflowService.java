@@ -44,7 +44,9 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.OpportunitySalesSupportLinkT;
 import com.tcs.destination.bean.OpportunityT;
 import com.tcs.destination.bean.PaginatedResponse;
+import com.tcs.destination.bean.PartnerContactLinkT;
 import com.tcs.destination.bean.PartnerMasterT;
+import com.tcs.destination.bean.PartnerProductDetailsDTO;
 import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
@@ -63,6 +65,7 @@ import com.tcs.destination.data.repository.CompetitorRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
+import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
@@ -150,6 +153,9 @@ public class WorkflowService {
 	CustomerUploadService customerUploadService;
 
 	@Autowired
+	PartnerService partnerService;
+	
+	@Autowired
 	UserRepository userRepository;
 
 	@Autowired
@@ -191,6 +197,9 @@ public class WorkflowService {
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
 
+	@Autowired
+	PartnerContactLinkTRepository partnerContactLinkTRepository;
+	
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -1417,7 +1426,7 @@ public class WorkflowService {
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
-//			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
 			// Contains all the lists of partner requests
 			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
 
@@ -1433,7 +1442,7 @@ public class WorkflowService {
 				List<Object[]> pendingCustomerRequests = getPendingCustomerRequests(userId);
 				List<Object[]> pendingPartnerRequests = getPendingPartnerRequests(userId);
 
-//				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
+				List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 				List<Object[]> pendingOpportunityReopenRequests = getPendingOpportunityReopenRequests(userId);
 
 				// Add all the lists of customer requests
@@ -1443,7 +1452,7 @@ public class WorkflowService {
 				listOfPartnerRequests.add(pendingPartnerRequests);
 
 				// Add all the lists of competitor requests
-//				listOfCompetitorRequests.add(pendingCompetitorRequests);
+				listOfCompetitorRequests.add(pendingCompetitorRequests);
 
 				// Add all the lists of opportunity re-open requests
 				listOfOpportunityReopenRequests
@@ -1455,8 +1464,8 @@ public class WorkflowService {
 					EntityType.CUSTOMER.toString(), myWorklist);
 			populateResponseList(listOfPartnerRequests,
 					EntityType.PARTNER.toString(), myWorklist);
-//			populateResponseList(listOfCompetitorRequests,
-//					EntityType.COMPETITOR.toString(), myWorklist);
+			populateResponseList(listOfCompetitorRequests,
+					EntityType.COMPETITOR.toString(), myWorklist);
 			populateResponseList(listOfOpportunityReopenRequests,
 					EntityType.OPPORTUNITY.toString(), myWorklist);
 
@@ -1912,7 +1921,7 @@ public class WorkflowService {
 				} else {
 					// Saving workflow Partner details to PartnerMasterT
 					// for Admin
-					savePartnerMaster(requestedPartner);
+					savePartnerMaster(requestedPartner,workflowPartner);
 					status.setStatus(Status.SUCCESS, "Partner "
 							+ requestedPartner.getPartnerName()
 							+ " added successfully");
@@ -1928,8 +1937,9 @@ public class WorkflowService {
 	 * PartnerMasterT
 	 * 
 	 * @param requestedPartner
+	 * @param workflowPartner 
 	 */
-	private void savePartnerMaster(WorkflowPartnerT requestedPartner) {
+	private void savePartnerMaster(WorkflowPartnerT requestedPartner, WorkflowPartnerT workflowPartner) {
 		// TODO Auto-generated method stub
 		PartnerMasterT partnerMaster = new PartnerMasterT();
 		partnerMaster.setCreatedBy(requestedPartner.getCreatedBy());
@@ -1950,61 +1960,111 @@ public class WorkflowService {
 		partnerMaster.setText1(requestedPartner.getText1());
 		partnerMaster.setText2(requestedPartner.getText2());
 		partnerMaster.setText3(requestedPartner.getText3());
-		if(!requestedPartner.getPartnerName().equalsIgnoreCase(requestedPartner.getGroupPartnerName())){
-			List<PartnerMasterT> parentPartner = partnerRepository.findByPartnerName(requestedPartner.getGroupPartnerName());
-			if(!parentPartner.isEmpty())
-				partnerMaster.setHqPartnerLinkId(parentPartner.get(0).getPartnerId());
+		if(requestedPartner.getHqPartnerLinkId() != null) {
+			partnerMaster.setHqPartnerLinkId(requestedPartner.getHqPartnerLinkId());
 		}
 		PartnerMasterT partnerCreated = partnerRepository.save(partnerMaster);
-		if(!requestedPartner.getPartnerSubSpMappingTs().isEmpty()){
-			for(PartnerSubSpMappingT partnerSubsp : requestedPartner.getPartnerSubSpMappingTs()){
-				partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
-				partnerSubsp.setCreatedBy(requestedPartner.getCreatedBy());
-				partnerSubsp.setModifiedBy(requestedPartner.getModifiedBy());
-				savePartnerSubspAndProduct(partnerSubsp);
+
+		if(!workflowPartner.getPartnerProductDetailsDTOs().isEmpty()){
+			for(PartnerProductDetailsDTO partnerProductDetailsDTO : workflowPartner.getPartnerProductDetailsDTOs()){
+				// processing subsps for the new partner
+				if(partnerProductDetailsDTO.getSubspList().size() > 0 ){
+					for(Integer subSpId : partnerProductDetailsDTO.getSubspList()){
+						PartnerSubSpMappingT partnerSubsp = new PartnerSubSpMappingT();
+						partnerSubsp.setPartnerId(partnerCreated.getPartnerId());
+						partnerSubsp.setSubSpId(subSpId);
+						partnerSubsp.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						partnerSubsp.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+						PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubsp);
+
+						//If product available for this partner then this partner subsp has to be persisted along with its product in partner_subsp_product_mapping_t
+						if(partnerProductDetailsDTO.getProductId() != null){
+							savePartnerSubspAndProduct(partnerSubspSaved, partnerProductDetailsDTO.getProductId());
+						}
+					}
+				}
+
+				//Processing contacts for partner and Products
+				if(partnerProductDetailsDTO.getPartnerProductContact() != null ){
+					ContactT productcontactSaved = new ContactT();
+					String contactId = null;
+					if (partnerProductDetailsDTO.getPartnerProductContact().getContactId() == null ) {
+						productcontactSaved = saveNewContact(partnerProductDetailsDTO);
+						if(productcontactSaved != null && productcontactSaved.getContactId() != null){
+							contactId = productcontactSaved.getContactId();
+							populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+						}
+					}
+					else if(partnerProductDetailsDTO.getPartnerProductContact().getContactId() != null){
+						contactId = partnerProductDetailsDTO.getPartnerProductContact().getContactId();
+						populateAsProductOrPartnerContact(partnerProductDetailsDTO, contactId, partnerCreated.getPartnerId());
+					}			 
+				}
 			}
 		}
 	}
 
-	private void savePartnerSubspAndProduct(
-			PartnerSubSpMappingT partnerSubSpMappingTs) {
-		PartnerSubSpMappingT partnerSubspSaved = partnerSubSpMappingRepository.save(partnerSubSpMappingTs);
-		if(!partnerSubSpMappingTs.getPartnerSubspProductMappingTs().isEmpty()){
-			PartnerSubspProductMappingT partnerSubspProductObj = partnerSubSpMappingTs.getPartnerSubspProductMappingTs().get(0);
-			partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
-			partnerSubspProductObj.setCreatedBy(partnerSubSpMappingTs.getCreatedBy());
-			partnerSubspProductObj.setModifiedBy(partnerSubSpMappingTs.getModifiedBy());
-			partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
-			if (!partnerSubspProductObj.getProductContact().isEmpty()){
-				saveProductcontact(partnerSubspProductObj);
-			}
-		}
+	private ContactT saveNewContact(PartnerProductDetailsDTO partnerProductDetailsDTO) {
+		ContactT partnerProductContact = partnerProductDetailsDTO.getPartnerProductContact();
+		partnerProductContact.setContactCategory("PARTNER");
+		partnerProductContact.setContactType("EXTERNAL");
+		partnerProductContact.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		partnerProductContact.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+		ContactT productcontactSaved = contactRepository.save(partnerProductContact);
+		return productcontactSaved;
 	}
 
-
-	private void saveProductcontact(PartnerSubspProductMappingT partnerSubspProductObj) {
+	/**
+	 * Method to populate the contacts as either a productContact 
+	 * or as a partnerContact
+	 * 
+	 * @param partnerProductDetailsDTO
+	 * @param contactId
+	 * @param partnerId
+	 */
+	private void populateAsProductOrPartnerContact(
+			PartnerProductDetailsDTO partnerProductDetailsDTO, String contactId, String partnerId) {
 		ProductContactLinkT productcontactLinkT = new ProductContactLinkT();
-		productcontactLinkT.setProductId(partnerSubspProductObj.getProductId());
-		ContactT productcontactSaved = new ContactT();
-		if (partnerSubspProductObj.getProductContact().get(0).getContactId() == null) {
-			ContactT newProductContact = partnerSubspProductObj.getProductContact().get(0);
-			newProductContact.setContactCategory("PARTNER");
-			newProductContact.setContactType("EXTERNAL");
-			newProductContact.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			newProductContact.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
-			productcontactSaved = contactRepository.save(newProductContact);
-			if(productcontactSaved != null && productcontactSaved.getContactId() != null){
-				productcontactLinkT.setContactId(productcontactSaved.getContactId());
-			}
+		PartnerContactLinkT partnercontactLinkT = new PartnerContactLinkT();
+		if(partnerProductDetailsDTO.getProductId() != null){
+			productcontactLinkT.setContactId(contactId);
+			productcontactLinkT.setProductId(partnerProductDetailsDTO.getProductId());
+			productcontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productcontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			productContactLinkTRepository.save(productcontactLinkT);
 		}
-		else if(partnerSubspProductObj.getProductContact().get(0).getContactId() != null){
-			productcontactLinkT.setContactId(partnerSubspProductObj.getProductContact().get(0).getContactId());
-		}			 
-		productcontactLinkT.setCreatedBy(partnerSubspProductObj.getCreatedBy());
-		productcontactLinkT.setModifiedBy(partnerSubspProductObj.getModifiedBy());
-		productContactLinkTRepository.save(productcontactLinkT);
+		else{
+			partnercontactLinkT.setContactId(contactId);
+			partnercontactLinkT.setPartnerId(partnerId);
+			partnercontactLinkT.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnercontactLinkT.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			partnerContactLinkTRepository.save(partnercontactLinkT);
+		}
 	}
 
+	/**
+	 * To enter into partner_subsp_product_mapping_t table the values of partner_subsp_mapping_id 
+	 * and product_id if product details is available for the given partner
+	 * @param partnerSubspSaved
+	 * @param productId
+	 */
+	private void savePartnerSubspAndProduct(
+			PartnerSubSpMappingT partnerSubspSaved, String productId) {
+		if(partnerSubspSaved != null ){
+			PartnerSubspProductMappingT partnerSubspProductObj = new PartnerSubspProductMappingT();
+			partnerSubspProductObj.setPartnerSubspMappingId(partnerSubspSaved.getPartnerSubspMappingId());
+			partnerSubspProductObj.setProductId(productId);
+			partnerSubspProductObj.setCreatedBy(partnerSubspSaved.getCreatedBy());
+			partnerSubspProductObj.setModifiedBy(partnerSubspSaved.getModifiedBy());
+			partnerSubSpProductMappingRepository.save(partnerSubspProductObj);
+		}
+	}
+
+	/**
+	 * Method to validate the workflow partner request
+	 * @param reqPartner
+	 * @throws Exception
+	 */
 	private void validateRequestedPartner(WorkflowPartnerT reqPartner)
 			throws Exception {
 
@@ -2037,12 +2097,15 @@ public class WorkflowService {
 		}
 
 		//validation for partner group name, country, city => partner changes
-		String groupPartnerName = reqPartner.getGroupPartnerName();
-		if (StringUtils.isEmpty(groupPartnerName)) {
+		if (!StringUtils.isEmpty(reqPartner.getGroupPartnerName())) {
+			if (!reqPartner.getPartnerName().equalsIgnoreCase(reqPartner.getGroupPartnerName())){
+				reqPartner.setHqPartnerLinkId(partnerRepository.findPartnerIdByName(reqPartner.getGroupPartnerName()));
+			}
+		}else{
 			logger.error("Group Partner Name should not be empty");
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Group Partner Name Should not be empty");
-		} 
+		}
 
 		String country = reqPartner.getCountry();
 		if (StringUtils.isEmpty(country)) {
@@ -2130,7 +2193,6 @@ public class WorkflowService {
 			List<Object[]> resultForGroupPending = query.getResultList();
 			resultList.addAll(resultForGroupPending);
 		}
-
 		return resultList;
 	}
 
@@ -2200,11 +2262,6 @@ public class WorkflowService {
 							masterRequest.setModifiedBy(userId);
 							masterRequest.setStatus(WorkflowStatus.APPROVED
 									.getStatus());
-							sendEmailNotificationforApprovedOrRejectMail(
-									workflowPartnerApprovedSubject,
-									masterRequest.getRequestId(),
-									masterRequest.getCreatedDatetime(),
-									masterRequest.getEntityTypeId());
 							step = stepRecord.getStep() + 1;
 							rowIteration++;
 						}
@@ -2227,6 +2284,14 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if (masterRequest.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
+					sendEmailNotificationforApprovedOrRejectMail(
+							workflowPartnerApprovedSubject,
+							masterRequest.getRequestId(),
+							masterRequest.getCreatedDatetime(),
+							masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
@@ -2539,8 +2604,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-		//		competitorMappingT.setWebsite(requestedCompetitor
-		//				.getWorkflowCompetitorWebsite());
+				competitorMappingT.setWebsite(requestedCompetitor
+						.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -2961,6 +3026,14 @@ public class WorkflowService {
 				}
 				workflowStepTRepository.save(requestSteps);
 				workflowRequestTRepository.save(masterRequest);
+				if (masterRequest.getStatus().equals(
+						WorkflowStatus.APPROVED.getStatus())) {
+					sendEmailNotificationforApprovedOrRejectMail(
+							workflowCompetitorApprovedSubject,
+							masterRequest.getRequestId(),
+							masterRequest.getCreatedDatetime(),
+							masterRequest.getEntityTypeId());
+				}
 			}
 		} catch (DestinationException e) {
 			throw e;
@@ -2987,9 +3060,10 @@ public class WorkflowService {
 		// check for "" in db
 		if (!StringUtils.isEmpty(workflowCompetitorT
 				.getWorkflowCompetitorWebsite())) {
-			//			oldCompetitorMaster.setWebsite(workflowCompetitorT
-			//					.getWorkflowCompetitorWebsite());
+			oldCompetitorMaster.setWebsite(workflowCompetitorT
+					.getWorkflowCompetitorWebsite());
 		}
+		oldCompetitorMaster.setActive(true);
 		// oldCompetitorMaster.set(userId);
 		competitorRepository.save(oldCompetitorMaster);
 	}
