@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.exception.UnAuthorizedException;
+import com.tcs.destination.utils.PropertyUtil;
 
 /**
  *This service queries the userRepository and have its appropriate getters and setters
@@ -43,7 +44,7 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 			user = userRepository.findByUserName(userName);
 		} catch (EmptyResultDataAccessException e) {
 			logger.error("No Such User: " + userName);
-			throw new UnAuthorizedException();
+			throw new BadCredentialsException(PropertyUtil.getProperty("AbstractUserDetailsAuthenticationProvider.badCredentials"));
 		} catch (IncorrectResultSizeDataAccessException e) {
 			logger.error("More than one user found for the user name: " + userName);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "More than one user found for the user name: " + userName);
@@ -54,7 +55,7 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
 
 		if (user == null) {
 			logger.error("User not authorized: " + userName);
-			throw new UnAuthorizedException();
+			throw new BadCredentialsException(PropertyUtil.getProperty("AbstractUserDetailsAuthenticationProvider.badCredentials"));
 		}
 		return new UserRepositoryUserDetails(user);
 	}
