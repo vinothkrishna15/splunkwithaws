@@ -1,5 +1,7 @@
 package com.tcs.destination.controller;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -16,11 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.ProductMasterT;
+import com.tcs.destination.bean.SubSpMappingT;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ProductDownloadService;
 import com.tcs.destination.service.ProductService;
+import com.tcs.destination.service.SubSpService;
 import com.tcs.destination.utils.DateUtils;
 import com.tcs.destination.utils.PropertyUtil;
 import com.tcs.destination.utils.ResponseConstructors;
@@ -38,10 +43,13 @@ public class ProductController {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ProductController.class);
-	
+
 	@Autowired
 	ProductDownloadService productDownloadService;
 	
+	@Autowired
+	SubSpService subSpService;
+
 	@Autowired
 	ProductService productService;
 
@@ -85,7 +93,7 @@ public class ProductController {
 		}
 
 	}
-	
+
 	/**
 	 * This method is used to download the product contact details in excel
 	 * format
@@ -124,7 +132,7 @@ public class ProductController {
 					"Backend error while downloading product contact details");
 		}
 	}
-	
+
 	/**
 	 * 
 	 * The Method for Product AjaxSearch
@@ -136,6 +144,7 @@ public class ProductController {
 	 */
 	@RequestMapping(value="/nameWith",method = RequestMethod.GET)
 	public @ResponseBody String findProductsAjaxSearch(
+			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
@@ -143,8 +152,17 @@ public class ProductController {
 		logger.info("starting ProductController findProductsAjaxSearch method");
 		try {
 			List<ProductMasterT> products = null;
+			List<PartnerSubSpMappingT> partnerSubSpMappingList = null;
+			
 			if(!StringUtils.isEmpty(nameWith)){
-				products = productService.findProductsAjaxSearch(nameWith);
+				if (partnerId.equals("")){
+					products = productService.findProductsAjaxSearch(nameWith);
+				} else{
+					partnerSubSpMappingList = subSpService.findByPartner(partnerId);
+					if (!partnerSubSpMappingList.isEmpty()){
+						products = productService.findPartnerAndSubspProducts(partnerSubSpMappingList);
+					}
+				}
 			} else {
 				logger.error("BAD_REQUEST : nameWith is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "nameWith is required");
