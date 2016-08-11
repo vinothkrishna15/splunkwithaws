@@ -207,12 +207,6 @@ public interface ContactRepository extends CrudRepository<ContactT, String> {
 			+ "ORDER BY contact_name DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<ContactT> getContactsByCustomer(@Param("term") String term, @Param("getAll") boolean getAll);
-
-	@Query(value = "SELECT * FROM contact_t "
-			+ "WHERE contact_id IN (SELECT DISTINCT(contact_id) FROM contact_customer_link_t WHERE customer_id IN (SELECT customer_id FROM customer_master_t WHERE UPPER(customer_name) LIKE UPPER(:term))) "
-			+ "ORDER BY contact_name DESC "
-			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)//TODO country
-	List<ContactT> getContactsByCountry(@Param("term") String term, @Param("getAll") boolean getAll);
 	
 	/* ---------- ends - repository methods for smart search --------- */
 }

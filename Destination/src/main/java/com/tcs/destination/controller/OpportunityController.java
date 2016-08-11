@@ -965,6 +965,8 @@ public class OpportunityController {
 			logger.info("Inside OpportunityController: End - smart search by search term");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields,
 					view, res, !getAll);
+		} catch (DestinationException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("Error on smartSearch", e);
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,

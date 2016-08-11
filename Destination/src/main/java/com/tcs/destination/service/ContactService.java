@@ -1283,7 +1283,6 @@ public class ContactService {
 				resList.add(getContactsByName(term, getAll));
 				resList.add(getContactsByPartner(term, getAll));
 				resList.add(getContactsByCustomer(term, getAll));
-				resList.add(getContactsByCountry(term, getAll));
 				break;
 			case NAME:
 				searchResultDTO = getContactsByName(term, getAll);
@@ -1294,11 +1293,8 @@ public class ContactService {
 			case CUSTOMER:
 				searchResultDTO = getContactsByCustomer(term, getAll);
 				break;
-			case COUNTRY:
-				searchResultDTO = getContactsByCountry(term, getAll);
-				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 			
@@ -1337,12 +1333,6 @@ public class ContactService {
 		return createSearchResultFrom(records, SmartSearchType.CUSTOMER, getAll);
 	}
 
-	private SearchResultDTO<ContactT> getContactsByCountry(String term,
-			boolean getAll) {
-		List<ContactT> records = contactRepository.getContactsByCountry("%"+term+"%", getAll);
-		return createSearchResultFrom(records, SmartSearchType.COUNTRY, getAll);
-	}
-	
 	/**
 	 * creates {@link SearchResultDTO} from the list of contacts
 	 * @param records

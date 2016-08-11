@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -764,14 +765,17 @@ public class PartnerService {
 				searchResultDTO = getPartnersBySubSp(term, getAll);
 				break;
 			default:
-				break;
-
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 			}
 
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<PartnerMasterT> values = searchResultDTO.getValues();
-					searchResultDTO.setValues(PaginationUtils.paginateList(page, count, values));
+					List<PartnerMasterT> records = PaginationUtils.paginateList(page, count, values);
+					if(CollectionUtils.isNotEmpty(records)) {
+						preparePartner(records);
+					}
+					searchResultDTO.setValues(records);
 					res.setTotalCount(values.size());
 				}
 				resList.add(searchResultDTO);

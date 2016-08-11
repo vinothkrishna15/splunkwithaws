@@ -5,7 +5,6 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,6 @@ import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -2806,7 +2804,7 @@ public class OpportunityService {
 				searchResultDTO = getOpportunityByOwner(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 			

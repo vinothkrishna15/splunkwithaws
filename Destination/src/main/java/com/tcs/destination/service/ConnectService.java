@@ -45,8 +45,6 @@ import com.tcs.destination.bean.NotesT;
 import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.PartnerMasterT;
-import com.tcs.destination.bean.PartnerSubSpMappingT;
-import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
@@ -2003,7 +2001,7 @@ public class ConnectService {
 				searchResultDTO = getConnectSubSps(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 

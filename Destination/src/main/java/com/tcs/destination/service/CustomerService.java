@@ -1506,7 +1506,7 @@ public class CustomerService {
 				searchResultDTO = getCustomersByIou(term, getAll);
 				break;
 			default:
-				break;
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
 			
