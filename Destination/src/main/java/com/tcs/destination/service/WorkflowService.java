@@ -67,8 +67,8 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingRepository;
-import com.tcs.destination.data.repository.PartnerSubSpMappingRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
@@ -189,10 +189,10 @@ public class WorkflowService {
 	CompetitorRepository competitorRepository;
 
 	@Autowired
-	PartnerSubSpMappingRepository partnerSubSpMappingRepository;
+	PartnerSubSpMappingTRepository partnerSubSpMappingRepository;
 
 	@Autowired
-	PartnerSubSpProductMappingRepository partnerSubSpProductMappingRepository;
+	PartnerSubSpProductMappingTRepository partnerSubSpProductMappingRepository;
 
 	@Autowired
 	ProductContactLinkTRepository productContactLinkTRepository;
