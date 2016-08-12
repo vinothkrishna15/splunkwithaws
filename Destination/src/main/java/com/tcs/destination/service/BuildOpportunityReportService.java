@@ -258,7 +258,7 @@ public class BuildOpportunityReportService {
 			row.getCell(colNo++).setCellStyle(cellStyle);
 		} else {
 			row.createCell(colNo).setCellValue(ReportConstants.DIGITALDEALVALUE + "(" + currency.get(0)	+ ")");
-			row.getCell(colNo++).setCellStyle(cellStyle);
+			row.getCell(colNo).setCellStyle(cellStyle);
 		}
 	}
 
@@ -468,9 +468,9 @@ public class BuildOpportunityReportService {
 			row = (SXSSFRow) spreadSheet.createRow((short) currentRow++);
 			getOpportunityReportMandatoryFields(spreadSheet, row, currency, opportunity);
 
-			int colValue = 12;
+			int colValue = 11;
 			if (currency.size() > 1) {
-				colValue = 13;
+				colValue = 12;
 			}
 
 			if (projectDVFlag) {
