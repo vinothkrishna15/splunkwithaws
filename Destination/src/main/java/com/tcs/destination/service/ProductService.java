@@ -1,6 +1,5 @@
 package com.tcs.destination.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -9,15 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tcs.destination.bean.PartnerSubSpMappingT;
-import com.tcs.destination.bean.PartnerSubspProductMappingT;
 import com.tcs.destination.bean.ProductMasterT;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductRepository;
-import com.tcs.destination.enums.UserGroup;
 import com.tcs.destination.exception.DestinationException;
-import com.tcs.destination.utils.DestinationUtils;
 
 /**
  * This service deals with city requests
@@ -58,22 +52,16 @@ public class ProductService {
 
 	}
 
-	public List<ProductMasterT> findPartnerAndSubspProducts(
-			List<PartnerSubSpMappingT> partnerSubSpMappingList) {
+	public List<ProductMasterT> findPartnerAndSubspProducts(String nameWith, String partnerId, List<Integer> subList) {
 		logger.info("Inside findPartnerAndSubspProducts() method"); 
-		List<String> productIds = new ArrayList<String>();
-		List<PartnerSubspProductMappingT> partnerSubspProduct = null;
 		List<ProductMasterT> products=null;
-
-		for (PartnerSubSpMappingT partnerSubspMap : partnerSubSpMappingList) {
-			partnerSubspProduct = partnerSubSpProductMappingTRepository.findByPartnerSubspMappingId(partnerSubspMap.getPartnerSubspMappingId());
-			if(partnerSubspProduct != null){
-				productIds.add(partnerSubspProduct.get(0).getProductId());
-			}
-		}
-		if (!productIds.isEmpty()){
-			products=(List<ProductMasterT>) productRepository.findAll(productIds);
+		
+		nameWith = "%" + nameWith + "%";
+		if(nameWith!=null)
+		{
+		products = productRepository.findProductsForPartnerAndSubsp(nameWith, partnerId, subList);
 		}
 		return products;
 	}
+
 }

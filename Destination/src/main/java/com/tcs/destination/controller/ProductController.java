@@ -1,7 +1,5 @@
 package com.tcs.destination.controller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -18,10 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tcs.destination.bean.PartnerSubSpMappingT;
 import com.tcs.destination.bean.ProductMasterT;
-import com.tcs.destination.bean.SubSpMappingT;
-import com.tcs.destination.bean.UserT;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.ProductDownloadService;
 import com.tcs.destination.service.ProductService;
@@ -35,7 +30,6 @@ import com.tcs.destination.utils.StringUtils;
  * This controller handles the product module
  * 
  * @author TCS
- *
  */
 @RestController
 @RequestMapping("/product")
@@ -46,7 +40,7 @@ public class ProductController {
 
 	@Autowired
 	ProductDownloadService productDownloadService;
-	
+
 	@Autowired
 	SubSpService subSpService;
 
@@ -145,6 +139,7 @@ public class ProductController {
 	@RequestMapping(value="/nameWith",method = RequestMethod.GET)
 	public @ResponseBody String findProductsAjaxSearch(
 			@RequestParam(value = "partnerId", defaultValue = "") String partnerId,
+			@RequestParam(value = "subSpList", defaultValue = "") List<Integer> subSpList,
 			@RequestParam(value = "fields", defaultValue = "all") String fields,
 			@RequestParam(value = "view", defaultValue = "") String view,
 			@RequestParam(value = "nameWith", defaultValue = "") String nameWith)
@@ -152,21 +147,23 @@ public class ProductController {
 		logger.info("starting ProductController findProductsAjaxSearch method");
 		try {
 			List<ProductMasterT> products = null;
-			List<PartnerSubSpMappingT> partnerSubSpMappingList = null;
-			
+
 			if(!StringUtils.isEmpty(nameWith)){
-				if (partnerId.equals("")){
+				//retrieve products based on selected partner and subsps selected in new partner connect 
+				//and also based on the nameWith parameter
+				if (!partnerId.equals("") && subSpList.size() > 0){
+					products = productService.findPartnerAndSubspProducts(nameWith, partnerId, subSpList);
+				} 
+				//retrieve products based on the nameWith parameter
+				else{
 					products = productService.findProductsAjaxSearch(nameWith);
-				} else{
-					partnerSubSpMappingList = subSpService.findByPartner(partnerId);
-					if (!partnerSubSpMappingList.isEmpty()){
-						products = productService.findPartnerAndSubspProducts(partnerSubSpMappingList);
-					}
 				}
-			} else {
+			}
+			else {
 				logger.error("BAD_REQUEST : nameWith is required");
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "nameWith is required");
 			}
+
 			logger.info("Ending ProductController findProductsAjaxSearch method");
 			return ResponseConstructors.filterJsonForFieldAndViews(fields, view, products);
 		} catch (DestinationException e) {
