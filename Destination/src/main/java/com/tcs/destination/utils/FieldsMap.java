@@ -61,7 +61,7 @@ public class FieldsMap {
 		fieldsMap.put("opportunityOwner", "Opportunity Owner");
 		fieldsMap.put("projectDealValue", "Project Currency");
 		fieldsMap.put("requestReceivedDate", "Request Received Date");
-		fieldsMap.put("engagementDuration", "Opportunity Duration");
+		fieldsMap.put("engagementDuration", "Engagement Duration");
 		fieldsMap.put("digitalFlag", "Digital Reimagination");
 		fieldsMap.put("strategicDeal", "Strategic Deal");
 	}
