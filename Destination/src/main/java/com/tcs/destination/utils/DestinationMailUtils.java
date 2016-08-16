@@ -1842,7 +1842,7 @@ public class DestinationMailUtils {
           	 		 String textConnect = mergeTmplWithData(map, shareConnectTemplate);
           	 		 logger.info("framed text for mail :" + textConnect);
           	 		 message.setMessage(textConnect);
-			         message.setSubject(shareConnectSubject);
+			         message.setSubject(new StringBuffer(mailSubjectAppendEnvName).append(shareConnectSubject).toString());
 			         break;
 			         
           	 	 case OPPORTUNITY :   
@@ -1852,7 +1852,7 @@ public class DestinationMailUtils {
 				 	 String textOpp = mergeTmplWithData(map, shareOpportunityTemplate);
 				   	 logger.info("framed text for mail :" + textOpp);
 				 	 message.setMessage(textOpp);
-				   	 message.setSubject(shareOpportunitySubject);
+				   	 message.setSubject(new StringBuffer(mailSubjectAppendEnvName).append(shareOpportunitySubject).toString());
 				   	 break;
 				  
 				 default :
