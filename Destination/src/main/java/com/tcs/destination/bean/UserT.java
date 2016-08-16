@@ -440,6 +440,15 @@ public class UserT implements Serializable {
 			
 	@OneToMany(mappedBy="modifiedByUser")
 	private List<ContactT> contactTs2;
+	
+	/* Added for BFM changes */
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="createdByUser")
+	private List<WorkflowBfmT> workflowBfmTs1;
+
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="modifiedByUser")
+	private List<WorkflowBfmT> workflowBfmTs2;
 
 	public UserT() {
 	}
