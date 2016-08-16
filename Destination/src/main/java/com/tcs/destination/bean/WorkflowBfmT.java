@@ -4,6 +4,11 @@ import java.io.Serializable;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.tcs.destination.utils.Constants;
+
 import java.sql.Timestamp;
 import java.math.BigDecimal;
 
@@ -12,24 +17,27 @@ import java.math.BigDecimal;
  * The persistent class for the workflow_bfm_t database table.
  * 
  */
+@JsonFilter(Constants.FILTER)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "workflowBfmId")
 @Entity
 @Table(name="workflow_bfm_t")
 @NamedQuery(name="WorkflowBfmT.findAll", query="SELECT w FROM WorkflowBfmT w")
 public class WorkflowBfmT implements Serializable {
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="workflow_bfm_id")
 	private String workflowBfmId;
-	
-	@Column(name="deal_financial_file")
-	private byte[] dealFinancialFile;
 
 	@Column(name="created_datetime")
 	private Timestamp createdDatetime;
 
 	@Column(name="opportunity_id")
 	private String opportunityId;
+
+	@Column(name="deal_financial_file")
+	private byte[] dealFinancialFile;
 
 	private String exceptions;
 
@@ -126,6 +134,22 @@ public class WorkflowBfmT implements Serializable {
 	public void setOpportunityId(String opportunityId) {
 		this.opportunityId = opportunityId;
 	}
+		
+	public UserT getCreatedByUser() {
+		return createdByUser;
+	}
+
+	public void setCreatedByUser(UserT createdByUser) {
+		this.createdByUser = createdByUser;
+	}
+
+	public UserT getModifiedByUser() {
+		return modifiedByUser;
+	}
+
+	public void setModifiedByUser(UserT modifiedByUser) {
+		this.modifiedByUser = modifiedByUser;
+	}
 
 	public String getCreatedBy() {
 		return createdBy;
@@ -141,21 +165,5 @@ public class WorkflowBfmT implements Serializable {
 
 	public void setModifiedBy(String modifiedBy) {
 		this.modifiedBy = modifiedBy;
-	}
-
-	public UserT getCreatedByUser() {
-		return createdByUser;
-	}
-
-	public void setCreatedByUser(UserT createdByUser) {
-		this.createdByUser = createdByUser;
-	}
-
-	public UserT getModifiedByUser() {
-		return modifiedByUser;
-	}
-
-	public void setModifiedByUser(UserT modifiedByUser) {
-		this.modifiedByUser = modifiedByUser;
 	}
 }

@@ -321,6 +321,11 @@ public class OpportunityT implements Serializable, Cloneable {
 	public void setUserFavourite(boolean isUserFavourite) {
 		this.isUserFavourite = isUserFavourite;
 	}
+	
+	/* Added For BFM Changes */
+	//bi-directional many-to-one association to WorkflowBfmT
+	@OneToMany(mappedBy="opportunityT")
+	private List<WorkflowBfmT> workflowBfmTs;
 
 	public OpportunityT() {
 	}
@@ -1259,6 +1264,14 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setDealFinancialFile(byte[] dealFinancialFile) {
 		this.dealFinancialFile = dealFinancialFile;
+	}
+	
+	public List<WorkflowBfmT> getWorkflowBfmTs() {
+		return workflowBfmTs;
+	}
+
+	public void setWorkflowBfmTs(List<WorkflowBfmT> workflowBfmTs) {
+		this.workflowBfmTs = workflowBfmTs;
 	}
 
 }

@@ -131,25 +131,25 @@ public interface CustomerRepository extends
 	/* ---------- repository methods for smart search --------- */
 
     @Query(value = "SELECT * FROM customer_master_t "
-			+ "WHERE UPPER(group_customer_name) LIKE UPPER(:term) "
+			+ "WHERE active = 'true' AND UPPER(group_customer_name) LIKE UPPER(:term) "
 			+ "ORDER BY created_modified_datetime DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
     List<CustomerMasterT> getCustomersByGrpCustName(@Param("term") String term, @Param("getAll") boolean getAll);
 
     @Query(value = "SELECT * FROM customer_master_t "
-			+ "WHERE UPPER(customer_name) LIKE UPPER(:term) "
+			+ "WHERE active = 'true' AND UPPER(customer_name) LIKE UPPER(:term) "
 			+ "ORDER BY created_modified_datetime DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByName(@Param("term") String term, @Param("getAll") boolean getAll);
 
     @Query(value = "SELECT * FROM customer_master_t "
-			+ "WHERE UPPER(geography) LIKE UPPER(:term) "
+			+ "WHERE active = 'true' AND UPPER(geography) LIKE UPPER(:term) "
 			+ "ORDER BY created_modified_datetime DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByGeography(@Param("term") String term, @Param("getAll") boolean getAll);
 
     @Query(value = "SELECT * FROM customer_master_t "
-			+ "WHERE UPPER(iou) LIKE UPPER(:term) "
+			+ "WHERE active = 'true' AND UPPER(iou) LIKE UPPER(:term) "
 			+ "ORDER BY created_modified_datetime DESC "
 			+ "LIMIT CASE WHEN :getAll THEN null ELSE 3 END", nativeQuery = true)
 	List<CustomerMasterT> getCustomersByIou(@Param("term") String term, @Param("getAll") boolean getAll);

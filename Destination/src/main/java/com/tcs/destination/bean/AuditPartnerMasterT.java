@@ -89,6 +89,49 @@ public class AuditPartnerMasterT implements Serializable {
 
 	@Column(name="partner_id")
 	private String partnerId;
+	
+	//Added for partner changes
+	@Column(name="old_group_partner_name")
+	private String oldGroupPartnerName;
+	
+	@Column(name="new_group_partner_name")
+	private String newGroupPartnerName;
+	
+	@Column(name="old_country")
+	private String oldCountry;
+	
+	@Column(name="new_country")
+	private String newCountry;
+	
+	@Column(name="old_city")
+	private String oldCity;
+	
+	@Column(name="new_city")
+	private String newCity;
+	
+	@Column(name="old_text1")
+	private String oldText1;
+	
+	@Column(name="new_text1")
+	private String newText1;
+	
+	@Column(name="old_text2")
+	private String oldText2;
+	
+	@Column(name="new_text2")
+	private String newText2;
+	
+	@Column(name="old_text3")
+	private String oldText3;
+	
+	@Column(name="new_text3")
+	private String newText3;
+	
+	@Column(name="old_hq_partner_link_id")
+	private String oldHqPartnerLinkId;
+	
+	@Column(name="new_hq_partner_link_id")
+	private String newHqPartnerLinkId;
 
 	public AuditPartnerMasterT() {
 	}
@@ -283,6 +326,118 @@ public class AuditPartnerMasterT implements Serializable {
 
 	public void setPartnerId(String partnerId) {
 		this.partnerId = partnerId;
+	}
+	
+	public String getOldGroupPartnerName() {
+		return oldGroupPartnerName;
+	}
+
+	public void setOldGroupPartnerName(String oldGroupPartnerName) {
+		this.oldGroupPartnerName = oldGroupPartnerName;
+	}
+
+	public String getNewGroupPartnerName() {
+		return newGroupPartnerName;
+	}
+
+	public void setNewGroupPartnerName(String newGroupPartnerName) {
+		this.newGroupPartnerName = newGroupPartnerName;
+	}
+
+	public String getOldCountry() {
+		return oldCountry;
+	}
+
+	public void setOldCountry(String oldCountry) {
+		this.oldCountry = oldCountry;
+	}
+
+	public String getNewCountry() {
+		return newCountry;
+	}
+
+	public void setNewCountry(String newCountry) {
+		this.newCountry = newCountry;
+	}
+
+	public String getOldCity() {
+		return oldCity;
+	}
+
+	public void setOldCity(String oldCity) {
+		this.oldCity = oldCity;
+	}
+
+	public String getNewCity() {
+		return newCity;
+	}
+
+	public void setNewCity(String newCity) {
+		this.newCity = newCity;
+	}
+
+	public String getOldText1() {
+		return oldText1;
+	}
+
+	public void setOldText1(String oldText1) {
+		this.oldText1 = oldText1;
+	}
+
+	public String getNewText1() {
+		return newText1;
+	}
+
+	public void setNewText1(String newText1) {
+		this.newText1 = newText1;
+	}
+
+	public String getOldText2() {
+		return oldText2;
+	}
+
+	public void setOldText2(String oldText2) {
+		this.oldText2 = oldText2;
+	}
+
+	public String getNewText2() {
+		return newText2;
+	}
+
+	public void setNewText2(String newText2) {
+		this.newText2 = newText2;
+	}
+
+	public String getOldText3() {
+		return oldText3;
+	}
+
+	public void setOldText3(String oldText3) {
+		this.oldText3 = oldText3;
+	}
+
+	public String getNewText3() {
+		return newText3;
+	}
+
+	public void setNewText3(String newText3) {
+		this.newText3 = newText3;
+	}
+
+	public String getOldHqPartnerLinkId() {
+		return oldHqPartnerLinkId;
+	}
+
+	public void setOldHqPartnerLinkId(String oldHqPartnerLinkId) {
+		this.oldHqPartnerLinkId = oldHqPartnerLinkId;
+	}
+
+	public String getNewHqPartnerLinkId() {
+		return newHqPartnerLinkId;
+	}
+
+	public void setNewHqPartnerLinkId(String newHqPartnerLinkId) {
+		this.newHqPartnerLinkId = newHqPartnerLinkId;
 	}
 
 }
