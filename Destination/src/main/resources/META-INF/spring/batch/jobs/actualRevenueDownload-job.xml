@@ -48,36 +48,36 @@
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="actualRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="actualRevenueDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="actualRevenuesDataTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="financeMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="financeMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="revenueCustomerMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="revenueIouCustomerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="revenueIouCustomerDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="customerIOUMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="revenueSubSpDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="revenueSubSpDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="subSpRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="actualRevenueDwldWriter" class="com.tcs.destination.writer.ActualRevenueDwldWriter">
+	<bean id="actualRevenueDwldWriter" class="com.tcs.destination.writer.ActualRevenueDwldWriter" scope="step">
 		<property name="template" value="${actualRevenueDataTemplate}"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		<property name="fileServerPath" value="${fileserver.path}" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
 	
-	<bean id="financeMapDwldWriter" class="com.tcs.destination.writer.FinanceMapDwldWriter"/>
+	<bean id="financeMapDwldWriter" class="com.tcs.destination.writer.FinanceMapDwldWriter" scope="step"/>
 	
-	<bean id="revenueIouCustomerDwldWriter" class="com.tcs.destination.writer.RevenueIouCustomerDwldWriter"/>
+	<bean id="revenueIouCustomerDwldWriter" class="com.tcs.destination.writer.RevenueIouCustomerDwldWriter" scope="step"/>
 	
-	<bean id="revenueSubSpDwldWriter" class="com.tcs.destination.writer.RevenueSubSpDwldWriter">
+	<bean id="revenueSubSpDwldWriter" class="com.tcs.destination.writer.RevenueSubSpDwldWriter" scope="step">
 	    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 		

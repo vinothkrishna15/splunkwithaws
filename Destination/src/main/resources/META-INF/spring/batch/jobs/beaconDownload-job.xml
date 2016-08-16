@@ -42,30 +42,30 @@
 	</batch:job>
 	
 	<!-- Readers -->
-	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="beaconDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="beaconDataTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="beaconMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="beaconMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="beaconCustomerMappingRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
-	<bean id="beaconIouMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader">
+	<bean id="beaconIouMapDwldReader" class="com.tcs.destination.reader.NativeQueryObjectReader" scope="step">
 		<property name="repository" ref="iouBeaconMappingTRepository"/>
 		<property name="methodName" value="findAll"/>
 	</bean>
 	
 	<!-- Writers -->
-	<bean id="beaconDataDwldWriter" class="com.tcs.destination.writer.BeaconDataDwldWriter">
+	<bean id="beaconDataDwldWriter" class="com.tcs.destination.writer.BeaconDataDwldWriter" scope="step">
 		<property name="template" value="${beaconSheetTemplate}"/>
 		<property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 		<property name="fileServerPath" value="${fileserver.path}" />
 		<property name="dataProcessingService" ref="dataProcessingService" />
 	</bean>
 	
-	<bean id="beaconMapDwldWriter" class="com.tcs.destination.writer.BeaconMapDwldWriter"/>
+	<bean id="beaconMapDwldWriter" class="com.tcs.destination.writer.BeaconMapDwldWriter" scope="step"/>
 	
-	<bean id="beaconIouMapDwldWriter" class="com.tcs.destination.writer.BeaconIouMapDwldWriter">
+	<bean id="beaconIouMapDwldWriter" class="com.tcs.destination.writer.BeaconIouMapDwldWriter" scope="step">
 	    <property name="dataProcessingRequestRepository" ref="dataProcessingRequestRepository"/>
 	</bean>
 		
