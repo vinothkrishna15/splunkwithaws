@@ -302,6 +302,8 @@ public class OpportunityT implements Serializable, Cloneable {
 	@Transient
 	private WorkflowRequestT workflowRequest;
 	
+	@Transient
+	private byte[] dealFinancialFile;
 	
 
 	public boolean isEnableEditAccess() {
@@ -1249,6 +1251,14 @@ public class OpportunityT implements Serializable, Cloneable {
 
 	public void setDeliveryOwnershipId(Integer deliveryOwnershipId) {
 		this.deliveryOwnershipId = deliveryOwnershipId;
+	}
+
+	public byte[] getDealFinancialFile() {
+		return dealFinancialFile;
+	}
+
+	public void setDealFinancialFile(byte[] dealFinancialFile) {
+		this.dealFinancialFile = dealFinancialFile;
 	}
 
 }
