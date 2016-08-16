@@ -5,7 +5,6 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,6 @@ import com.tcs.destination.bean.AsyncJobRequest;
 import com.tcs.destination.bean.BidDetailsT;
 import com.tcs.destination.bean.BidOfficeGroupOwnerLinkT;
 import com.tcs.destination.bean.ConnectOpportunityLinkIdT;
-import com.tcs.destination.bean.ConnectT;
 import com.tcs.destination.bean.DeliveryCentreT;
 import com.tcs.destination.bean.DeliveryOwnershipT;
 import com.tcs.destination.bean.NotesT;
@@ -1045,143 +1043,11 @@ public class OpportunityService {
 	 * @param opportunity
 	 */
 	public void validateInactiveIndicators(OpportunityT opportunity) {
-		//createdBy
-		String createdBy = opportunity.getCreatedBy();
-		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
-		}
-		
-		// modifiedBy,
-		String modifiedBy = opportunity.getModifiedBy();
-		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
-		}
-		
-		// customerId,
-		String customerId = opportunity.getCustomerId();
-		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
-		}
-				
-		// country
-		String country = opportunity.getCountry();
-		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
-		}
-		
 		// opportunityOwner,
 		String opportunityOwner = opportunity.getOpportunityOwner();
 		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
-		
-		// opportunityCompetitorLinkTs,
-		List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs = opportunity.getOpportunityCompetitorLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityCompetitorLinkTs)) {
-			for (OpportunityCompetitorLinkT compLink : opportunityCompetitorLinkTs) {
-				String competitorName = compLink.getCompetitorName();
-				if(StringUtils.isNotBlank(competitorName) && competitorRepository.findByActiveTrueAndCompetitorName(competitorName) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The competitor is inactive");
-				}
-			}
-		}
-		
-		
-		// opportunityCustomerContactLinkTs,
-		List<OpportunityCustomerContactLinkT> oppCustomerContactLinkTs = opportunity.getOpportunityCustomerContactLinkTs();
-		if(CollectionUtils.isNotEmpty(oppCustomerContactLinkTs)) {
-			for (OpportunityCustomerContactLinkT contact : oppCustomerContactLinkTs) {
-				String contactId = contact.getContactId();
-				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer contact is inactive");
-				}
-			}
-		}
-		
-		// opportunityOfferingLinkTs,
-		List<OpportunityOfferingLinkT> connectOfferingLinkTs = opportunity.getOpportunityOfferingLinkTs();
-		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
-			for (OpportunityOfferingLinkT offeringLink : connectOfferingLinkTs) {
-				String offering = offeringLink.getOffering();
-				if(StringUtils.isNotBlank(offering) && offeringRepository.findByActiveTrueAndOffering(offering) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The offering is inactive");
-				}
-			}
-		}
-		
-		//List<OpportunityPartnerLinkT> opportunityPartnerLinkTs,
-		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunity.getOpportunityPartnerLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityPartnerLinkTs)) {
-			for (OpportunityPartnerLinkT partnerLink : opportunityPartnerLinkTs) {
-				String partnerId = partnerLink.getPartnerId();
-				if(StringUtils.isNotBlank(partnerId) && partnerRepository.findByActiveTrueAndPartnerId(partnerId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The partner is inactive");
-				}
-			}
-		}
-		
-		
-		//opportunitySubSpLinkTs,
-		List<OpportunitySubSpLinkT> oppSubSpLinkTs = opportunity.getOpportunitySubSpLinkTs();
-		if(CollectionUtils.isNotEmpty(oppSubSpLinkTs)) {
-			for (OpportunitySubSpLinkT subSpLink : oppSubSpLinkTs) {
-				String subSp = subSpLink.getSubSp();
-				if(StringUtils.isNotBlank(subSp) && subSpRepository.findByActiveTrueAndSubSp(subSp) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The subsp is inactive");
-				}
-			}
-		}
-		
-		
-		// opportunityTcsAccountContactLinkTs,
-		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = opportunity.getOpportunityTcsAccountContactLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunityTcsAccountContactLinkTs)) {
-			for (OpportunityTcsAccountContactLinkT contactLink : opportunityTcsAccountContactLinkTs) {
-				String contactId = contactLink.getContactId();
-				if(StringUtils.isNotBlank(contactId) && contactRepository.findByActiveTrueAndContactId(contactId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The account contact is inactive");
-				}
-			}
-		}
-		
-		// opportunityWinLossFactorsTs,
-		List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs = opportunity.getOpportunityWinLossFactorsTs();
-		if(CollectionUtils.isNotEmpty(opportunityWinLossFactorsTs)) {
-			for (OpportunityWinLossFactorsT oppWLFactor : opportunityWinLossFactorsTs) {
-				String wlFactor = oppWLFactor.getWinLossFactor();
-				if(StringUtils.isNotBlank(wlFactor) && winlossFactorRepository.findByActiveTrueAndWinLossFactor(wlFactor) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The win loss factor is inactive");
-				}
-			}
-		}
-
-		// OpportunitySalesSupportLink,
-		List<OpportunitySalesSupportLinkT> opportunitySaleSupOwnTs = opportunity.getOpportunitySalesSupportLinkTs();
-		if(CollectionUtils.isNotEmpty(opportunitySaleSupOwnTs)) {
-			for (OpportunitySalesSupportLinkT oppWLFactor : opportunitySaleSupOwnTs) {
-				String userId = oppWLFactor.getSalesSupportOwner();
-				if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "The sales support owner is inactive");
-				}
-			}
-		}
-
-		// BidDetails,
-		List<BidDetailsT> bidDetailsT = opportunity.getBidDetailsTs();
-		if(CollectionUtils.isNotEmpty(bidDetailsT)) {
-			for (BidDetailsT bidDetail : bidDetailsT) {
-				List<BidOfficeGroupOwnerLinkT> bidofficeGrpOwners = bidDetail.getBidOfficeGroupOwnerLinkTs();
-				if(CollectionUtils.isNotEmpty(bidofficeGrpOwners)) {
-					for (BidOfficeGroupOwnerLinkT bidgrpOwner : bidofficeGrpOwners) {
-						String userId = bidgrpOwner.getBidOfficeGroupOwner();
-						if(StringUtils.isNotBlank(userId) && userRepository.findByActiveTrueAndUserId(userId) == null) {
-							throw new DestinationException(HttpStatus.BAD_REQUEST, "The Bid Office Group Owner is inactive");
-						}
-					}
-				}
-			}
-		}
-
 	}
 
 
