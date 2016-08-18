@@ -53,6 +53,7 @@ import com.tcs.destination.bean.ProductContactLinkT;
 import com.tcs.destination.bean.RevenueCustomerMappingT;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
@@ -154,7 +155,7 @@ public class WorkflowService {
 
 	@Autowired
 	PartnerService partnerService;
-	
+
 	@Autowired
 	UserRepository userRepository;
 
@@ -199,7 +200,7 @@ public class WorkflowService {
 
 	@Autowired
 	PartnerContactLinkTRepository partnerContactLinkTRepository;
-	
+
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -2604,8 +2605,8 @@ public class WorkflowService {
 		CompetitorMappingT competitorMappingT = new CompetitorMappingT();
 		competitorMappingT.setCompetitorName(requestedCompetitor
 				.getWorkflowCompetitorName());
-				competitorMappingT.setWebsite(requestedCompetitor
-						.getWorkflowCompetitorWebsite());
+		competitorMappingT.setWebsite(requestedCompetitor
+				.getWorkflowCompetitorWebsite());
 		competitorMappingT.setActive(true);
 		competitorRepository.save(competitorMappingT);
 		logger.info("Competitor saved "
@@ -3136,4 +3137,131 @@ public class WorkflowService {
 		return validated;
 	}
 
+	/**
+	 * method to populate workflow request and steps for the BFM request
+	 * @param worflowBfmId 
+	 * @param opportunityId
+	 * @param opportunityName
+	 * @param status
+	 * @throws Exception
+	 */
+	public void createworkflowBfmRequest(String worflowBfmId, OpportunityT createdOpportunity, Status status) throws Exception {
+		Integer entityTypeId = EntityTypeId.BFM.getType();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		WorkflowRequestT workflowRequest = populateWorkflowRequest(
+				worflowBfmId, entityTypeId, userId, "");
+		if (workflowRequest != null) {
+			if (workflowRequest.getStatus().equals(
+					WorkflowStatus.PENDING.getStatus())) {
+				//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+				status.setStatus(
+						Status.SUCCESS,
+						"Your request to approve the BFM file for the opportunity :" + createdOpportunity.getOpportunityId() + " - "
+								+ createdOpportunity.getOpportunityName() + " is submitted");
+			} 
+		}
+	}
+
+	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) {
+		// TODO Auto-generated method stub
+		logger.info("Inside approveOrEscalateBfm method");
+		OpportunityT opportunity = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
+		if (opportunity != null) {
+			switch (workflowBfmT.getApproveOrRejectOrEscalate()) {
+			case 1: approveOrRejectBfm(WorkflowStatus.APPROVED, workflowBfmT);
+					break;
+			case 2: approveOrRejectBfm(WorkflowStatus.REJECTED, workflowBfmT);
+					break;
+			case 3:break;
+			default:break;
+			}
+
+		}else{
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Opportunity not found");
+		}
+		return false;
+	}
+
+	private void approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT) {
+		int stepId = -1;
+		int requestId = 0;
+		int rowIteration = 0;
+		int step = 0;
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		String userGroup = user.getUserGroup();
+		Integer entityTypeId = EntityTypeId.BFM.getType();
+		String entityId = workflowBfmT.getWorkflowBfmId();
+		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
+		WorkflowRequestT masterRequest = new WorkflowRequestT();
+		//
+
+		if (validateWorkflowBfmDetails(workflowBfmT)) {
+
+			requestSteps = workflowStepTRepository
+					.findStepForEditAndApprove(entityTypeId,workflowBfmT.getWorkflowBfmId());
+			masterRequest = workflowRequestTRepository.findRequestedRecord(
+					entityTypeId, workflowBfmT.getWorkflowBfmId());
+			for (WorkflowStepT stepRecord : requestSteps) {
+				if (stepRecord.getStepStatus().equals(
+						WorkflowStatus.PENDING.getStatus())) {
+					stepId = stepRecord.getStepId();
+					requestId = stepRecord.getRequestId();
+					WorkflowPartnerT oldObject = new WorkflowPartnerT();
+					if (stepId != -1 && requestId != 0 && rowIteration == 0) {
+						oldObject = workflowPartnerRepository
+								.findOne(workflowBfmT.getWorkflowBfmId());
+						stepRecord.setUserId(userId);
+						stepRecord.setStepStatus(workflowStaus.getStatus());
+						stepRecord.setModifiedBy(userId);
+						if (!StringUtils.isEmpty(workflowBfmT
+								.getComments())) {
+							stepRecord.setComments(workflowBfmT
+									.getComments());
+						}
+						// for updating the status in workflow_request_t
+						masterRequest.setModifiedBy(userId);
+						masterRequest.setStatus(workflowStaus.getStatus());
+						step = stepRecord.getStep() + 1;
+						rowIteration++;
+					}
+				}
+
+				if (stepRecord.getStep().equals(step)
+						&& (rowIteration == 1)) {
+					stepRecord.setStepStatus(WorkflowStatus.PENDING
+							.getStatus());
+					// for updating the status in workflow_request_t
+					masterRequest.setModifiedBy(userId);
+					masterRequest.setStatus(WorkflowStatus.PENDING
+							.getStatus());
+					stepRecord.setModifiedBy(userId);
+//					sendEmailNotificationforPending(
+//							masterRequest.getRequestId(), new Date(),
+//							masterRequest.getEntityTypeId());
+					rowIteration++;
+				}
+			}
+			workflowStepTRepository.save(requestSteps);
+			workflowRequestTRepository.save(masterRequest);
+			if (masterRequest.getStatus().equals(
+					workflowStaus.getStatus())) {
+//				sendEmailNotificationforApprovedOrRejectMail(
+//						workflowPartnerApprovedSubject,
+//						masterRequest.getRequestId(),
+//						masterRequest.getCreatedDatetime(),
+//						masterRequest.getEntityTypeId());
+			}
+		}
+	
+
+	}
+
+	private boolean validateWorkflowBfmDetails(WorkflowBfmT workflowBfmT) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -231,8 +231,7 @@ public class OpportunityController {
 		Status status = new Status();
 		status.setStatus(Status.FAILED, "Save unsuccessful");
 		try {
-			AsyncJobRequest asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null);
-            status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			AsyncJobRequest asyncJobRequest = opportunityService.createOpportunity(opportunity, false, null, null,status);
             if (asyncJobRequest.getOn().equals(Switch.ON)) {
 				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
 			}
@@ -269,8 +268,7 @@ public class OpportunityController {
 		logger.info("Inside OpportunityController: Start of edit opportunity");
 		Status status = new Status();
 		try {
-			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity);
-			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId());
+			AsyncJobRequest asyncJobRequest = opportunityService.updateOpportunityT(opportunity, status);
 			if (asyncJobRequest.getOn().equals(Switch.ON)) {
 				jobLauncherController.asyncJobLaunch(asyncJobRequest.getJobName(), asyncJobRequest.getEntityType().name(), asyncJobRequest.getEntityId(), asyncJobRequest.getDealValue());
 			}

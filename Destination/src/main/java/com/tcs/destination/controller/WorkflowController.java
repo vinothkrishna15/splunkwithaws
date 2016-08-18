@@ -18,6 +18,7 @@ import com.tcs.destination.bean.OpportunityReopenRequestT;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
@@ -501,5 +502,38 @@ public class WorkflowController {
 					"Backend error while updating competitor");
 		} 
 	}
+	/**
+	 * This method is used to approve or reject or escalate the BFM request
+	 * @param opportunityReopenRequestT
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/approveOrRejectOrEscalate/bfm", method = RequestMethod.POST)
+	public @ResponseBody ResponseEntity<String> approveOrEscalateBfm(
+			@RequestBody WorkflowBfmT workflowBfmT)
+			throws DestinationException {
+
+		logger.info("Inside WorkflowController: Start of approveOrRejectOrEscalate bfm request");
+		Status status = new Status();
+		status.setStatus(Status.FAILED, "");
+		try {
+			if (workflowBfmT != null) {
+				if (workflowService.approveOrEscalateBfm(workflowBfmT, status)) {
+					logger.info("Inside WorkflowController: End of approveOrRejectOrEscalate bfm request");
+				}
+			}
+			return new ResponseEntity<String>(
+					ResponseConstructors.filterJsonForFieldAndViews("all", "",
+							status), HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error while approving opportunity reopen");
+		}
+
+	}
+	
 
 }
