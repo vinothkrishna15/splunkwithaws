@@ -3064,7 +3064,7 @@ public class WorkflowService {
 			logger.error("competitor name already exists");
 			validated = false;
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
-					"competitor name already exists" + competitorName);
+					"competitor name: " + competitorName + " already exists!");
 		}
 		return validated;
 	}
