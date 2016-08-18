@@ -560,11 +560,12 @@ public class ContactService {
 	 */
 	private ContactT saveBaseContact(ContactT requestContact)
 			throws CloneNotSupportedException, Exception {
-		ContactT contact = requestContact.clone();
-		requestContact.setContactCustomerLinkTs(null);
+ 		ContactT contact = requestContact.clone();
+ 		requestContact.setContactCustomerLinkTs(null);
+ 		requestContact.setPartnerContactLinkTs(null);
 		contact.setContactId(contactRepository.save(requestContact)
-				.getContactId());
-		return contact;
+			.getContactId());
+ 		return contact;
 	}
 
 	/**
@@ -581,6 +582,15 @@ public class ContactService {
 					.getContactCustomerLinkTs()) {
 				contactCustomerLinkT.setContactId(contact.getContactId());
 				contactCustomerLinkT.setCreatedModifiedBy(userId);
+			}
+		}
+		if (contact.getPartnerContactLinkTs() != null) {
+			for (PartnerContactLinkT partnerContactLinkT : contact
+					.getPartnerContactLinkTs()) {
+				partnerContactLinkT.setContactId(contact.getContactId());
+				partnerContactLinkT.setCreatedBy(userId);
+				partnerContactLinkT.setModifiedBy(userId);
+
 			}
 		}
 		/*if(contact.getContactCategory().equals(EntityType.PARTNER.name())){
