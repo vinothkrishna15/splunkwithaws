@@ -3210,10 +3210,7 @@ public class WorkflowService {
 						WorkflowStatus.PENDING.getStatus())) {
 					stepId = stepRecord.getStepId();
 					requestId = stepRecord.getRequestId();
-					WorkflowPartnerT oldObject = new WorkflowPartnerT();
 					if (stepId != -1 && requestId != 0 && rowIteration == 0) {
-						oldObject = workflowPartnerRepository
-								.findOne(workflowBfmT.getWorkflowBfmId());
 						stepRecord.setUserId(userId);
 						stepRecord.setStepStatus(workflowStaus.getStatus());
 						stepRecord.setModifiedBy(userId);

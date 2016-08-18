@@ -847,13 +847,12 @@ public class PartnerService {
 						groupPartnerName, Constants.UNKNOWN_PARTNER,true);
 		if (partnerList.isEmpty()) {
 			logger.error(
-					"NOT_FOUND: Customer not found with given group customer name: {}",
+					"NOT_FOUND: Partner not found with given group Partner name: {}",
 					groupPartnerName);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
-					"Customer not found with given group customer name: "
+					"Partner not found with given group Partner name: "
 							+ groupPartnerName);
 		}
-		preparePartnerDetails(partnerList);
 		return partnerList;
 	}
 
