@@ -1540,6 +1540,8 @@ public class OpportunityService {
 						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
 								opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
+				
+				
 			}
 
 		} catch (Exception e) {
@@ -1565,8 +1567,9 @@ public class OpportunityService {
 	private void checkAccessControl(OpportunityT opportunityT,
 			List<String> previledgedOppIdList) throws Exception {
 		// previledgedOppIdList is null only while it is a single opportunity.
+		
 		if (previledgedOppIdList != null) {
-			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId())) {
+			if (!previledgedOppIdList.contains(opportunityT.getOpportunityId()) && (!opportunityT.isEnableEditAccess())) {
 				preventSensitiveInfo(opportunityT);
 			}
 		} else {
@@ -2750,7 +2753,7 @@ public class OpportunityService {
 	 */
 	private boolean isEditAccessRequiredForOpportunity(
 			OpportunityT opportunity, String userGroup, String userId) {
-		logger.info("Inside isEditAccessRequiredForOpportunity method");
+		logger.debug("Inside isEditAccessRequiredForOpportunity method");
 		boolean isEditAccessRequired = false;
 		if (isUserOwner(userId, opportunity)) {
 			isEditAccessRequired = true;
@@ -2778,7 +2781,7 @@ public class OpportunityService {
 			}
 		}
 		
-		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
+		logger.debug("Is Edit Access Required for Opportunity: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
 	
