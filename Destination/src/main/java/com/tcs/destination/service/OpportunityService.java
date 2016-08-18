@@ -5,6 +5,7 @@ import static com.tcs.destination.utils.ErrorConstants.ERR_INAC_01;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,9 +60,11 @@ import com.tcs.destination.bean.PageDTO;
 import com.tcs.destination.bean.PaginatedResponse;
 import com.tcs.destination.bean.SearchKeywordsT;
 import com.tcs.destination.bean.SearchResultDTO;
+import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.TeamOpportunityDetailsDTO;
 import com.tcs.destination.bean.UserFavoritesT;
 import com.tcs.destination.bean.UserT;
+import com.tcs.destination.bean.WorkflowBfmT;
 import com.tcs.destination.bean.WorkflowRequestT;
 import com.tcs.destination.data.repository.AutoCommentsEntityFieldsTRepository;
 import com.tcs.destination.data.repository.AutoCommentsEntityTRepository;
@@ -101,6 +104,7 @@ import com.tcs.destination.data.repository.UserNotificationSettingsRepository;
 import com.tcs.destination.data.repository.UserNotificationsRepository;
 import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WinLossMappingRepository;
+import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.enums.EntityType;
 import com.tcs.destination.enums.EntityTypeId;
@@ -128,7 +132,7 @@ import com.tcs.destination.utils.PropertyUtil;
 public class OpportunityService {
 
 	private static final int ONE_DAY_IN_MILLIS = 86400000;
-	
+
 	private String bidId = null;
 
 	@Autowired
@@ -143,7 +147,7 @@ public class OpportunityService {
 
 	@Autowired
 	OpportunityRepository opportunityRepository;
-	
+
 	@Autowired
 	UserAccessPrivilegesRepository userAccessPrivilegesRepository;
 
@@ -155,7 +159,7 @@ public class OpportunityService {
 
 	@Autowired
 	SearchKeywordsRepository searchKeywordsRepository;
-	
+
 	@Autowired
 	OpportunityDeliveryCentreMappingTRepository opportunityDeliveryCentreMappingTRepository;
 
@@ -235,16 +239,16 @@ public class OpportunityService {
 
 	@Autowired
 	FollowedService followService;
-	
+
 	@Autowired
 	UserNotificationSettingsConditionRepository userNotificationSettingsConditionRepository;
-	
+
 	@Autowired
 	CustomerRepository customerRepository;
-	
+
 	@Autowired
 	ConnectRepository connectRepository;
-	
+
 	@Autowired
 	ContactRepository contactRepository;
 
@@ -259,29 +263,34 @@ public class OpportunityService {
 
 	@Autowired
 	WinLossMappingRepository winlossFactorRepository;
-	
+
 	@Autowired
 	CompetitorRepository competitorRepository;
-	
+
 	@Autowired
 	PartnerRepository partnerRepository;
-	
+
 	@Autowired
 	WorkflowRequestTRepository workflowRequestRepository;
-	
+
 	@Autowired
 	DeliveryOwnershipRepository deliveryOwnershipRepository;
-	
+
 	@Autowired
 	DeliveryCentreRepository deliveryCentreRepository;
-	
+
 	@Autowired @Lazy
 	OpportunityDao opportunityDao;
-	
+
 	@Autowired
 	OpportunityDownloadService opportunityDownloadService;
-	
-    
+
+	@Autowired
+	WorkflowBfmTRepository workflowBfmTRepository;
+
+	@Autowired
+	WorkflowService workflowService;
+
 	/**
 	 * To fetch opportunities by name
 	 * @param nameWith
@@ -336,10 +345,10 @@ public class OpportunityService {
 			// checking the privilege as it is might reduce te performance.
 			preventSensitiveInfo(opportunityTs);
 		}
-        paginatedResponse.setOpportunityTs(opportunityTs);
+		paginatedResponse.setOpportunityTs(opportunityTs);
 		return paginatedResponse;
 	}
-	
+
 	/**
 	 * To fetch all the delivery centres 
 	 * @return
@@ -352,7 +361,7 @@ public class OpportunityService {
 		deliveryCentre=(List<DeliveryCentreT>) deliveryCentreRepository.findAll();
 		return deliveryCentre;
 	}
-	
+
 	/**
 	 * To fetch all the delivery ownership 
 	 * @return
@@ -365,7 +374,7 @@ public class OpportunityService {
 		deliveryOwnership=(List<DeliveryOwnershipT>)deliveryOwnershipRepository.findAll();
 		return deliveryOwnership;
 	}
-    
+
 	/**
 	 * This method is used to fetch the recent opportunities
 	 * 
@@ -384,11 +393,11 @@ public class OpportunityService {
 		logger.debug("Inside findRecentOpportunities() service");
 		PaginatedResponse paginatedResponse = new PaginatedResponse();
 		List<OpportunityT> opportunitiesList = new ArrayList<OpportunityT>();
-		
+
 		Set<OpportunityT> opportunitiesSet = new HashSet<OpportunityT>();
-		
+
 		if(smartSearchType != null) {
-			
+
 			switch(smartSearchType) {
 			case ALL:
 				opportunitiesSet.addAll(getOpportunitiesByOpportunityIdAndCustomerIdAndReceivedDate(term, customerId,
@@ -424,7 +433,7 @@ public class OpportunityService {
 			opportunitiesList = getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
 					customerId, new Timestamp(fromDate.getTime()));
 		}
-		
+
 		prepareOpportunity(opportunitiesList);
 		beaconConverterService.convertOpportunityCurrency(opportunitiesList, toCurrency);
 		paginatedResponse.setTotalCount(opportunitiesList.size());
@@ -441,7 +450,7 @@ public class OpportunityService {
 		}
 		return paginatedResponse;
 	}
-    
+
 	/**
 	 * This method is used to find the opportunities for the customerId, opportunityId like search
 	 * and after request received date
@@ -469,11 +478,11 @@ public class OpportunityService {
 	private List<OpportunityT> getOpportunitiesByNameAndCustomerIdAndReceivedDate(String term,
 			String customerId, Timestamp fromTimestamp) {
 		List<OpportunityT> opportunitiesList = opportunityRepository
-					.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
-							customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndOpportunityNameLike(
+						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
 		return opportunitiesList;
 	}
-	
+
 	/**
 	 * This method is used to find the opportunities for the customerId, opportunityOwner like search
 	 * and after request received date
@@ -504,7 +513,7 @@ public class OpportunityService {
 				.findByCustomerIdAndOpportunityRequestReceiveDateAfterAndSubSpLike(
 						customerId, fromTimestamp, "%"+term.toUpperCase()+"%");
 		return opportunitiesList;	}
-	
+
 	/**
 	 * This method is used to find the opportunities for the customerId after request received date
 	 * 
@@ -515,11 +524,11 @@ public class OpportunityService {
 	private List<OpportunityT> getAllOpportunitiesByCustomerIdAndStartDateOfConnectBetween(
 			String customerId, Timestamp fromTimestamp) {
 		List<OpportunityT> opportunitiesList = opportunityRepository
-					.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
-							customerId, fromTimestamp);
+				.findByCustomerIdAndOpportunityRequestReceiveDateAfter(
+						customerId, fromTimestamp);
 		return opportunitiesList;
 	}
-	
+
 	/**
 	 * This method is used to fetch the opportunities by owner and role
 	 * @param userId
@@ -565,14 +574,14 @@ public class OpportunityService {
 		opportunities = validateAndReturnOpportunitesData(opportunities, true);
 
 		prepareOpportunity(opportunities);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunities,
 				toCurrency);
 
 		return opportunities;
 
 	}
-   
+
 	/**
 	 * To fetch the opportunities by task owner for specific role
 	 * @param opportunityOwner
@@ -617,7 +626,7 @@ public class OpportunityService {
 			}
 
 			prepareOpportunity(opportunities);
-			
+
 			beaconConverterService.convertOpportunityCurrency(opportunities,
 					toCurrency);
 
@@ -629,7 +638,7 @@ public class OpportunityService {
 					"Invalid Oppurtunity Role: " + opportunityRole);
 		}
 	}
-    
+
 	/**
 	 * To fetch the opportunity for primary owner
 	 * @param userId
@@ -641,7 +650,7 @@ public class OpportunityService {
 	 */
 	private List<OpportunityT> findForPrimaryOwner(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
-			throws DestinationException {
+					throws DestinationException {
 		logger.debug("Inside findForPrimaryOwner() service");
 		List<OpportunityT> opportunities = opportunityRepository
 				.findByOpportunityOwnerAndDealClosureDateBetween(userId,
@@ -659,7 +668,7 @@ public class OpportunityService {
 	 */
 	private List<OpportunityT> validateAndReturnOpportunitesData(
 			List<OpportunityT> opportunities, boolean validate)
-			throws DestinationException {
+					throws DestinationException {
 		logger.debug("Inside validateAndReturnOpportunitesData() method");
 		if (validate) {
 			if (opportunities.size() > 0) {
@@ -674,7 +683,7 @@ public class OpportunityService {
 			return opportunities;
 		}
 	}
-    
+
 	/**
 	 * To find the opportunities for bid details
 	 * @param userId
@@ -694,7 +703,7 @@ public class OpportunityService {
 						userId, fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-    
+
 	/**
 	 * To fetch the opportunities for sales support owner
 	 * @param userId
@@ -706,14 +715,14 @@ public class OpportunityService {
 	 */
 	private List<OpportunityT> findForSalesSupport(String userId,
 			boolean isOnly, Date fromDate, Date toDate)
-			throws DestinationException {
+					throws DestinationException {
 		logger.debug("Inside findForSalesSupport() service");
 		List<OpportunityT> opportunities = opportunityRepository
 				.findOpportunityTForSalesSupportOwnerWithDateBetween(userId,
 						fromDate, toDate);
 		return validateAndReturnOpportunitesData(opportunities, isOnly);
 	}
-    
+
 	/**
 	 * To fetch opportunities by opportunity id
 	 * @param opportunityId
@@ -743,11 +752,11 @@ public class OpportunityService {
 					.findByEntityTypeIdAndEntityIdAndStatus(
 							EntityTypeId.OPPORTUNITY.getType(), opportunityId,
 							WorkflowStatus.PENDING.getStatus());
-			
-			    if(CollectionUtils.isNotEmpty(workflowRequests)) {
-			    	opportunity.setWorkflowRequest(workflowRequests.get(0));
-			    }
-				
+
+			if(CollectionUtils.isNotEmpty(workflowRequests)) {
+				opportunity.setWorkflowRequest(workflowRequests.get(0));
+			}
+
 			return opportunity;
 		} else {
 			logger.error("NOT_FOUND: Opportunity not found: {}", opportunityId);
@@ -769,13 +778,13 @@ public class OpportunityService {
 			}
 		}
 	}
-   
+
 	/**
-     * This method is used to validate whether the given user is owner for the particular opportunity
-     * @param userId
-     * @param opportunity
-     * @return
-     */
+	 * This method is used to validate whether the given user is owner for the particular opportunity
+	 * @param userId
+	 * @param opportunity
+	 * @return
+	 */
 	private boolean isUserOwner(String userId, OpportunityT opportunity) {
 		if (opportunity.getOpportunityOwner().equals(userId))
 			return true;
@@ -806,17 +815,18 @@ public class OpportunityService {
 		return false;
 	}
 
-   /**
-    * This method is used to create a new opportunity
-    * @param opportunity
-    * @param isBulkDataLoad
-    * @param bidRequestType
-    * @param actualSubmissionDate
-    * @throws Exception
-    */
+	/**
+	 * This method is used to create a new opportunity
+	 * @param opportunity
+	 * @param isBulkDataLoad
+	 * @param bidRequestType
+	 * @param actualSubmissionDate
+	 * @param status 
+	 * @throws Exception
+	 */
 	@Transactional
 	public AsyncJobRequest createOpportunity(OpportunityT opportunity,
-			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate) throws Exception {
+			boolean isBulkDataLoad, String bidRequestType, String actualSubmissionDate, Status status) throws Exception {
 		logger.debug("Inside createOpportunity() service");
 		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		OpportunityT createdOpportunity = null;
@@ -829,11 +839,16 @@ public class OpportunityService {
 			String userGroup = user.getUserGroup();
 			createdOpportunity = saveOpportunity(opportunity, false, userGroup,
 					null);
+			// check sales stage code and save deal financial file in workflowbfm_t  
+			if(createdOpportunity.getOpportunityId() != null) {
+				saveBfmFile(createdOpportunity, opportunity, status);
+			}
+
 			if(createdOpportunity.getDigitalDealValue()!=null) {
 				BigDecimal dealValueInUSD = opportunityDownloadService.convertCurrencyToUSD(createdOpportunity.getDealCurrency(), createdOpportunity.getDigitalDealValue());
 				if((createdOpportunity.getSalesStageCode() >= SalesStageCode.RFP_SUBMITTED
 						.getCodeValue()
-				&& createdOpportunity.getSalesStageCode() <= SalesStageCode.CONTRACT_NEGOTIATION
+						&& createdOpportunity.getSalesStageCode() <= SalesStageCode.CONTRACT_NEGOTIATION
 						.getCodeValue()) && isAboveOrEqualHighDeal(dealValueInUSD)) {
 					asyncJobRequest.setJobName(JobName.opportunityEmailNotification);
 					asyncJobRequest.setEntityType(EntityType.OPPORTUNITY);
@@ -843,16 +858,36 @@ public class OpportunityService {
 				}
 			}
 			if (!isBulkDataLoad) {
-//				// Invoke Asynchronous Auto Comments Thread
+				//				// Invoke Asynchronous Auto Comments Thread
 				processAutoComments(opportunity.getOpportunityId(), null);
-//				// Invoke Asynchronous Notification Thread
-//				processNotifications(opportunity.getOpportunityId(), null);
+				//				// Invoke Asynchronous Notification Thread
+				//				processNotifications(opportunity.getOpportunityId(), null);
 			} else {
 				// This statement is to update the opportunity timeline history
 				saveOpportunityTimelineHistoryForUpload(createdOpportunity, bidRequestType, actualSubmissionDate);
 			}
 		}
 		return asyncJobRequest;
+	}
+
+	private void saveBfmFile(OpportunityT createdOpportunity, OpportunityT opportunity, Status status) throws Exception {
+		List<Integer> bfmSalesStages = Arrays.asList(5,6,7,8,9);
+		WorkflowBfmT workflowBfmSaved = new WorkflowBfmT();
+		if( bfmSalesStages.contains(opportunity.getSalesStageCode())){
+			WorkflowBfmT workflowBfmt = new WorkflowBfmT();
+			workflowBfmt.setDealFinancialFile(opportunity.getDealFinancialFile());
+			workflowBfmt.setOpportunityId(createdOpportunity.getOpportunityId());
+			workflowBfmt.setCreatedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			workflowBfmt.setModifiedBy(DestinationUtils.getCurrentUserDetails().getUserId());
+			workflowBfmSaved = workflowBfmTRepository.save(workflowBfmt);
+
+			// workflow getting triggered from here by making workflow request
+			if(workflowBfmSaved.getWorkflowBfmId() != null){
+				workflowService.createworkflowBfmRequest(workflowBfmSaved.getWorkflowBfmId(), createdOpportunity, status);
+			}
+		}else{
+			status.setStatus(Status.SUCCESS, opportunity.getOpportunityId() + " : " + opportunity.getOpportunityName() + " is Saved !!" );	
+		}
 	}
 
 	/**
@@ -868,8 +903,8 @@ public class OpportunityService {
 	private void saveOpportunityTimelineHistoryForUpload(
 			OpportunityT createdOpportunity, String bidRequestType, String actualSubmissionDate) throws Exception{
 		try {
-			
-		switch(createdOpportunity.getSalesStageCode()){
+
+			switch(createdOpportunity.getSalesStageCode()){
 			case 6:
 			case 7:
 			case 8:
@@ -884,7 +919,7 @@ public class OpportunityService {
 				if(!StringUtils.isEmpty(bidRequestType)) {
 					if(bidRequestType.equalsIgnoreCase("RFI")||
 							bidRequestType.equalsIgnoreCase("RFQ")||
-								bidRequestType.equalsIgnoreCase("Approach Note")){
+							bidRequestType.equalsIgnoreCase("Approach Note")){
 						if(StringUtils.isEmpty(actualSubmissionDate)){
 							saveOppTimelineHistoryInUpload(createdOpportunity, 2);
 						} else if(!StringUtils.isEmpty(actualSubmissionDate)) {
@@ -903,18 +938,18 @@ public class OpportunityService {
 			}
 			default:
 				break;
-		}
+			}
 		}catch(Exception e){
 			throw new DestinationException(HttpStatus.BAD_REQUEST,"Record Saved! Error while updating Opportunity Timeline History");
 		} finally{
 			bidId=null;
 		}
-		
+
 	}
-	
+
 	private void saveOppTimelineHistoryInUpload(OpportunityT createdOpportunity, int salesStageCode){
 		OpportunityTimelineHistoryT history = new OpportunityTimelineHistoryT();
-		
+
 		history.setOpportunityId(createdOpportunity.getOpportunityId());
 		history.setSalesStageCode(salesStageCode);
 		if(!StringUtils.isEmpty(bidId)) {
@@ -945,7 +980,7 @@ public class OpportunityService {
 			owners.add(opportunity.getOpportunityOwner());
 			if (opportunity.getOpportunitySalesSupportLinkTs() != null
 					&& !opportunity.getOpportunitySalesSupportLinkTs()
-							.isEmpty()) {
+					.isEmpty()) {
 				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 						.getOpportunitySalesSupportLinkTs()) {
 					owners.add(opportunitySalesSupportLinkT
@@ -972,19 +1007,19 @@ public class OpportunityService {
 			}
 			if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 					&& opportunity.getDeleteOpportunitySalesSupportLinkTs()
-							.size() > 0) {
+					.size() > 0) {
 				for (OpportunitySalesSupportLinkT opportunitySalesSupportLinkT : opportunity
 						.getDeleteOpportunitySalesSupportLinkTs()) {
 
 					// int index= owners.indexOf();
-                 if(!opportunity.getOpportunityOwner().equals(opportunitySalesSupportLinkTRepository
+					if(!opportunity.getOpportunityOwner().equals(opportunitySalesSupportLinkTRepository
 							.findSalesSupportOwner(opportunitySalesSupportLinkT
 									.getOpportunitySalesSupportLinkId()))) {
-                	 owners.remove(opportunitySalesSupportLinkTRepository
- 							.findSalesSupportOwner(opportunitySalesSupportLinkT
- 									.getOpportunitySalesSupportLinkId()));
-                 }
-					
+						owners.remove(opportunitySalesSupportLinkTRepository
+								.findSalesSupportOwner(opportunitySalesSupportLinkT
+										.getOpportunitySalesSupportLinkId()));
+					}
+
 				}
 			}
 
@@ -998,7 +1033,7 @@ public class OpportunityService {
 		}
 
 		validateInactiveIndicators(opportunity);
-		
+
 		if (isUpdate) {
 			deleteChildObjects(opportunity);
 		}
@@ -1010,11 +1045,11 @@ public class OpportunityService {
 	}
 
 	/**
-	* This method validates primary SubSp for a opportunity
-	* 
-	* @param opportunity
-	* @return
-	*/
+	 * This method validates primary SubSp for a opportunity
+	 * 
+	 * @param opportunity
+	 * @return
+	 */
 	private void validateOpportunityPrimarySubSp(OpportunityT opportunity) {
 		logger.info("Inside validation for opportunity primary SubSp");
 		if(opportunity.getOpportunitySubSpLinkTs()!=null){
@@ -1037,7 +1072,7 @@ public class OpportunityService {
 		}
 		logger.info("End of validation for opportunity primary SubSp");
 	}
-	
+
 	/**
 	 * validate a opertunity which has any inactive fields
 	 * @param opportunity
@@ -1048,31 +1083,31 @@ public class OpportunityService {
 		if(StringUtils.isNotBlank(createdBy) && userRepository.findByActiveTrueAndUserId(createdBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user createdBy is inactive");
 		}
-		
+
 		// modifiedBy,
 		String modifiedBy = opportunity.getModifiedBy();
 		if(StringUtils.isNotBlank(modifiedBy) && userRepository.findByActiveTrueAndUserId(modifiedBy) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The user modifiedBy is inactive");
 		}
-		
+
 		// customerId,
 		String customerId = opportunity.getCustomerId();
 		if(StringUtils.isNotBlank(customerId) && customerRepository.findByActiveTrueAndCustomerId(customerId) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The customer is inactive");
 		}
-				
+
 		// country
 		String country = opportunity.getCountry();
 		if(StringUtils.isNotBlank(country) && countryRepository.findByActiveTrueAndCountry(country) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "The country is inactive");
 		}
-		
+
 		// opportunityOwner,
 		String opportunityOwner = opportunity.getOpportunityOwner();
 		if(StringUtils.isNotBlank(opportunityOwner) && userRepository.findByActiveTrueAndUserId(opportunityOwner) == null) {
 			throw new DestinationException(HttpStatus.BAD_REQUEST, "Please assign an active primary owner before making any changes.");
 		}
-		
+
 		// opportunityCompetitorLinkTs,
 		List<OpportunityCompetitorLinkT> opportunityCompetitorLinkTs = opportunity.getOpportunityCompetitorLinkTs();
 		if(CollectionUtils.isNotEmpty(opportunityCompetitorLinkTs)) {
@@ -1083,8 +1118,8 @@ public class OpportunityService {
 				}
 			}
 		}
-		
-		
+
+
 		// opportunityCustomerContactLinkTs,
 		List<OpportunityCustomerContactLinkT> oppCustomerContactLinkTs = opportunity.getOpportunityCustomerContactLinkTs();
 		if(CollectionUtils.isNotEmpty(oppCustomerContactLinkTs)) {
@@ -1095,7 +1130,7 @@ public class OpportunityService {
 				}
 			}
 		}
-		
+
 		// opportunityOfferingLinkTs,
 		List<OpportunityOfferingLinkT> connectOfferingLinkTs = opportunity.getOpportunityOfferingLinkTs();
 		if(CollectionUtils.isNotEmpty(connectOfferingLinkTs)) {
@@ -1106,7 +1141,7 @@ public class OpportunityService {
 				}
 			}
 		}
-		
+
 		//List<OpportunityPartnerLinkT> opportunityPartnerLinkTs,
 		List<OpportunityPartnerLinkT> opportunityPartnerLinkTs = opportunity.getOpportunityPartnerLinkTs();
 		if(CollectionUtils.isNotEmpty(opportunityPartnerLinkTs)) {
@@ -1117,8 +1152,8 @@ public class OpportunityService {
 				}
 			}
 		}
-		
-		
+
+
 		//opportunitySubSpLinkTs,
 		List<OpportunitySubSpLinkT> oppSubSpLinkTs = opportunity.getOpportunitySubSpLinkTs();
 		if(CollectionUtils.isNotEmpty(oppSubSpLinkTs)) {
@@ -1129,8 +1164,8 @@ public class OpportunityService {
 				}
 			}
 		}
-		
-		
+
+
 		// opportunityTcsAccountContactLinkTs,
 		List<OpportunityTcsAccountContactLinkT> opportunityTcsAccountContactLinkTs = opportunity.getOpportunityTcsAccountContactLinkTs();
 		if(CollectionUtils.isNotEmpty(opportunityTcsAccountContactLinkTs)) {
@@ -1141,7 +1176,7 @@ public class OpportunityService {
 				}
 			}
 		}
-		
+
 		// opportunityWinLossFactorsTs,
 		List<OpportunityWinLossFactorsT> opportunityWinLossFactorsTs = opportunity.getOpportunityWinLossFactorsTs();
 		if(CollectionUtils.isNotEmpty(opportunityWinLossFactorsTs)) {
@@ -1189,12 +1224,12 @@ public class OpportunityService {
 		logger.debug("Inside saveChildObject() method");
 
 		//Getting the userId from the session
-				String userId=DestinationUtils.getCurrentUserDetails().getUserId();
+		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		if (opportunity.getOpportunityCustomerContactLinkTs() != null) {
 			for (OpportunityCustomerContactLinkT customerContact : opportunity
 					.getOpportunityCustomerContactLinkTs()) {
 				customerContact
-						.setOpportunityId(opportunity.getOpportunityId());
+				.setOpportunityId(opportunity.getOpportunityId());
 				customerContact.setCreatedBy(userId);
 				customerContact.setModifiedBy(userId);
 				opportunityCustomerContactLinkTRepository.save(customerContact);
@@ -1284,7 +1319,7 @@ public class OpportunityService {
 				notesTRepository.save(notesT);
 			}
 		}
-		
+
 		if (opportunity.getBidDetailsTs() != null) {
 			for (BidDetailsT bidDetailsT : opportunity.getBidDetailsTs()) {
 				bidDetailsT.setOpportunityId(opportunity.getOpportunityId());
@@ -1300,7 +1335,7 @@ public class OpportunityService {
 				}
 				bidDetailsTRepository.save(bidDetailsT);
 				bidId = bidDetailsT.getBidId();
-				
+
 				logger.debug("Saved Bid Details " + bidDetailsT.getBidId());
 				if (bidOfficeOwnerLinkTs != null
 						&& bidOfficeOwnerLinkTs.size() > 0) {
@@ -1316,15 +1351,15 @@ public class OpportunityService {
 						if (!StringUtils.equals(bidOfficeGroupOwnerLink
 								.getBidOfficeGroupOwner(),
 								bidOfficeGroupOwnerLinkT
-										.getBidOfficeGroupOwner())) {
+								.getBidOfficeGroupOwner())) {
 							bidOfficeGroupOwnerLinkTRepository
-									.delete(bidOfficeGroupOwnerLinkT);
+							.delete(bidOfficeGroupOwnerLinkT);
 							bidOfficeGroupOwnerLink.setBidId(bidDetailsT
 									.getBidId());
 							bidOfficeGroupOwnerLink.setCreatedBy(userId);
 							bidOfficeGroupOwnerLink.setModifiedBy(userId);
 							bidOfficeGroupOwnerLinkTRepository
-									.save(bidOfficeGroupOwnerLink);
+							.save(bidOfficeGroupOwnerLink);
 						}
 					} else {
 						if (StringUtils.isEmpty(bidOfficeGroupOwnerLink
@@ -1334,19 +1369,19 @@ public class OpportunityService {
 							bidOfficeGroupOwnerLink.setCreatedBy(userId);
 							bidOfficeGroupOwnerLink.setModifiedBy(userId);
 							bidOfficeGroupOwnerLinkTRepository
-									.save(bidOfficeGroupOwnerLink);
+							.save(bidOfficeGroupOwnerLink);
 						}
 
 					}
 
 				}
-					else {
-						if(bidOfficeGroupOwnerLinkT!=null) {
-							bidOfficeGroupOwnerLinkTRepository.delete(bidOfficeGroupOwnerLinkT);
-						}
-						
+				else {
+					if(bidOfficeGroupOwnerLinkT!=null) {
+						bidOfficeGroupOwnerLinkTRepository.delete(bidOfficeGroupOwnerLinkT);
 					}
-				
+
+				}
+
 				// As Bid details are already saved,
 				opportunity.setBidDetailsTs(null);
 				if (opportunity.getOpportunityId() != null) {
@@ -1359,12 +1394,12 @@ public class OpportunityService {
 						OpportunityTimelineHistoryT opportunityTimelineHistoryT = savedOpportunityTimelineHistoryTs
 								.get(savedOpportunityTimelineHistoryTs.size() - 1);
 						opportunityTimelineHistoryT
-								.setOpportunityId(opportunity
-										.getOpportunityId());
+						.setOpportunityId(opportunity
+								.getOpportunityId());
 						opportunityTimelineHistoryT.setBidId(bidDetailsT
 								.getBidId());
 						opportunity
-								.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
+						.setOpportunityTimelineHistoryTs(savedOpportunityTimelineHistoryTs);
 						opportunity.setCreatedBy(userId);
 						opportunity.setModifiedBy(userId);
 						opportunityTimelineHistoryTRepository.save(savedOpportunityTimelineHistoryTs);
@@ -1402,7 +1437,7 @@ public class OpportunityService {
 				opportunityDeliveryCentreMappingTRepository.save(opportunityDeliveryCentreMappingT);
 			}
 		}
-//		return opportunityRepository.save(opportunity);
+		//		return opportunityRepository.save(opportunity);
 		return opportunity;
 	}
 
@@ -1447,7 +1482,7 @@ public class OpportunityService {
 		baseOpportunityT.setOpportunityOwner(opportunity.getOpportunityOwner());
 		int salesStageCode = opportunity.getSalesStageCode();
 		if (salesStageCode == Constants.CONSTANT_NINE){
-		baseOpportunityT.setDeliveryOwnershipId(opportunity.getDeliveryOwnershipId());
+			baseOpportunityT.setDeliveryOwnershipId(opportunity.getDeliveryOwnershipId());
 		}
 		baseOpportunityT.setSalesStageCode(opportunity.getSalesStageCode());
 		opportunity.setOpportunityId(opportunityRepository.save(
@@ -1459,16 +1494,16 @@ public class OpportunityService {
 
 	// Method called from controller
 	@Transactional
-	public void updateOpportunity(OpportunityT opportunity, OpportunityT opportunityBeforeEdit) throws Exception {
+	public void updateOpportunity(OpportunityT opportunity, OpportunityT opportunityBeforeEdit, Status status) throws Exception {
 		String userId=DestinationUtils.getCurrentUserDetails().getUserId();
 		String opportunityId = opportunity.getOpportunityId();
 		opportunity.setCreatedBy(userId);
 		opportunity.setModifiedBy(userId);
 		logger.debug("Inside updateOpportunity() service");
-		
+
 		UserT user = userRepository.findByUserId(userId);
 		String userGroup = user.getUserGroup();
-		
+
 		if (!userGroup.equals(UserGroup.STRATEGIC_INITIATIVES.getValue())) {
 
 			if (!isEditAccessRequiredForOpportunity(opportunityBeforeEdit,
@@ -1485,24 +1520,28 @@ public class OpportunityService {
 		// hibernate session
 		OpportunityT oldObject = (OpportunityT) DestinationUtils
 				.copy(beforeOpp);
-         logger.debug("oldObject"+oldObject);
+		logger.debug("oldObject"+oldObject);
 		// deal closure comments is mandatory for sales stage codes (11/12/13) 
 		if(opportunity.getSalesStageCode() == 11 || opportunity.getSalesStageCode() == 12 || opportunity.getSalesStageCode() == 13){
-		if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
-			logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
-			throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
-		}
+			if((opportunity.getDealClosureComments()==null) && StringUtils.isEmpty(opportunity.getDealClosureComments())){
+				logger.error("Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+				throw new DestinationException(HttpStatus.BAD_REQUEST, "Deal closure comments is mandatory for the opportuniy for sales stage codes (11,12 and 13)");
+			}
 		}
 		// Update database
 		OpportunityT afterOpp = saveOpportunity(opportunity, true, userGroup,
 				opportunityBeforeEdit);
+		// check sales stage code and save deal financial file in workflowbfm_t  
+		if(afterOpp != null) {
+			saveBfmFile(afterOpp, opportunity, status);
+		}
 		if (afterOpp != null) {
 			logger.info("Opportunity has been updated successfully: "
 					+ opportunityId);
-//			// Invoke Asynchronous Auto Comments Thread
+			//			// Invoke Asynchronous Auto Comments Thread
 			processAutoComments(opportunityId, oldObject);
-//			// Invoke Asynchronous Notifications Thread
-//			processNotifications(opportunityId, oldObject);
+			//			// Invoke Asynchronous Notifications Thread
+			//			processNotifications(opportunityId, oldObject);
 		}
 	}
 
@@ -1533,7 +1572,7 @@ public class OpportunityService {
 				&& opportunity.getDeleteConnectOpportunityLinkIdTs().size() > 0) {
 			for(ConnectOpportunityLinkIdT connectOpportunityLinkIdT: opportunity
 					.getDeleteConnectOpportunityLinkIdTs()){
-			connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT.getConnectOpportunityLinkId());
+				connectOpportunityLinkTRepository.delete(connectOpportunityLinkIdT.getConnectOpportunityLinkId());
 			}
 			opportunity.setDeleteConnectOpportunityLinkIdTs(null);
 		}
@@ -1541,41 +1580,41 @@ public class OpportunityService {
 		if (opportunity.getDeleteOpportunityPartnerLinkTs() != null
 				&& opportunity.getDeleteOpportunityPartnerLinkTs().size() > 0) {
 			for(OpportunityPartnerLinkT opportunityPartnerLinkT: opportunity.getDeleteOpportunityPartnerLinkTs()){
-			opportunityPartnerLinkTRepository.delete(opportunityPartnerLinkT
-					.getOpportunityPartnerLinkId());
-		}
+				opportunityPartnerLinkTRepository.delete(opportunityPartnerLinkT
+						.getOpportunityPartnerLinkId());
+			}
 			opportunity.setOpportunityPartnerLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCompetitorLinkTs() != null
 				&& opportunity.getDeleteOpportunityCompetitorLinkTs().size() > 0) {
 			for(OpportunityCompetitorLinkT opportunityCompetitorLinkT: opportunity.getDeleteOpportunityCompetitorLinkTs()){
-			opportunityCompetitorLinkTRepository.delete(opportunityCompetitorLinkT.getOpportunityCompetitorLinkId());
+				opportunityCompetitorLinkTRepository.delete(opportunityCompetitorLinkT.getOpportunityCompetitorLinkId());
 			}
 			opportunity.setDeleteOpportunityCompetitorLinkTs(null);
 		}
 
 		if (opportunity.getDeleteOpportunityCustomerContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityCustomerContactLinkTs()
-						.size() > 0) {
+				.size() > 0) {
 			for(OpportunityCustomerContactLinkT opportunityCustomerContactLinkT : opportunity.getDeleteOpportunityCustomerContactLinkTs())
 			{
-			opportunityCustomerContactLinkTRepository.delete(opportunityCustomerContactLinkT.getOpportunityCustomerContactLinkId());
+				opportunityCustomerContactLinkTRepository.delete(opportunityCustomerContactLinkT.getOpportunityCustomerContactLinkId());
 			}
 		}
 
 		if (opportunity.getDeleteOpportunityOfferingLinkTs() != null
 				&& opportunity.getDeleteOpportunityOfferingLinkTs().size() > 0) {
 			for(OpportunityOfferingLinkT opportunityOfferingLinkT:opportunity.getDeleteOpportunityOfferingLinkTs()){
-			opportunityOfferingLinkTRepository.delete(opportunityOfferingLinkT.getOpportunityOfferingLinkId());
-		}
+				opportunityOfferingLinkTRepository.delete(opportunityOfferingLinkT.getOpportunityOfferingLinkId());
 			}
+		}
 
 		if (opportunity.getDeleteOpportunitySalesSupportLinkTs() != null
 				&& opportunity.getDeleteOpportunitySalesSupportLinkTs().size() > 0) {
 			for(OpportunitySalesSupportLinkT opportunitySalesSupportLinkT:opportunity.getDeleteOpportunitySalesSupportLinkTs()){
-				
-			opportunitySalesSupportLinkTRepository.delete(opportunitySalesSupportLinkT.getOpportunitySalesSupportLinkId());
+
+				opportunitySalesSupportLinkTRepository.delete(opportunitySalesSupportLinkT.getOpportunitySalesSupportLinkId());
 			}
 		}
 
@@ -1588,27 +1627,27 @@ public class OpportunityService {
 
 		if (opportunity.getDeleteOpportunityTcsAccountContactLinkTs() != null
 				&& opportunity.getDeleteOpportunityTcsAccountContactLinkTs()
-						.size() > 0) {
+				.size() > 0) {
 			for(OpportunityTcsAccountContactLinkT opportunityTcsAccountContactLinkT:opportunity.getDeleteOpportunityTcsAccountContactLinkTs())
-			opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT.getOpportunityTcsAccountContactLinkId());
+				opportunityTcsAccountContactLinkTRepository.delete(opportunityTcsAccountContactLinkT.getOpportunityTcsAccountContactLinkId());
 		}
 
 		if (opportunity.getDeleteOpportunityWinLossFactorsTs() != null
 				&& opportunity.getDeleteOpportunityWinLossFactorsTs().size() > 0) {
 			for(OpportunityWinLossFactorsT opportunityWinLossFactorsT: opportunity.getDeleteOpportunityWinLossFactorsTs())
-			opportunityWinLossFactorsTRepository.delete(opportunityWinLossFactorsT.getOpportunityWinLossFactorsId());
+				opportunityWinLossFactorsTRepository.delete(opportunityWinLossFactorsT.getOpportunityWinLossFactorsId());
 		}
 
 		if (opportunity.getDeleteSearchKeywordsTs() != null
 				&& opportunity.getDeleteSearchKeywordsTs().size() > 0) {
 			for(SearchKeywordsT searchKeywordsT:opportunity.getDeleteSearchKeywordsTs())
-			searchKeywordsRepository.delete(searchKeywordsT.getSearchKeywordsId());
+				searchKeywordsRepository.delete(searchKeywordsT.getSearchKeywordsId());
 		}
 	}
 
 	public List<OpportunityT> findByOpportunityOwnerAndDate(String userId,
 			Date fromDate, Date toDate, List<String> toCurrency)
-			throws Exception {
+					throws Exception {
 		logger.debug("Inside findByOpportunityOwnerAndDate() service");
 		List<OpportunityT> opportunityList = null;
 		opportunityList = opportunityRepository
@@ -1620,13 +1659,13 @@ public class OpportunityService {
 					userId, fromDate, toDate);
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunity found for the UserId: " + userId
-							+ " and Target Bid Submission date: " + fromDate
-							+ ", " + toDate);
+					+ " and Target Bid Submission date: " + fromDate
+					+ ", " + toDate);
 		}
-		
+
 
 		prepareOpportunity(opportunityList);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunityList,
 				toCurrency);
 
@@ -1669,8 +1708,8 @@ public class OpportunityService {
 				opportunityT.setEnableEditAccess(true);
 			} else {
 				opportunityT
-						.setEnableEditAccess(isEditAccessRequiredForOpportunity(
-								opportunityT, userGroup, userId));
+				.setEnableEditAccess(isEditAccessRequiredForOpportunity(
+						opportunityT, userGroup, userId));
 				checkAccessControl(opportunityT, previledgedOppIdList);
 			}
 
@@ -1731,7 +1770,7 @@ public class OpportunityService {
 
 	}
 
-  
+
 	private void removeCyclicForLinkedConnects(OpportunityT opportunityT) {
 		logger.debug("Inside removeCyclicForLinkedConnects() method");
 
@@ -1740,7 +1779,7 @@ public class OpportunityService {
 				for (ConnectOpportunityLinkIdT connectOpportunityLinkIdT : opportunityT
 						.getConnectOpportunityLinkIdTs()) {
 					connectOpportunityLinkIdT.getConnectT()
-							.setConnectOpportunityLinkIdTs(null);
+					.setConnectOpportunityLinkIdTs(null);
 				}
 			}
 		}
@@ -1769,15 +1808,15 @@ public class OpportunityService {
 
 	public List<OpportunityT> findOpportunitiesBySalesStageCode(
 			List<String> currencies, int salesStageCode, String customerId)
-			throws DestinationException {
+					throws DestinationException {
 		List<OpportunityT> opportunityTs = null;
 		if (customerId.equals(""))
 			opportunityTs = opportunityRepository
-					.findBySalesStageCode(salesStageCode);
+			.findBySalesStageCode(salesStageCode);
 		else
 			opportunityTs = opportunityRepository
-					.findBySalesStageCodeAndCustomerId(salesStageCode,
-							customerId);
+			.findBySalesStageCodeAndCustomerId(salesStageCode,
+					customerId);
 		prepareOpportunity(opportunityTs);
 		beaconConverterService.convertOpportunityCurrency(opportunityTs,
 				currencies);
@@ -1795,11 +1834,11 @@ public class OpportunityService {
 			autoCommentsHelper.setOldObject(oldObject);
 		}
 		autoCommentsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		autoCommentsHelper
-				.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
+		.setAutoCommentsEntityFieldsTRepository(autoCommentsEntityFieldsTRepository);
 		autoCommentsHelper
-				.setCollaborationCommentsRepository(collaborationCommentsRepository);
+		.setCollaborationCommentsRepository(collaborationCommentsRepository);
 		autoCommentsHelper.setCrudRepository(opportunityRepository);
 		autoCommentsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
@@ -1819,24 +1858,24 @@ public class OpportunityService {
 			notificationsHelper.setOldObject(oldObject);
 		}
 		notificationsHelper
-				.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
+		.setNotificationsEventFieldsTRepository(notificationEventFieldsTRepository);
 		notificationsHelper
-				.setUserNotificationsTRepository(userNotificationsTRepository);
+		.setUserNotificationsTRepository(userNotificationsTRepository);
 		notificationsHelper
-				.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
+		.setUserNotificationSettingsRepo(userNotificationSettingsRepo);
 		notificationsHelper.setCrudRepository(opportunityRepository);
 		notificationsHelper.setEntityManagerFactory(entityManager
 				.getEntityManagerFactory());
 		notificationsHelper
-				.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
+		.setNotificationEventGroupMappingTRepository(notificationEventGroupMappingTRepository);
 		notificationsHelper.setUserRepository(userRepository);
 		notificationsHelper.setFollowService(followService);
 		notificationsHelper
-				.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
+		.setUserNotificationSettingsConditionsRepository(userNotificationSettingsConditionRepository);
 		notificationsHelper
-				.setSearchKeywordsRepository(searchKeywordsRepository);
+		.setSearchKeywordsRepository(searchKeywordsRepository);
 		notificationsHelper
-				.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
+		.setAutoCommentsEntityTRepository(autoCommentsEntityTRepository);
 		// Invoking notifications Task Executor Thread
 		notificationsTaskExecutor.execute(notificationsHelper);
 	}
@@ -1864,11 +1903,11 @@ public class OpportunityService {
 			String finYear = DateUtils.getCurrentFinancialYear();
 			Date fromDate = DateUtils.getDateFromFinancialYear(finYear,true);
 			Date toDate = DateUtils.getDateFromFinancialYear(finYear,false);
-			
+
 			Timestamp fromDateTs = new Timestamp(fromDate.getTime());
 			Timestamp toDateTs = new Timestamp(toDate.getTime()
 					+ ONE_DAY_IN_MILLIS - 1);
-			
+
 			// Adding the user himself
 			users.add(supervisorUserId);
 
@@ -1938,7 +1977,7 @@ public class OpportunityService {
 	public TeamOpportunityDetailsDTO findTeamOpportunityDetailsBySupervisorId(
 			String supervisorUserId, int page, int count,
 			boolean isCurrentFinancialYear, String salesStageCode)
-			throws Exception {
+					throws Exception {
 
 		logger.debug("Inside findOpportunityDetailsBySupervisorId() service");
 
@@ -2033,7 +2072,7 @@ public class OpportunityService {
 					}
 
 					teamOpportunityDetails
-							.setOpportunityDetails(listOfOpportunityDetails);
+					.setOpportunityDetails(listOfOpportunityDetails);
 				} else {
 					logger.error("BAD_REQUEST: Invalid Pagination Error",
 							supervisorUserId);
@@ -2069,7 +2108,7 @@ public class OpportunityService {
 			List<String> offering, List<String> displaySubSp,
 			List<String> opportunityName, List<String> userId,
 			List<String> toCurrency, int page, int count, String role,Boolean isCurrentFinancialYr)
-			throws DestinationException 
+					throws DestinationException 
 	{
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
 		String searchKeywordString = searchForContaining(searchKeywords);
@@ -2114,21 +2153,21 @@ public class OpportunityService {
 				break;
 			}
 			if (isCurrentFinancialYr) {
-				
+
 				Date fromDate=DateUtils.getDateFromFinancialYear(
 						DateUtils.getCurrentFinancialYear(),true);
-				
+
 				Date toDate=DateUtils.getDateFromFinancialYear(
 						DateUtils.getCurrentFinancialYear(),false);
-			
-			opportunity = opportunityRepository
-					.findByOpportunitiesForCurrentFyIgnoreCaseLike(customerIdList,
-							salesStageCode, strategicDeal, newLogo,
-							defaultDealRange, minDigitalDealValue,
-							maxDigitalDealValue, dealCurrency, digitalFlag,
-							displayIou, country, partnerId, competitorName,
-							searchKeywordString, bidRequestType, offering,
-							displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice,fromDate,toDate);
+
+				opportunity = opportunityRepository
+						.findByOpportunitiesForCurrentFyIgnoreCaseLike(customerIdList,
+								salesStageCode, strategicDeal, newLogo,
+								defaultDealRange, minDigitalDealValue,
+								maxDigitalDealValue, dealCurrency, digitalFlag,
+								displayIou, country, partnerId, competitorName,
+								searchKeywordString, bidRequestType, offering,
+								displaySubSp, opportunityNameString, userId, isPrimary, isSalesSupport, isBidOffice,fromDate,toDate);
 			}
 			else
 			{
@@ -2199,7 +2238,7 @@ public class OpportunityService {
 
 	public PaginatedResponse findAll(String sortBy, String order,
 			Boolean isCurrentFinancialYear, int page, int count)
-			throws DestinationException {
+					throws DestinationException {
 
 		PaginatedResponse opportunityResponse = new PaginatedResponse();
 
@@ -2218,11 +2257,11 @@ public class OpportunityService {
 								DateUtils.getDateFromFinancialYear(
 										DateUtils.getCurrentFinancialYear(),
 										true))
-						.setParameter(
-								2,
-								DateUtils.getDateFromFinancialYear(
-										DateUtils.getCurrentFinancialYear(),
-										false));
+										.setParameter(
+												2,
+												DateUtils.getDateFromFinancialYear(
+														DateUtils.getCurrentFinancialYear(),
+														false));
 				opportunityTs = (List<OpportunityT>) query.getResultList();
 				opportunityResponse.setTotalCount(opportunityTs.size());
 			} catch (Exception e) {
@@ -2268,7 +2307,7 @@ public class OpportunityService {
 		if (opportunityTs == null || opportunityTs.size() == 0)
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"No Opportunities found");
-		 prepareOpportunity(opportunityTs);
+		prepareOpportunity(opportunityTs);
 		return opportunityResponse;
 	}
 
@@ -2306,7 +2345,7 @@ public class OpportunityService {
 				sortBy, order));
 		return pageSpecification;
 	}
-    
+
 
 
 	public ArrayList<OpportunityNameKeywordSearch> findOpportunityNameOrKeywords(
@@ -2343,19 +2382,19 @@ public class OpportunityService {
 		logger.debug("Inside findByOpportunityIds() method");
 		List<OpportunityT> opportunityList = null;
 		if ((opportunityIds != null) && (!opportunityIds.isEmpty())) {
-		opportunityList = opportunityRepository.findByOpportunityIds(opportunityIds);
+			opportunityList = opportunityRepository.findByOpportunityIds(opportunityIds);
 		}
 		if(opportunityList==null || opportunityList.isEmpty() ){
 			logger.error("Opportunities not found");
 			throw new DestinationException(HttpStatus.NOT_FOUND, "Opportunities not found");
 		}
 		prepareOpportunity(opportunityList);
-		
+
 		beaconConverterService.convertOpportunityCurrency(opportunityList, toCurrency);
 
 		return opportunityList;
 	}
-    
+
 	/**
 	 * this method saves the opportunity list.
 	 * @param insertList
@@ -2510,7 +2549,7 @@ public class OpportunityService {
 		if (CollectionUtils.isNotEmpty(oppTcsAccContact)) {
 			opportunityTcsAccountContactLinkTRepository.save(oppTcsAccContact);
 		}
-		
+
 		List<OpportunityCompetitorLinkT> oppCompetitor = new ArrayList<OpportunityCompetitorLinkT>();
 		for (List<OpportunityCompetitorLinkT> list : mapOppCompetitor.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
@@ -2520,7 +2559,7 @@ public class OpportunityService {
 		if (CollectionUtils.isNotEmpty(oppCompetitor)) {
 			opportunityCompetitorLinkTRepository.save(oppCompetitor);
 		}
-		
+
 		List<NotesT> oppNotes = new ArrayList<NotesT>();
 		for (List<NotesT> list : mapOppNotes.values()) {
 			if (CollectionUtils.isNotEmpty(list)) {
@@ -2540,7 +2579,7 @@ public class OpportunityService {
 		{
 			notesT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityCompetitorLink(String opportunityId,
@@ -2549,7 +2588,7 @@ public class OpportunityService {
 		{
 			opportunityCompetitorLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityTcsAccountContactLink(String opportunityId,
@@ -2558,7 +2597,7 @@ public class OpportunityService {
 		{
 			opportunityTcsAccountContactLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOppCustomerContactLinks(String opportunityId,
@@ -2567,7 +2606,7 @@ public class OpportunityService {
 		{
 			opportunityCustomerContactLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunitySubSpLink(String opportunityId,
@@ -2576,7 +2615,7 @@ public class OpportunityService {
 		{
 			opportunitySubSpLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOppSalesSupportLink(String opportunityId,
@@ -2585,7 +2624,7 @@ public class OpportunityService {
 		{
 			opportunitySalesSupportLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityPartnerLink(String opportunityId,
@@ -2594,7 +2633,7 @@ public class OpportunityService {
 		{
 			opportunityPartnerLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void populateOpportunityOfferingLinks(String opportunityId,
@@ -2603,7 +2642,7 @@ public class OpportunityService {
 		{
 			opportunityOfferingLinkT.setOpportunityId(opportunityId);
 		}
-		
+
 	}
 
 	private void setNullForReferencedObjects(OpportunityT opportunityT) {
@@ -2620,7 +2659,7 @@ public class OpportunityService {
 		opportunityT.setOpportunityTcsAccountContactLinkTs(null);
 		opportunityT.setOpportunityWinLossFactorsTs(null);
 	}
-	
+
 	/**
 	 * This method is used to check whether the owners of opportunity or connect are BDM or BDM Supervisor
 	 * @param owners
@@ -2639,10 +2678,10 @@ public class OpportunityService {
 				}
 			}
 		}
-		
+
 		return isBDMOrBDMSupervisor;
 	}
-	
+
 	/**
 	 * This method is used to check whether any of the subordinate is being one
 	 * of the owners of connect or opportunity
@@ -2677,7 +2716,7 @@ public class OpportunityService {
 		return isSubordinateAsOwner;
 	}
 
-	
+
 	/**
 	 * This method is used to check whether Geo heads PMO and Iou Heads have the
 	 * edit access for an opportunity
@@ -2695,7 +2734,7 @@ public class OpportunityService {
 		case GEO_HEADS:
 		case PMO:
 			String geography = customerRepository
-					.findGeographyByCustomerId(customerId);
+			.findGeographyByCustomerId(customerId);
 
 			List<String> geographyList = userAccessPrivilegesRepository
 					.getPrivilegeValueForUser(userId,
@@ -2720,21 +2759,21 @@ public class OpportunityService {
 		default:
 			break;
 		}
-        
-				
+
+
 		return isEditAccessRequired;
 
 	}
-	
+
 	/**
-	* This method is used to update the opportunity details and also
-	* send email notification if opportunity won or lost
-	* @param opportunity
-	* @return AsyncJobRequest
-	* @throws Exception
-	*/
+	 * This method is used to update the opportunity details and also
+	 * send email notification if opportunity won or lost
+	 * @param opportunity
+	 * @return AsyncJobRequest
+	 * @throws Exception
+	 */
 	@Transactional
-	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity)
+	public AsyncJobRequest updateOpportunityT(OpportunityT opportunity, Status status)
 			throws Exception {
 
 		String opportunityId = opportunity.getOpportunityId();
@@ -2755,13 +2794,13 @@ public class OpportunityService {
 		int oldSalesStageCode = opportunityBeforeEdit.getSalesStageCode();
 		Integer oldDealValue = opportunityBeforeEdit.getDigitalDealValue();
 		String oldDealCurrency = opportunityBeforeEdit.getDealCurrency();
-		updateOpportunity(opportunity, opportunityBeforeEdit);
+		updateOpportunity(opportunity, opportunityBeforeEdit, status);
 		// If deal value becomes more than 5 million USD or the opportunity won
 		// or lost, Email notification to be triggered
 		return sendEmailNotification(opportunity, oldSalesStageCode,
 				oldDealValue, oldDealCurrency);
 	}
-	
+
 	/**
 	 * Service method to fetch the opportunity related information based on search type and the search keyword 
 	 * @param smartSearchType
@@ -2779,7 +2818,7 @@ public class OpportunityService {
 		List<SearchResultDTO<OpportunityT>> resList = Lists.newArrayList();
 		SearchResultDTO<OpportunityT> searchResultDTO = new SearchResultDTO<OpportunityT>();
 		if(smartSearchType != null) {
-			
+
 			switch(smartSearchType) {
 			case ALL:
 				resList.add(getOpportunityById(term, getAll));
@@ -2807,7 +2846,7 @@ public class OpportunityService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
-			
+
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<OpportunityT> values = searchResultDTO.getValues();
@@ -2825,7 +2864,7 @@ public class OpportunityService {
 		res.setContent(resList);
 		return res;
 	}
-	
+
 	private SearchResultDTO<OpportunityT> getOpportunityById(String term,
 			boolean getAll) {
 		List<OpportunityT> records = opportunityRepository.searchById("%"+term+"%", getAll);
@@ -2870,7 +2909,7 @@ public class OpportunityService {
 		conRes.setValues(records);
 		return conRes;
 	}
-	
+
 	/**
 	 * This method is used to check whether the logged in user has edit access
 	 * for an opportunity
@@ -2905,15 +2944,15 @@ public class OpportunityService {
 				break;
 			default:
 				break;	 
-				
-				
+
+
 			}
 		}
-		
+
 		logger.info("Is Edit Access Required for connect: " +isEditAccessRequired);
 		return isEditAccessRequired;
 	}
-	
+
 	/**
 	 * method used to send  the email if required for an opportunity
 	 * @param opportunity
@@ -2925,7 +2964,7 @@ public class OpportunityService {
 	 */
 	private AsyncJobRequest sendEmailNotification(OpportunityT opportunity,
 			int oldSalesStageCode, Integer oldDealValue, String oldDealCurrency)
-			throws Exception {
+					throws Exception {
 		AsyncJobRequest asyncJobRequest = new AsyncJobRequest();
 		logger.info("Inside sendEmailNotification method");
 		boolean emailJobRequired = false;
@@ -2941,13 +2980,13 @@ public class OpportunityService {
 		if ((oldSalesStageCode != SalesStageCode.WIN.getCodeValue() && newSalesStageCode == SalesStageCode.WIN
 				.getCodeValue())
 				|| (oldSalesStageCode != SalesStageCode.LOST.getCodeValue() && newSalesStageCode == SalesStageCode.LOST
-						.getCodeValue())) {
+				.getCodeValue())) {
 			emailJobRequired = true;
 		} else if (newDealValue != null
 				&& newSalesStageCode >= SalesStageCode.RFP_SUBMITTED
-						.getCodeValue()
+				.getCodeValue()
 				&& newSalesStageCode <= SalesStageCode.CONTRACT_NEGOTIATION
-						.getCodeValue()) {
+				.getCodeValue()) {
 			if (isAboveOrEqualHighDeal(newDealValueInUSD)
 					&& (!isAboveOrEqualHighDeal(oldDealValueInUSD) || oldSalesStageCode != newSalesStageCode)) {
 				emailJobRequired = true;
@@ -2966,7 +3005,7 @@ public class OpportunityService {
 		return asyncJobRequest;
 
 	}
-	
+
 	/**
 	 * Method used to check whether the given deal value is greater than or equal to 5 million  
 	 * @param value
