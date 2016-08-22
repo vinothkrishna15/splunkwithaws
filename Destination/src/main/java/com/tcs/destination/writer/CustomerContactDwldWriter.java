@@ -186,6 +186,7 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 			ExecutionContext jobContext = stepExecution.getJobExecution()
 					.getExecutionContext();
 			mapOfContactCustomerLinkT = (Map<String,CustomerMasterT>) jobContext.get("mapOfContactCustomerLinkT");
+			customerMap=(Map<String,List<ContactCustomerLinkT>>)jobContext.get("customerMap");
 			DataProcessingRequestT request = (DataProcessingRequestT) jobContext
 					.get(REQUEST);
 			String entity = dataProcessingService.getEntity(request
@@ -287,7 +288,14 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 					cellCustomerContactName.setCellValue(ct.getContactName());
 
 					Cell cellCustomerContactRole = row.createCell(6);
-					cellCustomerContactRole.setCellValue(ct.getContactRole());
+					if(!ct.getContactRole().equalsIgnoreCase("Other"))
+					{
+					  cellCustomerContactRole.setCellValue(ct.getContactRole());
+					}
+					else
+					{
+					  cellCustomerContactRole.setCellValue(ct.getOtherRole());
+					}
 
 					Cell cellCustomerContactEmailId = row.createCell(7);
 					if(ct.getContactEmailId()!=null) {
@@ -319,7 +327,7 @@ public class CustomerContactDwldWriter implements ItemWriter<ContactT>,
 	
 	private String getCustomerName(String contactId) {
 		StringBuffer customerBuffer = new StringBuffer("");
-		List<ContactCustomerLinkT> contactCustomerList = customerMap.get(contactId);	
+   		List<ContactCustomerLinkT> contactCustomerList = customerMap.get(contactId);	
 		if(contactCustomerList!=null){
 			for(ContactCustomerLinkT contactCustomerLinkT: contactCustomerList){
 				if(StringUtils.isEmpty(customerBuffer.toString())){

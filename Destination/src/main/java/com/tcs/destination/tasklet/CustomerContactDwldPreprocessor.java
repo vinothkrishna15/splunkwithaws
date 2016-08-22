@@ -116,7 +116,7 @@ public class CustomerContactDwldPreprocessor implements Tasklet {
 				}
 			}
 		}
-		logger.debug("Populated Partner Map : " + customerMap.size());
+		logger.debug("Populated Customer Map : " + customerMap.size());
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import com.tcs.destination.bean.ConnectSubSpLinkT;
@@ -22,6 +23,7 @@ import com.tcs.destination.data.repository.ContactCustomerLinkTRepository;
 import com.tcs.destination.data.repository.ContactRepository;
 import com.tcs.destination.data.repository.ContactRoleMappingTRepository;
 import com.tcs.destination.data.repository.CustomerRepository;
+import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.utils.StringUtils;
 
 /**
@@ -130,8 +132,8 @@ public class CustomerContactUploadHelper {
 			if (validateContactRole(contactRole)) {
 				contact.setContactRole(contactRole);
 			} else {
-				error.setRowNumber(Integer.parseInt(data[0]) + 1);
-				error.setMessage("Invalid Contact role ");
+				contact.setContactRole("Other");
+				contact.setOtherRole(contactRole);
 			}
 		} else {
 			error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -143,6 +145,10 @@ public class CustomerContactUploadHelper {
 		if (!StringUtils.isEmpty(contactEmailId)) {
 			contact.setContactEmailId(contactEmailId);
 		}
+		else
+		{
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
+        }
 
 		// Contact Telephone
 		String contactTelephone = data[9];
@@ -279,8 +285,8 @@ public class CustomerContactUploadHelper {
 					if (validateContactRole(contactRole)) {
 						contact.setContactRole(contactRole);
 					} else {
-						error.setRowNumber(Integer.parseInt(data[0]) + 1);
-						error.setMessage("Invalid Contact role ");
+						contact.setContactRole("Other");
+						contact.setOtherRole(contactRole);
 					}
 				} else {
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
@@ -292,6 +298,10 @@ public class CustomerContactUploadHelper {
 				if (!StringUtils.isEmpty(contactEmailId)) {
 					contact.setContactEmailId(contactEmailId);
 				}
+				else
+				{
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
+                }
 
 				// Contact Telephone
 				String contactTelephone = data[9];

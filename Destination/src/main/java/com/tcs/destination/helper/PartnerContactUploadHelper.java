@@ -96,7 +96,7 @@ public class PartnerContactUploadHelper {
 				else
 				{
 					error.setRowNumber(Integer.parseInt(data[0]) + 1);
-					error.setMessage("partner name Is Mandatory; ");
+					error.setMessage("Partner name Is Mandatory; ");
 				}
 				
 				// CONTACT NAME 
@@ -105,7 +105,7 @@ public class PartnerContactUploadHelper {
 					partnerContactT.setContactName(contactName);
 				}
 				 else {
-					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Name NOT Found");
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Name is mandatory");
 				}
 				
 				//CONTACT ROLE (Optional)
@@ -115,18 +115,24 @@ public class PartnerContactUploadHelper {
 						partnerContactT.setContactRole(contactRole);
 					}
 						else {
-							throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Role");
+							partnerContactT.setContactRole("Other");
+							partnerContactT.setOtherRole(contactRole);
 						}
 						
 					} else {
-						throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Role NOT Found");
+						throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Role is mandatory");
 					}
 					
-				//contact email id (Optional)
+				//contact email id 
 				String contactEmailid = data[6];
 				if(!StringUtils.isEmpty(contactEmailid))
 				{
 					partnerContactT.setContactEmailId(contactEmailid);
+				}
+				else
+				{
+					throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
+
 				}
 				
 				//contact telephone (Optional)
@@ -272,18 +278,24 @@ public class PartnerContactUploadHelper {
 				partnerContactT.setContactRole(contactRole);
 			}
 				else {
-					throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid Contact Role");
+					partnerContactT.setContactRole("Other");
+					partnerContactT.setOtherRole(contactRole);
 				}
 				
 			} else {
 				throw new DestinationException(HttpStatus.NOT_FOUND, "Contact Role NOT Found");
 			}
 			
-		//contact email id (Optional)
+		//contact email id 
 		String contactEmailid = data[6];
 		if(!StringUtils.isEmpty(contactEmailid))
 		{
 			partnerContactT.setContactEmailId(contactEmailid);
+		}
+		else
+		{
+			throw new DestinationException(HttpStatus.NOT_FOUND, "Contact email id is mandatory");
+
 		}
 		
 		//contact telephone (Optional)

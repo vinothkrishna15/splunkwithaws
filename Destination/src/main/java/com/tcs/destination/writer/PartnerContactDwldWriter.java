@@ -192,7 +192,14 @@ StepExecutionListener {
 
 
 					Cell cellPartnerContactRole = row.createCell(4);
+					if(!ct.getContactRole().equalsIgnoreCase("Other"))
+					{
 					cellPartnerContactRole.setCellValue(ct.getContactRole());
+					}
+					else
+					{
+						cellPartnerContactRole.setCellValue(ct.getOtherRole());
+					}
 
 					Cell cellPartnerContactEmailId = row.createCell(5);
 					if(ct.getContactEmailId()!=null) {
