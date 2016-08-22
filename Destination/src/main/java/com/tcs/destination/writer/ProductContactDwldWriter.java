@@ -292,7 +292,17 @@ try {
 				
 				Cell cellContactRole = row.createCell(4);
 				if(contactT.getContactRole()!=null)
-				cellContactRole.setCellValue(contactT.getContactRole());
+				{
+					if(!contactT.getContactRole().equalsIgnoreCase("Other"))
+					{
+				     cellContactRole.setCellValue(contactT.getContactRole());
+					}
+					else
+					{
+					 cellContactRole.setCellValue(contactT.getOtherRole());
+
+					}
+				}
 				
 				Cell cellContactEmailId = row.createCell(5);
 				if(contactT.getContactEmailId()!=null)
