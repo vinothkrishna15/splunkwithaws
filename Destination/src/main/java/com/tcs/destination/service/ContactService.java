@@ -493,8 +493,8 @@ public class ContactService {
 	 * @return
 	 */
 	private void validateRequest(ContactT contact) throws DestinationException {
-//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
-//		PartnerContactLinkT pclt=new PartnerContactLinkT();
+		//		List<PartnerContactLinkT> partnerContactList=new ArrayList<PartnerContactLinkT>();
+		//		PartnerContactLinkT pclt=new PartnerContactLinkT();
 
 		if (EntityType.contains(contact.getContactCategory())) {
 			if (contact.getContactCategory().equals(EntityType.CUSTOMER.name())) {
@@ -504,9 +504,9 @@ public class ContactService {
 							"CustomerId is required");
 				}
 
-//				pclt.setPartnerId(null);
-//				partnerContactList.add(pclt);
-//				contact.setPartnerContactLinkTs(partnerContactList);
+				//				pclt.setPartnerId(null);
+				//				partnerContactList.add(pclt);
+				//				contact.setPartnerContactLinkTs(partnerContactList);
 				contact.setPartnerContactLinkTs(null);
 			} else if (contact.getContactCategory().equals(
 					EntityType.PARTNER.name())) {
@@ -534,12 +534,12 @@ public class ContactService {
 					throw new DestinationException(HttpStatus.BAD_REQUEST,
 							"Internal Contact must have Employee Number");
 				}
-//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
-//				if (partnerId != null
-//						&& !(partnerId.isEmpty())) {
-//					throw new DestinationException(HttpStatus.BAD_REQUEST,
-//							"Internal Contact cannot be added to Partner");
-//				}
+				//				String partnerId=contact.getPartnerContactLinkTs().get(0).getPartnerId();
+				//				if (partnerId != null
+				//						&& !(partnerId.isEmpty())) {
+				//					throw new DestinationException(HttpStatus.BAD_REQUEST,
+				//							"Internal Contact cannot be added to Partner");
+				//				}
 			}
 
 			if (contact.getContactType().equals(ContactType.EXTERNAL.name())) {
@@ -1068,14 +1068,15 @@ public class ContactService {
 
 		if(contactTs!=null){
 			for(ContactT contactT : contactTs){
-				if(contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT()!=null){
-					if(contactT.getPartnerContactLinkTs().get(0).getContactT()!=null){
-						contactT.getPartnerContactLinkTs().get(0).setContactT(null);
+				if (!contactT.getPartnerContactLinkTs().isEmpty()) {
+					if(contactT.getPartnerContactLinkTs().get(0).getPartnerMasterT()!=null){
+						if(contactT.getPartnerContactLinkTs().get(0).getContactT()!=null){
+							contactT.getPartnerContactLinkTs().get(0).setContactT(null);
+						}
 					}
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -1259,8 +1260,8 @@ public class ContactService {
 		}
 
 	}
-	
-	
+
+
 	/**
 	 * Service to fetch the contact related information based on search type and the search keyword
 	 * @param smartSearchType
@@ -1277,7 +1278,7 @@ public class ContactService {
 		List<SearchResultDTO<ContactT>> resList = Lists.newArrayList();
 		SearchResultDTO<ContactT> searchResultDTO = new SearchResultDTO<ContactT>();
 		if(smartSearchType != null) {
-			
+
 			switch(smartSearchType) {
 			case ALL:
 				resList.add(getContactsByName(term, getAll));
@@ -1297,7 +1298,7 @@ public class ContactService {
 				throw new DestinationException(HttpStatus.BAD_REQUEST, "Invalid search type");
 
 			}
-			
+
 			if(smartSearchType != SmartSearchType.ALL) {//paginate the result if it is fetching entire record(ie. getAll=true)
 				if(getAll) {
 					List<ContactT> values = searchResultDTO.getValues();
