@@ -10,6 +10,7 @@ import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
 import com.tcs.destination.bean.WorkflowCompetitorT;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +76,7 @@ import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
 import com.tcs.destination.data.repository.UserRepository;
+import com.tcs.destination.data.repository.WorkflowBfmTRepository;
 import com.tcs.destination.data.repository.WorkflowCompetitorTRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowPartnerRepository;
@@ -91,7 +94,7 @@ import com.tcs.destination.utils.DestinationMailUtils;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.PaginationUtils;
 import com.tcs.destination.utils.QueryConstants;
-import com.tcs.destination.utils.StringUtils;
+//import com.tcs.destination.utils.StringUtils;
 
 /**
  * This service contains workflow related functionalities
@@ -206,6 +209,9 @@ public class WorkflowService {
 
 	@PersistenceContext
 	private EntityManager entityManager;
+
+	@Autowired
+	WorkflowBfmTRepository workflowBfmTRepository;
 
 	Map<String, GeographyMappingT> mapOfGeographyMappingT = null;
 	Map<String, IouCustomerMappingT> mapOfIouCustomerMappingT = null;
@@ -939,26 +945,27 @@ public class WorkflowService {
 				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
-			if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
-					|| wfpt.getUserId() != null) {
-				if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-					if (wfpt.getUserGroup().contains(userGroup)) {
-						// if (wfpt.getUserGroup().contains(userGroup)) {
-						templateStep = wfpt.getStep();
+			if (templateStep ==0 ) {
+				if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
+						|| wfpt.getUserId() != null) {
+					if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
+						if (wfpt.getUserGroup().contains(userGroup)) {
+							// if (wfpt.getUserGroup().contains(userGroup)) {
+							templateStep = wfpt.getStep();
+						}
 					}
-				}
-				if (!StringUtils.isEmpty(wfpt.getUserRole())) {
-					if (wfpt.getUserRole().contains(userRole)) {
-						templateStep = wfpt.getStep();
+					if (!StringUtils.isEmpty(wfpt.getUserRole())) {
+						if (wfpt.getUserRole().contains(userRole)) {
+							templateStep = wfpt.getStep();
+						}
 					}
-				}
-				if (!StringUtils.isEmpty(wfpt.getUserId())) {
-					if (wfpt.getUserId().contains(userId)) {
-						templateStep = wfpt.getStep();
+					if (!StringUtils.isEmpty(wfpt.getUserId())) {
+						if (wfpt.getUserId().contains(userId)) {
+							templateStep = wfpt.getStep();
+						}
 					}
 				}
 			}
-
 		}
 		if (templateStep == 0) {
 			throw new DestinationException(HttpStatus.FORBIDDEN,
@@ -3163,17 +3170,18 @@ public class WorkflowService {
 		}
 	}
 
-	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) {
+	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("Inside approveOrEscalateBfm method");
 		OpportunityT opportunity = opportunityRepository.findOne(workflowBfmT.getOpportunityId());
 		if (opportunity != null) {
 			switch (workflowBfmT.getApproveOrRejectOrEscalate()) {
-			case 1: approveOrRejectBfm(WorkflowStatus.APPROVED, workflowBfmT);
-					break;
-			case 2: approveOrRejectBfm(WorkflowStatus.REJECTED, workflowBfmT);
-					break;
-			case 3:break;
+			case "APPROVED" : approveOrRejectBfm(WorkflowStatus.APPROVED, workflowBfmT, status);
+			break;
+			case "REJECTED" : approveOrRejectBfm(WorkflowStatus.REJECTED, workflowBfmT, status);
+			break;
+			case "ESCALATED" : populateEscalateWorkflow(WorkflowStatus.ESCALATED, workflowBfmT, status);
+			break;
 			default:break;
 			}
 
@@ -3181,24 +3189,132 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.BAD_REQUEST,
 					"Opportunity not found");
 		}
-		return false;
+		return true;
 	}
 
-	private void approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT) {
+	private void populateEscalateWorkflow(WorkflowStatus workflowStatus, WorkflowBfmT workflowBfmT, Status status) throws Exception {
+		String Exceptions = workflowBfmT.getExceptions();
+		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+
+		if (Exceptions != null) {
+			List<String> exceptionArrayList = Arrays.asList(StringUtils.split(Exceptions, ","));
+			List<String> exceptionCombo1 = Arrays.asList("E1","E2");
+			List<String> exceptionCombo2 = Arrays.asList("E2","E3");
+			List<String> exceptionCombo3 = Arrays.asList("E3","E1");
+
+			if (exceptionArrayList.size() > 0) {
+				if (exceptionArrayList.contains("E5") || exceptionArrayList.contains(exceptionCombo1) ||
+						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
+					WorkflowRequestT workflowRequest = populateWorkflowRequest(
+							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
+					if (workflowRequest != null) {
+						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							status.setStatus(
+									Status.SUCCESS,
+									"The request for BFM is Escalated to IOU Head !!!");
+						} 
+					}
+				} else {
+					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
+							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
+					if (workflowRequest != null) {
+						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
+							//sendEmailNotificationforPending(workflowRequest.getRequestId(),new Date(), entityTypeId);
+							status.setStatus(
+									Status.SUCCESS,
+									"The request for BFM is Escalated to Geo Head !!!");
+						} 
+					}
+				}
+			}
+		}
+		else {
+			logger.error("Exceptions cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"Exceptions cannot be empty");
+		}
+	}
+
+	private WorkflowRequestT populateEscalationWorkflowRequest(
+			String workflowBfmId, Integer entityTypeId, String userId, String comments) {
+
+		logger.info("Inside Start of populateWorkflowRequest method");
+		List<WorkflowStepT> workflowSteps = null;
+		UserT user = userRepository.findByUserId(userId);
+		String userRole = user.getUserRole();
+		String userGroup = user.getUserGroup();
+		WorkflowRequestT workflowRequest = new WorkflowRequestT();
+		workflowRequest.setEntityId(workflowBfmId);
+		workflowRequest.setEntityTypeId(entityTypeId);
+		workflowRequest.setCreatedBy(userId);
+		workflowRequest.setModifiedBy(userId);
+
+		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
+		// Getting workflow templates for a particular entity
+		workflowTemplates = workflowProcessTemplateRepository
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
+		int templateStep = 0;
+		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
+			if (templateStep ==0 ) {
+				if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
+						|| wfpt.getUserId() != null) {
+					if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
+						if (wfpt.getUserGroup().contains(userGroup)) {
+							// if (wfpt.getUserGroup().contains(userGroup)) {
+							templateStep = wfpt.getStep();
+						}
+					}
+					if (!StringUtils.isEmpty(wfpt.getUserRole())) {
+						if (wfpt.getUserRole().contains(userRole)) {
+							templateStep = wfpt.getStep();
+						}
+					}
+					if (!StringUtils.isEmpty(wfpt.getUserId())) {
+						if (wfpt.getUserId().contains(userId)) {
+							templateStep = wfpt.getStep();
+						}
+					}
+				}
+			}
+		}
+		if (templateStep == 0) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User does not have access to this service");
+		}
+		WorkflowProcessTemplate workflowProcessTemplate = new WorkflowProcessTemplate();
+		workflowProcessTemplate = workflowProcessTemplateRepository
+				.findByEntityTypeIdAndStep(entityTypeId, templateStep);
+		// Generating workflow steps from workflow process template for a
+		// request based on user role or user group or user id
+		workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
+				workflowProcessTemplate, user, workflowRequest, comments);
+		workflowRequest.setWorkflowStepTs(workflowSteps);
+		// updating the entityTypeId of the workflowRequest for escalation
+		workflowRequest.setEntityTypeId(entityTypeId);
+		workflowRequest.setRequestId(workflowSteps.get(0).getRequestId());
+		workflowRequestTRepository.saveAndFlush(workflowRequest);
+		logger.info("Workflow request saved, Request Id :"
+				+ workflowRequest.getRequestId());
+		// Saving the workflow steps and the setting the request id in each step
+		for (WorkflowStepT wfs : workflowSteps) {
+			wfs.setRequestId(workflowRequest.getRequestId());
+			workflowStepTRepository.saveAndFlush(wfs);
+		}
+		logger.info("Inside End of populateWorkflowRequest method");
+		return workflowRequest;
+	}
+
+	private Status approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT, Status status) {
 		int stepId = -1;
 		int requestId = 0;
 		int rowIteration = 0;
 		int step = 0;
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		UserT user = userRepository.findByUserId(userId);
-		String userRole = user.getUserRole();
-		String userGroup = user.getUserGroup();
 		Integer entityTypeId = EntityTypeId.BFM.getType();
-		String entityId = workflowBfmT.getWorkflowBfmId();
 		List<WorkflowStepT> requestSteps = new ArrayList<WorkflowStepT>();
 		WorkflowRequestT masterRequest = new WorkflowRequestT();
 		//
-
 		if (validateWorkflowBfmDetails(workflowBfmT)) {
 
 			requestSteps = workflowStepTRepository
@@ -3236,9 +3352,9 @@ public class WorkflowService {
 					masterRequest.setStatus(WorkflowStatus.PENDING
 							.getStatus());
 					stepRecord.setModifiedBy(userId);
-//					sendEmailNotificationforPending(
-//							masterRequest.getRequestId(), new Date(),
-//							masterRequest.getEntityTypeId());
+					//					sendEmailNotificationforPending(
+					//							masterRequest.getRequestId(), new Date(),
+					//							masterRequest.getEntityTypeId());
 					rowIteration++;
 				}
 			}
@@ -3246,19 +3362,31 @@ public class WorkflowService {
 			workflowRequestTRepository.save(masterRequest);
 			if (masterRequest.getStatus().equals(
 					workflowStaus.getStatus())) {
-//				sendEmailNotificationforApprovedOrRejectMail(
-//						workflowPartnerApprovedSubject,
-//						masterRequest.getRequestId(),
-//						masterRequest.getCreatedDatetime(),
-//						masterRequest.getEntityTypeId());
+				WorkflowBfmT workflowBfmToBeSaved = workflowBfmTRepository.findOne(workflowBfmT.getWorkflowBfmId());
+				workflowBfmToBeSaved.setGrossMargin(workflowBfmT.getGrossMargin());
+				workflowBfmTRepository.save(workflowBfmToBeSaved);
+
+				status.setStatus(Status.SUCCESS,
+						"The requested workflow bfm is " + masterRequest.getStatus() + "!!!");
+				//				sendEmailNotificationforApprovedOrRejectMail(
+				//						workflowPartnerApprovedSubject,
+				//						masterRequest.getRequestId(),
+				//						masterRequest.getCreatedDatetime(),
+				//						masterRequest.getEntityTypeId());
 			}
 		}
-	
-
+		return status;
 	}
 
 	private boolean validateWorkflowBfmDetails(WorkflowBfmT workflowBfmT) {
-		// TODO Auto-generated method stub
-		return false;
+		boolean validated = false;
+		if (workflowBfmT.getGrossMargin() != null) {
+			validated = true;
+		} else{
+			logger.error("gross margin cannot be empty");
+			throw new DestinationException(HttpStatus.BAD_REQUEST,
+					"gross margin cannot be empty");
+		}
+		return validated;
 	}
 }

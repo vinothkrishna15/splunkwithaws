@@ -57,7 +57,7 @@ public class WorkflowBfmT implements Serializable {
 	private String comments;
 	
 	@Transient 
-	private Integer approveOrRejectOrEscalate;
+	private String approveOrRejectOrEscalate;
 
 	//bi-directional many-to-one association to OpportunityT
 	@ManyToOne
@@ -173,11 +173,11 @@ public class WorkflowBfmT implements Serializable {
 		this.modifiedBy = modifiedBy;
 	}
 
-	public Integer getApproveOrRejectOrEscalate() {
+	public String getApproveOrRejectOrEscalate() {
 		return approveOrRejectOrEscalate;
 	}
 
-	public void setApproveOrRejectOrEscalate(Integer approveOrRejectOrEscalate) {
+	public void setApproveOrRejectOrEscalate(String approveOrRejectOrEscalate) {
 		this.approveOrRejectOrEscalate = approveOrRejectOrEscalate;
 	}
 
