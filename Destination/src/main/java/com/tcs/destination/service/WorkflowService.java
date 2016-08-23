@@ -330,7 +330,7 @@ public class WorkflowService {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * This service is used to retrieve the worklist of the logged in user based upon the type
 	 * @param type 
@@ -344,29 +344,29 @@ public class WorkflowService {
 			throws DestinationException {
 		try
 		{
-		 logger.debug("Start of getMyWorklistByType service");
-		// userId of the logged in user is retrieved
-	    String userId = DestinationUtils.getCurrentUserDetails().getUserId();
-		PaginatedResponse worklistResponse = new PaginatedResponse();
-		// Contains list of all requests including customer, partner etc
-		List<WorklistDTO<Object>> myWorklist = new ArrayList<WorklistDTO<Object>>();
-		// Contains all the lists of customer requests
-		List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
-		// Contains all the lists of partner requests
-		List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
-		// Contains all the lists of competitor requests
-		List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
-		// Contains all the lists of opportunity requests
-		List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
-		// Contains all the lists of bfm requests
-		List<List<Object[]>> listOfBfmRequests = new ArrayList<>();
-		
-		Set<WorklistDTO<Object>> submittedAndApprovedRequests = new HashSet<WorklistDTO<Object>>();
-		List<Integer> typeList=new ArrayList<Integer>();		
-				
+			logger.debug("Start of getMyWorklistByType service");
+			// userId of the logged in user is retrieved
+			String userId = DestinationUtils.getCurrentUserDetails().getUserId();
+			PaginatedResponse worklistResponse = new PaginatedResponse();
+			// Contains list of all requests including customer, partner etc
+			List<WorklistDTO<Object>> myWorklist = new ArrayList<WorklistDTO<Object>>();
+			// Contains all the lists of customer requests
+			List<List<Object[]>> listOfCustomerRequests = new ArrayList<>();
+			// Contains all the lists of partner requests
+			List<List<Object[]>> listOfPartnerRequests = new ArrayList<>();
+			// Contains all the lists of competitor requests
+			List<List<Object[]>> listOfCompetitorRequests = new ArrayList<>();
+			// Contains all the lists of opportunity requests
+			List<List<Object[]>> listOfOpportunityReopenRequests = new ArrayList<>();
+			// Contains all the lists of bfm requests
+			List<List<Object[]>> listOfBfmRequests = new ArrayList<>();
 
-	    // Populate the response object
-			
+			Set<WorklistDTO<Object>> submittedAndApprovedRequests = new HashSet<WorklistDTO<Object>>();
+			List<Integer> typeList=new ArrayList<Integer>();		
+
+
+			// Populate the response object
+
 			switch (type) {
 			case BFM:
 				if (status.equalsIgnoreCase("ALL")
@@ -380,7 +380,7 @@ public class WorkflowService {
 				submittedAndApprovedRequests=getSubmittedAndApprovedRequest(status, userId,typeList);
 
 				populateResponse(listOfBfmRequests,
-			            EntityType.BFM.toString(), myWorklist);
+						EntityType.BFM.toString(), myWorklist);
 				break;
 			case CUSTOMER:
 			case PARTNER:
@@ -400,7 +400,7 @@ public class WorkflowService {
 					List<Object[]> pendingCompetitorRequests = getPendingCompetitorRequests(userId);
 					// Add all the lists of competitor requests
 					listOfCompetitorRequests.add(pendingCompetitorRequests);
-					
+
 				}
 				typeList.add(CUSTOMER.getType());
 				typeList.add(PARTNER.getType());
@@ -428,18 +428,18 @@ public class WorkflowService {
 				populateResponse(listOfOpportunityReopenRequests,
 						EntityType.OPPORTUNITY.toString(), myWorklist);
 				break;
-            default:
+			default:
 				logger.debug("Invalid Type");
 				throw new DestinationException(HttpStatus.NOT_FOUND,
 						"No such type found ");
-				
+
 			}
-			
+
 			// Add submitted and actioned by requests
 			myWorklist.addAll(Lists.newArrayList(submittedAndApprovedRequests));
 
 			// Sort the list based on modified date time
-		//	Collections.sort(myWorklist);
+			//	Collections.sort(myWorklist);
 			if (myWorklist.isEmpty()) {
 				logger.debug("No items in worklist for the user" + userId);
 				throw new DestinationException(HttpStatus.NOT_FOUND,
@@ -462,10 +462,10 @@ public class WorkflowService {
 			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
 					"Backend error while retrieving worklist details");
 		}
-		
-		
+
+
 	}
-	
+
 	private List<Object[]> getPendingBfmRequests(String userId) {
 		logger.debug("Start: Fetching pending Bfm requests");
 		List<Object[]> resultList = null;
@@ -519,9 +519,9 @@ public class WorkflowService {
 		if (query != null) {
 			resultForGroupPending = query.getResultList();
 		}
-		
+
 		resultList = resultForGroupPending;
-		
+
 		// Query to get pending bfm requests for specific user's approval/rejection
 		StringBuffer queryBuffer = new StringBuffer(
 				QueryConstants.BFM_PENDING_WITH_USER_QUERY);
@@ -538,9 +538,9 @@ public class WorkflowService {
 			resultList = query.getResultList();
 		}
 		logger.debug("Inside getPendingBfmRequests method : End");
-	    return resultList;
+		return resultList;
 	}
-	
+
 	/**
 	 * This method is used to retrieve workflow bfm details based on Id.
 	 * 
@@ -630,7 +630,7 @@ public class WorkflowService {
 	}
 
 
-	
+
 	/**
 	 * This method performs pagination for the getMyWorklist service
 	 * 
@@ -655,7 +655,7 @@ public class WorkflowService {
 		return myWorklist;
 	}
 
-	
+
 	/**
 	 * This method is used to fetch the submitted and approved requests for a user
 	 * @param status
@@ -672,7 +672,7 @@ public class WorkflowService {
 
 		if (status.equalsIgnoreCase("ALL")) {
 			workFlowActionedRequest = workflowRequestTRepository
-	                      .getModifiedByType(userId,type);
+					.getModifiedByType(userId,type);
 			workFlowSubmittedRequest = workflowRequestTRepository.findByCreatedByAndEntityTypeIdIn(userId,type);
 
 		} else {
@@ -730,18 +730,18 @@ public class WorkflowService {
 							myWorklistDTO.setEntityType(EntityTypeId.BFM.getDisplayName());
 							myWorklistDTO.setEntity(workflowBfmTRepository.findOne(requestT.getEntityId()));
 							break;
-							
+
 				}
 				myWorklistDTO.setRequestId(requestT.getRequestId());
-			    WorkflowStepT stepT = workflowStepRepository
+				WorkflowStepT stepT = workflowStepRepository
 						.findFirstByRequestIdAndStepStatusNotOrderByStepIdDesc(
 								requestT.getRequestId(),
 								WorkflowStatus.NOT_APPLICABLE.getStatus());
-			    if(stepT!=null)
-			    {
-				myWorklistDTO.setWorkflowStep(stepT);
-				myWorklistDTO.setModifiedDatetime(stepT.getModifiedDatetime());
-			    }
+				if(stepT!=null)
+				{
+					myWorklistDTO.setWorkflowStep(stepT);
+					myWorklistDTO.setModifiedDatetime(stepT.getModifiedDatetime());
+				}
 				myWorklistDTOs.add(myWorklistDTO);
 			}
 		}
@@ -750,7 +750,7 @@ public class WorkflowService {
 
 		return myWorklistDTOs;
 	}
-	
+
 	/**
 	 * This method is used to populate the response object
 	 * 
@@ -765,16 +765,16 @@ public class WorkflowService {
 		for (int i = 0; i < listOfEntityRequests.size(); i++) {
 			List<Object[]> tempRequestObject = listOfEntityRequests.get(i);
 			if (tempRequestObject != null) {
-				
+
 				WorklistDTO<Object> worklist=new WorklistDTO<Object>(); 
 
 				// Iterate the result and set the response object
 				for (Object[] MyWorklistDTOArray : tempRequestObject) {
-                    
-					
+
+
 					if (entityType.equalsIgnoreCase(EntityType.CUSTOMER
 							.toString())) {
-						
+
 						// All customer requests
 						worklist.setEntityType("New Customer");
 						if (MyWorklistDTOArray[2] != null) 
@@ -785,9 +785,9 @@ public class WorkflowService {
 						{
 							worklist.setEntity(null);
 						}
-						} else if (entityType.equalsIgnoreCase(EntityType.PARTNER
+					} else if (entityType.equalsIgnoreCase(EntityType.PARTNER
 							.toString())) {
-						
+
 						// All Partner requests
 						worklist.setEntityType("New Partner");
 						if (MyWorklistDTOArray[2] != null) 
@@ -798,10 +798,10 @@ public class WorkflowService {
 						{
 							worklist.setEntity(null);
 						}
-						
+
 					} else if (entityType
 							.equalsIgnoreCase(EntityType.COMPETITOR.toString())) {
-					
+
 						// All Competitor requests
 						worklist.setEntityType("New Competitor");
 						if (MyWorklistDTOArray[2] != null) 
@@ -812,10 +812,10 @@ public class WorkflowService {
 						{
 							worklist.setEntity(null);
 						}
-						
+
 					} else if (entityType
 							.equalsIgnoreCase(EntityType.OPPORTUNITY.toString())) {
-						
+
 						// All Opportunity Reopen requests
 						worklist.setEntityType("New Opportunity Reopen");
 						if (MyWorklistDTOArray[2] != null) 
@@ -826,16 +826,16 @@ public class WorkflowService {
 						{
 							worklist.setEntity(null);
 						}
-						
+
 					}
-					 else if (entityType
-								.equalsIgnoreCase(EntityType.BFM.toString())) {
-					
-							// All BFM requests
-							worklist.setEntityType("Opportunity Deal Financial");
-							
-						}
-					
+					else if (entityType
+							.equalsIgnoreCase(EntityType.BFM.toString())) {
+
+						// All BFM requests
+						worklist.setEntityType("Opportunity Deal Financial");
+
+					}
+
 					WorkflowStepT workflowStep = new WorkflowStepT();
 
 					if (MyWorklistDTOArray[3] != null) {
@@ -888,7 +888,7 @@ public class WorkflowService {
 						workflowStep.setModifiedDatetime(Timestamp.valueOf(s));
 						worklist.setModifiedDatetime(Timestamp.valueOf(s));
 					}
-					
+
 					if (MyWorklistDTOArray[13] != null) {
 						workflowStep.setUserGroup(MyWorklistDTOArray[13]
 								.toString());
@@ -1518,6 +1518,7 @@ public class WorkflowService {
 		workflowRequest.setModifiedBy(userId);
 
 		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
+
 		// Getting workflow templates for a particular entity
 		workflowTemplates = workflowProcessTemplateRepository
 				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
@@ -3783,7 +3784,7 @@ public class WorkflowService {
 			if (exceptionArrayList.size() > 0) {
 				if (exceptionArrayList.contains("E5") || exceptionArrayList.contains(exceptionCombo1) ||
 						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
-					WorkflowRequestT workflowRequest = populateWorkflowRequest(
+					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
 					if (workflowRequest != null) {
 						if (workflowRequest.getStatus().equals(WorkflowStatus.PENDING.getStatus())) {
@@ -3819,58 +3820,40 @@ public class WorkflowService {
 
 		logger.info("Inside Start of populateWorkflowRequest method");
 		List<WorkflowStepT> workflowSteps = null;
+		Integer bfmEntityTypeId = EntityTypeId.BFM.getType();
 		UserT user = userRepository.findByUserId(userId);
-		String userRole = user.getUserRole();
-		String userGroup = user.getUserGroup();
-		WorkflowRequestT workflowRequest = new WorkflowRequestT();
-		workflowRequest.setEntityId(workflowBfmId);
-		workflowRequest.setEntityTypeId(entityTypeId);
-		workflowRequest.setCreatedBy(userId);
-		workflowRequest.setModifiedBy(userId);
-
 		List<WorkflowProcessTemplate> workflowTemplates = new ArrayList<WorkflowProcessTemplate>();
+
+		//check whether the user is authorised to escalate
+		checkUserAuthorisedToEscalate(workflowTemplates, userId, bfmEntityTypeId);
+
 		// Getting workflow templates for a particular entity
 		workflowTemplates = workflowProcessTemplateRepository
 				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
 		int templateStep = 0;
 		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
-			if (templateStep ==0 ) {
-				if (wfpt.getUserGroup() != null || wfpt.getUserRole() != null
-						|| wfpt.getUserId() != null) {
-					if (!StringUtils.isEmpty(wfpt.getUserGroup())) {
-						if (wfpt.getUserGroup().contains(userGroup)) {
-							// if (wfpt.getUserGroup().contains(userGroup)) {
-							templateStep = wfpt.getStep();
-						}
-					}
-					if (!StringUtils.isEmpty(wfpt.getUserRole())) {
-						if (wfpt.getUserRole().contains(userRole)) {
-							templateStep = wfpt.getStep();
-						}
-					}
-					if (!StringUtils.isEmpty(wfpt.getUserId())) {
-						if (wfpt.getUserId().contains(userId)) {
-							templateStep = wfpt.getStep();
-						}
-					}
-				}
-			}
-		}
-		if (templateStep == 0) {
-			throw new DestinationException(HttpStatus.FORBIDDEN,
-					"User does not have access to this service");
+			templateStep = wfpt.getStep();
+			break;
 		}
 		WorkflowProcessTemplate workflowProcessTemplate = new WorkflowProcessTemplate();
 		workflowProcessTemplate = workflowProcessTemplateRepository
 				.findByEntityTypeIdAndStep(entityTypeId, templateStep);
+		WorkflowRequestT workflowRequest = workflowRequestRepository.findByEntityTypeIdAndEntityId(bfmEntityTypeId, workflowBfmId);
+		if (workflowRequest == null) {
+			throw new DestinationException(HttpStatus.NOT_FOUND,
+					"Not a valid workflow request !");
+
+		}
 		// Generating workflow steps from workflow process template for a
 		// request based on user role or user group or user id
-		workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
+		//workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
+		//workflowProcessTemplate, user, workflowRequest, comments);
+		workflowSteps = populateEscalationWorkFlowSteps(
 				workflowProcessTemplate, user, workflowRequest, comments);
 		workflowRequest.setWorkflowStepTs(workflowSteps);
 		// updating the entityTypeId of the workflowRequest for escalation
 		workflowRequest.setEntityTypeId(entityTypeId);
-		workflowRequest.setRequestId(workflowSteps.get(0).getRequestId());
+		workflowRequest.setModifiedBy(userId);
 		workflowRequestTRepository.saveAndFlush(workflowRequest);
 		logger.info("Workflow request saved, Request Id :"
 				+ workflowRequest.getRequestId());
@@ -3881,6 +3864,67 @@ public class WorkflowService {
 		}
 		logger.info("Inside End of populateWorkflowRequest method");
 		return workflowRequest;
+	}
+
+	private List<WorkflowStepT> populateEscalationWorkFlowSteps(
+			WorkflowProcessTemplate workflowProcessTemplate, UserT user,
+			WorkflowRequestT workflowRequest, String comments) {
+
+		logger.info("Inside populateWorkFlowStepForUserRoleOrUserGroupOrUserId method");
+		String userId = user.getUserId();
+		List<WorkflowStepT> workflowSteps = new ArrayList<WorkflowStepT>();
+		List<WorkflowProcessTemplate> workflowTemplatesForNotapplicable = new ArrayList<WorkflowProcessTemplate>();
+		Integer stepPending = workflowProcessTemplate.getStep() + 1;
+		// Getting workflow template for pending
+		WorkflowProcessTemplate workflowTemplateForPending = workflowProcessTemplateRepository
+				.findByEntityTypeIdAndStep(
+						workflowProcessTemplate.getEntityTypeId(), stepPending);
+		workflowSteps.add(constructWorkflowStep(workflowProcessTemplate,
+				userId, WorkflowStatus.PENDING.getStatus(), comments));
+		workflowRequest.setStatus(WorkflowStatus.PENDING.getStatus());
+		//updating the status for pending - escalation
+		if (workflowTemplateForPending != null) {
+			// Getting workflow template for rest of the user categories as not
+			// applicable
+			workflowTemplatesForNotapplicable = workflowProcessTemplateRepository
+					.findByEntityTypeIdAndStepGreaterThan(
+							workflowProcessTemplate.getEntityTypeId(),
+							workflowProcessTemplate.getStep());
+			if (CollectionUtils.isNotEmpty(workflowTemplatesForNotapplicable)) {
+				for (WorkflowProcessTemplate workflowProcessTemplateForNotApplicable : workflowTemplatesForNotapplicable) {
+					workflowSteps
+					.add(constructWorkflowStep(
+							workflowProcessTemplateForNotApplicable,
+							userId,
+							WorkflowStatus.NOT_APPLICABLE.getStatus(),
+							comments));
+				}
+			}
+		}
+		return workflowSteps;
+	}
+
+	private void checkUserAuthorisedToEscalate(
+			List<WorkflowProcessTemplate> workflowTemplates, String userId, Integer entityTypeId) {
+		// Getting workflow templates for a particular entity
+		workflowTemplates = workflowProcessTemplateRepository
+				.findByEntityTypeIdOrderByStepAsc(entityTypeId);
+		int templateStep = 0;
+		for (WorkflowProcessTemplate wfpt : workflowTemplates) {
+			if (templateStep ==0 ) {
+				if (wfpt.getUserId() != null) {
+					if (!StringUtils.isEmpty(wfpt.getUserId())) {
+						if (wfpt.getUserId().contains(userId)) {
+							templateStep = wfpt.getStep();
+						}
+					}
+				}
+			}
+		}
+		if (templateStep == 0) {
+			throw new DestinationException(HttpStatus.FORBIDDEN,
+					"User does not have access to Escalate the BFM request !");
+		}
 	}
 
 	private Status approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT, Status status) {
