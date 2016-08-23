@@ -5,10 +5,6 @@ import static com.tcs.destination.enums.EntityTypeId.CUSTOMER;
 import static com.tcs.destination.enums.EntityTypeId.PARTNER;
 
 import java.sql.Timestamp;
-
-import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
-import com.tcs.destination.bean.WorkflowCompetitorT;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,6 +53,8 @@ import com.tcs.destination.bean.Status;
 import com.tcs.destination.bean.UserT;
 import com.tcs.destination.bean.WorkflowBfmDetailsDTO;
 import com.tcs.destination.bean.WorkflowBfmT;
+import com.tcs.destination.bean.WorkflowCompetitorDetailsDTO;
+import com.tcs.destination.bean.WorkflowCompetitorT;
 import com.tcs.destination.bean.WorkflowCustomerDetailsDTO;
 import com.tcs.destination.bean.WorkflowCustomerT;
 import com.tcs.destination.bean.WorkflowPartnerDetailsDTO;
@@ -72,8 +70,8 @@ import com.tcs.destination.data.repository.CustomerRepository;
 import com.tcs.destination.data.repository.OpportunityRepository;
 import com.tcs.destination.data.repository.PartnerContactLinkTRepository;
 import com.tcs.destination.data.repository.PartnerRepository;
-import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.PartnerSubSpMappingTRepository;
+import com.tcs.destination.data.repository.PartnerSubSpProductMappingTRepository;
 import com.tcs.destination.data.repository.ProductContactLinkTRepository;
 import com.tcs.destination.data.repository.RevenueCustomerMappingTRepository;
 import com.tcs.destination.data.repository.UserAccessPrivilegesRepository;
@@ -559,11 +557,12 @@ public class WorkflowService {
 						.findByRequestId(requestedBfmId);
 				if (workflowRequest != null) {
 
-					// Check if the particular request is a new competitor
-					// request
-					if (workflowRequest.getEntityTypeId() == EntityTypeId.BFM
-							.getType()) {
-
+					// Check if the particular request is a new BFM request
+					EntityTypeId typeId = EntityTypeId.getFrom(workflowRequest.getEntityTypeId());
+					if (typeId != null && 
+							(typeId == EntityTypeId.BFM 
+							|| typeId == EntityTypeId.ESCALATION_A 
+							|| typeId == EntityTypeId.ESCALATION_B)) {
 						// Get the status of the new deal financial request
 						workflowBfmDetailsDTO.setStatus(workflowRequest
 								.getStatus());
@@ -588,11 +587,11 @@ public class WorkflowService {
 								// request details
 								checkAuthorizedUser(workflowSteps, userId);
 							} else {
-								logger.info("No step details found for workflow Competitor id: "
+								logger.info("No step details found for workflow bfm id: "
 										+ workflowBfmId);
 								throw new DestinationException(
 										HttpStatus.INTERNAL_SERVER_ERROR,
-										"Backend error in retrieving Competitor details");
+										"Backend error in retrieving BFM details");
 							}
 						} else {
 							logger.info("Workflow Bfm id: "
@@ -4100,5 +4099,25 @@ public class WorkflowService {
 					"gross margin cannot be empty");
 		}
 		return validated;
+	}
+
+	/**
+	 * Service method used to download the deal financial file
+	 * @param id - request id
+	 * @return
+	 */
+	public WorkflowBfmT downloadBFMFile(Integer id) {
+		WorkflowBfmDetailsDTO BfmDetailsDto = findRequestedBfmDetailsById(id);
+		if(BfmDetailsDto != null && BfmDetailsDto.getRequestedBfm() != null) {
+			byte[] dealFinancialFile = BfmDetailsDto.getRequestedBfm().getDealFinancialFile(); 
+			if(dealFinancialFile != null && dealFinancialFile.length > 0) {
+				return BfmDetailsDto.getRequestedBfm();
+				//return new InputStreamResource(new ByteArrayInputStream(dealFinancialFile));
+			} else {
+				throw new DestinationException(HttpStatus.NOT_FOUND, "BFM file not found");
+			}
+		} else {
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR, "Backend error while retrieving BFM file");
+		}
 	}
 }

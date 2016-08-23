@@ -1,10 +1,16 @@
 package com.tcs.destination.controller;
 
 
+import java.io.ByteArrayInputStream;
+import java.util.Random;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,11 +37,11 @@ import com.tcs.destination.data.repository.UserRepository;
 import com.tcs.destination.data.repository.WorkflowCustomerTRepository;
 import com.tcs.destination.data.repository.WorkflowRequestTRepository;
 import com.tcs.destination.data.repository.WorkflowStepTRepository;
+import com.tcs.destination.enums.EntityTypeId;
 import com.tcs.destination.exception.DestinationException;
 import com.tcs.destination.service.WorkflowService;
 import com.tcs.destination.utils.DestinationUtils;
 import com.tcs.destination.utils.ResponseConstructors;
-import  com.tcs.destination.enums.EntityTypeId;
 
 /**
  * This controller deals with the workflow related functionalities
@@ -605,6 +611,42 @@ public class WorkflowController {
 		}
 	}
 
+
+	/**
+	 * Service method used to download the deal financial file
+	 * @param id - request id
+	 * @return
+	 * @throws DestinationException
+	 */
+	@RequestMapping(value = "/bfm/download", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> downloadBFMFile(
+			@RequestParam("requestId") Integer id)
+			throws DestinationException {
+		logger.info("Inside WorkflowController: Start of downloadBFMFile download");
+		HttpHeaders respHeaders = null;
+		InputStreamResource bfmStream = null;
+		try {
+			WorkflowBfmT bfmT = workflowService.downloadBFMFile(id);
+			bfmStream = new InputStreamResource(new ByteArrayInputStream(bfmT.getDealFinancialFile()));
+			
+			respHeaders = new HttpHeaders();
+			//TODO frame the file name from the details
+			String repName = "bfm_" + new Random().nextInt() + ".xlsx";
+			respHeaders.add("reportName", repName);
+			respHeaders.setContentDispositionFormData("attachment", repName);
+			respHeaders.setContentType(MediaType
+					.parseMediaType("application/octet-stream"));
+			logger.info("Inside WorkflowController: BFMFile Downloaded Successfully ");
+			return new ResponseEntity<InputStreamResource>(
+					bfmStream, respHeaders, HttpStatus.OK);
+		} catch (DestinationException e) {
+			throw e;
+		} catch (Exception e) {
+			logger.error("INTERNAL_SERVER_ERROR : ", e);
+			throw new DestinationException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Backend error in downloading the BFM file");
+		}
+	}
 	
 
 }
