@@ -307,5 +307,10 @@ public class Constants {
 	public static final String shareConnectPortal="<User> has shared Connect: <ConnectName> with you";
 	public static final String shareOpportunityPortal="<User> has shared Opportunity: <OpportunityName> with you";
 	
-	
+	//Workflow BFM
+	public static final String E1 = "E1";
+	public static final String E2 = "E2";
+	public static final String E3 = "E3";
+	public static final String E4 = "E4";
+	public static final String E5 = "E5";
 }

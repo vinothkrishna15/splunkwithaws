@@ -2783,6 +2783,11 @@ public class WorkflowService {
 		return resultList;
 	}
 
+	/**
+	 * Method to approve workflow partner
+	 * @param workflowPartnerT
+	 * @return
+	 */
 	public boolean approvePartnerWorkflowEntity(
 			WorkflowPartnerT workflowPartnerT) {
 
@@ -2890,6 +2895,12 @@ public class WorkflowService {
 		return true;
 	}
 
+	/**
+	 * Method to check whether a partner is modified or not
+	 * @param oldObject
+	 * @param workflowPartnerT
+	 * @return
+	 */
 	private boolean isPartnerModified(WorkflowPartnerT oldObject,
 			WorkflowPartnerT workflowPartnerT) {
 
@@ -3020,6 +3031,11 @@ public class WorkflowService {
 		partnerRepository.save(oldPartnerMaster);
 	}
 
+	/**
+	 * Validate workflow partner master details
+	 * @param requestedPartner
+	 * @return
+	 */
 	private boolean validateWorkflowPartnerMasterDetails(
 			WorkflowPartnerT requestedPartner) {
 		boolean validated = true;
@@ -3143,6 +3159,13 @@ public class WorkflowService {
 		}
 	}
 
+	/**
+	 * Method to insert workflow competitor
+	 * @param workflowCompetitorT
+	 * @param status
+	 * @return
+	 * @throws Exception
+	 */
 	@Transactional
 	public boolean insertWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT, Status status)
@@ -3185,6 +3208,10 @@ public class WorkflowService {
 		return true;
 	}
 
+	/**
+	 * Method to save competitor to master table
+	 * @param requestedCompetitor
+	 */
 	private void saveToCompetitorTable(WorkflowCompetitorT requestedCompetitor) {
 		// TODO Auto-generated method stub
 		logger.info("Inside saveToCompetitorTable method");
@@ -3200,6 +3227,10 @@ public class WorkflowService {
 
 	}
 
+	/**
+	 * Method to validate workflow competitor
+	 * @param workflowCompetitorT
+	 */
 	private void validateWorkflowCompetitor(
 			WorkflowCompetitorT workflowCompetitorT) {
 		// TODO Auto-generated method stub
@@ -3516,7 +3547,11 @@ public class WorkflowService {
 		return flag;
 	}
 
-	// competitor workflow
+	/**
+	 * Method to approve workflow competitor 
+	 * @param workflowCompetitorT
+	 * @return
+	 */
 	public boolean approveCompetitorWorkflowEntity(
 			WorkflowCompetitorT workflowCompetitorT) {
 		int stepId = -1;
@@ -3655,6 +3690,12 @@ public class WorkflowService {
 		competitorRepository.save(oldCompetitorMaster);
 	}
 
+	/**
+	 * Method to check whether a competitor is modified or not
+	 * @param oldObject
+	 * @param workflowCompetitorT
+	 * @return
+	 */
 	private boolean isCompetitorModified(WorkflowCompetitorT oldObject,
 			WorkflowCompetitorT workflowCompetitorT) {
 		boolean isCompetitorModifiedFlag = false;
@@ -3749,6 +3790,14 @@ public class WorkflowService {
 		}
 	}
 
+	/**
+	 * Method to take action on the bfm request based on the status
+	 * - approved / rejected / escalated
+	 * @param workflowBfmT
+	 * @param status
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean approveOrEscalateBfm(WorkflowBfmT workflowBfmT, Status status) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("Inside approveOrEscalateBfm method");
@@ -3771,18 +3820,26 @@ public class WorkflowService {
 		return true;
 	}
 
+	/**
+	 * Method to populate work flow steps on escalation by Shrilakshmi
+	 * @param workflowStatus
+	 * @param workflowBfmT
+	 * @param status
+	 * @throws Exception
+	 */
 	private void populateEscalateWorkflow(WorkflowStatus workflowStatus, WorkflowBfmT workflowBfmT, Status status) throws Exception {
 		String Exceptions = workflowBfmT.getExceptions();
 		String userId = DestinationUtils.getCurrentUserDetails().getUserId();
 
 		if (Exceptions != null) {
 			List<String> exceptionArrayList = Arrays.asList(StringUtils.split(Exceptions, ","));
-			List<String> exceptionCombo1 = Arrays.asList("E1","E2");
-			List<String> exceptionCombo2 = Arrays.asList("E2","E3");
-			List<String> exceptionCombo3 = Arrays.asList("E3","E1");
+			List<String> exceptionCombo1 = Arrays.asList(Constants.E1,Constants.E2);
+			List<String> exceptionCombo2 = Arrays.asList(Constants.E2,Constants.E3);
+			List<String> exceptionCombo3 = Arrays.asList(Constants.E3,Constants.E1);
 
 			if (exceptionArrayList.size() > 0) {
-				if (exceptionArrayList.contains("E5") || exceptionArrayList.contains(exceptionCombo1) ||
+				// On meeting the below conditions, It takes the path of Escalation A
+				if (exceptionArrayList.contains(Constants.E5) || exceptionArrayList.contains(exceptionCombo1) ||
 						exceptionArrayList.contains(exceptionCombo2) || exceptionArrayList.contains(exceptionCombo3)) {
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_A.getType(), userId, "");	
@@ -3794,7 +3851,9 @@ public class WorkflowService {
 									"The request for BFM is Escalated to IOU Head !!!");
 						} 
 					}
-				} else {
+				} 
+				// On meeting the below conditions, It takes the path of Escalation B
+				else {
 					WorkflowRequestT workflowRequest = populateEscalationWorkflowRequest(
 							workflowBfmT.getWorkflowBfmId(), EntityTypeId.ESCALATION_B.getType(), userId, "");
 					if (workflowRequest != null) {
@@ -3815,6 +3874,16 @@ public class WorkflowService {
 		}
 	}
 
+	/**
+	 * Steps Of the work flow request and steps are dynamically updated based on the escalation path 
+	 * chosen based on the Exceptions selected.
+	 * 
+	 * @param workflowBfmId
+	 * @param entityTypeId
+	 * @param userId
+	 * @param comments
+	 * @return
+	 */
 	private WorkflowRequestT populateEscalationWorkflowRequest(
 			String workflowBfmId, Integer entityTypeId, String userId, String comments) {
 
@@ -3842,30 +3911,33 @@ public class WorkflowService {
 		if (workflowRequest == null) {
 			throw new DestinationException(HttpStatus.NOT_FOUND,
 					"Not a valid workflow request !");
-
 		}
 		// Generating workflow steps from workflow process template for a
 		// request based on user role or user group or user id
-		//workflowSteps = populateWorkFlowStepForUserRoleOrUserGroupOrUserId(
-		//workflowProcessTemplate, user, workflowRequest, comments);
 		workflowSteps = populateEscalationWorkFlowSteps(
 				workflowProcessTemplate, user, workflowRequest, comments);
-		workflowRequest.setWorkflowStepTs(workflowSteps);
-		// updating the entityTypeId of the workflowRequest for escalation
-		workflowRequest.setEntityTypeId(entityTypeId);
-		workflowRequest.setModifiedBy(userId);
-		workflowRequestTRepository.saveAndFlush(workflowRequest);
-		logger.info("Workflow request saved, Request Id :"
-				+ workflowRequest.getRequestId());
 		// Saving the workflow steps and the setting the request id in each step
 		for (WorkflowStepT wfs : workflowSteps) {
 			wfs.setRequestId(workflowRequest.getRequestId());
 			workflowStepTRepository.saveAndFlush(wfs);
 		}
+		workflowRequest.setWorkflowStepTs(workflowSteps);
+		// updating the entityTypeId of the workflowRequest for escalation
+		workflowRequest.setEntityTypeId(entityTypeId);
+		workflowRequest.setModifiedBy(userId);
+		workflowRequestTRepository.saveAndFlush(workflowRequest);
 		logger.info("Inside End of populateWorkflowRequest method");
 		return workflowRequest;
 	}
 
+	/**
+	 * Populate the steps for escalation for Pending and Not Appplicable
+	 * @param workflowProcessTemplate
+	 * @param user
+	 * @param workflowRequest
+	 * @param comments
+	 * @return
+	 */
 	private List<WorkflowStepT> populateEscalationWorkFlowSteps(
 			WorkflowProcessTemplate workflowProcessTemplate, UserT user,
 			WorkflowRequestT workflowRequest, String comments) {
@@ -3904,6 +3976,12 @@ public class WorkflowService {
 		return workflowSteps;
 	}
 
+	/**
+	 * validation to check authorization of the user to escalate
+	 * @param workflowTemplates
+	 * @param userId
+	 * @param entityTypeId
+	 */
 	private void checkUserAuthorisedToEscalate(
 			List<WorkflowProcessTemplate> workflowTemplates, String userId, Integer entityTypeId) {
 		// Getting workflow templates for a particular entity
@@ -3927,6 +4005,13 @@ public class WorkflowService {
 		}
 	}
 
+	/**
+	 * Method to approve or reject the work flow BFM request
+	 * @param workflowStaus
+	 * @param workflowBfmT
+	 * @param status
+	 * @return
+	 */
 	private Status approveOrRejectBfm(WorkflowStatus workflowStaus, WorkflowBfmT workflowBfmT, Status status) {
 		int stepId = -1;
 		int requestId = 0;
@@ -4000,6 +4085,11 @@ public class WorkflowService {
 		return status;
 	}
 
+	/**
+	 * Method to validate the workflow BFM Details
+	 * @param workflowBfmT
+	 * @return
+	 */
 	private boolean validateWorkflowBfmDetails(WorkflowBfmT workflowBfmT) {
 		boolean validated = false;
 		if (workflowBfmT.getGrossMargin() != null) {
