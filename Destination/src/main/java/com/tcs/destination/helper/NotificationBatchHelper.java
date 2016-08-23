@@ -719,10 +719,24 @@ public class NotificationBatchHelper {
 			List<Integer> conditionSubscriberEvents = recipientEventMap
 					.get(RecipientType.SUBSCRIBER);
 			//Customer name
-			conditionSubscribers
-					.addAll(userNotificationSettingsConditionRepository
-							.findUserIdByConditionIdAndConditionValue(1,
-									customerMasterT.getCustomerName()));
+			if(customerMasterT!=null) {
+				conditionSubscribers
+				.addAll(userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(1,
+								customerMasterT.getCustomerName()));
+				
+				conditionSubscribers
+				.addAll(userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(3,
+								customerMasterT.getIouCustomerMappingT()
+										.getDisplayIou()));
+				
+				conditionSubscribers
+				.addAll(userNotificationSettingsConditionRepository
+						.findUserIdByConditionIdAndConditionValue(4,
+								customerMasterT.getGeography()));
+			}
+			
 			if (CollectionUtils.isNotEmpty(searchKeywords)) {
 				for (SearchKeywordsT searchKeywordsT : searchKeywords) {
 					conditionSubscribers
@@ -730,15 +744,8 @@ public class NotificationBatchHelper {
 									2, searchKeywordsT.getSearchKeywords()));
 				}
 			}
-			conditionSubscribers
-					.addAll(userNotificationSettingsConditionRepository
-							.findUserIdByConditionIdAndConditionValue(3,
-									customerMasterT.getIouCustomerMappingT()
-											.getDisplayIou()));
-			conditionSubscribers
-					.addAll(userNotificationSettingsConditionRepository
-							.findUserIdByConditionIdAndConditionValue(4,
-									customerMasterT.getGeography()));
+			
+			
 			conditionSubscribers
 					.addAll(userNotificationSettingsConditionRepository
 							.findUserIdByConditionIdAndConditionValue(5,
